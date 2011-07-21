@@ -24,17 +24,15 @@
 using System;
 using CK.Core;
 using CK.Storage;
+using System.ComponentModel;
 
 namespace CK.Plugin.Config
 {
-    internal class SystemConfiguration : ConfigurationBase, ISystemConfiguration, IStructuredSerializable
+    internal class SystemConfiguration : ConfigurationBase, ISystemConfiguration
     {
-        UserProfileCollection _profiles;
-
         public SystemConfiguration( ConfigManagerImpl configManager )
-            : base( configManager )
+            : base( configManager, "UserProfile" )
         {
-           _profiles = new UserProfileCollection( this );
         }
 
         internal override void OnCollectionChanged()
@@ -43,35 +41,20 @@ namespace CK.Plugin.Config
             base.OnCollectionChanged();
         }
 
-        public UserProfileCollection UserProfiles
+        public IUriHistory CurrentUserProfile
         {
-            get { return _profiles; }
+            get { return base.UriHistoryCollection.Current; }
+            set { base.UriHistoryCollection.Current = value; }
         }
 
-        IUserProfileCollection ISystemConfiguration.UserProfiles
+        IUriHistoryCollection ISystemConfiguration.UserProfiles
         {
-            get { return _profiles; }
+            get { return base.UriHistoryCollection; }
         }
 
         IPluginStatusCollection ISystemConfiguration.PluginsStatus
         {
-            get { return PluginStatusCollection; }
-        }
-
-        void IStructuredSerializable.ReadInlineContent( IStructuredReader sr )
-        {
-            sr.Xml.Read();
-            sr.ReadInlineObjectStructuredElement( "PluginStatusCollection", PluginStatusCollection );
-            sr.ReadInlineObjectStructuredElement( "UserProfileCollection", _profiles );
-            sr.GetService<ISharedDictionaryReader>( true ).ReadPluginsDataElement( "Plugins", this );
-        }
-
-        void IStructuredSerializable.WriteInlineContent( IStructuredWriter sw )
-        {
-            sw.Xml.WriteAttributeString( "Version", "1.0.0.0" );
-            sw.WriteInlineObjectStructuredElement( "PluginStatusCollection", PluginStatusCollection );
-            sw.WriteInlineObjectStructuredElement( "UserProfileCollection", _profiles );
-            sw.GetService<ISharedDictionaryWriter>( true ).WritePluginsDataElement( "Plugins", this );
+            get { return base.PluginStatusCollection; }
         }
 
         public IObjectPluginConfig HostConfig

@@ -10,8 +10,9 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>CK.Plugin.Config</RootNamespace>
     <AssemblyName>CK.Plugin.Config</AssemblyName>
-    <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
+    <TargetFrameworkProfile>Client</TargetFrameworkProfile>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -50,8 +51,8 @@
     <Compile Include="Impl\Collections\LiveUserConfiguration.cs" />
     <Compile Include="Impl\Collections\PluginStatus.cs" />
     <Compile Include="Impl\Collections\PluginStatusCollection.cs" />
-    <Compile Include="Impl\Collections\UserProfile.cs" />
-    <Compile Include="Impl\Collections\UserProfileCollection.cs" />
+    <Compile Include="Impl\Collections\UriHistory.cs" />
+    <Compile Include="Impl\Collections\UriHistoryCollection.cs" />
     <Compile Include="Impl\ConfigurationBase.cs" />
     <Compile Include="Impl\SystemConfiguration.cs" />
     <Compile Include="Impl\UserConfiguration.cs" />
@@ -62,7 +63,6 @@
       <DependentUpon>R.resx</DependentUpon>
     </Compile>
     <Compile Include="SolvedPluginConfigElement.cs" />
-    <Compile Include="SolvedConfigStatus.cs" />
     <Compile Include="UserAndSystemConfig\IPluginStatus.cs" />
     <Compile Include="UserAndSystemConfig\LiveConfiguration\ConfigUserAction.cs" />
     <Compile Include="UserAndSystemConfig\LiveUserConfigurationChangedEventArgs.cs" />
@@ -72,8 +72,8 @@
     <Compile Include="UserAndSystemConfig\IPluginStatusCollection.cs" />
     <Compile Include="UserAndSystemConfig\ISystemConfiguration.cs" />
     <Compile Include="UserAndSystemConfig\IUserConfiguration.cs" />
-    <Compile Include="UserAndSystemConfig\IUserProfile.cs" />
-    <Compile Include="UserAndSystemConfig\IUserProfileCollection.cs" />
+    <Compile Include="UserAndSystemConfig\IUriHistory.cs" />
+    <Compile Include="UserAndSystemConfig\IUriHistoryCollection.cs" />
     <Compile Include="UserAndSystemConfig\LiveConfiguration\ILiveUserAction.cs" />
     <Compile Include="UserAndSystemConfig\LiveConfiguration\ILiveUserConfiguration.cs" />
   </ItemGroup>

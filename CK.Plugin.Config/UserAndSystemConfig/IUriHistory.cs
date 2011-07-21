@@ -21,40 +21,34 @@
 *-----------------------------------------------------------------------------*/
 #endregion
 
+
+using System;
+
 namespace CK.Plugin.Config
 {
-    internal class UserProfile : IUserProfile
+
+    /// <summary>
+    /// Describes a user profile identified by its <see cref="Address"/>.
+    /// </summary>
+    public interface IUriHistory
     {
-        UserProfileCollection _holder;
+        /// <summary>
+        /// Gets or sets the <see cref="Uri"/> itself.
+        /// This is the key of the entry: there can be only one entry with a given address, setting
+        /// an address to one that already exist in the list, removes the previous one.
+        /// </summary>
+        Uri Address { get; set; }
 
-        public UserProfile( UserProfileCollection holder, string name, ConfigSupportType type, string address )
-        {
-            _holder = holder;
-            Name = name;
-            Type = type;
-            Address = address;
-        }
+        /// <summary>
+        /// Friendly name of the entry. Defaults to the user name.
+        /// </summary>
+        string DisplayName { get; set; }
 
-        internal UserProfileCollection Holder { get { return _holder; } }
+        /// <summary>
+        /// Gets or sets the index in the <see cref="IUriHistoryCollection"/>.
+        /// Changing this index changes the other indices.
+        /// </summary>
+        int Index { get; set; }
 
-        public string Name { get; private set; }
-
-        public ConfigSupportType Type { get; private set; }
-
-        public string Address { get; private set; }
-
-        public bool IsLastProfile { get { return _holder.LastProfile == this; } }
-
-        public void Rename( string newName )
-        {
-            Name = newName;
-            _holder.OnRename( this );
-        }
-
-        public void Destroy()
-        {
-            _holder.OnDestroy( this );
-            _holder = null;
-        }
     }
 }

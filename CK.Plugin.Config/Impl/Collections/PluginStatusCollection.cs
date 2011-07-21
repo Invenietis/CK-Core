@@ -12,7 +12,7 @@ namespace CK.Plugin.Config
     {
         ConfigurationBase _holder;
         Dictionary<Guid, PluginStatus> _pluginStatusDic;
-        ReadOnlyCollectionTypeAdapter<IPluginStatus, PluginStatus> _pluginStatusReadOnlyCollection;
+        ReadOnlyCollectionOnICollection<PluginStatus> _pluginStatusReadOnlyCollection;
 
         public event EventHandler<PluginStatusCollectionChangingEventArgs> Changing;
 
@@ -22,7 +22,7 @@ namespace CK.Plugin.Config
         {
             _holder = holder;
             _pluginStatusDic = new Dictionary<Guid, PluginStatus>();
-            _pluginStatusReadOnlyCollection = new ReadOnlyCollectionTypeAdapter<IPluginStatus, PluginStatus>( _pluginStatusDic.Values );
+            _pluginStatusReadOnlyCollection = new ReadOnlyCollectionOnICollection<PluginStatus>( _pluginStatusDic.Values );
         }
 
         internal bool CanChange( ChangeStatus action, Guid pluginId, ConfigPluginStatus status )
@@ -73,6 +73,11 @@ namespace CK.Plugin.Config
             if( _pluginStatusDic.ContainsKey( pluginID ) )
                 return _pluginStatusDic[pluginID];
             return null;
+        }
+
+        internal void FireResetEvent()
+        {
+            Change( ChangeStatus.ContainerUpdate, Guid.Empty, 0 );
         }
 
         /// <summary>
@@ -139,7 +144,7 @@ namespace CK.Plugin.Config
 
         #endregion
 
-        public void ReadInlineContent( IStructuredReader sr )
+        public void ReadContent( IStructuredReader sr )
         {
             XmlReader r = sr.Xml;
             r.Read();
@@ -153,10 +158,9 @@ namespace CK.Plugin.Config
             }
             _pluginStatusDic.Clear();
             _pluginStatusDic.AddRange( newContent );
-            Change( ChangeStatus.ContainerUpdate, Guid.Empty, 0 );
         }
 
-        public void WriteInlineContent( IStructuredWriter sw )
+        public void WriteContent( IStructuredWriter sw )
         {
             XmlWriter w = sw.Xml;
             foreach( IPluginStatus p in this )

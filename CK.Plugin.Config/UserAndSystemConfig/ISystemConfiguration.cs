@@ -22,18 +22,26 @@
 #endregion
 
 using System;
+using System.ComponentModel;
 namespace CK.Plugin.Config
 {
     /// <summary>
     /// System related configuration. 
     /// This is the first level of configuration that applies to all users.
     /// </summary>
-    public interface ISystemConfiguration
+    public interface ISystemConfiguration : INotifyPropertyChanged
     {
         /// <summary>
-        /// Gets all the <see cref="IUserProfile">user profiles</see> previously used by the system.
+        /// Gets all the <see cref="IUriHistory">user profiles</see> previously used by the system.
         /// </summary>
-        IUserProfileCollection UserProfiles { get; }
+        IUriHistoryCollection UserProfiles { get; }
+
+        /// <summary>
+        /// Gets or sets the profile that must be considered as the current one.
+        /// When setting it, the value must already belong to the profiles in <see cref="UserProfiles"/> (otherwise an exception is thrown)
+        /// and it becomes the first one.
+        /// </summary>
+        IUriHistory CurrentUserProfile { get; set; }
 
         /// <summary>
         /// Gets <see cref="IPluginStatus">plugins status</see> configured at the system level.

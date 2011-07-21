@@ -46,15 +46,9 @@ namespace CK.Plugin.Config
 
         ISolvedPluginConfiguration _solvedPluginConfiguration;
 
-        public event EventHandler SaveUserConfigRequired;
-
-        public event EventHandler SaveSystemConfigRequired;
-
         public event EventHandler LoadUserConfigRequired;
 
         public event EventHandler LoadSystemConfigRequired;
-
-        public event EventHandler UserChanged;
 
 		bool _systemConfigLoaded;
         bool _userConfigLoaded;
@@ -125,71 +119,53 @@ namespace CK.Plugin.Config
 
 		#region  Objects that hold different configurations informations.
 
-        internal SystemConfiguration SystemConfiguration
+        internal SystemConfiguration GetSystemConfiguration( bool ensureLoad )
         {
-            get 
+            if( !_systemConfigLoaded )
             {
-                if( !_systemConfigLoaded )
+                if( ensureLoad && LoadSystemConfigRequired != null )
                 {
-                    if( LoadSystemConfigRequired != null )
-                    {
-                        _systemConfigLoaded = true;
-                        LoadSystemConfigRequired( this, EventArgs.Empty );
-                    }
+                    _systemConfigLoaded = true;
+                    LoadSystemConfigRequired( this, EventArgs.Empty );
                 }
-                return _systemConfiguration; 
             }
+            return _systemConfiguration; 
         }
 
         ISystemConfiguration IConfigManager.SystemConfiguration
         {
-            get { return SystemConfiguration; }
+            get { return GetSystemConfiguration( true ); }
         }
 
-        internal UserConfiguration UserConfiguration
+        internal UserConfiguration GetUserConfiguration( bool ensureLoad )
 		{
-			get 
+            if( !_userConfigLoaded )
             {
-                if( !_userConfigLoaded )
+                if( ensureLoad && LoadUserConfigRequired != null )
                 {
-                    if( LoadUserConfigRequired != null )
-                    {
-                        _userConfigLoaded = true;
-                        LoadUserConfigRequired( this, EventArgs.Empty );
-                    }
+                    _userConfigLoaded = true;
+                    LoadUserConfigRequired( this, EventArgs.Empty );
                 }
-                return _userConfiguration; 
             }
+            return _userConfiguration; 
 		}
 
         IUserConfiguration IConfigManager.UserConfiguration
         {
-            get { return UserConfiguration; }
+            get { return GetUserConfiguration( true ); }
         }
 
         public IObjectPluginConfig HostSystemConfig
         {
-            get { return _hostSystemConfig ?? (_hostSystemConfig = _dic.GetObjectPluginConfig( SystemConfiguration, _pluginId, true ) ); }
+            get { return _hostSystemConfig ?? (_hostSystemConfig = _dic.GetObjectPluginConfig( GetSystemConfiguration( true ), _pluginId, true ) ); }
         }
 
         public IObjectPluginConfig HostUserConfig
         {
-            get { return _hostUserConfig ?? (_hostUserConfig = _dic.GetObjectPluginConfig( UserConfiguration, _pluginId, true )); }
+            get { return _hostUserConfig ?? (_hostUserConfig = _dic.GetObjectPluginConfig( GetUserConfiguration( true ), _pluginId, true )); }
         }
 
 		#endregion
-
-        public void FireSaveUserConfigRequired()
-        {
-            var h = SaveUserConfigRequired;
-            if( h != null ) h( this, EventArgs.Empty );
-        }
-
-        public void FireSaveSystemConfigRequired()
-        {
-            var h = SaveSystemConfigRequired;
-            if( h != null ) h( this, EventArgs.Empty );
-        }
 
         public void SaveUserConfig( IStructuredWriter writer )
 		{
@@ -200,7 +176,7 @@ namespace CK.Plugin.Config
             IsUserConfigDirty = false;
 		}
 
-		public IList<ReadElementObjectInfo> LoadUserConfig( IStructuredReader reader, IUserProfile setLastProfile )
+		public IReadOnlyList<ISimpleErrorMessage> LoadUserConfig( IStructuredReader reader )
 		{
             if( reader == null ) throw new ArgumentNullException( "reader" );
 
@@ -210,11 +186,9 @@ namespace CK.Plugin.Config
                 reader.ReadInlineObjectStructuredElement( "User", _userConfiguration );
                 objs = dr.ErrorCollector;
             }
+            _userConfiguration.UriHistoryCollection.FireLoadedChangedEvents();
             IsUserConfigDirty = false;
-            if( setLastProfile != null ) _systemConfiguration.UserProfiles.LastProfile = setLastProfile;
-            if( UserChanged != null ) UserChanged( this, EventArgs.Empty );
-            
-            return objs;        
+            return objs.ToReadOnlyList();
 		}
 
         public void SaveSystemConfig( IStructuredWriter writer )
@@ -226,7 +200,7 @@ namespace CK.Plugin.Config
             IsSystemConfigDirty = false;
         }
 
-        public IList<ReadElementObjectInfo> LoadSystemConfig( IStructuredReader reader )
+        public IReadOnlyList<ISimpleErrorMessage> LoadSystemConfig( IStructuredReader reader )
         {
             if( reader == null ) throw new ArgumentNullException( "reader" );
 
@@ -237,8 +211,9 @@ namespace CK.Plugin.Config
                 reader.ReadInlineObjectStructuredElement( "System", _systemConfiguration );                
                 objs = dr.ErrorCollector;
             }
+            _systemConfiguration.UriHistoryCollection.FireLoadedChangedEvents();
             IsSystemConfigDirty = false;
-            return objs;
+            return objs.ToReadOnlyList();
         }
 
     }

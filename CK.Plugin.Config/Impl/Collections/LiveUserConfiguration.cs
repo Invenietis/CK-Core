@@ -43,7 +43,7 @@ namespace CK.Plugin.Config
         public LiveUserConfiguration()
         {
             _actions = new Dictionary<Guid, LiveUserAction>();
-            _collection = new ReadOnlyCollectionTypeAdapter<ILiveUserAction, LiveUserAction>( _actions.Values );
+            _collection = new ReadOnlyCollectionOnICollection<LiveUserAction>( _actions.Values );
         }
 
         internal bool CanChange( ChangeStatus changeAction, Guid pluginId, ConfigUserAction action )

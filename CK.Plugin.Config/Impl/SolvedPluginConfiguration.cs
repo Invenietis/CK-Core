@@ -33,9 +33,9 @@ namespace CK.Plugin.Config
             _cfg = cfg;
             _dic = new Dictionary<Guid, SolvedPluginConfigElement>();
 
-            _cfg.UserConfiguration.PluginStatusCollection.Changed += ( o, e ) => OnPluginConfigurationChanged( e.PluginID );
-            _cfg.SystemConfiguration.PluginStatusCollection.Changed += ( o, e ) => OnPluginConfigurationChanged( e.PluginID );
-            _cfg.UserConfiguration.LiveUserConfiguration.Changed += ( o, e ) => OnPluginConfigurationChanged( e.PluginID );
+            _cfg.GetUserConfiguration( false ).PluginStatusCollection.Changed += ( o, e ) => OnPluginConfigurationChanged( e.PluginID );
+            _cfg.GetSystemConfiguration( false ).PluginStatusCollection.Changed += ( o, e ) => OnPluginConfigurationChanged( e.PluginID );
+            _cfg.GetUserConfiguration( false).LiveUserConfiguration.Changed += ( o, e ) => OnPluginConfigurationChanged( e.PluginID );
             
             ResolveConfiguration();
         }
@@ -77,9 +77,9 @@ namespace CK.Plugin.Config
         void ResolveConfiguration()
         {
             HashSet<Guid> toProcess = new HashSet<Guid>();
-            foreach( IPluginStatus s in _cfg.SystemConfiguration.PluginStatusCollection ) toProcess.Add( s.PluginId );
-            foreach( IPluginStatus s in _cfg.UserConfiguration.PluginStatusCollection ) toProcess.Add( s.PluginId );
-            foreach( ILiveUserAction s in _cfg.UserConfiguration.LiveUserConfiguration ) toProcess.Add( s.PluginId );
+            foreach( IPluginStatus s in _cfg.GetSystemConfiguration( false ).PluginStatusCollection ) toProcess.Add( s.PluginId );
+            foreach( IPluginStatus s in _cfg.GetUserConfiguration( false ).PluginStatusCollection ) toProcess.Add( s.PluginId );
+            foreach( ILiveUserAction s in _cfg.GetUserConfiguration( false ).LiveUserConfiguration ) toProcess.Add( s.PluginId );
             foreach( Guid g in _dic.Keys ) toProcess.Add( g );
 
             foreach( Guid g in toProcess )
@@ -97,7 +97,7 @@ namespace CK.Plugin.Config
             if( finalStatus != ConfigPluginStatus.Disabled )
             {
                 // Gets the systemStatus, if any.
-                ConfigPluginStatus systemStatus = _cfg.SystemConfiguration.PluginStatusCollection.GetStatus( pluginId, finalStatus );
+                ConfigPluginStatus systemStatus = _cfg.GetSystemConfiguration( false ).PluginStatusCollection.GetStatus( pluginId, finalStatus );
                 // Sets it if more restrictive
                 if( systemStatus > finalStatus || systemStatus == ConfigPluginStatus.Disabled )
                 {
@@ -107,7 +107,7 @@ namespace CK.Plugin.Config
                 if( finalStatus != ConfigPluginStatus.Disabled )
                 {
                     // Gets the user status, if any.
-                    ConfigPluginStatus userStatus = _cfg.UserConfiguration.PluginStatusCollection.GetStatus( pluginId, finalStatus );
+                    ConfigPluginStatus userStatus = _cfg.GetUserConfiguration( false ).PluginStatusCollection.GetStatus( pluginId, finalStatus );
                     // Sets it if more restrictive.
                     if( userStatus > finalStatus || userStatus == ConfigPluginStatus.Disabled )
                     {
@@ -117,7 +117,7 @@ namespace CK.Plugin.Config
                     if( finalStatus != ConfigPluginStatus.Disabled )
                     {
                         // Gets the UserAction, if any.
-                        userAction = _cfg.UserConfiguration.LiveUserConfiguration.GetAction( pluginId );
+                        userAction = _cfg.GetUserConfiguration( false ).LiveUserConfiguration.GetAction( pluginId );
                     }
                 }
             }

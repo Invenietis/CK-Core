@@ -6,14 +6,15 @@ using CK.Storage;
 namespace CK.Plugin.Config
 {
     /// <summary>
-    /// Holds a <see cref="PluginStatusCollection"/>, as well as a <see cref="LiveUserConfiguration"/>. 
+    /// Holds a <see cref="PluginStatusCollection"/>, the <see cref="LiveUserConfiguration"/> and the historic
+    /// of the contexts. 
     /// </summary>
-    internal class UserConfiguration : ConfigurationBase, IUserConfiguration, IStructuredSerializable
+    internal class UserConfiguration : ConfigurationBase, IUserConfiguration
     {
         LiveUserConfiguration _live;
 
         public UserConfiguration( ConfigManagerImpl configManager )
-            : base( configManager )
+            : base( configManager, "ContextProfile" )
         {
             _live = new LiveUserConfiguration();
         }
@@ -24,28 +25,26 @@ namespace CK.Plugin.Config
             base.OnCollectionChanged();
         }
 
-        public ILiveUserConfiguration LiveUserConfiguration 
-        { 
-            get { return _live; } 
+
+        public ILiveUserConfiguration LiveUserConfiguration
+        {
+            get { return _live; }
         }
 
         IPluginStatusCollection IUserConfiguration.PluginsStatus
         {
-            get { return PluginStatusCollection; }
+            get { return base.PluginStatusCollection; }
         }
 
-        void IStructuredSerializable.ReadInlineContent( IStructuredReader sr )
+        public IUriHistory CurrentContextProfile
         {
-            sr.Xml.Read();
-            sr.ReadInlineObjectStructuredElement( "PluginStatusCollection", PluginStatusCollection );
-            sr.GetService<ISharedDictionaryReader>( true ).ReadPluginsDataElement( "Plugins", this );
+            get { return base.UriHistoryCollection.Current; }
+            set { base.UriHistoryCollection.Current = value; }
         }
 
-        void IStructuredSerializable.WriteInlineContent( IStructuredWriter sw )
+        IUriHistoryCollection IUserConfiguration.ContextProfiles
         {
-            sw.Xml.WriteAttributeString( "Version", "1.0.0.0" );
-            sw.WriteInlineObjectStructuredElement( "PluginStatusCollection", PluginStatusCollection );
-            sw.GetService<ISharedDictionaryWriter>( true ).WritePluginsDataElement( "Plugins", this );
+            get { return base.UriHistoryCollection; }
         }
 
         public IObjectPluginConfig HostConfig

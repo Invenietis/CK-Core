@@ -58,29 +58,29 @@ namespace CK.Plugin.Config
         INamedVersionedUniqueId ConfigPluginId { get; }
 
         /// <summary>
-        /// Gets whether the user configuration file should be saved (if it has changed from the last call to <see cref="LoadUserConfig"/>).
-		/// </summary>
-		bool IsUserConfigDirty { get; }
-
-        /// <summary>
         /// Gets whether the system configuration file should be saved.
         /// </summary>
         bool IsSystemConfigDirty { get; }
+
+        /// <summary>
+        /// Gets whether the user configuration should be saved (if it has changed from the last call to <see cref="LoadUserConfig"/>).
+		/// </summary>
+		bool IsUserConfigDirty { get; }
 
 		/// <summary>
 		/// Loads the system configuration from a stream. Current settings are cleared and if the stream is null or empty,
 		/// the configuration remains empty and null is returned.
 		/// </summary>
-		/// <returns>A list (possibly empty) of <see cref="XmlReadElementObjectInfo"/> describing read errors.</returns>
-		IList<ReadElementObjectInfo> LoadSystemConfig( IStructuredReader reader );
+        /// <returns>A list (possibly empty) of <see cref="ISimpleErrorMessage"/> describing read errors.</returns>
+		IReadOnlyList<ISimpleErrorMessage> LoadSystemConfig( IStructuredReader reader );
 
 		/// <summary>
 		/// Loads the user configuration from a stream. Current settings are cleared and if the stream is null or empty,
 		/// the configuration remains empty and null is returned.
 		/// Only &lt;User&gt; element is read.
 		/// </summary>
-		/// <returns>A list (possibly empty) of <see cref="XmlReadElementObjectInfo"/> describing read errors.</returns>
-        IList<ReadElementObjectInfo> LoadUserConfig( IStructuredReader reader, IUserProfile setLastProfile );
+        /// <returns>A list (possibly empty) of <see cref="ISimpleErrorMessage"/> describing read errors.</returns>
+        IReadOnlyList<ISimpleErrorMessage> LoadUserConfig( IStructuredReader reader );
 
 		/// <summary>
 		/// Writes the user config to the given stream.
@@ -91,26 +91,6 @@ namespace CK.Plugin.Config
         /// Writes the system config to the given stream.
         /// </summary>
         void SaveSystemConfig( IStructuredWriter writer );
-
-        /// <summary>
-        /// Triggers the <see cref="SaveUserConfigRequired"/> event.
-        /// </summary>
-        void FireSaveUserConfigRequired();
-
-        /// <summary>
-        /// Triggers the <see cref="SaveSystemConfigRequired"/> event.
-        /// </summary>
-        void FireSaveSystemConfigRequired();
-
-        /// <summary>
-        /// Fires whenever the system needs to write User configuration.
-        /// </summary>
-        event EventHandler SaveUserConfigRequired;
-
-        /// <summary>
-        /// Fires whenever the system needs to write System configuration.
-        /// </summary>
-        event EventHandler SaveSystemConfigRequired;
 
         /// <summary>
         /// Fires whenever the system needs to load User configuration.

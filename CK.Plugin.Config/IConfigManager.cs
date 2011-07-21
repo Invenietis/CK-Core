@@ -57,10 +57,6 @@ namespace CK.Plugin.Config
         /// </summary>
         ISolvedPluginConfiguration SolvedPluginConfiguration { get; }
 
-        /// <summary>
-        /// Fired when a new user configuration is loaded.
-        /// </summary>
-        event EventHandler UserChanged;
     }
 
 }
