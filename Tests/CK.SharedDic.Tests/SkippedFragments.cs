@@ -509,7 +509,7 @@ namespace SharedDic
     {
         public int Value { get; set; }
 
-        public void ReadInlineContent( IStructuredReader sr )
+        public void ReadContent( IStructuredReader sr )
         {
             sr.Xml.Read();
             sr.Xml.ReadStartElement( "Value" );
@@ -517,7 +517,7 @@ namespace SharedDic
             sr.Xml.ReadEndElement();
         }
 
-        public void WriteInlineContent( IStructuredWriter sw )
+        public void WriteContent( IStructuredWriter sw )
         {
             sw.Xml.WriteStartElement( "Value" );
             sw.Xml.WriteValue( Value );

@@ -69,11 +69,11 @@ namespace SharedDic
 
     public class BuggyObjectStructured : BuggyObjectBase, IStructuredSerializable
     {
-        void IStructuredSerializable.ReadInlineContent( IStructuredReader sr )
+        void IStructuredSerializable.ReadContent( IStructuredReader sr )
         {
             ReadInlineContent( sr.Xml );
         }
-        void IStructuredSerializable.WriteInlineContent( IStructuredWriter sw )
+        void IStructuredSerializable.WriteContent( IStructuredWriter sw )
         {
             WriteInlineContent( sw.Xml );
         }
