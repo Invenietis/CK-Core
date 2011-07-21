@@ -200,6 +200,7 @@ namespace CK.Plugin.Hosting
         /// Returns the appropriate log configuration without any runtime status checks.
         /// </summary>
         /// <returns>The log configuration that must be used.</returns>
+        [DebuggerNonUserCodeAttribute]
         protected ServiceLogMethodOptions GetLoggerForAnyCall( int iMethodMRef, out LogMethodEntry logger )
         {
             MEntry me = _mRefs[iMethodMRef];

@@ -23,7 +23,7 @@ namespace CK.Plugin.Hosting
 
         public string PublicName { get { return PluginKey.PublicName; } }
 
-        public object RealPluginObject { get { return base.RealPluginObject; } }
+        //public object RealPluginObject { get { return base.RealPluginObject; } }
 
         internal bool TryLoad( ServiceHost serviceHost, Func<IPluginInfo, IPlugin> pluginCreator )
         {

@@ -176,7 +176,7 @@ namespace CK.Plugin.Hosting
 
             void ImplementProperties()
             {
-                foreach( PropertyInfo p in Helper.GetFlattenProperties( _definition.TypeInterface ) )
+                foreach( PropertyInfo p in ReflectionHelper.GetFlattenProperties( _definition.TypeInterface ) )
                 {
                     MethodInfo mGet = p.GetGetMethod( true );
                     if( mGet != null )
@@ -195,7 +195,7 @@ namespace CK.Plugin.Hosting
 
             void ImplementEvents()
             {
-                foreach( EventInfo e in Helper.GetFlattenEvents( _definition.TypeInterface ) )
+                foreach( EventInfo e in ReflectionHelper.GetFlattenEvents( _definition.TypeInterface ) )
                 {
                     ProxyOptions optEvent = _definition.GetEventOptions( e );
                     DefineEventSupport( e, optEvent );
@@ -216,7 +216,7 @@ namespace CK.Plugin.Hosting
                 MethodBuilder mHookB;
                 {
                     MethodInfo mCall = e.EventHandlerType.GetMethod( "Invoke" );
-                    Type[] parameters = Helper.CreateParametersType( mCall.GetParameters() );
+                    Type[] parameters = ReflectionHelper.CreateParametersType( mCall.GetParameters() );
                     mHookB = _typeBuilder.DefineMethod( "_realService_" + e.Name, MethodAttributes.Private, CallingConventions.HasThis, typeof( void ), parameters );
                     {
                         SetDebuggerStepThroughAttribute( mHookB );
@@ -383,7 +383,7 @@ namespace CK.Plugin.Hosting
                     // Registers the method to skip its processing.
                     _processedMethods.Add( mAdd );
 
-                    Type[] parameters = Helper.CreateParametersType( mAdd.GetParameters() );
+                    Type[] parameters = ReflectionHelper.CreateParametersType( mAdd.GetParameters() );
                     MethodBuilder mAddB = _typeBuilder.DefineMethod( mAdd.Name,
                         MethodAttributes.Public | MethodAttributes.SpecialName | MethodAttributes.Virtual,
                         CallingConventions.HasThis, mAdd.ReturnType, parameters );
@@ -434,7 +434,7 @@ namespace CK.Plugin.Hosting
                     // Registers the method to skip its processing.
                     _processedMethods.Add( mRemove );
 
-                    Type[] parameters = Helper.CreateParametersType( mRemove.GetParameters() );
+                    Type[] parameters = ReflectionHelper.CreateParametersType( mRemove.GetParameters() );
                     MethodBuilder mRemoveB = _typeBuilder.DefineMethod( mRemove.Name,
                         MethodAttributes.Public | MethodAttributes.SpecialName | MethodAttributes.Virtual,
                         CallingConventions.HasThis,
@@ -469,7 +469,7 @@ namespace CK.Plugin.Hosting
             void ImplementRemainingMethods()
             {
                 // For each methods in definition.TypeInterface...
-                foreach( MethodInfo m in Helper.GetFlattenMethods( _definition.TypeInterface ) )
+                foreach( MethodInfo m in ReflectionHelper.GetFlattenMethods( _definition.TypeInterface ) )
                 {
                     if( !_processedMethods.Contains( m ) )
                     {
@@ -673,7 +673,7 @@ namespace CK.Plugin.Hosting
                     MethodAttributes.Public | MethodAttributes.Virtual | MethodAttributes.HideBySig,
                     CallingConventions.HasThis );
 
-                parameters = Helper.CreateParametersType( m.GetParameters() );
+                parameters = ReflectionHelper.CreateParametersType( m.GetParameters() );
                 // If it is a Generic method definition (since we are working with an interface, 
                 // it can not be a Generic closed nor opened method).
                 if( m.IsGenericMethodDefinition )
@@ -763,7 +763,7 @@ namespace CK.Plugin.Hosting
 
             MethodInfo mGetTypeFromHandle = typeof( Type ).GetMethod( "GetTypeFromHandle" );
             ConstructorInfo cNotAvailableException = typeof( ServiceNotAvailableException ).GetConstructor( new[] { typeof( Type ) } );
-            foreach( MethodInfo m in Helper.GetFlattenMethods( interfaceType ) )
+            foreach( MethodInfo m in ReflectionHelper.GetFlattenMethods( interfaceType ) )
             {
                 Type[] parameters;
                 MethodBuilder mB = ProxyGenerator.CreateInterfaceMethodBuilder( typeBuilderNotAvailable, m, out parameters );

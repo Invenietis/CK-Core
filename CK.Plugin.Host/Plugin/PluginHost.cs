@@ -27,7 +27,7 @@ namespace CK.Plugin.Hosting
         {
             _plugins = new Dictionary<IPluginInfo, PluginProxy>();
             _loadedPlugins = new Dictionary<Guid, PluginProxy>();
-            _loadedPluginsEx = new ReadOnlyCollectionTypeAdapter<IPluginProxy, PluginProxy>( _loadedPlugins.Values );
+            _loadedPluginsEx = new ReadOnlyCollectionOnICollection<PluginProxy>( _loadedPlugins.Values );
             _serviceHost = new ServiceHost( catchMode );
             _newlyLoadedPlugins = new List<PluginProxy>();
         }
@@ -76,13 +76,6 @@ namespace CK.Plugin.Hosting
             PluginProxy result;
             if( !_plugins.TryGetValue( key, out result ) ) return false;
             return result.Status == RunningStatus.Started;
-        }
-
-        public bool IsPluginRunning( Guid key )
-        {
-            PluginProxy result;
-            if( !_loadedPlugins.TryGetValue( key, out result ) ) return false;
-            return IsPluginRunning( result.PluginKey );
         }
 
         /// <summary>
@@ -261,7 +254,7 @@ namespace CK.Plugin.Hosting
             Debug.Assert( ServiceReferencesBinder != null );
             try
             {
-                var listNew = new ReadOnlyCollectionTypeAdapter<IPluginProxy, PluginProxy>( _newlyLoadedPlugins );
+                var listNew = new ReadOnlyCollectionOnICollection<PluginProxy>( _newlyLoadedPlugins );
                 //var disabled = new ReadOnlyCollectionAdapter<IPluginProxy, PluginProxy>( toDisable );
                 ServiceReferencesBinder( listNew );
             }

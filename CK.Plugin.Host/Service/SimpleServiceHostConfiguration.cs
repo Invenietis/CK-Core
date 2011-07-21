@@ -46,7 +46,7 @@ namespace CK.Plugin.Hosting
 
         public void SetMethodGroupConfiguration( Type type, string methodName, ServiceLogMethodOptions option )
         {
-            foreach( var m in CK.Reflection.Helper.GetFlattenMethods( type ).Where( m => m.Name == methodName ) )
+            foreach( var m in CK.Reflection.ReflectionHelper.GetFlattenMethods( type ).Where( m => m.Name == methodName ) )
             {
                 _methods[m] = option;
             }
@@ -54,7 +54,7 @@ namespace CK.Plugin.Hosting
         
         public void SetAllMethodsConfiguration( Type type, ServiceLogMethodOptions option )
         {
-            foreach( var m in CK.Reflection.Helper.GetFlattenMethods( type ).Where( m => !m.IsSpecialName ) )
+            foreach( var m in CK.Reflection.ReflectionHelper.GetFlattenMethods( type ).Where( m => !m.IsSpecialName ) )
             {
                 _methods[m] = option;
             }
@@ -62,12 +62,12 @@ namespace CK.Plugin.Hosting
 
         public void SetAllPropertiesConfiguration( Type type, ServiceLogMethodOptions option )
         {
-            foreach( var p in CK.Reflection.Helper.GetFlattenProperties( type ) ) SetConfiguration( p, option );
+            foreach( var p in CK.Reflection.ReflectionHelper.GetFlattenProperties( type ) ) SetConfiguration( p, option );
         }
 
         public void SetAllEventsConfiguration( Type type, ServiceLogEventOptions option )
         {
-            foreach( var e in CK.Reflection.Helper.GetFlattenEvents( type ) )
+            foreach( var e in CK.Reflection.ReflectionHelper.GetFlattenEvents( type ) )
             {
                 _events[e] = option;
             }
