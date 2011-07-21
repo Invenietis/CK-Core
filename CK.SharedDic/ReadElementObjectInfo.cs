@@ -25,6 +25,7 @@ using System;
 using System.Diagnostics;
 using System.Xml;
 using System.Xml.Serialization;
+using CK.Core;
 using CK.Storage;
 
 namespace CK.SharedDic
@@ -32,7 +33,7 @@ namespace CK.SharedDic
     /// <summary>
     /// Encapsulates the result of a read operation.
     /// </summary>
-    public sealed class ReadElementObjectInfo
+    public sealed class ReadElementObjectInfo : ISimpleErrorMessage
     {
         /// <summary>
         /// Defines the result of a an element read from a Xml stream.
@@ -127,6 +128,15 @@ namespace CK.SharedDic
         public bool HasError
         {
             get { return ErrorMessage != null; }
+        }
+
+        /// <summary>
+        /// Since an error does not stop the reading process (element is skipped), it 
+        /// is more a warning than an error.
+        /// </summary>
+        bool ISimpleErrorMessage.IsWarning
+        {
+            get { return true; }
         }
 
         /// <summary>
