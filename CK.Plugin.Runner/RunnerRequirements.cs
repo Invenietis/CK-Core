@@ -9,6 +9,7 @@ using System.Diagnostics;
 
 namespace CK.Plugin.Hosting
 {
+
     public class RunnerRequirements : IReadOnlyCollection<RequirementLayer>
     {
         PluginRunner _runner;
@@ -247,6 +248,8 @@ namespace CK.Plugin.Hosting
 
         internal void SetRunningError( IExecutionPlanResult error )
         {
+            Debug.Assert( error.Status != ExecutionPlanResultStatus.Success && error.Culprit != null, "An error is necessarily associated to a plugin." );
+            
             FinalResult r = _final.GetOrSet( error.Culprit.PluginId, g => new FinalResult() );
             bool hasErrorAlready = r.RunningError != null;
             r.RunningError = error;
@@ -295,7 +298,7 @@ namespace CK.Plugin.Hosting
         {
             if( r.FinalStatus != r.RunningStatus ) ++_nbFinalDifferFromRunning;
             else --_nbFinalDifferFromRunning;
-            Debug.Assert(_nbFinalDifferFromRunning >= 0,"There can't be less than zero differences..");
+            Debug.Assert( _nbFinalDifferFromRunning >= 0, "There can't be less than zero differences.." );
             _runner.SetDirty( _nbFinalDifferFromRunning > 0 );
         }
 

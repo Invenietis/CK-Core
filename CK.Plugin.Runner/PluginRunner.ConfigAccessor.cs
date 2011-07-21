@@ -23,27 +23,24 @@ namespace CK.Plugin.Hosting
         PluginConfigAccessor GetConfigAccessor( INamedVersionedUniqueId idEdited )
         {
             Debug.Assert( idEdited != null );
+            Debug.Assert( _contextObject != null );
             
             // Switch from whatever INamedVersionedUniqueId is to IPluginProxy... if it is loaded.
-            if( !(idEdited is IPluginProxy) )
+            IPluginProxy p = idEdited as IPluginProxy;
+            if( p == null )
             {
-                if( _host.FindLoadedPlugin( idEdited.UniqueId, true ) == null )
+                p = (IPluginProxy)_host.FindLoadedPlugin( idEdited.UniqueId, true );
+                if( p == null )
                 {
                     _configAccessors.Remove( idEdited );
                     return null;
                 }
-                else
-                {
-                    idEdited = _host.FindLoadedPlugin( idEdited.UniqueId, true );
-                }
-            }
-            Debug.Assert( idEdited is IPluginProxy );
-            
+            }            
             PluginConfigAccessor result;
-            if( !_configAccessors.TryGetValue( idEdited, out result ) )
+            if( !_configAccessors.TryGetValue( p, out result ) )
             {
                 result = new PluginConfigAccessor( idEdited, _config.Extended, _contextObject );
-                _configAccessors.Add( idEdited, result );
+                _configAccessors.Add( p, result );
             }
             return result;
         }

@@ -10,7 +10,6 @@ using System.Diagnostics;
 
 namespace CK.Plugin.Hosting
 {
-
     public partial class PluginRunner : ISimplePluginRunner
     {
         PluginDiscoverer _discoverer;
@@ -32,7 +31,7 @@ namespace CK.Plugin.Hosting
             _discoverer = new PluginDiscoverer();
             _runningConfig = new RunningConfiguration( this );
             _requirements = new RunnerRequirements( this );
-
+           
             _host = new PluginHost();
             // 0 - For creation.
             _host.PluginCreator = CreatePlugin;
@@ -44,6 +43,7 @@ namespace CK.Plugin.Hosting
 
         public void Initialize( object contextObject )
         {
+            if( contextObject == null ) throw new ArgumentNullException( "contextObject" );
             _contextObject = contextObject;
             _requirements.Initialize();
             _runningConfig.Initialize();
@@ -93,6 +93,8 @@ namespace CK.Plugin.Hosting
         public bool Apply()
         {
             if( _planCalculator != null ) throw new InvalidOperationException( Runner.R.ReentrantApplyCall );
+            if( _contextObject == null ) throw new InvalidOperationException( Runner.R.InitializeRequired );
+            
             bool errorWhileApplying = false;
             if( _runningConfig.IsDirty )
             {
@@ -120,7 +122,8 @@ namespace CK.Plugin.Hosting
                             var result = _host.Execute( bestPlan.PluginsToDisable, bestPlan.PluginsToStop, bestPlan.PluginsToStart );
                             if( result.Status != ExecutionPlanResultStatus.Success )
                             {
-                                if( result.Culprit != null ) _requirements.SetRunningError( result );
+                                Debug.Assert( result.Culprit != null, "An error is necessarily associated to a plugin." );
+                                _requirements.SetRunningError( result );
                                 errorWhileApplying = true;
                             }
                             else
