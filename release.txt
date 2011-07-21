@@ -4,5 +4,5 @@
 #   - RevNumber: THEREVNUMBERTOTAG
 # If RevNumber is not set, the revnumber of this file is use.
 
-ReleaseNumber: 2.4.8.1
+ReleaseNumber: 4.0.0
 #RevNumber: 10
