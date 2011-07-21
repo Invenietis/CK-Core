@@ -182,11 +182,11 @@ namespace CK.Plugin.Discoverer
             foreach( Runner.PluginConfigAccessorInfo editor in r.EditableBy )
                 _editableByCollection.Add( merger.FindOrCreate( editor ) );
 
-            _serviceReferences = new ReadOnlyListTypeAdapter<IServiceReferenceInfo, ServiceReferenceInfo>( _dicServiceReferences.Values.ToList() );
-            _editorsInfo = new ReadOnlyListTypeAdapter<IPluginConfigAccessorInfo, PluginConfigAccessorInfo>( _editorsCollection );
-            _editableBy = new ReadOnlyListTypeAdapter<IPluginConfigAccessorInfo, PluginConfigAccessorInfo>( _editableByCollection );
-            _serviceReferences = new ReadOnlyListTypeAdapter<IServiceReferenceInfo, ServiceReferenceInfo>( _dicServiceReferences.Values.ToList() );
-            _editorsInfo = new ReadOnlyListTypeAdapter<IPluginConfigAccessorInfo, PluginConfigAccessorInfo>( _editorsCollection );
+            _serviceReferences = new ReadOnlyListOnIList<ServiceReferenceInfo>( _dicServiceReferences.Values.ToList() );
+            _editorsInfo = new ReadOnlyListOnIList<PluginConfigAccessorInfo>( _editorsCollection );
+            _editableBy = new ReadOnlyListOnIList<PluginConfigAccessorInfo>( _editableByCollection );
+            _serviceReferences = new ReadOnlyListOnIList<ServiceReferenceInfo>( _dicServiceReferences.Values.ToList() );
+            _editorsInfo = new ReadOnlyListOnIList<PluginConfigAccessorInfo>( _editorsCollection );
         }
 
         internal bool Merge( PluginDiscoverer.Merger merger, Runner.PluginInfo r )

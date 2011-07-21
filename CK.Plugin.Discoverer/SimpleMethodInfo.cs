@@ -28,7 +28,7 @@ namespace CK.Plugin
         public SimpleMethodInfo()
         {
             _parameters = new List<SimpleParameterInfo>();
-            _parametersEx = new ReadOnlyListTypeAdapter<ISimpleParameterInfo, SimpleParameterInfo>(_parameters);
+            _parametersEx = new ReadOnlyListOnIList<SimpleParameterInfo>(_parameters);
         }
 
         internal void Initialize( Discoverer.Runner.SimpleMethodInfo r )

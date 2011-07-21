@@ -91,8 +91,8 @@ namespace CK.Plugin.Discoverer
             foreach( Runner.ServiceInfo service in r.Services )
                 _servicesCollection.Add( merger.FindOrCreate( service ) );
 
-            _plugins = new ReadOnlyListTypeAdapter<IPluginInfo, PluginInfo>( _pluginsCollection );
-            _services = new ReadOnlyListTypeAdapter<IServiceInfo, ServiceInfo>( _servicesCollection );
+            _plugins = new ReadOnlyListOnIList<PluginInfo>( _pluginsCollection );
+            _services = new ReadOnlyListOnIList<ServiceInfo>( _servicesCollection );
         }
 
         internal bool Merge( PluginDiscoverer.Merger merger, Runner.PluginAssemblyInfo r )

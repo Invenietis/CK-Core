@@ -169,14 +169,14 @@ namespace CK.Plugin.Discoverer
             _pluginsById = new Dictionary<Guid, PluginInfo>();
             _servicesByAssemblyQualifiedName = new Dictionary<string, ServiceInfo>();
 
-            AllAssemblies = new ReadOnlyListTypeAdapter<IAssemblyInfo, PluginAssemblyInfo>( _allAssemblies );
-            OldVersionnedPlugins = new ReadOnlyListTypeAdapter<IPluginInfo, PluginInfo>( _oldPlugins );
-            Plugins = new ReadOnlyListTypeAdapter<IPluginInfo, PluginInfo>( _plugins );
-            NotFoundServices = new ReadOnlyListTypeAdapter<IServiceInfo, ServiceInfo>( _notFoundServices );
-            AllPlugins = new ReadOnlyListTypeAdapter<IPluginInfo, PluginInfo>( _allPlugins );
-            AllServices = new ReadOnlyListTypeAdapter<IServiceInfo, ServiceInfo>( _allServices );
-            Services = new ReadOnlyListTypeAdapter<IServiceInfo, ServiceInfo>( _services );
-            PluginOrServiceAssemblies = new ReadOnlyListTypeAdapter<IAssemblyInfo, PluginAssemblyInfo>( _pluginOrServiceAssemblies );
+            AllAssemblies = new ReadOnlyListOnIList<PluginAssemblyInfo>( _allAssemblies );
+            OldVersionnedPlugins = new ReadOnlyListOnIList<PluginInfo>( _oldPlugins );
+            Plugins = new ReadOnlyListOnIList<PluginInfo>( _plugins );
+            NotFoundServices = new ReadOnlyListOnIList<ServiceInfo>( _notFoundServices );
+            AllPlugins = new ReadOnlyListOnIList<PluginInfo>( _allPlugins );
+            AllServices = new ReadOnlyListOnIList<ServiceInfo>( _allServices );
+            Services = new ReadOnlyListOnIList<ServiceInfo>( _services );
+            PluginOrServiceAssemblies = new ReadOnlyListOnIList<PluginAssemblyInfo>( _pluginOrServiceAssemblies );
         }
 
         bool FileFilter( FileInfo f )
@@ -350,34 +350,34 @@ namespace CK.Plugin.Discoverer
                 _changedServices = new List<ServiceInfo>();
                 _deletedServices = new List<ServiceInfo>();
 
-                NewAssemblies = new ReadOnlyListTypeAdapter<IAssemblyInfo, PluginAssemblyInfo>( _newAssemblies );
-                ChangedAssemblies = new ReadOnlyListTypeAdapter<IAssemblyInfo, PluginAssemblyInfo>( _changedAssemblies );
-                DeletedAssemblies = new ReadOnlyListTypeAdapter<IAssemblyInfo, PluginAssemblyInfo>( _deletedAssemblies );
-                NewPlugins = new ReadOnlyListTypeAdapter<IPluginInfo, PluginInfo>( _newPlugins );
-                ChangedPlugins = new ReadOnlyListTypeAdapter<IPluginInfo, PluginInfo>( _changedPlugins );
-                DeletedPlugins = new ReadOnlyListTypeAdapter<IPluginInfo, PluginInfo>( _deletedPlugins );
-                NewEditors = new ReadOnlyListTypeAdapter<IPluginConfigAccessorInfo, PluginConfigAccessorInfo>( _newEditors );
-                ChangedEditors = new ReadOnlyListTypeAdapter<IPluginConfigAccessorInfo, PluginConfigAccessorInfo>( _changedEditors );
-                DeletedEditors = new ReadOnlyListTypeAdapter<IPluginConfigAccessorInfo, PluginConfigAccessorInfo>( _deletedEditors );
-                NewServices = new ReadOnlyListTypeAdapter<IServiceInfo, ServiceInfo>( _newServices );
-                ChangedServices = new ReadOnlyListTypeAdapter<IServiceInfo, ServiceInfo>( _changedServices );
-                DeletedServices = new ReadOnlyListTypeAdapter<IServiceInfo, ServiceInfo>( _deletedServices );
-                NewOldPlugins = new ReadOnlyListTypeAdapter<IPluginInfo, PluginInfo>( _newOldPlugins );
-                DeletedOldPlugins = new ReadOnlyListTypeAdapter<IPluginInfo, PluginInfo>( _deletedOldPlugins );
-                NewAssemblies = new ReadOnlyListTypeAdapter<IAssemblyInfo, PluginAssemblyInfo>( _newAssemblies );
-                ChangedAssemblies = new ReadOnlyListTypeAdapter<IAssemblyInfo, PluginAssemblyInfo>( _changedAssemblies );
-                DeletedAssemblies = new ReadOnlyListTypeAdapter<IAssemblyInfo, PluginAssemblyInfo>( _deletedAssemblies );
-                NewPlugins = new ReadOnlyListTypeAdapter<IPluginInfo, PluginInfo>( _newPlugins );
-                ChangedPlugins = new ReadOnlyListTypeAdapter<IPluginInfo, PluginInfo>( _changedPlugins );
-                DeletedPlugins = new ReadOnlyListTypeAdapter<IPluginInfo, PluginInfo>( _deletedPlugins );
-                NewEditors = new ReadOnlyListTypeAdapter<IPluginConfigAccessorInfo, PluginConfigAccessorInfo>( _newEditors );
-                ChangedEditors = new ReadOnlyListTypeAdapter<IPluginConfigAccessorInfo, PluginConfigAccessorInfo>( _changedEditors );
-                DeletedEditors = new ReadOnlyListTypeAdapter<IPluginConfigAccessorInfo, PluginConfigAccessorInfo>( _deletedEditors );
-                NewServices = new ReadOnlyListTypeAdapter<IServiceInfo, ServiceInfo>( _newServices );
-                ChangedServices = new ReadOnlyListTypeAdapter<IServiceInfo, ServiceInfo>( _changedServices );
-                DeletedServices = new ReadOnlyListTypeAdapter<IServiceInfo, ServiceInfo>( _deletedServices );
-                NewOldPlugins = new ReadOnlyListTypeAdapter<IPluginInfo, PluginInfo>( _newOldPlugins );
-                DeletedOldPlugins = new ReadOnlyListTypeAdapter<IPluginInfo, PluginInfo>( _deletedOldPlugins );
+                NewAssemblies = new ReadOnlyListOnIList<PluginAssemblyInfo>( _newAssemblies );
+                ChangedAssemblies = new ReadOnlyListOnIList<PluginAssemblyInfo>( _changedAssemblies );
+                DeletedAssemblies = new ReadOnlyListOnIList<PluginAssemblyInfo>( _deletedAssemblies );
+                NewPlugins = new ReadOnlyListOnIList<PluginInfo>( _newPlugins );
+                ChangedPlugins = new ReadOnlyListOnIList<PluginInfo>( _changedPlugins );
+                DeletedPlugins = new ReadOnlyListOnIList<PluginInfo>( _deletedPlugins );
+                NewEditors = new ReadOnlyListOnIList<PluginConfigAccessorInfo>( _newEditors );
+                ChangedEditors = new ReadOnlyListOnIList<PluginConfigAccessorInfo>( _changedEditors );
+                DeletedEditors = new ReadOnlyListOnIList<PluginConfigAccessorInfo>( _deletedEditors );
+                NewServices = new ReadOnlyListOnIList<ServiceInfo>( _newServices );
+                ChangedServices = new ReadOnlyListOnIList<ServiceInfo>( _changedServices );
+                DeletedServices = new ReadOnlyListOnIList<ServiceInfo>( _deletedServices );
+                NewOldPlugins = new ReadOnlyListOnIList<PluginInfo>( _newOldPlugins );
+                DeletedOldPlugins = new ReadOnlyListOnIList<PluginInfo>( _deletedOldPlugins );
+                NewAssemblies = new ReadOnlyListOnIList<PluginAssemblyInfo>( _newAssemblies );
+                ChangedAssemblies = new ReadOnlyListOnIList<PluginAssemblyInfo>( _changedAssemblies );
+                DeletedAssemblies = new ReadOnlyListOnIList<PluginAssemblyInfo>( _deletedAssemblies );
+                NewPlugins = new ReadOnlyListOnIList<PluginInfo>( _newPlugins );
+                ChangedPlugins = new ReadOnlyListOnIList<PluginInfo>( _changedPlugins );
+                DeletedPlugins = new ReadOnlyListOnIList<PluginInfo>( _deletedPlugins );
+                NewEditors = new ReadOnlyListOnIList<PluginConfigAccessorInfo>( _newEditors );
+                ChangedEditors = new ReadOnlyListOnIList<PluginConfigAccessorInfo>( _changedEditors );
+                DeletedEditors = new ReadOnlyListOnIList<PluginConfigAccessorInfo>( _deletedEditors );
+                NewServices = new ReadOnlyListOnIList<ServiceInfo>( _newServices );
+                ChangedServices = new ReadOnlyListOnIList<ServiceInfo>( _changedServices );
+                DeletedServices = new ReadOnlyListOnIList<ServiceInfo>( _deletedServices );
+                NewOldPlugins = new ReadOnlyListOnIList<PluginInfo>( _newOldPlugins );
+                DeletedOldPlugins = new ReadOnlyListOnIList<PluginInfo>( _deletedOldPlugins );
                 NewMissingAssemblies = new ReadOnlyListOnIList<string>( _newMissingAssemblies );
                 DeletedMissingAssemblies = new ReadOnlyListOnIList<string>( _deletedMissingAssemblies );
 

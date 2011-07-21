@@ -112,7 +112,7 @@ namespace CK.Plugin.Discoverer
             foreach( Runner.PluginInfo plugin in r.Implementations )
                 _implCollection.Add( merger.FindOrCreate( plugin ) );
 
-            _impl = new ReadOnlyListTypeAdapter<IPluginInfo, PluginInfo>( _implCollection );
+            _impl = new ReadOnlyListOnIList<PluginInfo>( _implCollection );
 
             _propertiesInfoCollection = new List<SimplePropertyInfo>();
             foreach( Runner.SimplePropertyInfo rP in r.PropertiesInfoCollection )
@@ -121,7 +121,7 @@ namespace CK.Plugin.Discoverer
                 p.Initialize( rP );
                 _propertiesInfoCollection.Add( p );
             }
-            _propertiesInfoCollectionEx = new ReadOnlyListTypeAdapter<ISimplePropertyInfo, SimplePropertyInfo>( _propertiesInfoCollection );
+            _propertiesInfoCollectionEx = new ReadOnlyListOnIList<SimplePropertyInfo>( _propertiesInfoCollection );
 
             _methodsInfoCollection = new List<SimpleMethodInfo>();
             foreach( Runner.SimpleMethodInfo rM in r.MethodsInfoCollection )
@@ -131,7 +131,7 @@ namespace CK.Plugin.Discoverer
                 _methodsInfoCollection.Add( m );
             }
 
-            _methodsInfoCollectionEx = new ReadOnlyListTypeAdapter<ISimpleMethodInfo, SimpleMethodInfo>( _methodsInfoCollection );
+            _methodsInfoCollectionEx = new ReadOnlyListOnIList<SimpleMethodInfo>( _methodsInfoCollection );
 
             _eventsInfoCollection = new List<SimpleEventInfo>();
             foreach( Runner.SimpleEventInfo rE in r.EventsInfoCollection )
@@ -141,7 +141,7 @@ namespace CK.Plugin.Discoverer
                 _eventsInfoCollection.Add( e );
             }
 
-            _eventsInfoCollectionEx = new ReadOnlyListTypeAdapter<ISimpleEventInfo, SimpleEventInfo>( _eventsInfoCollection );
+            _eventsInfoCollectionEx = new ReadOnlyListOnIList<SimpleEventInfo>( _eventsInfoCollection );
         }
 
         internal bool Merge( PluginDiscoverer.Merger merger, Runner.ServiceInfo r )
