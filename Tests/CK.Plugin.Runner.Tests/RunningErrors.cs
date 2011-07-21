@@ -1,31 +1,22 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using NUnit.Framework;
-using CK.Core;
-using CK.Context;
+using CK.Plugin.Config;
 using CK.Plugin.Hosting;
-using System.Reflection;
+using NUnit.Framework;
 
-namespace CK.Plugin.Runner.Apply
+namespace CK.Plugin.Runner
 {
     [TestFixture]
     public class RunningErrors : TestBase
     {
-        IContext _ctx;
-        ISimplePluginRunner _runner;
-        PluginRunner _implRunner;
+        MiniContext _ctx;
+
+        PluginRunner PluginRunner { get { return _ctx.PluginRunner; } }
+        IConfigManager ConfigManager { get { return _ctx.ConfigManager; } }
 
         [SetUp]
         public void Setup()
         {
-            _ctx = CK.Context.Context.CreateInstance();
-            _runner = _ctx.GetService<ISimplePluginRunner>();
-            _implRunner = (PluginRunner)_ctx.GetService<ISimplePluginRunner>();
-
-            Assert.NotNull( _runner );
-            Assert.NotNull( _implRunner );
+            _ctx = MiniContext.CreateMiniContext( "IsDirty" );
         }
 
         [SetUp]
@@ -44,7 +35,7 @@ namespace CK.Plugin.Runner.Apply
             if( beforeStart != null ) beforeStart();
 
             // So apply the change
-            Assert.That( _runner.Apply() == startSucceed );
+            Assert.That( PluginRunner.Apply() == startSucceed );
 
             if( afterStart != null ) afterStart();
 
@@ -55,7 +46,7 @@ namespace CK.Plugin.Runner.Apply
             if( beforeStop != null ) beforeStop();
 
             // So apply the change
-            Assert.IsTrue( _runner.Apply() == stopSucceed );
+            Assert.IsTrue( PluginRunner.Apply() == stopSucceed );
 
             if( afterStop != null ) afterStop();
         }
@@ -76,12 +67,12 @@ namespace CK.Plugin.Runner.Apply
             TestBase.CopyPluginToTestDir( "BuggyServiceC.dll" );
             TestBase.CopyPluginToTestDir( "ServiceC.Model.dll" );
 
-            _implRunner.Discoverer.Discover( TestBase.TestFolderDir, true );
+            PluginRunner.Discoverer.Discover( TestBase.TestFolderDir, true );
 
             Action check = () =>
             {
                 // Check if the plugin is started, and if the plugin that implement the required service is started too.
-                Assert.That( !_implRunner.IsPluginRunning( _implRunner.Discoverer.FindPlugin( id ) ) );
+                Assert.That( !PluginRunner.IsPluginRunning( PluginRunner.Discoverer.FindPlugin( id ) ) );
             };
 
             CheckStartStop( null, check, null, check, false, true, id );
@@ -98,12 +89,12 @@ namespace CK.Plugin.Runner.Apply
             TestBase.CopyPluginToTestDir( "BuggyServiceC.dll" );
             TestBase.CopyPluginToTestDir( "ServiceC.Model.dll" );
 
-            _implRunner.Discoverer.Discover( TestBase.TestFolderDir, true );
+            PluginRunner.Discoverer.Discover( TestBase.TestFolderDir, true );
 
             Action check = () =>
             {
                 // Check if the plugin is started, and if the plugin that implement the required service is started too.
-                Assert.That( !_implRunner.IsPluginRunning( _implRunner.Discoverer.FindPlugin( id ) ) );
+                Assert.That( !PluginRunner.IsPluginRunning( PluginRunner.Discoverer.FindPlugin( id ) ) );
             };
 
             CheckStartStop( null, check, null, check, false, true, id );

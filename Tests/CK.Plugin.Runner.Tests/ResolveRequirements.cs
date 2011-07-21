@@ -1,28 +1,33 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using NUnit.Framework;
-using CK.Core;
-using CK.Context;
-using CK.Plugin.Hosting;
 using CK.Plugin.Config;
+using CK.Plugin.Hosting;
+using NUnit.Framework;
 
-namespace CK.Plugin.Runner.ConfigurationAndRequirements
+namespace CK.Plugin.Runner
 {
     /// <summary>
-    /// Basic tests that just test aggregation and transtyping between ConfigUserAction/ConfigPluginStatus to SolvedConfigStatus
+    /// Basic tests that just test aggregation and transtyping 
+    /// between ConfigUserAction/ConfigPluginStatus to SolvedConfigStatus
     /// </summary>
     [TestFixture]
-    public class ResolveRequirements : TestBase
+    public class ResolveRequirements
     {
-        IContext _ctx;
+        MiniContext _ctx;
+
+        PluginRunner PluginRunner { get { return _ctx.PluginRunner; } }
+        IConfigManager ConfigManager { get { return _ctx.ConfigManager; } }
 
         [SetUp]
         public void Setup()
         {
-            _ctx = CK.Context.Context.CreateInstance();
-            Assert.That( _ctx.GetService( typeof( ISimplePluginRunner ) ) != null );
+            _ctx = MiniContext.CreateMiniContext( "IsDirty" );
+        }
+
+        [SetUp]
+        [TearDown]
+        public void Teardown()
+        {
+            TestBase.CleanupTestDir();
         }
 
         [Test]
@@ -32,10 +37,7 @@ namespace CK.Plugin.Runner.ConfigurationAndRequirements
 
             TestBase.CopyPluginToTestDir( "ServiceA.dll" );
 
-            ISimplePluginRunner runner = _ctx.GetService<ISimplePluginRunner>();
-            PluginRunner implRunner = (PluginRunner)_ctx.GetService<ISimplePluginRunner>();
-
-            implRunner.Discoverer.Discover( TestBase.TestFolderDir, true );
+            PluginRunner.Discoverer.Discover( TestBase.TestFolderDir, true );
 
             RequirementLayer layer = new RequirementLayer( "MyLayer" );
             layer.PluginRequirements.AddOrSet( id, RunningRequirement.MustExistAndRun );
@@ -44,11 +46,11 @@ namespace CK.Plugin.Runner.ConfigurationAndRequirements
             RequirementLayer layer3 = new RequirementLayer( "MyLayer3" );
             layer3.PluginRequirements.AddOrSet( id, RunningRequirement.OptionalTryStart );
 
-            runner.Add( layer );
-            runner.Add( layer2 );
-            runner.Add( layer3 );
+            PluginRunner.Add( layer );
+            PluginRunner.Add( layer2 );
+            PluginRunner.Add( layer3 );
 
-            Assert.That( implRunner.RunnerRequirements.FinalRequirement( id ) == SolvedConfigStatus.MustExistAndRun );
+            Assert.That( PluginRunner.RunnerRequirements.FinalRequirement( id ) == SolvedConfigStatus.MustExistAndRun );
         }
 
         [Test]
@@ -58,10 +60,7 @@ namespace CK.Plugin.Runner.ConfigurationAndRequirements
 
             TestBase.CopyPluginToTestDir( "ServiceA.dll" );
 
-            ISimplePluginRunner runner = _ctx.GetService<ISimplePluginRunner>();
-            PluginRunner implRunner = (PluginRunner)_ctx.GetService<ISimplePluginRunner>();
-
-            implRunner.Discoverer.Discover( TestBase.TestFolderDir, true );
+            PluginRunner.Discoverer.Discover( TestBase.TestFolderDir, true );
 
             RequirementLayer layer = new RequirementLayer( "MyLayer" );
             layer.PluginRequirements.AddOrSet( id, RunningRequirement.MustExistTryStart );
@@ -71,10 +70,10 @@ namespace CK.Plugin.Runner.ConfigurationAndRequirements
             // the requirements needs a MustExistTryStart, we set the status of the plugin to AutomaticStart
             _ctx.ConfigManager.UserConfiguration.PluginsStatus.SetStatus( id, ConfigPluginStatus.AutomaticStart );
 
-            runner.Add( layer );
-            runner.Add( layer2 );
+            PluginRunner.Add( layer );
+            PluginRunner.Add( layer2 );
 
-            Assert.That( implRunner.RunnerRequirements.FinalRequirement( id ) == SolvedConfigStatus.MustExistAndRun );
+            Assert.That( PluginRunner.RunnerRequirements.FinalRequirement( id ) == SolvedConfigStatus.MustExistAndRun );
         }
 
         [Test]
@@ -84,10 +83,7 @@ namespace CK.Plugin.Runner.ConfigurationAndRequirements
 
             TestBase.CopyPluginToTestDir( "ServiceA.dll" );
 
-            ISimplePluginRunner runner = _ctx.GetService<ISimplePluginRunner>();
-            PluginRunner implRunner = (PluginRunner)_ctx.GetService<ISimplePluginRunner>();
-
-            implRunner.Discoverer.Discover( TestBase.TestFolderDir, true );
+            PluginRunner.Discoverer.Discover( TestBase.TestFolderDir, true );
 
             RequirementLayer layer = new RequirementLayer( "MyLayer" );
             layer.PluginRequirements.AddOrSet( id, RunningRequirement.MustExistTryStart );
@@ -99,10 +95,10 @@ namespace CK.Plugin.Runner.ConfigurationAndRequirements
             // and we set the LiveUserAction to started
             _ctx.ConfigManager.UserConfiguration.LiveUserConfiguration.SetAction( id, ConfigUserAction.Started );
 
-            runner.Add( layer );
-            runner.Add( layer2 );
+            PluginRunner.Add( layer );
+            PluginRunner.Add( layer2 );
 
-            Assert.That( implRunner.RunnerRequirements.FinalRequirement( id ) == SolvedConfigStatus.MustExistAndRun );
+            Assert.That( PluginRunner.RunnerRequirements.FinalRequirement( id ) == SolvedConfigStatus.MustExistAndRun );
         }
 
         [Test]
@@ -112,10 +108,7 @@ namespace CK.Plugin.Runner.ConfigurationAndRequirements
 
             TestBase.CopyPluginToTestDir( "ServiceA.dll" );
 
-            ISimplePluginRunner runner = _ctx.GetService<ISimplePluginRunner>();
-            PluginRunner implRunner = (PluginRunner)_ctx.GetService<ISimplePluginRunner>();
-
-            implRunner.Discoverer.Discover( TestBase.TestFolderDir, true );
+            PluginRunner.Discoverer.Discover( TestBase.TestFolderDir, true );
 
             RequirementLayer layer = new RequirementLayer( "MyLayer" );
             layer.PluginRequirements.AddOrSet( id, RunningRequirement.MustExistTryStart );
@@ -127,10 +120,10 @@ namespace CK.Plugin.Runner.ConfigurationAndRequirements
             // and we set the LiveUserAction to started
             _ctx.ConfigManager.UserConfiguration.LiveUserConfiguration.SetAction( id, ConfigUserAction.Started );
 
-            runner.Add( layer );
-            runner.Add( layer2 );
+            PluginRunner.Add( layer );
+            PluginRunner.Add( layer2 );
 
-            Assert.That( implRunner.RunnerRequirements.FinalRequirement( id ) == SolvedConfigStatus.Disabled );
+            Assert.That( PluginRunner.RunnerRequirements.FinalRequirement( id ) == SolvedConfigStatus.Disabled );
         }
     }
 }

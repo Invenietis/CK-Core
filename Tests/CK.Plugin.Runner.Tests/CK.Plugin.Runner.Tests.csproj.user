@@ -2,10 +2,10 @@
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'">
     <StartAction>Program</StartAction>
-    <StartProgram>C:\Program Files (x86)\NUnit 2.5.9\bin\net-2.0\nunit.exe</StartProgram>
+    <StartProgram>C:\Users\Spi\Documents\Dev4\Tools\NUnit\nunit.exe</StartProgram>
     <StartArguments>CK.Plugin.Runner.Tests.dll</StartArguments>
   </PropertyGroup>
   <PropertyGroup>
-    <ProjectView>ProjectFiles</ProjectView>
+    <ProjectView>ShowAllFiles</ProjectView>
   </PropertyGroup>
 </Project>

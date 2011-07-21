@@ -1,35 +1,24 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using NUnit.Framework;
-using CK.Core;
-using CK.Context;
-using CK.Plugin.Hosting;
-using System.Reflection;
 using CK.Plugin.Config;
+using CK.Plugin.Hosting;
+using NUnit.Framework;
 
-namespace CK.Plugin.Runner.Apply
+namespace CK.Plugin.Runner
 {
     [TestFixture]
-    public class BasicStartStop : TestBase
+    public class BasicStartStop
     {
-        IContext _ctx;
-        ISimplePluginRunner _runner;
-        PluginRunner _implRunner;
-        Guid _implService = new Guid( "{C24EE3EA-F078-4974-A346-B34208221B35}" );
+        MiniContext _ctx;
+
+        PluginRunner PluginRunner { get { return _ctx.PluginRunner; } }
+        IConfigManager ConfigManager { get { return _ctx.ConfigManager; } }
 
         [SetUp]
         public void Setup()
         {
-            _ctx = CK.Context.Context.CreateInstance();
-            _runner = _ctx.GetService<ISimplePluginRunner>();
-            _implRunner = (PluginRunner)_ctx.GetService<ISimplePluginRunner>();
-
-            Assert.NotNull( _runner );
-            Assert.NotNull( _implRunner );
+            _ctx = MiniContext.CreateMiniContext( "BasicStartStop" );
         }
-
+        
         [SetUp]
         [TearDown]
         public void Teardown()
@@ -41,23 +30,23 @@ namespace CK.Plugin.Runner.Apply
         {
             // Set a new user action --> start plugins
             for( int i = 0; i < idToStart.Length; i++ )
-                _ctx.ConfigManager.UserConfiguration.LiveUserConfiguration.SetAction( idToStart[i], Config.ConfigUserAction.Started );
+                _ctx.ConfigManager.UserConfiguration.LiveUserConfiguration.SetAction( idToStart[i], ConfigUserAction.Started );
 
             if( beforeStart != null ) beforeStart();
 
             // So apply the change
-            Assert.That( _runner.Apply() == startSucceed );
+            Assert.That( PluginRunner.Apply() == startSucceed );
 
             if( afterStart != null ) afterStart();
 
             // Set a new user action --> stop the plugin
             for( int i = 0; i < idToStart.Length; i++ )
-                _ctx.ConfigManager.UserConfiguration.LiveUserConfiguration.SetAction( idToStart[i], Config.ConfigUserAction.Stopped );
+                _ctx.ConfigManager.UserConfiguration.LiveUserConfiguration.SetAction( idToStart[i], ConfigUserAction.Stopped );
 
             if( beforeStop != null ) beforeStop();
 
             // So apply the change
-            Assert.IsTrue( _runner.Apply() == stopSucceed );
+            Assert.IsTrue( PluginRunner.Apply() == stopSucceed );
 
             if( afterStop != null ) afterStop();
         }
@@ -78,10 +67,10 @@ namespace CK.Plugin.Runner.Apply
 
             TestBase.CopyPluginToTestDir( "SimplePlugin.dll" );
 
-            _implRunner.Discoverer.Discover( TestBase.TestFolderDir, true );
+            PluginRunner.Discoverer.Discover( TestBase.TestFolderDir, true );
 
-            Action afterStart = () => Assert.IsTrue( _implRunner.IsPluginRunning( _implRunner.Discoverer.FindPlugin( id ) ) );
-            Action afterStop = () => Assert.IsTrue( !_implRunner.IsPluginRunning( _implRunner.Discoverer.FindPlugin( id ) ) );
+            Action afterStart = () => Assert.IsTrue( PluginRunner.IsPluginRunning( PluginRunner.Discoverer.FindPlugin( id ) ) );
+            Action afterStop = () => Assert.IsTrue( !PluginRunner.IsPluginRunning( PluginRunner.Discoverer.FindPlugin( id ) ) );
 
             CheckStartStop( null, afterStart, null, afterStop, id );
 
@@ -101,15 +90,15 @@ namespace CK.Plugin.Runner.Apply
             Guid id = new Guid( "{EEAEC976-2AFC-4A68-BFAD-68E169677D52}" );
 
             TestBase.CopyPluginToTestDir( "SimplePlugin.dll" );
-            _implRunner.Discoverer.Discover( TestBase.TestFolderDir, true );
+            PluginRunner.Discoverer.Discover( TestBase.TestFolderDir, true );
 
-            _implRunner.ConfigManager.SystemConfiguration.PluginsStatus.SetStatus( id, Config.ConfigPluginStatus.AutomaticStart );
-            _implRunner.Apply();
-            Assert.That( _implRunner.IsPluginRunning( _implRunner.Discoverer.FindPlugin( id ) ) );
+            PluginRunner.ConfigManager.SystemConfiguration.PluginsStatus.SetStatus( id, ConfigPluginStatus.AutomaticStart );
+            PluginRunner.Apply();
+            Assert.That( PluginRunner.IsPluginRunning( PluginRunner.Discoverer.FindPlugin( id ) ) );
 
-            _implRunner.ConfigManager.SystemConfiguration.PluginsStatus.SetStatus( id, Config.ConfigPluginStatus.Manual );
-            _implRunner.Apply();
-            Assert.That( _implRunner.IsPluginRunning( _implRunner.Discoverer.FindPlugin( id ) ) );
+            PluginRunner.ConfigManager.SystemConfiguration.PluginsStatus.SetStatus( id, ConfigPluginStatus.Manual );
+            PluginRunner.Apply();
+            Assert.That( PluginRunner.IsPluginRunning( PluginRunner.Discoverer.FindPlugin( id ) ) );
         }
 
          [Test]
@@ -126,15 +115,15 @@ namespace CK.Plugin.Runner.Apply
             TestBase.CopyPluginToTestDir( "ServiceC.Model.dll" );
             TestBase.CopyPluginToTestDir( "ServiceC.dll" );
             TestBase.CopyPluginToTestDir( "PluginNeedsServiceC.dll" );
-            _implRunner.Discoverer.Discover( TestBase.TestFolderDir, true );
+            PluginRunner.Discoverer.Discover( TestBase.TestFolderDir, true );
 
-            _implRunner.ConfigManager.SystemConfiguration.PluginsStatus.SetStatus( id, Config.ConfigPluginStatus.AutomaticStart );
-            _implRunner.Apply();
-            Assert.That( _implRunner.IsPluginRunning( _implRunner.Discoverer.FindPlugin( id ) ) );
+            PluginRunner.ConfigManager.SystemConfiguration.PluginsStatus.SetStatus( id, ConfigPluginStatus.AutomaticStart );
+            PluginRunner.Apply();
+            Assert.That( PluginRunner.IsPluginRunning( PluginRunner.Discoverer.FindPlugin( id ) ) );
 
-            _implRunner.ConfigManager.SystemConfiguration.PluginsStatus.SetStatus( id, Config.ConfigPluginStatus.Manual );
-            _implRunner.Apply();
-            Assert.That( _implRunner.IsPluginRunning( _implRunner.Discoverer.FindPlugin( id ) ) );
+            PluginRunner.ConfigManager.SystemConfiguration.PluginsStatus.SetStatus( id, ConfigPluginStatus.Manual );
+            PluginRunner.Apply();
+            Assert.That( PluginRunner.IsPluginRunning( PluginRunner.Discoverer.FindPlugin( id ) ) );
         }
 
          [Test]
@@ -150,26 +139,23 @@ namespace CK.Plugin.Runner.Apply
              TestBase.CopyPluginToTestDir( "ServiceC.Model.dll" );
              TestBase.CopyPluginToTestDir( "ServiceC.dll" );
              TestBase.CopyPluginToTestDir( "PluginNeedsServiceC.dll" );
-             _implRunner.Discoverer.Discover( TestBase.TestFolderDir, true );
+             PluginRunner.Discoverer.Discover( TestBase.TestFolderDir, true );
 
-             Assert.That( _implRunner.IsPluginRunning( _implRunner.Discoverer.FindPlugin( id1 ) ) || _implRunner.IsPluginRunning( _implRunner.Discoverer.FindPlugin( id2 ) ), Is.False, "Nothing started yet." );
+             PluginRunner.ConfigManager.UserConfiguration.LiveUserConfiguration.SetAction( id1, ConfigUserAction.Started );
+             PluginRunner.Apply();
+             Assert.That( PluginRunner.IsPluginRunning( PluginRunner.Discoverer.FindPlugin( id1 ) ), "Both should be launched as we launch 1 that needs 2");
+             Assert.That( PluginRunner.IsPluginRunning( PluginRunner.Discoverer.FindPlugin( id2 ) ), "Both should be launched as we launch 1 that needs 2" );
 
-             _implRunner.ConfigManager.UserConfiguration.LiveUserConfiguration.SetAction( id1, ConfigUserAction.Started );
-             Assert.That( _implRunner.IsDirty );
-             _implRunner.Apply();
-             Assert.That( _implRunner.IsPluginRunning( _implRunner.Discoverer.FindPlugin( id1 ) ), "Both should be launched as we launch 1 that needs 2" );
-             Assert.That( _implRunner.IsPluginRunning( _implRunner.Discoverer.FindPlugin( id2 ) ), "Both should be launched as we launch 1 that needs 2" );
+             PluginRunner.ConfigManager.UserConfiguration.LiveUserConfiguration.SetAction( id1, ConfigUserAction.Stopped );
+             Assert.That( PluginRunner.IsDirty );
+             PluginRunner.Apply();
+             Assert.That( PluginRunner.IsPluginRunning( PluginRunner.Discoverer.FindPlugin( id1 ) ), Is.False, "The plugin should be stopped" );
+             Assert.That( PluginRunner.IsPluginRunning( PluginRunner.Discoverer.FindPlugin( id2 ) ), Is.True, "The plugin should still be running" );
 
-             _implRunner.ConfigManager.UserConfiguration.LiveUserConfiguration.SetAction( id1, ConfigUserAction.Stopped );
-             Assert.That( _implRunner.IsDirty );
-             _implRunner.Apply();
-             Assert.That( _implRunner.IsPluginRunning( _implRunner.Discoverer.FindPlugin( id1 ) ), Is.False, "The plugin should be stopped" );
-             Assert.That( _implRunner.IsPluginRunning( _implRunner.Discoverer.FindPlugin( id2 ) ), Is.True, "The plugin should still be running" );
-
-             _implRunner.ConfigManager.UserConfiguration.LiveUserConfiguration.SetAction( id2, ConfigUserAction.Stopped );
-             Assert.That( _implRunner.IsDirty );
-             _implRunner.Apply();             
-             Assert.That( _implRunner.IsPluginRunning( _implRunner.Discoverer.FindPlugin( id2 ) ), Is.False, "The plugin should now be stopped" );
+             PluginRunner.ConfigManager.UserConfiguration.LiveUserConfiguration.SetAction( id2, ConfigUserAction.Stopped );
+             Assert.That( PluginRunner.IsDirty );
+             PluginRunner.Apply();             
+             Assert.That( PluginRunner.IsPluginRunning( PluginRunner.Discoverer.FindPlugin( id2 ) ), Is.False, "The plugin should now be stopped" );
 
          }
 
@@ -183,31 +169,17 @@ namespace CK.Plugin.Runner.Apply
 
             TestBase.CopyPluginToTestDir( "ServiceB.dll" );
 
-            _implRunner.Discoverer.Discover( TestBase.TestFolderDir, true );
+            PluginRunner.Discoverer.Discover( TestBase.TestFolderDir, true );
 
             Action afterStart = () =>
             {
-                Assert.IsTrue( _implRunner.IsPluginRunning( _implRunner.Discoverer.FindPlugin( id ) ) );
+                Assert.IsTrue( PluginRunner.IsPluginRunning( PluginRunner.Discoverer.FindPlugin( id ) ) );
                 // Check that the service is available.
-                //Assert.NotNull( _implRunner.ServiceHost.GetRunningProxy( Type.GetType( "CK.Tests.Plugin.IServiceB, ServiceB, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null", true ) ) );
+                //Assert.NotNull( PluginRunner.ServiceHost.GetRunningProxy( Type.GetType( "CK.Tests.Plugin.IServiceB, ServiceB, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null", true ) ) );
             };
-            Action afterStop = () => Assert.IsTrue( !_implRunner.IsPluginRunning( _implRunner.Discoverer.FindPlugin( id ) ) );
+            Action afterStop = () => Assert.IsTrue( !PluginRunner.IsPluginRunning( PluginRunner.Discoverer.FindPlugin( id ) ) );
 
             CheckStartStop( null, afterStart, null, afterStop, id );
-        }
-
-        [Test]
-        public void StartKeyboardPlugin()
-        {
-            Guid id = new Guid( "{2ED1562F-2416-45cb-9FC8-EEF941E3EDBC}" );
-
-            TestBase.CopyPluginToTestDir( TestBase.AppFolderDir.GetFiles( "CK.Keyboard.*" ) );
-
-            _implRunner.Discoverer.Discover( TestBase.TestFolderDir, true );
-
-            Action afterStart = () => Assert.IsTrue( _implRunner.IsPluginRunning( _implRunner.Discoverer.FindPlugin( id ) ) );
-
-            CheckStartStop( null, afterStart, null, null, id );
         }
 
         [Test]
@@ -217,9 +189,9 @@ namespace CK.Plugin.Runner.Apply
 
             TestBase.CopyPluginToTestDir( "ServiceA.dll" );
 
-            _implRunner.Discoverer.Discover( TestBase.TestFolderDir, true );
+            PluginRunner.Discoverer.Discover( TestBase.TestFolderDir, true );
 
-            Action afterStart = () => Assert.IsTrue( _implRunner.IsPluginRunning( _implRunner.Discoverer.FindPlugin( id ) ) );
+            Action afterStart = () => Assert.IsTrue( PluginRunner.IsPluginRunning( PluginRunner.Discoverer.FindPlugin( id ) ) );
 
             CheckStartStop( null, afterStart, null, null, id );
         }
@@ -233,24 +205,24 @@ namespace CK.Plugin.Runner.Apply
             TestBase.CopyPluginToTestDir( "ServiceC.Model.dll" );   // Service
             TestBase.CopyPluginToTestDir( "ServiceC.dll" );         // Implementation
 
-            _implRunner.Discoverer.Discover( TestBase.TestFolderDir, true );
+            PluginRunner.Discoverer.Discover( TestBase.TestFolderDir, true );
 
             RequirementLayer layer = new RequirementLayer( "RunnerTest" );
             layer.ServiceRequirements.AddOrSet( "CK.Tests.Plugin.IServiceC, ServiceC.Model", RunningRequirement.MustExistAndRun );
-            _implRunner.RunnerRequirements.Add( layer );
+            PluginRunner.RunnerRequirements.Add( layer );
 
-            Assert.That( _implRunner.Apply() );
-            Assert.That( _implRunner.IsPluginRunning( _implRunner.Discoverer.FindPlugin( serviceC ) ) );
+            Assert.That( PluginRunner.Apply() );
+            Assert.That( PluginRunner.IsPluginRunning( PluginRunner.Discoverer.FindPlugin( serviceC ) ) );
 
             TestBase.CopyPluginToTestDir( "ServiceC.2.dll" );  // Second Implementation
-            _implRunner.Discoverer.Discover( TestBase.TestFolderDir, true );
+            PluginRunner.Discoverer.Discover( TestBase.TestFolderDir, true );
 
-            Assert.That( _implRunner.IsDirty, Is.False );
-            _implRunner.ConfigManager.UserConfiguration.PluginsStatus.SetStatus( serviceC, ConfigPluginStatus.Disabled );
-            Assert.That( _implRunner.IsDirty );
+            Assert.That( PluginRunner.IsDirty, Is.False );
+            PluginRunner.ConfigManager.UserConfiguration.PluginsStatus.SetStatus( serviceC, ConfigPluginStatus.Disabled );
+            Assert.That( PluginRunner.IsDirty );
             
-            Assert.That( _implRunner.Apply() );
-            Assert.That( _implRunner.IsPluginRunning( _implRunner.Discoverer.FindPlugin( serviceC2 ) ) );
+            Assert.That( PluginRunner.Apply() );
+            Assert.That( PluginRunner.IsPluginRunning( PluginRunner.Discoverer.FindPlugin( serviceC2 ) ) );
         }
     }
 }

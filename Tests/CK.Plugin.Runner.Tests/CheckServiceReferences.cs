@@ -1,32 +1,24 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using NUnit.Framework;
-using CK.Core;
-using CK.Context;
+using CK.Plugin.Config;
 using CK.Plugin.Hosting;
-using System.Reflection;
+using NUnit.Framework;
 
-namespace CK.Plugin.Runner.Apply
+namespace CK.Plugin.Runner
 {
     [TestFixture]
-    public class CheckServiceReferences : TestBase
+    public class CheckServiceReferences
     {
-        IContext _ctx;
-        ISimplePluginRunner _runner;
-        PluginRunner _implRunner;
-        Guid _implService = new Guid( "{C24EE3EA-F078-4974-A346-B34208221B35}" );
+        MiniContext _ctx;
+
+        PluginRunner PluginRunner { get { return _ctx.PluginRunner; } }
+        IConfigManager ConfigManager { get { return _ctx.ConfigManager; } }
+
+        static Guid _implService = new Guid( "{C24EE3EA-F078-4974-A346-B34208221B35}" );
 
         [SetUp]
         public void Setup()
         {
-            _ctx = CK.Context.Context.CreateInstance();
-            _runner = _ctx.PluginRunner;
-            _implRunner = (PluginRunner)_ctx.PluginRunner;
-
-            Assert.NotNull( _runner );
-            Assert.NotNull( _implRunner );
+            _ctx = MiniContext.CreateMiniContext( "BasicStartStop" );
         }
 
         [SetUp]
@@ -36,27 +28,28 @@ namespace CK.Plugin.Runner.Apply
             TestBase.CleanupTestDir();
         }
 
+
         void CheckStartStop( Action beforeStart, Action afterStart, Action beforeStop, Action afterStop, bool startSucceed, bool stopSucceed, params Guid[] idToStart )
         {
             // Set a new user action --> start plugins
             for( int i = 0; i < idToStart.Length; i++ )
-                _ctx.ConfigManager.UserConfiguration.LiveUserConfiguration.SetAction( idToStart[i], Config.ConfigUserAction.Started );
+                ConfigManager.UserConfiguration.LiveUserConfiguration.SetAction( idToStart[i], ConfigUserAction.Started );
 
             if( beforeStart != null ) beforeStart();
 
             // So apply the change
-            Assert.That( _runner.Apply() == startSucceed );
+            Assert.That( PluginRunner.Apply() == startSucceed );
 
             if( afterStart != null ) afterStart();
 
             // Set a new user action --> stop the plugin
             for( int i = 0; i < idToStart.Length; i++ )
-                _ctx.ConfigManager.UserConfiguration.LiveUserConfiguration.SetAction( idToStart[i], Config.ConfigUserAction.Stopped );
+                ConfigManager.UserConfiguration.LiveUserConfiguration.SetAction( idToStart[i], ConfigUserAction.Stopped );
 
             if( beforeStop != null ) beforeStop();
 
             // So apply the change
-            Assert.IsTrue( _runner.Apply() == stopSucceed );
+            Assert.IsTrue( PluginRunner.Apply() == stopSucceed );
 
             if( afterStop != null ) afterStop();
         }
@@ -81,20 +74,20 @@ namespace CK.Plugin.Runner.Apply
             TestBase.CopyPluginToTestDir( "ServiceC.Model.dll" );
             TestBase.CopyPluginToTestDir( "PluginNeedsServiceC.dll" );
 
-            _implRunner.Discoverer.Discover( TestBase.TestFolderDir, true );
+            PluginRunner.Discoverer.Discover( TestBase.TestFolderDir, true );
 
             Action afterStart = () =>
             {
                 // Check if the plugin is started, and if the plugin that implement the required service is started too.
-                Assert.IsTrue( _implRunner.IsPluginRunning( _implRunner.Discoverer.FindPlugin( id ) ) );
-                Assert.IsTrue( _implRunner.IsPluginRunning( _implRunner.Discoverer.FindPlugin( _implService ) ) );
+                Assert.IsTrue( PluginRunner.IsPluginRunning( PluginRunner.Discoverer.FindPlugin( id ) ) );
+                Assert.IsTrue( PluginRunner.IsPluginRunning( PluginRunner.Discoverer.FindPlugin( _implService ) ) );
             };
             Action afterStop = () =>
             {
                 // Check if the plugin is stopped.
-                Assert.IsTrue( !_implRunner.IsPluginRunning( _implRunner.Discoverer.FindPlugin( id ) ) );
+                Assert.IsTrue( !PluginRunner.IsPluginRunning( PluginRunner.Discoverer.FindPlugin( id ) ) );
                 // The plugin that implements the service is still running, we don't care about machine resources yet.
-                Assert.IsTrue( _implRunner.IsPluginRunning( _implRunner.Discoverer.FindPlugin( _implService ) ) );
+                Assert.IsTrue( PluginRunner.IsPluginRunning( PluginRunner.Discoverer.FindPlugin( _implService ) ) );
             };
 
             CheckStartStop( null, afterStart, null, afterStop, id );
@@ -113,20 +106,20 @@ namespace CK.Plugin.Runner.Apply
             TestBase.CopyPluginToTestDir( "ServiceC.Model.dll" );
             TestBase.CopyPluginToTestDir( "PluginNeedsServiceC.dll" );
 
-            _implRunner.Discoverer.Discover( TestBase.TestFolderDir, true );
+            PluginRunner.Discoverer.Discover( TestBase.TestFolderDir, true );
 
             Action afterStart = () =>
             {
                 // Check if the plugin is started, and if the plugin that implement the required service is started too.
-                Assert.IsTrue( _implRunner.IsPluginRunning( _implRunner.Discoverer.FindPlugin( id ) ) );
-                Assert.IsTrue( _implRunner.IsPluginRunning( _implRunner.Discoverer.FindPlugin( _implService ) ) );
+                Assert.IsTrue( PluginRunner.IsPluginRunning( PluginRunner.Discoverer.FindPlugin( id ) ) );
+                Assert.IsTrue( PluginRunner.IsPluginRunning( PluginRunner.Discoverer.FindPlugin( _implService ) ) );
             };
             Action afterStop = () =>
             {
                 // Check if the plugin is stopped.
-                Assert.IsTrue( !_implRunner.IsPluginRunning( _implRunner.Discoverer.FindPlugin( id ) ) );
+                Assert.IsTrue( !PluginRunner.IsPluginRunning( PluginRunner.Discoverer.FindPlugin( id ) ) );
                 // The plugin that implements the service is still running, we don't care about machine resources yet.
-                Assert.IsTrue( _implRunner.IsPluginRunning( _implRunner.Discoverer.FindPlugin( _implService ) ) );
+                Assert.IsTrue( PluginRunner.IsPluginRunning( PluginRunner.Discoverer.FindPlugin( _implService ) ) );
             };
 
             CheckStartStop( null, afterStart, null, afterStop, id );
@@ -147,7 +140,7 @@ namespace CK.Plugin.Runner.Apply
             TestBase.CopyPluginToTestDir( "ServiceC.Model.dll" );
             TestBase.CopyPluginToTestDir( "PluginNeedsServiceC.dll" );
 
-            _implRunner.Discoverer.Discover( TestBase.TestFolderDir, true );
+            PluginRunner.Discoverer.Discover( TestBase.TestFolderDir, true );
 
             #endregion
 
@@ -155,16 +148,16 @@ namespace CK.Plugin.Runner.Apply
             Action afterStart = () =>
             {
                 // Check if the plugin is started, and if the plugin that implement the required service is started too.
-                Assert.IsTrue( _implRunner.IsPluginRunning( _implRunner.Discoverer.FindPlugin( id ) ) );
+                Assert.IsTrue( PluginRunner.IsPluginRunning( PluginRunner.Discoverer.FindPlugin( id ) ) );
                 // The plugin is available ... so we tried to start it.
-                Assert.IsTrue( _implRunner.IsPluginRunning( _implRunner.Discoverer.FindPlugin( _implService ) ) );
+                Assert.IsTrue( PluginRunner.IsPluginRunning( PluginRunner.Discoverer.FindPlugin( _implService ) ) );
             };
             Action afterStop = () =>
             {
                 // Check if the plugin is stopped.
-                Assert.IsTrue( !_implRunner.IsPluginRunning( _implRunner.Discoverer.FindPlugin( id ) ) );
+                Assert.IsTrue( !PluginRunner.IsPluginRunning( PluginRunner.Discoverer.FindPlugin( id ) ) );
                 // The plugin that implements the service is still running, we don't care about machine resources yet.
-                Assert.IsTrue( _implRunner.IsPluginRunning( _implRunner.Discoverer.FindPlugin( _implService ) ) );
+                Assert.IsTrue( PluginRunner.IsPluginRunning( PluginRunner.Discoverer.FindPlugin( _implService ) ) );
             };
             #endregion
 
@@ -186,23 +179,23 @@ namespace CK.Plugin.Runner.Apply
             TestBase.CopyPluginToTestDir( "ServiceC.Model.dll" );
             TestBase.CopyPluginToTestDir( "PluginNeedsServiceC.dll" );
 
-            _implRunner.Discoverer.Discover( TestBase.TestFolderDir, true ); 
+            PluginRunner.Discoverer.Discover( TestBase.TestFolderDir, true ); 
             #endregion
 
             #region Asserts
             Action afterStart = () =>
                 {
                     // Check if the plugin is started, and if the plugin that implement the required service is started too.
-                    Assert.IsTrue( _implRunner.IsPluginRunning( _implRunner.Discoverer.FindPlugin( id ) ) );
+                    Assert.IsTrue( PluginRunner.IsPluginRunning( PluginRunner.Discoverer.FindPlugin( id ) ) );
                     // The plugin is available ... so we tried to start it.
-                    Assert.IsTrue( _implRunner.IsPluginRunning( _implRunner.Discoverer.FindPlugin( _implService ) ) );
+                    Assert.IsTrue( PluginRunner.IsPluginRunning( PluginRunner.Discoverer.FindPlugin( _implService ) ) );
                 };
             Action afterStop = () =>
             {
                 // Check if the plugin is stopped.
-                Assert.IsTrue( !_implRunner.IsPluginRunning( _implRunner.Discoverer.FindPlugin( id ) ) );
+                Assert.IsTrue( !PluginRunner.IsPluginRunning( PluginRunner.Discoverer.FindPlugin( id ) ) );
                 // The plugin that implements the service is still running, we don't care about machine resources yet.
-                Assert.IsTrue( _implRunner.IsPluginRunning( _implRunner.Discoverer.FindPlugin( _implService ) ) );
+                Assert.IsTrue( PluginRunner.IsPluginRunning( PluginRunner.Discoverer.FindPlugin( _implService ) ) );
             }; 
             #endregion
 
@@ -225,7 +218,7 @@ namespace CK.Plugin.Runner.Apply
             TestBase.CopyPluginToTestDir( "ServiceC.Model.dll" );
             TestBase.CopyPluginToTestDir( "PluginNeedsServiceC.dll" );
 
-            _implRunner.Discoverer.Discover( TestBase.TestFolderDir, true );
+            PluginRunner.Discoverer.Discover( TestBase.TestFolderDir, true );
 
             #endregion
 
@@ -233,16 +226,16 @@ namespace CK.Plugin.Runner.Apply
             Action afterStart = () =>
             {
                 // Check if the plugin is started, and if the plugin that implement the required service is started too.
-                Assert.IsTrue( _implRunner.IsPluginRunning( _implRunner.Discoverer.FindPlugin( id ) ) );
+                Assert.IsTrue( PluginRunner.IsPluginRunning( PluginRunner.Discoverer.FindPlugin( id ) ) );
                 // The plugin is available but we don't need it started.
-                Assert.IsTrue( !_implRunner.IsPluginRunning( _implRunner.Discoverer.FindPlugin( _implService ) ) );
+                Assert.IsTrue( !PluginRunner.IsPluginRunning( PluginRunner.Discoverer.FindPlugin( _implService ) ) );
             };
             Action afterStop = () =>
             {
                 // Check if the plugin is stopped.
-                Assert.IsTrue( !_implRunner.IsPluginRunning( _implRunner.Discoverer.FindPlugin( id ) ) );
+                Assert.IsTrue( !PluginRunner.IsPluginRunning( PluginRunner.Discoverer.FindPlugin( id ) ) );
                 // The plugin that implements the service was not running.
-                Assert.IsTrue( !_implRunner.IsPluginRunning( _implRunner.Discoverer.FindPlugin( _implService ) ) );
+                Assert.IsTrue( !PluginRunner.IsPluginRunning( PluginRunner.Discoverer.FindPlugin( _implService ) ) );
             };
             #endregion
 
@@ -258,28 +251,27 @@ namespace CK.Plugin.Runner.Apply
         public void ServiceReference_IService_MustExist()
         {
             #region Init
-            // PluginNeedsIService_ME
             Guid id = new Guid( "{973B4050-280F-43B0-A9E3-0C4DC9BC2C5F}" );
 
             TestBase.CopyPluginToTestDir( "ServiceC.dll" );
             TestBase.CopyPluginToTestDir( "ServiceC.Model.dll" );
             TestBase.CopyPluginToTestDir( "PluginNeedsServiceC.dll" );
 
-            _implRunner.Discoverer.Discover( TestBase.TestFolderDir, true );
+            PluginRunner.Discoverer.Discover( TestBase.TestFolderDir, true );
             #endregion
 
             #region Asserts
             Action afterStart = () =>
             {
                 // Check if the plugin is started, and if the plugin that implement the required service is started too.
-                Assert.IsTrue( _implRunner.IsPluginRunning( _implRunner.Discoverer.FindPlugin( id ) ) );
-                Assert.IsTrue( !_implRunner.IsPluginRunning( _implRunner.Discoverer.FindPlugin( _implService ) ) );
+                Assert.IsTrue( PluginRunner.IsPluginRunning( PluginRunner.Discoverer.FindPlugin( id ) ) );
+                Assert.IsTrue( !PluginRunner.IsPluginRunning( PluginRunner.Discoverer.FindPlugin( _implService ) ) );
             };
             Action afterStop = () =>
             {
                 // Check if the plugin is stopped.
-                Assert.IsTrue( !_implRunner.IsPluginRunning( _implRunner.Discoverer.FindPlugin( id ) ) );
-                Assert.IsTrue( !_implRunner.IsPluginRunning( _implRunner.Discoverer.FindPlugin( _implService ) ) );
+                Assert.IsTrue( !PluginRunner.IsPluginRunning( PluginRunner.Discoverer.FindPlugin( id ) ) );
+                Assert.IsTrue( !PluginRunner.IsPluginRunning( PluginRunner.Discoverer.FindPlugin( _implService ) ) );
             };
             #endregion
 
@@ -302,7 +294,7 @@ namespace CK.Plugin.Runner.Apply
             TestBase.CopyPluginToTestDir( "ServiceC.Model.dll" );
             TestBase.CopyPluginToTestDir( "PluginNeedsServiceC.dll" );
 
-            _implRunner.Discoverer.Discover( TestBase.TestFolderDir, true );
+            PluginRunner.Discoverer.Discover( TestBase.TestFolderDir, true );
 
             #endregion
 
@@ -310,14 +302,14 @@ namespace CK.Plugin.Runner.Apply
             Action afterStart = () =>
             {
                 // Check if the plugin is started, and if the plugin that implement the required service is started too.
-                Assert.IsTrue( _implRunner.IsPluginRunning( _implRunner.Discoverer.FindPlugin( id ) ) );
-                Assert.IsTrue( _implRunner.IsPluginRunning( _implRunner.Discoverer.FindPlugin( _implService ) ) );
+                Assert.IsTrue( PluginRunner.IsPluginRunning( PluginRunner.Discoverer.FindPlugin( id ) ) );
+                Assert.IsTrue( PluginRunner.IsPluginRunning( PluginRunner.Discoverer.FindPlugin( _implService ) ) );
             };
             Action afterStop = () =>
             {
                 // Check if the plugin is stopped.
-                Assert.IsTrue( !_implRunner.IsPluginRunning( _implRunner.Discoverer.FindPlugin( id ) ) );
-                Assert.IsTrue( _implRunner.IsPluginRunning( _implRunner.Discoverer.FindPlugin( _implService ) ) );
+                Assert.IsTrue( !PluginRunner.IsPluginRunning( PluginRunner.Discoverer.FindPlugin( id ) ) );
+                Assert.IsTrue( PluginRunner.IsPluginRunning( PluginRunner.Discoverer.FindPlugin( _implService ) ) );
             };
             #endregion
 
@@ -339,21 +331,21 @@ namespace CK.Plugin.Runner.Apply
             TestBase.CopyPluginToTestDir( "ServiceC.Model.dll" );
             TestBase.CopyPluginToTestDir( "PluginNeedsServiceC.dll" );
 
-            _implRunner.Discoverer.Discover( TestBase.TestFolderDir, true );
+            PluginRunner.Discoverer.Discover( TestBase.TestFolderDir, true );
             #endregion
 
             #region Asserts
             Action afterStart = () =>
             {
                 // Check if the plugin is started, and if the plugin that implement the required service is started too.
-                Assert.IsTrue( _implRunner.IsPluginRunning( _implRunner.Discoverer.FindPlugin( id ) ) );
-                Assert.IsTrue( _implRunner.IsPluginRunning( _implRunner.Discoverer.FindPlugin( _implService ) ) );
+                Assert.IsTrue( PluginRunner.IsPluginRunning( PluginRunner.Discoverer.FindPlugin( id ) ) );
+                Assert.IsTrue( PluginRunner.IsPluginRunning( PluginRunner.Discoverer.FindPlugin( _implService ) ) );
             };
             Action afterStop = () =>
             {
                 // Check if the plugin is stopped.
-                Assert.IsTrue( !_implRunner.IsPluginRunning( _implRunner.Discoverer.FindPlugin( id ) ) );
-                Assert.IsTrue( _implRunner.IsPluginRunning( _implRunner.Discoverer.FindPlugin( _implService ) ) );
+                Assert.IsTrue( !PluginRunner.IsPluginRunning( PluginRunner.Discoverer.FindPlugin( id ) ) );
+                Assert.IsTrue( PluginRunner.IsPluginRunning( PluginRunner.Discoverer.FindPlugin( _implService ) ) );
             };
             #endregion
 
@@ -376,7 +368,7 @@ namespace CK.Plugin.Runner.Apply
             TestBase.CopyPluginToTestDir( "ServiceC.Model.dll" );
             TestBase.CopyPluginToTestDir( "PluginNeedsServiceC.dll" );
 
-            _implRunner.Discoverer.Discover( TestBase.TestFolderDir, true );
+            PluginRunner.Discoverer.Discover( TestBase.TestFolderDir, true );
 
             #endregion
 
@@ -384,14 +376,14 @@ namespace CK.Plugin.Runner.Apply
             Action afterStart = () =>
             {
                 // Check if the plugin is started, and if the plugin that implement the required service is started too.
-                Assert.IsTrue( _implRunner.IsPluginRunning( _implRunner.Discoverer.FindPlugin( id ) ) );
-                Assert.IsTrue( !_implRunner.IsPluginRunning( _implRunner.Discoverer.FindPlugin( _implService ) ) );
+                Assert.IsTrue( PluginRunner.IsPluginRunning( PluginRunner.Discoverer.FindPlugin( id ) ) );
+                Assert.IsTrue( !PluginRunner.IsPluginRunning( PluginRunner.Discoverer.FindPlugin( _implService ) ) );
             };
             Action afterStop = () =>
             {
                 // Check if the plugin is stopped.
-                Assert.IsTrue( !_implRunner.IsPluginRunning( _implRunner.Discoverer.FindPlugin( id ) ) );
-                Assert.IsTrue( !_implRunner.IsPluginRunning( _implRunner.Discoverer.FindPlugin( _implService ) ) );
+                Assert.IsTrue( !PluginRunner.IsPluginRunning( PluginRunner.Discoverer.FindPlugin( id ) ) );
+                Assert.IsTrue( !PluginRunner.IsPluginRunning( PluginRunner.Discoverer.FindPlugin( _implService ) ) );
             };
             #endregion
 
@@ -413,21 +405,21 @@ namespace CK.Plugin.Runner.Apply
             TestBase.CopyPluginToTestDir( "ServiceC.Model.dll" );
             TestBase.CopyPluginToTestDir( "PluginNeedsServiceC.dll" );
 
-            _implRunner.Discoverer.Discover( TestBase.TestFolderDir, true );
+            PluginRunner.Discoverer.Discover( TestBase.TestFolderDir, true );
             #endregion
 
             #region Asserts
             Action afterStart = () =>
             {
                 // Check if the plugin is started, and if the plugin that implement the required service is started too.
-                Assert.IsTrue( _implRunner.IsPluginRunning( _implRunner.Discoverer.FindPlugin( id ) ) );
-                Assert.IsTrue( !_implRunner.IsPluginRunning( _implRunner.Discoverer.FindPlugin( _implService ) ) );
+                Assert.IsTrue( PluginRunner.IsPluginRunning( PluginRunner.Discoverer.FindPlugin( id ) ) );
+                Assert.IsTrue( !PluginRunner.IsPluginRunning( PluginRunner.Discoverer.FindPlugin( _implService ) ) );
             };
             Action afterStop = () =>
             {
                 // Check if the plugin is stopped.
-                Assert.IsTrue( !_implRunner.IsPluginRunning( _implRunner.Discoverer.FindPlugin( id ) ) );
-                Assert.IsTrue( !_implRunner.IsPluginRunning( _implRunner.Discoverer.FindPlugin( _implService ) ) );
+                Assert.IsTrue( !PluginRunner.IsPluginRunning( PluginRunner.Discoverer.FindPlugin( id ) ) );
+                Assert.IsTrue( !PluginRunner.IsPluginRunning( PluginRunner.Discoverer.FindPlugin( _implService ) ) );
             };
             #endregion
 
@@ -451,17 +443,17 @@ namespace CK.Plugin.Runner.Apply
             TestBase.CopyPluginToTestDir( "ServiceC.Model.dll" );
             TestBase.CopyPluginToTestDir( "PluginNeedsServiceC.dll" );
 
-            _implRunner.Discoverer.Discover( TestBase.TestFolderDir, true );
+            PluginRunner.Discoverer.Discover( TestBase.TestFolderDir, true );
 
             Action afterStart = () =>
             {
                 // Check if the plugin is started, and if the plugin that implement the required service is started too.
-                Assert.IsTrue( !_implRunner.IsPluginRunning( _implRunner.Discoverer.FindPlugin( id ) ) );
+                Assert.IsTrue( !PluginRunner.IsPluginRunning( PluginRunner.Discoverer.FindPlugin( id ) ) );
             };
             Action afterStop = () =>
             {
                 // Check if the plugin is stopped.
-                Assert.IsTrue( !_implRunner.IsPluginRunning( _implRunner.Discoverer.FindPlugin( id ) ) );
+                Assert.IsTrue( !PluginRunner.IsPluginRunning( PluginRunner.Discoverer.FindPlugin( id ) ) );
             };
 
             CheckStartStop( null, afterStart, null, afterStop, false, true, id );
@@ -479,17 +471,17 @@ namespace CK.Plugin.Runner.Apply
             TestBase.CopyPluginToTestDir( "ServiceC.Model.dll" );
             TestBase.CopyPluginToTestDir( "PluginNeedsServiceC.dll" );
 
-            _implRunner.Discoverer.Discover( TestBase.TestFolderDir, true );
+            PluginRunner.Discoverer.Discover( TestBase.TestFolderDir, true );
 
             Action afterStart = () =>
             {
                 // Check if the plugin is started, and if the plugin that implement the required service is started too.
-                Assert.IsTrue( !_implRunner.IsPluginRunning( _implRunner.Discoverer.FindPlugin( id ) ) );
+                Assert.IsTrue( !PluginRunner.IsPluginRunning( PluginRunner.Discoverer.FindPlugin( id ) ) );
             };
             Action afterStop = () =>
             {
                 // Check if the plugin is stopped.
-                Assert.IsTrue( !_implRunner.IsPluginRunning( _implRunner.Discoverer.FindPlugin( id ) ) );
+                Assert.IsTrue( !PluginRunner.IsPluginRunning( PluginRunner.Discoverer.FindPlugin( id ) ) );
             };
 
             CheckStartStop( null, afterStart, null, afterStop, false, true, id );
@@ -509,7 +501,7 @@ namespace CK.Plugin.Runner.Apply
             TestBase.CopyPluginToTestDir( "ServiceC.Model.dll" );
             TestBase.CopyPluginToTestDir( "PluginNeedsServiceC.dll" );
 
-            _implRunner.Discoverer.Discover( TestBase.TestFolderDir, true );
+            PluginRunner.Discoverer.Discover( TestBase.TestFolderDir, true );
 
             #endregion
 
@@ -517,12 +509,12 @@ namespace CK.Plugin.Runner.Apply
             Action afterStart = () =>
             {
                 // Check if the plugin is started, and if the plugin that implement the required service is started too.
-                Assert.IsTrue( !_implRunner.IsPluginRunning( _implRunner.Discoverer.FindPlugin( id ) ) );
+                Assert.IsTrue( !PluginRunner.IsPluginRunning( PluginRunner.Discoverer.FindPlugin( id ) ) );
             };
             Action afterStop = () =>
             {
                 // Check if the plugin is stopped.
-                Assert.IsTrue( !_implRunner.IsPluginRunning( _implRunner.Discoverer.FindPlugin( id ) ) );
+                Assert.IsTrue( !PluginRunner.IsPluginRunning( PluginRunner.Discoverer.FindPlugin( id ) ) );
             };
             #endregion
 
@@ -543,19 +535,19 @@ namespace CK.Plugin.Runner.Apply
             TestBase.CopyPluginToTestDir( "ServiceC.Model.dll" );
             TestBase.CopyPluginToTestDir( "PluginNeedsServiceC.dll" );
 
-            _implRunner.Discoverer.Discover( TestBase.TestFolderDir, true );
+            PluginRunner.Discoverer.Discover( TestBase.TestFolderDir, true );
             #endregion
 
             #region Asserts
             Action afterStart = () =>
             {
                 // Check if the plugin is started, and if the plugin that implement the required service is started too.
-                Assert.IsTrue( !_implRunner.IsPluginRunning( _implRunner.Discoverer.FindPlugin( id ) ) );
+                Assert.IsTrue( !PluginRunner.IsPluginRunning( PluginRunner.Discoverer.FindPlugin( id ) ) );
             };
             Action afterStop = () =>
             {
                 // Check if the plugin is stopped.
-                Assert.IsTrue( !_implRunner.IsPluginRunning( _implRunner.Discoverer.FindPlugin( id ) ) );
+                Assert.IsTrue( !PluginRunner.IsPluginRunning( PluginRunner.Discoverer.FindPlugin( id ) ) );
             };
             #endregion
 
@@ -577,7 +569,7 @@ namespace CK.Plugin.Runner.Apply
             TestBase.CopyPluginToTestDir( "ServiceC.Model.dll" );
             TestBase.CopyPluginToTestDir( "PluginNeedsServiceC.dll" );
 
-            _implRunner.Discoverer.Discover( TestBase.TestFolderDir, true );
+            PluginRunner.Discoverer.Discover( TestBase.TestFolderDir, true );
 
             #endregion
 
@@ -585,12 +577,12 @@ namespace CK.Plugin.Runner.Apply
             Action afterStart = () =>
             {
                 // Check if the plugin is started, and if the plugin that implement the required service is started too.
-                Assert.IsTrue( !_implRunner.IsPluginRunning( _implRunner.Discoverer.FindPlugin( id ) ) );
+                Assert.IsTrue( !PluginRunner.IsPluginRunning( PluginRunner.Discoverer.FindPlugin( id ) ) );
             };
             Action afterStop = () =>
             {
                 // Check if the plugin is stopped.
-                Assert.IsTrue( !_implRunner.IsPluginRunning( _implRunner.Discoverer.FindPlugin( id ) ) );
+                Assert.IsTrue( !PluginRunner.IsPluginRunning( PluginRunner.Discoverer.FindPlugin( id ) ) );
             };
             #endregion
 
@@ -606,20 +598,19 @@ namespace CK.Plugin.Runner.Apply
         public void ServiceReference_IService_MustExist_Error()
         {
             #region Init
-            // PluginNeedsIService_ME
             Guid id = new Guid( "{973B4050-280F-43B0-A9E3-0C4DC9BC2C5F}" );
 
             TestBase.CopyPluginToTestDir( "ServiceC.Model.dll" );
             TestBase.CopyPluginToTestDir( "PluginNeedsServiceC.dll" );
 
-            _implRunner.Discoverer.Discover( TestBase.TestFolderDir, true );
+            PluginRunner.Discoverer.Discover( TestBase.TestFolderDir, true );
             #endregion
 
             #region Asserts
             Action after = () =>
             {
                 // Check if the plugin is started, and if the plugin that implement the required service is started too.
-                Assert.That( _implRunner.IsPluginRunning( _implRunner.Discoverer.FindPlugin( id ) ), Is.False );
+                Assert.IsTrue( !PluginRunner.IsPluginRunning( PluginRunner.Discoverer.FindPlugin( id ) ) );
             };
             #endregion
 
@@ -641,7 +632,7 @@ namespace CK.Plugin.Runner.Apply
             TestBase.CopyPluginToTestDir( "ServiceC.Model.dll" );
             TestBase.CopyPluginToTestDir( "PluginNeedsServiceC.dll" );
 
-            _implRunner.Discoverer.Discover( TestBase.TestFolderDir, true );
+            PluginRunner.Discoverer.Discover( TestBase.TestFolderDir, true );
 
             #endregion
 
@@ -649,12 +640,12 @@ namespace CK.Plugin.Runner.Apply
             Action afterStart = () =>
             {
                 // Check if the plugin is started, and if the plugin that implement the required service is started too.
-                Assert.IsTrue( _implRunner.IsPluginRunning( _implRunner.Discoverer.FindPlugin( id ) ) );
+                Assert.IsTrue( PluginRunner.IsPluginRunning( PluginRunner.Discoverer.FindPlugin( id ) ) );
             };
             Action afterStop = () =>
             {
                 // Check if the plugin is stopped.
-                Assert.IsTrue( !_implRunner.IsPluginRunning( _implRunner.Discoverer.FindPlugin( id ) ) );
+                Assert.IsTrue( !PluginRunner.IsPluginRunning( PluginRunner.Discoverer.FindPlugin( id ) ) );
             };
             #endregion
 
@@ -675,19 +666,19 @@ namespace CK.Plugin.Runner.Apply
             TestBase.CopyPluginToTestDir( "ServiceC.Model.dll" );
             TestBase.CopyPluginToTestDir( "PluginNeedsServiceC.dll" );
 
-            _implRunner.Discoverer.Discover( TestBase.TestFolderDir, true );
+            PluginRunner.Discoverer.Discover( TestBase.TestFolderDir, true );
             #endregion
 
             #region Asserts
             Action afterStart = () =>
             {
                 // Check if the plugin is started, and if the plugin that implement the required service is started too.
-                Assert.IsTrue( _implRunner.IsPluginRunning( _implRunner.Discoverer.FindPlugin( id ) ) );
+                Assert.IsTrue( PluginRunner.IsPluginRunning( PluginRunner.Discoverer.FindPlugin( id ) ) );
             };
             Action afterStop = () =>
             {
                 // Check if the plugin is stopped.
-                Assert.IsTrue( !_implRunner.IsPluginRunning( _implRunner.Discoverer.FindPlugin( id ) ) );
+                Assert.IsTrue( !PluginRunner.IsPluginRunning( PluginRunner.Discoverer.FindPlugin( id ) ) );
             };
             #endregion
 
@@ -709,7 +700,7 @@ namespace CK.Plugin.Runner.Apply
             TestBase.CopyPluginToTestDir( "ServiceC.Model.dll" );
             TestBase.CopyPluginToTestDir( "PluginNeedsServiceC.dll" );
 
-            _implRunner.Discoverer.Discover( TestBase.TestFolderDir, true );
+            PluginRunner.Discoverer.Discover( TestBase.TestFolderDir, true );
 
             #endregion
 
@@ -717,12 +708,12 @@ namespace CK.Plugin.Runner.Apply
             Action afterStart = () =>
             {
                 // Check if the plugin is started, and if the plugin that implement the required service is started too.
-                Assert.IsTrue( _implRunner.IsPluginRunning( _implRunner.Discoverer.FindPlugin( id ) ) );
+                Assert.IsTrue( PluginRunner.IsPluginRunning( PluginRunner.Discoverer.FindPlugin( id ) ) );
             };
             Action afterStop = () =>
             {
                 // Check if the plugin is stopped.
-                Assert.IsTrue( !_implRunner.IsPluginRunning( _implRunner.Discoverer.FindPlugin( id ) ) );
+                Assert.IsTrue( !PluginRunner.IsPluginRunning( PluginRunner.Discoverer.FindPlugin( id ) ) );
             };
             #endregion
 
@@ -743,19 +734,19 @@ namespace CK.Plugin.Runner.Apply
             TestBase.CopyPluginToTestDir( "ServiceC.Model.dll" );
             TestBase.CopyPluginToTestDir( "PluginNeedsServiceC.dll" );
 
-            _implRunner.Discoverer.Discover( TestBase.TestFolderDir, true );
+            PluginRunner.Discoverer.Discover( TestBase.TestFolderDir, true );
             #endregion
 
             #region Asserts
             Action afterStart = () =>
             {
                 // Check if the plugin is started, and if the plugin that implement the required service is started too.
-                Assert.IsTrue( _implRunner.IsPluginRunning( _implRunner.Discoverer.FindPlugin( id ) ) );
+                Assert.IsTrue( PluginRunner.IsPluginRunning( PluginRunner.Discoverer.FindPlugin( id ) ) );
             };
             Action afterStop = () =>
             {
                 // Check if the plugin is stopped.
-                Assert.IsTrue( !_implRunner.IsPluginRunning( _implRunner.Discoverer.FindPlugin( id ) ) );
+                Assert.IsTrue( !PluginRunner.IsPluginRunning( PluginRunner.Discoverer.FindPlugin( id ) ) );
             };
             #endregion
 

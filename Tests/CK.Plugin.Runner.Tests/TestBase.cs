@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.IO;
 using NUnit.Framework;
+using CK.Plugin.Hosting;
 
 namespace CK.Plugin.Runner
 {
@@ -96,7 +97,9 @@ namespace CK.Plugin.Runner
             Directory.CreateDirectory( _testFolder );
 
             // ==> Debug/Plugins
-            _pluginFolder = Path.Combine( p, "Plugins" );
+            _pluginFolder = Path.Combine( p, "Plugin.Runner.Tests.Plugins" );
         }
+
+
     }
 }

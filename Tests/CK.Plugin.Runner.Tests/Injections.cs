@@ -1,33 +1,20 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using NUnit.Framework;
-using CK.Core;
-using CK.Context;
 using CK.Plugin.Hosting;
-using System.Reflection;
-using CK.Plugin.Config;
-using CK.SharedDic;
+using NUnit.Framework;
 
 namespace CK.Plugin.Runner.Apply
 {
     [TestFixture]
     public class Injections : TestBase
     {
-        IContext _ctx;
-        ISimplePluginRunner _runner;
-        PluginRunner _implRunner;
+        MiniContext _ctx;
+
+        PluginRunner PluginRunner { get { return _ctx.PluginRunner; } }
 
         [SetUp]
         public void Setup()
         {
-            _ctx = CK.Context.Context.CreateInstance();
-            _runner = _ctx.GetService<ISimplePluginRunner>();
-            _implRunner = (PluginRunner)_ctx.GetService<ISimplePluginRunner>();
-
-            Assert.NotNull( _runner );
-            Assert.NotNull( _implRunner );
+            _ctx = MiniContext.CreateMiniContext( "Injections" );
         }
 
         [SetUp]
@@ -46,7 +33,7 @@ namespace CK.Plugin.Runner.Apply
             if( beforeStart != null ) beforeStart();
 
             // So apply the change
-            Assert.That( _runner.Apply() == startSucceed );
+            Assert.That( PluginRunner.Apply() == startSucceed );
 
             if( afterStart != null ) afterStart();
 
@@ -57,7 +44,7 @@ namespace CK.Plugin.Runner.Apply
             if( beforeStop != null ) beforeStop();
 
             // So apply the change
-            Assert.IsTrue( _runner.Apply() == stopSucceed );
+            Assert.IsTrue( PluginRunner.Apply() == stopSucceed );
 
             if( afterStop != null ) afterStop();
         }
@@ -75,13 +62,13 @@ namespace CK.Plugin.Runner.Apply
 
             TestBase.CopyPluginToTestDir( "Injection.dll" );
 
-            _implRunner.Discoverer.Discover( TestBase.TestFolderDir, true );
+            PluginRunner.Discoverer.Discover( TestBase.TestFolderDir, true );
             
             Action afterStart = () =>
             {
                 // Check if the plugin is started, and if the plugin that implement the required service is started too.
-                Assert.That( _implRunner.IsPluginRunning( _implRunner.Discoverer.FindPlugin( id ) ) );
-                Assert.That( _implRunner.IsPluginRunning( _implRunner.Discoverer.FindPlugin( id2 ) ) );
+                Assert.That( PluginRunner.IsPluginRunning( PluginRunner.Discoverer.FindPlugin( id ) ) );
+                Assert.That( PluginRunner.IsPluginRunning( PluginRunner.Discoverer.FindPlugin( id2 ) ) );
             };
 
             Action beforeStop = () =>
@@ -90,8 +77,8 @@ namespace CK.Plugin.Runner.Apply
             };
             Action afterStop = () =>
             {
-                Assert.That( !_implRunner.IsPluginRunning( _implRunner.Discoverer.FindPlugin( id ) ) );
-                Assert.That( !_implRunner.IsPluginRunning( _implRunner.Discoverer.FindPlugin( id2 ) ) );
+                Assert.That( !PluginRunner.IsPluginRunning( PluginRunner.Discoverer.FindPlugin( id ) ) );
+                Assert.That( !PluginRunner.IsPluginRunning( PluginRunner.Discoverer.FindPlugin( id2 ) ) );
             };
 
             CheckStartStop( null, afterStart, beforeStop, null, id );
@@ -109,36 +96,18 @@ namespace CK.Plugin.Runner.Apply
 
             TestBase.CopyPluginToTestDir( "Injection.dll" );
 
-            _implRunner.Discoverer.Discover( TestBase.TestFolderDir, true );
+            PluginRunner.Discoverer.Discover( TestBase.TestFolderDir, true );
 
             Action afterStart = () =>
             {
                 // Check if the plugin is started, and if the plugin that implement the required service is started too.
-                Assert.That( _implRunner.IsPluginRunning( _implRunner.Discoverer.FindPlugin( id ) ) );
-                Assert.That( _implRunner.IsPluginRunning( _implRunner.Discoverer.FindPlugin( id2 ) ) );
-                Assert.That( _implRunner.IsPluginRunning( _implRunner.Discoverer.FindPlugin( id3 ) ) );
+                Assert.That( PluginRunner.IsPluginRunning( PluginRunner.Discoverer.FindPlugin( id ) ) );
+                Assert.That( PluginRunner.IsPluginRunning( PluginRunner.Discoverer.FindPlugin( id2 ) ) );
+                Assert.That( PluginRunner.IsPluginRunning( PluginRunner.Discoverer.FindPlugin( id3 ) ) );
             };
 
             CheckStartStop( null, afterStart, null, null, id );
         }
 
-        [Test]
-        public void ContextInjection()
-        {
-            Guid id = new Guid( "{87AA1820-6576-4090-AC63-2A165A485AB0}" );
-
-            TestBase.CopyPluginToTestDir( "PluginA.dll" );
-
-            Assert.That( _ctx.GetService<IContext>() != null );
-            _implRunner.Discoverer.Discover( TestBase.TestFolderDir, true );
-
-            Action afterStart = () =>
-            {
-                // Check if the plugin is started, and if the plugin that implement the required service is started too.
-                Assert.That( _implRunner.IsPluginRunning( _implRunner.Discoverer.FindPlugin( id ) ) );
-            };
-
-            CheckStartStop( null, afterStart, null, null, id );
-        }
     }
 }
