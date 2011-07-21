@@ -9,9 +9,9 @@ using System;
 [assembly: AssemblyTitle( "CK.SharedDic.Model" )]
 [assembly: AssemblyDescription( "" )]
 [assembly: AssemblyConfiguration( "" )]
-[assembly: AssemblyCompany( "Microsoft" )]
-[assembly: AssemblyProduct( "CK.SharedDic.Model" )]
-[assembly: AssemblyCopyright( "Copyright © Microsoft 2010" )]
+[assembly: AssemblyCompany( "Invenietis" )]
+[assembly: AssemblyProduct( "Civikey" )]
+[assembly: AssemblyCopyright( "Copyright © Invenietis & In'tech info 2007-2012" )]
 [assembly: AssemblyTrademark( "" )]
 [assembly: AssemblyCulture( "" )]
 

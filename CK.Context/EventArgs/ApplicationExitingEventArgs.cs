@@ -1,6 +1,6 @@
 #region LGPL License
 /*----------------------------------------------------------------------------
-* This file (CK.Context\EventArgs\ApplicationExitedEventArgs.cs) is part of CiviKey. 
+* This file (CK.Context\EventArgs\ApplicationExitingEventArgs.cs) is part of CiviKey. 
 *  
 * CiviKey is free software: you can redistribute it and/or modify 
 * it under the terms of the GNU Lesser General Public License as published 
@@ -21,31 +21,27 @@
 *-----------------------------------------------------------------------------*/
 #endregion
 
+
 namespace CK.Context
 {
     /// <summary>
-    /// The argument of <see cref="IContext.ApplicationExited"/> event.
-    /// Whatever the <see cref="HostShouldExit"/> value is, this event indicates the death of the <see cref="IContext"/> that emits it:
-    /// any reference to the context should be released.
+    /// The argument of <see cref="IContext.ApplicationExiting"/> event.
     /// </summary>
-    public class ApplicationExitedEventArgs : ContextEventArgs
+    public class ApplicationExitingEventArgs : ApplicationExitedEventArgs
     {
         /// <summary>
-        /// This parameter actually concerns the application host: plugins have no real reasons to take it into account.
-        /// When true, the host should leave: this is typically triggered by an "Exit" button in a plugin.
+        /// Gets or sets whether this closing request should be canceled or not.
         /// </summary>
-        public bool HostShouldExit { get; private set; }
+        public bool Cancel { get; set; }
 
         /// <summary>
         /// Initializes a new instance of <see cref="ApplicationExitedEventArgs"/>.
         /// </summary>
         /// <param name="ctx">The source context.</param>
         /// <param name="hostShouldExit">See <see cref="HostShouldExit"/>.</param>
-        public ApplicationExitedEventArgs( IContext ctx, bool hostShouldExit )
-            : base( ctx )
+        public ApplicationExitingEventArgs( IContext ctx, bool hostShouldExit )
+            : base( ctx, hostShouldExit )
         {
-            HostShouldExit = hostShouldExit;
         }
     }
-
 }

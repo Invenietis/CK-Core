@@ -1,6 +1,6 @@
 #region LGPL License
 /*----------------------------------------------------------------------------
-* This file (CK.Context\EventArgs\ApplicationExitedEventArgs.cs) is part of CiviKey. 
+* This file (CK.Context\Model\Context\Events\ContextEventArgs.cs) is part of CiviKey. 
 *  
 * CiviKey is free software: you can redistribute it and/or modify 
 * it under the terms of the GNU Lesser General Public License as published 
@@ -21,31 +21,32 @@
 *-----------------------------------------------------------------------------*/
 #endregion
 
+using System;
+using System.Collections.Generic;
+using System.Text;
+
 namespace CK.Context
 {
     /// <summary>
-    /// The argument of <see cref="IContext.ApplicationExited"/> event.
-    /// Whatever the <see cref="HostShouldExit"/> value is, this event indicates the death of the <see cref="IContext"/> that emits it:
-    /// any reference to the context should be released.
     /// </summary>
-    public class ApplicationExitedEventArgs : ContextEventArgs
+    public class ContextProfileRequiredEventArgs : ContextEventArgs
     {
-        /// <summary>
-        /// This parameter actually concerns the application host: plugins have no real reasons to take it into account.
-        /// When true, the host should leave: this is typically triggered by an "Exit" button in a plugin.
-        /// </summary>
-        public bool HostShouldExit { get; private set; }
-
-        /// <summary>
-        /// Initializes a new instance of <see cref="ApplicationExitedEventArgs"/>.
-        /// </summary>
-        /// <param name="ctx">The source context.</param>
-        /// <param name="hostShouldExit">See <see cref="HostShouldExit"/>.</param>
-        public ApplicationExitedEventArgs( IContext ctx, bool hostShouldExit )
+        public ContextProfileRequiredEventArgs( IContext ctx,  bool saving )
             : base( ctx )
         {
-            HostShouldExit = hostShouldExit;
+            IsSaving = saving;
         }
-    }
 
+        public bool IsSaving { get; private set; }
+
+        /// <summary>
+        /// Gets or sets the display name for the default context.
+        /// </summary>
+        public string DisplayName { get; set; }
+        
+        /// <summary>
+        /// Gets or sets the <see cref="Uri"/> of the default context to use.
+        /// </summary>
+        public Uri Address { get; set; }
+    }
 }

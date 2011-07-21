@@ -1,6 +1,6 @@
 #region LGPL License
 /*----------------------------------------------------------------------------
-* This file (CK.Context\Model\Context\Events\ContextEventArgs.cs) is part of CiviKey. 
+* This file (CK.Context\EventArgs\ContextEventArgs.cs) is part of CiviKey. 
 *  
 * CiviKey is free software: you can redistribute it and/or modify 
 * it under the terms of the GNU Lesser General Public License as published 
@@ -22,8 +22,6 @@
 #endregion
 
 using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace CK.Context
 {
@@ -32,8 +30,15 @@ namespace CK.Context
     /// </summary>
     public class ContextEventArgs : EventArgs
     {
+        /// <summary>
+        /// Gets the <see cref="IContext"/> to which this event is related.
+        /// </summary>
         public IContext Context { get; private set; }
 
+        /// <summary>
+        /// Initializes a new <see cref="ContextEventArgs"/> boud to a <see cref="Context"/>.
+        /// </summary>
+        /// <param name="ctx"></param>
         public ContextEventArgs( IContext ctx )
         {
             if( ctx == null ) throw new ArgumentNullException( "ctx" );

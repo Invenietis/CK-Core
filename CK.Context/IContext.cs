@@ -45,22 +45,6 @@ namespace CK.Context
         ILogCenter LogCenter { get; }
 
         /// <summary>
-        /// Fires whenever a new context is about to be loaded: the content of this context will be replaced.
-        /// </summary>
-        event EventHandler Loading;
-
-        /// <summary>
-        /// Fires when a new context has been loaded: the content of this context has been replaced.
-        /// </summary>
-        event EventHandler Loaded;
-
-        /// <summary>
-        /// Fires when the context has to be saved.
-        /// Host should call <see cref="SaveContext"/>.
-        /// </summary>
-        event EventHandler SaveContextRequired;
-
-        /// <summary>
         /// Writes this <see cref="IContext">context</see> as in a stream.
         /// </summary>
         /// <param name="stream">Stream to the saved document.</param>
@@ -70,33 +54,28 @@ namespace CK.Context
         /// Loads this <see cref="IContext">context</see> from a file.
         /// </summary>
         /// <param name="filePath">Path to the file.</param>
-        /// <returns>
-        /// True if the context has been succesfully loaded. 
-        /// False if an <see cref="DisplayError"/> has been raised and no context can be loaded from the path.
-        /// </returns>
-        bool LoadContext( IStructuredReader reader );
+        /// <returns>A list (possibly empty) of <see cref="ISimpleErrorMessage"/> describing read errors.</returns>
+        IReadOnlyList<ISimpleErrorMessage> LoadContext( IStructuredReader reader );
 
         /// <summary>
-        /// Fired by <see cref="RaiseExitApplication"/> to signal the end of the application.
-        /// After this event, configuration is saved if needed and then <see cref="OnExitApplication"/>
-        /// event is fired.
+        /// Fired by <see cref="RaiseExitApplication"/> to signal the end of the application (this is a cancelable event). 
+        /// If it is not cancelled, runner is disabled and then <see cref="ApplicationExited"/> event is fired.
         /// </summary>
-        event EventHandler<ApplicationExitingEventArgs> BeforeExitApplication;
+        event EventHandler<ApplicationExitingEventArgs> ApplicationExiting;
 
         /// <summary>
         /// Fired by <see cref="RaiseExitApplication"/> to signal the very end of the application. 
         /// Once this event has fired, this <see cref="IContext"/> is no more functionnal.
         /// </summary>
-        event EventHandler<ApplicationExitEventArgs> OnExitApplication;
+        event EventHandler<ApplicationExitedEventArgs> ApplicationExited;
 
         /// <summary>
-        /// Raises the <see cref="BeforeExitApplication"/> (any persistence of information/configuration should be done), 
-        /// and <see cref="OnExitApplication"/> event.
+        /// Raises the <see cref="ApplicationExiting"/> (any persistence of information/configuration should be done during this phasis), 
+        /// and <see cref="ApplicationExited"/> event.
         /// </summary>
         /// <param name="hostShouldExit">When true, the application host should exit: this is typically used by a plugin to
         /// trigger the end of the current application (ie. the "Exit" button). 
         /// A host would better use false to warn any services and plugins to do what they have to do before leaving and manage to exit the way it wants.</param>
-        /// <returns>False if the <see cref="BeforeExitApplication"/> event has been canceled, true otherwise.</returns>
         bool RaiseExitApplication( bool hostShouldExit );
     }
 }
