@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Xml;
 using CK.Core;
 using System.Diagnostics;
 using System.ComponentModel;
@@ -42,7 +43,7 @@ namespace CK.Plugin
 
         public PluginRequirement AddOrSet( Guid pluginID, RunningRequirement requirement )
         {
-            PluginRequirement req = GetEnumerable().FirstOrDefault( r => r.PluginId == pluginID );
+            PluginRequirement req = this.FirstOrDefault( r => r.PluginId == pluginID );
             if( req != null ) 
             {
                 if( req.Requirement != requirement && CanChange( ChangeStatus.Update, pluginID, requirement ) )
@@ -64,7 +65,7 @@ namespace CK.Plugin
 
         public PluginRequirement Find( Guid pluginID )
         {
-            return GetEnumerable().FirstOrDefault( r => r.PluginId == pluginID );
+            return this.FirstOrDefault( r => r.PluginId == pluginID );
         }
 
         public bool Remove( Guid pluginId )
@@ -75,7 +76,7 @@ namespace CK.Plugin
                 Debug.Assert( req.Holder == this );
                 if( !CanChange( ChangeStatus.Delete, req.PluginId, req.Requirement ) ) return false;
                 if( _first == req ) _first = req.NextElement;
-                else GetEnumerable().First( r => r.NextElement == req ).NextElement = req.NextElement;
+                else this.First( r => r.NextElement == req ).NextElement = req.NextElement;
                 req.Holder = null;
                 --_count;
                 Change( ChangeStatus.Delete, req.PluginId, req.Requirement );
@@ -86,7 +87,7 @@ namespace CK.Plugin
         public bool Clear()
         {
             if( !CanChange( ChangeStatus.ContainerClear, Guid.Empty, RunningRequirement.Optional ) ) return false;
-            foreach( PluginRequirement r in GetEnumerable() ) r.Holder = null;
+            foreach( PluginRequirement r in this ) r.Holder = null;
             _first = null;
             _count = 0;
             Change( ChangeStatus.ContainerClear, Guid.Empty, RunningRequirement.Optional );
@@ -104,7 +105,7 @@ namespace CK.Plugin
             get { return _count; }
         }
             
-        IEnumerable<PluginRequirement> GetEnumerable()
+        public IEnumerator<PluginRequirement> GetEnumerator()
         {
             PluginRequirement e = _first;
             while( e != null )
@@ -114,14 +115,9 @@ namespace CK.Plugin
             }
         }
 
-        IEnumerator<PluginRequirement> IEnumerable<PluginRequirement>.GetEnumerator()
-        {
-            return Wrapper<PluginRequirement>.CreateEnumerator<PluginRequirement>( GetEnumerable() );
-        }
-
         System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
         {
-            return GetEnumerable().GetEnumerator();
+            return this.GetEnumerator();
         }
     }
 }

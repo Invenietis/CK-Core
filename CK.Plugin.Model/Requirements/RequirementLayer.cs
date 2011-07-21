@@ -1,4 +1,27 @@
-﻿using System;
+﻿#region LGPL License
+/*----------------------------------------------------------------------------
+* This file (CK.Plugin.Model\Requirements\RequirementLayer.cs) is part of CiviKey. 
+*  
+* CiviKey is free software: you can redistribute it and/or modify 
+* it under the terms of the GNU Lesser General Public License as published 
+* by the Free Software Foundation, either version 3 of the License, or 
+* (at your option) any later version. 
+*  
+* CiviKey is distributed in the hope that it will be useful, 
+* but WITHOUT ANY WARRANTY; without even the implied warranty of
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
+* GNU Lesser General Public License for more details. 
+* You should have received a copy of the GNU Lesser General Public License 
+* along with CiviKey.  If not, see <http://www.gnu.org/licenses/>. 
+*  
+* Copyright © 2007-2011, 
+*     Invenietis <http://www.invenietis.com>,
+*     In’Tech INFO <http://www.intechinfo.fr>,
+* All rights reserved. 
+*-----------------------------------------------------------------------------*/
+#endregion
+
+using System;
 using System.Xml;
 
 namespace CK.Plugin
@@ -20,7 +43,7 @@ namespace CK.Plugin
         /// <summary>
         /// Gets a <see cref="PluginRequirementCollection"/> that describes plugins requirements.
         /// </summary>
-        public IPluginRequirementCollection PluginRequirements { get { return _pluginRequirements; } }        
+        public IPluginRequirementCollection PluginRequirements { get { return _pluginRequirements; } }
 
         /// <summary>
         /// Gets a <see cref="ServiceRequirementCollection"/> that decribes service requirements.
@@ -42,7 +65,7 @@ namespace CK.Plugin
         /// Reads back an existing <see cref="RequirementLayer"/> or creates a new one 
         /// from xml data previously written by <see cref="WriteInlineToXml"/> method.
         /// </summary>
-        /// <param name="r">The xml stream to read: the reader must .</param>
+        /// <param name="r">The xml stream to read: the reader must be on an opened element.</param>
         /// <param name="reqLayer">An existing layer or null to create a new one.</param>
         public static void ReadInlineFromXml( XmlReader r, ref RequirementLayer reqLayer )
         {

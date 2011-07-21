@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using CK.Core;
 using System.Diagnostics;
+using System.Xml;
 
 namespace CK.Plugin
 {
@@ -41,7 +42,7 @@ namespace CK.Plugin
 
         public ServiceRequirement AddOrSet( string serviceAssemblyQualifiedName, RunningRequirement requirement )
         {
-            ServiceRequirement req = GetEnumerable().FirstOrDefault( r => r.AssemblyQualifiedName == serviceAssemblyQualifiedName );
+            ServiceRequirement req = this.FirstOrDefault( r => r.AssemblyQualifiedName == serviceAssemblyQualifiedName );
             if( req != null )
             {
                 if( req.Requirement != requirement && CanChange( ChangeStatus.Update, serviceAssemblyQualifiedName, requirement ) )
@@ -63,7 +64,7 @@ namespace CK.Plugin
 
         public ServiceRequirement Find( string serviceAssemblyQualifiedName )
         {
-            return GetEnumerable().FirstOrDefault( r => r.AssemblyQualifiedName == serviceAssemblyQualifiedName );
+            return this.FirstOrDefault( r => r.AssemblyQualifiedName == serviceAssemblyQualifiedName );
         }
 
         public bool Remove( string serviceAssemblyQualifiedName )
@@ -74,7 +75,7 @@ namespace CK.Plugin
                 Debug.Assert( req.Holder == this );
                 if( !CanChange( ChangeStatus.Delete, req.AssemblyQualifiedName, req.Requirement ) ) return false;
                 if( _first == req ) _first = req.NextElement;
-                else GetEnumerable().First( r => r.NextElement == req ).NextElement = req.NextElement;
+                else this.First( r => r.NextElement == req ).NextElement = req.NextElement;
                 req.Holder = null;
                 --_count;
                 Change( ChangeStatus.Delete, req.AssemblyQualifiedName, req.Requirement );
@@ -85,7 +86,7 @@ namespace CK.Plugin
         public bool Clear()
         {
             if( !CanChange( ChangeStatus.ContainerClear, string.Empty, RunningRequirement.Optional ) ) return false;
-            foreach( ServiceRequirement r in GetEnumerable() ) r.Holder = null;
+            foreach( ServiceRequirement r in this ) r.Holder = null;
             _first = null;
             _count = 0;
             Change( ChangeStatus.ContainerClear, string.Empty, RunningRequirement.Optional );
@@ -103,7 +104,7 @@ namespace CK.Plugin
             get { return _count; }
         }
 
-        IEnumerable<ServiceRequirement> GetEnumerable()
+        public IEnumerator<ServiceRequirement> GetEnumerator()
         {
             ServiceRequirement e = _first;
             while( e != null )
@@ -113,14 +114,10 @@ namespace CK.Plugin
             }
         }
 
-        IEnumerator<ServiceRequirement> IEnumerable<ServiceRequirement>.GetEnumerator()
-        {
-            return Wrapper<ServiceRequirement>.CreateEnumerator<ServiceRequirement>( GetEnumerable() );
-        }
-
         System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
         {
-            return GetEnumerable().GetEnumerator();
+            return GetEnumerator();
         }
+
     }
 }

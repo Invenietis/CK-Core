@@ -29,14 +29,9 @@ namespace CK.Plugin
     public interface IPluginInfo : IDiscoveredInfo, INamedVersionedUniqueId, IComparable<IPluginInfo>
     {
         /// <summary>
-        /// Gets the unique identifier of the plugin.
+        /// Gets the unique identifier of the plugin. This is an alias to <see cref="IUniqueId.UniqueId"/>.
         /// </summary>
         Guid PluginId { get; }
-
-        /// <summary>
-        /// Gets the public name of the plugin. Can be any string in any culture.
-        /// </summary>
-        string PublicName { get; }
 
         /// <summary>
         /// Gets the public description of the plugin.

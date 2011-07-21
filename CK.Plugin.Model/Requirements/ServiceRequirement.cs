@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
 using CK.Core;
+using System.Xml;
 
 namespace CK.Plugin
 {

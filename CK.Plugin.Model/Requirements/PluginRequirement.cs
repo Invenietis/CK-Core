@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Xml;
 using System.Diagnostics;
 using CK.Core;
 
