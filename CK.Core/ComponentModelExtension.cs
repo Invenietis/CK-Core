@@ -58,47 +58,6 @@ namespace CK.Core
         }
 
         /// <summary>
-        /// Merges this <see cref="IMergeable"/> object without any <see cref="IServiceProvider"/>.
-        /// This method should not raise any execption. Instead, false should be returned. 
-        /// If an exception is raised, it must be handled as if the method returned false.
-        /// </summary>
-        /// <param name="this">This mergeable object.</param>
-        /// <param name="source">The object to merge. When the object is the same as this, true is returned.</param>
-        /// <returns>True if the merge succeeded, false if the merge failed or is not possible.</returns>
-        public static bool Merge( this IMergeable @this, object source )
-        {
-            return @this.Merge( source, null );
-        }
-
-        /// <summary>
-        /// Registers a service with its implementation.
-        /// </summary>
-        /// <param name="c">This <see cref="ISimpleServiceContainer"/> object.</param>
-        /// <param name="serviceType">Service type to register. It must not already exist in this container otherwise an exception is thrown.</param>
-        /// <param name="serviceInstance">Implementation of the service. Can not be null.</param>
-        /// <returns>This object to enable fluent syntax.</returns>
-        public static ISimpleServiceContainer Add( this ISimpleServiceContainer c, Type serviceType, object serviceInstance )
-        {
-            c.Add( serviceType, serviceInstance, null );
-            return c;
-        }
-
-        /// <summary>
-        /// Registers a service associated to a callback.
-        /// The <paramref name="serviceInstance"/> is called as long as no service has been obtained (serviceInstance returns null). 
-        /// Once the actual service has been obtained, it is kept and serviceInstance is not called anymore.
-        /// </summary>
-        /// <param name="c">This <see cref="ISimpleServiceContainer"/> object.</param>
-        /// <param name="serviceType">Service type to register. It must not already exist in this container otherwise an exception is thrown.</param>
-        /// <param name="serviceInstance">Delegate to call when needed. Can not be null.</param>
-        /// <returns>This object to enable fluent syntax.</returns>
-        public static ISimpleServiceContainer Add( this ISimpleServiceContainer c, Type serviceType, Func<Object> serviceInstance )
-        {
-            c.Add( serviceType, serviceInstance, null );
-            return c;
-        }
-
-        /// <summary>
         /// Type safe version to register a service implementation (type of the service is the type of the implementation).
         /// </summary>
         /// <param name="c">This <see cref="ISimpleServiceContainer"/> object.</param>
@@ -132,10 +91,12 @@ namespace CK.Core
         /// <param name="c">This <see cref="ISimpleServiceContainer"/> object.</param>
         /// <param name="serviceInstance">Delegate to call when needed. Can not be null.</param>
         /// <returns>This object to enable fluent syntax.</returns>
-        public static ISimpleServiceContainer Add<T>( this ISimpleServiceContainer c, Func<T> serviceInstance )
+        public static ISimpleServiceContainer Add<T>( this ISimpleServiceContainer c, Func<T> serviceInstance ) where T : class
         {
-            // This wrapping in a new Func<Object> will not be required anymore with the CLR/.Net 4.0.
-            c.Add( typeof( T ), () => serviceInstance(), null );
+            // It is the overloaded version that takes a Func<object> serviceInstance 
+            // that is called (unit tests asserts this).
+            // To allow the covariance, we MUST constrain the type T to be a reference class (hence the where clause).
+            c.Add( typeof( T ), serviceInstance, null );
             return c;
         }
 
@@ -149,10 +110,16 @@ namespace CK.Core
         /// <param name="onRemove">Optional action that will be called whenever <see cref="ISimpleServiceContainer.Remove"/>, <see cref="ISimpleServiceContainer.Clear"/> or <see cref="IDisposable.Dispose"/>
         /// is called and a service as been successfuly obtained.</param>
         /// <returns>This object to enable fluent syntax.</returns>
-        public static ISimpleServiceContainer Add<T>( this ISimpleServiceContainer c, Func<T> serviceInstance, Action<T> onRemove )
+        public static ISimpleServiceContainer Add<T>( this ISimpleServiceContainer c, Func<T> serviceInstance, Action<T> onRemove ) where T : class
         {
-            // This wrapping in a new Func<Object> will not be required anymore with the CLR/.Net 4.0.
-            c.Add( typeof( T ), () => serviceInstance(), o => onRemove( (T)o ) );
+            // It is the overloaded version that takes a Func<object> serviceInstance 
+            // that is called (unit tests asserts this).
+            // To allow the covariance, we MUST constrain the type T to be a reference class (hence the where clause).
+            //
+            // On the other hand, for the onRemove action we can not do any miracle: we need to adapt the call.
+            //
+            if( onRemove == null ) throw new ArgumentNullException( "onRemove" );
+            c.Add( typeof( T ), serviceInstance, o => onRemove( (T)o ) );
             return c;
         }
 

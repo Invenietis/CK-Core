@@ -109,19 +109,13 @@ namespace CK.Core
         /// <param name="r">This <see cref="XmlReader"/>.</param>
         /// <param name="name">Name of the attribute.</param>
         /// <param name="defaultValue">Default value if the attribute does not exist or can not be parsed.</param>
-        /// <returns></returns>
+        /// <returns>The parsed value or the default value.</returns>
         static public T GetAttributeEnum<T>( this XmlReader r, string name, T defaultValue ) where T : struct
         {
+            T result;
             string s = r.GetAttribute( name );
-            if( s == null ) return defaultValue;
-            try
-            {
-                return (T)Enum.Parse( typeof( T ), s );
-            }
-            catch
-            {
-                return defaultValue;
-            }
+            if( s == null || !Enum.TryParse( s, out result ) ) result = defaultValue;
+            return result;
         }
 
 

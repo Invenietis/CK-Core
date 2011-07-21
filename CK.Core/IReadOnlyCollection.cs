@@ -29,7 +29,7 @@ namespace CK.Core
     /// Represents a generic read only collections of objects.
     /// </summary>
     /// <typeparam name="T">The type of the elements in the collection.</typeparam>
-    public interface IReadOnlyCollection<T> : IEnumerable<T>
+    public interface IReadOnlyCollection<out T> : IEnumerable<T>
     {
         /// <summary>
         /// Determines whether collection contains a specific value.

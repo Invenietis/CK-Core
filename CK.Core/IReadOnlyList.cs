@@ -29,7 +29,7 @@ namespace CK.Core
     /// Represents a read only collection of objects that can be individually accessed by index.
     /// </summary>
     /// <typeparam name="T">The type of elements in the list.</typeparam>
-    public interface IReadOnlyList<T> : IReadOnlyCollection<T>
+    public interface IReadOnlyList<out T> : IReadOnlyCollection<T>
     {
         /// <summary>
         /// Determines the index of a specific item in the list.

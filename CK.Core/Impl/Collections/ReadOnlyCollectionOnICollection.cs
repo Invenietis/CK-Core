@@ -21,9 +21,11 @@
 *-----------------------------------------------------------------------------*/
 #endregion
 
-using System.Collections.Generic;
-using System.Collections;
 using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Linq;
 
 namespace CK.Core
 {
@@ -31,7 +33,8 @@ namespace CK.Core
 	/// Adapts a <see cref="ICollection{T}"/> object to the <see cref="IReadOnlyCollection{T}"/> interface.
 	/// </summary>
 	/// <typeparam name="T">Type of the element.</typeparam>
-	public sealed class ReadOnlyCollectionOnICollection<T> : IReadOnlyCollection<T>, ICollection<T>
+    [DebuggerTypeProxy( typeof( ReadOnlyCollectionOnICollectionDebugView<> ) ), DebuggerDisplay( "Count = {Count}" )]
+    public sealed class ReadOnlyCollectionOnICollection<T> : IReadOnlyCollection<T>, ICollection<T>
     {
 		ICollection<T> _c;
 
@@ -76,7 +79,6 @@ namespace CK.Core
 			return GetEnumerator();
 		}
 
-
         #region ICollection<T> Members
 
         void ICollection<T>.Add( T item )
@@ -112,4 +114,22 @@ namespace CK.Core
         #endregion
 
     }
+
+    internal class ReadOnlyCollectionOnICollectionDebugView<T>
+    {
+        IReadOnlyCollection<T> _c;
+
+        public ReadOnlyCollectionOnICollectionDebugView( ReadOnlyCollectionOnICollection<T> c )
+        {
+            _c = c;
+        }
+
+        [DebuggerBrowsable( DebuggerBrowsableState.RootHidden )]
+        public object[] Items
+        {
+            get { return _c.Cast<object>().ToArray(); }
+        }
+    }
+
+
 }

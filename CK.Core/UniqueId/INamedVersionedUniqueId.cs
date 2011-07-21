@@ -13,7 +13,8 @@ namespace CK.Core
     {
         /// <summary>
         /// Gets the public name of this object. 
-        /// Never null: defaults to <see cref="String.Empty"/>.
+        /// It mmust never be null (defaults to <see cref="String.Empty"/>) and can be any string 
+        /// in any culture (english US should be used as much a possible).
         /// </summary>
         string PublicName { get; }
     }

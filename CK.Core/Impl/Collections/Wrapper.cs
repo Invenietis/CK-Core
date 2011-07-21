@@ -52,17 +52,6 @@ namespace CK.Core
         public T Inner { get { return _inner; } }
 
         /// <summary>
-        /// Creates a <see cref="IEnumerator"/> on a <see cref="IEnumerable"/> of specialized entities.
-        /// </summary>
-        /// <typeparam name="TInner">Actual entity.</typeparam>
-        /// <param name="e">Source enumerable.</param>
-        /// <returns>An enumerator for the more abstract type.</returns>
-        static public IEnumerator<T> CreateEnumerator<TInner>( IEnumerable<TInner> e ) where TInner : T
-        {
-            return new EnumerableAdapter<T, TInner>.EnumeratorAdapter( e.GetEnumerator() );
-        }
-
-        /// <summary>
         /// Creates a <see cref="IEnumerator"/> on a <see cref="IEnumerable"/> of another type.
         /// </summary>
         /// <typeparam name="TInner">Actual entity.</typeparam>

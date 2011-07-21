@@ -42,6 +42,6 @@ namespace CK.Core
         /// <param name="source">Source object to merge into this one.</param>
         /// <param name="services">Optional services (can be null) that can be injected into the merge process.</param>
         /// <returns>True if the merge succeeded, false if the merge failed or is not possible.</returns>
-        bool Merge( object source, IServiceProvider services );
+        bool Merge( object source, IServiceProvider services = null );
     }
 }

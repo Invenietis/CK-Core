@@ -30,11 +30,11 @@ using System.Runtime.InteropServices;
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
 [assembly: AssemblyTitle( "CK.Core" )]
-[assembly: AssemblyDescription("This is a keyboard to help people with disabilities")]
+[assembly: AssemblyDescription("Core library.")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("Invenietis")]
-[assembly: AssemblyProduct("Custom Virtual Keyboard")]
-[assembly: AssemblyCopyright("Copyright © Invenietis - In’Tech INFO 2007-2009")]
+[assembly: AssemblyProduct("Civikey")]
+[assembly: AssemblyCopyright("Copyright © Invenietis - In’Tech INFO 2007-2012")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]	
 [assembly: CLSCompliant(true)]	
@@ -47,6 +47,6 @@ using System.Runtime.InteropServices;
 // The following GUID is for the ID of the typelib if this project is exposed to COM
 [assembly: Guid( "042d54e7-cce5-4e76-8229-39af5f82da30" )]
 
-// Allow CK.Tests assembly to acces to Internals of CK.Plugin.Config.
-// Here to ease the set up of NUnit tests.
+// Allow CK.Core.Tests assembly to acces to internals of CK.Core.
+// Here to allow white testing of CK.Core.
 [assembly: InternalsVisibleTo( "CK.Core.Tests" )]
