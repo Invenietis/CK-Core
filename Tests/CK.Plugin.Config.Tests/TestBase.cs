@@ -3,12 +3,18 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.IO;
-using CK.Context;
 using NUnit.Framework;
 using System.Reflection;
+using CK.Plugin.Config;
+using CK.Storage;
+using CK.Core;
+using CK.SharedDic;
+using System.Xml;
+using CK.Plugin;
 
 namespace PluginConfig
 {
+
     public class TestBase
     {
         static string _testFolder;
@@ -18,23 +24,6 @@ namespace PluginConfig
 
         static DirectoryInfo _testFolderDir;
         static DirectoryInfo _appFolderDir;
-
-        public IContext CreateContextWithErrorRelay()
-        {
-            IContext c = CreateContext();
-//            c.DisplayError += ( sender, e ) => { throw e.Exception; };
-            return c;
-        }
-
-        public IContext CreateContext()
-        {
-            Host = new TestHost( "CKTests" ) { CustomSystemConfigPath = GetTestFilePath( "System" ) };
-            return Host.CreateContext();
-        }
-
-        public TestHost Host { get; set; }
-
-        // Common to all tests.
 
         public static string AppFolder
         {
@@ -84,6 +73,7 @@ namespace PluginConfig
 
         public static void CleanupTestDir()
         {
+            TestFolderDir.Refresh();
             if( TestFolderDir.Exists )
                 TestFolderDir.Delete( true );
             TestFolderDir.Create();

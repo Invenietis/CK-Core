@@ -1,6 +1,5 @@
 ﻿using System;
 using System.IO;
-using CK.Context;
 using CK.Core;
 using CK.Plugin.Config;
 using CK.SharedDic;
@@ -57,7 +56,7 @@ namespace PluginConfig
                 using( Stream str = new FileStream( path, FileMode.Open ) )
                 using( IStructuredReader sr = SimpleStructuredReader.CreateReader( str, container ) )
                 {
-                    config.LoadUserConfig( sr, null );
+                    config.LoadUserConfig( sr );
                 }
                 Assert.That( config.HostUserConfig["key1"], Is.EqualTo( "value1" ) );
                 Assert.That( config.HostUserConfig["key2"], Is.EqualTo( "value2" ) );
@@ -113,121 +112,42 @@ namespace PluginConfig
         [Test]
         public void DirtyUserFinalDictionnary()
         {
-            IContext ctx = CreateContext();
-            File.Delete( Host.DefaultUserConfigPath );
+            var ctx = MiniContext.CreateMiniContext( "DirtyUserFinalDictionnary" );
+            
             IConfigManagerExtended config = ctx.ConfigManager.Extended;
             Assert.IsNotNull( config );
-
             Assert.That( config.ConfigManager.UserConfiguration != null );
 
-            Assert.That( Host.UserConfig != null );
+            Assert.That( ctx.HostUserConfig != null );
 
             Assert.That( !config.IsUserConfigDirty );
-            Host.UserConfig.GetOrSet( "key2", "value2" );
+            ctx.HostUserConfig.GetOrSet( "key2", "value2" );
             Assert.That( config.IsUserConfigDirty );
 
-            Assert.That( Host.UserConfig.Count, Is.EqualTo( 1 ) );
+            Assert.That( ctx.HostUserConfig.Count, Is.EqualTo( 1 ) );
         }
-       
+
         [Test]
         public void DirtySystemFinalDictionnary()
         {
-            IContext ctx = CreateContext();
+            var ctx = MiniContext.CreateMiniContext( "DirtySystemFinalDictionnary" );
 
             IConfigManagerExtended config = ctx.ConfigManager.Extended;
             Assert.IsNotNull( config );
 
             Assert.That( config.ConfigManager.SystemConfiguration != null );
 
-            Assert.That( Host.SystemConfig != null );
+            Assert.That( ctx.HostSystemConfig != null );
             Assert.That( !config.IsSystemConfigDirty );
             Assert.That( !config.IsUserConfigDirty );
 
-            Host.SystemConfig.GetOrSet( "key2", "value2" );
+            ctx.HostSystemConfig.GetOrSet( "key2", "value2" );
 
             Assert.That( config.IsSystemConfigDirty );
             Assert.That( !config.IsUserConfigDirty );
 
-            Assert.That( Host.SystemConfig.Count, Is.EqualTo( 1 ) );
+            Assert.That( ctx.HostSystemConfig.Count, Is.EqualTo( 1 ) );
         }
 
-        [Test]
-        public void CheckSystemConfigurationInstances()
-        {
-            // Creates system configuration with one user profile.
-            {
-                IContext ctx = CreateContext();
-                Host.CustomSystemConfigPath = GetTestFilePath( "SystemConfiguration" );
-
-                Assert.That( ctx.ConfigManager.UserConfiguration != null );
-
-                ctx.ConfigManager.SystemConfiguration.UserProfiles.AddOrSet( "Test", GetTestFilePath( "TestProfile" ), ConfigSupportType.File, false );
-
-                foreach( var profile in ctx.ConfigManager.SystemConfiguration.UserProfiles )
-                {
-                    Assert.That( ((UserProfile)profile).Holder == ctx.ConfigManager.SystemConfiguration.UserProfiles );
-                }
-
-                Host.SaveUserConfig();
-                Host.SaveSystemConfig();
-            }
-            // Reloads it
-            {
-                IContext ctx = CreateContext();
-                Host.CustomSystemConfigPath = GetTestFilePath( "SystemConfiguration" );
-
-                Assert.That( ctx.ConfigManager.UserConfiguration != null );
-
-                foreach( var profile in ctx.ConfigManager.SystemConfiguration.UserProfiles )
-                {
-                    Assert.That( ((UserProfile)profile).Holder == ctx.ConfigManager.SystemConfiguration.UserProfiles );
-                }
-            }
-        }
-
-        [Test]
-        public void ReloadPreviousContext()
-        {
-            INamedVersionedUniqueId pluginId = new SimpleNamedVersionedUniqueId( Guid.NewGuid(), Util.EmptyVersion, "JustForTest" );
-
-            // Creates typical user configuration.
-            {
-                IContext ctx = CreateContext();
-                IConfigManager config = ctx.ConfigManager;
-                IConfigContainer dic = ctx.ConfigManager.Extended.Container;
-
-                Assert.That( config.SystemConfiguration != null );
-                IUserProfile p = ctx.ConfigManager.SystemConfiguration.UserProfiles.AddOrSet( "Config-" + Guid.NewGuid().ToString(), GetTestFilePath( "UserConfig" ), ConfigSupportType.File, true );
-                Assert.That( config.UserConfiguration != null );
-
-                Assert.That( !dic.Contains( pluginId ), "The plugin is not known yet." );
-                config.Extended.Container[ctx, pluginId, "testKey"] = "testValue";
-                Assert.That( dic.Contains( pluginId ), "Setting a value ensures that the plugin is registered." );
-
-                Host.ContextPath = GetTestFilePath( "Context" );
-
-                Assert.That( ctx.ConfigManager.SystemConfiguration.UserProfiles.LastProfile == p );
-
-                Host.SaveContext();
-                Host.SaveUserConfig();
-                Host.SaveSystemConfig();
-
-                TestBase.DumpFileToConsole( Host.ContextPath );
-            }
-
-            // Loads existing configuration, with Keyboards etc.
-            {
-                IContext ctx = CreateContext();
-                IConfigManager config = ctx.ConfigManager;
-                IConfigContainer dic = ctx.ConfigManager.Extended.Container;
-
-                dic.Ensure( pluginId );
-
-                Assert.That( config.UserConfiguration != null );
-                Host.RestoreLastContext();
-
-                Assert.That( (string)dic[ctx, pluginId, "testKey"] == "testValue" );
-            }
-        }
     }
 }

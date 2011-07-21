@@ -1,13 +1,10 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using NUnit.Framework;
+using System.IO;
 using CK.Plugin;
 using CK.Plugin.Config;
-using CK.Context;
 using CK.Storage;
-using System.IO;
+using NUnit.Framework;
+using System.Collections.Specialized;
 
 namespace PluginConfig
 {
@@ -17,7 +14,7 @@ namespace PluginConfig
         [Test]
         public void PluginStatusCollectionEvents()
         {
-            IContext ctx = CreateContext();
+            var ctx = MiniContext.CreateMiniContext( "PluginStatusCollectionEvents" );
 
             PluginStatusCollectionChangingEventArgs lastChanging = null;
             PluginStatusCollectionChangedEventArgs lastChanged = null;
@@ -95,7 +92,7 @@ namespace PluginConfig
             Guid id2 = Guid.NewGuid();
             Guid id3 = Guid.NewGuid();
 
-            IContext ctx = CreateContext();
+            var ctx = MiniContext.CreateMiniContext( "PluginStatusCollectionMerge" );
 
             PluginStatusCollection collection = new PluginStatusCollection( ctx.ConfigManager.SystemConfiguration as SystemConfiguration );
 
@@ -125,6 +122,7 @@ namespace PluginConfig
                 using( var r = SimpleStructuredReader.CreateReader( s, null ) )
                 {
                     r.ReadInlineObjectStructuredElement( "PC", collection );
+                    collection.FireResetEvent();
                 }
             }
 
@@ -144,161 +142,11 @@ namespace PluginConfig
         }
 
         [Test]
-        public void UserProfileCollectionEvents()
-        {
-            IContext ctx = CreateContext();
-
-            UserProfileCollectionChangingEventArgs lastChanging = null;
-            UserProfileCollectionChangedEventArgs lastChanged = null;
-            int changingCount = 0;
-            int changedCount = 0;
-
-            UserProfileCollection collection = new UserProfileCollection( ctx.ConfigManager.SystemConfiguration as SystemConfiguration );
-            collection.Changing += ( o, e ) => { lastChanging = e; changingCount++; };
-            collection.Changed += ( o, e ) => { lastChanged = e; changedCount++; };
-
-            // check add
-            collection.AddOrSet( "profile1", "address", ConfigSupportType.File, false );
-
-            Assert.That( changingCount == 1 && changedCount == 1 );
-            Assert.That( lastChanging.Action == CK.Core.ChangeStatus.Add );
-            Assert.That( lastChanged.Action == CK.Core.ChangeStatus.Add );
-            Assert.That( lastChanging.Collection == collection );
-            Assert.That( lastChanged.Collection == collection );
-            Assert.That( lastChanging.Address == "address" );
-            Assert.That( lastChanged.Address == "address" );
-            Assert.That( lastChanging.Name == "profile1" );
-            Assert.That( lastChanged.Name == "profile1" );
-            Assert.That( lastChanging.Type == ConfigSupportType.File );
-            Assert.That( lastChanged.Type == ConfigSupportType.File );
-
-            changedCount = 0; changingCount = 0;
-
-            // check update : set as LastProfile
-            IUserProfile profile1 = collection.AddOrSet( "profile1", "address", ConfigSupportType.File, true );
-
-            Assert.That( changingCount == 1 && changedCount == 1 );
-            Assert.That( lastChanging.Action == CK.Core.ChangeStatus.ContainerUpdate );
-            Assert.That( lastChanged.Action == CK.Core.ChangeStatus.ContainerUpdate );
-            Assert.That( lastChanging.Collection == collection );
-            Assert.That( lastChanged.Collection == collection );
-            Assert.That( lastChanging.Address == "address" );
-            Assert.That( lastChanged.Address == "address" );
-            Assert.That( lastChanging.Name == "profile1" );
-            Assert.That( lastChanged.Name == "profile1" );
-            Assert.That( lastChanging.Type == ConfigSupportType.File );
-            Assert.That( lastChanged.Type == ConfigSupportType.File );
-
-            changedCount = 0; changingCount = 0;
-
-            // check update : via Rename
-            profile1.Rename( "newProfile1" );
-
-            Assert.That( changingCount == 1 && changedCount == 1 );
-            Assert.That( lastChanging.Action == CK.Core.ChangeStatus.Update );
-            Assert.That( lastChanged.Action == CK.Core.ChangeStatus.Update );
-            Assert.That( lastChanging.Collection == collection );
-            Assert.That( lastChanged.Collection == collection );
-            Assert.That( lastChanging.Address == "address" );
-            Assert.That( lastChanged.Address == "address" );
-            Assert.That( lastChanging.Name == "newProfile1" );
-            Assert.That( lastChanged.Name == "newProfile1" );
-            Assert.That( lastChanging.Type == ConfigSupportType.File );
-            Assert.That( lastChanged.Type == ConfigSupportType.File );
-
-            changedCount = 0; changingCount = 0;
-
-            // check delete
-            profile1.Destroy();
-
-            Assert.That( changingCount == 1 && changedCount == 1 );
-            Assert.That( lastChanging.Action == CK.Core.ChangeStatus.Delete );
-            Assert.That( lastChanged.Action == CK.Core.ChangeStatus.Delete );
-            Assert.That( lastChanging.Collection == collection );
-            Assert.That( lastChanged.Collection == collection );
-            Assert.That( lastChanging.Address == "address" );
-            Assert.That( lastChanged.Address == "address" );
-            Assert.That( lastChanging.Name == "newProfile1" );
-            Assert.That( lastChanged.Name == "newProfile1" );
-            Assert.That( lastChanging.Type == ConfigSupportType.File );
-            Assert.That( lastChanged.Type == ConfigSupportType.File );
-        }
-
-        [Test]
-        public void UserProfileCollectionMerge()
-        {
-            IContext ctx = CreateContext();
-
-            UserProfileCollectionChangingEventArgs lastChanging = null;
-            UserProfileCollectionChangedEventArgs lastChanged = null;
-            int changingCount = 0;
-            int changedCount = 0;
-
-            UserProfileCollection collection = new UserProfileCollection( ctx.ConfigManager.SystemConfiguration as SystemConfiguration );
-            collection.Changing += ( o, e ) => { lastChanging = e; changingCount++; };
-            collection.Changed += ( o, e ) => { lastChanged = e; changedCount++; };
-
-            collection.AddOrSet( "profile1", "address", ConfigSupportType.Other, true );
-
-            string path = TestBase.GetTestFilePath( "UserProfileCollectionMerge" );
-            using( Stream s = new FileStream( path, FileMode.Create ) )
-            {
-                using( var w = SimpleStructuredWriter.CreateWriter( s, null ) )
-                {
-                    UserProfileCollection collection2 = new UserProfileCollection( ctx.ConfigManager.SystemConfiguration as SystemConfiguration );
-                    collection2.AddOrSet( "profile1", "address", ConfigSupportType.Other, false );
-                    collection2.AddOrSet( "profile2", "address2", ConfigSupportType.File, true );
-                    collection2.AddOrSet( "profile3", "address3", ConfigSupportType.None, false );
-
-                    w.WriteInlineObjectStructuredElement( "UserProfiles", collection2 );
-                }
-            }
-
-            changedCount = 0; changingCount = 0;
-            lastChanged = null; lastChanging = null;
-
-            using( Stream s = new FileStream( path, FileMode.Open ) )
-            {
-                using( var r = SimpleStructuredReader.CreateReader( s, null ) )
-                {
-                    r.ReadInlineObjectStructuredElement( "UserProfiles", collection );
-                }
-            }
-
-            // Check event count & args.
-            Assert.That( changingCount == 0 && changedCount == 1 );
-            Assert.That( lastChanging == null );
-            Assert.That( lastChanged.Action == CK.Core.ChangeStatus.ContainerUpdate );
-            Assert.That( lastChanged.Collection == collection );
-            Assert.That( lastChanged.Address == string.Empty );
-            Assert.That( lastChanged.Name == string.Empty );
-            Assert.That( lastChanged.Type == ConfigSupportType.None );
-
-            // Check content
-            Assert.That( collection.Count == 3 );
-            Assert.That( collection.Find( "address" ).Name == "profile1" );
-            Assert.That( collection.Find( "address" ).Type == ConfigSupportType.Other );
-            Assert.That( !collection.Find( "address" ).IsLastProfile );
-
-            Assert.That( collection.Find( "address2" ).Name == "profile2" );
-            Assert.That( collection.Find( "address2" ).Type == ConfigSupportType.File );
-            Assert.That( collection.Find( "address2" ).IsLastProfile );
-
-            Assert.That( collection.Find( "address3" ).Name == "profile3" );
-            Assert.That( collection.Find( "address3" ).Type == ConfigSupportType.None );
-            Assert.That( !collection.Find( "address3" ).IsLastProfile );
-
-            foreach( UserProfile profile in collection )
-            {
-                Assert.That( profile.Holder == collection );
-            }
-        }
-
-        [Test]
         public void PluginRequirementCollectionEvents()
         {
             PluginRequirementCollectionEvents( new PluginRequirementCollection() );
         }
+
         void PluginRequirementCollectionEvents( PluginRequirementCollection collection )
         {
             Guid id = Guid.NewGuid();
@@ -360,6 +208,7 @@ namespace PluginConfig
         {
             ServiceRequirementCollectionEvents( new ServiceRequirementCollection() );
         }
+
         void ServiceRequirementCollectionEvents( ServiceRequirementCollection collection )
         {
             string id = "service.full.name";
