@@ -12,10 +12,19 @@ namespace Core
 
     #region IAddService
 
-    public interface IAddService
+    public interface IAddServiceBase
+    {
+    }
+
+    public interface IAddService : IAddServiceBase
     {
         int Add( int a, int b );
     }
+
+    public interface IAddServiceDerived : IAddService
+    {
+    }
+
     public class AddServiceImpl : IAddService
     {
         public int Add( int a, int b )
@@ -215,6 +224,8 @@ namespace Core
         {
             Func<IAddService> creatorFunc = () => new AddServiceImpl();
 
+            IServiceContainerCoAndContravariance( container, creatorFunc );
+            
             IServiceContainerConformanceAddRemove( container, creatorFunc );
 
             IServiceContainerConformanceAddFailsWhenExisting( container, creatorFunc );
@@ -314,8 +325,72 @@ namespace Core
             container.Add<IAddService>( new AddServiceImpl(), s => removed = true );
             container.Remove( typeof( IAddService ) );
             Assert.That( removed, "Since the service instance has been added explicitely, OnRemove action has been called." );
+        }
 
-            Assert.That( container.GetService<IAddService>() == null, "Back to no IAddService." );
-        }     
+        private static void IServiceContainerCoAndContravariance( ISimpleServiceContainer container, Func<IAddService> creatorFunc )
+        {
+            {
+                _onRemoveServiceCalled = false;
+                container.Add<IAddService>( new AddServiceImpl(), OnRemoveService );
+                container.Remove( typeof( IAddService ) );
+                Assert.That( _onRemoveServiceCalled, "OnRemoveService has been called." );
+
+                _onRemoveServiceCalled = false;
+                container.Add<IAddService>( new AddServiceImpl(), OnRemoveBaseServiceType );
+                container.Remove( typeof( IAddService ) );
+                Assert.That( _onRemoveServiceCalled, "OnRemoveBaseServiceType has been called." );
+
+                _onRemoveServiceCalled = false;
+                container.Add<IAddService>( new AddServiceImpl(), OnRemoveServiceObject );
+                container.Remove( typeof( IAddService ) );
+                Assert.That( _onRemoveServiceCalled, "OnRemoveServiceObject has been called." );
+
+                //container.Add<IAddService>( new AddServiceImpl(), OnRemoveDerivedServiceType );
+                //container.Remove( typeof( IAddService ) );
+
+                //container.Add<IAddService>( new AddServiceImpl(), OnRemoveUnrelatedType );
+                //container.Remove( typeof( IAddService ) );
+            }
+            {
+                _onRemoveServiceCalled = false;
+                container.Add( creatorFunc, OnRemoveService );
+                container.Remove( typeof( IAddService ) );
+                Assert.That( !_onRemoveServiceCalled, "Service has never been created." );
+
+                container.Add<IAddService>( creatorFunc, OnRemoveBaseServiceType );
+                container.Remove( typeof( IAddService ) );
+                Assert.That( !_onRemoveServiceCalled, "Service has never been created." );
+
+                container.Add<IAddService>( creatorFunc, OnRemoveServiceObject );
+                container.Remove( typeof( IAddService ) );
+                Assert.That( !_onRemoveServiceCalled, "Service has never been created." );
+            }
+        }
+
+        static bool _onRemoveServiceCalled;
+        static void OnRemoveService( IAddService s )
+        {
+            _onRemoveServiceCalled = true;
+        }
+
+        static void OnRemoveServiceObject( object o )
+        {
+            _onRemoveServiceCalled = true;
+        }
+
+        static void OnRemoveBaseServiceType( IAddServiceBase baseType )
+        {
+            _onRemoveServiceCalled = true;
+        }
+
+        static void OnRemoveDerivedServiceType( IAddServiceDerived derivedType )
+        {
+        }
+
+        static void OnRemoveUnrelatedType( string unrelatedType )
+        {
+        }
+
+    
     }
 }

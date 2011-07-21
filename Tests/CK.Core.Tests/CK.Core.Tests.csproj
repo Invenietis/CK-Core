@@ -10,8 +10,9 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>CK.Core.Tests</RootNamespace>
     <AssemblyName>CK.Core.Tests</AssemblyName>
-    <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
+    <TargetFrameworkProfile>Client</TargetFrameworkProfile>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -32,7 +33,8 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="nunit.framework, Version=2.5.9.10348, Culture=neutral, PublicKeyToken=96d09a1eb7f44a77, processorArchitecture=MSIL">
-      <HintPath>..\..\ThirdParty\nunit.framework.dll</HintPath>
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\Tools\NUnit\nunit.framework.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -57,7 +59,7 @@
       <Name>CK.Core</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\CK.Core\CK.Core.csproj">
-      <Project>{6DFBE436-2571-4029-B220-E101D2162A63}</Project>
+      <Project>{97578828-71EC-46B3-BD9A-44E58292386F}</Project>
       <Name>CK.Core</Name>
     </ProjectReference>
   </ItemGroup>
