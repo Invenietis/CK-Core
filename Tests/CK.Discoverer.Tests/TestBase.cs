@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.IO;
 using NUnit.Framework;
+using System.Threading;
 
 namespace Discoverer
 {
@@ -55,29 +56,35 @@ namespace Discoverer
 
         public static void CleanupTestDir()
         {
+            if( _testFolder == null ) InitalizePaths();
             TestFolderDir.Refresh();
             if( TestFolderDir.Exists ) TestFolderDir.Delete( true );
             TestFolderDir.Create();
+            TestFolderDir.Refresh();
         }
 
         public static void CopyPluginToTestDir( params string[] fileNames )
         {
             if( _testFolder == null ) InitalizePaths();
+            TestFolderDir.Refresh();
             foreach( string f in fileNames )
             {
                 string target = Path.Combine( _testFolder, f );
                 Directory.CreateDirectory( Path.GetDirectoryName( target ) );
                 File.Copy( Path.Combine( _pluginFolder, f ), target, true );
             }
+            TestFolderDir.Refresh();
         }
-        
+
         public static void RemovePluginFromTestDir( params string[] fileNames )
         {
             if( _testFolder == null ) InitalizePaths();
+            TestFolderDir.Refresh();
             foreach( string f in fileNames )
             {
-                File.Delete( Path.Combine( _testFolder, f ) );               
+                File.Delete( Path.Combine( _testFolder, f ) );
             }
+            TestFolderDir.Refresh();
         }
 
         private static void InitalizePaths()
@@ -98,7 +105,7 @@ namespace Discoverer
             Directory.CreateDirectory( _testFolder );
 
             // ==> Debug/Plugins
-            _pluginFolder = Path.Combine( p, "Plugins" );
+            _pluginFolder = Path.Combine( p, "Discoverer.Tests.Plugins" );
         }
     }
 }

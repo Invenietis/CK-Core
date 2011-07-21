@@ -23,6 +23,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Reflection;
 using CK.Core;
@@ -78,14 +79,14 @@ namespace Discoverer
             Discoverer.Discover( TestBase.TestFolderDir, true );
             Assert.That( Discoverer.AllAssemblies.Count, Is.EqualTo( 2 ) );
             Assert.That( Discoverer.AllAssemblies.Single( a => a.AssemblyFileName.Contains( "ServiceA.2" ) ).HasError, Is.True, "The 2nd assembly is on error: the other one has been discovered first." );
-            
+
             Discoverer.Discover( TestBase.TestFolderDir, true );
             Assert.That( lastDiscoverEventArgs.ChangeCount, Is.EqualTo( 0 ), "Discovering twice an assembly error (no bug, no change)." );
 
             // We remove the first one, and we discover again.
             TestBase.RemovePluginFromTestDir( @"ServiceA.dll" );
             Discoverer.Discover( TestBase.TestFolderDir, true );
-            Assert.That( lastDiscoverEventArgs.ChangeCount, Is.GreaterThan( 0 ), "There are changes." ); 
+            Assert.That( lastDiscoverEventArgs.ChangeCount, Is.GreaterThan( 0 ), "There are changes." );
 
             Assert.That( Discoverer.AllAssemblies.Count, Is.EqualTo( 1 ), "The first assembly has been deleted." );
             Assert.That( lastDiscoverEventArgs.DeletedAssemblies.Count, Is.EqualTo( 1 ), "...that's what I said." );
@@ -286,9 +287,10 @@ namespace Discoverer
 
             Assert.That( lastDiscoverEventArgs.ChangedAssemblies.Count, Is.EqualTo( 1 ) );
             Assert.That( lastDiscoverEventArgs.ChangedAssemblies[0], Is.SameAs( pAss ) );
-            
+
             Assert.That( lastDiscoverEventArgs.NewDisappearedAssemblies.Count, Is.EqualTo( 0 ) );
             Assert.That( lastDiscoverEventArgs.DeletedDisappearedAssemblies.Count, Is.EqualTo( 0 ) );
         }
+    
     }
 }

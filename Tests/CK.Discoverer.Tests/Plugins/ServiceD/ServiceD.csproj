@@ -5,11 +5,11 @@
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProductVersion>8.0.30703</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
-    <ProjectGuid>{A7ECEE18-2D66-4D50-8BFE-6F721F3D3D2F}</ProjectGuid>
+    <ProjectGuid>{D9350C17-4631-49A4-A799-01BC1975C352}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>CK.Discoverer.Tests</RootNamespace>
-    <AssemblyName>CK.Discoverer.Tests</AssemblyName>
+    <RootNamespace>ServiceD</RootNamespace>
+    <AssemblyName>ServiceD</AssemblyName>
     <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <TargetFrameworkProfile>Client</TargetFrameworkProfile>
@@ -18,7 +18,7 @@
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
-    <OutputPath>..\..\Output\Tests\Debug\</OutputPath>
+    <OutputPath>..\..\..\..\Output\Tests\Debug\Discoverer.Tests.Plugins\</OutputPath>
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
@@ -26,37 +26,23 @@
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
-    <OutputPath>..\..\Output\Tests\Release\</OutputPath>
+    <OutputPath>..\..\..\..\Output\Tests\Release\Discoverer.Tests.Plugins\</OutputPath>
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="Discoverer.ProducerConsumer.cs" />
-    <Compile Include="Discoverer.cs" />
-    <Compile Include="Discoverer.TestDiffs.cs" />
+    <Compile Include="IServiceE.cs" />
+    <Compile Include="Plugin04.cs" />
+    <Compile Include="IServiceD.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="TestBase.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\CK.Core\CK.Core.csproj">
-      <Project>{6DFBE436-2571-4029-B220-E101D2162A63}</Project>
-      <Name>CK.Core</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\CK.Plugin.Discoverer\CK.Plugin.Discoverer.csproj">
-      <Project>{7B9A41C4-0D83-4CDE-9A78-45847F8A0D4B}</Project>
-      <Name>CK.Plugin.Discoverer</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\CK.Plugin.Model\CK.Plugin.Model.csproj">
+    <ProjectReference Include="..\..\..\..\CK.Plugin.Model\CK.Plugin.Model.csproj">
       <Project>{D6E4A9FE-F9B9-4FDC-A21A-E3E7109128C6}</Project>
       <Name>CK.Plugin.Model</Name>
+      <Private>False</Private>
     </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
-    <Reference Include="nunit.framework, Version=2.5.9.10348, Culture=neutral, PublicKeyToken=96d09a1eb7f44a77, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\Tools\NUnit\nunit.framework.dll</HintPath>
-    </Reference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

@@ -244,7 +244,7 @@ namespace Discoverer
         {
             PluginDiscoverer discoverer = new PluginDiscoverer();
             
-            TestBase.CopyPluginToTestDir( "VersionnedPlugins.dll" );
+            TestBase.CopyPluginToTestDir( "VersionedPlugins.dll" );
             TestBase.CopyPluginToTestDir( "VersionedPluginWithService.dll" );
 
             discoverer.Discover( TestBase.TestFolderDir, true );
@@ -307,14 +307,14 @@ namespace Discoverer
         }
 
         [Test]
-        public void Z_HomonymousServicesCLRTest()
+        public void HomonymServices()
         {
             PluginDiscoverer discoverer = new PluginDiscoverer();
 
-            TestBase.CopyPluginToTestDir( "ServiceZ.dll" );
-            TestBase.CopyPluginToTestDir( "ServiceZbis.dll" );
-            TestBase.CopyPluginToTestDir( "ClassZ.dll" );
-            TestBase.CopyPluginToTestDir( "ClassZbis.dll" );
+            TestBase.CopyPluginToTestDir( "HomonymServiceZ.dll" );
+            TestBase.CopyPluginToTestDir( "HomonymServiceZbis.dll" );
+            TestBase.CopyPluginToTestDir( "HomonymClassZ.dll" );
+            TestBase.CopyPluginToTestDir( "HomonymClassZbis.dll" );
 
             List<object> objects = new List<object>();
 
@@ -322,12 +322,12 @@ namespace Discoverer
             {
                 objects.Add( Load( f.FullName ) );
             }
-               
-            //object[0] is a ClassZ object
-            //object[1] is a ClassZbis object            
-            
-            //object[2] is a ImplZ object
-            //object[3] is a ImplZbis object
+
+            //object[0] is a HomonymClassZ object
+            //object[1] is a HomonymClassZbis object            
+
+            //object[2] is a HomonymImplZ object
+            //object[3] is a HomonymImplZbis object
 
             object objectZ = objects[0];
             object objectZbis = objects[1];
@@ -357,55 +357,50 @@ namespace Discoverer
         }
 
         [Test]
-        public void ServiceRefExternalAssembly()
+        public void RefInternalNonDynamicService()
         {
             PluginDiscoverer discoverer = new PluginDiscoverer();
 
-            TestBase.CopyPluginToTestDir( "ServiceRefExternalAssembly.dll" );
+            TestBase.CopyPluginToTestDir( "RefInternalNonDynamicService.dll" );
 
             discoverer.Discover( TestBase.TestFolderDir, true );
 
-            Assert.That( discoverer.AllServices.Count, Is.EqualTo( 1 ) );
-        }
-
-        [Test]
-        public void TestServiceNotFound()
-        {
-            PluginDiscoverer discoverer = new PluginDiscoverer();
-
-            TestBase.CopyPluginToTestDir( "ServiceC.Model.dll" );
-            TestBase.CopyPluginToTestDir( "PluginNeedsServiceC.dll" );
-
-            discoverer.Discover( TestBase.TestFolderDir, true );
-        }
-
-        [Test]
-        public void ReferencePreloadedExternalService()
-        {
-            PluginDiscoverer discoverer = new PluginDiscoverer();
-
-            TestBase.CopyPluginToTestDir( "PluginA.dll" );
-
-            discoverer.Discover( TestBase.TestFolderDir, true );
-
-            Assert.That( discoverer.AllPlugins.Count == 1 );
-            Assert.That( discoverer.AllServices.Count, Is.EqualTo( 2 ) );
-            Assert.That( discoverer.AllServices.Any( s => s.HasError ) );
-        }
-
-        [Test]
-        public void BadExternalServiceRef()
-        {
-            PluginDiscoverer discoverer = new PluginDiscoverer();
-
-            TestBase.CopyPluginToTestDir( "BadExternalServiceRef.dll" );
-
-            discoverer.Discover( TestBase.TestFolderDir, true );
-
-            Assert.That( discoverer.AllPlugins.Count == 3 );
-            Assert.That( discoverer.Plugins.Count == 2 );
+            Assert.That( discoverer.Plugins.Count, Is.EqualTo( 2 ), "There are 2 runnable plugins." );
             Assert.That( discoverer.Plugins.Select( x => x.PublicName ).OrderBy( Util.FuncIdentity ).SequenceEqual( new[] { "PluginSuccess", "PluginSuccessAlso" } ) );
+
+            Assert.That( discoverer.AllPlugins.Count, Is.EqualTo( 3 ), "There are 2 runnable plugins and 1 in error." );
             Assert.That( discoverer.AllPlugins.Any( p => p.PublicName == "PluginFailed" ) );
+        }
+
+        [Test]
+        public void RefExternalNonDynamicService()
+        {
+            {
+                // Missing ServiceC.Model.dll assembly: the interface has no definition.
+                PluginDiscoverer discoverer = new PluginDiscoverer();
+                TestBase.CopyPluginToTestDir( "RefExternalNonDynamicService.dll" );
+
+                discoverer.Discover( TestBase.TestFolderDir, true );
+
+                Assert.That( discoverer.AllAssemblies.Count, Is.EqualTo( 1 ) );
+                Assert.That( discoverer.AllAssemblies.First().HasError, Is.True );
+
+                Assert.That( discoverer.AllPlugins.Count, Is.EqualTo( 0 ) );
+                Assert.That( discoverer.AllServices.Count, Is.EqualTo( 0 ) );
+            }
+            {
+                PluginDiscoverer discoverer = new PluginDiscoverer();
+                TestBase.CopyPluginToTestDir( "ServiceC.Model.dll" );
+
+                discoverer.Discover( TestBase.TestFolderDir, true );
+
+                Assert.That( discoverer.Plugins.Count, Is.EqualTo( 2 ), "There are 2 runnable plugins." );
+                Assert.That( discoverer.Plugins.Select( x => x.PublicName ).OrderBy( Util.FuncIdentity ).SequenceEqual( new[] { "PluginSuccess", "PluginSuccessAlso" } ) );
+
+                Assert.That( discoverer.AllPlugins.Count, Is.EqualTo( 3 ), "There are 2 runnable plugins and 1 in error." );
+                Assert.That( discoverer.AllPlugins.Any( p => p.PublicName == "PluginFailed" ) );
+            }
+
         }
 
         object Load( string assemblyName )
