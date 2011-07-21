@@ -1,0 +1,136 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProductVersion>9.0.30729</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{D6E4A9FE-F9B9-4FDC-A21A-E3E7109128C6}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>CK.Plugin</RootNamespace>
+    <AssemblyName>CK.Plugin.Model</AssemblyName>
+    <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <FileUpgradeFlags>
+    </FileUpgradeFlags>
+    <OldToolsVersion>3.5</OldToolsVersion>
+    <UpgradeBackupLocation />
+    <TargetFrameworkProfile>
+    </TargetFrameworkProfile>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <DocumentationFile>
+    </DocumentationFile>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <DocumentationFile>bin\Release\CK.Plugin.Model.xml</DocumentationFile>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.Core">
+      <RequiredTargetFramework>3.5</RequiredTargetFramework>
+    </Reference>
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Discoverer\DiscoverDoneEventArgs.cs" />
+    <Compile Include="Discoverer\IAssemblyInfo.cs" />
+    <Compile Include="Discoverer\IDiscoveredInfo.cs" />
+    <Compile Include="Discoverer\DiscovererExtension.cs" />
+    <Compile Include="Discoverer\IPluginConfigAccessorInfo.cs" />
+    <Compile Include="Discoverer\IPluginDiscoverer.cs" />
+    <Compile Include="Discoverer\IPluginInfo.cs" />
+    <Compile Include="Discoverer\IServiceInfo.cs" />
+    <Compile Include="Discoverer\IServiceReferenceInfo.cs" />
+    <Compile Include="Discoverer\ISimpleEventInfo.cs" />
+    <Compile Include="Discoverer\ISimpleMethodInfo.cs" />
+    <Compile Include="Discoverer\ISimpleParameterInfo.cs" />
+    <Compile Include="Discoverer\ISimplePropertyInfo.cs" />
+    <Compile Include="Host\HostExtension.cs" />
+    <Compile Include="Host\IExecutionPlanResult.cs" />
+    <Compile Include="Host\IPluginHost.cs" />
+    <Compile Include="Host\IPluginProxy.cs" />
+    <Compile Include="Host\IServiceHost.cs" />
+    <Compile Include="Host\IServiceHostConfiguration.cs" />
+    <Compile Include="Host\ISimpleServiceHostConfiguration.cs" />
+    <Compile Include="Host\Log\ILogErrorCulprit.cs" />
+    <Compile Include="Host\Log\ILogWithParametersEntry.cs" />
+    <Compile Include="Host\Log\ILogCenter.cs" />
+    <Compile Include="Host\Log\ILogEntry.cs" />
+    <Compile Include="Host\Log\ILogErrorCaught.cs" />
+    <Compile Include="Host\Log\ILogEventEntry.cs" />
+    <Compile Include="Host\Log\ILogEventError.cs" />
+    <Compile Include="Host\Log\ILogEventNotRunningError.cs" />
+    <Compile Include="Host\Log\ILogExternalEntry.cs" />
+    <Compile Include="Host\Log\ILogExternalErrorEntry.cs" />
+    <Compile Include="Host\Log\ILogInterceptionEntry.cs" />
+    <Compile Include="Host\Log\ILogMethodEntry.cs" />
+    <Compile Include="Host\Log\ILogMethodError.cs" />
+    <Compile Include="Host\Log\LogEntryType.cs" />
+    <Compile Include="Host\Log\LogEventArgs.cs" />
+    <Compile Include="Host\Log\LogHostEventArgs.cs" />
+    <Compile Include="Host\PluginStatusChangedEventArgs.cs" />
+    <Compile Include="Host\ServiceLogEventOptions.cs" />
+    <Compile Include="Host\ServiceLogMethodOptions.cs" />
+    <Compile Include="ISimplePluginRunner.cs" />
+    <Compile Include="PluginModelExtension.cs" />
+    <Compile Include="RequiredServiceAttribute.cs" />
+    <Compile Include="Requirements\Events\PluginRequirementCollectionChangedEventArgs.cs" />
+    <Compile Include="Requirements\Events\ServiceRequirementCollectionChangedEventArgs.cs" />
+    <Compile Include="Requirements\Events\ServiceRequirementCollectionChangingEventArgs.cs" />
+    <Compile Include="Requirements\Events\PluginRequirementCollectionChangingEventArgs.cs" />
+    <Compile Include="Requirements\PluginRequirement.cs" />
+    <Compile Include="Requirements\PluginRequirementCollection.cs" />
+    <Compile Include="Requirements\RequirementLayer.cs" />
+    <Compile Include="Requirements\ServiceRequirement.cs" />
+    <Compile Include="Requirements\ServiceRequirementCollection.cs" />
+    <Compile Include="ServiceNotAvailableException.cs" />
+    <Compile Include="IDynamicService.cs" />
+    <Compile Include="IgnoreExceptionAttribute.cs" />
+    <Compile Include="IgnoreServiceStoppedAttribute.cs" />
+    <Compile Include="IPlugin.cs" />
+    <Compile Include="IPluginSetupInfo.cs" />
+    <Compile Include="IService.cs" />
+    <Compile Include="Requirements\IPluginRequirementCollection.cs" />
+    <Compile Include="Requirements\IServiceRequirementCollection.cs" />
+    <Compile Include="RunningStatus.cs" />
+    <Compile Include="ServiceStoppedException.cs" />
+    <Compile Include="ServiceStatusChangedEventArgs.cs" />
+    <Compile Include="DynamicServiceAttribute.cs" />
+    <Compile Include="RunningRequirements.cs" />
+    <Compile Include="PluginAttribute.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\CK.Core\CK.Core.csproj">
+      <Project>{6DFBE436-2571-4029-B220-E101D2162A63}</Project>
+      <Name>CK.Core</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup />
+  <ItemGroup>
+    <None Include="Discoverer\Discoverer.cd" />
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>

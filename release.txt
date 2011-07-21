@@ -1,0 +1,8 @@
+# File to generate a new release   
+# There is 2 importante information:
+#   - ReleaseNumber: THERELEASENUMBER : X.X.X
+#   - RevNumber: THEREVNUMBERTOTAG
+# If RevNumber is not set, the revnumber of this file is use.
+
+ReleaseNumber: 2.4.8.1
+#RevNumber: 10

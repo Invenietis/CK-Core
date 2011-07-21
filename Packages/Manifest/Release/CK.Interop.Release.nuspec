@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?> 
+<package> 
+  <metadata> 
+    <id>CK.Interop</id> 
+    <version>1.0.0</version> 
+    <authors>Invenietis</authors>
+    <description>Dll that host tools for interop.</description> 
+    <language>en-US</language>
+    <licenseUrl>http://civikey.codeplex.com/license</licenseUrl>
+    <projectUrl>http://civikey.codeplex.com</projectUrl>
+  </metadata>
+  <files>
+    <file src="..\..\Runtime\Release\CK.Interop.dll" target="lib" />
+  </files>
+</package>

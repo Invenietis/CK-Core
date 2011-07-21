@@ -1,0 +1,78 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ClassDiagram MajorVersion="1" MinorVersion="1">
+  <Class Name="CK.Plugin.Discoverer.DiscoveredInfo">
+    <Position X="5.5" Y="0.5" Width="1.75" />
+    <TypeIdentifier>
+      <HashCode>IQBAAAAAAAAIIAAAIAAAAAAEAAAAAQAIAAAAAAAAAAA=</HashCode>
+      <FileName>DiscoveredInfo.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" />
+  </Class>
+  <Class Name="CK.Plugin.Discoverer.PluginAssemblyInfo">
+    <Position X="3" Y="4.5" Width="1.75" />
+    <Compartments>
+      <Compartment Name="Fields" Collapsed="true" />
+    </Compartments>
+    <TypeIdentifier>
+      <HashCode>wAAAAAAAAAJYAQQQBAAAEAACAAAAAQAAAgAAAAgAAAA=</HashCode>
+      <FileName>PluginAssemblyInfo.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" />
+  </Class>
+  <Class Name="CK.Plugin.Discoverer.PluginDiscoverer" Collapsed="true">
+    <Position X="13.25" Y="0.5" Width="1.5" />
+    <Compartments>
+      <Compartment Name="Fields" Collapsed="true" />
+    </Compartments>
+    <TypeIdentifier>
+      <HashCode>gAAAMEgEgABQICAYigAgEgpIkAAAQAgBEwAQWEiAAAY=</HashCode>
+      <FileName>PluginDiscoverer.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" />
+  </Class>
+  <Class Name="CK.Plugin.Discoverer.PluginEditorInfo">
+    <Position X="5.5" Y="4.5" Width="1.75" />
+    <Compartments>
+      <Compartment Name="Fields" Collapsed="true" />
+    </Compartments>
+    <TypeIdentifier>
+      <HashCode>AAAAAAgBAAAAAQAAAADAAAAAAAAAAQAAAAAACAgACAA=</HashCode>
+      <FileName>PluginEditorInfo.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" />
+  </Class>
+  <Class Name="CK.Plugin.Discoverer.PluginInfo">
+    <Position X="8" Y="4.5" Width="1.75" />
+    <Compartments>
+      <Compartment Name="Fields" Collapsed="true" />
+    </Compartments>
+    <TypeIdentifier>
+      <HashCode>oABCIAQAAAgwYQAUAKQAAQAAIAwQFQAyAEEAAggDIgg=</HashCode>
+      <FileName>PluginInfo.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" />
+  </Class>
+  <Class Name="CK.Plugin.Discoverer.ServiceInfo">
+    <Position X="10.5" Y="4.5" Width="1.75" />
+    <Compartments>
+      <Compartment Name="Fields" Collapsed="true" />
+    </Compartments>
+    <TypeIdentifier>
+      <HashCode>AABAAACAEAAIAQAAAAAAAQAAAAAAQQAgAAAAAAgCAAA=</HashCode>
+      <FileName>ServiceInfo.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" />
+  </Class>
+  <Class Name="CK.Plugin.Discoverer.ServiceReferenceInfo">
+    <Position X="0.5" Y="4.5" Width="1.75" />
+    <Compartments>
+      <Compartment Name="Fields" Collapsed="true" />
+    </Compartments>
+    <TypeIdentifier>
+      <HashCode>EAAAgACAAAAAAQABAAAAAAAAABIAAQAAAAAAAAhAAAA=</HashCode>
+      <FileName>ServiceReferenceInfo.cs</FileName>
+    </TypeIdentifier>
+    <Lollipop Position="0.2" />
+  </Class>
+  <Font Name="Segoe UI" Size="9" />
+</ClassDiagram>

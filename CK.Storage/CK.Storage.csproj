@@ -1,0 +1,96 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProductVersion>9.0.30729</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{DB4586A0-0BB0-4902-870E-391B66539572}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>CK.Storage</RootNamespace>
+    <AssemblyName>CK.Storage</AssemblyName>
+    <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <FileUpgradeFlags>
+    </FileUpgradeFlags>
+    <OldToolsVersion>3.5</OldToolsVersion>
+    <UpgradeBackupLocation />
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <DocumentationFile>bin\Release\CK.Storage.xml</DocumentationFile>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.Core">
+      <RequiredTargetFramework>3.5</RequiredTargetFramework>
+    </Reference>
+    <Reference Include="System.XML" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Impl\PureXml-2.5.5\WriterImplSub.cs" />
+    <Compile Include="Impl\PureXml-2.5.5\WriterBase.cs" />
+    <Compile Include="ISubStructuredWriter.cs" />
+    <Compile Include="ObjectReadExDataEventArgs.cs" />
+    <Compile Include="ObjectWriteExDataEventArgs.cs" />
+    <Compile Include="Impl\PureXml-2.5.5\ReaderBase.cs" />
+    <Compile Include="SimpleStructuredWriter.cs" />
+    <Compile Include="IStructuredSerializer.cs" />
+    <Compile Include="StructuredReaderAndWriterExtension.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Impl\PureXml-2.5.5\ReaderBookmark.cs" />
+    <Compile Include="Impl\PureXml-2.5.5\ReaderImpl.cs" />
+    <Compile Include="Impl\PureXml-2.5.5\WriterImpl.cs" />
+    <Compile Include="Impl\PureXml-2.5.5\ReaderImplSub.cs" />
+    <Compile Include="IStructuredReaderBookmark.cs" />
+    <Compile Include="IStructuredSerializable.cs" />
+    <Compile Include="IStructuredWriter.cs" />
+    <Compile Include="IStructuredReader.cs" />
+    <Compile Include="ISubStructuredReader.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="R.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>R.resx</DependentUpon>
+    </Compile>
+    <Compile Include="SimpleStructuredReader.cs" />
+    <Compile Include="StandardReadStatus.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\CK.Core\CK.Core.csproj">
+      <Project>{6DFBE436-2571-4029-B220-E101D2162A63}</Project>
+      <Name>CK.Core</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="R.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>R.Designer.cs</LastGenOutput>
+      <CustomToolNamespace>CK.Storage</CustomToolNamespace>
+    </EmbeddedResource>
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>

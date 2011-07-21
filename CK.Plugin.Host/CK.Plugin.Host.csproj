@@ -1,0 +1,99 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProductVersion>8.0.30703</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{C9FCBF26-371B-48C2-AA78-06292EE30B9D}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>CK.Plugin</RootNamespace>
+    <AssemblyName>CK.Plugin.Host</AssemblyName>
+    <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <DocumentationFile>bin\Release\CK.Plugin.Host.xml</DocumentationFile>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="Common.Logging">
+      <HintPath>..\ThirdParty\Common.Logging.dll</HintPath>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Plugin\PluginProxyBase.cs" />
+    <Compile Include="Plugin\ExecutionPlanResult.cs" />
+    <Compile Include="Plugin\PluginProxy.cs" />
+    <Compile Include="Plugin\PluginHost.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="R.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>R.resx</DependentUpon>
+    </Compile>
+    <Compile Include="Service\LogExternalErrorEntry.cs" />
+    <Compile Include="Service\LogExternalEntry.cs" />
+    <Compile Include="Service\DefaultProxyDefinition.cs" />
+    <Compile Include="Service\IProxyDefinition.cs" />
+    <Compile Include="Service\LogEventEntry.cs" />
+    <Compile Include="Service\LogEventEntryError.cs" />
+    <Compile Include="Service\LogEventNotRunningError.cs" />
+    <Compile Include="Service\LogMethodEntry.cs" />
+    <Compile Include="Service\LogMethodEntryError.cs" />
+    <Compile Include="Service\LogMethodError.cs" />
+    <Compile Include="Service\ServiceProxyBase.cs" />
+    <Compile Include="Service\ProxyFactory.cs" />
+    <Compile Include="Service\ServiceHost.cs" />
+    <Compile Include="Service\SimpleServiceHostConfiguration.cs" />
+    <Compile Include="UseTheProxyBase.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="R.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>R.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\CK.Core\CK.Core.csproj">
+      <Project>{6DFBE436-2571-4029-B220-E101D2162A63}</Project>
+      <Name>CK.Core</Name>
+      <Private>True</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\CK.Plugin.Model\CK.Plugin.Model.csproj">
+      <Project>{D6E4A9FE-F9B9-4FDC-A21A-E3E7109128C6}</Project>
+      <Name>CK.Plugin.Model</Name>
+      <Private>True</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\CK.Reflection\CK.Reflection.csproj">
+      <Project>{6C169A4A-969F-4952-9AD6-3D84BD0AD98B}</Project>
+      <Name>CK.Reflection</Name>
+      <Private>True</Private>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>

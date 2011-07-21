@@ -1,0 +1,130 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProductVersion>8.0.30703</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{B2E36713-7CDB-4304-B274-2AD75BC142C4}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>CK.Keyboard.Model</RootNamespace>
+    <AssemblyName>CK.Keyboard.Model</AssemblyName>
+    <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <DocumentationFile>bin\Release\CK.Keyboard.Model.xml</DocumentationFile>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.XML" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Events\KeyboardContextErrorEventArgs.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Events\KeyboardContextEventArgs.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="IKeyboardService.cs" />
+    <Compile Include="IKeyboardContextMode.cs" />
+    <Compile Include="IKeyboardContext.cs" />
+    <Compile Include="Events\CurrentKeyboardChangedEventArgs.cs" />
+    <Compile Include="Events\KeyboardCurrentLayoutChangedEventArgs.cs" />
+    <Compile Include="Events\KeyboardEventArgs.cs" />
+    <Compile Include="Events\KeyboardModeChangedEventArgs.cs" />
+    <Compile Include="Events\KeyboardModeChangingEventArgs.cs" />
+    <Compile Include="Events\KeyboardRenamedEventArgs.cs" />
+    <Compile Include="Events\KeyEventArgs.cs" />
+    <Compile Include="Events\KeyInteractionEventArgs.cs" />
+    <Compile Include="Events\KeyModeEventArgs.cs" />
+    <Compile Include="Events\KeyModeModeChangedEventArgs.cs" />
+    <Compile Include="Events\KeyModeModeSwappedEventArgs.cs" />
+    <Compile Include="Events\KeyModePropertyChangedEventArgs.cs" />
+    <Compile Include="Events\KeyMovedEventArgs.cs" />
+    <Compile Include="Events\KeyPressedEventArgs.cs" />
+    <Compile Include="Events\KeyProgramEventArgs.cs" />
+    <Compile Include="Events\KeyPropertyChangedEventArgs.cs" />
+    <Compile Include="Events\LayoutEventArgs.cs" />
+    <Compile Include="Events\LayoutKeyEventArgs.cs" />
+    <Compile Include="Events\LayoutKeyModeEventArgs.cs" />
+    <Compile Include="Events\LayoutKeyModeModeChangedEventArgs.cs" />
+    <Compile Include="Events\LayoutKeyModeModeSwappedEventArgs.cs" />
+    <Compile Include="Events\LayoutKeyModePropertyChangedEventArgs.cs" />
+    <Compile Include="Events\LayoutKeyPropertyChangedEventArgs.cs" />
+    <Compile Include="Events\LayoutRenamedEventArgs.cs" />
+    <Compile Include="Events\ZoneEventArgs.cs" />
+    <Compile Include="Events\ZoneRenamedEventArgs.cs" />
+    <Compile Include="IKey.cs" />
+    <Compile Include="IKeyboard.cs" />
+    <Compile Include="IKeyboardCollection.cs" />
+    <Compile Include="IKeyboardElement.cs" />
+    <Compile Include="IKeyboardMode.cs" />
+    <Compile Include="IKeyCollection.cs" />
+    <Compile Include="IKeyMode.cs" />
+    <Compile Include="IKeyModeCollection.cs" />
+    <Compile Include="IKeyModeCurrent.cs" />
+    <Compile Include="IKeyProgram.cs" />
+    <Compile Include="IKeyPropertyHolder.cs" />
+    <Compile Include="ILayout.cs" />
+    <Compile Include="ILayoutCollection.cs" />
+    <Compile Include="ILayoutKey.cs" />
+    <Compile Include="ILayoutKeyCollection.cs" />
+    <Compile Include="ILayoutKeyMode.cs" />
+    <Compile Include="ILayoutKeyModeCollection.cs" />
+    <Compile Include="ILayoutKeyModeCurrent.cs" />
+    <Compile Include="ILayoutZone.cs" />
+    <Compile Include="ILayoutZoneCollection.cs" />
+    <Compile Include="IZone.cs" />
+    <Compile Include="IZoneCollection.cs" />
+    <Compile Include="IZoneElement.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\CK.Core\CK.Core.csproj">
+      <Project>{6DFBE436-2571-4029-B220-E101D2162A63}</Project>
+      <Name>CK.Core</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\CK.Plugin.Config.Model\CK.Plugin.Config.Model.csproj">
+      <Project>{96D1DD2E-9E76-40EA-A943-1E85B44AB862}</Project>
+      <Name>CK.Plugin.Config.Model</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\CK.Plugin.Model\CK.Plugin.Model.csproj">
+      <Project>{D6E4A9FE-F9B9-4FDC-A21A-E3E7109128C6}</Project>
+      <Name>CK.Plugin.Model</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\CK.SharedDic\CK.SharedDic.csproj">
+      <Project>{0BEFACC1-7CF4-4634-BD78-AACA73B3224F}</Project>
+      <Name>CK.SharedDic</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\CK.Storage\CK.Storage.csproj">
+      <Project>{DB4586A0-0BB0-4902-870E-391B66539572}</Project>
+      <Name>CK.Storage</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>

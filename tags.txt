@@ -1,0 +1,8 @@
+# File to generate a new tag
+# There is 2 importante information:
+#   - TagName: THETAGNAME
+#   - RevNumber: THEREVNUMBERTOTAG
+# If RevNumber is not set, the revnumber of this file is use.
+
+TagName: CTP
+#RevNumber: 10

@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?> 
+<package> 
+  <metadata> 
+    <id>CK.Keyboard.Model</id> 
+    <version>1.0.0</version> 
+    <authors>Invenietis</authors>
+    <description>CK Keyboard model</description> 
+    <language>en-US</language>
+    <licenseUrl>http://civikey.codeplex.com/license</licenseUrl>
+    <projectUrl>http://civikey.codeplex.com</projectUrl>
+    <dependencies>
+      <dependency id="CK.Core" version="1.0.0" />
+      <dependency id="CK.Plugin.Config.Model" version="1.0.0" />
+      <dependency id="CK.Plugin.Model" version="1.0.0" />
+      <dependency id="CK.SharedDic" version="1.0.0" />
+      <dependency id="CK.Storage" version="1.0.0" />
+    </dependencies>
+  </metadata>
+  <files>
+    <file src="..\..\Runtime\Debug\CK.Keyboard.Model.dll" target="lib" />
+    <file src="..\..\Runtime\Debug\CK.Keyboard.Model.pdb" target="lib" />
+  </files>
+</package>

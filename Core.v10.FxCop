@@ -1,0 +1,2281 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<FxCopProject Version="10.0" Name="Core">
+ <ProjectOptions>
+  <SharedProject>True</SharedProject>
+  <Stylesheet Apply="False">$(ProjectDir)/../../../../../../program files/microsoft fxcop 1.36/Xml/FxCopReport.xsl</Stylesheet>
+  <SaveMessages>
+   <Project Status="Active, Excluded" NewOnly="False" />
+   <Report Status="Active" NewOnly="False" />
+  </SaveMessages>
+  <ProjectFile Compress="True" DefaultTargetCheck="True" DefaultRuleCheck="True" SaveByRuleGroup="" Deterministic="True" />
+  <EnableMultithreadedLoad>True</EnableMultithreadedLoad>
+  <EnableMultithreadedAnalysis>True</EnableMultithreadedAnalysis>
+  <SourceLookup>True</SourceLookup>
+  <AnalysisExceptionsThreshold>10</AnalysisExceptionsThreshold>
+  <RuleExceptionsThreshold>1</RuleExceptionsThreshold>
+  <Spelling Locale="fr-FR" />
+  <OverrideRuleVisibilities>False</OverrideRuleVisibilities>
+  <CustomDictionaries SearchFxCopDir="True" SearchUserProfile="True" SearchProjectDir="True" />
+  <SearchGlobalAssemblyCache>False</SearchGlobalAssemblyCache>
+  <DeadlockDetectionTimeout>120</DeadlockDetectionTimeout>
+  <IgnoreGeneratedCode>False</IgnoreGeneratedCode>
+ </ProjectOptions>
+ <Targets>
+  <Target Name="$(ProjectDir)/CK.Core/bin/Debug/CK.Core.dll" Analyze="True" AnalyzeAllChildren="True" />
+ </Targets>
+ <Rules>
+  <RuleFiles>
+   <RuleFile Name="$(FxCopDir)\Rules\DesignRules.dll" Enabled="True" AllRulesEnabled="True" />
+   <RuleFile Name="$(FxCopDir)\Rules\GlobalizationRules.dll" Enabled="True" AllRulesEnabled="True" />
+   <RuleFile Name="$(FxCopDir)\Rules\InteroperabilityRules.dll" Enabled="True" AllRulesEnabled="True" />
+   <RuleFile Name="$(FxCopDir)\Rules\MobilityRules.dll" Enabled="True" AllRulesEnabled="True" />
+   <RuleFile Name="$(FxCopDir)\Rules\NamingRules.dll" Enabled="True" AllRulesEnabled="True" />
+   <RuleFile Name="$(FxCopDir)\Rules\PerformanceRules.dll" Enabled="True" AllRulesEnabled="True" />
+   <RuleFile Name="$(FxCopDir)\Rules\PortabilityRules.dll" Enabled="True" AllRulesEnabled="True" />
+   <RuleFile Name="$(FxCopDir)\Rules\SecurityRules.dll" Enabled="True" AllRulesEnabled="True" />
+   <RuleFile Name="$(FxCopDir)\Rules\UsageRules.dll" Enabled="True" AllRulesEnabled="True" />
+  </RuleFiles>
+  <Groups />
+  <Settings />
+ </Rules>
+ <FxCopReport Version="10.0">
+  <Targets>
+   <Target Name="$(ProjectDir)/CK.Core/bin/Debug/CK.Core.dll">
+    <Modules>
+     <Module Name="ck.core.dll">
+      <Messages>
+       <Message TypeName="AssembliesShouldHaveValidStrongNames" Category="Microsoft.Design" CheckId="CA2210" Created="2009-11-26 10:27:00Z">
+        <Issue Name="NoStrongName">
+         <Item>'CK.Core.dll'</Item>
+        </Issue>
+       </Message>
+       <Message TypeName="MarkAssembliesWithAssemblyVersion" Category="Microsoft.Design" CheckId="CA1016" Created="2011-02-16 14:00:00Z">
+        <Issue>
+         <Item>'CK.Core.dll'</Item>
+        </Issue>
+       </Message>
+       <Message TypeName="MarkAssembliesWithNeutralResourcesLanguage" Category="Microsoft.Performance" CheckId="CA1824" Created="2011-02-16 14:00:00Z">
+        <Issue>
+         <Item>'CK.Core.dll'</Item>
+        </Issue>
+       </Message>
+      </Messages>
+      <Namespaces>
+       <Namespace Name="CK.Core">
+        <Types>
+         <Type Name="ActionSequence">
+          <Members>
+           <Member Name="#Append(CK.Core.ActionSequence+IAction)">
+            <Messages>
+             <Message TypeName="DoNotRaiseReservedExceptionTypes" Category="Microsoft.Usage" CheckId="CA2201" Created="2011-02-16 14:00:00Z">
+              <Issue Name="TooGeneric">
+               <Item>'ActionSequence.Append(ActionSequence.IAction)'</Item>
+               <Item>'Exception'</Item>
+              </Issue>
+             </Message>
+            </Messages>
+           </Member>
+           <Member Name="#Append`1(System.EventHandler`1&lt;!!0&gt;,System.Object,!!0)">
+            <Messages>
+             <Message Id="e" TypeName="IdentifiersShouldBeSpelledCorrectly" Category="Microsoft.Naming" CheckId="CA1704" Created="2011-02-16 14:00:00Z">
+              <Issue Name="MemberParameterMoreMeaningfulName">
+               <Item>'ActionSequence.Append&lt;T&gt;(EventHandler&lt;T&gt;, object, T)'</Item>
+               <Item>'e'</Item>
+              </Issue>
+             </Message>
+            </Messages>
+           </Member>
+           <Member Name="#RunOnceSafe()">
+            <Messages>
+             <Message TypeName="DoNotCatchGeneralExceptionTypes" Category="Microsoft.Design" CheckId="CA1031" Created="2011-02-16 14:00:00Z">
+              <Issue>
+               <Item>'ActionSequence.RunOnceSafe()'</Item>
+               <Item>'Exception'</Item>
+              </Issue>
+             </Message>
+            </Messages>
+           </Member>
+          </Members>
+         </Type>
+         <Type Name="ActionSequenceExtension">
+          <Members>
+           <Member Name="#NowOrLater(CK.Core.IActionSequence,System.Action)">
+            <Messages>
+             <Message Id="s" TypeName="IdentifiersShouldBeSpelledCorrectly" Category="Microsoft.Naming" CheckId="CA1704" Created="2011-02-16 14:00:00Z">
+              <Issue Name="MemberParameterMoreMeaningfulName">
+               <Item>'ActionSequenceExtension.NowOrLater(this IActionSequence, Action)'</Item>
+               <Item>'s'</Item>
+              </Issue>
+             </Message>
+            </Messages>
+           </Member>
+           <Member Name="#NowOrLater(CK.Core.IActionSequence,System.EventHandler,System.Object,System.EventArgs)">
+            <Messages>
+             <Message Id="e" TypeName="IdentifiersShouldBeSpelledCorrectly" Category="Microsoft.Naming" CheckId="CA1704" Created="2011-02-16 14:00:00Z">
+              <Issue Name="MemberParameterMoreMeaningfulName">
+               <Item>'ActionSequenceExtension.NowOrLater(this IActionSequence, EventHandler, object, EventArgs)'</Item>
+               <Item>'e'</Item>
+              </Issue>
+             </Message>
+             <Message Id="s" TypeName="IdentifiersShouldBeSpelledCorrectly" Category="Microsoft.Naming" CheckId="CA1704" Created="2011-02-16 14:00:00Z">
+              <Issue Name="MemberParameterMoreMeaningfulName">
+               <Item>'ActionSequenceExtension.NowOrLater(this IActionSequence, EventHandler, object, EventArgs)'</Item>
+               <Item>'s'</Item>
+              </Issue>
+             </Message>
+            </Messages>
+           </Member>
+           <Member Name="#NowOrLater`1(CK.Core.IActionSequence,System.Action`1&lt;!!0&gt;,!!0)">
+            <Messages>
+             <Message Id="p" TypeName="IdentifiersShouldBeSpelledCorrectly" Category="Microsoft.Naming" CheckId="CA1704" Created="2011-02-16 14:00:00Z">
+              <Issue Name="MemberParameterMoreMeaningfulName">
+               <Item>'ActionSequenceExtension.NowOrLater&lt;T&gt;(this IActionSequence, Action&lt;T&gt;, T)'</Item>
+               <Item>'p'</Item>
+              </Issue>
+             </Message>
+             <Message Id="s" TypeName="IdentifiersShouldBeSpelledCorrectly" Category="Microsoft.Naming" CheckId="CA1704" Created="2011-02-16 14:00:00Z">
+              <Issue Name="MemberParameterMoreMeaningfulName">
+               <Item>'ActionSequenceExtension.NowOrLater&lt;T&gt;(this IActionSequence, Action&lt;T&gt;, T)'</Item>
+               <Item>'s'</Item>
+              </Issue>
+             </Message>
+            </Messages>
+           </Member>
+           <Member Name="#NowOrLater`1(CK.Core.IActionSequence,System.EventHandler`1&lt;!!0&gt;,System.Object,!!0)">
+            <Messages>
+             <Message Id="e" TypeName="IdentifiersShouldBeSpelledCorrectly" Category="Microsoft.Naming" CheckId="CA1704" Created="2011-02-16 14:00:00Z">
+              <Issue Name="MemberParameterMoreMeaningfulName">
+               <Item>'ActionSequenceExtension.NowOrLater&lt;T&gt;(this IActionSequence, EventHandler&lt;T&gt;, object, T)'</Item>
+               <Item>'e'</Item>
+              </Issue>
+             </Message>
+             <Message Id="s" TypeName="IdentifiersShouldBeSpelledCorrectly" Category="Microsoft.Naming" CheckId="CA1704" Created="2011-02-16 14:00:00Z">
+              <Issue Name="MemberParameterMoreMeaningfulName">
+               <Item>'ActionSequenceExtension.NowOrLater&lt;T&gt;(this IActionSequence, EventHandler&lt;T&gt;, object, T)'</Item>
+               <Item>'s'</Item>
+              </Issue>
+             </Message>
+            </Messages>
+           </Member>
+           <Member Name="#NowOrLater`2(CK.Core.IActionSequence,System.Action`2&lt;!!0,!!1&gt;,!!0,!!1)">
+            <Messages>
+             <Message Id="s" TypeName="IdentifiersShouldBeSpelledCorrectly" Category="Microsoft.Naming" CheckId="CA1704" Created="2011-02-16 14:00:00Z">
+              <Issue Name="MemberParameterMoreMeaningfulName">
+               <Item>'ActionSequenceExtension.NowOrLater&lt;T1, T2&gt;(this IActionSequence, Action&lt;T1, T2&gt;, T1, T2)'</Item>
+               <Item>'s'</Item>
+              </Issue>
+             </Message>
+            </Messages>
+           </Member>
+           <Member Name="#NowOrLater`3(CK.Core.IActionSequence,System.Action`3&lt;!!0,!!1,!!2&gt;,!!0,!!1,!!2)">
+            <Messages>
+             <Message Id="s" TypeName="IdentifiersShouldBeSpelledCorrectly" Category="Microsoft.Naming" CheckId="CA1704" Created="2011-02-16 14:00:00Z">
+              <Issue Name="MemberParameterMoreMeaningfulName">
+               <Item>'ActionSequenceExtension.NowOrLater&lt;T1, T2, T3&gt;(this IActionSequence, Action&lt;T1, T2, T3&gt;, T1, T2, T3)'</Item>
+               <Item>'s'</Item>
+              </Issue>
+             </Message>
+            </Messages>
+           </Member>
+          </Members>
+         </Type>
+         <Type Name="ActivityLoggerExtension">
+          <Members>
+           <Member Name="#Error(CK.Core.IActivityLogger,System.Func`1&lt;System.String&gt;)">
+            <Messages>
+             <Message Id="a" TypeName="IdentifiersShouldBeSpelledCorrectly" Category="Microsoft.Naming" CheckId="CA1704" Created="2011-02-16 14:00:00Z">
+              <Issue Name="MemberParameterMoreMeaningfulName">
+               <Item>'ActivityLoggerExtension.Error(this IActivityLogger, Func&lt;string&gt;)'</Item>
+               <Item>'a'</Item>
+              </Issue>
+             </Message>
+            </Messages>
+           </Member>
+           <Member Name="#Error(CK.Core.IActivityLogger,System.String)">
+            <Messages>
+             <Message Id="a" TypeName="IdentifiersShouldBeSpelledCorrectly" Category="Microsoft.Naming" CheckId="CA1704" Created="2011-02-16 14:00:00Z">
+              <Issue Name="MemberParameterMoreMeaningfulName">
+               <Item>'ActivityLoggerExtension.Error(this IActivityLogger, string)'</Item>
+               <Item>'a'</Item>
+              </Issue>
+             </Message>
+            </Messages>
+           </Member>
+           <Member Name="#Error(CK.Core.IActivityLogger,System.String,System.Object)">
+            <Messages>
+             <Message Id="a" TypeName="IdentifiersShouldBeSpelledCorrectly" Category="Microsoft.Naming" CheckId="CA1704" Created="2011-02-16 14:00:00Z">
+              <Issue Name="MemberParameterMoreMeaningfulName">
+               <Item>'ActivityLoggerExtension.Error(this IActivityLogger, string, object)'</Item>
+               <Item>'a'</Item>
+              </Issue>
+             </Message>
+             <Message Id="System.String.Format(System.String,System.Object)" TypeName="SpecifyIFormatProvider" Category="Microsoft.Globalization" CheckId="CA1305" Created="2011-02-16 14:00:00Z">
+              <Issue Name="IFormatProviderAlternateString">
+               <Item>'string.Format(string, object)'</Item>
+               <Item>'ActivityLoggerExtension.Error(this IActivityLogger, string, object)'</Item>
+               <Item>'string.Format(IFormatProvider, string, params object[])'</Item>
+               <Item>'CultureInfo.CurrentCulture'</Item>
+               <Item>'CultureInfo.InvariantCulture'</Item>
+              </Issue>
+             </Message>
+            </Messages>
+           </Member>
+           <Member Name="#Error(CK.Core.IActivityLogger,System.String,System.Object,System.Object)">
+            <Messages>
+             <Message Id="a" TypeName="IdentifiersShouldBeSpelledCorrectly" Category="Microsoft.Naming" CheckId="CA1704" Created="2011-02-16 14:00:00Z">
+              <Issue Name="MemberParameterMoreMeaningfulName">
+               <Item>'ActivityLoggerExtension.Error(this IActivityLogger, string, object, object)'</Item>
+               <Item>'a'</Item>
+              </Issue>
+             </Message>
+             <Message Id="System.String.Format(System.String,System.Object,System.Object)" TypeName="SpecifyIFormatProvider" Category="Microsoft.Globalization" CheckId="CA1305" Created="2011-02-16 14:00:00Z">
+              <Issue Name="IFormatProviderAlternateString">
+               <Item>'string.Format(string, object, object)'</Item>
+               <Item>'ActivityLoggerExtension.Error(this IActivityLogger, string, object, object)'</Item>
+               <Item>'string.Format(IFormatProvider, string, params object[])'</Item>
+               <Item>'CultureInfo.CurrentCulture'</Item>
+               <Item>'CultureInfo.InvariantCulture'</Item>
+              </Issue>
+             </Message>
+            </Messages>
+           </Member>
+           <Member Name="#Error(CK.Core.IActivityLogger,System.String,System.Object,System.Object,System.Object)">
+            <Messages>
+             <Message Id="a" TypeName="IdentifiersShouldBeSpelledCorrectly" Category="Microsoft.Naming" CheckId="CA1704" Created="2011-02-16 14:00:00Z">
+              <Issue Name="MemberParameterMoreMeaningfulName">
+               <Item>'ActivityLoggerExtension.Error(this IActivityLogger, string, object, object, object)'</Item>
+               <Item>'a'</Item>
+              </Issue>
+             </Message>
+             <Message Id="System.String.Format(System.String,System.Object,System.Object,System.Object)" TypeName="SpecifyIFormatProvider" Category="Microsoft.Globalization" CheckId="CA1305" Created="2011-02-16 14:00:00Z">
+              <Issue Name="IFormatProviderAlternateString">
+               <Item>'string.Format(string, object, object, object)'</Item>
+               <Item>'ActivityLoggerExtension.Error(this IActivityLogger, string, object, object, object)'</Item>
+               <Item>'string.Format(IFormatProvider, string, params object[])'</Item>
+               <Item>'CultureInfo.CurrentCulture'</Item>
+               <Item>'CultureInfo.InvariantCulture'</Item>
+              </Issue>
+             </Message>
+            </Messages>
+           </Member>
+           <Member Name="#Error(CK.Core.IActivityLogger,System.String,System.Object[])">
+            <Messages>
+             <Message Id="a" TypeName="IdentifiersShouldBeSpelledCorrectly" Category="Microsoft.Naming" CheckId="CA1704" Created="2011-02-16 14:00:00Z">
+              <Issue Name="MemberParameterMoreMeaningfulName">
+               <Item>'ActivityLoggerExtension.Error(this IActivityLogger, string, params object[])'</Item>
+               <Item>'a'</Item>
+              </Issue>
+             </Message>
+             <Message Id="System.String.Format(System.String,System.Object[])" TypeName="SpecifyIFormatProvider" Category="Microsoft.Globalization" CheckId="CA1305" Created="2011-02-16 14:00:00Z">
+              <Issue Name="IFormatProviderAlternateString">
+               <Item>'string.Format(string, params object[])'</Item>
+               <Item>'ActivityLoggerExtension.Error(this IActivityLogger, string, params object[])'</Item>
+               <Item>'string.Format(IFormatProvider, string, params object[])'</Item>
+               <Item>'CultureInfo.CurrentCulture'</Item>
+               <Item>'CultureInfo.InvariantCulture'</Item>
+              </Issue>
+             </Message>
+            </Messages>
+           </Member>
+           <Member Name="#Error`1(CK.Core.IActivityLogger,!!0,System.Func`2&lt;!!0,System.String&gt;)">
+            <Messages>
+             <Message Id="a" TypeName="IdentifiersShouldBeSpelledCorrectly" Category="Microsoft.Naming" CheckId="CA1704" Created="2011-02-16 14:00:00Z">
+              <Issue Name="MemberParameterMoreMeaningfulName">
+               <Item>'ActivityLoggerExtension.Error&lt;T&gt;(this IActivityLogger, T, Func&lt;T, string&gt;)'</Item>
+               <Item>'a'</Item>
+              </Issue>
+             </Message>
+            </Messages>
+           </Member>
+           <Member Name="#Error`2(CK.Core.IActivityLogger,!!0,!!1,System.Func`3&lt;!!0,!!1,System.String&gt;)">
+            <Messages>
+             <Message Id="a" TypeName="IdentifiersShouldBeSpelledCorrectly" Category="Microsoft.Naming" CheckId="CA1704" Created="2011-02-16 14:00:00Z">
+              <Issue Name="MemberParameterMoreMeaningfulName">
+               <Item>'ActivityLoggerExtension.Error&lt;T1, T2&gt;(this IActivityLogger, T1, T2, Func&lt;T1, T2, string&gt;)'</Item>
+               <Item>'a'</Item>
+              </Issue>
+             </Message>
+            </Messages>
+           </Member>
+           <Member Name="#Fatal(CK.Core.IActivityLogger,System.Func`1&lt;System.String&gt;)">
+            <Messages>
+             <Message Id="a" TypeName="IdentifiersShouldBeSpelledCorrectly" Category="Microsoft.Naming" CheckId="CA1704" Created="2011-02-16 14:00:00Z">
+              <Issue Name="MemberParameterMoreMeaningfulName">
+               <Item>'ActivityLoggerExtension.Fatal(this IActivityLogger, Func&lt;string&gt;)'</Item>
+               <Item>'a'</Item>
+              </Issue>
+             </Message>
+            </Messages>
+           </Member>
+           <Member Name="#Fatal(CK.Core.IActivityLogger,System.String)">
+            <Messages>
+             <Message Id="a" TypeName="IdentifiersShouldBeSpelledCorrectly" Category="Microsoft.Naming" CheckId="CA1704" Created="2011-02-16 14:00:00Z">
+              <Issue Name="MemberParameterMoreMeaningfulName">
+               <Item>'ActivityLoggerExtension.Fatal(this IActivityLogger, string)'</Item>
+               <Item>'a'</Item>
+              </Issue>
+             </Message>
+            </Messages>
+           </Member>
+           <Member Name="#Fatal(CK.Core.IActivityLogger,System.String,System.Object)">
+            <Messages>
+             <Message Id="a" TypeName="IdentifiersShouldBeSpelledCorrectly" Category="Microsoft.Naming" CheckId="CA1704" Created="2011-02-16 14:00:00Z">
+              <Issue Name="MemberParameterMoreMeaningfulName">
+               <Item>'ActivityLoggerExtension.Fatal(this IActivityLogger, string, object)'</Item>
+               <Item>'a'</Item>
+              </Issue>
+             </Message>
+             <Message Id="System.String.Format(System.String,System.Object)" TypeName="SpecifyIFormatProvider" Category="Microsoft.Globalization" CheckId="CA1305" Created="2011-02-16 14:00:00Z">
+              <Issue Name="IFormatProviderAlternateString">
+               <Item>'string.Format(string, object)'</Item>
+               <Item>'ActivityLoggerExtension.Fatal(this IActivityLogger, string, object)'</Item>
+               <Item>'string.Format(IFormatProvider, string, params object[])'</Item>
+               <Item>'CultureInfo.CurrentCulture'</Item>
+               <Item>'CultureInfo.InvariantCulture'</Item>
+              </Issue>
+             </Message>
+            </Messages>
+           </Member>
+           <Member Name="#Fatal(CK.Core.IActivityLogger,System.String,System.Object,System.Object)">
+            <Messages>
+             <Message Id="a" TypeName="IdentifiersShouldBeSpelledCorrectly" Category="Microsoft.Naming" CheckId="CA1704" Created="2011-02-16 14:00:00Z">
+              <Issue Name="MemberParameterMoreMeaningfulName">
+               <Item>'ActivityLoggerExtension.Fatal(this IActivityLogger, string, object, object)'</Item>
+               <Item>'a'</Item>
+              </Issue>
+             </Message>
+             <Message Id="System.String.Format(System.String,System.Object,System.Object)" TypeName="SpecifyIFormatProvider" Category="Microsoft.Globalization" CheckId="CA1305" Created="2011-02-16 14:00:00Z">
+              <Issue Name="IFormatProviderAlternateString">
+               <Item>'string.Format(string, object, object)'</Item>
+               <Item>'ActivityLoggerExtension.Fatal(this IActivityLogger, string, object, object)'</Item>
+               <Item>'string.Format(IFormatProvider, string, params object[])'</Item>
+               <Item>'CultureInfo.CurrentCulture'</Item>
+               <Item>'CultureInfo.InvariantCulture'</Item>
+              </Issue>
+             </Message>
+            </Messages>
+           </Member>
+           <Member Name="#Fatal(CK.Core.IActivityLogger,System.String,System.Object,System.Object,System.Object)">
+            <Messages>
+             <Message Id="a" TypeName="IdentifiersShouldBeSpelledCorrectly" Category="Microsoft.Naming" CheckId="CA1704" Created="2011-02-16 14:00:00Z">
+              <Issue Name="MemberParameterMoreMeaningfulName">
+               <Item>'ActivityLoggerExtension.Fatal(this IActivityLogger, string, object, object, object)'</Item>
+               <Item>'a'</Item>
+              </Issue>
+             </Message>
+             <Message Id="System.String.Format(System.String,System.Object,System.Object,System.Object)" TypeName="SpecifyIFormatProvider" Category="Microsoft.Globalization" CheckId="CA1305" Created="2011-02-16 14:00:00Z">
+              <Issue Name="IFormatProviderAlternateString">
+               <Item>'string.Format(string, object, object, object)'</Item>
+               <Item>'ActivityLoggerExtension.Fatal(this IActivityLogger, string, object, object, object)'</Item>
+               <Item>'string.Format(IFormatProvider, string, params object[])'</Item>
+               <Item>'CultureInfo.CurrentCulture'</Item>
+               <Item>'CultureInfo.InvariantCulture'</Item>
+              </Issue>
+             </Message>
+            </Messages>
+           </Member>
+           <Member Name="#Fatal(CK.Core.IActivityLogger,System.String,System.Object[])">
+            <Messages>
+             <Message Id="a" TypeName="IdentifiersShouldBeSpelledCorrectly" Category="Microsoft.Naming" CheckId="CA1704" Created="2011-02-16 14:00:00Z">
+              <Issue Name="MemberParameterMoreMeaningfulName">
+               <Item>'ActivityLoggerExtension.Fatal(this IActivityLogger, string, params object[])'</Item>
+               <Item>'a'</Item>
+              </Issue>
+             </Message>
+             <Message Id="System.String.Format(System.String,System.Object[])" TypeName="SpecifyIFormatProvider" Category="Microsoft.Globalization" CheckId="CA1305" Created="2011-02-16 14:00:00Z">
+              <Issue Name="IFormatProviderAlternateString">
+               <Item>'string.Format(string, params object[])'</Item>
+               <Item>'ActivityLoggerExtension.Fatal(this IActivityLogger, string, params object[])'</Item>
+               <Item>'string.Format(IFormatProvider, string, params object[])'</Item>
+               <Item>'CultureInfo.CurrentCulture'</Item>
+               <Item>'CultureInfo.InvariantCulture'</Item>
+              </Issue>
+             </Message>
+            </Messages>
+           </Member>
+           <Member Name="#Fatal`1(CK.Core.IActivityLogger,!!0,System.Func`2&lt;!!0,System.String&gt;)">
+            <Messages>
+             <Message Id="a" TypeName="IdentifiersShouldBeSpelledCorrectly" Category="Microsoft.Naming" CheckId="CA1704" Created="2011-02-16 14:00:00Z">
+              <Issue Name="MemberParameterMoreMeaningfulName">
+               <Item>'ActivityLoggerExtension.Fatal&lt;T&gt;(this IActivityLogger, T, Func&lt;T, string&gt;)'</Item>
+               <Item>'a'</Item>
+              </Issue>
+             </Message>
+            </Messages>
+           </Member>
+           <Member Name="#Fatal`2(CK.Core.IActivityLogger,!!0,!!1,System.Func`3&lt;!!0,!!1,System.String&gt;)">
+            <Messages>
+             <Message Id="a" TypeName="IdentifiersShouldBeSpelledCorrectly" Category="Microsoft.Naming" CheckId="CA1704" Created="2011-02-16 14:00:00Z">
+              <Issue Name="MemberParameterMoreMeaningfulName">
+               <Item>'ActivityLoggerExtension.Fatal&lt;T1, T2&gt;(this IActivityLogger, T1, T2, Func&lt;T1, T2, string&gt;)'</Item>
+               <Item>'a'</Item>
+              </Issue>
+             </Message>
+            </Messages>
+           </Member>
+           <Member Name="#Info(CK.Core.IActivityLogger,System.Func`1&lt;System.String&gt;)">
+            <Messages>
+             <Message Id="a" TypeName="IdentifiersShouldBeSpelledCorrectly" Category="Microsoft.Naming" CheckId="CA1704" Created="2011-02-16 14:00:00Z">
+              <Issue Name="MemberParameterMoreMeaningfulName">
+               <Item>'ActivityLoggerExtension.Info(this IActivityLogger, Func&lt;string&gt;)'</Item>
+               <Item>'a'</Item>
+              </Issue>
+             </Message>
+            </Messages>
+           </Member>
+           <Member Name="#Info(CK.Core.IActivityLogger,System.String)">
+            <Messages>
+             <Message Id="a" TypeName="IdentifiersShouldBeSpelledCorrectly" Category="Microsoft.Naming" CheckId="CA1704" Created="2011-02-16 14:00:00Z">
+              <Issue Name="MemberParameterMoreMeaningfulName">
+               <Item>'ActivityLoggerExtension.Info(this IActivityLogger, string)'</Item>
+               <Item>'a'</Item>
+              </Issue>
+             </Message>
+            </Messages>
+           </Member>
+           <Member Name="#Info(CK.Core.IActivityLogger,System.String,System.Object)">
+            <Messages>
+             <Message Id="a" TypeName="IdentifiersShouldBeSpelledCorrectly" Category="Microsoft.Naming" CheckId="CA1704" Created="2011-02-16 14:00:00Z">
+              <Issue Name="MemberParameterMoreMeaningfulName">
+               <Item>'ActivityLoggerExtension.Info(this IActivityLogger, string, object)'</Item>
+               <Item>'a'</Item>
+              </Issue>
+             </Message>
+             <Message Id="System.String.Format(System.String,System.Object)" TypeName="SpecifyIFormatProvider" Category="Microsoft.Globalization" CheckId="CA1305" Created="2011-02-16 14:00:00Z">
+              <Issue Name="IFormatProviderAlternateString">
+               <Item>'string.Format(string, object)'</Item>
+               <Item>'ActivityLoggerExtension.Info(this IActivityLogger, string, object)'</Item>
+               <Item>'string.Format(IFormatProvider, string, params object[])'</Item>
+               <Item>'CultureInfo.CurrentCulture'</Item>
+               <Item>'CultureInfo.InvariantCulture'</Item>
+              </Issue>
+             </Message>
+            </Messages>
+           </Member>
+           <Member Name="#Info(CK.Core.IActivityLogger,System.String,System.Object,System.Object)">
+            <Messages>
+             <Message Id="a" TypeName="IdentifiersShouldBeSpelledCorrectly" Category="Microsoft.Naming" CheckId="CA1704" Created="2011-02-16 14:00:00Z">
+              <Issue Name="MemberParameterMoreMeaningfulName">
+               <Item>'ActivityLoggerExtension.Info(this IActivityLogger, string, object, object)'</Item>
+               <Item>'a'</Item>
+              </Issue>
+             </Message>
+             <Message Id="System.String.Format(System.String,System.Object,System.Object)" TypeName="SpecifyIFormatProvider" Category="Microsoft.Globalization" CheckId="CA1305" Created="2011-02-16 14:00:00Z">
+              <Issue Name="IFormatProviderAlternateString">
+               <Item>'string.Format(string, object, object)'</Item>
+               <Item>'ActivityLoggerExtension.Info(this IActivityLogger, string, object, object)'</Item>
+               <Item>'string.Format(IFormatProvider, string, params object[])'</Item>
+               <Item>'CultureInfo.CurrentCulture'</Item>
+               <Item>'CultureInfo.InvariantCulture'</Item>
+              </Issue>
+             </Message>
+            </Messages>
+           </Member>
+           <Member Name="#Info(CK.Core.IActivityLogger,System.String,System.Object,System.Object,System.Object)">
+            <Messages>
+             <Message Id="a" TypeName="IdentifiersShouldBeSpelledCorrectly" Category="Microsoft.Naming" CheckId="CA1704" Created="2011-02-16 14:00:00Z">
+              <Issue Name="MemberParameterMoreMeaningfulName">
+               <Item>'ActivityLoggerExtension.Info(this IActivityLogger, string, object, object, object)'</Item>
+               <Item>'a'</Item>
+              </Issue>
+             </Message>
+             <Message Id="System.String.Format(System.String,System.Object,System.Object,System.Object)" TypeName="SpecifyIFormatProvider" Category="Microsoft.Globalization" CheckId="CA1305" Created="2011-02-16 14:00:00Z">
+              <Issue Name="IFormatProviderAlternateString">
+               <Item>'string.Format(string, object, object, object)'</Item>
+               <Item>'ActivityLoggerExtension.Info(this IActivityLogger, string, object, object, object)'</Item>
+               <Item>'string.Format(IFormatProvider, string, params object[])'</Item>
+               <Item>'CultureInfo.CurrentCulture'</Item>
+               <Item>'CultureInfo.InvariantCulture'</Item>
+              </Issue>
+             </Message>
+            </Messages>
+           </Member>
+           <Member Name="#Info(CK.Core.IActivityLogger,System.String,System.Object[])">
+            <Messages>
+             <Message Id="a" TypeName="IdentifiersShouldBeSpelledCorrectly" Category="Microsoft.Naming" CheckId="CA1704" Created="2011-02-16 14:00:00Z">
+              <Issue Name="MemberParameterMoreMeaningfulName">
+               <Item>'ActivityLoggerExtension.Info(this IActivityLogger, string, params object[])'</Item>
+               <Item>'a'</Item>
+              </Issue>
+             </Message>
+             <Message Id="System.String.Format(System.String,System.Object[])" TypeName="SpecifyIFormatProvider" Category="Microsoft.Globalization" CheckId="CA1305" Created="2011-02-16 14:00:00Z">
+              <Issue Name="IFormatProviderAlternateString">
+               <Item>'string.Format(string, params object[])'</Item>
+               <Item>'ActivityLoggerExtension.Info(this IActivityLogger, string, params object[])'</Item>
+               <Item>'string.Format(IFormatProvider, string, params object[])'</Item>
+               <Item>'CultureInfo.CurrentCulture'</Item>
+               <Item>'CultureInfo.InvariantCulture'</Item>
+              </Issue>
+             </Message>
+            </Messages>
+           </Member>
+           <Member Name="#Info`1(CK.Core.IActivityLogger,!!0,System.Func`2&lt;!!0,System.String&gt;)">
+            <Messages>
+             <Message Id="a" TypeName="IdentifiersShouldBeSpelledCorrectly" Category="Microsoft.Naming" CheckId="CA1704" Created="2011-02-16 14:00:00Z">
+              <Issue Name="MemberParameterMoreMeaningfulName">
+               <Item>'ActivityLoggerExtension.Info&lt;T&gt;(this IActivityLogger, T, Func&lt;T, string&gt;)'</Item>
+               <Item>'a'</Item>
+              </Issue>
+             </Message>
+            </Messages>
+           </Member>
+           <Member Name="#Info`2(CK.Core.IActivityLogger,!!0,!!1,System.Func`3&lt;!!0,!!1,System.String&gt;)">
+            <Messages>
+             <Message Id="a" TypeName="IdentifiersShouldBeSpelledCorrectly" Category="Microsoft.Naming" CheckId="CA1704" Created="2011-02-16 14:00:00Z">
+              <Issue Name="MemberParameterMoreMeaningfulName">
+               <Item>'ActivityLoggerExtension.Info&lt;T1, T2&gt;(this IActivityLogger, T1, T2, Func&lt;T1, T2, string&gt;)'</Item>
+               <Item>'a'</Item>
+              </Issue>
+             </Message>
+            </Messages>
+           </Member>
+           <Member Name="#OpenGroup(CK.Core.IActivityLogger,CK.Core.LogLevel,System.String)">
+            <Messages>
+             <Message Id="l" TypeName="IdentifiersShouldBeSpelledCorrectly" Category="Microsoft.Naming" CheckId="CA1704" Created="2011-02-16 14:00:00Z">
+              <Issue Name="MemberParameterMoreMeaningfulName">
+               <Item>'ActivityLoggerExtension.OpenGroup(this IActivityLogger, LogLevel, string)'</Item>
+               <Item>'l'</Item>
+              </Issue>
+             </Message>
+            </Messages>
+           </Member>
+           <Member Name="#Trace(CK.Core.IActivityLogger,System.Func`1&lt;System.String&gt;)">
+            <Messages>
+             <Message Id="a" TypeName="IdentifiersShouldBeSpelledCorrectly" Category="Microsoft.Naming" CheckId="CA1704" Created="2011-02-16 14:00:00Z">
+              <Issue Name="MemberParameterMoreMeaningfulName">
+               <Item>'ActivityLoggerExtension.Trace(this IActivityLogger, Func&lt;string&gt;)'</Item>
+               <Item>'a'</Item>
+              </Issue>
+             </Message>
+            </Messages>
+           </Member>
+           <Member Name="#Trace(CK.Core.IActivityLogger,System.String)">
+            <Messages>
+             <Message Id="a" TypeName="IdentifiersShouldBeSpelledCorrectly" Category="Microsoft.Naming" CheckId="CA1704" Created="2011-02-16 14:00:00Z">
+              <Issue Name="MemberParameterMoreMeaningfulName">
+               <Item>'ActivityLoggerExtension.Trace(this IActivityLogger, string)'</Item>
+               <Item>'a'</Item>
+              </Issue>
+             </Message>
+            </Messages>
+           </Member>
+           <Member Name="#Trace(CK.Core.IActivityLogger,System.String,System.Object)">
+            <Messages>
+             <Message Id="a" TypeName="IdentifiersShouldBeSpelledCorrectly" Category="Microsoft.Naming" CheckId="CA1704" Created="2011-02-16 14:00:00Z">
+              <Issue Name="MemberParameterMoreMeaningfulName">
+               <Item>'ActivityLoggerExtension.Trace(this IActivityLogger, string, object)'</Item>
+               <Item>'a'</Item>
+              </Issue>
+             </Message>
+             <Message Id="System.String.Format(System.String,System.Object)" TypeName="SpecifyIFormatProvider" Category="Microsoft.Globalization" CheckId="CA1305" Created="2011-02-16 14:00:00Z">
+              <Issue Name="IFormatProviderAlternateString">
+               <Item>'string.Format(string, object)'</Item>
+               <Item>'ActivityLoggerExtension.Trace(this IActivityLogger, string, object)'</Item>
+               <Item>'string.Format(IFormatProvider, string, params object[])'</Item>
+               <Item>'CultureInfo.CurrentCulture'</Item>
+               <Item>'CultureInfo.InvariantCulture'</Item>
+              </Issue>
+             </Message>
+            </Messages>
+           </Member>
+           <Member Name="#Trace(CK.Core.IActivityLogger,System.String,System.Object,System.Object)">
+            <Messages>
+             <Message Id="a" TypeName="IdentifiersShouldBeSpelledCorrectly" Category="Microsoft.Naming" CheckId="CA1704" Created="2011-02-16 14:00:00Z">
+              <Issue Name="MemberParameterMoreMeaningfulName">
+               <Item>'ActivityLoggerExtension.Trace(this IActivityLogger, string, object, object)'</Item>
+               <Item>'a'</Item>
+              </Issue>
+             </Message>
+             <Message Id="System.String.Format(System.String,System.Object,System.Object)" TypeName="SpecifyIFormatProvider" Category="Microsoft.Globalization" CheckId="CA1305" Created="2011-02-16 14:00:00Z">
+              <Issue Name="IFormatProviderAlternateString">
+               <Item>'string.Format(string, object, object)'</Item>
+               <Item>'ActivityLoggerExtension.Trace(this IActivityLogger, string, object, object)'</Item>
+               <Item>'string.Format(IFormatProvider, string, params object[])'</Item>
+               <Item>'CultureInfo.CurrentCulture'</Item>
+               <Item>'CultureInfo.InvariantCulture'</Item>
+              </Issue>
+             </Message>
+            </Messages>
+           </Member>
+           <Member Name="#Trace(CK.Core.IActivityLogger,System.String,System.Object,System.Object,System.Object)">
+            <Messages>
+             <Message Id="a" TypeName="IdentifiersShouldBeSpelledCorrectly" Category="Microsoft.Naming" CheckId="CA1704" Created="2011-02-16 14:00:00Z">
+              <Issue Name="MemberParameterMoreMeaningfulName">
+               <Item>'ActivityLoggerExtension.Trace(this IActivityLogger, string, object, object, object)'</Item>
+               <Item>'a'</Item>
+              </Issue>
+             </Message>
+             <Message Id="System.String.Format(System.String,System.Object,System.Object,System.Object)" TypeName="SpecifyIFormatProvider" Category="Microsoft.Globalization" CheckId="CA1305" Created="2011-02-16 14:00:00Z">
+              <Issue Name="IFormatProviderAlternateString">
+               <Item>'string.Format(string, object, object, object)'</Item>
+               <Item>'ActivityLoggerExtension.Trace(this IActivityLogger, string, object, object, object)'</Item>
+               <Item>'string.Format(IFormatProvider, string, params object[])'</Item>
+               <Item>'CultureInfo.CurrentCulture'</Item>
+               <Item>'CultureInfo.InvariantCulture'</Item>
+              </Issue>
+             </Message>
+            </Messages>
+           </Member>
+           <Member Name="#Trace(CK.Core.IActivityLogger,System.String,System.Object[])">
+            <Messages>
+             <Message Id="a" TypeName="IdentifiersShouldBeSpelledCorrectly" Category="Microsoft.Naming" CheckId="CA1704" Created="2011-02-16 14:00:00Z">
+              <Issue Name="MemberParameterMoreMeaningfulName">
+               <Item>'ActivityLoggerExtension.Trace(this IActivityLogger, string, params object[])'</Item>
+               <Item>'a'</Item>
+              </Issue>
+             </Message>
+             <Message Id="System.String.Format(System.String,System.Object[])" TypeName="SpecifyIFormatProvider" Category="Microsoft.Globalization" CheckId="CA1305" Created="2011-02-16 14:00:00Z">
+              <Issue Name="IFormatProviderAlternateString">
+               <Item>'string.Format(string, params object[])'</Item>
+               <Item>'ActivityLoggerExtension.Trace(this IActivityLogger, string, params object[])'</Item>
+               <Item>'string.Format(IFormatProvider, string, params object[])'</Item>
+               <Item>'CultureInfo.CurrentCulture'</Item>
+               <Item>'CultureInfo.InvariantCulture'</Item>
+              </Issue>
+             </Message>
+            </Messages>
+           </Member>
+           <Member Name="#Trace`1(CK.Core.IActivityLogger,!!0,System.Func`2&lt;!!0,System.String&gt;)">
+            <Messages>
+             <Message Id="a" TypeName="IdentifiersShouldBeSpelledCorrectly" Category="Microsoft.Naming" CheckId="CA1704" Created="2011-02-16 14:00:00Z">
+              <Issue Name="MemberParameterMoreMeaningfulName">
+               <Item>'ActivityLoggerExtension.Trace&lt;T&gt;(this IActivityLogger, T, Func&lt;T, string&gt;)'</Item>
+               <Item>'a'</Item>
+              </Issue>
+             </Message>
+            </Messages>
+           </Member>
+           <Member Name="#Trace`2(CK.Core.IActivityLogger,!!0,!!1,System.Func`3&lt;!!0,!!1,System.String&gt;)">
+            <Messages>
+             <Message Id="a" TypeName="IdentifiersShouldBeSpelledCorrectly" Category="Microsoft.Naming" CheckId="CA1704" Created="2011-02-16 14:00:00Z">
+              <Issue Name="MemberParameterMoreMeaningfulName">
+               <Item>'ActivityLoggerExtension.Trace&lt;T1, T2&gt;(this IActivityLogger, T1, T2, Func&lt;T1, T2, string&gt;)'</Item>
+               <Item>'a'</Item>
+              </Issue>
+             </Message>
+            </Messages>
+           </Member>
+           <Member Name="#Warn(CK.Core.IActivityLogger,System.Func`1&lt;System.String&gt;)">
+            <Messages>
+             <Message Id="a" TypeName="IdentifiersShouldBeSpelledCorrectly" Category="Microsoft.Naming" CheckId="CA1704" Created="2011-02-16 14:00:00Z">
+              <Issue Name="MemberParameterMoreMeaningfulName">
+               <Item>'ActivityLoggerExtension.Warn(this IActivityLogger, Func&lt;string&gt;)'</Item>
+               <Item>'a'</Item>
+              </Issue>
+             </Message>
+            </Messages>
+           </Member>
+           <Member Name="#Warn(CK.Core.IActivityLogger,System.String)">
+            <Messages>
+             <Message Id="a" TypeName="IdentifiersShouldBeSpelledCorrectly" Category="Microsoft.Naming" CheckId="CA1704" Created="2011-02-16 14:00:00Z">
+              <Issue Name="MemberParameterMoreMeaningfulName">
+               <Item>'ActivityLoggerExtension.Warn(this IActivityLogger, string)'</Item>
+               <Item>'a'</Item>
+              </Issue>
+             </Message>
+            </Messages>
+           </Member>
+           <Member Name="#Warn(CK.Core.IActivityLogger,System.String,System.Object)">
+            <Messages>
+             <Message Id="a" TypeName="IdentifiersShouldBeSpelledCorrectly" Category="Microsoft.Naming" CheckId="CA1704" Created="2011-02-16 14:00:00Z">
+              <Issue Name="MemberParameterMoreMeaningfulName">
+               <Item>'ActivityLoggerExtension.Warn(this IActivityLogger, string, object)'</Item>
+               <Item>'a'</Item>
+              </Issue>
+             </Message>
+             <Message Id="System.String.Format(System.String,System.Object)" TypeName="SpecifyIFormatProvider" Category="Microsoft.Globalization" CheckId="CA1305" Created="2011-02-16 14:00:00Z">
+              <Issue Name="IFormatProviderAlternateString">
+               <Item>'string.Format(string, object)'</Item>
+               <Item>'ActivityLoggerExtension.Warn(this IActivityLogger, string, object)'</Item>
+               <Item>'string.Format(IFormatProvider, string, params object[])'</Item>
+               <Item>'CultureInfo.CurrentCulture'</Item>
+               <Item>'CultureInfo.InvariantCulture'</Item>
+              </Issue>
+             </Message>
+            </Messages>
+           </Member>
+           <Member Name="#Warn(CK.Core.IActivityLogger,System.String,System.Object,System.Object)">
+            <Messages>
+             <Message Id="a" TypeName="IdentifiersShouldBeSpelledCorrectly" Category="Microsoft.Naming" CheckId="CA1704" Created="2011-02-16 14:00:00Z">
+              <Issue Name="MemberParameterMoreMeaningfulName">
+               <Item>'ActivityLoggerExtension.Warn(this IActivityLogger, string, object, object)'</Item>
+               <Item>'a'</Item>
+              </Issue>
+             </Message>
+             <Message Id="System.String.Format(System.String,System.Object,System.Object)" TypeName="SpecifyIFormatProvider" Category="Microsoft.Globalization" CheckId="CA1305" Created="2011-02-16 14:00:00Z">
+              <Issue Name="IFormatProviderAlternateString">
+               <Item>'string.Format(string, object, object)'</Item>
+               <Item>'ActivityLoggerExtension.Warn(this IActivityLogger, string, object, object)'</Item>
+               <Item>'string.Format(IFormatProvider, string, params object[])'</Item>
+               <Item>'CultureInfo.CurrentCulture'</Item>
+               <Item>'CultureInfo.InvariantCulture'</Item>
+              </Issue>
+             </Message>
+            </Messages>
+           </Member>
+           <Member Name="#Warn(CK.Core.IActivityLogger,System.String,System.Object,System.Object,System.Object)">
+            <Messages>
+             <Message Id="a" TypeName="IdentifiersShouldBeSpelledCorrectly" Category="Microsoft.Naming" CheckId="CA1704" Created="2011-02-16 14:00:00Z">
+              <Issue Name="MemberParameterMoreMeaningfulName">
+               <Item>'ActivityLoggerExtension.Warn(this IActivityLogger, string, object, object, object)'</Item>
+               <Item>'a'</Item>
+              </Issue>
+             </Message>
+             <Message Id="System.String.Format(System.String,System.Object,System.Object,System.Object)" TypeName="SpecifyIFormatProvider" Category="Microsoft.Globalization" CheckId="CA1305" Created="2011-02-16 14:00:00Z">
+              <Issue Name="IFormatProviderAlternateString">
+               <Item>'string.Format(string, object, object, object)'</Item>
+               <Item>'ActivityLoggerExtension.Warn(this IActivityLogger, string, object, object, object)'</Item>
+               <Item>'string.Format(IFormatProvider, string, params object[])'</Item>
+               <Item>'CultureInfo.CurrentCulture'</Item>
+               <Item>'CultureInfo.InvariantCulture'</Item>
+              </Issue>
+             </Message>
+            </Messages>
+           </Member>
+           <Member Name="#Warn(CK.Core.IActivityLogger,System.String,System.Object[])">
+            <Messages>
+             <Message Id="a" TypeName="IdentifiersShouldBeSpelledCorrectly" Category="Microsoft.Naming" CheckId="CA1704" Created="2011-02-16 14:00:00Z">
+              <Issue Name="MemberParameterMoreMeaningfulName">
+               <Item>'ActivityLoggerExtension.Warn(this IActivityLogger, string, params object[])'</Item>
+               <Item>'a'</Item>
+              </Issue>
+             </Message>
+             <Message Id="System.String.Format(System.String,System.Object[])" TypeName="SpecifyIFormatProvider" Category="Microsoft.Globalization" CheckId="CA1305" Created="2011-02-16 14:00:00Z">
+              <Issue Name="IFormatProviderAlternateString">
+               <Item>'string.Format(string, params object[])'</Item>
+               <Item>'ActivityLoggerExtension.Warn(this IActivityLogger, string, params object[])'</Item>
+               <Item>'string.Format(IFormatProvider, string, params object[])'</Item>
+               <Item>'CultureInfo.CurrentCulture'</Item>
+               <Item>'CultureInfo.InvariantCulture'</Item>
+              </Issue>
+             </Message>
+            </Messages>
+           </Member>
+           <Member Name="#Warn`1(CK.Core.IActivityLogger,!!0,System.Func`2&lt;!!0,System.String&gt;)">
+            <Messages>
+             <Message Id="a" TypeName="IdentifiersShouldBeSpelledCorrectly" Category="Microsoft.Naming" CheckId="CA1704" Created="2011-02-16 14:00:00Z">
+              <Issue Name="MemberParameterMoreMeaningfulName">
+               <Item>'ActivityLoggerExtension.Warn&lt;T&gt;(this IActivityLogger, T, Func&lt;T, string&gt;)'</Item>
+               <Item>'a'</Item>
+              </Issue>
+             </Message>
+            </Messages>
+           </Member>
+           <Member Name="#Warn`2(CK.Core.IActivityLogger,!!0,!!1,System.Func`3&lt;!!0,!!1,System.String&gt;)">
+            <Messages>
+             <Message Id="a" TypeName="IdentifiersShouldBeSpelledCorrectly" Category="Microsoft.Naming" CheckId="CA1704" Created="2011-02-16 14:00:00Z">
+              <Issue Name="MemberParameterMoreMeaningfulName">
+               <Item>'ActivityLoggerExtension.Warn&lt;T1, T2&gt;(this IActivityLogger, T1, T2, Func&lt;T1, T2, string&gt;)'</Item>
+               <Item>'a'</Item>
+              </Issue>
+             </Message>
+            </Messages>
+           </Member>
+          </Members>
+         </Type>
+         <Type Name="Adapter">
+          <Members>
+           <Member Name="#AlwaysFalse`1(System.Action`1&lt;!!0&gt;)">
+            <Messages>
+             <Message Id="a" TypeName="IdentifiersShouldBeSpelledCorrectly" Category="Microsoft.Naming" CheckId="CA1704" Created="2009-11-26 10:27:00Z">
+              <Issue Name="MemberParameterMoreMeaningfulName">
+               <Item>'Adapter.AlwaysFalse&lt;T&gt;(Action&lt;T&gt;)'</Item>
+               <Item>'a'</Item>
+              </Issue>
+             </Message>
+            </Messages>
+           </Member>
+           <Member Name="#AlwaysTrue`1(System.Action`1&lt;!!0&gt;)">
+            <Messages>
+             <Message Id="a" TypeName="IdentifiersShouldBeSpelledCorrectly" Category="Microsoft.Naming" CheckId="CA1704" Created="2009-11-26 10:27:00Z">
+              <Issue Name="MemberParameterMoreMeaningfulName">
+               <Item>'Adapter.AlwaysTrue&lt;T&gt;(Action&lt;T&gt;)'</Item>
+               <Item>'a'</Item>
+              </Issue>
+             </Message>
+            </Messages>
+           </Member>
+           <Member Name="#ToPredicate`1(System.Action`1&lt;!!0&gt;,System.Boolean)">
+            <Messages>
+             <Message Id="a" TypeName="IdentifiersShouldBeSpelledCorrectly" Category="Microsoft.Naming" CheckId="CA1704" Created="2011-02-16 14:00:00Z">
+              <Issue Name="MemberParameterMoreMeaningfulName">
+               <Item>'Adapter.ToPredicate&lt;T&gt;(this Action&lt;T&gt;, bool)'</Item>
+               <Item>'a'</Item>
+              </Issue>
+             </Message>
+            </Messages>
+           </Member>
+          </Members>
+         </Type>
+         <Type Name="CKException">
+          <Messages>
+           <Message TypeName="ImplementStandardExceptionConstructors" Category="Microsoft.Design" CheckId="CA1032" Created="2011-02-16 14:00:00Z">
+            <Issue Name="MissingConstructor">
+             <Item>'CKException'</Item>
+             <Item>public CKException()</Item>
+            </Issue>
+           </Message>
+          </Messages>
+          <Members>
+           <Member Name="#.ctor(System.Exception,System.String,System.Object[])">
+            <Messages>
+             <Message Id="System.String.Format(System.String,System.Object[])" TypeName="SpecifyIFormatProvider" Category="Microsoft.Globalization" CheckId="CA1305" Created="2011-02-16 14:00:00Z">
+              <Issue Name="IFormatProviderAlternateString">
+               <Item>'string.Format(string, params object[])'</Item>
+               <Item>'CKException.CKException(Exception, string, params object[])'</Item>
+               <Item>'string.Format(IFormatProvider, string, params object[])'</Item>
+               <Item>'CultureInfo.CurrentCulture'</Item>
+               <Item>'CultureInfo.InvariantCulture'</Item>
+              </Issue>
+             </Message>
+            </Messages>
+           </Member>
+           <Member Name="#.ctor(System.String,System.Object[])">
+            <Messages>
+             <Message Id="System.String.Format(System.String,System.Object[])" TypeName="SpecifyIFormatProvider" Category="Microsoft.Globalization" CheckId="CA1305" Created="2011-02-16 14:00:00Z">
+              <Issue Name="IFormatProviderAlternateString">
+               <Item>'string.Format(string, params object[])'</Item>
+               <Item>'CKException.CKException(string, params object[])'</Item>
+               <Item>'string.Format(IFormatProvider, string, params object[])'</Item>
+               <Item>'CultureInfo.CurrentCulture'</Item>
+               <Item>'CultureInfo.InvariantCulture'</Item>
+              </Issue>
+             </Message>
+            </Messages>
+           </Member>
+          </Members>
+         </Type>
+         <Type Name="ComponentModelExtension">
+          <Members>
+           <Member Name="#Add(CK.Core.ISimpleServiceContainer,System.Type,System.Func`1&lt;System.Object&gt;)">
+            <Messages>
+             <Message Id="c" TypeName="IdentifiersShouldBeSpelledCorrectly" Category="Microsoft.Naming" CheckId="CA1704" Created="2011-02-16 14:00:00Z">
+              <Issue Name="MemberParameterMoreMeaningfulName">
+               <Item>'ComponentModelExtension.Add(this ISimpleServiceContainer, Type, Func&lt;object&gt;)'</Item>
+               <Item>'c'</Item>
+              </Issue>
+             </Message>
+            </Messages>
+           </Member>
+           <Member Name="#Add(CK.Core.ISimpleServiceContainer,System.Type,System.Object)">
+            <Messages>
+             <Message Id="c" TypeName="IdentifiersShouldBeSpelledCorrectly" Category="Microsoft.Naming" CheckId="CA1704" Created="2011-02-16 14:00:00Z">
+              <Issue Name="MemberParameterMoreMeaningfulName">
+               <Item>'ComponentModelExtension.Add(this ISimpleServiceContainer, Type, object)'</Item>
+               <Item>'c'</Item>
+              </Issue>
+             </Message>
+            </Messages>
+           </Member>
+           <Member Name="#Add`1(CK.Core.ISimpleServiceContainer,!!0)">
+            <Messages>
+             <Message Id="c" TypeName="IdentifiersShouldBeSpelledCorrectly" Category="Microsoft.Naming" CheckId="CA1704" Created="2011-02-16 14:00:00Z">
+              <Issue Name="MemberParameterMoreMeaningfulName">
+               <Item>'ComponentModelExtension.Add&lt;T&gt;(this ISimpleServiceContainer, T)'</Item>
+               <Item>'c'</Item>
+              </Issue>
+             </Message>
+            </Messages>
+           </Member>
+           <Member Name="#Add`1(CK.Core.ISimpleServiceContainer,!!0,System.Action`1&lt;!!0&gt;)">
+            <Messages>
+             <Message Id="c" TypeName="IdentifiersShouldBeSpelledCorrectly" Category="Microsoft.Naming" CheckId="CA1704" Created="2011-02-16 14:00:00Z">
+              <Issue Name="MemberParameterMoreMeaningfulName">
+               <Item>'ComponentModelExtension.Add&lt;T&gt;(this ISimpleServiceContainer, T, Action&lt;T&gt;)'</Item>
+               <Item>'c'</Item>
+              </Issue>
+             </Message>
+            </Messages>
+           </Member>
+           <Member Name="#Add`1(CK.Core.ISimpleServiceContainer,System.Func`1&lt;!!0&gt;)">
+            <Messages>
+             <Message Id="c" TypeName="IdentifiersShouldBeSpelledCorrectly" Category="Microsoft.Naming" CheckId="CA1704" Created="2011-02-16 14:00:00Z">
+              <Issue Name="MemberParameterMoreMeaningfulName">
+               <Item>'ComponentModelExtension.Add&lt;T&gt;(this ISimpleServiceContainer, Func&lt;T&gt;)'</Item>
+               <Item>'c'</Item>
+              </Issue>
+             </Message>
+            </Messages>
+           </Member>
+           <Member Name="#Add`1(CK.Core.ISimpleServiceContainer,System.Func`1&lt;!!0&gt;,System.Action`1&lt;!!0&gt;)">
+            <Messages>
+             <Message Id="c" TypeName="IdentifiersShouldBeSpelledCorrectly" Category="Microsoft.Naming" CheckId="CA1704" Created="2011-02-16 14:00:00Z">
+              <Issue Name="MemberParameterMoreMeaningfulName">
+               <Item>'ComponentModelExtension.Add&lt;T&gt;(this ISimpleServiceContainer, Func&lt;T&gt;, Action&lt;T&gt;)'</Item>
+               <Item>'c'</Item>
+              </Issue>
+             </Message>
+            </Messages>
+           </Member>
+          </Members>
+         </Type>
+         <Type Name="DefaultActivityLogger">
+          <Members>
+           <Member Name="#Empty">
+            <Messages>
+             <Message TypeName="DoNotDeclareReadOnlyMutableReferenceTypes" Category="Microsoft.Security" CheckId="CA2104" Created="2011-02-16 14:00:00Z">
+              <Issue>
+               <Item>'DefaultActivityLogger.Empty'</Item>
+               <Item>'DefaultActivityLogger'</Item>
+              </Issue>
+             </Message>
+            </Messages>
+           </Member>
+           <Member Name="#Register(CK.Core.IDefaultActivityLoggerSink)">
+            <Messages>
+             <Message Id="l" TypeName="IdentifiersShouldBeSpelledCorrectly" Category="Microsoft.Naming" CheckId="CA1704" Created="2011-02-16 14:00:00Z">
+              <Issue Name="MemberParameterMoreMeaningfulName">
+               <Item>'DefaultActivityLogger.Register(IDefaultActivityLoggerSink)'</Item>
+               <Item>'l'</Item>
+              </Issue>
+             </Message>
+            </Messages>
+           </Member>
+           <Member Name="#Unregister(CK.Core.IDefaultActivityLoggerSink)">
+            <Messages>
+             <Message Id="l" TypeName="IdentifiersShouldBeSpelledCorrectly" Category="Microsoft.Naming" CheckId="CA1704" Created="2011-02-16 14:00:00Z">
+              <Issue Name="MemberParameterMoreMeaningfulName">
+               <Item>'DefaultActivityLogger.Unregister(IDefaultActivityLoggerSink)'</Item>
+               <Item>'l'</Item>
+              </Issue>
+             </Message>
+            </Messages>
+           </Member>
+          </Members>
+         </Type>
+         <Type Name="DefaultActivityLogger+Group">
+          <Messages>
+           <Message TypeName="ImplementIDisposableCorrectly" Category="Microsoft.Design" CheckId="CA1063" Created="2011-02-16 14:00:00Z">
+            <Issue Name="ProvideDisposeBool">
+             <Item>'DefaultActivityLogger.Group'</Item>
+            </Issue>
+           </Message>
+           <Message TypeName="NestedTypesShouldNotBeVisible" Category="Microsoft.Design" CheckId="CA1034" Created="2011-02-16 14:00:00Z">
+            <Issue>
+             <Item>'DefaultActivityLogger.Group'</Item>
+            </Issue>
+           </Message>
+          </Messages>
+          <Members>
+           <Member Name="#.ctor(CK.Core.DefaultActivityLogger,CK.Core.LogLevel,System.String,System.Func`1&lt;System.String&gt;)">
+            <Messages>
+             <Message Id="getConclusionText" TypeName="ReviewUnusedParameters" Category="Microsoft.Usage" CheckId="CA1801" Created="2011-02-16 14:00:00Z" FixCategory="DependsOnFix">
+              <Issue>
+               <Item>'getConclusionText'</Item>
+               <Item>'DefaultActivityLogger.Group.Group(DefaultActivityLogger, LogLevel, string, Func&lt;string&gt;)'</Item>
+              </Issue>
+             </Message>
+            </Messages>
+           </Member>
+           <Member Name="#Dispose()">
+            <Messages>
+             <Message TypeName="CallGCSuppressFinalizeCorrectly" Category="Microsoft.Usage" CheckId="CA1816" Created="2011-02-16 14:00:00Z">
+              <Issue Name="NotCalled">
+               <Item>'DefaultActivityLogger.Group.Dispose()'</Item>
+               <Item>'GC.SuppressFinalize(object)'</Item>
+              </Issue>
+             </Message>
+             <Message TypeName="ImplementIDisposableCorrectly" Category="Microsoft.Design" CheckId="CA1063" Created="2011-02-16 14:00:00Z">
+              <Issue Name="DisposeImplementation">
+               <Item>'DefaultActivityLogger.Group.Dispose()'</Item>
+              </Issue>
+             </Message>
+            </Messages>
+           </Member>
+          </Members>
+         </Type>
+         <Type Name="DictionaryExtension">
+          <Members>
+           <Member Name="#AddRange`2(System.Collections.Generic.IDictionary`2&lt;!!0,!!1&gt;,System.Collections.Generic.IEnumerable`1&lt;System.Collections.Generic.KeyValuePair`2&lt;!!0,!!1&gt;&gt;)">
+            <Messages>
+             <Message TypeName="DoNotNestGenericTypesInMemberSignatures" Category="Microsoft.Design" CheckId="CA1006" Created="2011-02-16 14:00:00Z">
+              <Issue>
+               <Item>'DictionaryExtension.AddRange&lt;TKey, TValue&gt;(this IDictionary&lt;TKey, TValue&gt;, IEnumerable&lt;KeyValuePair&lt;TKey, TValue&gt;&gt;)'</Item>
+               <Item>'IEnumerable&lt;KeyValuePair&lt;TKey, TValue&gt;&gt;'</Item>
+              </Issue>
+             </Message>
+            </Messages>
+           </Member>
+          </Members>
+         </Type>
+         <Type Name="EnumEmpty`1">
+          <Members>
+           <Member Name="#Empty">
+            <Messages>
+             <Message TypeName="DoNotDeclareReadOnlyMutableReferenceTypes" Category="Microsoft.Security" CheckId="CA2104" Created="2011-02-16 14:00:00Z">
+              <Issue>
+               <Item>'EnumEmpty&lt;T&gt;.Empty'</Item>
+               <Item>'IEnumerator&lt;T&gt;'</Item>
+              </Issue>
+             </Message>
+             <Message TypeName="DoNotDeclareStaticMembersOnGenericTypes" Category="Microsoft.Design" CheckId="CA1000" Created="2011-02-16 14:00:00Z">
+              <Issue>
+               <Item>'EnumEmpty&lt;T&gt;.Empty'</Item>
+               <Item>'EnumEmpty&lt;T&gt;'</Item>
+              </Issue>
+             </Message>
+            </Messages>
+           </Member>
+          </Members>
+         </Type>
+         <Type Name="EnumerableAdapter`2">
+          <Members>
+           <Member Name="#.ctor(System.Collections.Generic.IEnumerable`1&lt;!1&gt;)">
+            <Messages>
+             <Message Id="c" TypeName="IdentifiersShouldBeSpelledCorrectly" Category="Microsoft.Naming" CheckId="CA1704" Created="2009-11-26 10:27:00Z">
+              <Issue Name="MemberParameterMoreMeaningfulName">
+               <Item>'EnumerableAdapter&lt;TOuter, TInner&gt;.EnumerableAdapter(IEnumerable&lt;TInner&gt;)'</Item>
+               <Item>'c'</Item>
+              </Issue>
+             </Message>
+            </Messages>
+           </Member>
+          </Members>
+         </Type>
+         <Type Name="EnumerableConverter`2">
+          <Members>
+           <Member Name="#.ctor(System.Collections.Generic.IEnumerable`1&lt;!1&gt;,System.Converter`2&lt;!1,!0&gt;)">
+            <Messages>
+             <Message Id="c" TypeName="IdentifiersShouldBeSpelledCorrectly" Category="Microsoft.Naming" CheckId="CA1704" Created="2009-11-26 10:27:00Z">
+              <Issue Name="MemberParameterMoreMeaningfulName">
+               <Item>'EnumerableConverter&lt;TOuter, TInner&gt;.EnumerableConverter(IEnumerable&lt;TInner&gt;, Converter&lt;TInner, TOuter&gt;)'</Item>
+               <Item>'c'</Item>
+              </Issue>
+             </Message>
+            </Messages>
+           </Member>
+          </Members>
+         </Type>
+         <Type Name="IActionSequence">
+          <Members>
+           <Member Name="#Append(System.EventHandler,System.Object,System.EventArgs)">
+            <Messages>
+             <Message Id="e" TypeName="IdentifiersShouldBeSpelledCorrectly" Category="Microsoft.Naming" CheckId="CA1704" Created="2011-02-16 14:00:00Z">
+              <Issue Name="MemberParameterMoreMeaningfulName">
+               <Item>'IActionSequence.Append(EventHandler, object, EventArgs)'</Item>
+               <Item>'e'</Item>
+              </Issue>
+             </Message>
+            </Messages>
+           </Member>
+           <Member Name="#Append`1(System.EventHandler`1&lt;!!0&gt;,System.Object,!!0)">
+            <Messages>
+             <Message Id="e" TypeName="IdentifiersShouldBeSpelledCorrectly" Category="Microsoft.Naming" CheckId="CA1704" Created="2011-02-16 14:00:00Z">
+              <Issue Name="MemberParameterMoreMeaningfulName">
+               <Item>'IActionSequence.Append&lt;T&gt;(EventHandler&lt;T&gt;, object, T)'</Item>
+               <Item>'e'</Item>
+              </Issue>
+             </Message>
+            </Messages>
+           </Member>
+           <Member Name="#ReadOnly">
+            <Messages>
+             <Message Id="ReadOnly" TypeName="IdentifiersShouldNotMatchKeywords" Category="Microsoft.Naming" CheckId="CA1716" Created="2011-02-16 14:00:00Z">
+              <Issue Name="Member">
+               <Item>'IActionSequence.ReadOnly'</Item>
+               <Item>ReadOnly</Item>
+              </Issue>
+             </Message>
+            </Messages>
+           </Member>
+          </Members>
+         </Type>
+         <Type Name="IDefaultActivityLoggerSink">
+          <Members>
+           <Member Name="#OnGroupClose(CK.Core.DefaultActivityLogger+Group,System.String)">
+            <Messages>
+             <Message Id="g" TypeName="IdentifiersShouldBeSpelledCorrectly" Category="Microsoft.Naming" CheckId="CA1704" Created="2011-02-16 14:00:00Z">
+              <Issue Name="MemberParameterMoreMeaningfulName">
+               <Item>'IDefaultActivityLoggerSink.OnGroupClose(DefaultActivityLogger.Group, string)'</Item>
+               <Item>'g'</Item>
+              </Issue>
+             </Message>
+            </Messages>
+           </Member>
+           <Member Name="#OnGroupOpen(CK.Core.DefaultActivityLogger+Group)">
+            <Messages>
+             <Message Id="g" TypeName="IdentifiersShouldBeSpelledCorrectly" Category="Microsoft.Naming" CheckId="CA1704" Created="2011-02-16 14:00:00Z">
+              <Issue Name="MemberParameterMoreMeaningfulName">
+               <Item>'IDefaultActivityLoggerSink.OnGroupOpen(DefaultActivityLogger.Group)'</Item>
+               <Item>'g'</Item>
+              </Issue>
+             </Message>
+            </Messages>
+           </Member>
+          </Members>
+         </Type>
+         <Type Name="InvalidFileException">
+          <Messages>
+           <Message TypeName="ImplementStandardExceptionConstructors" Category="Microsoft.Design" CheckId="CA1032" Created="2009-11-26 10:27:00Z">
+            <Issue Name="MissingConstructor">
+             <Item>'InvalidFileException'</Item>
+             <Item>public InvalidFileException()</Item>
+            </Issue>
+            <Issue Name="MissingConstructor">
+             <Item>'InvalidFileException'</Item>
+             <Item>public InvalidFileException(String)</Item>
+            </Issue>
+            <Issue Name="MissingConstructor">
+             <Item>'InvalidFileException'</Item>
+             <Item>public InvalidFileException(String, Exception)</Item>
+            </Issue>
+           </Message>
+          </Messages>
+          <Members>
+           <Member Name="#GetObjectData(System.Runtime.Serialization.SerializationInfo,System.Runtime.Serialization.StreamingContext)">
+            <Messages>
+             <Message TypeName="DoNotIndirectlyExposeMethodsWithLinkDemands" Category="Microsoft.Security" CheckId="CA2122" Created="2009-11-26 10:27:00Z">
+              <Issue>
+               <Item>'InvalidFileException.GetObjectData(SerializationInfo, StreamingContext)'</Item>
+               <Item>'Exception.GetObjectData(SerializationInfo, StreamingContext)'</Item>
+               <Item>&#xD;&#xA;   -&gt;'InvalidFileException.GetObjectData(SerializationInfo, StreamingContext)'&#xD;&#xA;   -&gt;'InvalidFileException.GetObjectData(SerializationInfo, StreamingContext)'</Item>
+              </Issue>
+             </Message>
+            </Messages>
+           </Member>
+          </Members>
+         </Type>
+         <Type Name="ISimpleTypeNaming">
+          <Members>
+           <Member Name="#GetTypeName(System.Type)">
+            <Messages>
+             <Message Id="t" TypeName="IdentifiersShouldBeSpelledCorrectly" Category="Microsoft.Naming" CheckId="CA1704" Created="2011-02-16 14:00:00Z">
+              <Issue Name="MemberParameterMoreMeaningfulName">
+               <Item>'ISimpleTypeNaming.GetTypeName(Type)'</Item>
+               <Item>'t'</Item>
+              </Issue>
+             </Message>
+            </Messages>
+           </Member>
+          </Members>
+         </Type>
+         <Type Name="MissingDisposeCallSentinel">
+          <Members>
+           <Member Name="#RegisterMissing(CK.Core.MissingDisposeCallSentinel)">
+            <Messages>
+             <Message Id="s" TypeName="IdentifiersShouldBeSpelledCorrectly" Category="Microsoft.Naming" CheckId="CA1704" Created="2011-02-16 14:00:00Z">
+              <Issue Name="MemberParameterMoreMeaningfulName">
+               <Item>'MissingDisposeCallSentinel.RegisterMissing(MissingDisposeCallSentinel)'</Item>
+               <Item>'s'</Item>
+              </Issue>
+             </Message>
+            </Messages>
+           </Member>
+           <Member Name="#StackTrace">
+            <Messages>
+             <Message TypeName="DoNotDeclareReadOnlyMutableReferenceTypes" Category="Microsoft.Security" CheckId="CA2104" Created="2011-02-16 14:00:00Z">
+              <Issue>
+               <Item>'MissingDisposeCallSentinel.StackTrace'</Item>
+               <Item>'StackTrace'</Item>
+              </Issue>
+             </Message>
+             <Message TypeName="DoNotDeclareVisibleInstanceFields" Category="Microsoft.Design" CheckId="CA1051" Created="2011-02-16 14:00:00Z">
+              <Issue>
+               <Item>'MissingDisposeCallSentinel.StackTrace'</Item>
+              </Issue>
+             </Message>
+            </Messages>
+           </Member>
+           <Member Name="#ThreadId">
+            <Messages>
+             <Message TypeName="DoNotDeclareVisibleInstanceFields" Category="Microsoft.Design" CheckId="CA1051" Created="2011-02-16 14:00:00Z">
+              <Issue>
+               <Item>'MissingDisposeCallSentinel.ThreadId'</Item>
+              </Issue>
+             </Message>
+            </Messages>
+           </Member>
+           <Member Name="#Time">
+            <Messages>
+             <Message TypeName="DoNotDeclareVisibleInstanceFields" Category="Microsoft.Design" CheckId="CA1051" Created="2011-02-16 14:00:00Z">
+              <Issue>
+               <Item>'MissingDisposeCallSentinel.Time'</Item>
+              </Issue>
+             </Message>
+            </Messages>
+           </Member>
+          </Members>
+         </Type>
+         <Type Name="OSVersionInfo">
+          <Members>
+           <Member Name="#Edition">
+            <Accessors>
+             <Accessor Name="#get_Edition()">
+              <Messages>
+               <Message TypeName="DoNotIndirectlyExposeMethodsWithLinkDemands" Category="Microsoft.Security" CheckId="CA2122" Created="2011-02-16 14:00:00Z">
+                <Issue>
+                 <Item>'OSVersionInfo.Edition.get()'</Item>
+                 <Item>'Marshal.SizeOf(Type)'</Item>
+                 <Item>&#xD;&#xA;   -&gt;'OSVersionInfo.Edition.get()'&#xD;&#xA;   -&gt;'OSVersionInfo.Edition.get()'</Item>
+                </Issue>
+               </Message>
+              </Messages>
+             </Accessor>
+            </Accessors>
+           </Member>
+           <Member Name="#GetIsWow64ProcessDelegate()">
+            <Messages>
+             <Message TypeName="DoNotIndirectlyExposeMethodsWithLinkDemands" Category="Microsoft.Security" CheckId="CA2122" Created="2011-02-16 14:00:00Z">
+              <Issue>
+               <Item>'OSVersionInfo.GetIsWow64ProcessDelegate()'</Item>
+               <Item>'Marshal.GetDelegateForFunctionPointer(IntPtr, Type)'</Item>
+               <Item>&#xD;&#xA;   -&gt;'OSVersionInfo.GetIsWow64ProcessDelegate()'&#xD;&#xA;   -&gt;'OSVersionInfo.GetIsWow64ProcessDelegate()'&#xD;&#xA;   -&gt;'OSVersionInfo.Is32BitProcessOn64BitProcessor()'&#xD;&#xA;   -&gt;'OSVersionInfo.OSBits.get()'</Item>
+              </Issue>
+             </Message>
+            </Messages>
+           </Member>
+           <Member Name="#GetNativeSystemInfo(CK.Core.OSVersionInfo+SYSTEM_INFO&amp;)">
+            <Messages>
+             <Message TypeName="MovePInvokesToNativeMethodsClass" Category="Microsoft.Design" CheckId="CA1060" Created="2011-02-16 14:00:00Z">
+              <Issue>
+               <Item>'OSVersionInfo.GetNativeSystemInfo(ref OSVersionInfo.SYSTEM_INFO)'</Item>
+              </Issue>
+             </Message>
+            </Messages>
+           </Member>
+           <Member Name="#GetProcAddress(System.IntPtr,System.String)">
+            <Messages>
+             <Message TypeName="MovePInvokesToNativeMethodsClass" Category="Microsoft.Design" CheckId="CA1060" Created="2011-02-16 14:00:00Z">
+              <Issue>
+               <Item>'OSVersionInfo.GetProcAddress(IntPtr, string)'</Item>
+              </Issue>
+             </Message>
+             <Message Id="1" TypeName="SpecifyMarshalingForPInvokeStringArguments" Category="Microsoft.Globalization" CheckId="CA2101" Created="2011-02-16 14:00:00Z">
+              <Issue Name="ParameterImplicitAnsi">
+               <Item>'procedureName'</Item>
+              </Issue>
+             </Message>
+            </Messages>
+           </Member>
+           <Member Name="#GetProductInfo(System.Int32,System.Int32,System.Int32,System.Int32,System.Int32&amp;)">
+            <Messages>
+             <Message TypeName="MarkBooleanPInvokeArgumentsWithMarshalAs" Category="Microsoft.Interoperability" CheckId="CA1414" Created="2011-02-16 14:00:00Z">
+              <Issue Name="Return">
+               <Item>'OSVersionInfo.GetProductInfo(int, int, int, int, out int)'</Item>
+              </Issue>
+             </Message>
+             <Message TypeName="MovePInvokesToNativeMethodsClass" Category="Microsoft.Design" CheckId="CA1060" Created="2011-02-16 14:00:00Z">
+              <Issue>
+               <Item>'OSVersionInfo.GetProductInfo(int, int, int, int, out int)'</Item>
+              </Issue>
+             </Message>
+            </Messages>
+           </Member>
+           <Member Name="#GetSystemInfo(CK.Core.OSVersionInfo+SYSTEM_INFO&amp;)">
+            <Messages>
+             <Message TypeName="MovePInvokesToNativeMethodsClass" Category="Microsoft.Design" CheckId="CA1060" Created="2011-02-16 14:00:00Z">
+              <Issue>
+               <Item>'OSVersionInfo.GetSystemInfo(ref OSVersionInfo.SYSTEM_INFO)'</Item>
+              </Issue>
+             </Message>
+            </Messages>
+           </Member>
+           <Member Name="#GetSystemMetrics(System.Int32)">
+            <Messages>
+             <Message TypeName="MovePInvokesToNativeMethodsClass" Category="Microsoft.Design" CheckId="CA1060" Created="2011-02-16 14:00:00Z">
+              <Issue>
+               <Item>'OSVersionInfo.GetSystemMetrics(int)'</Item>
+              </Issue>
+             </Message>
+            </Messages>
+           </Member>
+           <Member Name="#GetVersionEx(CK.Core.OSVersionInfo+OSVERSIONINFOEX&amp;)">
+            <Messages>
+             <Message TypeName="MarkBooleanPInvokeArgumentsWithMarshalAs" Category="Microsoft.Interoperability" CheckId="CA1414" Created="2011-02-16 14:00:00Z">
+              <Issue Name="Return">
+               <Item>'OSVersionInfo.GetVersionEx(ref OSVersionInfo.OSVERSIONINFOEX)'</Item>
+              </Issue>
+             </Message>
+             <Message TypeName="MovePInvokesToNativeMethodsClass" Category="Microsoft.Design" CheckId="CA1060" Created="2011-02-16 14:00:00Z">
+              <Issue>
+               <Item>'OSVersionInfo.GetVersionEx(ref OSVersionInfo.OSVERSIONINFOEX)'</Item>
+              </Issue>
+             </Message>
+             <Message TypeName="UseManagedEquivalentsOfWin32Api" Category="Microsoft.Usage" CheckId="CA2205" Created="2011-02-16 14:00:00Z">
+              <Issue Name="PlatformInvokeDeclaration">
+               <Item>'OSVersionInfo.GetVersionEx(ref OSVersionInfo.OSVERSIONINFOEX)'</Item>
+               <Item>System.Environment.OSVersion</Item>
+              </Issue>
+             </Message>
+            </Messages>
+           </Member>
+           <Member Name="#Is32BitProcessOn64BitProcessor()">
+            <Messages>
+             <Message TypeName="DoNotIndirectlyExposeMethodsWithLinkDemands" Category="Microsoft.Security" CheckId="CA2122" Created="2011-02-16 14:00:00Z">
+              <Issue>
+               <Item>'OSVersionInfo.Is32BitProcessOn64BitProcessor()'</Item>
+               <Item>'Process.GetCurrentProcess()'</Item>
+               <Item>&#xD;&#xA;   -&gt;'OSVersionInfo.Is32BitProcessOn64BitProcessor()'&#xD;&#xA;   -&gt;'OSVersionInfo.Is32BitProcessOn64BitProcessor()'&#xD;&#xA;   -&gt;'OSVersionInfo.OSBits.get()'</Item>
+              </Issue>
+              <Issue>
+               <Item>'OSVersionInfo.Is32BitProcessOn64BitProcessor()'</Item>
+               <Item>'Process.Handle.get()'</Item>
+               <Item>&#xD;&#xA;   -&gt;'OSVersionInfo.Is32BitProcessOn64BitProcessor()'&#xD;&#xA;   -&gt;'OSVersionInfo.Is32BitProcessOn64BitProcessor()'&#xD;&#xA;   -&gt;'OSVersionInfo.OSBits.get()'</Item>
+              </Issue>
+             </Message>
+            </Messages>
+           </Member>
+           <Member Name="#LoadLibrary(System.String)">
+            <Messages>
+             <Message TypeName="MovePInvokesToNativeMethodsClass" Category="Microsoft.Design" CheckId="CA1060" Created="2011-02-16 14:00:00Z">
+              <Issue>
+               <Item>'OSVersionInfo.LoadLibrary(string)'</Item>
+              </Issue>
+             </Message>
+             <Message Id="0" TypeName="SpecifyMarshalingForPInvokeStringArguments" Category="Microsoft.Globalization" CheckId="CA2101" Created="2011-02-16 14:00:00Z">
+              <Issue Name="ParameterImplicitAnsi">
+               <Item>'libraryName'</Item>
+              </Issue>
+             </Message>
+            </Messages>
+           </Member>
+           <Member Name="#Name">
+            <Accessors>
+             <Accessor Name="#get_Name()">
+              <Messages>
+               <Message TypeName="DoNotIndirectlyExposeMethodsWithLinkDemands" Category="Microsoft.Security" CheckId="CA2122" Created="2011-02-16 14:00:00Z">
+                <Issue>
+                 <Item>'OSVersionInfo.Name.get()'</Item>
+                 <Item>'Marshal.SizeOf(Type)'</Item>
+                 <Item>&#xD;&#xA;   -&gt;'OSVersionInfo.Name.get()'&#xD;&#xA;   -&gt;'OSVersionInfo.Name.get()'</Item>
+                </Issue>
+               </Message>
+              </Messages>
+             </Accessor>
+            </Accessors>
+           </Member>
+           <Member Name="#ProcessorBits">
+            <Accessors>
+             <Accessor Name="#get_ProcessorBits()">
+              <Messages>
+               <Message TypeName="DoNotCatchGeneralExceptionTypes" Category="Microsoft.Design" CheckId="CA1031" Created="2011-02-16 14:00:00Z">
+                <Issue>
+                 <Item>'OSVersionInfo.ProcessorBits.get()'</Item>
+                 <Item>'object'</Item>
+                </Issue>
+               </Message>
+              </Messages>
+             </Accessor>
+            </Accessors>
+           </Member>
+           <Member Name="#ProgramBits">
+            <Accessors>
+             <Accessor Name="#get_ProgramBits()">
+              <Messages>
+               <Message Id="test" TypeName="RemoveUnusedLocals" Category="Microsoft.Performance" CheckId="CA1804" Created="2011-02-16 14:00:00Z">
+                <Issue>
+                 <Item>'OSVersionInfo.ProgramBits.get()'</Item>
+                 <Item>'test'</Item>
+                 <Item>'IDictionary'</Item>
+                </Issue>
+               </Message>
+              </Messages>
+             </Accessor>
+            </Accessors>
+           </Member>
+           <Member Name="#ServicePack">
+            <Accessors>
+             <Accessor Name="#get_ServicePack()">
+              <Messages>
+               <Message TypeName="DoNotIndirectlyExposeMethodsWithLinkDemands" Category="Microsoft.Security" CheckId="CA2122" Created="2011-02-16 14:00:00Z">
+                <Issue>
+                 <Item>'OSVersionInfo.ServicePack.get()'</Item>
+                 <Item>'Marshal.SizeOf(Type)'</Item>
+                 <Item>&#xD;&#xA;   -&gt;'OSVersionInfo.ServicePack.get()'&#xD;&#xA;   -&gt;'OSVersionInfo.ServicePack.get()'</Item>
+                </Issue>
+               </Message>
+              </Messages>
+             </Accessor>
+            </Accessors>
+           </Member>
+          </Members>
+         </Type>
+         <Type Name="OSVersionInfo+ProcessorArchitecture">
+          <Messages>
+           <Message TypeName="NestedTypesShouldNotBeVisible" Category="Microsoft.Design" CheckId="CA1034" Created="2011-02-16 14:00:00Z">
+            <Issue>
+             <Item>'OSVersionInfo.ProcessorArchitecture'</Item>
+            </Issue>
+           </Message>
+          </Messages>
+         </Type>
+         <Type Name="OSVersionInfo+SoftwareArchitecture">
+          <Messages>
+           <Message TypeName="NestedTypesShouldNotBeVisible" Category="Microsoft.Design" CheckId="CA1034" Created="2011-02-16 14:00:00Z">
+            <Issue>
+             <Item>'OSVersionInfo.SoftwareArchitecture'</Item>
+            </Issue>
+           </Message>
+          </Messages>
+         </Type>
+         <Type Name="ReadOnlyCollectionOnHashSet`1">
+          <Members>
+           <Member Name="#.ctor(System.Collections.Generic.HashSet`1&lt;!0&gt;)">
+            <Messages>
+             <Message Id="c" TypeName="IdentifiersShouldBeSpelledCorrectly" Category="Microsoft.Naming" CheckId="CA1704" Created="2011-02-16 14:00:00Z">
+              <Issue Name="MemberParameterMoreMeaningfulName">
+               <Item>'ReadOnlyCollectionOnHashSet&lt;T&gt;.ReadOnlyCollectionOnHashSet(HashSet&lt;T&gt;)'</Item>
+               <Item>'c'</Item>
+              </Issue>
+             </Message>
+            </Messages>
+           </Member>
+          </Members>
+         </Type>
+         <Type Name="ReadOnlyCollectionOnICollection`1">
+          <Members>
+           <Member Name="#.ctor(System.Collections.Generic.ICollection`1&lt;!0&gt;)">
+            <Messages>
+             <Message Id="c" TypeName="IdentifiersShouldBeSpelledCorrectly" Category="Microsoft.Naming" CheckId="CA1704" Created="2009-11-26 10:27:00Z">
+              <Issue Name="MemberParameterMoreMeaningfulName">
+               <Item>'ReadOnlyCollectionOnICollection&lt;T&gt;.ReadOnlyCollectionOnICollection(ICollection&lt;T&gt;)'</Item>
+               <Item>'c'</Item>
+              </Issue>
+             </Message>
+            </Messages>
+           </Member>
+          </Members>
+         </Type>
+         <Type Name="ReadOnlyCollectionTypeAdapter`2">
+          <Members>
+           <Member Name="#.ctor(System.Collections.Generic.ICollection`1&lt;!1&gt;)">
+            <Messages>
+             <Message Id="c" TypeName="IdentifiersShouldBeSpelledCorrectly" Category="Microsoft.Naming" CheckId="CA1704" Created="2011-02-16 14:00:00Z">
+              <Issue Name="MemberParameterMoreMeaningfulName">
+               <Item>'ReadOnlyCollectionTypeAdapter&lt;TOuter, TInner&gt;.ReadOnlyCollectionTypeAdapter(ICollection&lt;TInner&gt;)'</Item>
+               <Item>'c'</Item>
+              </Issue>
+             </Message>
+            </Messages>
+           </Member>
+          </Members>
+         </Type>
+         <Type Name="ReadOnlyCollectionTypeConverter`2">
+          <Members>
+           <Member Name="#.ctor(System.Collections.Generic.ICollection`1&lt;!1&gt;,System.Converter`2&lt;!1,!0&gt;)">
+            <Messages>
+             <Message Id="c" TypeName="IdentifiersShouldBeSpelledCorrectly" Category="Microsoft.Naming" CheckId="CA1704" Created="2011-02-16 14:00:00Z">
+              <Issue Name="MemberParameterMoreMeaningfulName">
+               <Item>'ReadOnlyCollectionTypeConverter&lt;TOuter, TInner&gt;.ReadOnlyCollectionTypeConverter(ICollection&lt;TInner&gt;, Converter&lt;TInner, TOuter&gt;)'</Item>
+               <Item>'c'</Item>
+              </Issue>
+             </Message>
+            </Messages>
+           </Member>
+           <Member Name="#.ctor(System.Collections.Generic.ICollection`1&lt;!1&gt;,System.Converter`2&lt;!1,!0&gt;,System.Converter`2&lt;!0,!1&gt;)">
+            <Messages>
+             <Message Id="c" TypeName="IdentifiersShouldBeSpelledCorrectly" Category="Microsoft.Naming" CheckId="CA1704" Created="2011-02-16 14:00:00Z">
+              <Issue Name="MemberParameterMoreMeaningfulName">
+               <Item>'ReadOnlyCollectionTypeConverter&lt;TOuter, TInner&gt;.ReadOnlyCollectionTypeConverter(ICollection&lt;TInner&gt;, Converter&lt;TInner, TOuter&gt;, Converter&lt;TOuter, TInner&gt;)'</Item>
+               <Item>'c'</Item>
+              </Issue>
+             </Message>
+            </Messages>
+           </Member>
+          </Members>
+         </Type>
+         <Type Name="ReadOnlyExtension">
+          <Members>
+           <Member Name="#ToReadOnlyCollection`2(System.Collections.Generic.ICollection`1&lt;!!1&gt;,System.Func`2&lt;!!1,!!0&gt;)">
+            <Messages>
+             <Message Id="U" TypeName="IdentifiersShouldBeSpelledCorrectly" Category="Microsoft.Naming" CheckId="CA1704" Created="2011-02-16 14:00:00Z" FixCategory="NonBreaking">
+              <Issue Name="MethodTypeParameterMoreMeaningfulName">
+               <Item>'ReadOnlyExtension.ToReadOnlyCollection&lt;T, U&gt;(this ICollection&lt;U&gt;, Func&lt;U, T&gt;)'</Item>
+               <Item>'U'</Item>
+              </Issue>
+             </Message>
+             <Message Id="T" TypeName="IdentifiersShouldHaveCorrectPrefix" Category="Microsoft.Naming" CheckId="CA1715" Created="2011-02-16 14:00:00Z" FixCategory="NonBreaking">
+              <Issue Name="MethodTypeParameter">
+               <Item>'ReadOnlyExtension.ToReadOnlyCollection&lt;T, U&gt;(this ICollection&lt;U&gt;, Func&lt;U, T&gt;)'</Item>
+               <Item>'U'</Item>
+              </Issue>
+             </Message>
+            </Messages>
+           </Member>
+           <Member Name="#ToReadOnlyCollection`2(System.Collections.Generic.IList`1&lt;!!1&gt;,System.Func`2&lt;!!1,!!0&gt;)">
+            <Messages>
+             <Message Id="U" TypeName="IdentifiersShouldBeSpelledCorrectly" Category="Microsoft.Naming" CheckId="CA1704" Created="2011-02-16 14:00:00Z" FixCategory="NonBreaking">
+              <Issue Name="MethodTypeParameterMoreMeaningfulName">
+               <Item>'ReadOnlyExtension.ToReadOnlyCollection&lt;T, U&gt;(this IList&lt;U&gt;, Func&lt;U, T&gt;)'</Item>
+               <Item>'U'</Item>
+              </Issue>
+             </Message>
+             <Message Id="T" TypeName="IdentifiersShouldHaveCorrectPrefix" Category="Microsoft.Naming" CheckId="CA1715" Created="2011-02-16 14:00:00Z" FixCategory="NonBreaking">
+              <Issue Name="MethodTypeParameter">
+               <Item>'ReadOnlyExtension.ToReadOnlyCollection&lt;T, U&gt;(this IList&lt;U&gt;, Func&lt;U, T&gt;)'</Item>
+               <Item>'U'</Item>
+              </Issue>
+             </Message>
+            </Messages>
+           </Member>
+           <Member Name="#ToReadOnlyCollection`2(System.Collections.Generic.IList`1&lt;!!1&gt;,System.Int32,System.Func`2&lt;!!1,!!0&gt;)">
+            <Messages>
+             <Message Id="U" TypeName="IdentifiersShouldBeSpelledCorrectly" Category="Microsoft.Naming" CheckId="CA1704" Created="2011-02-16 14:00:00Z" FixCategory="NonBreaking">
+              <Issue Name="MethodTypeParameterMoreMeaningfulName">
+               <Item>'ReadOnlyExtension.ToReadOnlyCollection&lt;T, U&gt;(this IList&lt;U&gt;, int, Func&lt;U, T&gt;)'</Item>
+               <Item>'U'</Item>
+              </Issue>
+             </Message>
+             <Message Id="T" TypeName="IdentifiersShouldHaveCorrectPrefix" Category="Microsoft.Naming" CheckId="CA1715" Created="2011-02-16 14:00:00Z" FixCategory="NonBreaking">
+              <Issue Name="MethodTypeParameter">
+               <Item>'ReadOnlyExtension.ToReadOnlyCollection&lt;T, U&gt;(this IList&lt;U&gt;, int, Func&lt;U, T&gt;)'</Item>
+               <Item>'U'</Item>
+              </Issue>
+             </Message>
+            </Messages>
+           </Member>
+           <Member Name="#ToReadOnlyCollection`2(System.Collections.Generic.IList`1&lt;!!1&gt;,System.Int32,System.Int32,System.Func`2&lt;!!1,!!0&gt;)">
+            <Messages>
+             <Message Id="U" TypeName="IdentifiersShouldBeSpelledCorrectly" Category="Microsoft.Naming" CheckId="CA1704" Created="2011-02-16 14:00:00Z" FixCategory="NonBreaking">
+              <Issue Name="MethodTypeParameterMoreMeaningfulName">
+               <Item>'ReadOnlyExtension.ToReadOnlyCollection&lt;T, U&gt;(this IList&lt;U&gt;, int, int, Func&lt;U, T&gt;)'</Item>
+               <Item>'U'</Item>
+              </Issue>
+             </Message>
+             <Message Id="T" TypeName="IdentifiersShouldHaveCorrectPrefix" Category="Microsoft.Naming" CheckId="CA1715" Created="2011-02-16 14:00:00Z" FixCategory="NonBreaking">
+              <Issue Name="MethodTypeParameter">
+               <Item>'ReadOnlyExtension.ToReadOnlyCollection&lt;T, U&gt;(this IList&lt;U&gt;, int, int, Func&lt;U, T&gt;)'</Item>
+               <Item>'U'</Item>
+              </Issue>
+             </Message>
+            </Messages>
+           </Member>
+           <Member Name="#ToReadOnlyList`2(System.Collections.Generic.ICollection`1&lt;!!1&gt;,System.Func`2&lt;!!1,!!0&gt;)">
+            <Messages>
+             <Message Id="U" TypeName="IdentifiersShouldBeSpelledCorrectly" Category="Microsoft.Naming" CheckId="CA1704" Created="2011-02-16 14:00:00Z" FixCategory="NonBreaking">
+              <Issue Name="MethodTypeParameterMoreMeaningfulName">
+               <Item>'ReadOnlyExtension.ToReadOnlyList&lt;T, U&gt;(this ICollection&lt;U&gt;, Func&lt;U, T&gt;)'</Item>
+               <Item>'U'</Item>
+              </Issue>
+             </Message>
+             <Message Id="T" TypeName="IdentifiersShouldHaveCorrectPrefix" Category="Microsoft.Naming" CheckId="CA1715" Created="2011-02-16 14:00:00Z" FixCategory="NonBreaking">
+              <Issue Name="MethodTypeParameter">
+               <Item>'ReadOnlyExtension.ToReadOnlyList&lt;T, U&gt;(this ICollection&lt;U&gt;, Func&lt;U, T&gt;)'</Item>
+               <Item>'U'</Item>
+              </Issue>
+             </Message>
+            </Messages>
+           </Member>
+           <Member Name="#ToReadOnlyList`2(System.Collections.Generic.IList`1&lt;!!1&gt;,System.Func`2&lt;!!1,!!0&gt;)">
+            <Messages>
+             <Message Id="U" TypeName="IdentifiersShouldBeSpelledCorrectly" Category="Microsoft.Naming" CheckId="CA1704" Created="2011-02-16 14:00:00Z" FixCategory="NonBreaking">
+              <Issue Name="MethodTypeParameterMoreMeaningfulName">
+               <Item>'ReadOnlyExtension.ToReadOnlyList&lt;T, U&gt;(IList&lt;U&gt;, Func&lt;U, T&gt;)'</Item>
+               <Item>'U'</Item>
+              </Issue>
+             </Message>
+             <Message Id="T" TypeName="IdentifiersShouldHaveCorrectPrefix" Category="Microsoft.Naming" CheckId="CA1715" Created="2011-02-16 14:00:00Z" FixCategory="NonBreaking">
+              <Issue Name="MethodTypeParameter">
+               <Item>'ReadOnlyExtension.ToReadOnlyList&lt;T, U&gt;(IList&lt;U&gt;, Func&lt;U, T&gt;)'</Item>
+               <Item>'U'</Item>
+              </Issue>
+             </Message>
+            </Messages>
+           </Member>
+           <Member Name="#ToReadOnlyList`2(System.Collections.Generic.IList`1&lt;!!1&gt;,System.Int32,System.Func`2&lt;!!1,!!0&gt;)">
+            <Messages>
+             <Message Id="U" TypeName="IdentifiersShouldBeSpelledCorrectly" Category="Microsoft.Naming" CheckId="CA1704" Created="2011-02-16 14:00:00Z" FixCategory="NonBreaking">
+              <Issue Name="MethodTypeParameterMoreMeaningfulName">
+               <Item>'ReadOnlyExtension.ToReadOnlyList&lt;T, U&gt;(this IList&lt;U&gt;, int, Func&lt;U, T&gt;)'</Item>
+               <Item>'U'</Item>
+              </Issue>
+             </Message>
+             <Message Id="T" TypeName="IdentifiersShouldHaveCorrectPrefix" Category="Microsoft.Naming" CheckId="CA1715" Created="2011-02-16 14:00:00Z" FixCategory="NonBreaking">
+              <Issue Name="MethodTypeParameter">
+               <Item>'ReadOnlyExtension.ToReadOnlyList&lt;T, U&gt;(this IList&lt;U&gt;, int, Func&lt;U, T&gt;)'</Item>
+               <Item>'U'</Item>
+              </Issue>
+             </Message>
+            </Messages>
+           </Member>
+           <Member Name="#ToReadOnlyList`2(System.Collections.Generic.IList`1&lt;!!1&gt;,System.Int32,System.Int32,System.Func`2&lt;!!1,!!0&gt;)">
+            <Messages>
+             <Message Id="U" TypeName="IdentifiersShouldBeSpelledCorrectly" Category="Microsoft.Naming" CheckId="CA1704" Created="2011-02-16 14:00:00Z" FixCategory="NonBreaking">
+              <Issue Name="MethodTypeParameterMoreMeaningfulName">
+               <Item>'ReadOnlyExtension.ToReadOnlyList&lt;T, U&gt;(this IList&lt;U&gt;, int, int, Func&lt;U, T&gt;)'</Item>
+               <Item>'U'</Item>
+              </Issue>
+             </Message>
+             <Message Id="T" TypeName="IdentifiersShouldHaveCorrectPrefix" Category="Microsoft.Naming" CheckId="CA1715" Created="2011-02-16 14:00:00Z" FixCategory="NonBreaking">
+              <Issue Name="MethodTypeParameter">
+               <Item>'ReadOnlyExtension.ToReadOnlyList&lt;T, U&gt;(this IList&lt;U&gt;, int, int, Func&lt;U, T&gt;)'</Item>
+               <Item>'U'</Item>
+              </Issue>
+             </Message>
+            </Messages>
+           </Member>
+          </Members>
+         </Type>
+         <Type Name="ReadOnlyListEmpty`1">
+          <Members>
+           <Member Name="#Empty">
+            <Messages>
+             <Message TypeName="DoNotDeclareReadOnlyMutableReferenceTypes" Category="Microsoft.Security" CheckId="CA2104" Created="2009-11-26 10:27:00Z">
+              <Issue>
+               <Item>'ReadOnlyListEmpty&lt;T&gt;.Empty'</Item>
+               <Item>'IReadOnlyList&lt;T&gt;'</Item>
+              </Issue>
+             </Message>
+             <Message TypeName="DoNotDeclareStaticMembersOnGenericTypes" Category="Microsoft.Design" CheckId="CA1000" Created="2009-11-26 10:27:00Z">
+              <Issue>
+               <Item>'ReadOnlyListEmpty&lt;T&gt;.Empty'</Item>
+               <Item>'ReadOnlyListEmpty&lt;T&gt;'</Item>
+              </Issue>
+             </Message>
+            </Messages>
+           </Member>
+           <Member Name="#Item[System.Int32]">
+            <Messages>
+             <Message Id="0#" TypeName="ParameterNamesShouldMatchBaseDeclaration" Category="Microsoft.Naming" CheckId="CA1725" Created="2009-11-26 10:27:00Z">
+              <Issue>
+               <Item>'ReadOnlyListEmpty&lt;T&gt;.this[int]'</Item>
+               <Item>'i'</Item>
+               <Item>'index'</Item>
+               <Item>'IReadOnlyList&lt;T&gt;.this[int]'</Item>
+              </Issue>
+             </Message>
+            </Messages>
+           </Member>
+          </Members>
+         </Type>
+         <Type Name="ReadOnlyListMono`1">
+          <Members>
+           <Member Name="#Item[System.Int32]">
+            <Messages>
+             <Message Id="0#" TypeName="ParameterNamesShouldMatchBaseDeclaration" Category="Microsoft.Naming" CheckId="CA1725" Created="2009-11-26 10:27:00Z">
+              <Issue>
+               <Item>'ReadOnlyListMono&lt;T&gt;.this[int]'</Item>
+               <Item>'i'</Item>
+               <Item>'index'</Item>
+               <Item>'IReadOnlyList&lt;T&gt;.this[int]'</Item>
+              </Issue>
+             </Message>
+            </Messages>
+           </Member>
+          </Members>
+         </Type>
+         <Type Name="ReadOnlyListOnIList`1">
+          <Members>
+           <Member Name="#Item[System.Int32]">
+            <Messages>
+             <Message Id="0#" TypeName="ParameterNamesShouldMatchBaseDeclaration" Category="Microsoft.Naming" CheckId="CA1725" Created="2009-11-26 10:27:00Z">
+              <Issue>
+               <Item>'ReadOnlyListOnIList&lt;T&gt;.this[int]'</Item>
+               <Item>'i'</Item>
+               <Item>'index'</Item>
+               <Item>'IReadOnlyList&lt;T&gt;.this[int]'</Item>
+              </Issue>
+             </Message>
+            </Messages>
+           </Member>
+          </Members>
+         </Type>
+         <Type Name="ReadOnlyListTypeAdapter`2">
+          <Members>
+           <Member Name="#.ctor(System.Collections.Generic.IList`1&lt;!1&gt;)">
+            <Messages>
+             <Message Id="c" TypeName="IdentifiersShouldBeSpelledCorrectly" Category="Microsoft.Naming" CheckId="CA1704" Created="2011-02-16 14:00:00Z">
+              <Issue Name="MemberParameterMoreMeaningfulName">
+               <Item>'ReadOnlyListTypeAdapter&lt;TOuter, TInner&gt;.ReadOnlyListTypeAdapter(IList&lt;TInner&gt;)'</Item>
+               <Item>'c'</Item>
+              </Issue>
+             </Message>
+            </Messages>
+           </Member>
+           <Member Name="#Item[System.Int32]">
+            <Messages>
+             <Message Id="0#" TypeName="ParameterNamesShouldMatchBaseDeclaration" Category="Microsoft.Naming" CheckId="CA1725" Created="2011-02-16 14:00:00Z">
+              <Issue>
+               <Item>'ReadOnlyListTypeAdapter&lt;TOuter, TInner&gt;.this[int]'</Item>
+               <Item>'i'</Item>
+               <Item>'index'</Item>
+               <Item>'IReadOnlyList&lt;TOuter&gt;.this[int]'</Item>
+              </Issue>
+             </Message>
+            </Messages>
+           </Member>
+          </Members>
+         </Type>
+         <Type Name="SimpleNamedVersionedUniqueId">
+          <Members>
+           <Member Name="#.ctor(System.Guid,System.Version,System.String)">
+            <Messages>
+             <Message Id="p" TypeName="IdentifiersShouldBeSpelledCorrectly" Category="Microsoft.Naming" CheckId="CA1704" Created="2011-02-16 14:00:00Z">
+              <Issue Name="MemberParameterMoreMeaningfulName">
+               <Item>'SimpleNamedVersionedUniqueId.SimpleNamedVersionedUniqueId(Guid, Version, string)'</Item>
+               <Item>'p'</Item>
+              </Issue>
+             </Message>
+            </Messages>
+           </Member>
+           <Member Name="#.ctor(System.String,System.String,System.String)">
+            <Messages>
+             <Message Id="p" TypeName="IdentifiersShouldBeSpelledCorrectly" Category="Microsoft.Naming" CheckId="CA1704" Created="2011-02-16 14:00:00Z">
+              <Issue Name="MemberParameterMoreMeaningfulName">
+               <Item>'SimpleNamedVersionedUniqueId.SimpleNamedVersionedUniqueId(string, string, string)'</Item>
+               <Item>'p'</Item>
+              </Issue>
+             </Message>
+            </Messages>
+           </Member>
+           <Member Name="#.ctor(System.String,System.Version,System.String)">
+            <Messages>
+             <Message Id="p" TypeName="IdentifiersShouldBeSpelledCorrectly" Category="Microsoft.Naming" CheckId="CA1704" Created="2011-02-16 14:00:00Z">
+              <Issue Name="MemberParameterMoreMeaningfulName">
+               <Item>'SimpleNamedVersionedUniqueId.SimpleNamedVersionedUniqueId(string, Version, string)'</Item>
+               <Item>'p'</Item>
+              </Issue>
+             </Message>
+            </Messages>
+           </Member>
+           <Member Name="#Empty">
+            <Messages>
+             <Message TypeName="DoNotDeclareReadOnlyMutableReferenceTypes" Category="Microsoft.Security" CheckId="CA2104" Created="2011-02-16 14:00:00Z">
+              <Issue>
+               <Item>'SimpleNamedVersionedUniqueId.Empty'</Item>
+               <Item>'INamedVersionedUniqueId'</Item>
+              </Issue>
+             </Message>
+            </Messages>
+           </Member>
+           <Member Name="#EmptyArray">
+            <Messages>
+             <Message TypeName="ArrayFieldsShouldNotBeReadOnly" Category="Microsoft.Security" CheckId="CA2105" Created="2011-02-16 14:00:00Z">
+              <Issue>
+               <Item>'SimpleNamedVersionedUniqueId.EmptyArray'</Item>
+              </Issue>
+             </Message>
+            </Messages>
+           </Member>
+           <Member Name="#InvalidId">
+            <Messages>
+             <Message TypeName="DoNotDeclareReadOnlyMutableReferenceTypes" Category="Microsoft.Security" CheckId="CA2104" Created="2011-02-16 14:00:00Z">
+              <Issue>
+               <Item>'SimpleNamedVersionedUniqueId.InvalidId'</Item>
+               <Item>'INamedVersionedUniqueId'</Item>
+              </Issue>
+             </Message>
+            </Messages>
+           </Member>
+          </Members>
+         </Type>
+         <Type Name="SimpleServiceContainer">
+          <Messages>
+           <Message TypeName="ImplementIDisposableCorrectly" Category="Microsoft.Design" CheckId="CA1063" Created="2011-02-16 14:00:00Z">
+            <Issue Name="ProvideDisposeBool">
+             <Item>'SimpleServiceContainer'</Item>
+            </Issue>
+           </Message>
+          </Messages>
+          <Members>
+           <Member Name="#Dispose()">
+            <Messages>
+             <Message TypeName="CallGCSuppressFinalizeCorrectly" Category="Microsoft.Usage" CheckId="CA1816" Created="2011-02-16 14:00:00Z">
+              <Issue Name="NotCalled">
+               <Item>'SimpleServiceContainer.Dispose()'</Item>
+               <Item>'GC.SuppressFinalize(object)'</Item>
+              </Issue>
+             </Message>
+             <Message TypeName="ImplementIDisposableCorrectly" Category="Microsoft.Design" CheckId="CA1063" Created="2011-02-16 14:00:00Z">
+              <Issue Name="DisposeImplementation">
+               <Item>'SimpleServiceContainer.Dispose()'</Item>
+              </Issue>
+              <Issue Name="DisposeSignature">
+               <Item>'SimpleServiceContainer.Dispose()'</Item>
+              </Issue>
+             </Message>
+            </Messages>
+           </Member>
+          </Members>
+         </Type>
+         <Type Name="SimpleTypeFinder">
+          <Members>
+           <Member Name="#Default">
+            <Messages>
+             <Message TypeName="DoNotDeclareReadOnlyMutableReferenceTypes" Category="Microsoft.Security" CheckId="CA2104" Created="2011-02-16 14:00:00Z">
+              <Issue>
+               <Item>'SimpleTypeFinder.Default'</Item>
+               <Item>'ISimpleTypeFinder'</Item>
+              </Issue>
+             </Message>
+            </Messages>
+           </Member>
+           <Member Name="#MapType(System.String)">
+            <Messages>
+             <Message Id="0#" TypeName="ParameterNamesShouldMatchBaseDeclaration" Category="Microsoft.Naming" CheckId="CA1725" Created="2011-02-16 14:00:00Z">
+              <Issue>
+               <Item>'SimpleTypeFinder.MapType(string)'</Item>
+               <Item>'assemblyQualifiedName'</Item>
+               <Item>'externalName'</Item>
+               <Item>'ISimpleTypeFinder.MapType(string)'</Item>
+              </Issue>
+             </Message>
+            </Messages>
+           </Member>
+           <Member Name="#ResolveType(System.String,System.Boolean)">
+            <Messages>
+             <Message Id="0#" TypeName="ParameterNamesShouldMatchBaseDeclaration" Category="Microsoft.Naming" CheckId="CA1725" Created="2011-02-16 14:00:00Z">
+              <Issue>
+               <Item>'SimpleTypeFinder.ResolveType(string, bool)'</Item>
+               <Item>'assemblyQualifiedName'</Item>
+               <Item>'externalName'</Item>
+               <Item>'ISimpleTypeFinder.ResolveType(string, bool)'</Item>
+              </Issue>
+             </Message>
+             <Message Id="System.String.Format(System.String,System.Object)" TypeName="SpecifyIFormatProvider" Category="Microsoft.Globalization" CheckId="CA1305" Created="2011-02-16 14:00:00Z">
+              <Issue Name="IFormatProviderAlternateString">
+               <Item>'string.Format(string, object)'</Item>
+               <Item>'SimpleTypeFinder.ResolveType(string, bool)'</Item>
+               <Item>'string.Format(IFormatProvider, string, params object[])'</Item>
+               <Item>'CultureInfo.CurrentCulture'</Item>
+               <Item>'CultureInfo.InvariantCulture'</Item>
+              </Issue>
+             </Message>
+            </Messages>
+           </Member>
+           <Member Name="#SplitNames(System.String,System.String&amp;,System.String&amp;)">
+            <Messages>
+             <Message Id="1#" TypeName="AvoidOutParameters" Category="Microsoft.Design" CheckId="CA1021" Created="2011-02-16 14:00:00Z">
+              <Issue>
+               <Item>'assemblyName'</Item>
+              </Issue>
+             </Message>
+             <Message Id="2#" TypeName="AvoidOutParameters" Category="Microsoft.Design" CheckId="CA1021" Created="2011-02-16 14:00:00Z">
+              <Issue>
+               <Item>'fullTypeName'</Item>
+              </Issue>
+             </Message>
+            </Messages>
+           </Member>
+          </Members>
+         </Type>
+         <Type Name="SimpleUniqueId">
+          <Members>
+           <Member Name="#.ctor(System.Guid)">
+            <Messages>
+             <Message Id="p" TypeName="IdentifiersShouldBeSpelledCorrectly" Category="Microsoft.Naming" CheckId="CA1704" Created="2011-02-16 14:00:00Z">
+              <Issue Name="MemberParameterMoreMeaningfulName">
+               <Item>'SimpleUniqueId.SimpleUniqueId(Guid)'</Item>
+               <Item>'p'</Item>
+              </Issue>
+             </Message>
+            </Messages>
+           </Member>
+           <Member Name="#.ctor(System.String)">
+            <Messages>
+             <Message Id="p" TypeName="IdentifiersShouldBeSpelledCorrectly" Category="Microsoft.Naming" CheckId="CA1704" Created="2011-02-16 14:00:00Z">
+              <Issue Name="MemberParameterMoreMeaningfulName">
+               <Item>'SimpleUniqueId.SimpleUniqueId(string)'</Item>
+               <Item>'p'</Item>
+              </Issue>
+             </Message>
+            </Messages>
+           </Member>
+           <Member Name="#Empty">
+            <Messages>
+             <Message TypeName="DoNotDeclareReadOnlyMutableReferenceTypes" Category="Microsoft.Security" CheckId="CA2104" Created="2011-02-16 14:00:00Z">
+              <Issue>
+               <Item>'SimpleUniqueId.Empty'</Item>
+               <Item>'IUniqueId'</Item>
+              </Issue>
+             </Message>
+            </Messages>
+           </Member>
+           <Member Name="#EmptyArray">
+            <Messages>
+             <Message TypeName="ArrayFieldsShouldNotBeReadOnly" Category="Microsoft.Security" CheckId="CA2105" Created="2011-02-16 14:00:00Z">
+              <Issue>
+               <Item>'SimpleUniqueId.EmptyArray'</Item>
+              </Issue>
+             </Message>
+            </Messages>
+           </Member>
+           <Member Name="#InvalidId">
+            <Messages>
+             <Message TypeName="DoNotDeclareReadOnlyMutableReferenceTypes" Category="Microsoft.Security" CheckId="CA2104" Created="2011-02-16 14:00:00Z">
+              <Issue>
+               <Item>'SimpleUniqueId.InvalidId'</Item>
+               <Item>'IUniqueId'</Item>
+              </Issue>
+             </Message>
+            </Messages>
+           </Member>
+          </Members>
+         </Type>
+         <Type Name="SimpleVersionedUniqueId">
+          <Members>
+           <Member Name="#.ctor(System.Guid,System.Version)">
+            <Messages>
+             <Message Id="p" TypeName="IdentifiersShouldBeSpelledCorrectly" Category="Microsoft.Naming" CheckId="CA1704" Created="2011-02-16 14:00:00Z">
+              <Issue Name="MemberParameterMoreMeaningfulName">
+               <Item>'SimpleVersionedUniqueId.SimpleVersionedUniqueId(Guid, Version)'</Item>
+               <Item>'p'</Item>
+              </Issue>
+             </Message>
+            </Messages>
+           </Member>
+           <Member Name="#.ctor(System.String,System.String)">
+            <Messages>
+             <Message Id="p" TypeName="IdentifiersShouldBeSpelledCorrectly" Category="Microsoft.Naming" CheckId="CA1704" Created="2011-02-16 14:00:00Z">
+              <Issue Name="MemberParameterMoreMeaningfulName">
+               <Item>'SimpleVersionedUniqueId.SimpleVersionedUniqueId(string, string)'</Item>
+               <Item>'p'</Item>
+              </Issue>
+             </Message>
+            </Messages>
+           </Member>
+           <Member Name="#.ctor(System.String,System.Version)">
+            <Messages>
+             <Message Id="p" TypeName="IdentifiersShouldBeSpelledCorrectly" Category="Microsoft.Naming" CheckId="CA1704" Created="2011-02-16 14:00:00Z">
+              <Issue Name="MemberParameterMoreMeaningfulName">
+               <Item>'SimpleVersionedUniqueId.SimpleVersionedUniqueId(string, Version)'</Item>
+               <Item>'p'</Item>
+              </Issue>
+             </Message>
+            </Messages>
+           </Member>
+           <Member Name="#Empty">
+            <Messages>
+             <Message TypeName="DoNotDeclareReadOnlyMutableReferenceTypes" Category="Microsoft.Security" CheckId="CA2104" Created="2011-02-16 14:00:00Z">
+              <Issue>
+               <Item>'SimpleVersionedUniqueId.Empty'</Item>
+               <Item>'IVersionedUniqueId'</Item>
+              </Issue>
+             </Message>
+            </Messages>
+           </Member>
+           <Member Name="#EmptyArray">
+            <Messages>
+             <Message TypeName="ArrayFieldsShouldNotBeReadOnly" Category="Microsoft.Security" CheckId="CA2105" Created="2011-02-16 14:00:00Z">
+              <Issue>
+               <Item>'SimpleVersionedUniqueId.EmptyArray'</Item>
+              </Issue>
+             </Message>
+            </Messages>
+           </Member>
+           <Member Name="#InvalidId">
+            <Messages>
+             <Message TypeName="DoNotDeclareReadOnlyMutableReferenceTypes" Category="Microsoft.Security" CheckId="CA2104" Created="2011-02-16 14:00:00Z">
+              <Issue>
+               <Item>'SimpleVersionedUniqueId.InvalidId'</Item>
+               <Item>'INamedVersionedUniqueId'</Item>
+              </Issue>
+             </Message>
+            </Messages>
+           </Member>
+          </Members>
+         </Type>
+         <Type Name="TemporaryFile">
+          <Members>
+           <Member Name="#DeleteFile()">
+            <Messages>
+             <Message TypeName="DoNotCatchGeneralExceptionTypes" Category="Microsoft.Design" CheckId="CA1031" Created="2011-03-17 10:06:27Z">
+              <Issue>
+               <Item>'TemporaryFile.DeleteFile()'</Item>
+               <Item>'object'</Item>
+              </Issue>
+             </Message>
+            </Messages>
+           </Member>
+          </Members>
+         </Type>
+         <Type Name="Util">
+          <Messages>
+           <Message TypeName="TypeNamesShouldNotMatchNamespaces" Category="Microsoft.Naming" CheckId="CA1724" Created="2011-02-16 14:00:00Z">
+            <Issue Name="System">
+             <Item>'Util'</Item>
+             <Item>System.Web.Util</Item>
+            </Issue>
+           </Message>
+          </Messages>
+          <Members>
+           <Member Name="#ActionVoid`1(!!0)">
+            <Messages>
+             <Message Id="obj" TypeName="ReviewUnusedParameters" Category="Microsoft.Usage" CheckId="CA1801" Created="2011-02-16 14:00:00Z" FixCategory="DependsOnFix">
+              <Issue>
+               <Item>'obj'</Item>
+               <Item>'Util.ActionVoid&lt;T&gt;(T)'</Item>
+              </Issue>
+             </Message>
+            </Messages>
+           </Member>
+           <Member Name="#EmptyStringArray">
+            <Messages>
+             <Message TypeName="ArrayFieldsShouldNotBeReadOnly" Category="Microsoft.Security" CheckId="CA2105" Created="2011-02-16 14:00:00Z">
+              <Issue>
+               <Item>'Util.EmptyStringArray'</Item>
+              </Issue>
+             </Message>
+            </Messages>
+           </Member>
+           <Member Name="#Log2(System.UInt32)">
+            <Messages>
+             <Message Id="v" TypeName="IdentifiersShouldBeSpelledCorrectly" Category="Microsoft.Naming" CheckId="CA1704" Created="2011-02-16 14:00:00Z">
+              <Issue Name="MemberParameterMoreMeaningfulName">
+               <Item>'Util.Log2(uint)'</Item>
+               <Item>'v'</Item>
+              </Issue>
+             </Message>
+             <Message Id="v*125613361" TypeName="OperationsShouldNotOverflow" Category="Microsoft.Usage" CheckId="CA2233" Created="2011-02-16 14:00:00Z">
+              <Issue>
+               <Item>v*125613361</Item>
+               <Item>'Util.Log2(uint)'</Item>
+              </Issue>
+             </Message>
+            </Messages>
+           </Member>
+           <Member Name="#Log2ForPower2(System.UInt32)">
+            <Messages>
+             <Message Id="v" TypeName="IdentifiersShouldBeSpelledCorrectly" Category="Microsoft.Naming" CheckId="CA1704" Created="2011-02-16 14:00:00Z">
+              <Issue Name="MemberParameterMoreMeaningfulName">
+               <Item>'Util.Log2ForPower2(uint)'</Item>
+               <Item>'v'</Item>
+              </Issue>
+             </Message>
+             <Message Id="v*125613361" TypeName="OperationsShouldNotOverflow" Category="Microsoft.Usage" CheckId="CA2233" Created="2011-02-16 14:00:00Z">
+              <Issue>
+               <Item>v*125613361</Item>
+               <Item>'Util.Log2ForPower2(uint)'</Item>
+              </Issue>
+             </Message>
+            </Messages>
+           </Member>
+          </Members>
+         </Type>
+         <Type Name="Wrapper`1">
+          <Members>
+           <Member Name="#.ctor(!0)">
+            <Messages>
+             <Message TypeName="InstantiateArgumentExceptionsCorrectly" Category="Microsoft.Usage" CheckId="CA2208" Created="2009-11-26 10:27:00Z">
+              <Issue Name="NoArguments">
+               <Item>'ArgumentNullException'</Item>
+              </Issue>
+             </Message>
+            </Messages>
+           </Member>
+           <Member Name="#CreateEnumerator`1(System.Collections.Generic.IEnumerable`1&lt;!!0&gt;)">
+            <Messages>
+             <Message TypeName="DoNotDeclareStaticMembersOnGenericTypes" Category="Microsoft.Design" CheckId="CA1000" Created="2009-11-26 10:27:00Z">
+              <Issue>
+               <Item>'Wrapper&lt;T&gt;.CreateEnumerator&lt;TInner&gt;(IEnumerable&lt;TInner&gt;)'</Item>
+               <Item>'Wrapper&lt;T&gt;'</Item>
+              </Issue>
+             </Message>
+             <Message Id="e" TypeName="IdentifiersShouldBeSpelledCorrectly" Category="Microsoft.Naming" CheckId="CA1704" Created="2009-11-26 10:27:00Z">
+              <Issue Name="MemberParameterMoreMeaningfulName">
+               <Item>'Wrapper&lt;T&gt;.CreateEnumerator&lt;TInner&gt;(IEnumerable&lt;TInner&gt;)'</Item>
+               <Item>'e'</Item>
+              </Issue>
+             </Message>
+            </Messages>
+           </Member>
+           <Member Name="#CreateEnumerator`1(System.Collections.Generic.IEnumerable`1&lt;!!0&gt;,System.Converter`2&lt;!!0,!0&gt;)">
+            <Messages>
+             <Message TypeName="DoNotDeclareStaticMembersOnGenericTypes" Category="Microsoft.Design" CheckId="CA1000" Created="2009-11-26 10:27:00Z">
+              <Issue>
+               <Item>'Wrapper&lt;T&gt;.CreateEnumerator&lt;TInner&gt;(IEnumerable&lt;TInner&gt;, Converter&lt;TInner, T&gt;)'</Item>
+               <Item>'Wrapper&lt;T&gt;'</Item>
+              </Issue>
+             </Message>
+             <Message Id="e" TypeName="IdentifiersShouldBeSpelledCorrectly" Category="Microsoft.Naming" CheckId="CA1704" Created="2009-11-26 10:27:00Z">
+              <Issue Name="MemberParameterMoreMeaningfulName">
+               <Item>'Wrapper&lt;T&gt;.CreateEnumerator&lt;TInner&gt;(IEnumerable&lt;TInner&gt;, Converter&lt;TInner, T&gt;)'</Item>
+               <Item>'e'</Item>
+              </Issue>
+             </Message>
+            </Messages>
+           </Member>
+          </Members>
+         </Type>
+         <Type Name="XmlExtension">
+          <Members>
+           <Member Name="#GetAttributeBoolean(System.Xml.XmlReader,System.String,System.Boolean)">
+            <Messages>
+             <Message Id="r" TypeName="IdentifiersShouldBeSpelledCorrectly" Category="Microsoft.Naming" CheckId="CA1704" Created="2011-02-16 14:00:00Z">
+              <Issue Name="MemberParameterMoreMeaningfulName">
+               <Item>'XmlExtension.GetAttributeBoolean(this XmlReader, string, bool)'</Item>
+               <Item>'r'</Item>
+              </Issue>
+             </Message>
+            </Messages>
+           </Member>
+           <Member Name="#GetAttributeDateTime(System.Xml.XmlReader,System.String,System.DateTime)">
+            <Messages>
+             <Message Id="r" TypeName="IdentifiersShouldBeSpelledCorrectly" Category="Microsoft.Naming" CheckId="CA1704" Created="2011-02-16 14:00:00Z">
+              <Issue Name="MemberParameterMoreMeaningfulName">
+               <Item>'XmlExtension.GetAttributeDateTime(this XmlReader, string, DateTime)'</Item>
+               <Item>'r'</Item>
+              </Issue>
+             </Message>
+            </Messages>
+           </Member>
+           <Member Name="#GetAttributeEnum`1(System.Xml.XmlReader,System.String,!!0)">
+            <Messages>
+             <Message TypeName="DoNotCatchGeneralExceptionTypes" Category="Microsoft.Design" CheckId="CA1031" Created="2011-02-16 14:00:00Z">
+              <Issue>
+               <Item>'XmlExtension.GetAttributeEnum&lt;T&gt;(this XmlReader, string, T)'</Item>
+               <Item>'object'</Item>
+              </Issue>
+             </Message>
+             <Message Id="r" TypeName="IdentifiersShouldBeSpelledCorrectly" Category="Microsoft.Naming" CheckId="CA1704" Created="2011-02-16 14:00:00Z">
+              <Issue Name="MemberParameterMoreMeaningfulName">
+               <Item>'XmlExtension.GetAttributeEnum&lt;T&gt;(this XmlReader, string, T)'</Item>
+               <Item>'r'</Item>
+              </Issue>
+             </Message>
+            </Messages>
+           </Member>
+           <Member Name="#GetAttributeInt(System.Xml.XmlReader,System.String,System.Int32)">
+            <Messages>
+             <Message Id="r" TypeName="IdentifiersShouldBeSpelledCorrectly" Category="Microsoft.Naming" CheckId="CA1704" Created="2011-02-16 14:00:00Z">
+              <Issue Name="MemberParameterMoreMeaningfulName">
+               <Item>'XmlExtension.GetAttributeInt(this XmlReader, string, int)'</Item>
+               <Item>'r'</Item>
+              </Issue>
+             </Message>
+             <Message Id="int" TypeName="IdentifiersShouldNotContainTypeNames" Category="Microsoft.Naming" CheckId="CA1720" Created="2011-02-16 14:00:00Z">
+              <Issue Name="LanguageSpecificMember">
+               <Item>Int</Item>
+               <Item>'XmlExtension.GetAttributeInt(this XmlReader, string, int)'</Item>
+              </Issue>
+             </Message>
+            </Messages>
+           </Member>
+           <Member Name="#GetAttributeVersion(System.Xml.XmlReader,System.String,System.Version)">
+            <Messages>
+             <Message Id="r" TypeName="IdentifiersShouldBeSpelledCorrectly" Category="Microsoft.Naming" CheckId="CA1704" Created="2011-02-16 14:00:00Z">
+              <Issue Name="MemberParameterMoreMeaningfulName">
+               <Item>'XmlExtension.GetAttributeVersion(this XmlReader, string, Version)'</Item>
+               <Item>'r'</Item>
+              </Issue>
+             </Message>
+            </Messages>
+           </Member>
+           <Member Name="#ReadEndElement(System.Xml.XmlReader,System.String)">
+            <Messages>
+             <Message Id="r" TypeName="IdentifiersShouldBeSpelledCorrectly" Category="Microsoft.Naming" CheckId="CA1704" Created="2011-02-16 14:00:00Z">
+              <Issue Name="MemberParameterMoreMeaningfulName">
+               <Item>'XmlExtension.ReadEndElement(this XmlReader, string)'</Item>
+               <Item>'r'</Item>
+              </Issue>
+             </Message>
+             <Message Id="System.String.Format(System.String,System.Object)" TypeName="SpecifyIFormatProvider" Category="Microsoft.Globalization" CheckId="CA1305" Created="2011-02-16 14:00:00Z">
+              <Issue Name="IFormatProviderAlternateString">
+               <Item>'string.Format(string, object)'</Item>
+               <Item>'XmlExtension.ReadEndElement(this XmlReader, string)'</Item>
+               <Item>'string.Format(IFormatProvider, string, params object[])'</Item>
+               <Item>'CultureInfo.CurrentCulture'</Item>
+               <Item>'CultureInfo.InvariantCulture'</Item>
+              </Issue>
+             </Message>
+            </Messages>
+           </Member>
+          </Members>
+         </Type>
+        </Types>
+       </Namespace>
+      </Namespaces>
+     </Module>
+    </Modules>
+   </Target>
+  </Targets>
+  <Rules>
+   <Rule TypeName="ArrayFieldsShouldNotBeReadOnly" Category="Microsoft.Security" CheckId="CA2105">
+    <Resolution Name="Default">Either replace {0} with a strongly typed collection that cannot be changed, or replace the public field with a method that returns a clone of a private array.</Resolution>
+   </Rule>
+   <Rule TypeName="AssembliesShouldHaveValidStrongNames" Category="Microsoft.Design" CheckId="CA2210">
+    <Resolution Name="NoStrongName">Sign {0} with a strong name key.</Resolution>
+   </Rule>
+   <Rule TypeName="AvoidOutParameters" Category="Microsoft.Design" CheckId="CA1021">
+    <Resolution Name="Default">Consider a design that does not require that {0} be an out parameter.</Resolution>
+   </Rule>
+   <Rule TypeName="CallGCSuppressFinalizeCorrectly" Category="Microsoft.Usage" CheckId="CA1816">
+    <Resolution Name="NotCalled">Change {0} to call {1}. This will prevent derived types that introduce a finalizer from needing to re-implement 'IDisposable' to call it.</Resolution>
+   </Rule>
+   <Rule TypeName="DoNotCatchGeneralExceptionTypes" Category="Microsoft.Design" CheckId="CA1031">
+    <Resolution Name="Default">Modify {0} to catch a more specific exception than {1} or rethrow the exception.</Resolution>
+   </Rule>
+   <Rule TypeName="DoNotDeclareReadOnlyMutableReferenceTypes" Category="Microsoft.Security" CheckId="CA2104">
+    <Resolution Name="Default">Remove the read-only designation from {0} or change the field to one that is an immutable reference type. If the reference type {1} is, in fact, immutable, exclude this message.</Resolution>
+   </Rule>
+   <Rule TypeName="DoNotDeclareStaticMembersOnGenericTypes" Category="Microsoft.Design" CheckId="CA1000">
+    <Resolution Name="Default">Remove {0} from {1} or make it an instance member.</Resolution>
+   </Rule>
+   <Rule TypeName="DoNotDeclareVisibleInstanceFields" Category="Microsoft.Design" CheckId="CA1051">
+    <Resolution Name="Default">Because field {0} is visible outside of its declaring type, change its accessibility to private and add a property, with the same accessibility as the field has currently, to provide access to it.</Resolution>
+   </Rule>
+   <Rule TypeName="DoNotIndirectlyExposeMethodsWithLinkDemands" Category="Microsoft.Security" CheckId="CA2122">
+    <Resolution Name="Default">{0} calls into {1} which has a LinkDemand. By making this call, {1} is indirectly exposed to user code. Review the following call stack that might expose a way to circumvent security protection: {2}</Resolution>
+   </Rule>
+   <Rule TypeName="DoNotNestGenericTypesInMemberSignatures" Category="Microsoft.Design" CheckId="CA1006">
+    <Resolution Name="Default">Consider a design where {0} doesn't nest generic type {1}.</Resolution>
+   </Rule>
+   <Rule TypeName="DoNotRaiseReservedExceptionTypes" Category="Microsoft.Usage" CheckId="CA2201">
+    <Resolution Name="TooGeneric">{0} creates an exception of type {1}, an exception type that is not sufficiently specific and should never be raised by user code. If this exception instance might be thrown, use a different exception type.</Resolution>
+   </Rule>
+   <Rule TypeName="IdentifiersShouldBeSpelledCorrectly" Category="Microsoft.Naming" CheckId="CA1704">
+    <Resolution Name="MemberParameterMoreMeaningfulName">In method {0}, consider providing a more meaningful name than parameter name {1}.</Resolution>
+    <Resolution Name="MethodTypeParameterMoreMeaningfulName">On method {0}, consider providing a more meaningful name than generic type parameter name {1}.</Resolution>
+   </Rule>
+   <Rule TypeName="IdentifiersShouldHaveCorrectPrefix" Category="Microsoft.Naming" CheckId="CA1715">
+    <Resolution Name="MethodTypeParameter">On method {0}, prefix generic type parameter name {1} with 'T'.</Resolution>
+   </Rule>
+   <Rule TypeName="IdentifiersShouldNotContainTypeNames" Category="Microsoft.Naming" CheckId="CA1720">
+    <Resolution Name="LanguageSpecificMember">Consider replacing the language-specific data type identifier '{0}' in member name {1} with either a language-independent equivalent or a more generic term, such as 'value'.</Resolution>
+   </Rule>
+   <Rule TypeName="IdentifiersShouldNotMatchKeywords" Category="Microsoft.Naming" CheckId="CA1716">
+    <Resolution Name="Member">Rename virtual/interface member {0} so that it no longer conflicts with the reserved language keyword '{1}'. Using a reserved keyword as the name of a virtual/interface member makes it harder for consumers in other languages to override/implement the member.</Resolution>
+   </Rule>
+   <Rule TypeName="ImplementIDisposableCorrectly" Category="Microsoft.Design" CheckId="CA1063">
+    <Resolution Name="DisposeImplementation">Modify {0} so that it calls Dispose(true), then calls GC.SuppressFinalize on the current object instance ('this' or 'Me' in Visual Basic), and then returns.</Resolution>
+    <Resolution Name="DisposeSignature">Ensure that {0} is declared as public and sealed.</Resolution>
+    <Resolution Name="ProvideDisposeBool">Provide an overridable implementation of Dispose(bool) on {0} or mark the type as sealed. A call to Dispose(false) should only clean up native resources. A call to Dispose(true) should clean up both managed and native resources.</Resolution>
+   </Rule>
+   <Rule TypeName="ImplementStandardExceptionConstructors" Category="Microsoft.Design" CheckId="CA1032">
+    <Resolution Name="MissingConstructor">Add the following constructor to {0}: {1}.</Resolution>
+   </Rule>
+   <Rule TypeName="InstantiateArgumentExceptionsCorrectly" Category="Microsoft.Usage" CheckId="CA2208">
+    <Resolution Name="NoArguments">Call the {0} constructor that contains a message and/or paramName parameter.</Resolution>
+   </Rule>
+   <Rule TypeName="MarkAssembliesWithAssemblyVersion" Category="Microsoft.Design" CheckId="CA1016">
+    <Resolution Name="Default">Add an AssemblyVersion attribute to {0}.</Resolution>
+   </Rule>
+   <Rule TypeName="MarkAssembliesWithNeutralResourcesLanguage" Category="Microsoft.Performance" CheckId="CA1824">
+    <Resolution Name="Default">Because assembly {0} contains a ResX-based resource file, mark it with the NeutralResourcesLanguage attribute, specifying the language of the resources within the assembly. This could improve lookup performance the first time a resource is retrieved.</Resolution>
+   </Rule>
+   <Rule TypeName="MarkBooleanPInvokeArgumentsWithMarshalAs" Category="Microsoft.Interoperability" CheckId="CA1414">
+    <Resolution Name="Return">Add the MarshalAsAttribute to the return type of P/Invoke {0}. If the corresponding unmanaged return type is a 4-byte Win32 'BOOL', use MarshalAs(UnmanagedType.Bool). For a 1-byte C++ 'bool', use MarshalAs(UnmanagedType.U1).</Resolution>
+   </Rule>
+   <Rule TypeName="MovePInvokesToNativeMethodsClass" Category="Microsoft.Design" CheckId="CA1060">
+    <Resolution Name="Default">Because it is a P/Invoke method, {0} should be defined in a class named NativeMethods, SafeNativeMethods, or UnsafeNativeMethods.</Resolution>
+   </Rule>
+   <Rule TypeName="NestedTypesShouldNotBeVisible" Category="Microsoft.Design" CheckId="CA1034">
+    <Resolution Name="Default">Do not nest type {0}. Alternatively, change its accessibility so that it is not externally visible.</Resolution>
+   </Rule>
+   <Rule TypeName="OperationsShouldNotOverflow" Category="Microsoft.Usage" CheckId="CA2233">
+    <Resolution Name="Default">Correct the potential overflow in the operation '{0}' in {1}.</Resolution>
+   </Rule>
+   <Rule TypeName="ParameterNamesShouldMatchBaseDeclaration" Category="Microsoft.Naming" CheckId="CA1725">
+    <Resolution Name="Default">In member {0}, change parameter name {1} to {2} in order to match the identifier as it has been declared in {3}.</Resolution>
+   </Rule>
+   <Rule TypeName="RemoveUnusedLocals" Category="Microsoft.Performance" CheckId="CA1804">
+    <Resolution Name="Default">{0} declares a variable, {1}, of type {2}, which is never used or is only assigned to. Use this variable or remove it.</Resolution>
+   </Rule>
+   <Rule TypeName="ReviewUnusedParameters" Category="Microsoft.Usage" CheckId="CA1801">
+    <Resolution Name="Default">Parameter {0} of {1} is never used. Remove the parameter or use it in the method body.</Resolution>
+   </Rule>
+   <Rule TypeName="SpecifyIFormatProvider" Category="Microsoft.Globalization" CheckId="CA1305">
+    <Resolution Name="IFormatProviderAlternateString">Because the behavior of {0} could vary based on the current user's locale settings, replace this call in {1} with a call to {2}. If the result of {2} will be displayed to the user, specify {3} as the 'IFormatProvider' parameter. Otherwise, if the result will be stored and accessed by software, such as when it is persisted to disk or to a database, specify {4}.</Resolution>
+   </Rule>
+   <Rule TypeName="SpecifyMarshalingForPInvokeStringArguments" Category="Microsoft.Globalization" CheckId="CA2101">
+    <Resolution Name="ParameterImplicitAnsi">To reduce security risk, marshal parameter {0} as Unicode, by setting DllImport.CharSet to CharSet.Unicode, or by explicitly marshaling the parameter as UnmanagedType.LPWStr. If you need to marshal this string as ANSI or system-dependent, specify MarshalAs explicitly, and set BestFitMapping=false; for added security, also set ThrowOnUnmappableChar=true.</Resolution>
+   </Rule>
+   <Rule TypeName="TypeNamesShouldNotMatchNamespaces" Category="Microsoft.Naming" CheckId="CA1724">
+    <Resolution Name="System">The type name {0} conflicts in whole or in part with the namespace name '{1}' defined in the .NET Framework. Rename the type to eliminate the conflict.</Resolution>
+   </Rule>
+   <Rule TypeName="UseManagedEquivalentsOfWin32Api" Category="Microsoft.Usage" CheckId="CA2205">
+    <Resolution Name="PlatformInvokeDeclaration">Remove the declaration for {0}. Callers should use the following managed alternative: {1}</Resolution>
+   </Rule>
+  </Rules>
+ </FxCopReport>
+</FxCopProject>
