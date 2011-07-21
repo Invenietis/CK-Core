@@ -318,19 +318,19 @@ namespace CK.Plugin.Discoverer.Runner
                     service.AssemblyQualifiedName = t.AssemblyQualifiedName;
 
                     // Get the Events that the service exposes
-                    foreach( EventInfo e in CK.Reflection.Helper.GetFlattenEvents( t ) )
+                    foreach( EventInfo e in CK.Reflection.ReflectionHelper.GetFlattenEvents( t ) )
                     {
                         service.EventsInfoCollection.Add( new SimpleEventInfo( e.Name ) );
                     }
 
                     // Get the Properties that the service exposes
-                    foreach( PropertyInfo p in CK.Reflection.Helper.GetFlattenProperties( t ) )
+                    foreach( PropertyInfo p in CK.Reflection.ReflectionHelper.GetFlattenProperties( t ) )
                     {
                         service.PropertiesInfoCollection.Add( new SimplePropertyInfo( p.Name, p.PropertyType.ToString() ) );
                     }
 
                     // Get the Methods that the service exposes
-                    foreach( MethodInfo m in CK.Reflection.Helper.GetFlattenMethods( t ) )
+                    foreach( MethodInfo m in CK.Reflection.ReflectionHelper.GetFlattenMethods( t ) )
                     {
                         if( !m.IsSpecialName )
                         {
