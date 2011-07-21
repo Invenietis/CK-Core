@@ -17,6 +17,7 @@ namespace CK.Storage
 
         /// <summary>
         /// Creates a simple (full xml based) <see cref="IStructuredReader"/> instance.
+        /// The inner stream will be closed whenever the reader will be disposed.
         /// </summary>
         /// <param name="stream">The stream.</param>
         /// <param name="serviceProvider">The <see cref="IServiceProvider"/> to use.</param>
@@ -28,6 +29,7 @@ namespace CK.Storage
 
         /// <summary>
         /// Creates a simple (full xml based) <see cref="IStructuredReader"/> instance.
+        /// The inner stream will be closed whenever the reader will be disposed.
         /// </summary>
         /// <param name="stream">The stream.</param>
         /// <param name="serviceProvider">The <see cref="IServiceProvider"/> to use.</param>
@@ -49,10 +51,11 @@ namespace CK.Storage
             {
                 r = XmlReader.Create( stream, new XmlReaderSettings()
                 {
+                    CloseInput = true,
                     IgnoreComments = true,
                     IgnoreProcessingInstructions = true,
                     IgnoreWhitespace = true,
-                    ProhibitDtd = true,
+                    DtdProcessing = DtdProcessing.Prohibit,
                     ValidationType = ValidationType.None
                 } );
             }

@@ -16,6 +16,7 @@ namespace CK.Storage
     {
         /// <summary>
         /// Creates an opened standard <see cref="SimpleStructuredWriter"/>.
+        /// The inner stream will be closed whenever the writer will be disposed.
         /// </summary>
         /// <param name="stream">Underlying stream.</param>
         /// <param name="baseServiceProvider">Optional <see cref="IServiceProvider"/>.</param>
@@ -23,7 +24,7 @@ namespace CK.Storage
         static public IStructuredWriter CreateWriter( Stream stream, IServiceProvider baseServiceProvider )
         {
             MissingDisposeCallSentinel.DebugCheckMissing( s => Debug.Fail( s ) );
-            XmlWriter w = XmlWriter.Create( stream, new XmlWriterSettings() { CheckCharacters = true, Indent = true } );
+            XmlWriter w = XmlWriter.Create( stream, new XmlWriterSettings() { CheckCharacters = true, Indent = true, CloseOutput = true } );
             return new WriterImpl( w, baseServiceProvider, true, true );
         }
 

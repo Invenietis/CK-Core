@@ -258,7 +258,7 @@ namespace CK.Storage
                         Xml.WriteAttributeString( "type", "Structured" );
                         Xml.WriteAttributeString( "typeName", GetTypeName( t ) );
                     }
-                    structured.WriteInlineContent( wSub );
+                    structured.WriteContent( wSub );
                     DoWriteEnd( wSub, o );
                 }
                 return true;

@@ -333,7 +333,7 @@ namespace CK.Storage
             {
                 // If no serializer is found, the object must implement IStructuredSerializable interface.
                 if( o == null ) o = Activator.CreateInstance( type );
-                ((IStructuredSerializable)o).ReadInlineContent( rSub );
+                ((IStructuredSerializable)o).ReadContent( rSub );
             }
             OnObjectRead( o, rSub );
             return o;

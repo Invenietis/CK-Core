@@ -41,13 +41,13 @@ namespace CK.Storage
         /// unknown element nor read the current end element.
         /// </summary>
         /// <param name="sr">The reader from which the object is deserialized.</param>
-        void ReadInlineContent( IStructuredReader sr );
+        void ReadContent( IStructuredReader sr );
         
         /// <summary>
         /// Persists an object into the given <see cref="IStructuredWriter"/>.
         /// The current Xml element is already opened and will be closed by the framework: this method must not write the end of the current element.
         /// </summary>
         /// <param name="sw">The writer to which the object is serialized.</param>
-        void WriteInlineContent( IStructuredWriter sw );
+        void WriteContent( IStructuredWriter sw );
     }
 }
