@@ -87,7 +87,7 @@ namespace CK.Interop
                     string dllName = a.GetBestDllName( defaultDllName );
 
                     // Extract parameters type.
-                    Type[] parameterTypes = Helper.CreateParametersType( m.GetParameters() );
+                    Type[] parameterTypes = ReflectionHelper.CreateParametersType( m.GetParameters() );
 
                     MethodBuilder nativeMethod = CreateNative( type, dllName, m, a, parameterTypes );
 
