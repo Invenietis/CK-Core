@@ -95,45 +95,45 @@ namespace CK.Reflection.Tests
 
             //Console.WriteLine( "-- CovariantMatch on Close:" );
             CommonToCloseAndClose2( tC, "Close" );
-            AssertCheck( "False - IBase<B>, Close", Helper.CovariantMatch( typeof( IBase<B> ), tC ) );
-            AssertCheck( "False - IBase<A>, Close", Helper.CovariantMatch( typeof( IBase<A> ), tC ) );
+            AssertCheck( "False - IBase<B>, Close", ReflectionHelper.CovariantMatch( typeof( IBase<B> ), tC ) );
+            AssertCheck( "False - IBase<A>, Close", ReflectionHelper.CovariantMatch( typeof( IBase<A> ), tC ) );
 
-            AssertCheck( "False  - CloseBase<B>, Close", Helper.CovariantMatch( typeof( CloseBase<B> ), tC ) );
-            AssertCheck( "False  - CloseBase<A>, Close", Helper.CovariantMatch( typeof( CloseBase<A> ), tC ) );
-            AssertCheck( "True  - CloseBase<bool>, Close", Helper.CovariantMatch( typeof( CloseBase<bool> ), tC ) );
-            AssertCheck( "True  - CloseBase<ValueType>, Close", Helper.CovariantMatch( typeof( CloseBase<ValueType> ), tC ) );
+            AssertCheck( "False  - CloseBase<B>, Close", ReflectionHelper.CovariantMatch( typeof( CloseBase<B> ), tC ) );
+            AssertCheck( "False  - CloseBase<A>, Close", ReflectionHelper.CovariantMatch( typeof( CloseBase<A> ), tC ) );
+            AssertCheck( "True  - CloseBase<bool>, Close", ReflectionHelper.CovariantMatch( typeof( CloseBase<bool> ), tC ) );
+            AssertCheck( "True  - CloseBase<ValueType>, Close", ReflectionHelper.CovariantMatch( typeof( CloseBase<ValueType> ), tC ) );
 
             //Console.WriteLine( "-- CovariantMatch on Close2:" );
             CommonToCloseAndClose2( tC2, "Close2" );
-            AssertCheck( "True - IBase<B>, Close2", Helper.CovariantMatch( typeof( IBase<B> ), tC2 ) );
-            AssertCheck( "True - IBase<A>, Close2", Helper.CovariantMatch( typeof( IBase<A> ), tC2 ) );
+            AssertCheck( "True - IBase<B>, Close2", ReflectionHelper.CovariantMatch( typeof( IBase<B> ), tC2 ) );
+            AssertCheck( "True - IBase<A>, Close2", ReflectionHelper.CovariantMatch( typeof( IBase<A> ), tC2 ) );
 
-            AssertCheck( "True  - CloseBase<B>, Close2", Helper.CovariantMatch( typeof( CloseBase<B> ), tC2 ) );
-            AssertCheck( "True  - CloseBase<A>, Close2", Helper.CovariantMatch( typeof( CloseBase<A> ), tC2 ) );
-            AssertCheck( "False - CloseBase<bool>, Close2", Helper.CovariantMatch( typeof( CloseBase<bool> ), tC2 ) );
-            AssertCheck( "False - CloseBase<ValueType>, Close2", Helper.CovariantMatch( typeof( CloseBase<ValueType> ), tC2 ) );
+            AssertCheck( "True  - CloseBase<B>, Close2", ReflectionHelper.CovariantMatch( typeof( CloseBase<B> ), tC2 ) );
+            AssertCheck( "True  - CloseBase<A>, Close2", ReflectionHelper.CovariantMatch( typeof( CloseBase<A> ), tC2 ) );
+            AssertCheck( "False - CloseBase<bool>, Close2", ReflectionHelper.CovariantMatch( typeof( CloseBase<bool> ), tC2 ) );
+            AssertCheck( "False - CloseBase<ValueType>, Close2", ReflectionHelper.CovariantMatch( typeof( CloseBase<ValueType> ), tC2 ) );
 
         }
 
         private static void CommonToCloseAndClose2( Type tC, string name )
         {
-            AssertCheck( "True - object" + name, Helper.CovariantMatch( typeof( object ), tC ) );
+            AssertCheck( "True - object" + name, ReflectionHelper.CovariantMatch( typeof( object ), tC ) );
 
-            AssertCheck( "False - IEnumerable<bool>" + name, Helper.CovariantMatch( typeof( IEnumerable<bool> ), tC ) );
-            AssertCheck( "True  - IDerived<bool,A>" + name, Helper.CovariantMatch( typeof( IDerived<bool, A> ), tC ) );
-            AssertCheck( "True  - IDerived<bool,B>" + name, Helper.CovariantMatch( typeof( IDerived<bool, B> ), tC ) );
-            AssertCheck( "False - IDerived<bool,C>" + name, Helper.CovariantMatch( typeof( IDerived<bool, C> ), tC ) );
-            AssertCheck( "False - IDerived<int,A>" + name, Helper.CovariantMatch( typeof( IDerived<int, A> ), tC ) );
-            AssertCheck( "True  - IDerived<ValueType,A>" + name, Helper.CovariantMatch( typeof( IDerived<ValueType, A> ), tC ) );
-            AssertCheck( "True  - IOverBase<bool>" + name, Helper.CovariantMatch( typeof( IOverBase<bool> ), tC ) );
-            AssertCheck( "True  - IOverBase<ValueType>" + name, Helper.CovariantMatch( typeof( IOverBase<ValueType> ), tC ) );
-            AssertCheck( "True  - IOverBase<object>" + name, Helper.CovariantMatch( typeof( IOverBase<object> ), tC ) );
-            AssertCheck( "False - IOverBase<int>" + name, Helper.CovariantMatch( typeof( IOverBase<int> ), tC ) );
-            AssertCheck( "False - IBase<C>" + name, Helper.CovariantMatch( typeof( IBase<C> ), tC ) );
-            AssertCheck( "True  - IBase<object>" + name, Helper.CovariantMatch( typeof( IBase<object> ), tC ) );
+            AssertCheck( "False - IEnumerable<bool>" + name, ReflectionHelper.CovariantMatch( typeof( IEnumerable<bool> ), tC ) );
+            AssertCheck( "True  - IDerived<bool,A>" + name, ReflectionHelper.CovariantMatch( typeof( IDerived<bool, A> ), tC ) );
+            AssertCheck( "True  - IDerived<bool,B>" + name, ReflectionHelper.CovariantMatch( typeof( IDerived<bool, B> ), tC ) );
+            AssertCheck( "False - IDerived<bool,C>" + name, ReflectionHelper.CovariantMatch( typeof( IDerived<bool, C> ), tC ) );
+            AssertCheck( "False - IDerived<int,A>" + name, ReflectionHelper.CovariantMatch( typeof( IDerived<int, A> ), tC ) );
+            AssertCheck( "True  - IDerived<ValueType,A>" + name, ReflectionHelper.CovariantMatch( typeof( IDerived<ValueType, A> ), tC ) );
+            AssertCheck( "True  - IOverBase<bool>" + name, ReflectionHelper.CovariantMatch( typeof( IOverBase<bool> ), tC ) );
+            AssertCheck( "True  - IOverBase<ValueType>" + name, ReflectionHelper.CovariantMatch( typeof( IOverBase<ValueType> ), tC ) );
+            AssertCheck( "True  - IOverBase<object>" + name, ReflectionHelper.CovariantMatch( typeof( IOverBase<object> ), tC ) );
+            AssertCheck( "False - IOverBase<int>" + name, ReflectionHelper.CovariantMatch( typeof( IOverBase<int> ), tC ) );
+            AssertCheck( "False - IBase<C>" + name, ReflectionHelper.CovariantMatch( typeof( IBase<C> ), tC ) );
+            AssertCheck( "True  - IBase<object>" + name, ReflectionHelper.CovariantMatch( typeof( IBase<object> ), tC ) );
 
-            AssertCheck( "True  - CloseBase<object>" + name, Helper.CovariantMatch( typeof( CloseBase<object> ), tC ) );
-            AssertCheck( "False - CloseBase<C>" + name, Helper.CovariantMatch( typeof( CloseBase<C> ), tC ) );
+            AssertCheck( "True  - CloseBase<object>" + name, ReflectionHelper.CovariantMatch( typeof( CloseBase<object> ), tC ) );
+            AssertCheck( "False - CloseBase<C>" + name, ReflectionHelper.CovariantMatch( typeof( CloseBase<C> ), tC ) );
         }
 
         static void AssertCheck( string msg, bool test )

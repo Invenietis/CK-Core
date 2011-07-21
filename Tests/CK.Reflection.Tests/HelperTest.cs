@@ -21,48 +21,48 @@ namespace CK.Reflection.Tests
                 // Both types are inferred (holder and property type).
                 // Requires an instance of the holder.
                 string oneInstance = null;
-                PropertyInfo i = Helper.GetPropertyInfo( oneInstance, s => s.Length );
+                PropertyInfo i = ReflectionHelper.GetPropertyInfo( oneInstance, s => s.Length );
                 Assert.That( i.Name, Is.EqualTo( "Length" ) );
                 Assert.That( i.PropertyType, Is.SameAs( typeof( int ) ) );
 
-                Assert.Throws<ArgumentException>( () => Helper.GetPropertyInfo( oneInstance, s => s.IndexOf( 'e' ) ) );
+                Assert.Throws<ArgumentException>( () => ReflectionHelper.GetPropertyInfo( oneInstance, s => s.IndexOf( 'e' ) ) );
             }
             {
                 // Same as before, but default() is used to "obtain" an instance of the holder type.
                 // To avoid this, next versions can be used.
-                PropertyInfo i = Helper.GetPropertyInfo( default( KeyValuePair<int, long> ), p => p.Value );
+                PropertyInfo i = ReflectionHelper.GetPropertyInfo( default( KeyValuePair<int, long> ), p => p.Value );
                 Assert.That( i.Name, Is.EqualTo( "Value" ) );
                 Assert.That( i.PropertyType, Is.SameAs( typeof( long ) ) );
             }
             {
                 // This version avoids the instance (but requires the holder type to be specified).
-                PropertyInfo i = Helper.GetPropertyInfo<string>( s => s.Length );
+                PropertyInfo i = ReflectionHelper.GetPropertyInfo<string>( s => s.Length );
                 Assert.That( i.Name, Is.EqualTo( "Length" ) );
                 Assert.That( i.PropertyType, Is.SameAs( typeof( int ) ) );
                 
-                Assert.Throws<ArgumentException>( () => Helper.GetPropertyInfo<string>( s => s.IndexOf( 'e' ) ) );
+                Assert.Throws<ArgumentException>( () => ReflectionHelper.GetPropertyInfo<string>( s => s.IndexOf( 'e' ) ) );
             }
             {
                 // This version avoids the instance (but requires the holder type to be specified),
                 // and enables property type checking.
                 //
                 // PropertyInfo iFail = Helper.GetPropertyInfo<string, byte>( s => s.Length );
-                PropertyInfo i = Helper.GetPropertyInfo<string, int>( s => s.Length );
+                PropertyInfo i = ReflectionHelper.GetPropertyInfo<string, int>( s => s.Length );
                 Assert.That( i.Name, Is.EqualTo( "Length" ) );
                 Assert.That( i.PropertyType, Is.SameAs( typeof( int ) ) );
             }
 
             {
                 // This version uses the closure to capture the reference to the property.
-                PropertyInfo i = Helper.GetPropertyInfo( () => AnIntProperty );
+                PropertyInfo i = ReflectionHelper.GetPropertyInfo( () => AnIntProperty );
                 Assert.That( i.Name, Is.EqualTo( "AnIntProperty" ) );
                 Assert.That( i.PropertyType, Is.SameAs( typeof( int ) ) );
 
-                PropertyInfo i2 = Helper.GetPropertyInfo( () => i.Name );
+                PropertyInfo i2 = ReflectionHelper.GetPropertyInfo( () => i.Name );
                 Assert.That( i2.Name, Is.EqualTo( "Name" ) );
                 Assert.That( i2.PropertyType, Is.SameAs( typeof( string ) ) );
 
-                Assert.Throws<ArgumentException>( () => Helper.GetPropertyInfo( () => AppDomain.CurrentDomain.ActivationContext.ApplicationManifestBytes[4] ) );
+                Assert.Throws<ArgumentException>( () => ReflectionHelper.GetPropertyInfo( () => AppDomain.CurrentDomain.ActivationContext.ApplicationManifestBytes[4] ) );
             }
             {
                 // This version uses the closure to capture the reference to the property
@@ -70,15 +70,15 @@ namespace CK.Reflection.Tests
                 
                 // PropertyInfo iFail = Helper.GetPropertyInfo<string>( () => AnIntProperty );
 
-                PropertyInfo i = Helper.GetPropertyInfo<int>( () => AnIntProperty );
+                PropertyInfo i = ReflectionHelper.GetPropertyInfo<int>( () => AnIntProperty );
                 Assert.That( i.Name, Is.EqualTo( "AnIntProperty" ) );
                 Assert.That( i.PropertyType, Is.SameAs( typeof( int ) ) );
 
-                PropertyInfo i2 = Helper.GetPropertyInfo<string>( () => i.Name );
+                PropertyInfo i2 = ReflectionHelper.GetPropertyInfo<string>( () => i.Name );
                 Assert.That( i2.Name, Is.EqualTo( "Name" ) );
                 Assert.That( i2.PropertyType, Is.SameAs( typeof( string ) ) );
                 
-                Assert.Throws<ArgumentException>( () => Helper.GetPropertyInfo( () => i2.Name.Clone() ) );
+                Assert.Throws<ArgumentException>( () => ReflectionHelper.GetPropertyInfo( () => i2.Name.Clone() ) );
 
             }
         }
@@ -89,24 +89,24 @@ namespace CK.Reflection.Tests
             var bindingJustForTest = System.Reflection.BindingFlags.NonPublic|System.Reflection.BindingFlags.Static;
             MethodInfo m = typeof( HelperTest ).GetMethod( "JustForTest", bindingJustForTest );
             {
-                Type[] p = Helper.CreateParametersType( m.GetParameters() );
+                Type[] p = ReflectionHelper.CreateParametersType( m.GetParameters() );
                 Assert.That( p[0] == typeof( int ) );
                 Assert.That( p[1] == typeof( HelperTest ) );
                 Assert.That( p.Length == 2 );
             }
             {
-                Type[] p = Helper.CreateParametersType( m.GetParameters(), 0 );
+                Type[] p = ReflectionHelper.CreateParametersType( m.GetParameters(), 0 );
                 Assert.That( p[0] == typeof( int ) );
                 Assert.That( p[1] == typeof( HelperTest ) );
                 Assert.That( p.Length == 2 );
             }
             {
-                Type[] p = Helper.CreateParametersType( m.GetParameters(), 1 );
+                Type[] p = ReflectionHelper.CreateParametersType( m.GetParameters(), 1 );
                 Assert.That( p[0] == typeof( HelperTest ) );
                 Assert.That( p.Length == 1 );
             }
             {
-                Type[] p = Helper.CreateParametersType( m.GetParameters(), typeof( CategoryAttribute ) );
+                Type[] p = ReflectionHelper.CreateParametersType( m.GetParameters(), typeof( CategoryAttribute ) );
                 Assert.That( p[0] == typeof( CategoryAttribute ) );
                 Assert.That( p[1] == typeof( int ) );
                 Assert.That( p[2] == typeof( HelperTest ) );
