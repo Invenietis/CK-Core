@@ -52,7 +52,7 @@ namespace Storage
             OneString = "Test it";
         }
 
-        public void ReadInlineContent( IStructuredReader sr )
+        public void ReadContent( IStructuredReader sr )
         {
             Assert.That( sr is ISubStructuredReader );
             OneInteger = sr.Xml.GetAttributeInt( "OneI", -7657 );
@@ -60,7 +60,7 @@ namespace Storage
             OneString = sr.Xml.ReadString();
         }
 
-        public void WriteInlineContent( IStructuredWriter sw )
+        public void WriteContent( IStructuredWriter sw )
         {
             sw.Xml.WriteAttributeString( "OneI", OneInteger.ToString() );
             sw.Xml.WriteString( OneString );
