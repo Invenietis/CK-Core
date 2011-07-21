@@ -236,7 +236,7 @@ namespace CK.Reflection
 
         static DynamicMethod CreateDynamicMethod( MethodInfo m )
         {
-            var types = m.IsStatic ? Helper.CreateParametersType( m.GetParameters() ) : Helper.CreateParametersType( m.GetParameters(), m.DeclaringType );
+            var types = m.IsStatic ? ReflectionHelper.CreateParametersType( m.GetParameters() ) : ReflectionHelper.CreateParametersType( m.GetParameters(), m.DeclaringType );
             DynamicMethod dynamicMethod = new DynamicMethod( "NonVirtualInvoker_" + m.Name, m.ReturnType, types, m.DeclaringType );
             ILGenerator il = dynamicMethod.GetILGenerator();
             il.RepushActualParameters( true, types.Length );
@@ -345,7 +345,7 @@ namespace CK.Reflection
                         return null;
                     }
                 }
-                _parameterTypes = instanceToStatic ? Helper.CreateParametersType( parameters, 1 ) : Helper.CreateParametersType( parameters );
+                _parameterTypes = instanceToStatic ? ReflectionHelper.CreateParametersType( parameters, 1 ) : ReflectionHelper.CreateParametersType( parameters );
 
                 var method = _targetType.GetMethod( _methodName, _bindingAttr, null, _parameterTypes, null );
                 var methodFilter = MethodFilter;

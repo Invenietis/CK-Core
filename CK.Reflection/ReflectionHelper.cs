@@ -12,7 +12,7 @@ namespace CK.Reflection
     /// <summary>
     /// Reflection related helpers methods that can not (really) be defined as extension methods.
     /// </summary>
-    static public class Helper
+    static public class ReflectionHelper
     {
 
         /// <summary>
