@@ -10,7 +10,7 @@ namespace CK.Reflection
     /// <summary>
     /// Provides extension methods on <see cref="ILGenerator"/> class.
     /// </summary>
-    public static class ILGeneratorExtensions
+    public static class ILGeneratorExtension
     {
         /// <summary>
         /// Emits the optimal IL to push the actual parameter values on the stack (<see cref="OpCodes.Ldarg_0"/>... <see cref="OpCodes.Ldarg"/>).
