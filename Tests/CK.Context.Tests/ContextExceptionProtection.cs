@@ -24,19 +24,19 @@ namespace CK.Context.Tests
             IContext c = host.CreateContext();
 
             c.LogCenter.EventCreated += LogEventListener;
-            c.OnExitApplication += OnExitOK;
+            c.ApplicationExited += OnExitOK;
 
             c.RaiseExitApplication( false );
             Assert.That( _onExitOKCalled && !_onExitKOCalled, "Just to test that events work." );
 
             _onExitOKCalled = false;
-            c.OnExitApplication += OnExitKO;
+            c.ApplicationExited += OnExitKO;
             c.RaiseExitApplication( false );
             Assert.That( _onExitOKCalled && _onExitKOCalled && _exceptionLogged, "The exception has been caught." );
 
             // Removes the handler and adds it back so that it appears after the buggy one.
-            c.OnExitApplication -= OnExitOK;
-            c.OnExitApplication += OnExitOK;
+            c.ApplicationExited -= OnExitOK;
+            c.ApplicationExited += OnExitOK;
             _onExitOKCalled = _onExitKOCalled = _exceptionLogged = false;
             c.RaiseExitApplication( false );
             Assert.That( _onExitOKCalled && _onExitKOCalled && _exceptionLogged, "The exception has been caught, the remaining subscribers have been called." );

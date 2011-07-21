@@ -10,9 +10,9 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>CK.Context.Tests</RootNamespace>
     <AssemblyName>CK.Context.Tests</AssemblyName>
-    <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
-    <TargetFrameworkProfile />
+    <TargetFrameworkProfile>Client</TargetFrameworkProfile>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -34,7 +34,7 @@
   <ItemGroup>
     <Reference Include="nunit.framework, Version=2.5.9.10348, Culture=neutral, PublicKeyToken=96d09a1eb7f44a77, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\ThirdParty\nunit.framework.dll</HintPath>
+      <HintPath>..\..\..\Tools\NUnit\nunit.framework.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -46,7 +46,9 @@
     <Compile Include="ContextExceptionProtection.cs" />
     <Compile Include="ContextLifetime.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="ReadWrites.cs" />
     <Compile Include="TestBase.cs" />
+    <Compile Include="TestContextHost.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\CK.Context\CK.Context.csproj">
@@ -54,8 +56,16 @@
       <Name>CK.Context</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\CK.Core\CK.Core.csproj">
-      <Project>{6DFBE436-2571-4029-B220-E101D2162A63}</Project>
+      <Project>{97578828-71EC-46B3-BD9A-44E58292386F}</Project>
       <Name>CK.Core</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\CK.Plugin.Config.Model\CK.Plugin.Config.Model.csproj">
+      <Project>{96D1DD2E-9E76-40EA-A943-1E85B44AB862}</Project>
+      <Name>CK.Plugin.Config.Model</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\CK.Plugin.Config\CK.Plugin.Config.csproj">
+      <Project>{CA150073-0318-4281-8324-03246F09A4DD}</Project>
+      <Name>CK.Plugin.Config</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\CK.Plugin.Host\CK.Plugin.Host.csproj">
       <Project>{C9FCBF26-371B-48C2-AA78-06292EE30B9D}</Project>

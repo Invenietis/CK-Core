@@ -97,11 +97,17 @@ namespace CK.Context.Tests
             Directory.CreateDirectory(_testFolder);
 
             // ==> Debug/Plugins
-            _pluginFolder = Path.Combine(p, "Plugins");
+            _pluginFolder = Path.Combine( p, "Context.Tests.Plugins" );
         }
+
         static public string GetTestFilePath( string prefix, string name )
         {
             return Path.Combine( TestFolder, prefix + "." + name + ".xml" );
+        }
+
+        static public void DumpFileToConsole( string path )
+        {
+            Console.WriteLine( File.ReadAllText( path ) );
         }
     }
 }
