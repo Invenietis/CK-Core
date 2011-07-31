@@ -107,8 +107,7 @@ namespace CK.Plugin.Discoverer.Runner
             }
             foreach( var e in _assembliesByName )
             {
-                string assemblyName = null;
-                e.Value.LoadDependencies( out assemblyName );
+                e.Value.LoadDependencies();
             }
             foreach( var e in _assembliesByName )
             {

@@ -51,6 +51,7 @@ namespace CK.Context.Tests
             Assert.That( pluginId, Is.Not.Null );
 
             Assert.That( c.PluginRunner.PluginHost.IsPluginRunning( pluginId ), Is.False );
+            Assert.That( c.PluginRunner.PluginHost.IsPluginRunning( pluginId.PluginId ), Is.False );
 
             var req = new RequirementLayer( "Start SimplePlugin" );
             req.PluginRequirements.AddOrSet( simplePluginId, RunningRequirement.MustExistAndRun );
@@ -58,6 +59,7 @@ namespace CK.Context.Tests
             c.PluginRunner.Apply();
 
             Assert.That( c.PluginRunner.PluginHost.IsPluginRunning( pluginId ), Is.True, "SimplePlugin is running." );
+            Assert.That( c.PluginRunner.PluginHost.IsPluginRunning( pluginId.PluginId ), Is.True, "SimplePlugin is running." );
 
             int eventPhasis = 0;
             c.PluginRunner.PluginHost.StatusChanged += ( o, e ) =>
@@ -87,6 +89,7 @@ namespace CK.Context.Tests
             Assert.That( c.RaiseExitApplication( true ) );
 
             Assert.That( c.PluginRunner.PluginHost.IsPluginRunning( pluginId ), Is.False, "SimplePlugin is no more running." );
+            Assert.That( c.PluginRunner.PluginHost.IsPluginRunning( pluginId.PluginId ), Is.False, "SimplePlugin is no more running." );
         }
 
     }

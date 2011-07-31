@@ -47,6 +47,11 @@ namespace CK.Plugin
         bool IsDirty { get; }
 
         /// <summary>
+        /// Fires at the end of an <see cref="Apply"/>.
+        /// </summary>
+        event EventHandler<ApplyDoneEventArgs> ApplyDone;
+
+        /// <summary>
         /// Attempts to start/stop plugins and services according to the current configuration.
         /// Does nothing (and returns true) if <see cref="IsDirty"/> is false.
         /// </summary>

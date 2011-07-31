@@ -101,7 +101,7 @@ namespace CK.Plugin.Discoverer.Runner
             _services.Sort();
         }
 
-        internal bool LoadDependencies( out string fileName )
+        internal bool LoadDependencies()
         {
             try
             {
@@ -109,18 +109,11 @@ namespace CK.Plugin.Discoverer.Runner
                 {
                     Assembly.ReflectionOnlyLoad( n.FullName );
                 }
-                fileName = "";
                 return true;
-            }
-            catch( FileNotFoundException ex )
-            {
-                AddErrorLine( ex.Message );
-                fileName = ex.FileName;
             }
             catch( Exception ex )
             {
                 AddErrorLine( ex.Message );
-                fileName = "Unknown";
             }
             return false;
         }

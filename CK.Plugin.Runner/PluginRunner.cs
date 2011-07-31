@@ -20,7 +20,7 @@ namespace CK.Plugin.Hosting
         object _contextObject;
         PlanCalculator _planCalculator;
 
-        public event EventHandler ApplyDone;
+        public event EventHandler<ApplyDoneEventArgs> ApplyDone;
 
         public PluginRunner( IServiceProvider externalServiceProvider, IConfigManager cfg )
         {
@@ -136,7 +136,7 @@ namespace CK.Plugin.Hosting
                     }
                     while( _planCalculator.ReapplyNeeded && !errorWhileApplying );
                     
-                    if( ApplyDone != null ) ApplyDone( this, EventArgs.Empty );
+                    if( ApplyDone != null ) ApplyDone( this, new ApplyDoneEventArgs( !errorWhileApplying ) );
                 }
                 finally
                 {

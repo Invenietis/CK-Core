@@ -52,5 +52,16 @@ namespace CK.Plugin
             return (IService<T>)host.GetRunningProxy( typeof( T ) );
         }
 
+        /// <summary>
+        /// Checks whether a plugin is running or not.
+        /// </summary>
+        /// <param name="key">Plugin identifier.</param>
+        /// <returns>True if the plugin is loaded and is currently running.</returns>
+        public static bool IsPluginRunning( this IPluginHost host, Guid key )
+        {
+            IPluginProxy p = host.FindLoadedPlugin( key, false );
+            return p != null && host.IsPluginRunning( p.PluginKey );
+        }
+
     }
 }

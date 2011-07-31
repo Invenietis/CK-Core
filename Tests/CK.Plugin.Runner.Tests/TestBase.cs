@@ -5,6 +5,8 @@ using System.Text;
 using System.IO;
 using NUnit.Framework;
 using CK.Plugin.Hosting;
+using System.Security;
+using System.Threading;
 
 namespace CK.Plugin.Runner
 {
@@ -56,8 +58,8 @@ namespace CK.Plugin.Runner
 
         public static void CleanupTestDir()
         {
-            if( TestFolderDir.Exists )
-                TestFolderDir.Delete( true );
+            TestFolderDir.Refresh();
+            if( TestFolderDir.Exists ) TestFolderDir.Delete( true );
             TestFolderDir.Create();
         }
 
@@ -66,7 +68,7 @@ namespace CK.Plugin.Runner
             if( _testFolder == null ) InitalizePaths();
             foreach( FileInfo f in files )
             {
-                File.Copy( f.FullName, Path.Combine( _testFolder, f.Name ), true );
+                FileCopy( f.FullName, Path.Combine( _testFolder, f.Name ) );
             }
         }
 
@@ -75,7 +77,30 @@ namespace CK.Plugin.Runner
             if( _testFolder == null ) InitalizePaths();
             foreach( string f in fileNames )
             {
-                File.Copy( Path.Combine( _pluginFolder, f ), Path.Combine( _testFolder, f ), true );
+                FileCopy( Path.Combine( _pluginFolder, f ), Path.Combine( _testFolder, f ) );
+            }
+        }
+
+        static void FileCopy( string source, string dest )
+        {
+            int retry = 0;
+            while( retry < 3 )
+            {
+                try
+                {
+                    File.Copy( source, dest, true );
+                    break;
+                }
+                catch( UnauthorizedAccessException )
+                {
+                    Thread.Sleep( 1 );
+                    ++retry;
+                }
+                catch( DirectoryNotFoundException )
+                {
+                    Thread.Sleep( 1 );
+                    ++retry;
+                }
             }
         }
 

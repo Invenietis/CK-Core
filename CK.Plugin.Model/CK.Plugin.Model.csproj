@@ -46,6 +46,7 @@
     <Reference Include="System.XML" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ApplyDoneEventArgs.cs" />
     <Compile Include="Discoverer\DiscoverDoneEventArgs.cs" />
     <Compile Include="Discoverer\IAssemblyInfo.cs" />
     <Compile Include="Discoverer\IDiscoveredInfo.cs" />

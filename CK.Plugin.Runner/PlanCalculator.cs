@@ -246,17 +246,11 @@ namespace CK.Plugin.Hosting
             // If the plugin has to be started.
             if( _parseMap[i] )
             {
-                #region Check its references.
-
-                if( !plugin.IsRunning )
+                // Check its references.
+                foreach( IServiceReferenceInfo serviceRef in actualPlugin.ServiceReferences )
                 {
-                    foreach( IServiceReferenceInfo serviceRef in actualPlugin.ServiceReferences )
-                    {
-                        if( !CheckReference( serviceRef, _parseMap, ref cost ) ) return int.MaxValue;
-                    }
+                    if( !CheckReference( serviceRef, _parseMap, ref cost ) ) return int.MaxValue;
                 }
-
-                #endregion
 
                 #region Check the cost regarding the plugin's requirement, when the plugin is to be started
 
