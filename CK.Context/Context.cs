@@ -44,8 +44,6 @@ namespace CK.Context
         PluginRunner _pluginRunner;
         IContext _proxifiedContext;
         
-        bool _isContextConfigDirty;
-
         /// <summary>
         /// Initializes a new context that is proxified by default.
         /// </summary>
@@ -67,8 +65,6 @@ namespace CK.Context
             _serviceContainer = new ContextServiceContainer( this );
             _dic = SharedDictionary.Create( _serviceContainer );
             _configManager = ConfigurationManager.Create( _dic );
-            _dic.Changed += ( o, e ) => _isContextConfigDirty = true;
-
             _reqLayer = new RequirementLayer( "Context" );
 
             _pluginRunner = new PluginRunner( _serviceContainer, _configManager.ConfigManager );

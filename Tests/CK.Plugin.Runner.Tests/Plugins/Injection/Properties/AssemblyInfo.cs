@@ -7,7 +7,11 @@ using System.Runtime.InteropServices;
 // associated with an assembly.
 [assembly: AssemblyTitle( "Injection" )]
 [assembly: AssemblyDescription( "" )]
-[assembly: AssemblyConfiguration( "" )]
+#if DEBUG
+[assembly: AssemblyConfiguration("Debug")]
+#else
+[assembly: AssemblyConfiguration("Release")]
+#endif
 [assembly: AssemblyCompany( "Invenietis" )]
 [assembly: AssemblyProduct( "Injection" )]
 [assembly: AssemblyCopyright( "Copyright © Invenietis 2011" )]

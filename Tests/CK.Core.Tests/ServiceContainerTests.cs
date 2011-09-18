@@ -90,7 +90,7 @@ namespace Core
     }
 
     [TestFixture]
-    public class ServiceContainer
+    public class ServiceContainerTests
     {
         [Test]
         public void SimpleServiceContainerClassTest()

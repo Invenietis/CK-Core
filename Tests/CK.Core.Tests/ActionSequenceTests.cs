@@ -11,7 +11,7 @@ namespace Core
     }
 
     [TestFixture]
-    public class ActionSequenceTest
+    public class ActionSequenceTests
     {
         [Test]
         public void Test()
@@ -22,7 +22,7 @@ namespace Core
             int oneParam = -1;
             string twoParam1 = null;
             DateTime twoParam2 = DateTime.MinValue;
-            ActionSequenceTest threeParam1 = null;
+            ActionSequenceTests threeParam1 = null;
             bool threeParam2 = false;
             double threeParam3 = 0;
             int addedCall = 0;

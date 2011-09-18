@@ -9,7 +9,7 @@ namespace CK.Core
 {
 
     [TestFixture]
-    public class InvokedFinalizerExceptionTest
+    public class MissingDisposeCallSentinelTests
     {
 
         class DisposableClassDebug : IDisposable

@@ -164,6 +164,7 @@ namespace CK.Plugin.Hosting
         /// it returns the appropriate log configuration.
         /// </summary>
         /// <returns>The log configuration that must be used.</returns>
+        [DebuggerNonUserCodeAttribute]
         protected ServiceLogMethodOptions GetLoggerForRunningCall( int iMethodMRef, out LogMethodEntry logger )
         {
             if( _impl == null || _impl.Status == RunningStatus.Disabled )
@@ -184,6 +185,7 @@ namespace CK.Plugin.Hosting
         /// Returns the appropriate log configuration after having checked that the dynamic service is not disabled.
         /// </summary>
         /// <returns>The log configuration that must be used.</returns>
+        [DebuggerNonUserCodeAttribute]
         protected ServiceLogMethodOptions GetLoggerForNotDisabledCall( int iMethodMRef, out LogMethodEntry logger )
         {
             if( _impl == null || _impl.Status == RunningStatus.Disabled )
@@ -209,12 +211,14 @@ namespace CK.Plugin.Hosting
             return o;
         }
 
+        [DebuggerNonUserCodeAttribute]
         protected void LogEndCall( LogMethodEntry e )
         {
             Debug.Assert( e != null );
             _serviceHost.LogMethodSuccess( e );
         }
 
+        [DebuggerNonUserCodeAttribute]
         protected void LogEndCallWithValue( LogMethodEntry e, object retValue )
         {
             Debug.Assert( e != null );
@@ -222,6 +226,7 @@ namespace CK.Plugin.Hosting
             _serviceHost.LogMethodSuccess( e );
         }
 
+        [DebuggerNonUserCodeAttribute]
         protected void OnCallException( int iMethodMRef, Exception ex, LogMethodEntry e )
         {
             if( e != null )
@@ -242,6 +247,7 @@ namespace CK.Plugin.Hosting
         /// if <see cref="ServiceLogEventOptions.SilentEventRunningStatusError"/> is set: the event will not be raised and no exceptions will be
         /// thrown back to the buggy service.
         /// </summary>
+        [DebuggerNonUserCodeAttribute]
         protected bool GetLoggerEventForRunningCall( int iEventMRef, out LogEventEntry entry, out ServiceLogEventOptions logOptions )
         {
             EEntry e = _eRefs[iEventMRef];
@@ -264,6 +270,7 @@ namespace CK.Plugin.Hosting
             return true;
         }
 
+        [DebuggerNonUserCodeAttribute]
         protected bool GetLoggerEventForNotDisabledCall( int iEventMRef, out LogEventEntry entry, out ServiceLogEventOptions logOptions )
         {
             EEntry e = _eRefs[iEventMRef];
@@ -283,6 +290,7 @@ namespace CK.Plugin.Hosting
             return true;
         }
 
+        [DebuggerNonUserCodeAttribute]
         protected bool GetLoggerEventForAnyCall( int iEventMRef, out LogEventEntry entry, out ServiceLogEventOptions logOptions )
         {
             EEntry e = _eRefs[iEventMRef];
@@ -291,6 +299,7 @@ namespace CK.Plugin.Hosting
             return true;
         }
 
+        [DebuggerNonUserCodeAttribute]
         protected void LogEndRaise( LogEventEntry e )
         {
             Debug.Assert( e != null );
@@ -308,7 +317,8 @@ namespace CK.Plugin.Hosting
         /// <param name="ex">The exception.</param>
         /// <param name="ee">The log entry if it has been created. Will be created if needed.</param>
         /// <returns>True to silently swallow the exception.</returns>
-		protected bool OnEventHandlingException( int iEventMRef, MethodInfo target, Exception ex, ref LogEventEntry ee )
+        [DebuggerNonUserCodeAttribute]
+        protected bool OnEventHandlingException( int iEventMRef, MethodInfo target, Exception ex, ref LogEventEntry ee )
 		{
             EEntry e = _eRefs[iEventMRef];
             if( (e.LogOptions & ServiceLogEventOptions.LogErrors) != 0 )

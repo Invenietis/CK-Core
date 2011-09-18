@@ -30,7 +30,11 @@ using System.Runtime.InteropServices;
 // associated with an assembly.
 [assembly: AssemblyTitle( "ServiceC" )]
 [assembly: AssemblyDescription( "" )]
-[assembly: AssemblyConfiguration( "" )]
+#if DEBUG
+[assembly: AssemblyConfiguration("Debug")]
+#else
+[assembly: AssemblyConfiguration("Release")]
+#endif
 [assembly: AssemblyCompany( "Invenietis" )]
 [assembly: AssemblyProduct( "ServiceC" )]
 [assembly: AssemblyCopyright( "Copyright © Invenietis 2009" )]

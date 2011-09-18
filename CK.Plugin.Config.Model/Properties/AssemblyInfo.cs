@@ -8,7 +8,11 @@ using System;
 // associated with an assembly.
 [assembly: AssemblyTitle( "CK.SharedDic.Model" )]
 [assembly: AssemblyDescription( "" )]
-[assembly: AssemblyConfiguration( "" )]
+#if DEBUG
+[assembly: AssemblyConfiguration("Debug")]
+#else
+[assembly: AssemblyConfiguration("Release")]
+#endif
 [assembly: AssemblyCompany( "Invenietis" )]
 [assembly: AssemblyProduct( "Civikey" )]
 [assembly: AssemblyCopyright( "Copyright © Invenietis & In'tech info 2007-2012" )]

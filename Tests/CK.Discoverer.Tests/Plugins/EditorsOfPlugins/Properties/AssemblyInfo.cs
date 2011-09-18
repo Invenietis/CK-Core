@@ -30,7 +30,11 @@ using System.Runtime.InteropServices;
 // associated with an assembly.
 [assembly: AssemblyTitle( "EditorsOfPlugins" )]
 [assembly: AssemblyDescription( "" )]
-[assembly: AssemblyConfiguration( "" )]
+#if DEBUG
+[assembly: AssemblyConfiguration("Debug")]
+#else
+[assembly: AssemblyConfiguration("Release")]
+#endif
 [assembly: AssemblyCompany( "Invenietis" )]
 [assembly: AssemblyProduct( "EditorsOfPlugins" )]
 [assembly: AssemblyCopyright( "Copyright © Invenietis 2009" )]

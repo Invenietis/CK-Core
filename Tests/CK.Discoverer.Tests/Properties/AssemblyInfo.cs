@@ -7,7 +7,11 @@ using System.Runtime.InteropServices;
 // associated with an assembly.
 [assembly: AssemblyTitle( "CK.Discoverer.Tests" )]
 [assembly: AssemblyDescription("")]
-[assembly: AssemblyConfiguration("")]
+#if DEBUG
+[assembly: AssemblyConfiguration("Debug")]
+#else
+[assembly: AssemblyConfiguration("Release")]
+#endif
 [assembly: AssemblyCompany("Microsoft")]
 [assembly: AssemblyProduct( "CK.Discoverer.Tests" )]
 [assembly: AssemblyCopyright("Copyright © Microsoft 2011")]

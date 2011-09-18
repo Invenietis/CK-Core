@@ -120,7 +120,7 @@ namespace Core
     }
 
     [TestFixture]
-    public class ReadOnlyTest
+    public class ReadOnlyTests
     {
         [Test]
         public void TestImplementationNaked()

@@ -8,7 +8,11 @@ using System;
 // associated with an assembly.
 [assembly: AssemblyTitle( "CK.Plugin.Host" )]
 [assembly: AssemblyDescription( "" )]
-[assembly: AssemblyConfiguration( "" )]
+#if DEBUG
+[assembly: AssemblyConfiguration("Debug")]
+#else
+[assembly: AssemblyConfiguration("Release")]
+#endif
 [assembly: AssemblyCompany( "Invenietis" )]
 [assembly: AssemblyProduct( "CK.Plugin.Hosting" )]
 [assembly: AssemblyCopyright( "Copyright © Invenietis 2011" )]

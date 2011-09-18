@@ -31,7 +31,11 @@ using System.Runtime.InteropServices;
 // associated with an assembly.
 [assembly: AssemblyTitle( "CK.Core" )]
 [assembly: AssemblyDescription("Core library.")]
-[assembly: AssemblyConfiguration("")]
+#if DEBUG
+[assembly: AssemblyConfiguration("Debug")]
+#else
+[assembly: AssemblyConfiguration("Release")]
+#endif
 [assembly: AssemblyCompany("Invenietis")]
 [assembly: AssemblyProduct("Civikey")]
 [assembly: AssemblyCopyright("Copyright © Invenietis - In’Tech INFO 2007-2012")]

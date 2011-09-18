@@ -31,7 +31,11 @@ using System;
 // associated with an assembly.
 [assembly: AssemblyTitle( "CK.Storage" )]
 [assembly: AssemblyDescription("This is a keyboard to help people with disabilities")]
-[assembly: AssemblyConfiguration("")]
+#if DEBUG
+[assembly: AssemblyConfiguration("Debug")]
+#else
+[assembly: AssemblyConfiguration("Release")]
+#endif
 [assembly: AssemblyCompany("Invenietis")]
 [assembly: AssemblyProduct("Custom Virtual Keyboard")]
 [assembly: AssemblyCopyright("Copyright © Invenietis - In’Tech INFO 2007-2009")]

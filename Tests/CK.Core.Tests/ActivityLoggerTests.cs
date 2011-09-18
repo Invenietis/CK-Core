@@ -12,7 +12,7 @@ using System.Xml.XPath;
 namespace Core
 {
     [TestFixture]
-    public class LoggerTdd
+    public class ActivityLoggerTests
     {
 
         public class StringImpl : IDefaultActivityLoggerSink, IDisposable
@@ -117,7 +117,7 @@ namespace Core
         }
 
         [Test]
-        public void TddDefaultImpl()
+        public void DefaultImpl()
         {
             DefaultActivityLogger l = new DefaultActivityLogger();
 

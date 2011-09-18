@@ -30,7 +30,11 @@ using System.Runtime.InteropServices;
 // associées à un assembly.
 [assembly: AssemblyTitle( "VersinnedPlugins" )]
 [assembly: AssemblyDescription( "" )]
-[assembly: AssemblyConfiguration( "" )]
+#if DEBUG
+[assembly: AssemblyConfiguration("Debug")]
+#else
+[assembly: AssemblyConfiguration("Release")]
+#endif
 [assembly: AssemblyCompany( "" )]
 [assembly: AssemblyProduct( "VersinnedPlugins" )]
 [assembly: AssemblyCopyright( "Copyright ©  2010" )]

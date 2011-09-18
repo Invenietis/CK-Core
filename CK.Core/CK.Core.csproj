@@ -58,6 +58,7 @@
     <Compile Include="ActivityLogger\IActivityLogger.cs" />
     <Compile Include="CKException.cs" />
     <Compile Include="ComponentModelExtension.cs" />
+    <Compile Include="FIFOBuffer.cs" />
     <Compile Include="SimpleErrorMessage.cs" />
     <Compile Include="ISimpleErrorMessage.cs" />
     <Compile Include="IFluentInterface.cs" />
