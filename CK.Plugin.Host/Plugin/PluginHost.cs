@@ -178,8 +178,8 @@ namespace CK.Plugin.Hosting
                 {
                     if( p.Status > RunningStatus.Stopped )
                     {
-                        p.RealPlugin.Teardown();
                         SetPluginStatus( p, RunningStatus.Stopped );
+                        p.RealPlugin.Teardown();                        
                         _log.Debug( "The " + p.PublicName + " plugin has been successfully torn down." );
                     }
                 }
@@ -188,6 +188,8 @@ namespace CK.Plugin.Hosting
                     _serviceHost.LogMethodError( p.GetImplMethodInfoTeardown(), ex );
                 }
             }
+            Debug.Assert( toStop.All( p => p.Status <= RunningStatus.Stopped ) );
+
 
             // Prepares the plugins to start so that they become the implementation
             // of their Service and are at least stopped (instead of disabled).
@@ -222,8 +224,9 @@ namespace CK.Plugin.Hosting
             }
 
             // Before starting 
-            foreach( PluginProxy p in toStart )
+            for( int i = 0; i < toStart.Count; i++ )
             {
+                PluginProxy p = toStart[i];
                 // We configure plugin's edition properties.
                 if( PluginConfigurator != null ) PluginConfigurator( p );
 
@@ -239,7 +242,13 @@ namespace CK.Plugin.Hosting
                 {
                     _serviceHost.LogMethodError( p.GetImplMethodInfoSetup(), ex );
 
-                    SetPluginStatus( p, RunningStatus.Stopped, true );
+                    // Revoking the call to Setup for all plugins that haven't been started yet.
+                    //Will pass the plugin to states : Stopping and then Stopped
+                    for( int j = 0; j <= i; j++ )
+                    {
+                        RevokeSetupCall( toStart[j] );
+                    }
+
                     info.Error = ex;
                     return new ExecutionPlanResult() { Culprit = p.PluginKey, Status = ExecutionPlanResultStatus.SetupError, SetupInfo = info };
                 }
@@ -264,8 +273,9 @@ namespace CK.Plugin.Hosting
             }
             _newlyLoadedPlugins.Clear();
 
-            foreach( PluginProxy p in toStart )
+            for( int i = 0; i < toStart.Count; i++ )
             {
+                PluginProxy p = toStart[i];
                 try
                 {
                     SetPluginStatus( p, RunningStatus.Started );
@@ -277,23 +287,53 @@ namespace CK.Plugin.Hosting
                     // 1 - Emitted as a log event.
                     _serviceHost.LogMethodError( p.GetImplMethodInfoStart(), ex );
 
-                    // 2 - Stops the plugin status.
-                    SetPluginStatus( p, RunningStatus.Stopping, false );
-                    // 3 - Safe call to TearDown.
-                    try
+                    //ALl the plugins already started  when the exception was thrown have to be stopped + teardown (including this one in exception)
+                    for( int j= 0; j <= i; j++ )
                     {
-                        p.RealPlugin.Teardown();
+                        RevokeStartCall( toStart[j] );
                     }
-                    catch( Exception exTeardown )
+
+                    // Revoking the call to Setup for all plugins that hadn't been started when the exception occured.
+                    for( int j = i + 1; j < toStart.Count; j++ )
                     {
-                        // 2.1 - Should be emitted as an external log event.
-                        _serviceHost.LogMethodError( p.GetImplMethodInfoTeardown(), exTeardown );
+                        RevokeSetupCall( toStart[j] );
                     }
-                    SetPluginStatus( p, RunningStatus.Stopped, false );
+
                     return new ExecutionPlanResult() { Culprit = p.PluginKey, Status = ExecutionPlanResultStatus.LoadError, Error = ex };
                 }
             }
             return new ExecutionPlanResult();
+        }
+
+        private void RevokeStartCall( PluginProxy p )
+        {
+            try
+            {
+                p.RealPlugin.Stop();
+            }
+            catch( Exception exStop )
+            {
+                // 2.1 - Should be emitted as an external log event.
+                _serviceHost.LogMethodError( p.GetImplMethodInfoTeardown(), exStop );
+            }
+            RevokeSetupCall( p );
+        }
+
+        private void RevokeSetupCall( PluginProxy p )
+        {
+            // 2 - Stops the plugin status.
+            SetPluginStatus( p, RunningStatus.Stopping, true );
+            // 3 - Safe call to TearDown.
+            try
+            {
+                p.RealPlugin.Teardown();
+            }
+            catch( Exception exTeardown )
+            {
+                // 2.1 - Should be emitted as an external log event.
+                _serviceHost.LogMethodError( p.GetImplMethodInfoTeardown(), exTeardown );
+            }
+            SetPluginStatus( p, RunningStatus.Stopped, true );
         }
 
         /// <summary>

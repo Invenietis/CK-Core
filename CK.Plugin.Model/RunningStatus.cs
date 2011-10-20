@@ -85,7 +85,7 @@ namespace CK.Plugin
                 case _disabled: return next._v == _stopped;
                 case _stopped: return next._v == _starting || next._v == _disabled;
                 case _stopping: return next._v == _stopped;
-                case _starting: return next._v == _started || (allowErrorTransition && next._v == _stopped);
+                case _starting: return next._v == _started || (allowErrorTransition && next._v < _starting); //When in Exception, we can pass directly from starting to 'stopping' (and directly to 'stopped' ?)
             }
             // When Started
             return next._v == _stopping;
@@ -143,7 +143,7 @@ namespace CK.Plugin
 		public static bool operator<( RunningStatus x, RunningStatus y )
 		{
 			Debug.Assert( _stopping == 2 && _starting == 3, "If values change we may have to change the equation." );
-			return x._v < y._v && (x._v != 2 && y._v != 3);
+            return x._v < y._v && !((x._v == 2 && y._v == 3) || (x._v == 3 && y._v == 2));
 		}
 
 		/// <summary>
@@ -155,7 +155,7 @@ namespace CK.Plugin
 		public static bool operator>( RunningStatus x, RunningStatus y )
 		{
 			Debug.Assert( _stopping == 2 && _starting == 3, "If values change we may have to change the equation." );
-			return x._v > y._v && (x._v != 3 && y._v != 2);
+            return x._v > y._v && !((x._v == 2 && y._v == 3) || (x._v == 3 && y._v == 2));
 		}
 
 		/// <summary>
@@ -167,7 +167,7 @@ namespace CK.Plugin
 		public static bool operator>=( RunningStatus x, RunningStatus y )
 		{
 			Debug.Assert( _stopping == 2 && _starting == 3, "If values change we may have to change the equation." );
-			return x._v >= y._v && (x._v != 3 && y._v != 2);
+            return x._v >= y._v && !((x._v == 2 && y._v == 3) || (x._v == 3 && y._v == 2));
 		}
 
 		/// <summary>
@@ -179,7 +179,7 @@ namespace CK.Plugin
 		public static bool operator<=( RunningStatus x, RunningStatus y )
 		{
 			Debug.Assert( _stopping == 2 && _starting == 3, "If values change we may have to change the equation." );
-			return x._v <= y._v && (x._v != 2 && y._v != 3);
+            return x._v <= y._v && !((x._v == 2 && y._v == 3) || (x._v == 3 && y._v == 2));
 		}
 
 		/// <summary>
