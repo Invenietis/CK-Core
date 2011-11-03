@@ -106,5 +106,17 @@ namespace CK.Core
             return value;
         }
 
+        /// <summary>
+        /// Gets 1900, january the 1st. This is the 'zero' of Sql Server datetime and smalldatetime
+        /// types.
+        /// </summary>
+        static public readonly DateTime SqlServerEpoch = new DateTime( 1900, 1, 1, 0, 0, 0, DateTimeKind.Utc );
+
+
+        /// <summary>
+        /// Gets 1970, january the 1st. This is the 'zero' of numerous date/time system
+        /// like Unix file system or javascript.
+        /// </summary>
+        static public readonly DateTime UnixEpoch = new DateTime( 1970, 1, 1, 0, 0, 0, DateTimeKind.Utc );
     }
 }
