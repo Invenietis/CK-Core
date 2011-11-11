@@ -48,11 +48,37 @@ namespace CK.Core
         /// When <paramref name="shortLived"/> is true, the <see cref="FileAttributes.Temporary"/> is set on the file.
         /// </summary>
         /// <param name="shortLived">True to set the <see cref="FileAttributes.Temporary"/> on the file.</param>
-		public TemporaryFile( bool shortLived )
-		{
-			_path = System.IO.Path.GetTempFileName();
-			if( shortLived ) File.SetAttributes( _path, FileAttributes.Temporary );
-		}
+        public TemporaryFile( bool shortLived )
+            : this( shortLived, null )
+        {
+        }
+
+        /// <summary>
+        /// Initializes the TemporaryFile with an extension - the file will have a name looking like : xxxx.tmp.extension        
+        /// </summary>
+        /// <param name="extension">The extension of the file (example : '.png' and 'png' would both work) </param>
+        public TemporaryFile( string extension )
+            : this( true, extension )
+        {
+        }
+
+        /// <summary>
+        /// Initializes a new short lived <see cref="TemporaryFile"/> with an extension.
+        /// When <paramref name="shortLived"/> is true, the <see cref="FileAttributes.Temporary"/> is set on the file.
+        /// The file will have a name looking like : xxxx.tmp.extension
+        /// </summary>
+        /// <param name="shortLived">True to set the <see cref="FileAttributes.Temporary"/> on the file.</param>
+        /// <param name="extension">The extension of the file (example : '.png' and 'png' would both work).</param>
+        public TemporaryFile( bool shortLived, string extension )
+        {
+            _path = System.IO.Path.GetTempFileName();
+            if( !String.IsNullOrWhiteSpace( extension ) )
+            {
+                if( extension[0] == '.' ) _path += extension;
+                else _path += '.' + extension;
+            }
+            if( shortLived ) File.SetAttributes( _path, FileAttributes.Temporary );
+        }
 
         /// <summary>
         /// Finalizer attempts to delete the file.

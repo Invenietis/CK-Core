@@ -39,10 +39,10 @@ namespace CK.Core
         /// <param name="getConclusionText">Optional function that will be called on group closing.</param>
         /// <returns>A disposable object that can be used to close the group.</returns>
         /// <remarks>
-        /// A group opening is not be filtered since any subordinated logs may occur.
+        /// A group opening is not filtered since any subordinated logs may occur with a much higher level.
         /// It is left to the implementation to handle (or not) filtering when <see cref="CloseGroup"/> is called.
         /// </remarks>
-        IDisposable OpenGroup( LogLevel level, string text, Func<string> getConclusionText );
+        IDisposable OpenGroup( LogLevel level, Func<string> getConclusionText, string text );
 
         /// <summary>
         /// Closes the current group level, appending an optional conclusion to the opening logged information.

@@ -9,21 +9,55 @@ namespace CK.Core
     /// </summary>
     public static class ActivityLoggerExtension
     {
+
+        /// <summary>
+        /// Opens a log level. <see cref="IActivityLogger.CloseGroup">CloseGroup</see> must be called in order to
+        /// close the group, or the returned object must be disposed.
+        /// </summary>
+        /// <param name="l">This <see cref="IActivityLogger"/> object.</param>
+        /// <param name="level">The log level of the group.</param>
+        /// <param name="text">The text associated to the opening of the log.</param>
+        /// <returns>A disposable object that can be used to close the group.</returns>
+        static public IDisposable OpenGroup( this IActivityLogger l, LogLevel level, string text )
+        {
+            return l.OpenGroup( level, null, text );
+        }
+
         /// <summary>
         /// Opens a log level. <see cref="IActivityLogger.CloseGroup">CloseGroup</see> must be called in order to
         /// close the group, or the returned object must be disposed.
         /// </summary>
         /// <param name="l">This <see cref="IActivityLogger"/> object.</param>
         /// <param name="level">Log level. Since we are opening a group, the current <see cref="IActivityLogger.Filter">Filter</see> is ignored.</param>
-        /// <param name="text">Text to log (the title of the group).</param>
+        /// <param name="getConclusionText">Optional function that will be called on group closing.</param>
+        /// <param name="format">A composite format for the group title.</param>
+        /// <param name="arguments">Arguments to format.</param>
         /// <returns>A disposable object that can be used to close the group.</returns>
         /// <remarks>
         /// A group opening is not be filtered since any subordinated logs may occur.
         /// It is left to the implementation to handle (or not) filtering when <see cref="IActivityLogger.CloseGroup">CloseGroup</see> is called.
         /// </remarks>
-        static public IDisposable OpenGroup( this IActivityLogger l, LogLevel level, string text )
+        static public IDisposable OpenGroup( this IActivityLogger l, LogLevel level, Func<string> getConclusionText, string format, params object[] arguments )
         {
-            return l.OpenGroup( level, text, null );
+            return l.OpenGroup( level, getConclusionText, String.Format( format, arguments ) );
+        }
+
+        /// <summary>
+        /// Opens a log level. <see cref="IActivityLogger.CloseGroup">CloseGroup</see> must be called in order to
+        /// close the group, or the returned object must be disposed.
+        /// </summary>
+        /// <param name="l">This <see cref="IActivityLogger"/> object.</param>
+        /// <param name="level">Log level. Since we are opening a group, the current <see cref="IActivityLogger.Filter">Filter</see> is ignored.</param>
+        /// <param name="format">Format of the string.</param>
+        /// <param name="arguments">Arguments to format.</param>
+        /// <returns>A disposable object that can be used to close the group.</returns>
+        /// <remarks>
+        /// A group opening is not be filtered since any subordinated logs may occur.
+        /// It is left to the implementation to handle (or not) filtering when <see cref="IActivityLogger.CloseGroup">CloseGroup</see> is called.
+        /// </remarks>
+        static public IDisposable OpenGroup( this IActivityLogger l, LogLevel level, string format, params object[] arguments )
+        {
+            return l.OpenGroup( level, null, String.Format( format, arguments ) );
         }
 
         #region Trace

@@ -82,7 +82,7 @@ namespace CK.Core
         class EmptyLogger : DefaultActivityLogger, IDisposable
         {
             public override IActivityLogger UnfilteredLog( LogLevel level, string text ) { return this; }
-            public override IDisposable OpenGroup( LogLevel level, string text, Func<string> getConclusionText ) { return this; }
+            public override IDisposable OpenGroup( LogLevel level, Func<string> getConclusionText, string text ) { return this; }
             public override void CloseGroup( string conclusion ) { }
             public override DefaultActivityLogger Register( IDefaultActivityLoggerSink l ) { return this; }
             public override DefaultActivityLogger Unregister( IDefaultActivityLoggerSink l ) { return this; }
@@ -247,10 +247,10 @@ namespace CK.Core
         /// Opens a <see cref="Group"/> configured with the given parameters.
         /// </summary>
         /// <param name="level">The log level of the group.</param>
-        /// <param name="text">The text associated to the opening of the log.</param>
         /// <param name="getConclusionText">Optional function that will be called on group closing. </param>
+        /// <param name="text">The text associated to the opening of the log.</param>
         /// <returns>The <see cref="Group"/>.</returns>
-        public virtual IDisposable OpenGroup( LogLevel level, string text, Func<string> getConclusionText )
+        public virtual IDisposable OpenGroup( LogLevel level, Func<string> getConclusionText, string text )
         {
             if( _curLevel != -1 )
             {

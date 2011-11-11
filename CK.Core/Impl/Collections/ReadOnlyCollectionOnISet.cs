@@ -24,6 +24,8 @@
 using System.Collections.Generic;
 using System.Collections;
 using System;
+using System.Diagnostics;
+using System.Runtime;
 
 namespace CK.Core
 {
@@ -31,15 +33,17 @@ namespace CK.Core
 	/// Adapts a <see cref="HashSet{T}"/> object to the <see cref="IReadOnlyCollection{T}"/> interface.
 	/// </summary>
 	/// <typeparam name="T">Type of the element.</typeparam>
-	public sealed class ReadOnlyCollectionOnHashSet<T> : IReadOnlyCollection<T>, ICollection<T>
+    [DebuggerTypeProxy( typeof( Impl.ReadOnlyCollectionDebuggerView<> ) ), DebuggerDisplay( "Count = {Count}" )]
+    public sealed class ReadOnlyCollectionOnISet<T> : IReadOnlyCollection<T>, ICollection<T>
     {
-		HashSet<T> _c;
+		ISet<T> _c;
 
 		/// <summary>
-        /// Initializes a new <see cref="ReadOnlyCollectionOnICollection{T}"/> around a <see cref="HashSet{T}"/>.
+        /// Initializes a new <see cref="ReadOnlyCollectionOnISet{T}"/> around a <see cref="ISet{T}"/>.
 		/// </summary>
 		/// <param name="c">Hash set to wrap.</param>
-        public ReadOnlyCollectionOnHashSet( HashSet<T> c )
+        [TargetedPatchingOptOut( "Performance critical to inline across NGen image boundaries" )]
+        public ReadOnlyCollectionOnISet( ISet<T> c )
         {
 			_c = c;
         }
@@ -49,7 +53,8 @@ namespace CK.Core
 		/// </summary>
 		/// <param name="item">Item to challenge.</param>
 		/// <returns>True if the item is contained in the collection.</returns>
-		public bool Contains( object item )
+        [TargetedPatchingOptOut( "Performance critical to inline across NGen image boundaries" )]
+        public bool Contains( object item )
         {
             return item is T ? _c.Contains( (T)item ) : false;
         }
@@ -57,7 +62,7 @@ namespace CK.Core
 		/// <summary>
 		/// Gets the number of items of the collection.
 		/// </summary>
-		public int Count
+        public int Count
         {
             get { return _c.Count; }
         }
@@ -66,12 +71,14 @@ namespace CK.Core
 		/// Returns an enumerator that iterates through the collection.
 		/// </summary>
 		/// <returns>A IEnumerator that can be used to iterate through the collection.</returns>
-		public IEnumerator<T> GetEnumerator()
+        [TargetedPatchingOptOut( "Performance critical to inline across NGen image boundaries" )]
+        public IEnumerator<T> GetEnumerator()
 		{
 			return _c.GetEnumerator();
 		}
 
-		IEnumerator IEnumerable.GetEnumerator()
+        [TargetedPatchingOptOut( "Performance critical to inline across NGen image boundaries" )]
+        IEnumerator IEnumerable.GetEnumerator()
 		{
 			return GetEnumerator();
 		}

@@ -1,6 +1,6 @@
-#region LGPL License
+﻿#region LGPL License
 /*----------------------------------------------------------------------------
-* This file (CK.Core\ISimpleTypeFinder.cs) is part of CiviKey. 
+* This file (CK.Core\ComponentModelExtension.cs) is part of CiviKey. 
 *  
 * CiviKey is free software: you can redistribute it and/or modify 
 * it under the terms of the GNU Lesser General Public License as published 
@@ -22,24 +22,30 @@
 #endregion
 
 using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
 
 namespace CK.Core
 {
     /// <summary>
-    /// This simple interface allows to obtain names from types.
-    /// This can be used in conjuction with <see cref="ISimpleTypeFinder"/>.
+    /// Provides extension methods for collection &amp; list interfaces.
     /// </summary>
-	public interface ISimpleTypeNaming
-	{
+    public static class CollectionExtension
+    {
         /// <summary>
-        /// Gets an external type name.
+        /// Adds multiple items to a collection.
         /// </summary>
-        /// <param name="t">The type for which an external type name must be obtained.</param>
-        /// <returns>
-        /// A string that represents the given type. 
-        /// Can default to <see cref="Type.AssemblyQualifiedName"/>.
-        /// </returns>
-        string GetTypeName( Type t );
-	}
+        /// <typeparam name="T">Collection items' type.</typeparam>
+        /// <param name="c">This collection.</param>
+        /// <param name="items">Multiple items to add. Can not be null.</param>
+        public static void AddRange<T>( this ICollection<T> c, IEnumerable<T> items )
+        {
+            if( items == null ) throw new ArgumentNullException( "items" );
+            foreach( var i in items ) c.Add( i );
+        }
 
+
+
+    }
 }

@@ -26,6 +26,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Runtime;
 
 namespace CK.Core
 {
@@ -33,7 +34,7 @@ namespace CK.Core
 	/// Adapts a <see cref="ICollection{T}"/> object to the <see cref="IReadOnlyCollection{T}"/> interface.
 	/// </summary>
 	/// <typeparam name="T">Type of the element.</typeparam>
-    [DebuggerTypeProxy( typeof( ReadOnlyCollectionOnICollectionDebugView<> ) ), DebuggerDisplay( "Count = {Count}" )]
+    [DebuggerTypeProxy( typeof( Impl.ReadOnlyCollectionDebuggerView<> ) ), DebuggerDisplay( "Count = {Count}" )]
     public sealed class ReadOnlyCollectionOnICollection<T> : IReadOnlyCollection<T>, ICollection<T>
     {
 		ICollection<T> _c;
@@ -42,9 +43,19 @@ namespace CK.Core
 		/// Initializes a new <see cref="ReadOnlyCollectionOnICollection{T}"/> around a <see cref="ICollection{T}"/>.
 		/// </summary>
 		/// <param name="c">Collection to wrap.</param>
-		public ReadOnlyCollectionOnICollection( ICollection<T> c )
+        [TargetedPatchingOptOut( "Performance critical to inline across NGen image boundaries" )]
+        public ReadOnlyCollectionOnICollection( ICollection<T> c )
         {
 			_c = c;
+        }
+
+        /// <summary>
+        /// Gets or sets the wrapped collection.
+        /// </summary>
+        public ICollection<T> Inner
+        {
+            get { return _c; }
+            set { _c = value; }
         }
 
 		/// <summary>
@@ -52,7 +63,7 @@ namespace CK.Core
 		/// </summary>
 		/// <param name="item">Item to challenge.</param>
 		/// <returns>True if the item is contained in the collection.</returns>
-		public bool Contains( object item )
+        public bool Contains( object item )
         {
             return item is T ? _c.Contains( (T)item ) : false;
         }
@@ -60,7 +71,7 @@ namespace CK.Core
 		/// <summary>
 		/// Gets the number of items of the collection.
 		/// </summary>
-		public int Count
+        public int Count
         {
             get { return _c.Count; }
         }
@@ -69,12 +80,12 @@ namespace CK.Core
 		/// Returns an enumerator that iterates through the collection.
 		/// </summary>
 		/// <returns>A IEnumerator that can be used to iterate through the collection.</returns>
-		public IEnumerator<T> GetEnumerator()
+        public IEnumerator<T> GetEnumerator()
 		{
 			return _c.GetEnumerator();
 		}
 
-		IEnumerator IEnumerable.GetEnumerator()
+        IEnumerator IEnumerable.GetEnumerator()
 		{
 			return GetEnumerator();
 		}
@@ -114,22 +125,5 @@ namespace CK.Core
         #endregion
 
     }
-
-    internal class ReadOnlyCollectionOnICollectionDebugView<T>
-    {
-        IReadOnlyCollection<T> _c;
-
-        public ReadOnlyCollectionOnICollectionDebugView( ReadOnlyCollectionOnICollection<T> c )
-        {
-            _c = c;
-        }
-
-        [DebuggerBrowsable( DebuggerBrowsableState.RootHidden )]
-        public object[] Items
-        {
-            get { return _c.Cast<object>().ToArray(); }
-        }
-    }
-
 
 }

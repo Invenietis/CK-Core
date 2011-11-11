@@ -10,6 +10,46 @@ namespace CK.Core
     public static class OSVersionInfo
     {
         /// <summary>
+        /// This is equal to <c>Path.GetDirectoryName( System.Diagnostics.Process.GetCurrentProcess().MainModule.FileName )</c>.
+        /// </summary>
+        public static readonly string RunningDirectory;
+        
+        /// <summary>
+        /// True if we are running Mono.
+        /// </summary>
+        public static readonly bool IsMono;
+
+        /// <summary>
+        /// True if we are running on Unix.
+        /// </summary>
+        public static readonly bool IsUnix;
+
+        /// <summary>
+        /// True if Platform Invoke is supported.
+        /// </summary>
+        public static readonly bool PInvokeSupported;
+
+        static OSVersionInfo()
+        {
+            IsMono = Type.GetType( "System.MonoType", false ) != null;
+
+            PlatformID platformID = Environment.OSVersion.Platform;
+            bool isWin32 = platformID == PlatformID.Win32NT || platformID == PlatformID.Win32Windows;
+
+            if( Environment.Version.Major == 1 )
+            {
+                // Mono 1.0:  unix == 128 (No unix on MS.NET 1.x)
+                IsUnix = (int)platformID == 128;
+            }
+            else IsUnix = platformID == PlatformID.Unix || platformID == PlatformID.MacOSX; 
+
+            PInvokeSupported = isWin32 && !IsMono;
+
+            RunningDirectory = System.IO.Path.GetDirectoryName( System.Diagnostics.Process.GetCurrentProcess().MainModule.FileName );
+
+        }
+
+        /// <summary>
         /// Underlying achitecture of the software
         /// </summary>
         public enum SoftwareArchitecture
@@ -51,8 +91,6 @@ namespace CK.Core
             Itanium64 = 3
         }
 
-        delegate bool IsWow64ProcessDelegate( [In]IntPtr handle, [Out]out bool isWow64Process );
-
         /// <summary>
         /// Determines if the current application is 32 or 64-bit.
         /// </summary>
@@ -61,9 +99,6 @@ namespace CK.Core
             get
             {
                 SoftwareArchitecture pbits = SoftwareArchitecture.Unknown;
-
-                System.Collections.IDictionary test = Environment.GetEnvironmentVariables();
-
                 switch( IntPtr.Size * 8 )
                 {
                     case 64:
@@ -73,12 +108,7 @@ namespace CK.Core
                     case 32:
                         pbits = SoftwareArchitecture.Bit32;
                         break;
-
-                    default:
-                        pbits = SoftwareArchitecture.Unknown;
-                        break;
                 }
-
                 return pbits;
             }
         }
@@ -91,7 +121,6 @@ namespace CK.Core
             get
             {
                 SoftwareArchitecture osbits = SoftwareArchitecture.Unknown;
-
                 switch( IntPtr.Size * 8 )
                 {
                     case 64:
@@ -104,12 +133,7 @@ namespace CK.Core
                         else
                             osbits = SoftwareArchitecture.Bit32;
                         break;
-
-                    default:
-                        osbits = SoftwareArchitecture.Unknown;
-                        break;
                 }
-
                 return osbits;
             }
         }
@@ -122,7 +146,6 @@ namespace CK.Core
             get
             {
                 ProcessorArchitecture pbits = ProcessorArchitecture.Unknown;
-
                 try
                 {
                     SYSTEM_INFO l_System_Info = new SYSTEM_INFO();
@@ -153,8 +176,8 @@ namespace CK.Core
             }
         }
 
+        static private string _osEdition;
 
-        static private string s_Edition;
         /// <summary>
         /// Gets the edition of the operating system running on this computer.
         /// </summary>
@@ -162,15 +185,13 @@ namespace CK.Core
         {
             get
             {
-                string edition = String.Empty;
-
-                if( s_Edition == null )
+                if( _osEdition == null )
                 {
-
+                    string edition = String.Empty;
+                    
                     OperatingSystem osVersion = Environment.OSVersion;
                     OSVERSIONINFOEX osVersionInfo = new OSVERSIONINFOEX();
                     osVersionInfo.dwOSVersionInfoSize = Marshal.SizeOf( typeof( OSVERSIONINFOEX ) );
-
                     if( GetVersionEx( ref osVersionInfo ) )
                     {
                         int majorVersion = osVersion.Version.Major;
@@ -271,8 +292,8 @@ namespace CK.Core
                         {
                             int ed;
                             if( GetProductInfo( majorVersion, minorVersion,
-                                osVersionInfo.wServicePackMajor, osVersionInfo.wServicePackMinor,
-                                out ed ) )
+                                                osVersionInfo.wServicePackMajor, osVersionInfo.wServicePackMinor,
+                                                out ed ) )
                             {
                                 switch( ed )
                                 {
@@ -491,14 +512,14 @@ namespace CK.Core
                         }
                         #endregion VERSION 6
                     }
-
-                    s_Edition = edition;
+                    _osEdition = edition;
                 }
-                return s_Edition;
+                return _osEdition;
             }
         }
 
-        static private string s_Name;
+        static private string _osName;
+
         /// <summary>
         /// Gets the name of the operating system running on this computer.
         /// </summary>
@@ -506,125 +527,126 @@ namespace CK.Core
         {
             get
             {
-                string name = "unknown";
-
-                if( s_Name == null )
+                if( _osName == null )
                 {
+                    string name = "unknown";
 
-                    OperatingSystem osVersion = Environment.OSVersion;
-                    OSVERSIONINFOEX osVersionInfo = new OSVERSIONINFOEX();
-                    osVersionInfo.dwOSVersionInfoSize = Marshal.SizeOf( typeof( OSVERSIONINFOEX ) );
-
-                    if( GetVersionEx( ref osVersionInfo ) )
+                    if( PInvokeSupported )
                     {
-                        int majorVersion = osVersion.Version.Major;
-                        int minorVersion = osVersion.Version.Minor;
+                        OperatingSystem osVersion = Environment.OSVersion;
+                        OSVERSIONINFOEX osVersionInfo = new OSVERSIONINFOEX();
+                        osVersionInfo.dwOSVersionInfoSize = Marshal.SizeOf( typeof( OSVERSIONINFOEX ) );
 
-                        switch( osVersion.Platform )
+                        if( GetVersionEx( ref osVersionInfo ) )
                         {
-                            case PlatformID.Win32S:
-                                name = "Windows 3.1";
-                                break;
-                            case PlatformID.WinCE:
-                                name = "Windows CE";
-                                break;
-                            case PlatformID.Win32Windows:
-                                {
-                                    if( majorVersion == 4 )
+                            int majorVersion = osVersion.Version.Major;
+                            int minorVersion = osVersion.Version.Minor;
+
+                            switch( osVersion.Platform )
+                            {
+                                case PlatformID.Win32S:
+                                    name = "Windows 3.1";
+                                    break;
+                                case PlatformID.WinCE:
+                                    name = "Windows CE";
+                                    break;
+                                case PlatformID.Win32Windows:
                                     {
-                                        string csdVersion = osVersionInfo.szCSDVersion;
-                                        switch( minorVersion )
+                                        if( majorVersion == 4 )
                                         {
-                                            case 0:
-                                                if( csdVersion == "B" || csdVersion == "C" )
-                                                    name = "Windows 95 OSR2";
-                                                else
-                                                    name = "Windows 95";
+                                            string csdVersion = osVersionInfo.szCSDVersion;
+                                            switch( minorVersion )
+                                            {
+                                                case 0:
+                                                    if( csdVersion == "B" || csdVersion == "C" )
+                                                        name = "Windows 95 OSR2";
+                                                    else
+                                                        name = "Windows 95";
+                                                    break;
+                                                case 10:
+                                                    if( csdVersion == "A" )
+                                                        name = "Windows 98 Second Edition";
+                                                    else
+                                                        name = "Windows 98";
+                                                    break;
+                                                case 90:
+                                                    name = "Windows Me";
+                                                    break;
+                                            }
+                                        }
+                                        break;
+                                    }
+                                case PlatformID.Win32NT:
+                                    {
+                                        byte productType = osVersionInfo.wProductType;
+
+                                        switch( majorVersion )
+                                        {
+                                            case 3:
+                                                name = "Windows NT 3.51";
                                                 break;
-                                            case 10:
-                                                if( csdVersion == "A" )
-                                                    name = "Windows 98 Second Edition";
-                                                else
-                                                    name = "Windows 98";
+                                            case 4:
+                                                switch( productType )
+                                                {
+                                                    case 1:
+                                                        name = "Windows NT 4.0";
+                                                        break;
+                                                    case 3:
+                                                        name = "Windows NT 4.0 Server";
+                                                        break;
+                                                }
                                                 break;
-                                            case 90:
-                                                name = "Windows Me";
+                                            case 5:
+                                                switch( minorVersion )
+                                                {
+                                                    case 0:
+                                                        name = "Windows 2000";
+                                                        break;
+                                                    case 1:
+                                                        name = "Windows XP";
+                                                        break;
+                                                    case 2:
+                                                        name = "Windows Server 2003";
+                                                        break;
+                                                }
+                                                break;
+                                            case 6:
+                                                switch( minorVersion )
+                                                {
+                                                    case 0:
+                                                        switch( productType )
+                                                        {
+                                                            case 1:
+                                                                name = "Windows Vista";
+                                                                break;
+                                                            case 3:
+                                                                name = "Windows Server 2008";
+                                                                break;
+                                                        }
+                                                        break;
+
+                                                    case 1:
+                                                        switch( productType )
+                                                        {
+                                                            case 1:
+                                                                name = "Windows 7";
+                                                                break;
+                                                            case 3:
+                                                                name = "Windows Server 2008 R2";
+                                                                break;
+                                                        }
+                                                        break;
+                                                }
                                                 break;
                                         }
+                                        break;
                                     }
-                                    break;
-                                }
-                            case PlatformID.Win32NT:
-                                {
-                                    byte productType = osVersionInfo.wProductType;
-
-                                    switch( majorVersion )
-                                    {
-                                        case 3:
-                                            name = "Windows NT 3.51";
-                                            break;
-                                        case 4:
-                                            switch( productType )
-                                            {
-                                                case 1:
-                                                    name = "Windows NT 4.0";
-                                                    break;
-                                                case 3:
-                                                    name = "Windows NT 4.0 Server";
-                                                    break;
-                                            }
-                                            break;
-                                        case 5:
-                                            switch( minorVersion )
-                                            {
-                                                case 0:
-                                                    name = "Windows 2000";
-                                                    break;
-                                                case 1:
-                                                    name = "Windows XP";
-                                                    break;
-                                                case 2:
-                                                    name = "Windows Server 2003";
-                                                    break;
-                                            }
-                                            break;
-                                        case 6:
-                                            switch( minorVersion )
-                                            {
-                                                case 0:
-                                                    switch( productType )
-                                                    {
-                                                        case 1:
-                                                            name = "Windows Vista";
-                                                            break;
-                                                        case 3:
-                                                            name = "Windows Server 2008";
-                                                            break;
-                                                    }
-                                                    break;
-
-                                                case 1:
-                                                    switch( productType )
-                                                    {
-                                                        case 1:
-                                                            name = "Windows 7";
-                                                            break;
-                                                        case 3:
-                                                            name = "Windows Server 2008 R2";
-                                                            break;
-                                                    }
-                                                    break;
-                                            }
-                                            break;
-                                    }
-                                    break;
-                                }
+                            }
                         }
                     }
-
-                    s_Name = name;
+                    _osName = name;
                 }
-                return s_Name;
+                return _osName;
             }
         }
 
@@ -917,6 +939,9 @@ namespace CK.Core
         #endregion VERSION
 
         #region 64 BIT OS DETECTION
+        
+        delegate bool IsWow64ProcessDelegate( [In]IntPtr handle, [Out]out bool isWow64Process );
+
         private static IsWow64ProcessDelegate GetIsWow64ProcessDelegate()
         {
             IntPtr handle = LoadLibrary( "kernel32" );

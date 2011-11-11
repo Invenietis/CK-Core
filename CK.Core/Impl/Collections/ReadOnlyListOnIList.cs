@@ -24,6 +24,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System;
+using System.Diagnostics;
 
 namespace CK.Core
 {
@@ -31,7 +32,8 @@ namespace CK.Core
 	/// Adapts a <see cref="IList{T}"/> object to the <see cref="IReadOnlyList{T}"/> interface.
 	/// </summary>
 	/// <typeparam name="T">Type of the element.</typeparam>
-	public sealed class ReadOnlyListOnIList<T> : IReadOnlyList<T>, IList<T>
+    [DebuggerTypeProxy( typeof( Impl.ReadOnlyCollectionDebuggerView<> ) ), DebuggerDisplay( "Count = {Count}" )]
+    public sealed class ReadOnlyListOnIList<T> : IReadOnlyList<T>, IList<T>
     {
 		IList<T> _inner;
 
@@ -45,21 +47,22 @@ namespace CK.Core
         }
 
 		/// <summary>
-		/// Gets the wrapped list.
+		/// Gets or sets the wrapped list.
 		/// </summary>
         public IList<T> Inner
         {
             get { return _inner; }
+            set { _inner = value; }
         }
 
 		/// <summary>
 		/// Determines the index of a specific item in list.
 		/// </summary>
 		/// <param name="item">The item to locate in the list.</param>
-		/// <returns>The index of item if found in the list; otherwise, -1.</returns>
+		/// <returns>The index of item if found in the list; otherwise a negative value (see <see cref="IReadOnlyList<T>.IndexOf"/>).</returns>
 		public int IndexOf( object item )
         {
-            return item is T ? _inner.IndexOf( (T)item ) : -1;
+            return item is T ? _inner.IndexOf( (T)item ) : Int32.MinValue;
         }
 
 		/// <summary>
@@ -104,40 +107,6 @@ namespace CK.Core
 		{
 			return _inner.GetEnumerator();
 		}
-
-        /// <summary>
-        /// Obsolete, use ToReadOnlyList or ToReadOnlyCollection extension method instead.
-        /// </summary>
-        /// <param name="list"></param>
-        /// <returns></returns>
-        [Obsolete( "Use ToReadOnlyList or ToReadOnlyCollection extension method instead.", true )]
-        static public IReadOnlyList<T> NewImmutableCopy( IList<T> list )
-        {
-            if( list == null || list.Count == 0 ) return ReadOnlyListEmpty<T>.Empty;
-            if( list.Count == 1 ) return new ReadOnlyListMono<T>( list[0] );
-            T[] t = new T[list.Count];
-            list.CopyTo( t, 0 );
-            return new ReadOnlyListOnIList<T>( t );
-        }
-
-        /// <summary>
-        /// Obsolete, use ToReadOnlyList or ToReadOnlyCollection extension method instead.
-        /// </summary>
-        /// <typeparam name="U"></typeparam>
-        /// <param name="list"></param>
-        /// <param name="convertor"></param>
-        /// <returns></returns>
-        [Obsolete( "Use ToReadOnlyList or ToReadOnlyCollection extension method instead.", true )]
-        static public IReadOnlyList<T> NewImmutableCopy<U>( IList<U> list, Func<U, T> convertor )
-        {
-            if( convertor == null ) throw new ArgumentNullException( "convertor" );
-
-            if( list == null || list.Count == 0 ) return ReadOnlyListEmpty<T>.Empty;
-            if( list.Count == 1 ) return new ReadOnlyListMono<T>( convertor( list[0] ) );
-            T[] t = new T[list.Count];
-            for( int i = 0; i < t.Length; ++i ) t[i] = convertor( list[i] );
-            return new ReadOnlyListOnIList<T>( t );
-        }
 
 
         #region IList<T> Members

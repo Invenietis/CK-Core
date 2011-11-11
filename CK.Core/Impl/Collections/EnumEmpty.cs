@@ -28,6 +28,7 @@ namespace CK.Core
 {
     /// <summary>
     /// Defines a unique empty enumerator.
+    /// Use <see cref="ReadOnlyListEmpty{T}.Empty"/> singleton for an empty <see cref="IEnumerable{T}"/>.
     /// </summary>
 	public sealed class EnumEmpty<T> : IEnumerator<T>
 	{

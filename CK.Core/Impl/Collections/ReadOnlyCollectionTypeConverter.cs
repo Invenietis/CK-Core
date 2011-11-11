@@ -23,6 +23,7 @@
 
 using System.Collections.Generic;
 using System;
+using System.Diagnostics;
 
 namespace CK.Core
 {
@@ -30,17 +31,18 @@ namespace CK.Core
 	/// Wraps a <see cref="IReadOnlyCollection{T}"/> of a <typeparamref name="TOuter"/> type around a <see cref="ICollection{T}"/>
 	/// of <typeparamref name="TInner"/> (the <see cref="Inner"/> collection).
     /// The converter from inner objects to outer objects is required (to expose the content). 
-    /// An optional converter (outer to inner) enables O(1) <see cref="Contains"/> method if and only if the inner collection
+    /// An optional converter (outer to inner) enables O(1) <see cref="Contains"/> method if the inner collection
     /// supports O(1) <see cref="ICollection{TInner}.Contains"/> method (this is the case of dictionary Keys collection).
 	/// </summary>
 	/// <typeparam name="TOuter">Type of the object that must be exposed.</typeparam>
 	/// <typeparam name="TInner">Actual type of the objects contained in the <see cref="Inner"/> collection.</typeparam>
-	public class ReadOnlyCollectionTypeConverter<TOuter, TInner> : EnumerableConverter<TOuter, TInner>, IReadOnlyCollection<TOuter>
+    [DebuggerTypeProxy( typeof( Impl.ReadOnlyCollectionDebuggerView<> ) ), DebuggerDisplay( "Count = {Count}" )]
+    public class ReadOnlyCollectionTypeConverter<TOuter, TInner> : EnumerableConverter<TOuter, TInner>, IReadOnlyCollection<TOuter>
     {
         Converter<TOuter, TInner> _outerToInner;
 
         /// <summary>
-        /// Initializes a new <see cref="ReadOnlyCollectionAdapter{TOuter,TInner}"/> around a <see cref="ICollection{TInner}"/>
+        /// Initializes a new <see cref="ReadOnlyCollectionTypeConverter{TOuter,TInner}"/> around a <see cref="ICollection{TInner}"/>
         /// thanks to a <see cref="Converter{TInner,TOuter}"/> and an optional <see cref="Converter{TInner,TOuter}"/>.
         /// </summary>
         /// <param name="c">Collection to wrap.</param>
@@ -56,7 +58,7 @@ namespace CK.Core
         }
 
         /// <summary>
-        /// Initializes a new <see cref="ReadOnlyCollectionAdapter{TOuter,TInner}"/> around a <see cref="ICollection{TInner}"/>
+        /// Initializes a new <see cref="ReadOnlyCollectionTypeConverter{TOuter,TInner}"/> around a <see cref="ICollection{TInner}"/>
         /// thanks to a <see cref="Converter{TInner,TOuter}"/>.
         /// </summary>
         /// <param name="c">Collection to wrap.</param>
@@ -87,7 +89,7 @@ namespace CK.Core
                 TOuter o = (TOuter)item;
                 // If we have a converter, use it to benefit of inner.Contains implementation.
                 if( _outerToInner != null ) return Inner.Contains( _outerToInner( o ) );
-                // If no converter is provided, take the hard path.
+                // If no converter is provided, takes the hard path.
                 foreach( TInner i in Inner )
                 {
                     if( o.Equals( Converter(i) ) ) return true;

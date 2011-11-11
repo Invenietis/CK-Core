@@ -53,7 +53,7 @@ namespace CK.Core
         /// <returns>Index of the given element</returns>
         public int IndexOf( object item )
         {
-            return -1;
+            return Int32.MinValue;
         }
 
         /// <summary>

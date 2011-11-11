@@ -82,14 +82,17 @@ namespace CK.Core
         /// <returns>The index of the object or -1 if not found.</returns>
         public int IndexOf( object item )
         {
-            return (item == null && default(T) == null ) || item is T ? IndexOf( (T)item ) : -1;
+            return (item == null && default(T) == null ) || item is T ? IndexOf( (T)item ) : Int32.MinValue;
         }
 
         /// <summary>
         /// Gets the index of the given object.
         /// </summary>
         /// <param name="item">Object to find.</param>
-        /// <returns>The index of the object or -1 if not found.</returns>
+        /// <returns>
+        /// The index of the object or the bitwise complement of <see cref="Count"/> if not 
+        /// found (that is a negative value, see <see cref="IReadOnlyList{T}.IndexOf"/>).
+        /// </returns>
         public int IndexOf( T item )
         {
             var comparer = EqualityComparer<T>.Default;
@@ -99,7 +102,7 @@ namespace CK.Core
                 if( bufferIndex == _buffer.Length ) bufferIndex = 0;
                 if( comparer.Equals( _buffer[bufferIndex], item ) ) return i;
             }
-            return -1;
+            return ~_count;
         }
 
         /// <summary>

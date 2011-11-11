@@ -48,10 +48,10 @@ namespace CK.Core
         /// Gets the index of the given item.
         /// </summary>
         /// <param name="item">Item to find</param>
-        /// <returns>Index of the item, 0 or -1 if it is not found</returns>
+        /// <returns>Index of the item, 0 or <see cref="Int32.MinValue"/> if it is not found</returns>
         public int IndexOf( object item )
         {
-            return item is T ? (EqualityComparer<T>.Default.Equals( _val, (T)item ) ? 0 : -1) : -1;
+            return item is T ? (EqualityComparer<T>.Default.Equals( _val, (T)item ) ? 0 : Int32.MinValue) : Int32.MinValue;
         }
 
         /// <summary>
