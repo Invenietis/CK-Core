@@ -101,7 +101,7 @@ namespace CK.SharedDic
                     if( Changed != null )
                     {
                         bool allPluginsConcerned = pluginsTouched.Count == _byPlugin.Count;
-                        Changed( this, new ConfigChangedEventArgs( o, new ReadOnlyCollectionOnHashSet<INamedVersionedUniqueId>( pluginsTouched ), allPluginsConcerned, ChangeStatus.ContainerClear ) );
+                        Changed( this, new ConfigChangedEventArgs( o, new ReadOnlyCollectionOnISet<INamedVersionedUniqueId>( pluginsTouched ), allPluginsConcerned, ChangeStatus.ContainerClear ) );
                     }
                 }
                 if( definitive ) _byObject.Remove( o );
@@ -167,7 +167,7 @@ namespace CK.SharedDic
                     if( Changed != null )
                     {
                         bool allObjectsConcerned = objectsTouched.Count == _byObject.Count;
-                        Changed( this, new ConfigChangedEventArgs( new ReadOnlyCollectionOnHashSet<object>( objectsTouched ), allObjectsConcerned, p, ChangeStatus.ContainerClear ) );
+                        Changed( this, new ConfigChangedEventArgs( new ReadOnlyCollectionOnISet<object>( objectsTouched ), allObjectsConcerned, p, ChangeStatus.ContainerClear ) );
                     }
                 }
                 if( definitive ) _byPlugin.Remove( p.UniqueId );

@@ -190,7 +190,7 @@ namespace CK.Reflection
         /// This check uses <see cref="Type.IsAssignableFrom"/> when the main type is not generic. 
         /// For generics (be it an interface or a class), inheritance relations are used recursively on 
         /// generic parameters: the "is assignable from" semantics is lost in favor of a more 
-        /// relaxed relation, for instance <c>IEnumerable[ICollection[ValueType]]</c> "Covariant matches" with IEnumerable[IList[int]].
+        /// relaxed relation, for instance <c>IEnumerable[ICollection[ValueType]]</c> "Covariant matches" with <c>IEnumerable[IList[int]]</c>.
         /// </summary>
         /// <param name="mainType">The "main type" (the one that must be "more general than" <paramref name="toMatch"/>).</param>
         /// <param name="toMatch">The type to match.</param>

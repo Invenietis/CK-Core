@@ -100,13 +100,13 @@ namespace CK.Plugin.Config
 
         #region IReadOnlyList<IUriHistory>
 
-        public IEnumerator<IUriHistory> GetEnumerator()
+        public new IEnumerator<IUriHistory> GetEnumerator()
         {
             IEnumerable<UriHistory> b = this;
             return b.GetEnumerator();
         }
 
-        public IUriHistory this[int i]
+        public new IUriHistory this[int i]
         {
             get { return base[i]; }
         }

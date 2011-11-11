@@ -125,17 +125,22 @@ namespace Core
 
             Assert.That( l.RegisteredLoggers.Count(), Is.EqualTo( 2 ) );
 
-            using( l.OpenGroup( LogLevel.Trace, "MainGroup", () => { return "EndMainGroup"; } ) )
+            using( l.OpenGroup( LogLevel.Trace, () => "EndMainGroup", "MainGroup" ) )
             {
                 l.Trace( "First" );
                 l.Trace( "Second" );
                 l.Trace( "Third" );
                 l.Info( "First" );
 
-                using( l.OpenGroup( LogLevel.Info, "InfoGroup", () => { return "EndInfoGroup"; } ) )
+                using( l.OpenGroup( LogLevel.Info, () => "EndInfoGroup", "InfoGroup" ) )
                 {
                     l.Info( "Second" );
                     l.Trace( "Fourth" );
+                    
+                    using( l.OpenGroup( LogLevel.Warn, () => "EndWarnGroup", "WarnGroup {0} - Now = {1}", 4, DateTime.UtcNow ) )
+                    {
+                        l.Info( "Warn!" );
+                    }
                 }
             }
 
@@ -144,9 +149,37 @@ namespace Core
 
             XPathDocument d = new XPathDocument( new StringReader( l.FirstLogger<XmlImpl>().InnerWriter.ToString() ) );
 
-            Assert.That( d.CreateNavigator().SelectDescendants( "Info", String.Empty, false ), Is.Not.Empty.And.Count.EqualTo( 2 ) );
+            Assert.That( d.CreateNavigator().SelectDescendants( "Info", String.Empty, false ), Is.Not.Empty.And.Count.EqualTo( 3 ) );
             Assert.That( d.CreateNavigator().SelectDescendants( "Trace", String.Empty, false ), Is.Not.Empty.And.Count.EqualTo( 4 ) );
 
         }
+
+        [Test]
+        public void MultipleClose()
+        {
+            DefaultActivityLogger l = new DefaultActivityLogger();
+
+            var log1 = new StringImpl();
+            var log2 = new XmlImpl( new StringWriter() );
+            l.Register( log1 ).Register( log2 );
+
+            Assert.That( l.RegisteredLoggers.Count(), Is.EqualTo( 2 ) );
+
+            using( l.OpenGroup( LogLevel.Trace, () => "End First", "First" ) )
+            {
+                l.CloseGroup( "Pouf" );
+                using( l.OpenGroup( LogLevel.Warn, "A group at level 0!" ) )
+                {
+                    l.CloseGroup( "Close it." );
+                    l.CloseGroup( "Close it again." );
+                }
+            }
+            Console.WriteLine( log1.Writer.ToString() );
+            Console.WriteLine( log2.InnerWriter.ToString() );
+
+            Assert.That( log1.Writer.ToString(), Is.Not.ContainsSubstring( "End First" ), "Close forgets other closes..." );
+            Assert.That( log1.Writer.ToString(), Is.Not.ContainsSubstring( "Close it again" ), "Close forgets other closes..." );
+        }
+
     }
 }

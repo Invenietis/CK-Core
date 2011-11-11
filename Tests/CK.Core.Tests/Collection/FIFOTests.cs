@@ -5,10 +5,10 @@ using System.Linq;
 using System;
 using System.Globalization;
 
-namespace Core
+namespace Core.Collection
 {
     [TestFixture]
-    public class CollectionsTests
+    public class FIFOTests
     {
         [Test]
         public void FIFOChangeCapacity()

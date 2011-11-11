@@ -10,6 +10,8 @@ namespace Discoverer
     [TestFixture]
     public partial class RunningStatusTests
     {
+#pragma warning disable 1718
+
         [Test]
         public void LighterAndGreaterTests()
         {
@@ -70,7 +72,7 @@ namespace Discoverer
         }
 
         [Test]
-        public void LighterAndGreaterWithEqualsTests()
+        public void LighterAndGreaterOrEqualTests()
         {
             //-- Disabled
             Assert.That( RunningStatus.Disabled <= RunningStatus.Disabled );
@@ -137,5 +139,6 @@ namespace Discoverer
             Assert.False( RunningStatus.Started <= RunningStatus.Starting );
             Assert.False( RunningStatus.Started <= RunningStatus.Stopping );
         }
+#pragma warning restore 1718
     }
 }
