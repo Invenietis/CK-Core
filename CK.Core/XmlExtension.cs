@@ -124,7 +124,19 @@ namespace CK.Core
         #endregion
 
         #region Xml.Linq
-        
+
+        /// <summary>
+        /// Gets the attribute by its name or throws an <see cref="XmlException"/> if it does not exist.
+        /// </summary>
+        /// <param name="r">This <see cref="XElement"/>.</param>
+        /// <param name="name">Name of the attribute.</param>
+        static public XAttribute AttributeRequired( this XElement r, XName name )
+        {
+            XAttribute a = r.Attribute( name );
+            if( a == null ) throw new XmlException( String.Format( R.ExpectedXmlAttribute, name ) );
+            return a;
+        }
+
         /// <summary>
         /// Gets a string attribute by name.
         /// </summary>

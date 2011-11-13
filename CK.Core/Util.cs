@@ -136,6 +136,29 @@ namespace CK.Core
         }
 
         /// <summary>
+        /// Centralized void action call for any pair of types. 
+        /// This method is the safest method never written. 
+        /// It does absolutely nothing.
+        /// </summary>
+        /// <param name="o1">Any object.</param>
+        /// <param name="o2">Any object.</param>
+        public static void ActionVoid<T1, T2>( T1 o1, T2 o2 )
+        {
+        }
+
+        /// <summary>
+        /// Centralized void action call for any 3 types. 
+        /// This method is the safest method never written. 
+        /// It does absolutely nothing.
+        /// </summary>
+        /// <param name="o1">Any object.</param>
+        /// <param name="o2">Any object.</param>
+        /// <param name="o3">Any object.</param>
+        public static void ActionVoid<T1, T2, T3>( T1 o1, T2 o2, T3 o3 )
+        {
+        }
+
+        /// <summary>
         /// Centralized identity function for any type.
         /// </summary>
         /// <typeparam name="T">Type of the function parameter and return value.</typeparam>

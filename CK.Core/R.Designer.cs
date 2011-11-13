@@ -97,6 +97,15 @@ namespace CK.Core {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Expected attribute &apos;{0}&apos;..
+        /// </summary>
+        internal static string ExpectedXmlAttribute {
+            get {
+                return ResourceManager.GetString("ExpectedXmlAttribute", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Expected EndElement token named {0}..
         /// </summary>
         internal static string ExpectedXmlEndElement {
