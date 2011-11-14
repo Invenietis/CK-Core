@@ -24,6 +24,10 @@ namespace Core.Collection
             object o = 21;
             Assert.That( a.Contains( o ), Is.False );
             Assert.That( a.IndexOf( o ), Is.LessThan( 0 ) );
+
+            o = 12;
+            Assert.That( a.Contains( o ), Is.True );
+            Assert.That( a.IndexOf( o ), Is.EqualTo( 2 ) );
         }
 
         [Test]
@@ -125,6 +129,84 @@ namespace Core.Collection
                 ++i;
             }
             Assert.That( String.Join( "", a.Select( m => m.Name ) ), Is.EqualTo( p ) );
+        }
+
+
+        class TestInt : SortedArrayList<int>
+        {
+            public TestInt()
+            {
+            }
+
+            public int[] Tab { get { return Store; } }
+
+            public void CheckList()
+            {
+                Assert.That( this.IsSortedStrict() );
+                int i = Count;
+                while( i < Tab.Length )
+                {
+                    Assert.That( Tab[i], Is.EqualTo( default(int) ) );
+                    ++i;
+                }
+            }
+        }
+
+        private static void CheckList( TestInt a, params int[] p )
+        {
+            a.CheckList();
+            Assert.That( a.SequenceEqual( p ) );
+        }
+
+        [Test]
+        public void AddRemove()
+        {
+            var a = new TestInt();
+            a.CheckList();
+            Assert.Throws<IndexOutOfRangeException>( () => a.RemoveAt( -1 ) );
+            Assert.Throws<IndexOutOfRangeException>( () => a.RemoveAt( 0 ) );
+            Assert.Throws<IndexOutOfRangeException>( () => a.RemoveAt( 1 ) );
+
+            a.Add( 204 );
+            a.CheckList();
+            Assert.Throws<IndexOutOfRangeException>( () => a.RemoveAt( -1 ) );
+            Assert.Throws<IndexOutOfRangeException>( () => a.RemoveAt( 1 ) );
+
+            a.RemoveAt( 0 );
+            Assert.That( a.Count, Is.EqualTo( 0 ) );
+            a.CheckList();
+
+            a.Add( 206 );
+            a.Add( 205 );
+            a.Add( 204 );
+            CheckList( a, 204, 205, 206 );
+
+            a.RemoveAt( 1 );
+            CheckList( a, 204, 206 );
+            Assert.Throws<IndexOutOfRangeException>( () => a.RemoveAt( 2 ) );
+            a.RemoveAt( 1 );
+            CheckList( a, 204 );
+            a.RemoveAt( 0 );
+            CheckList( a );
+
+            a.Add( 206 );
+            a.Add( 205 );
+            a.Add( 204 );
+            a.Add( 207 );
+            a.Add( 208 );
+            CheckList( a, 204, 205, 206, 207, 208 );
+            Assert.Throws<IndexOutOfRangeException>( () => a.RemoveAt( 5 ) );
+            a.RemoveAt( 0 );
+            CheckList( a, 205, 206, 207, 208 );
+            a.RemoveAt( 3 );
+            CheckList( a, 205, 206, 207 );
+            a.RemoveAt( 1 );
+            CheckList( a, 205, 207 );
+            a.RemoveAt( 1 );
+            CheckList( a, 205 );
+            a.RemoveAt( 0 );
+            CheckList( a );
+
         }
 
 

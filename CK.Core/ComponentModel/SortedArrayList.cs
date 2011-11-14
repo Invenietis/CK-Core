@@ -138,7 +138,7 @@ namespace CK.Core
         {
             get
             {
-                if( index >= _count ) throw new ArgumentOutOfRangeException();
+                if( index >= _count ) throw new IndexOutOfRangeException();
                 return _tab[index];
             }
         }
@@ -194,7 +194,7 @@ namespace CK.Core
         /// </returns>
         public int CheckPosition( int index )
         {
-            if( index >= _count ) throw new ArgumentOutOfRangeException();
+            if( index >= _count ) throw new IndexOutOfRangeException();
             int other = index - 1;
             int cmp;
             if( other >= 0 && (cmp = Comparator( _tab[other], _tab[index] )) >= 0 )
@@ -237,7 +237,7 @@ namespace CK.Core
         
         protected virtual T DoSet( int index, T newValue )
         {
-            if( index >= _count ) throw new ArgumentOutOfRangeException();
+            if( index >= _count ) throw new IndexOutOfRangeException();
             if( newValue == null ) throw new ArgumentNullException();
             T oldValue = _tab[index];
             _tab[index] = newValue;
@@ -248,7 +248,7 @@ namespace CK.Core
         protected virtual void DoInsert( int index, T value )
         {
             if( value == null ) throw new ArgumentNullException();
-            if( index < 0 || index > _count ) throw new ArgumentOutOfRangeException();
+            if( index < 0 || index > _count ) throw new IndexOutOfRangeException();
             if( _count == _tab.Length )
             {
                 Capacity = _count == 0 ? _defaultCapacity : _tab.Length * 2;
@@ -271,17 +271,17 @@ namespace CK.Core
 
         protected virtual void DoRemoveAt( int index )
         {
-            int nbToCopy = _count - index;
-            if( index < 0 || nbToCopy < 0 ) throw new ArgumentOutOfRangeException();
-            _count--;
-            _version += 2;
+            int newCount = _count - 1;
+            int nbToCopy = newCount - index;
+            if( index < 0 || nbToCopy < 0 ) throw new IndexOutOfRangeException();
             if( nbToCopy > 0 ) Array.Copy( _tab, index + 1, _tab, index, nbToCopy );
-            _tab[ _count ] = default( T );
+            _tab[(_count = newCount)] = default( T );
+            _version += 2;
         }
 
         protected virtual int DoMove( int from, int newIndex )
         {
-            if( from < 0 || newIndex < 0 ) throw new ArgumentOutOfRangeException();
+            if( from < 0 || newIndex < 0 ) throw new IndexOutOfRangeException();
             int lenToMove = newIndex - from;
             if( lenToMove != 0 )
             {

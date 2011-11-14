@@ -84,6 +84,26 @@ namespace CK.Reflection.Tests
         }
 
         [Test]
+        public void PropertySetter()
+        {
+            {
+                string s = "a string";
+                Assert.Throws<InvalidOperationException>( () => ReflectionHelper.CreateSetter( s, x => x.Length ) );
+                Assert.That( ReflectionHelper.CreateSetter( s, x => x.Length, ReflectionHelper.CreateInvalidSetterOption.NullAction ), Is.Null );
+                var p = ReflectionHelper.CreateSetter( s, x => x.Length, ReflectionHelper.CreateInvalidSetterOption.VoidAction );
+                p( s, 4554 );
+            }
+            {
+                // NUnit.Framework.TestAttribute is an object with a public read/write property...
+                TestAttribute a = new TestAttribute();
+                var setter = ReflectionHelper.CreateSetter( a, x => x.Description );
+                Assert.That( a.Description, Is.Null );
+                setter( a, "Hello World!" );
+                Assert.That( a.Description, Is.EqualTo( "Hello World!" ) );
+            }
+        }
+
+        [Test]
         public void Parameters()
         {
             var bindingJustForTest = System.Reflection.BindingFlags.NonPublic|System.Reflection.BindingFlags.Static;

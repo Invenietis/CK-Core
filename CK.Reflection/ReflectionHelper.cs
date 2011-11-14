@@ -14,6 +14,25 @@ namespace CK.Reflection
     /// </summary>
     static public class ReflectionHelper
     {
+        /// <summary>
+        /// Describes the behavior of <see cref="CreateSetter"/> methods when no setter exists 
+        /// on the property.
+        /// </summary>
+        public enum CreateInvalidSetterOption
+        {
+            /// <summary>
+            /// Throws an <see cref="InvalidOperationException"/>. This is the default.
+            /// </summary>
+            ThrowException,
+            /// <summary>
+            /// Returns a null action delegate.
+            /// </summary>
+            NullAction,
+            /// <summary>
+            /// Returns a void action (an action that does nothing).
+            /// </summary>
+            VoidAction
+        }
 
         /// <summary>
         /// Retrieves a <see cref="PropertyInfo"/> from a lambda function based on an instance of the holder.
@@ -29,10 +48,24 @@ namespace CK.Reflection
         }
 
         /// <summary>
-        /// Retrieves a <see cref="PropertyInfo"/> from a lambda function without requiring an instance of the holder object.
+        /// Creates a setter fo a property. 
+        /// </summary>
+        /// <typeparam name="THolder">Property holder type (will be inferred by the compiler).</typeparam>
+        /// <typeparam name="TProperty">Property type (will be inferred by the compiler).</typeparam>
+        /// <param name="source">An instance of the <typeparamref name="THolder"/>.</param>
+        /// <param name="propertyLambda">A lambda function that selects the property.</param>
+        /// <returns>An action that takes an holder instance and the value to set.</returns>
+        public static Action<THolder, TProperty> CreateSetter<THolder, TProperty>( THolder source, Expression<Func<THolder, TProperty>> propertyLambda, CreateInvalidSetterOption o = CreateInvalidSetterOption.ThrowException )
+        {
+            return CreateSetter<THolder,TProperty>( DoGetPropertyInfo( propertyLambda ), o );
+        }
+
+        /// <summary>
+        /// Retrieves a <see cref="PropertyInfo"/> from a lambda function without requiring an instance of the holder 
+        /// object and without any constraint for the type of the property.
         /// </summary>
         /// <typeparam name="THolder">Property holder type.</typeparam>
-        /// <param name="propertyLambda">A lambda function that selects the property.</param>
+        /// <param name="propertyLambda">A lambda function that selects the property as an object.</param>
         /// <returns>Corresponding property information.</returns>
         public static PropertyInfo GetPropertyInfo<THolder>( Expression<Func<THolder, object>> propertyLambda )
         {
@@ -49,6 +82,18 @@ namespace CK.Reflection
         public static PropertyInfo GetPropertyInfo<THolder, TProperty>( Expression<Func<THolder, TProperty>> propertyLambda )
         {
             return DoGetPropertyInfo( propertyLambda );
+        }
+
+        /// <summary>
+        /// Creates a setter fo a property. 
+        /// </summary>
+        /// <typeparam name="THolder">Property holder type.</typeparam>
+        /// <typeparam name="TProperty">Property type.</typeparam>
+        /// <param name="propertyLambda">A lambda function that selects the property.</param>
+        /// <returns>An action that takes an holder instance and the value to set.</returns>
+        public static Action<THolder, TProperty> CreateSetter<THolder, TProperty>( Expression<Func<THolder, TProperty>> propertyLambda, CreateInvalidSetterOption o = CreateInvalidSetterOption.ThrowException )
+        {
+            return CreateSetter<THolder, TProperty>( DoGetPropertyInfo( propertyLambda ), o );
         }
 
         /// <summary>
@@ -77,6 +122,25 @@ namespace CK.Reflection
                 throw new ArgumentException( string.Format( "Expression '{0}' must refer to a property.", propertyLambda.ToString() ) );
             return propInfo;
         }
+
+        private static Action<THolder, TProperty> CreateSetter<THolder, TProperty>( PropertyInfo property, CreateInvalidSetterOption o )
+        {
+            var holderType = Expression.Parameter( typeof( THolder ), "e" );
+            var propType = Expression.Parameter( typeof( TProperty ), "v" );
+            MethodInfo s = property.GetSetMethod();
+            if( s == null )
+            {
+                if( o == CreateInvalidSetterOption.ThrowException ) throw new InvalidOperationException( string.Format( "Property '{0}' has no setter.", property.Name ) );
+                if( o == CreateInvalidSetterOption.NullAction ) return null;
+                return VoidAction;
+            }
+            return (Action<THolder, TProperty>)Delegate.CreateDelegate( typeof( Action<THolder, TProperty> ), s );
+        }
+
+        static void VoidAction<T1, T2>( T1 o1, T2 o2 )
+        {
+        }
+
 
         /// <summary>
         /// Creates an array of type of a method parameters.
