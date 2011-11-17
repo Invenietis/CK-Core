@@ -29,7 +29,7 @@ namespace CK.Core
 
         /// <summary>
         /// Initializes a new <see cref="SortedArrayList{T}"/> that rejects duplicates 
-        /// and uses the <see cref="Comparer<T>.Default"/> comparer.
+        /// and uses the <see cref="Comparer{T}.Default"/> comparer.
         /// </summary>
         /// <remarks>
         /// A default constructor is a parameterless constructor, it is not the same as a constructor with default parameter values.
@@ -40,16 +40,33 @@ namespace CK.Core
         {
         }
 
+        /// <summary>
+        /// Initializes a new <see cref="SortedArrayList{T}"/> that rejects or allows duplicates 
+        /// and uses the <see cref="Comparer{T}.Default"/> comparer.
+        /// </summary>
+        /// <param name="allowDuplicates">True to allow duplicate elements.</param>
         public SortedArrayList( bool allowDuplicates )
             : this( Comparer<T>.Default.Compare, allowDuplicates )
         {
         }
 
+        /// <summary>
+        /// Initializes a new <see cref="SortedArrayList{T}"/> that rejects or allows duplicates 
+        /// and uses the given comparer.
+        /// </summary>
+        /// <param name="comparer">Comparer to use.</param>
+        /// <param name="allowDuplicates">True to allow duplicate elements.</param>
         public SortedArrayList( IComparer<T> comparer, bool allowDuplicates = false )
             : this( comparer.Compare, allowDuplicates )
         {
         }
 
+        /// <summary>
+        /// Initializes a new <see cref="SortedArrayList{T}"/> that rejects or allows duplicates 
+        /// and uses the given comparison function.
+        /// </summary>
+        /// <param name="comparison">Comparison function to use.</param>
+        /// <param name="allowDuplicates">True to allow duplicate elements.</param>
         public SortedArrayList( Comparison<T> comparison, bool allowDuplicates = false )
         {
             _tab = _empty;
@@ -57,6 +74,11 @@ namespace CK.Core
             if( allowDuplicates ) _version = 1;
         }
 
+        /// <summary>
+        /// Explicitely implemented since our <see cref="Add"/> method
+        /// returns a boolean.
+        /// </summary>
+        /// <param name="item">Item to add.</param>
         void ICollection<T>.Add( T item )
         {
             Add( item );
@@ -70,42 +92,82 @@ namespace CK.Core
             get { return (_version & 1) != 0; } 
         }
 
+        /// <summary>
+        /// Locates an element in this list. 
+        /// </summary>
+        /// <param name="value">The element.</param>
+        /// <returns>The result of the <see cref="Util.BinarySearch{T}"/> in the internal array.</returns>
         public virtual int IndexOf( T value )
         {
             if( value == null ) throw new ArgumentNullException();
             return Util.BinarySearch<T>( _tab, 0, _count, value, Comparator );
         }
 
+        /// <summary>
+        /// Determines whether this <see cref="SortedArrayList{T}"/> contains a specific value.
+        /// </summary>
+        /// <param name="value">The value.</param>
+        /// <returns>True if the object is found; otherwise, false.</returns>
         public bool Contains( T value )
         {
             return IndexOf( value ) >= 0;
         }
 
+        /// <summary>
+        /// Covariant compatible overload of <see cref="IndexOf(T)"/>.
+        /// If the item is not <typeparamref name="T"/> compatible, the 
+        /// value <see cref="Int32.MinValue"/> is returned. See <see cref="IReadOnlyList{T}.IndexOf"/>.
+        /// </summary>
+        /// <param name="item">The item to locate.</param>
+        /// <returns>
+        /// Positive index when found, negative one when not found and <see cref="Int32.MinValue"/> 
+        /// if the item can structurally NOT appear in this list.</returns>
         public virtual int IndexOf( object item )
         {
             return item is T ? IndexOf( (T)item ) : Int32.MinValue;
         }
 
+        /// <summary>
+        /// Covariant compatible overload of <see cref="Contains(T)"/>.
+        /// </summary>
+        /// <param name="item">The item to find.</param>
+        /// <returns>True if the object is found; otherwise, false.</returns>
         public virtual bool Contains( object item )
         {
             return item is T ? Contains( (T)item ) : false;
         }
 
+        /// <summary>
+        /// Copy the content of the internal array into the given array.
+        /// </summary>
+        /// <param name="array">Destination array.</param>
+        /// <param name="arrayIndex">Index at which copying must start.</param>
         public void CopyTo( T[] array, int arrayIndex )
         {
             Array.Copy( _tab, 0, array, arrayIndex, _count );
         }
 
+        /// <summary>
+        /// Gets the number of elements in this sorted list.
+        /// </summary>
         public int Count
         {
             get { return _count; }
         }
 
+        /// <summary>
+        /// Explicit implementation that always returns false.
+        /// </summary>
         bool ICollection<T>.IsReadOnly
         {
             get { return false; }
         }
 
+        /// <summary>
+        /// Removes a value and returns true if found; otherwise returns false.
+        /// </summary>
+        /// <param name="value">The value to remove.</param>
+        /// <returns>True if the value has been found and removed, false otherwise.</returns>
         public bool Remove( T value )
         {
             int index = IndexOf( value );
@@ -114,6 +176,11 @@ namespace CK.Core
             return true;
         }
 
+        /// <summary>
+        /// Gets or sets the current capacity of the internal array.
+        /// When setting it, if the new capacity is less than the current <see cref="Count"/>, 
+        /// an <see cref="ArgumentException"/> is thrown.
+        /// </summary>
         public int Capacity
         {
             get { return _tab.Length; }
@@ -134,6 +201,11 @@ namespace CK.Core
             }
         }
 
+        /// <summary>
+        /// Gets the object at the given index.
+        /// </summary>
+        /// <param name="index">Zero based position of the item in this list.</param>
+        /// <returns>The item.</returns>
         public T this[int index]
         {
             get
@@ -143,17 +215,41 @@ namespace CK.Core
             }
         }
 
+        /// <summary>
+        /// Explicit implementation to hide it as much as possible. 
+        /// The setter calls the protected virtual <see cref="DoSet"/> method
+        /// that does the job of actually setting the item at the given index... 
+        /// even if this breaks the sort.
+        /// </summary>
+        /// <param name="index">Index of the item.</param>
+        /// <returns>The item.</returns>
         T IList<T>.this[int index]
         {
             get { return this[index]; }
             set { DoSet( index, value ); }
         }
 
+        /// <summary>
+        /// Explicit implementation to hide it as much as possible. 
+        /// It calls the protected virtual <see cref="DoInsert"/> method
+        /// that does the job of actually inserting the item at the given index... 
+        /// even if this breaks the sort.
+        /// </summary>
+        /// <param name="index">Future index of the item.</param>
+        /// <param name="value">Item to insert.</param>
         void IList<T>.Insert( int index, T value )
         {
             DoInsert( index, value );
         }
 
+        /// <summary>
+        /// Adds the item at its right position depending on the comparison function and returns true.
+        /// May return false if, for any reason, the item has not been added. At this level (but this 
+        /// may be overriden), if <see cref="AllowDuplicates"/> is false and the item already exists,
+        /// false is returned and the item is not added.
+        /// </summary>
+        /// <param name="value">Item to add.</param>
+        /// <returns>True if the item has actually been added; otherwise false.</returns>
         public bool Add( T value )
         {
             if( value == null ) throw new ArgumentNullException();
@@ -171,11 +267,18 @@ namespace CK.Core
             return true;
         }
 
+        /// <summary>
+        /// Removes the item at the given position.
+        /// </summary>
+        /// <param name="index">Index to remove.</param>
         public void RemoveAt( int index )
         {
             DoRemoveAt( index );
         }
 
+        /// <summary>
+        /// Clears the list.
+        /// </summary>
         public void Clear()
         {
             DoClear();
@@ -233,8 +336,17 @@ namespace CK.Core
             return index;
         }
 
+        /// <summary>
+        /// Gives access to the internal array to specialized classes.
+        /// </summary>
         protected T[] Store { get { return _tab; } }
         
+        /// <summary>
+        /// Sets a value at a given position.
+        /// </summary>
+        /// <param name="index">The position to set.</param>
+        /// <param name="newValue">The new item to inject.</param>
+        /// <returns>The previous item at the position.</returns>
         protected virtual T DoSet( int index, T newValue )
         {
             if( index >= _count ) throw new IndexOutOfRangeException();
@@ -245,6 +357,11 @@ namespace CK.Core
             return oldValue;
         }
 
+        /// <summary>
+        /// Inserts a new item.
+        /// </summary>
+        /// <param name="index">Index to insert.</param>
+        /// <param name="value">Item to insert.</param>
         protected virtual void DoInsert( int index, T value )
         {
             if( value == null ) throw new ArgumentNullException();
@@ -262,6 +379,9 @@ namespace CK.Core
             _version += 2;
         }
 
+        /// <summary>
+        /// Clears the list.
+        /// </summary>
         protected virtual void DoClear()
         {
             Array.Clear( _tab, 0, _count );
@@ -269,6 +389,10 @@ namespace CK.Core
             _version += 2;
          }
 
+        /// <summary>
+        /// Removes the item at a given position.
+        /// </summary>
+        /// <param name="index">Index to remove.</param>
         protected virtual void DoRemoveAt( int index )
         {
             int newCount = _count - 1;
@@ -279,9 +403,16 @@ namespace CK.Core
             _version += 2;
         }
 
+        /// <summary>
+        /// Moves an item from a position to another one.
+        /// </summary>
+        /// <param name="from">Old index of the item.</param>
+        /// <param name="newIndex">New index.</param>
+        /// <returns></returns>
         protected virtual int DoMove( int from, int newIndex )
         {
-            if( from < 0 || newIndex < 0 ) throw new IndexOutOfRangeException();
+            if( from < 0 || from >= _count ) throw new IndexOutOfRangeException();
+            if( newIndex < 0 || newIndex > _count ) throw new IndexOutOfRangeException();
             int lenToMove = newIndex - from;
             if( lenToMove != 0 )
             {
@@ -303,6 +434,10 @@ namespace CK.Core
 
         #region Enumerable
 
+        /// <summary>
+        /// Gets an enumerator.
+        /// </summary>
+        /// <returns></returns>
         public IEnumerator<T> GetEnumerator()
         {
             return new E( this );

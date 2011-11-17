@@ -8,8 +8,8 @@
     <ProjectGuid>{E387D25D-7E29-464F-9172-3118A230C3A3}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>ServiceC.2</RootNamespace>
-    <AssemblyName>ServiceC.2</AssemblyName>
+    <RootNamespace>ServiceC.Bis</RootNamespace>
+    <AssemblyName>ServiceC.Bis</AssemblyName>
     <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <FileUpgradeFlags>

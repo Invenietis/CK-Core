@@ -40,16 +40,16 @@ namespace CK.Tests.Plugin
         [DynamicService( Requires = RunningRequirement.MustExistAndRun )]
         public IServiceC Service { get; set; }
 
-        bool _started;
+        public bool Started;
 
         public void Start()
         {
-            _started = true;
+            Started = true;
         }
 
         public void Stop()
         {
-            _started = false;
+            Started = false;
         }
 
         #region IPlugin Membres
@@ -77,16 +77,16 @@ namespace CK.Tests.Plugin
         [DynamicService( Requires = RunningRequirement.MustExistTryStart )]
         public IServiceC Service { get; set; }
 
-        bool _started;
+        public bool Started;
 
         public void Start()
         {
-            _started = true;
+            Started = true;
         }
 
         public void Stop()
         {
-            _started = false;
+            Started = false;
         }
 
         #region IPlugin Membres
@@ -114,16 +114,16 @@ namespace CK.Tests.Plugin
         [DynamicService( Requires = RunningRequirement.MustExist )]
         public IServiceC Service { get; set; }
 
-        bool _started;
+        public bool Started;
 
         public void Start()
         {
-            _started = true;
+            Started = true;
         }
 
         public void Stop()
         {
-            _started = false;
+            Started = false;
         }
 
         #region IPlugin Membres
@@ -151,16 +151,16 @@ namespace CK.Tests.Plugin
         [DynamicService( Requires = RunningRequirement.OptionalTryStart )]
         public IServiceC Service { get; set; }
 
-        bool _started;
+        public bool Started;
 
         public void Start()
         {
-            _started = true;
+            Started = true;
         }
 
         public void Stop()
         {
-            _started = false;
+            Started = false;
         }
 
         #region IPlugin Membres
@@ -188,16 +188,16 @@ namespace CK.Tests.Plugin
         [DynamicService( Requires = RunningRequirement.Optional )]
         public IServiceC Service { get; set; }
 
-        bool _started;
+        public bool Started;
 
         public void Start()
         {
-            _started = true;
+            Started = true;
         }
 
         public void Stop()
         {
-            _started = false;
+            Started = false;
         }
 
         #region IPlugin Membres

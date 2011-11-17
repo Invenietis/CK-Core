@@ -36,7 +36,7 @@ using System.Runtime.InteropServices;
 [assembly: AssemblyConfiguration("Release")]
 #endif
 [assembly: AssemblyCompany( "Invenietis" )]
-[assembly: AssemblyProduct( "ServiceC.2" )]
+[assembly: AssemblyProduct( "ServiceC.Bis" )]
 [assembly: AssemblyCopyright( "Copyright © Invenietis 2009" )]
 [assembly: AssemblyTrademark( "" )]
 [assembly: AssemblyCulture( "" )]

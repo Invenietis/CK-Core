@@ -214,7 +214,7 @@ namespace CK.Plugin.Runner
             Assert.That( PluginRunner.Apply() );
             Assert.That( PluginRunner.IsPluginRunning( PluginRunner.Discoverer.FindPlugin( serviceC ) ) );
 
-            TestBase.CopyPluginToTestDir( "ServiceC.2.dll" );  // Second Implementation
+            TestBase.CopyPluginToTestDir( "ServiceC.Bis.dll" );  // Second Implementation
             PluginRunner.Discoverer.Discover( TestBase.TestFolderDir, true );
 
             Assert.That( PluginRunner.IsDirty, Is.False );

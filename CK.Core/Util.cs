@@ -178,7 +178,7 @@ namespace CK.Core
         /// <param name="length">The number of elements to consider in the array.</param>
         /// <param name="value">The value to locate.</param>
         /// <param name="comparison">The comparison function.</param>
-        /// <returns>Same as <see cref="Array.BinarySearch"/> (negative index if not found).</returns>
+        /// <returns>Same as <see cref="Array.BinarySearch(Array,object)"/>: negative index if not found which is the bitwise complement of (the index of the next element plus 1).</returns>
         public static int BinarySearch<T>( T[] array, int startIndex, int length, T value, Comparison<T> comparison )
         {
             int low = startIndex;
@@ -205,8 +205,8 @@ namespace CK.Core
         /// <param name="length">The number of elements to consider in the array.</param>
         /// <param name="key">The value of the key.</param>
         /// <param name="comparison">The comparison function.</param>
-        /// <returns>Same as <see cref="Array.BinarySearch"/> (negative index if not found).</returns>
-        public static int BinarySearch<T,TKey>( T[] array, int startIndex, int length, TKey key, Func<T,TKey,int> comparison )
+        /// <returns>Same as <see cref="Array.BinarySearch(Array,object)"/>: negative index if not found which is the bitwise complement of (the index of the next element plus 1).</returns>
+        public static int BinarySearch<T, TKey>( T[] array, int startIndex, int length, TKey key, Func<T, TKey, int> comparison )
         {
             int low = startIndex;
             int high = (startIndex + length) - 1;

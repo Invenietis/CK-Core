@@ -1,6 +1,6 @@
 #region LGPL License
 /*----------------------------------------------------------------------------
-* This file (TestPlugins\ServiceC.2\PluginServiceC.2.cs) is part of CiviKey. 
+* This file (TestPlugins\ServiceC.Bis\PluginServiceC.Bis.cs) is part of CiviKey. 
 *  
 * CiviKey is free software: you can redistribute it and/or modify 
 * it under the terms of the GNU Lesser General Public License as published 
@@ -29,7 +29,7 @@ using CK.Plugin;
 namespace CK.Tests.Plugin
 {
     [Plugin( "{1EC4980D-17F0-4DDC-86C6-631CDB69A6AD}", 
-        PublicName="PluginServiceC.2", 
+        PublicName="PluginServiceC.Bis", 
         Categories=new string[] { "Test" },
         Version="1.0.0" )]
 	public class PluginServiceC : IPlugin, IServiceC

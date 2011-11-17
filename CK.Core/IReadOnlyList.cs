@@ -37,7 +37,7 @@ namespace CK.Core
         /// <param name="item">The object to locate in the list.</param>
         /// <returns>
         /// A positive index of the item in this list, if found, a negative index otherwise.
-        /// If this list is sorted, this must work exactly like <see cref="Array.BinarySearch"/>: if the item is not found and could be added, the result 
+        /// If this list is sorted, this must work exactly like <see cref="Array.BinarySearch(Array,object)"/>: if the item is not found and could be added, the result 
         /// is a negative number which is the bitwise complement of the index at which the new item should be inserted.
         /// To handle the case where the item can NOT be inserted and to be consistent with the positive/negative index semantics, the <see cref="Int32.MinValue"/>
         /// must be returned. See remarks.

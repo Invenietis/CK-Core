@@ -10,7 +10,7 @@ namespace CK.Core
     /// Note that when <typeparamref name="T"/> is a reference type, null can be pushed and pop.
     /// </summary>
     /// <typeparam name="T">Type of the items.</typeparam>
-    public class FIFOBuffer<T> : IReadOnlyList<T> 
+    public class FIFOBuffer<T> : IReadOnlyList<T>, IWritableCollector<T> 
     {
         int _count;
         int _head;
@@ -173,6 +173,12 @@ namespace CK.Core
         {
             if( _count == 0 ) throw new InvalidOperationException( "FIFOBuffer is empty." );
             return _buffer[_head];
+        }
+
+        bool IWritableCollector<T>.Add( T e )
+        {
+            Push( e );
+            return true;
         }
 
         /// <summary>
