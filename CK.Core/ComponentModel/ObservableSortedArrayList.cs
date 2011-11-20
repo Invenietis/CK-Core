@@ -18,8 +18,14 @@ namespace CK.Core
         { 
         }
 
+        /// <summary>
+        /// Standard <see cref="INotifyCollectionChanged"/> event.
+        /// </summary>
         public event NotifyCollectionChangedEventHandler CollectionChanged;
 
+        /// <summary>
+        /// Standard <see cref="INotifyPropertyChanged"/> event.
+        /// </summary>
         public event PropertyChangedEventHandler PropertyChanged;
 
         protected void OnCollectionChanged( NotifyCollectionChangedEventArgs e )

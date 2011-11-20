@@ -6,6 +6,8 @@ using System;
 namespace CK.Core
 {
     /// <summary>
+    /// A <see cref="SortedArrayKeyList{T,TKey}"/> that implements <see cref="CollectionChanged"/> and <see cref="PropertyChanged"/> events
+    /// in order to be an observable collection.
     /// </summary>
     public class ObservableSortedArrayKeyList<T,TKey> : SortedArrayKeyList<T,TKey>, IObservableReadOnlyList<T>
     {
@@ -19,8 +21,14 @@ namespace CK.Core
         {
         }
 
+        /// <summary>
+        /// Standard <see cref="INotifyCollectionChanged"/> event.
+        /// </summary>
         public event NotifyCollectionChangedEventHandler CollectionChanged;
 
+        /// <summary>
+        /// Standard <see cref="INotifyPropertyChanged"/> event.
+        /// </summary>
         public event PropertyChangedEventHandler PropertyChanged;
 
         protected void OnCollectionChanged( NotifyCollectionChangedEventArgs e )

@@ -45,7 +45,16 @@ namespace CK.Core
             foreach( var i in items ) c.Add( i );
         }
 
-
+        /// <summary>
+        /// Adds multiple items to a collection.
+        /// </summary>
+        /// <typeparam name="T">Collection items' type.</typeparam>
+        /// <param name="c">This collection.</param>
+        /// <param name="items">Items to add.</param>
+        public static void AddRangeArray<T>( this ICollection<T> c, params T[] items )
+        {
+            foreach( var i in items ) c.Add( i );
+        }
 
     }
 }

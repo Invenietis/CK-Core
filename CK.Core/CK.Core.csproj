@@ -59,6 +59,8 @@
     <Compile Include="ActivityLogger\LogLevel.cs" />
     <Compile Include="ActivityLogger\IActivityLogger.cs" />
     <Compile Include="CKException.cs" />
+    <Compile Include="IReadOnlyMultiKeyedCollection.cs" />
+    <Compile Include="IReadOnlyUniqueKeyedCollection.cs" />
     <Compile Include="IWritableCollector.cs" />
     <Compile Include="IObservableReadOnlyCollection.cs" />
     <Compile Include="IObservableReadOnlyList.cs" />

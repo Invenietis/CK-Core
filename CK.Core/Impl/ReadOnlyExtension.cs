@@ -29,10 +29,24 @@ using System.Text;
 namespace CK.Core
 {
     /// <summary>
-    /// Provides extension methods for <see cref="IReadOnlyCollection{T}"/> and <see cref="IReadOnlyList{T}"/>.
+    /// Provides extension methods for <see cref="IReadOnlyCollection{T}"/>, <see cref="IReadOnlyList{T}"/> and <see cref="IReadOnlyUniqueKeyedCollection{T,TKey}"/>.
     /// </summary>
     public static class ReadOnlyExtension
     {
+        /// <summary>
+        /// Gets the item with the associated key, forgetting the exists out parameter in <see cref="IReadOnlyUniqueKeyedCollection{T,TKey}.Get(TKey,out bool)"/>.
+        /// </summary>
+        /// <typeparam name="T">Type of the elements in the collection.</typeparam>
+        /// <typeparam name="TKey">Type of the key.</typeparam>
+        /// <param name="coll">Keyed collection of elements.</param>
+        /// <param name="key">The item key.</param>
+        /// <returns>The item that matches the key, default(T) if the key can not be found.</returns>
+        static public T Get<T, TKey>( this IReadOnlyUniqueKeyedCollection<T, TKey> coll, TKey key )
+        {
+            bool exists;
+            return coll.Get( key, out exists );
+        }
+
         /// <summary>
         /// Creates an array from a read only collection.
         /// This is a much more efficient version than the IEnumerable ToArray extension method

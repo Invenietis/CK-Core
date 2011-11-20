@@ -14,7 +14,7 @@ namespace Core.Collection
         public void Simple()
         {
             var a = new SortedArrayList<int>();
-            a.AddRange( new[] { 12, -34, 7, 545, 12 } );
+            a.AddRangeArray( 12, -34, 7, 545, 12 );
             Assert.That( a.Count, Is.EqualTo( 4 ) );
             Assert.That( a, Is.Ordered );
 
