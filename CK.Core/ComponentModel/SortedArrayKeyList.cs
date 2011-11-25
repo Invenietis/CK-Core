@@ -63,7 +63,7 @@ namespace CK.Core
         /// <param name="key">The key.</param>
         /// <param name="exists">True if the key has been found, otherwise false.</param>
         /// <returns>The item or default(T) if not found.</returns>
-        public T Get( TKey key, out bool exists )
+        public T GetByKey( TKey key, out bool exists )
         {
             int idx = Util.BinarySearch( Store, 0, Count, key, ComparisonKey );
             return (exists = idx >= 0) ? Store[idx] : default( T );
@@ -92,7 +92,7 @@ namespace CK.Core
         /// </summary>
         /// <param name="key">The key to find.</param>
         /// <returns>An independant collection of <typeparamref name="T"/>.</returns>
-        public IReadOnlyCollection<T> FindAll( TKey key )
+        public IReadOnlyCollection<T> GetAllByKey( TKey key )
         {
             int idx = Util.BinarySearch( Store, 0, Count, key, ComparisonKey );
             if( idx < 0 ) return ReadOnlyListEmpty<T>.Empty;

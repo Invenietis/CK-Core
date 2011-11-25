@@ -34,17 +34,17 @@ namespace CK.Core
     public static class ReadOnlyExtension
     {
         /// <summary>
-        /// Gets the item with the associated key, forgetting the exists out parameter in <see cref="IReadOnlyUniqueKeyedCollection{T,TKey}.Get(TKey,out bool)"/>.
+        /// Gets the item with the associated key, forgetting the exists out parameter in <see cref="IReadOnlyUniqueKeyedCollection{T,TKey}.GetByKey(TKey,out bool)"/>.
         /// </summary>
         /// <typeparam name="T">Type of the elements in the collection.</typeparam>
         /// <typeparam name="TKey">Type of the key.</typeparam>
         /// <param name="coll">Keyed collection of elements.</param>
         /// <param name="key">The item key.</param>
         /// <returns>The item that matches the key, default(T) if the key can not be found.</returns>
-        static public T Get<T, TKey>( this IReadOnlyUniqueKeyedCollection<T, TKey> coll, TKey key )
+        static public T GetByKey<T, TKey>( this IReadOnlyUniqueKeyedCollection<T, TKey> coll, TKey key )
         {
             bool exists;
-            return coll.Get( key, out exists );
+            return coll.GetByKey( key, out exists );
         }
 
         /// <summary>

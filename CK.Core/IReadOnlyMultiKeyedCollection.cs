@@ -52,6 +52,6 @@ namespace CK.Core
         /// </summary>
         /// <param name="key">The key to find.</param>
         /// <returns>An independant collection of <typeparamref name="T"/>.</returns>
-        IReadOnlyCollection<T> FindAll( TKey key );
+        IReadOnlyCollection<T> GetAllByKey( TKey key );
     }
 }

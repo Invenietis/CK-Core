@@ -54,7 +54,7 @@ namespace CK.Core
         /// to define a method with an ( out T ) parameter where T is covariant: we can not define 
         /// the standard TryGetValue method but this "opposite" form.
         /// </remarks>
-        T Get( TKey key, out bool exists );
+        T GetByKey( TKey key, out bool exists );
 
     }
 }
