@@ -1351,7 +1351,7 @@ namespace CK.Interop
             int SetForegroundWindow( IntPtr hWnd );
 
             [DllImport( EntryPoint32 = "SetWindowLong", EntryPoint64 = "SetWindowLongPtr", ExactSpelling = false )]
-            IntPtr SetWindowLong( IntPtr hWnd, WindowLongIndex index, long dwNewLong );
+            IntPtr SetWindowLong( IntPtr hWnd, WindowLongIndex index, uint dwNewLong );
 
             [DllImport( EntryPoint32 = "GetWindowLong", EntryPoint64 = "GetWindowLongPtr", ExactSpelling = false  )]
             IntPtr GetWindowLong( IntPtr hWnd, WindowLongIndex index );
