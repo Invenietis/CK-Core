@@ -166,7 +166,7 @@ namespace CK.Context
         {
             var e = new ContextProfileRequiredEventArgs( Context, saving )
             {
-                Address = new Uri( Path.Combine( _appDataPath, "Context.xml" ) ),
+                Address = new Uri( Path.Combine( ApplicationDataPath, "Context.xml" ) ),
                 DisplayName = String.Format( Res.R.NewContextDisplayName, DateTime.Now )
             };
             var h = ContextAddressRequired;
