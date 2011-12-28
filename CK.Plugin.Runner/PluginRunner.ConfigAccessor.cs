@@ -39,7 +39,7 @@ namespace CK.Plugin.Hosting
             PluginConfigAccessor result;
             if( !_configAccessors.TryGetValue( p, out result ) )
             {
-                result = new PluginConfigAccessor( idEdited, _config.Extended, _contextObject );
+                result = new PluginConfigAccessor( p, _config.Extended, _contextObject );
                 _configAccessors.Add( p, result );
             }
             return result;
