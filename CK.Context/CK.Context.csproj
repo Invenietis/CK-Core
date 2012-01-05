@@ -50,7 +50,6 @@
     <Compile Include="Context.cs" />
     <Compile Include="Host\AbstractContextHost.cs" />
     <Compile Include="Host\IHostInformation.cs" />
-    <Compile Include="Host\StandardContextHost.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Res\R.Designer.cs">
       <AutoGen>True</AutoGen>

@@ -19,7 +19,7 @@ namespace CK.Context.Tests
         [Test]
         public void TestExceptions()
         {
-            StandardContextHost host = new StandardContextHost( "TestContexts", null );
+            TestContextHost host = new TestContextHost("TestContexts");
             
             IContext c = host.CreateContext();
 

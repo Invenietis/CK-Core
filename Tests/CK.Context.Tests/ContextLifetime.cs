@@ -11,7 +11,7 @@ namespace CK.Context.Tests
         public void ApplicationExitEvents()
         {
             {
-                StandardContextHost host = new StandardContextHost( "TestContexts", null );
+                TestContextHost host = new TestContextHost("TestContexts");
 
                 IContext c = host.CreateContext();
 
@@ -23,7 +23,7 @@ namespace CK.Context.Tests
                 Assert.That( before && after );
             }
             {
-                StandardContextHost host = new StandardContextHost( "TestContexts", null );
+                TestContextHost host = new TestContextHost("TestContexts");
 
                 IContext c = host.CreateContext();
 
@@ -41,7 +41,7 @@ namespace CK.Context.Tests
         {
             Guid simplePluginId = new Guid( "{EEAEC976-2AFC-4A68-BFAD-68E169677D52}" );
 
-            StandardContextHost host = new StandardContextHost( "TestContexts", null );
+            TestContextHost host = new TestContextHost("TestContexts");
 
             IContext c = host.CreateContext();
 
