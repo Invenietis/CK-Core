@@ -158,6 +158,10 @@ namespace CK.Plugin.Config
             }
             _pluginStatusDic.Clear();
             _pluginStatusDic.AddRange( newContent );
+
+            //may eventually be replaced by some code in SolvedPluginConfiguration
+            //Without that, SolvedPluginConfiguration's ResolveConfiguration method is not called
+            Change(ChangeStatus.ContainerUpdate, Guid.Empty, 0);
         }
 
         public void WriteContent( IStructuredWriter sw )

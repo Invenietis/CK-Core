@@ -2,6 +2,7 @@
 using System.Diagnostics;
 using System.Collections.Generic;
 using CK.Core;
+using System.ComponentModel;
 
 namespace CK.Plugin.Config
 {
@@ -33,11 +34,35 @@ namespace CK.Plugin.Config
             _cfg = cfg;
             _dic = new Dictionary<Guid, SolvedPluginConfigElement>();
 
+            //Triggered when a PluginStatus is set
             _cfg.GetUserConfiguration( false ).PluginStatusCollection.Changed += ( o, e ) => OnPluginConfigurationChanged( e.PluginID );
             _cfg.GetSystemConfiguration( false ).PluginStatusCollection.Changed += ( o, e ) => OnPluginConfigurationChanged( e.PluginID );
-            _cfg.GetUserConfiguration( false).LiveUserConfiguration.Changed += ( o, e ) => OnPluginConfigurationChanged( e.PluginID );
-            
+            _cfg.GetUserConfiguration( false ).LiveUserConfiguration.Changed += ( o, e ) => OnPluginConfigurationChanged( e.PluginID );
+
+            //Triggered when there is a change in the user or system configuration
+            _cfg.GetUserConfiguration( false ).PropertyChanged += ( o, e ) => OnUserConfigPropertyChanged( o, e );
+            _cfg.GetSystemConfiguration( false ).PropertyChanged += ( o, e ) => OnSystemConfigPropertyChanged( o, e );          
+
             ResolveConfiguration();
+        }
+       
+
+        void OnUserConfigPropertyChanged(object sender, PropertyChangedEventArgs e)
+        {
+            //if (e.PropertyName == "CurrentContextProfile")
+            //{
+                //Called when a new Context has been loaded    
+            //}
+        } 
+
+        void OnSystemConfigPropertyChanged(object sender, PropertyChangedEventArgs e)
+        {
+            //Called when the Current User has changed. In any case, at that point a new userConf has just been loaded, we need to set the userconf as dirty.
+            //if (e.PropertyName == "CurrentUserProfile")
+            //{
+                //Called when a new UserConfiguration has been loaded
+                //For the moment, new UserConf is handled via the Change method in PluginStatusCollection's ReadContent
+            //}
         }
 
         void OnPluginConfigurationChanged( Guid pluginId )
