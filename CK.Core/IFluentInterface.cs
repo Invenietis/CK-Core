@@ -29,6 +29,8 @@ namespace CK.Core
     /// <summary>
     /// Helper interface used to hide the base <see cref="Object"/> members from the fluent API to make 
     /// for much cleaner Visual Studio intellisense experience. (Excellent idea borrowed from EntLib.)
+    /// Use it on an interface: it must be the first interface (if more than one interface are supported) 
+    /// to hide those useless methods. 
     /// </summary>
     [EditorBrowsable( EditorBrowsableState.Never )]
     public interface IFluentInterface

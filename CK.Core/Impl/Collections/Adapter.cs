@@ -39,11 +39,11 @@ namespace CK.Core
     {
 
         /// <summary>
-        /// Wraps an action in a predicate that returns always true.
+        /// Wraps an action in a predicate that returns always the provided result.
         /// </summary>
         /// <typeparam name="T">The type of the action's parameter.</typeparam>
         /// <param name="a">The action (a method that accepts <typeparamref name="T"/> as its only argument).</param>
-        /// <param name="result">result that will be returned</param>
+        /// <param name="result">result that will be returned.</param>
         /// <returns>A predicate that performs the action and returns true.</returns>
         static public Predicate<T> ToPredicate<T>( this Action<T> a, bool result )
         {

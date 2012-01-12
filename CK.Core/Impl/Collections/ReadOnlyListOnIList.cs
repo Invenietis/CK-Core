@@ -28,10 +28,12 @@ using System.Diagnostics;
 
 namespace CK.Core
 {
-	/// <summary>
-	/// Adapts a <see cref="IList{T}"/> object to the <see cref="IReadOnlyList{T}"/> interface.
-	/// </summary>
-	/// <typeparam name="T">Type of the element.</typeparam>
+    /// <summary>
+    /// Adapts a <see cref="IList{T}"/> object to the <see cref="IReadOnlyList{T}"/> interface.
+    /// The other <see cref="ReadOnlyListOnIList{T,TInner}"/> generic can expose (wrap) a list of TInner 
+    /// as a readonly list of T where TInner is a T.
+    /// </summary>
+    /// <typeparam name="T">Type of the element.</typeparam>
     [DebuggerTypeProxy( typeof( Impl.ReadOnlyCollectionDebuggerView<> ) ), DebuggerDisplay( "Count = {Count}" )]
     public sealed class ReadOnlyListOnIList<T> : IReadOnlyList<T>, IList<T>
     {
@@ -160,6 +162,168 @@ namespace CK.Core
         void ICollection<T>.CopyTo( T[] array, int arrayIndex )
         {
             _inner.CopyTo( array, arrayIndex );
+        }
+
+        bool ICollection<T>.IsReadOnly
+        {
+            get { return true; }
+        }
+
+        bool ICollection<T>.Remove( T item )
+        {
+            throw new NotSupportedException();
+        }
+
+        #endregion
+
+    }
+
+    /// <summary>
+	/// Adapts a <see cref="IList{TInner}"/> object to the <see cref="IReadOnlyList{T}"/> interface
+    /// where TInner is a T.
+	/// </summary>
+    /// <typeparam name="T">Type of the exposed element.</typeparam>
+    /// <typeparam name="TInner">Type of the list element.</typeparam>
+    /// <remarks>
+    /// There is no way to define a beast like <c>ReadOnlyListOnIList&lt;T, TInner&gt; where TInner : T</c> that would 
+    /// extend <see cref="IList{TInner}"/> because of the GetEnumerator support.
+    /// <para>
+    /// The adapter object would have to implement both GetEnumerator() methods (for TInner and T), and even if the constraint states that
+    /// TInner is T and the IEnumerator is covariant, this is rejected with the following error: cannot implement 
+    /// both 'IEnumerable&lt;T&gt;' and 'System.Collections.Generic.IEnumerable&lt;TInner&gt;' because they may unify 
+    /// for some type parameter substitutions.
+    /// </para>
+    /// </remarks>
+    [DebuggerTypeProxy( typeof( Impl.ReadOnlyCollectionDebuggerView<> ) ), DebuggerDisplay( "Count = {Count}" )]
+    public sealed class ReadOnlyListOnIList<T, TInner> : IReadOnlyList<T>, IList<T>
+        where TInner : T
+    {
+		IList<TInner> _inner;
+
+		/// <summary>
+		/// Initializes a new <see cref="ReadOnlyListOnIList{T}"/> around a <see cref="IList{TInner}"/>.
+		/// </summary>
+		/// <param name="list">List to wrap.</param>
+		public ReadOnlyListOnIList( IList<TInner> list )
+        {
+			_inner = list;
+        }
+
+		/// <summary>
+		/// Gets or sets the wrapped list.
+		/// </summary>
+        public IList<TInner> Inner
+        {
+            get { return _inner; }
+            set { _inner = value; }
+        }
+
+		/// <summary>
+		/// Determines the index of a specific item in list.
+		/// </summary>
+		/// <param name="item">The item to locate in the list.</param>
+		/// <returns>The index of item if found in the list; otherwise a negative value (see <see cref="IReadOnlyList{T}.IndexOf"/>).</returns>
+		public int IndexOf( object item )
+        {
+            return item is TInner ? _inner.IndexOf( (TInner)item ) : Int32.MinValue;
+        }
+
+		/// <summary>
+		/// Gets the element at the specified index.
+		/// </summary>
+		/// <param name="i">The zero-based index of the element to get or set.</param>
+		/// <returns>The element at the specified index.</returns>
+		/// <exception cref="ArgumentOutOfRangeException">If <paramref name="i"/> is not a valid index in the list.</exception>
+        public T this[ int i ]
+        {
+            get { return _inner[i]; }
+        }
+
+		/// <summary>
+		/// Whether an item is contained or not.
+		/// </summary>
+		/// <param name="item">Item to challenge.</param>
+		/// <returns>True if the item is contained in the collection.</returns>
+		public bool Contains( object item )
+		{
+			return item is TInner ? _inner.Contains( (TInner)item ) : false;
+		}
+
+		/// <summary>
+		/// Gets the number of items of the collection.
+		/// </summary>
+		public int Count
+		{
+			get { return _inner.Count; }
+		}
+
+		/// <summary>
+		/// Returns an enumerator that iterates through the collection.
+		/// </summary>
+		/// <returns>An IEnumerator that can be used to iterate through the collection.</returns>
+		public IEnumerator<T> GetEnumerator()
+		{
+            return (IEnumerator<T>)_inner.GetEnumerator();
+		}
+
+		IEnumerator IEnumerable.GetEnumerator()
+		{
+			return _inner.GetEnumerator();
+		}
+
+
+        #region IList<T> Members
+
+        int IList<T>.IndexOf( T item )
+        {
+            return IndexOf( item );
+        }
+
+        void IList<T>.Insert( int index, T item )
+        {
+            throw new NotSupportedException();
+        }
+
+        void IList<T>.RemoveAt( int index )
+        {
+            throw new NotSupportedException();
+        }
+
+        T IList<T>.this[int index]
+        {
+            get
+            {
+                return _inner[ index ];
+            }
+            set
+            {
+                throw new NotSupportedException();
+            }
+        }
+
+        #endregion
+
+        #region ICollection<T> Members
+
+        void ICollection<T>.Add( T item )
+        {
+            throw new NotSupportedException();
+        }
+
+        void ICollection<T>.Clear()
+        {
+            throw new NotSupportedException();
+        }
+
+        bool ICollection<T>.Contains( T item )
+        {
+            return Contains( item );
+        }
+
+        void ICollection<T>.CopyTo( T[] array, int arrayIndex )
+        {
+            for( int i = 0; i < _inner.Count; ++i )
+                array[i+arrayIndex] = _inner[i];
         }
 
         bool ICollection<T>.IsReadOnly

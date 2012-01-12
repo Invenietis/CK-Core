@@ -287,6 +287,13 @@ namespace Core.Collection
             }
         }
 
+        [Test]
+        public void TestToReadOnlyListAdapter()
+        {
+            List<Mammal> m = new List<Mammal>() { new Mammal( "John" ), new Mammal( "Paul" ) };
+            var a = new ReadOnlyListOnIList<Animal, Mammal>( m );
+            Assert.That( a[0].Name, Is.EqualTo( "John" ) );
+        }
 
         [Test]
         public void TestReadOnlyConverter()

@@ -5,9 +5,9 @@ using System.Text;
 
 namespace Core
 {
-    public class Animals
+    public class Animal
     {
-        public Animals( string name )
+        public Animal( string name )
         {
             Name = name;
         }
@@ -20,9 +20,9 @@ namespace Core
         }
     }
 
-    public class Mammals : Animals
+    public class Mammal : Animal
     {
-        public Mammals( string name, int gestationPeriod = 12 )
+        public Mammal( string name, int gestationPeriod = 12 )
             : base( name )
         {
             Name = name;
@@ -38,7 +38,7 @@ namespace Core
 
     }
 
-    public class Canidae : Mammals
+    public class Canidae : Mammal
     {
         public Canidae( string name, int gestationPeriod = 9, bool isRetriever = false )
             : base( name, gestationPeriod )

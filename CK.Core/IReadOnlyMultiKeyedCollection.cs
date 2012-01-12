@@ -27,7 +27,7 @@ namespace CK.Core
 {
     /// <summary>
     /// Represents a generic read only keyed collections of covariant items with
-    /// a contravariant key that supports duplicate items.
+    /// a contravariant key that can support duplicate items.
     /// </summary>
     /// <typeparam name="T">The type of the elements in the collection.</typeparam>
     /// <typeparam name="TKey">The type of the key associated to the elements.</typeparam>

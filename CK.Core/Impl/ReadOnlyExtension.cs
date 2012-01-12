@@ -100,7 +100,7 @@ namespace CK.Core
         }
 
         /// <summary>
-        /// Creates a <see cref="IReadOnlyList{T}"/> from a sub seqence of a <see cref="IList{T}"/>.
+        /// Creates a <see cref="IReadOnlyList{T}"/> from a sub sequence of a <see cref="IList{T}"/>.
         /// It is an independant storage (a copy).
         /// </summary>
         /// <typeparam name="T">The type of the elements of source.</typeparam>
@@ -120,7 +120,7 @@ namespace CK.Core
         }
 
         /// <summary>
-        /// Creates a <see cref="IReadOnlyList{T}"/> from a sub seqence of a <see cref="IList{U}"/> and a convertor delegate.
+        /// Creates a <see cref="IReadOnlyList{T}"/> from a sub sequence of a <see cref="IList{U}"/> and a convertor delegate.
         /// It is an independant storage (a copy).
         /// </summary>
         /// <typeparam name="T">The type of the elements of the resulting read only list.</typeparam>

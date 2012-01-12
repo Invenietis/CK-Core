@@ -33,37 +33,37 @@ namespace Core.Collection
         [Test]
         public void Covariance()
         {
-            var a = new SortedArrayList<Mammals>( ( a1, a2 ) => a1.Name.CompareTo( a2.Name ) );
-            a.Add( new Mammals( "B", 12 ) );
+            var a = new SortedArrayList<Mammal>( ( a1, a2 ) => a1.Name.CompareTo( a2.Name ) );
+            a.Add( new Mammal( "B", 12 ) );
             a.Add( new Canidae( "A", 12, true ) );
 
-            IReadOnlyList<Animals> baseObjects = a;
+            IReadOnlyList<Animal> baseObjects = a;
             for( int i = 0; i < baseObjects.Count; ++i ) Console.Write( baseObjects[i].Name );
 
             IWritableCollection<Canidae> dogs = a;
             dogs.Add( new Canidae( "C", 8, false ) );
         }
 
-        class TestMammals : SortedArrayList<Mammals>
+        class TestMammals : SortedArrayList<Mammal>
         {
-            public TestMammals( Comparison<Mammals> m )
+            public TestMammals( Comparison<Mammal> m )
                 : base( m )
             {
             }
 
-            public Mammals[] Tab { get { return Store; } }
+            public Mammal[] Tab { get { return Store; } }
         }
 
         [Test]
         public void CheckPos()
         {
             var a = new TestMammals( ( a1, a2 ) => a1.Name.CompareTo( a2.Name ) );
-            a.Add( new Mammals( "B" ) );
-            a.Add( new Mammals( "A" ) );
-            a.Add( new Mammals( "D" ) );
-            a.Add( new Mammals( "F" ) );
-            a.Add( new Mammals( "C" ) );
-            a.Add( new Mammals( "E" ) );
+            a.Add( new Mammal( "B" ) );
+            a.Add( new Mammal( "A" ) );
+            a.Add( new Mammal( "D" ) );
+            a.Add( new Mammal( "F" ) );
+            a.Add( new Mammal( "C" ) );
+            a.Add( new Mammal( "E" ) );
             Assert.That( String.Join( "", a.Select( m => m.Name ) ), Is.EqualTo( "ABCDEF" ) );
 
             for( int i = 0; i < a.Count; ++i )
@@ -115,7 +115,7 @@ namespace Core.Collection
 
         private static void CheckList( TestMammals a, string p )
         {
-            HashSet<Mammals> dup = new HashSet<Mammals>();
+            HashSet<Mammal> dup = new HashSet<Mammal>();
             int i = 0;
             while( i < a.Count )
             {
