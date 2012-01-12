@@ -1,11 +1,12 @@
 ﻿
+using System.ComponentModel;
 namespace CK.Plugin.Config
 {
     /// <summary>
     /// User related configuration. 
     /// This is the second level of configuration that comes above <see cref="ISystemConfiguration"/>.
     /// </summary>
-    public interface IUserConfiguration
+    public interface IUserConfiguration : INotifyPropertyChanged
     {
         /// <summary>
         /// Gets all the <see cref="IUriHistory">contexts</see> previously seeb by the user.

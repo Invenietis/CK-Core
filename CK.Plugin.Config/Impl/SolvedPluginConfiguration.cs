@@ -45,25 +45,6 @@ namespace CK.Plugin.Config
 
             ResolveConfiguration();
         }
-       
-
-        void OnUserConfigPropertyChanged(object sender, PropertyChangedEventArgs e)
-        {
-            //if (e.PropertyName == "CurrentContextProfile")
-            //{
-                //Called when a new Context has been loaded    
-            //}
-        } 
-
-        void OnSystemConfigPropertyChanged(object sender, PropertyChangedEventArgs e)
-        {
-            //Called when the Current User has changed. In any case, at that point a new userConf has just been loaded, we need to set the userconf as dirty.
-            //if (e.PropertyName == "CurrentUserProfile")
-            //{
-                //Called when a new UserConfiguration has been loaded
-                //For the moment, new UserConf is handled via the Change method in PluginStatusCollection's ReadContent
-            //}
-        }
 
         void OnPluginConfigurationChanged( Guid pluginId )
         {
