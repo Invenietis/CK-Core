@@ -54,7 +54,7 @@ namespace CK.Plugin.Hosting
         /// Launches ComputeCombination for each "plugin status combination".
         /// Gets the lower cost among all the combinations generated.
         /// </summary>
-        internal ExecutionPlan ObtainBestPlan( Dictionary<object, SolvedConfigStatus> finalConfig )
+        internal ExecutionPlan ObtainBestPlan( Dictionary<object, SolvedConfigStatus> finalConfig, bool stopLaunchedOptionals )
         {
             _finalConfig = finalConfig;
             if( _parseMap == null ) _parseMap = new BitArray( _discoverer.Plugins.Count );
@@ -69,7 +69,7 @@ namespace CK.Plugin.Hosting
             // - If a plugin needs to be started (MustExistAndRun),  we lock its value to true
             // - If a plugin is the only implemention of a service and that this service has to be started, we lock this plugin's value to true
             // - If a plugin has no service references and does not implement any services as well, and that it is not asked to be 
-            //   started and it is NOT running, we lock its value to false;
+            //   started and it is NOT running or it is running but stopLaunchedOptionals is true, we lock its value to false;
             int index = 0;
             foreach( IPluginInfo pI in _discoverer.Plugins )
             {
@@ -114,8 +114,10 @@ namespace CK.Plugin.Hosting
                 {
                     // This is only an optimization. 
                     // The cost function gives a cost to the stop or the start of a plugin. When a plugin is independant like in this case, we lock its 
-                    // status by taking into account the requirement (should it run? MustExistTryStart/OptionalTryStart) and its current status (IsPluginRunning).
-                    if( (pluginStatus != SolvedConfigStatus.MustExistTryStart || pluginStatus != SolvedConfigStatus.OptionalTryStart) && !pluginData.IsRunning )
+                    // status by taking into account the requirement (should it run? MustExistTryStart/OptionalTryStart) and its current status (IsPluginRunning) 
+                    // and the stopLaunchedOptionals boolean.
+                    if( (pluginStatus != SolvedConfigStatus.MustExistTryStart || pluginStatus != SolvedConfigStatus.OptionalTryStart) 
+                        && ( !pluginData.IsRunning || stopLaunchedOptionals ))
                     {
                         // If a plugin has no service references and does not implement any services as well, 
                         // and that it is not asked to be started AND it is not running, we lock its value to false;
@@ -149,7 +151,7 @@ namespace CK.Plugin.Hosting
 
                 for( int i = 0; i < combinationsCount; i++ )
                 {
-                    int cost = ComputeCombination();
+                    int cost = ComputeCombination(stopLaunchedOptionals);
                     Debug.Assert( cost >= 0 );
                     // Return if the cost is equal to 0 (no better solution).
                     if( cost == 0 )
@@ -183,7 +185,7 @@ namespace CK.Plugin.Hosting
         /// Launches ComputeElementCost on each plugin that can be found in the parseMap set as parameter
         /// </summary>
         /// <returns>the cost of the parseMap set as parameter</returns>
-        int ComputeCombination()
+        int ComputeCombination( bool stopLaunchedOptionals )
         {
             int cost = 0;
 
@@ -211,7 +213,7 @@ namespace CK.Plugin.Hosting
 
             for( int i = 0; i < _parseMap.Count; i++ )
             {
-                int elementCost = ComputeElementCost( i );
+                int elementCost = ComputeElementCost( i, stopLaunchedOptionals );
                 if( elementCost != Int32.MaxValue ) cost += elementCost;
                 else return Int32.MaxValue;
             }
@@ -227,7 +229,7 @@ namespace CK.Plugin.Hosting
         /// </summary>
         /// <param name="i">The index of the plugin to compute</param>
         /// <returns>The plugin's cost</returns>
-        int ComputeElementCost( int i )
+        int ComputeElementCost( int i, bool stopLaunchedOptionals )
         {
             int cost = 0;
 
@@ -278,7 +280,7 @@ namespace CK.Plugin.Hosting
 
                 // If the plugin implements a service, and if the service has a MustExistAndRun requirement
                 // and if this plugin is the only implementation of this service, so we return the max value.
-                // Otherwize, if we find a substitute, the combinaison is possible.
+                // Otherwise, if we find a substitute, the combinaison is possible.
                 if( actualPlugin.Service != null )
                 {
                     bool substitue = false;
@@ -302,8 +304,8 @@ namespace CK.Plugin.Hosting
                 else if( status == SolvedConfigStatus.MustExistAndRun )
                     return int.MaxValue;
 
-                // If this plugin is already running, it would be too bad to stop it.
-                if( plugin.IsRunning ) cost += 10;
+                // If this plugin is already running and stopLaunchedOptionals is set to false, don't stop it.
+                if( plugin.IsRunning && !stopLaunchedOptionals ) cost += 10;
 
                 #region Check the cost regarding the plugin's requirement when the plugin won't be started
 
@@ -327,7 +329,7 @@ namespace CK.Plugin.Hosting
             // Checks if at least one of the implementations of the service is available in the current map.
             bool implAvailable = serviceRef.Reference.Implementations.Count > 0;
 
-            // If the service is really needed and its not available, return the refernce cannot be resolved.
+            // If the service is really needed and is not available, return the reference cannot be resolved.
             if( serviceRef.Requirements >= RunningRequirement.MustExist && !implAvailable ) 
                 return false;
             else
@@ -360,12 +362,12 @@ namespace CK.Plugin.Hosting
 
                                 switch( serviceRef.Requirements )
                                 {
-                                    // the plugin is started but we doesn't really need it -> +10 if its not currently running.
+                                    // the plugin is started but we don't really need it -> +10 if its not currently running.
                                     case RunningRequirement.Optional:
                                     case RunningRequirement.MustExist:
                                         if( !IsPluginRunning( impl ) ) cost += 10;
                                         break;
-                                    // the plugin is started and we wants it -> +0 (its what we want)
+                                    // the plugin is started and we want it -> +0 (its what we want)
                                     case RunningRequirement.OptionalTryStart:
                                     case RunningRequirement.MustExistTryStart:
                                     case RunningRequirement.MustExistAndRun:

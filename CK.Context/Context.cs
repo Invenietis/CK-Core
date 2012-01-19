@@ -181,7 +181,6 @@ namespace CK.Context
                 r.ReadEndElement();
                 errors = dr.ErrorCollector;
             }
-            //TODO : Need an event to kill all plugins and re-run them ?
             return errors.ToReadOnlyList();
         }
 

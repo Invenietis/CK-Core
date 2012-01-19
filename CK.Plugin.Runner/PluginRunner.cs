@@ -89,8 +89,18 @@ namespace CK.Plugin.Hosting
         {
             return _host.IsPluginRunning( pluginInfo );
         }
-       
+
         public bool Apply()
+        {
+            return Apply( false );
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="keepRunningLaunchedOptionals">if false, all plugins that are "optional" but are already launched will be stopped</param>
+        /// <returns></returns>
+        public bool Apply( bool stopLaunchedOptionals )
         {
             if( _planCalculator != null ) throw new InvalidOperationException( Runner.R.ReentrantApplyCall );
             if( _contextObject == null ) throw new InvalidOperationException( Runner.R.InitializeRequired );
@@ -110,7 +120,7 @@ namespace CK.Plugin.Hosting
                         // During call to ObtainBestPlan, no reentrancy can occur (ObtainBestPlan does not call
                         // any external functions or objects nor does it raise any event).
                         // Once obtained, the best plan is also available through _planCalculator.LastBestPlan property.
-                        ExecutionPlan bestPlan = _planCalculator.ObtainBestPlan( requirements.FinalConfigSnapshot );
+                        ExecutionPlan bestPlan = _planCalculator.ObtainBestPlan( requirements.FinalConfigSnapshot, stopLaunchedOptionals );
                         if( bestPlan.Impossible )
                         {
                             errorWhileApplying = true;

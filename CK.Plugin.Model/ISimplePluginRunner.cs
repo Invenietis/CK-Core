@@ -53,10 +53,18 @@ namespace CK.Plugin
 
         /// <summary>
         /// Attempts to start/stop plugins and services according to the current configuration.
-        /// Does nothing (and returns true) if <see cref="IsDirty"/> is false.
+        /// Does nothing (and returns true) if <see cref="IsDirty"/> is false.        
         /// </summary>
         /// <returns>True on success, false if an error occured.</returns>
         bool Apply();
+
+        /// <summary>
+        /// Attempts to start/stop plugins and services according to the current configuration.
+        /// Does nothing (and returns true) if <see cref="IsDirty"/> is false. 
+        /// </summary>
+        /// <param name="stopLaunchedOptionals">is false by default. If set to true, already running plugins that are optional are stopped (used to switch users for example)</param>
+        /// <returns>True on success, false if an error occured.</returns>
+        bool Apply( bool stopLaunchedOptionals );
 
         /// <summary>
         /// Gives access to the <see cref="IPluginDiscoverer"/> object.

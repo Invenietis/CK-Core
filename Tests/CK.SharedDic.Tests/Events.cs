@@ -228,8 +228,8 @@ namespace SharedDic
             Assert.That( _lastConfigChangedEventArgs.MultiPluginId.Count == 2 );
             Assert.That( _lastConfigChangedEventArgs.MultiPluginId.Any( ( p ) => { return p == SharedDicTestContext.Plugins[0]; } ) );
             Assert.That( _lastConfigChangedEventArgs.MultiPluginId.Any( ( p ) => { return p == SharedDicTestContext.Plugins[1]; } ) );
-            Assert.That( _lastConfigChangedEventArgs.Obj == this );            
-            Assert.That( _lastConfigChangedEventArgs.Status == ChangeStatus.ContainerClear );
+            Assert.That( _lastConfigChangedEventArgs.Obj == this );
+            Assert.That( _lastConfigChangedEventArgs.Status == ChangeStatus.ContainerDestroy );
             Assert.IsNull( _lastConfigChangedEventArgs.Value );
         }
 
@@ -253,8 +253,8 @@ namespace SharedDic
             Assert.That( _lastConfigChangedEventArgs.MultiObj.Any( ( o ) => { return o == otherKey; } ) );
             Assert.That( _lastConfigChangedEventArgs.MultiPluginId.Count == 1 );
             Assert.That( _lastConfigChangedEventArgs.MultiPluginId.Any( ( p ) => { return p == SharedDicTestContext.Plugins[0]; } ) );
-            Assert.IsNull( _lastConfigChangedEventArgs.Obj );            
-            Assert.That( _lastConfigChangedEventArgs.Status == ChangeStatus.ContainerClear );
+            Assert.IsNull( _lastConfigChangedEventArgs.Obj );
+            Assert.That( _lastConfigChangedEventArgs.Status == ChangeStatus.ContainerDestroy );
             Assert.IsNull( _lastConfigChangedEventArgs.Value );
         }
 
@@ -276,7 +276,7 @@ namespace SharedDic
             _dic[otherKey, SharedDicTestContext.Plugins[1], "key2"] = "value2";
             _dic[otherKey, SharedDicTestContext.Plugins[1], "key3"] = "value3";
 
-            _dic.ClearAll();
+            _dic.DestroyAll();
             Assert.That( _lastConfigChangedEventArgs.IsAllConcerned );
             Assert.IsNull( _lastConfigChangedEventArgs.Key );
             Assert.That( _lastConfigChangedEventArgs.MultiObj.Count == 2 );
@@ -285,8 +285,8 @@ namespace SharedDic
             Assert.That( _lastConfigChangedEventArgs.MultiPluginId.Count == 2 );
             Assert.That( _lastConfigChangedEventArgs.MultiPluginId.Any( p => p == SharedDicTestContext.Plugins[0] ) );
             Assert.That( _lastConfigChangedEventArgs.MultiPluginId.Any( p => p == SharedDicTestContext.Plugins[1] ) );
-            Assert.IsNull( _lastConfigChangedEventArgs.Obj );           
-            Assert.That( _lastConfigChangedEventArgs.Status == ChangeStatus.ContainerClear );
+            Assert.IsNull( _lastConfigChangedEventArgs.Obj );
+            Assert.That( _lastConfigChangedEventArgs.Status == ChangeStatus.ContainerDestroy );
             Assert.IsNull( _lastConfigChangedEventArgs.Value );
         }
 
@@ -320,7 +320,7 @@ namespace SharedDic
             Assert.That( _lastConfigChangedEventArgs.MultiObj.Any( ( o ) => { return o == this; } ) );
             Assert.That( _lastConfigChangedEventArgs.MultiPluginId.Count == 1 );
             Assert.That( _lastConfigChangedEventArgs.MultiPluginId.Any( ( p ) => { return p == SharedDicTestContext.Plugins[0]; } ) );
-            Assert.That( _lastConfigChangedEventArgs.Obj == this );            
+            Assert.That( _lastConfigChangedEventArgs.Obj == this );
             Assert.That( _lastConfigChangedEventArgs.Status == ChangeStatus.ContainerClear );
             Assert.IsNull( _lastConfigChangedEventArgs.Value );
         }

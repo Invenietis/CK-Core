@@ -210,6 +210,12 @@ namespace CK.Plugin.Config
         /// Clear all data contained by this container.
         /// Objects and plugins are removed.
         /// </summary>
+        void DestroyAll();
+
+        /// <summary>
+        /// Empty all data contained by this container.
+        /// Objects and plugins are NOT removed.
+        /// </summary>
         void ClearAll();
 
         /// <summary>

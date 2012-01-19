@@ -28,6 +28,7 @@ using System.Xml;
 using CK.Core;
 using CK.Plugin.Config;
 using CK.Storage;
+using System.Linq;
 
 namespace CK.SharedDic
 {
@@ -101,7 +102,12 @@ namespace CK.SharedDic
                     if( Changed != null )
                     {
                         bool allPluginsConcerned = pluginsTouched.Count == _byPlugin.Count;
-                        Changed( this, new ConfigChangedEventArgs( o, new ReadOnlyCollectionOnISet<INamedVersionedUniqueId>( pluginsTouched ), allPluginsConcerned, ChangeStatus.ContainerClear ) );
+                        
+                        ChangeStatus changeStatus;
+                        if ( definitive ) changeStatus = ChangeStatus.ContainerDestroy;
+                        else changeStatus= ChangeStatus.ContainerClear;
+
+                        Changed( this, new ConfigChangedEventArgs( o, new ReadOnlyCollectionOnISet<INamedVersionedUniqueId>( pluginsTouched ), allPluginsConcerned, changeStatus ) );
                     }
                 }
                 if( definitive ) _byObject.Remove( o );
@@ -167,7 +173,12 @@ namespace CK.SharedDic
                     if( Changed != null )
                     {
                         bool allObjectsConcerned = objectsTouched.Count == _byObject.Count;
-                        Changed( this, new ConfigChangedEventArgs( new ReadOnlyCollectionOnISet<object>( objectsTouched ), allObjectsConcerned, p, ChangeStatus.ContainerClear ) );
+
+                        ChangeStatus changeStatus;
+                        if ( definitive ) changeStatus = ChangeStatus.ContainerDestroy;
+                        else changeStatus = ChangeStatus.ContainerClear;
+
+                        Changed( this, new ConfigChangedEventArgs( new ReadOnlyCollectionOnISet<object>( objectsTouched ), allObjectsConcerned, p, changeStatus ) );
                     }
                 }
                 if( definitive ) _byPlugin.Remove( p.UniqueId );
@@ -222,6 +233,25 @@ namespace CK.SharedDic
         {
             var previousByObject = _byObject;
             var previousByPlugin = _byPlugin;
+
+            for (int i = 0; i < _values.Keys.Count; i++) _values.Remove( _values.ElementAt(i).Key );                         
+            foreach ( var key in _byObject.Keys ) _byObject[key].Clear();
+            foreach ( var key in _byPlugin.Keys ) _byPlugin[key].Clear();            
+            foreach ( var key in _finalDictionary.Keys ) _finalDictionary[key].Clear();
+            
+            _fragments.Clear();
+
+            if ( Changed != null )
+            {
+                var pluginsWrapper = new ReadOnlyCollectionTypeConverter<INamedVersionedUniqueId, Guid>( previousByPlugin.Keys, g => previousByPlugin[g].PluginId, uid => uid.UniqueId );
+                Changed( this, new ConfigChangedEventArgs( new ReadOnlyCollectionOnICollection<object>( previousByObject.Keys ), true, pluginsWrapper, true, ChangeStatus.ContainerClear ) );
+            }
+        }
+
+        public void DestroyAll()
+        {
+            var previousByObject = _byObject;
+            var previousByPlugin = _byPlugin;
             _values.Clear();
             _byObject = new Dictionary<object, PluginConfigByObject>();
             _byPlugin = new Dictionary<Guid, PluginConfigByPlugin>();
@@ -230,7 +260,7 @@ namespace CK.SharedDic
             if( Changed != null )
             {
                 var pluginsWrapper = new ReadOnlyCollectionTypeConverter<INamedVersionedUniqueId, Guid>( previousByPlugin.Keys, g => previousByPlugin[g].PluginId, uid => uid.UniqueId );
-                Changed( this, new ConfigChangedEventArgs( new ReadOnlyCollectionOnICollection<object>( previousByObject.Keys ), true, pluginsWrapper, true, ChangeStatus.ContainerClear ) );
+                Changed( this, new ConfigChangedEventArgs( new ReadOnlyCollectionOnICollection<object>( previousByObject.Keys ), true, pluginsWrapper, true, ChangeStatus.ContainerDestroy ) );
             }
         }
 

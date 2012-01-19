@@ -39,10 +39,6 @@ namespace CK.Plugin.Config
             _cfg.GetSystemConfiguration( false ).PluginStatusCollection.Changed += ( o, e ) => OnPluginConfigurationChanged( e.PluginID );
             _cfg.GetUserConfiguration( false ).LiveUserConfiguration.Changed += ( o, e ) => OnPluginConfigurationChanged( e.PluginID );
 
-            //Triggered when there is a change in the user or system configuration
-            _cfg.GetUserConfiguration( false ).PropertyChanged += ( o, e ) => OnUserConfigPropertyChanged( o, e );
-            _cfg.GetSystemConfiguration( false ).PropertyChanged += ( o, e ) => OnSystemConfigPropertyChanged( o, e );          
-
             ResolveConfiguration();
         }
 

@@ -49,19 +49,19 @@ namespace CK.Plugin.Config
 
         /// <summary>
         /// The name of the entry whose configuration has changed. 
-        /// Null if the configuration, the object, the plugin or the association (by <see cref="IConfigContainer.Remove(object,INamedVersionedUniqueId)"/>) has been cleared (<see cref="Status"/> is <see cref="ChangeStatus.ContainerClear"/>).
+        /// Null if the configuration, the object, the plugin or the association (by <see cref="IConfigContainer.Remove(object,INamedVersionedUniqueId)"/>) has been cleared (<see cref="Status"/> is <see cref="ChangeStatus.ContainerClear"/> or <see cref="ChangeStatus.ContainerDestroy"/>).
         /// </summary>
         public readonly string Key;
 
         /// <summary>
         /// The new value when <see cref="Key"/> is not null and <see cref="Status"/> is <see cref="ChangeStatus.Update"/> or <see cref="ChangeStatus.Add"/>.
-        /// Null when <see cref="Status"/> is <see cref="ChangeStatus.Delete"/> or <see cref="ChangeStatus.ContainerClear"/>.
+        /// Null when <see cref="Status"/> is <see cref="ChangeStatus.Delete"/> or <see cref="ChangeStatus.ContainerClear"/> or <see cref="ChangeStatus.ContainerDestroy"/>.
         /// </summary>
         public readonly object Value;
 
         /// <summary>
         /// Status of the change. 
-        /// Can be <see cref="ChangeStatus.Update"/>, <see cref="ChangeStatus.Add"/>,  <see cref="ChangeStatus.Delete"/> or <see cref="ChangeStatus.ContainerClear"/>.
+        /// Can be <see cref="ChangeStatus.Update"/>, <see cref="ChangeStatus.Add"/>,  <see cref="ChangeStatus.Delete"/> or <see cref="ChangeStatus.ContainerClear"/> or <see cref="ChangeStatus.ContainerDestroy"/>.
         /// </summary>
         public readonly ChangeStatus Status;
 
@@ -85,6 +85,7 @@ namespace CK.Plugin.Config
 
         /// <summary>
         /// Gets whether this change is the result of a <see cref="IConfigContainer.ClearAll"/>.
+        /// Meaning that objects have been emptied, but not destroyed
         /// </summary>
         /// <returns>True if the whole configuration is cleared.</returns>
         public bool IsClearAll
@@ -92,6 +93,14 @@ namespace CK.Plugin.Config
             get { return IsAllConcerned && Status == ChangeStatus.ContainerClear; }
         }
 
+        /// <summary>
+        /// Gets whether this change is the result of a <see cref="IConfigContainer.DestroyAll"/>.
+        /// </summary>
+        /// <returns>True if the whole configuration is destroyed.</returns>
+        public bool IsDestroyedAll
+        {
+            get { return IsAllConcerned && Status == ChangeStatus.ContainerClear; }
+        }
 
         public ConfigChangedEventArgs( IObjectPluginAssociation a, IConfigEntry e, ChangeStatus status )
             : this( a.Obj, new ReadOnlyListMono<object>( a.Obj ), new ReadOnlyListMono<INamedVersionedUniqueId>( a.PluginId ), e.Key, e.Value, status )

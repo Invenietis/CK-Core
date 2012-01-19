@@ -60,14 +60,20 @@ namespace CK.Core
         Delete = 3,
 
         /// <summary>
-        /// Denotes the suppression of the content of a container object (typically the clearing of a collection): no more content exist.
+        /// Denotes the suppression of the content of a container object (typically when destroying a collection): no more content exist.
         /// </summary>
         ContainerClear = 4,
         
         /// <summary>
         /// Denotes a global change in the content of container object (typically the replacement of items in a collection with items from another one).
         /// </summary>
-        ContainerUpdate = 5
+        ContainerUpdate = 5,
+
+        /// <summary>
+        /// Denotes a global change in the content of container object (typically when clearing a collection): no more values exist.
+        /// </summary>
+        ContainerDestroy = 6
+       
     }
 
 }
