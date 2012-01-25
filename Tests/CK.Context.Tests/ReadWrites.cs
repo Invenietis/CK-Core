@@ -135,7 +135,7 @@ namespace CK.Context.Tests
                 // Change the plugin configuration again and use the SaveUserConfig( u ) that creates and
                 // activates a 3rd profile.
                 ctx.ConfigManager.UserConfiguration.PluginsStatus.SetStatus( id1, ConfigPluginStatus.Disabled );
-                host.SaveUserConfig( GetTestFileUri( "UsrConf3" ) );
+                host.SaveUserConfig( GetTestFileUri( "UsrConf3" ), true );
 
                 Assert.That( ctx.ConfigManager.SystemConfiguration.UserProfiles.Count, Is.EqualTo( 3 ), "Our System configuration MUST now contains 3 profiles." );
                 // - The original, default one, where plugin id1 is AutomaticStart.

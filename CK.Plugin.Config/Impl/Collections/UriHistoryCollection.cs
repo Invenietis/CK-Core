@@ -47,6 +47,7 @@ namespace CK.Plugin.Config
 
         internal UriHistoryCollection( ConfigurationBase holder, string entryName )
         {
+            _previous = null;
             _holder = holder;
             _byAddress = new Dictionary<Uri, UriHistory>();
             EntryName = entryName;
@@ -62,6 +63,12 @@ namespace CK.Plugin.Config
                 if( u == null || u.Holder != this ) throw new ArgumentException( R.UriHistoryNotInCollection );
                 u.Index = 0;
             }
+        }
+
+        IUriHistory _previous;
+        public IUriHistory Previous
+        {
+            get { return _previous; }
         }
 
         public IUriHistory Find( Uri address )
@@ -166,6 +173,7 @@ namespace CK.Plugin.Config
             RemoveAt( u.Index );
             Insert( newIndex, u );
             UpdateIndices( this );
+            _previous = this.Count > 1 ? this[1] : null;
             if( current != Current ) FireCurrentChangedEvent();
         }
 

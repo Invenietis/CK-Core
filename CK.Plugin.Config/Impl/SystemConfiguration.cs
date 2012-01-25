@@ -47,6 +47,11 @@ namespace CK.Plugin.Config
             set { base.UriHistoryCollection.Current = value; }
         }
 
+        public IUriHistory PreviousUserProfile
+        {
+            get { return base.UriHistoryCollection.Previous; }
+        }
+
         IUriHistoryCollection ISystemConfiguration.UserProfiles
         {
             get { return base.UriHistoryCollection; }

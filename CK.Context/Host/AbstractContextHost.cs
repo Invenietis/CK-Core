@@ -189,15 +189,16 @@ namespace CK.Context
 
         public virtual void SaveUserConfig()
         {
-            SaveUserConfig( EnsureCurrentUserProfile( true ).Address );
+            SaveUserConfig( EnsureCurrentUserProfile( true ).Address, true );
         }
 
-        public virtual void SaveUserConfig( Uri address )
+        public virtual void SaveUserConfig( Uri address, bool setAdressAsCurrent )
         {
             using( IStructuredWriter sw = OpenWrite( address ) )
             {
                 _ctx.ConfigManager.Extended.SaveUserConfig( sw );
-                _ctx.ConfigManager.SystemConfiguration.CurrentUserProfile = _ctx.ConfigManager.SystemConfiguration.UserProfiles.FindOrCreate( address );
+                if( setAdressAsCurrent )
+                    _ctx.ConfigManager.SystemConfiguration.CurrentUserProfile = _ctx.ConfigManager.SystemConfiguration.UserProfiles.FindOrCreate( address );
             }
         }
 

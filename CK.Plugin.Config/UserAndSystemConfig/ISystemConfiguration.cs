@@ -44,6 +44,12 @@ namespace CK.Plugin.Config
         IUriHistory CurrentUserProfile { get; set; }
 
         /// <summary>
+        /// Gets the previous user. 
+        /// Returns null if the current user is the only one used since application start.
+        /// </summary>
+        IUriHistory PreviousUserProfile { get; }
+
+        /// <summary>
         /// Gets <see cref="IPluginStatus">plugins status</see> configured at the system level.
         /// </summary>
         IPluginStatusCollection PluginsStatus { get; }

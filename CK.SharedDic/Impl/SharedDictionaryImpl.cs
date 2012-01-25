@@ -234,7 +234,7 @@ namespace CK.SharedDic
             var previousByObject = _byObject;
             var previousByPlugin = _byPlugin;
 
-            for (int i = 0; i < _values.Keys.Count; i++) _values.Remove( _values.ElementAt(i).Key );                         
+            for( int i = _values.Keys.Count - 1; i >= 0; i-- ) _values.Remove( _values.ElementAt( i ).Key );                         
             foreach ( var key in _byObject.Keys ) _byObject[key].Clear();
             foreach ( var key in _byPlugin.Keys ) _byPlugin[key].Clear();            
             foreach ( var key in _finalDictionary.Keys ) _finalDictionary[key].Clear();
