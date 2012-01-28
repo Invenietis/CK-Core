@@ -1,6 +1,6 @@
 ﻿#region LGPL License
 /*----------------------------------------------------------------------------
-* This file (CK.Plugin.Model\Host\Log\ILogMethodEntry.cs) is part of CiviKey. 
+* This file (CK.Plugin.Model\Host\Log\ILogEntry.cs) is part of CiviKey. 
 *  
 * CiviKey is free software: you can redistribute it and/or modify 
 * it under the terms of the GNU Lesser General Public License as published 
@@ -22,34 +22,21 @@
 #endregion
 
 using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
 using System.Reflection;
 
 namespace CK.Plugin
 {
     /// <summary>
-    /// Log event related to a method call.
+    /// Common interface for log events that carries <see cref="Parameters"/>.
     /// </summary>
-    public interface ILogMethodEntry : ILogInterceptionEntry, ILogWithParametersEntry, ILogWithReturnValueEntry
+    public interface ILogWithReturnValueEntry : ILogEntry
     {
         /// <summary>
         /// Gets the service logged method.
         /// </summary>
         MethodInfo Method { get; }
-
-        /// <summary>
-        /// Gets the caller of the method if it has been captured.
-        /// </summary>
-        MethodInfo Caller { get; }
-
-        /// <summary>
-        /// Gets the returned value if it has been captured.
-        /// </summary>
-        object ReturnValue { get; }
-
-        /// <summary>
-        /// Gets the error entry if an error occured.
-        /// </summary>
-        ILogMethodError Error { get; }       
-
     }
 }
