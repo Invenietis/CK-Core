@@ -78,7 +78,12 @@ namespace CK.Plugin
         /// Remaining subscribers of the event will receive the event.
         /// (This flag is independant of <see cref="LogErrors"/>.)
         /// </summary>
-        SilentEventError = 64
+        SilentEventError = 64,
+
+        /// <summary>
+        /// The event should be logged if it has been triggered.
+        /// </summary>
+        LogCommonUsage = StartRaise | EndRaise
     }
 
 }

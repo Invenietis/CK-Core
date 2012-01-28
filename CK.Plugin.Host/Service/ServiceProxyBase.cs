@@ -177,7 +177,7 @@ namespace CK.Plugin.Hosting
             }
             MEntry me = _mRefs[iMethodMRef];
             ServiceLogMethodOptions o = me.LogOptions;
-            logger = o == ServiceLogMethodOptions.None ? null : _serviceHost.LogMethodEnter( me.Method, o );
+            logger = (o & ServiceLogMethodOptions.LogCommonUsage) != 0 ? _serviceHost.LogMethodEnter( me.Method, o ) : null;
             return o;
         }
 
@@ -194,7 +194,7 @@ namespace CK.Plugin.Hosting
             }
             MEntry me = _mRefs[iMethodMRef];
             ServiceLogMethodOptions o = me.LogOptions;
-            logger = o == ServiceLogMethodOptions.None ? null : _serviceHost.LogMethodEnter( me.Method, o );
+            logger = ( o & ServiceLogMethodOptions.LogCommonUsage ) != 0 ? _serviceHost.LogMethodEnter( me.Method, o ) : null;
             return o;
         }
 
@@ -286,7 +286,7 @@ namespace CK.Plugin.Hosting
                 }
                 throw new ServiceNotAvailableException( _typeInterface );
             }
-            entry = logOptions != 0 ? _serviceHost.LogEventEnter( e.Event, logOptions ) : null;
+            entry = ( logOptions & ServiceLogEventOptions.LogCommonUsage ) != 0 ? _serviceHost.LogEventEnter( e.Event, logOptions ) : null;
             return true;
         }
 
@@ -295,7 +295,7 @@ namespace CK.Plugin.Hosting
         {
             EEntry e = _eRefs[iEventMRef];
             logOptions = e.LogOptions & ServiceLogEventOptions.CreateEntryMask;
-            entry = logOptions != 0 ? _serviceHost.LogEventEnter( e.Event, logOptions ) : null;
+            entry = ( logOptions & ServiceLogEventOptions.LogCommonUsage ) != 0 ? _serviceHost.LogEventEnter( e.Event, logOptions ) : null;
             return true;
         }
 

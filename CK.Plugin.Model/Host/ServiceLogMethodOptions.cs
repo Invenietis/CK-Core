@@ -64,8 +64,12 @@ namespace CK.Plugin
         /// <summary>
         /// Log the return value of the method.
         /// </summary>
-        LogReturnValue = 32       
-
+        LogReturnValue = 32,
+      
+        /// <summary>
+        /// Log when the method is called. (Info type)
+        /// </summary>
+        LogCommonUsage = Leave | Enter
     }
 
 }
