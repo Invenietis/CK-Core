@@ -69,7 +69,7 @@ namespace CK.Plugin
         /// <summary>
         /// Log when the method is called. (Info type)
         /// </summary>
-        LogCommonUsage = Leave | Enter
+        CreateEntryMask = Leave | Enter
     }
 
 }

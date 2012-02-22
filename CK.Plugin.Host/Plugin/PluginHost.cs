@@ -11,10 +11,10 @@ namespace CK.Plugin.Hosting
 {
     public class PluginHost : IPluginHost
     {
-        static ILog _log = LogManager.GetLogger( typeof(PluginHost) );
+        static ILog _log = LogManager.GetLogger( typeof( PluginHost ) );
         readonly ServiceHost _serviceHost;
-        readonly Dictionary<IPluginInfo,PluginProxy> _plugins;
-        readonly Dictionary<Guid,PluginProxy> _loadedPlugins;
+        readonly Dictionary<IPluginInfo, PluginProxy> _plugins;
+        readonly Dictionary<Guid, PluginProxy> _loadedPlugins;
         readonly IReadOnlyCollection<IPluginProxy> _loadedPluginsEx;
         readonly List<PluginProxy> _newlyLoadedPlugins;
 
@@ -140,7 +140,7 @@ namespace CK.Plugin.Hosting
                         return new ExecutionPlanResult() { Culprit = p.PluginKey, Status = ExecutionPlanResultStatus.LoadError };
                     }
                     Debug.Assert( p.LoadError == null );
-                    Debug.Assert( p.Status == RunningStatus.Disabled ); 
+                    Debug.Assert( p.Status == RunningStatus.Disabled );
                     _newlyLoadedPlugins.Add( p );
                 }
                 if( p.Status != RunningStatus.Started )
@@ -160,10 +160,11 @@ namespace CK.Plugin.Hosting
                     {
                         SetPluginStatus( p, RunningStatus.Stopping );
                         p.RealPlugin.Stop();
-                        _log.Debug( "The " + p.PublicName + " plugin has been successfully stopped." );
+                        _log.Debug( String.Format( "The {0} plugin has been successfully stopped.", p.PublicName ) );
                     }
                     catch( Exception ex )
-                    {
+                    {                        
+                        _log.ErrorFormat( "There has been a problem when stopping the {0} plugin.", ex, p.PublicName );
                         _serviceHost.LogMethodError( p.GetImplMethodInfoStop(), ex );
                     }
                 }
@@ -179,12 +180,13 @@ namespace CK.Plugin.Hosting
                     if( p.Status > RunningStatus.Stopped )
                     {
                         SetPluginStatus( p, RunningStatus.Stopped );
-                        p.RealPlugin.Teardown();                        
-                        _log.Debug( "The " + p.PublicName + " plugin has been successfully torn down." );
+                        p.RealPlugin.Teardown();
+                        _log.Debug( String.Format( "The {0} plugin has been successfully torn down.", p.PublicName ) );
                     }
                 }
                 catch( Exception ex )
                 {
+                    _log.ErrorFormat( "There has been a problem when tearing down the {0} plugin.", ex, p.PublicName );
                     _serviceHost.LogMethodError( p.GetImplMethodInfoTeardown(), ex );
                 }
             }
@@ -218,7 +220,8 @@ namespace CK.Plugin.Hosting
                     p.DisposeIfDisposable();
                 }
                 catch( Exception ex )
-                {
+                {                    
+                    _log.ErrorFormat( "There has been a problem when disposing the {0} plugin.", ex, p.PublicName );
                     _serviceHost.LogMethodError( p.GetImplMethodInfoDispose(), ex );
                 }
             }
@@ -236,10 +239,11 @@ namespace CK.Plugin.Hosting
                 {
                     p.RealPlugin.Setup( info );
                     info.Clear();
-                    _log.Debug( "The " + p.PublicName + " plugin has been successfully set up." );
+                    _log.Debug( String.Format( "The {0} plugin has been successfully set up.", p.PublicName ) );
                 }
                 catch( Exception ex )
                 {
+                    _log.ErrorFormat( "There has been a problem when setting up the {0} plugin.", ex, p.PublicName );
                     _serviceHost.LogMethodError( p.GetImplMethodInfoSetup(), ex );
 
                     // Revoking the call to Setup for all plugins that haven't been started yet.
@@ -280,15 +284,18 @@ namespace CK.Plugin.Hosting
                 {
                     SetPluginStatus( p, RunningStatus.Started );
                     p.RealPlugin.Start();
-                    _log.Debug( "The " + p.PublicName + " plugin has been successfully started." );
+                    _log.Debug( String.Format( "The {0} plugin has been successfully started.", p.PublicName ) );
                 }
                 catch( Exception ex )
                 {
-                    // 1 - Emitted as a log event.
+                    // Emitted as low level log.
+                    _log.ErrorFormat( "There has been a problem when starting the {0} plugin.", ex, p.PublicName );
+
+                    // Emitted as a log event.
                     _serviceHost.LogMethodError( p.GetImplMethodInfoStart(), ex );
 
-                    //ALl the plugins already started  when the exception was thrown have to be stopped + teardown (including this one in exception)
-                    for( int j= 0; j <= i; j++ )
+                    //All the plugins already started  when the exception was thrown have to be stopped + teardown (including this one in exception)
+                    for( int j = 0; j <= i; j++ )
                     {
                         RevokeStartCall( toStart[j] );
                     }
@@ -413,5 +420,5 @@ namespace CK.Plugin.Hosting
         }
 
 
-     }
+    }
 }

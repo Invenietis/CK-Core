@@ -60,7 +60,7 @@ namespace CK.Plugin
         /// Covers event configuration flags (excludes <see cref="LogErrors"/>, <see cref="SilentEventRunningStatusError"/> and <see cref="SilentEventError"/>)
         /// that triggers the creation of an entry.
         /// </summary>
-        CreateEntryMask = StartRaise|LogParameters|EndRaise,
+        CreateEntryMask = StartRaise | LogParameters | EndRaise,
 
         /// <summary>
         /// Ignores any error when a service raises an event while not running.
@@ -79,11 +79,6 @@ namespace CK.Plugin
         /// (This flag is independant of <see cref="LogErrors"/>.)
         /// </summary>
         SilentEventError = 64,
-
-        /// <summary>
-        /// The event should be logged if it has been triggered.
-        /// </summary>
-        LogCommonUsage = StartRaise | EndRaise
     }
 
 }

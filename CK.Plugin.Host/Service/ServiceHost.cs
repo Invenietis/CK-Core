@@ -27,6 +27,7 @@ using System.Linq;
 using System.Text;
 using System.Reflection;
 using System.Diagnostics;
+using CK.Core;
 
 namespace CK.Plugin.Hosting
 {
@@ -52,12 +53,18 @@ namespace CK.Plugin.Hosting
             _defaultConfiguration = new SimpleServiceHostConfiguration();
             _configurations = new List<IServiceHostConfiguration>();
             _configurations.Add( _defaultConfiguration );
+
+            _untrackedErrors = new List<ILogErrorCaught>();
+            UntrackedErrors = new ReadOnlyListOnIList<ILogErrorCaught>( _untrackedErrors );
         }
 
         public ISimpleServiceHostConfiguration DefaultConfiguration 
         { 
             get { return _defaultConfiguration; } 
         }
+
+        private IList<ILogErrorCaught> _untrackedErrors;
+        public IReadOnlyList<ILogErrorCaught> UntrackedErrors { get; private set; }
 
         public void Add( IServiceHostConfiguration configurator )
         {
@@ -211,11 +218,13 @@ namespace CK.Plugin.Hosting
                     // We then send the "Created" event for the method entry.
                     h( _eventSender, me );
                 }
+                else _untrackedErrors.Add( l );
             }
             else
             {
                 // Entry is already closed: just send the error entry.
                 if( h != null ) h( _eventSender, l );
+                else _untrackedErrors.Add( l );
             }
             Debug.Assert( !me.IsCreating, "SetError closed the event, whatever its status was." );
         }
@@ -231,6 +240,7 @@ namespace CK.Plugin.Hosting
             // Send the "Created" event for the error entry.
             EventHandler<LogEventArgs> h = EventCreated;
             if( h != null ) h( _eventSender, l );
+            else _untrackedErrors.Add( l );
         }
 
         /// <summary>
@@ -257,7 +267,7 @@ namespace CK.Plugin.Hosting
                 EventHandler<LogEventArgs> h = EventCreated;
                 if( h != null ) h( _eventSender, ee );
             }
-            else
+            else //if( (logOptions & ServiceLogEventOptions.StartRaise) != 0) //if we are only logging the EndRaise, we should NOT log through LogEventEnter
             {
                 ee.InitOpen( ++_nextLSN, _currentDepth++, e );
                 // Emits the "Creating" event.
@@ -277,6 +287,7 @@ namespace CK.Plugin.Hosting
         {
             Debug.Assert( ee.IsCreating );
             --_currentDepth;
+            ee.Close();
             EventHandler<LogEventArgs> h = EventCreated;
             if( h != null ) h( _eventSender, ee );
         }
@@ -294,6 +305,7 @@ namespace CK.Plugin.Hosting
             ee.AddError( l );
             EventHandler<LogEventArgs> h = EventCreated;
             if( h != null ) h( _eventSender, l );
+            else _untrackedErrors.Add( l );
         }
 
         /// <summary>
@@ -315,6 +327,7 @@ namespace CK.Plugin.Hosting
             // Emits the error.
             EventHandler<LogEventArgs> h = EventCreated;
             if( h != null ) h( _eventSender, l );
+            else _untrackedErrors.Add( l );
 
             return ee;
         }
@@ -348,6 +361,7 @@ namespace CK.Plugin.Hosting
             LogExternalErrorEntry e = new LogExternalErrorEntry( _nextLSN++, _currentDepth, ex, optionalExplicitCulprit, message, extraData );
             EventHandler<LogEventArgs> h = EventCreated;
             if( h != null ) h( _eventSender, e );
+            else _untrackedErrors.Add( e );
         }
 
         #region IServiceHost Members

@@ -28,6 +28,7 @@ using System.Text;
 using System.Reflection;
 using System.Collections;
 using CK.Core;
+using System.Diagnostics;
 
 namespace CK.Plugin.Hosting
 {
@@ -142,6 +143,10 @@ namespace CK.Plugin.Hosting
             return ((IEnumerable<ILogEventError>)this).GetEnumerator();
         }
 
-
+        internal void Close()
+        {
+            Debug.Assert( IsCreating );
+            LSN = -LSN;
+        }
     }
 }

@@ -67,7 +67,6 @@
     <Compile Include="Host\IServiceHost.cs" />
     <Compile Include="Host\IServiceHostConfiguration.cs" />
     <Compile Include="Host\ISimpleServiceHostConfiguration.cs" />
-    <Compile Include="Host\Log\ILogWithReturnValueEntry.cs" />
     <Compile Include="Host\Log\ILogErrorCulprit.cs" />
     <Compile Include="Host\Log\ILogWithParametersEntry.cs" />
     <Compile Include="Host\Log\ILogCenter.cs" />

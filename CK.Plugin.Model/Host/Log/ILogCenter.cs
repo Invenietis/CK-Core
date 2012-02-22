@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Reflection;
+using CK.Core;
 
 namespace CK.Plugin
 {
@@ -44,6 +45,11 @@ namespace CK.Plugin
         /// <param name="message">Optional event message (localized if possible). Nullable.</param>
         /// <param name="extraData">Optional extra data associated to the event. Nullable.</param>
         void ExternalLogError( Exception e, MemberInfo optionalExplicitCulprit, string message, object extraData );
+
+        /// <summary>
+        /// Gets the list of errors that occured while there was no launched plugins to process them.
+        /// </summary>
+        IReadOnlyList<ILogErrorCaught> UntrackedErrors { get; }
 
     }
 }

@@ -29,7 +29,7 @@ namespace CK.Plugin
     /// <summary>
     /// Log event related to a method call.
     /// </summary>
-    public interface ILogMethodEntry : ILogInterceptionEntry, ILogWithParametersEntry, ILogWithReturnValueEntry
+    public interface ILogMethodEntry : ILogInterceptionEntry, ILogWithParametersEntry
     {
         /// <summary>
         /// Gets the service logged method.
