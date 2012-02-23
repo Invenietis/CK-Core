@@ -24,6 +24,12 @@ namespace CK.Context
         IObjectPluginConfig SystemConfig { get; }
 
         /// <summary>
+        /// Gets the System configuration's file path.
+        /// </summary>
+        /// <returns></returns>
+        Uri GetSystemConfigAddress();
+
+        /// <summary>
         /// Gets the name of the application. Civikey-Standard for instance for the Civikey Standard application. 
         /// It is an identifier (no /, \ or other special characters in it: see <see cref="Path.GetInvalidPathChars"/>).
         /// </summary>

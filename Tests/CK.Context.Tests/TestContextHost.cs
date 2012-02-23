@@ -31,7 +31,7 @@ namespace CK.Context.Tests
         }
 
 
-        protected override Uri GetSystemConfigAddress()
+        public override Uri GetSystemConfigAddress()
         {
             return SystemConfigAddress;
         }

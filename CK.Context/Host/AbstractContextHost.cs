@@ -36,7 +36,7 @@ namespace CK.Context
         public void Log()
         {
             if( _log == null ) return;
-
+            
             _log = null;
         }
 
@@ -113,7 +113,7 @@ namespace CK.Context
             return _ctx;
         }
 
-        protected abstract Uri GetSystemConfigAddress();
+        public abstract Uri GetSystemConfigAddress();
 
         /// <summary>
         /// This method is called by <see cref="EnsureCurrentUserProfile"/> whenever the host needs an address to store the user configuration
@@ -226,15 +226,33 @@ namespace CK.Context
 
         public virtual LoadResult LoadContext()
         {
-            return LoadContext( EnsureCurrentContextProfile( false ).Address );
+            return LoadContext( EnsureCurrentContextProfile( false ).Address, null );
         }
 
-        public virtual LoadResult LoadContext( Uri address )
+        public virtual LoadResult LoadContext( Assembly fallbackResourceAssembly, string fallbackResourcePath )
+        {
+            return LoadContext( EnsureCurrentContextProfile( false ).Address, fallbackResourceAssembly, fallbackResourcePath );
+        }
+
+        public virtual LoadResult LoadContext( Uri address, Assembly fallbackResourceAssembly = null, string fallbackResourcePath = null )
         {
             LoadResult r = DoRead( _ctx.LoadContext, address );
             if( !r.FileNotFound )
             {
                 _ctx.ConfigManager.UserConfiguration.CurrentContextProfile = _ctx.ConfigManager.UserConfiguration.ContextProfiles.FindOrCreate( address );
+            }
+            else if( !String.IsNullOrEmpty( fallbackResourcePath ) )
+            {
+                using( Stream str = fallbackResourceAssembly.GetManifestResourceStream( fallbackResourcePath ) )
+                {
+                    if( str != null )
+                    {
+                        using( IStructuredReader sr = SimpleStructuredReader.CreateReader( str, Context ) )
+                        {
+                            r = DoRead( _ctx.LoadContext, sr );
+                        }
+                    }
+                }
             }
             return r;
         }
@@ -281,8 +299,16 @@ namespace CK.Context
             using( var sr = OpenRead( u, false ) )
             {
                 if( sr == null ) return new LoadResult( _ctx.LogCenter, reader.Method, true, null );
-                return new LoadResult( _ctx.LogCenter, reader.Method, false, reader( sr ) );
+                return DoRead( reader, sr );
             }
+        }
+
+        protected virtual LoadResult DoRead( Func<IStructuredReader, IReadOnlyList<ISimpleErrorMessage>> reader, IStructuredReader structuredReader )
+        {
+            if( reader == null ) throw new ArgumentNullException( "reader" );
+            if( structuredReader == null ) throw new ArgumentNullException( "structuredReader" );
+
+            return new LoadResult( _ctx.LogCenter, reader.Method, false, reader( structuredReader ) );
         }
 
     }
