@@ -163,7 +163,11 @@ namespace CK.Plugin.Hosting
                         _log.Debug( String.Format( "The {0} plugin has been successfully stopped.", p.PublicName ) );
                     }
                     catch( Exception ex )
-                    {                        
+                    {
+#if DEBUG
+                    //Helps the developper identify the culprit of exception
+                    Debugger.Break();
+#endif 
                         _log.ErrorFormat( "There has been a problem when stopping the {0} plugin.", ex, p.PublicName );
                         _serviceHost.LogMethodError( p.GetImplMethodInfoStop(), ex );
                     }
@@ -186,6 +190,10 @@ namespace CK.Plugin.Hosting
                 }
                 catch( Exception ex )
                 {
+#if DEBUG
+                    //Helps the developper identify the culprit of exceptions
+                    Debugger.Break();
+#endif
                     _log.ErrorFormat( "There has been a problem when tearing down the {0} plugin.", ex, p.PublicName );
                     _serviceHost.LogMethodError( p.GetImplMethodInfoTeardown(), ex );
                 }
@@ -220,7 +228,11 @@ namespace CK.Plugin.Hosting
                     p.DisposeIfDisposable();
                 }
                 catch( Exception ex )
-                {                    
+                {
+#if DEBUG
+                    //Helps the developper identify the culprit of exceptions
+                    Debugger.Break();
+#endif
                     _log.ErrorFormat( "There has been a problem when disposing the {0} plugin.", ex, p.PublicName );
                     _serviceHost.LogMethodError( p.GetImplMethodInfoDispose(), ex );
                 }
@@ -243,6 +255,10 @@ namespace CK.Plugin.Hosting
                 }
                 catch( Exception ex )
                 {
+#if DEBUG
+                    //Helps the developper identify the culprit of exceptions
+                    Debugger.Break();
+#endif
                     _log.ErrorFormat( "There has been a problem when setting up the {0} plugin.", ex, p.PublicName );
                     _serviceHost.LogMethodError( p.GetImplMethodInfoSetup(), ex );
 
@@ -288,6 +304,10 @@ namespace CK.Plugin.Hosting
                 }
                 catch( Exception ex )
                 {
+#if DEBUG
+                    //Helps the developper identify the culprit of exceptions
+                    Debugger.Break();
+#endif
                     // Emitted as low level log.
                     _log.ErrorFormat( "There has been a problem when starting the {0} plugin.", ex, p.PublicName );
 
