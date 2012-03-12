@@ -73,7 +73,7 @@ namespace CK.Core
         /// <remarks>
         /// This is not the same as calling <see cref="Add(Type,Func{Object},Action{Object})"/> with a null instance. A null instance for a service (a callback that always returns null)
         /// is nearly the same as calling <see cref="Remove"/>: any fallbacks (to a base <see cref="IServiceProvider"/> for example) can occur.
-        /// This is stronger since this must prevent fallbacks.
+        /// This one is stronger since this must prevent fallbacks.
         /// </remarks>
         /// <param name="serviceType">Service type to disable. It must not already exist in this container otherwise an exception is thrown.</param>
         /// <returns>This object to enable fluent syntax.</returns>

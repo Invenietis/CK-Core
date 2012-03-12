@@ -408,7 +408,7 @@ namespace CK.Core
         /// </summary>
         /// <param name="from">Old index of the item.</param>
         /// <param name="newIndex">New index.</param>
-        /// <returns></returns>
+        /// <returns>The new index of the element.</returns>
         protected virtual int DoMove( int from, int newIndex )
         {
             if( from < 0 || from >= _count ) throw new IndexOutOfRangeException();
@@ -429,6 +429,7 @@ namespace CK.Core
                     _tab[newIndex] = temp;
                 }
             }
+            // newIndex is equal to the original newIndex or to newIndex - 1.
             return newIndex;
         }
 

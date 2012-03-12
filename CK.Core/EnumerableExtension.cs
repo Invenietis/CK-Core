@@ -105,5 +105,74 @@ namespace CK.Core
             return true;
         }
 
+        /// <summary>
+        /// Returns the maximal element of the given sequence, based on a projection (typically
+        /// one of the object property). The sequence MUST NOT 
+        /// be empty otherwise an <see cref="InvalidOperationException"/> is thrown.
+        /// </summary>
+        /// <remarks>
+        /// If more than one element has the maximal projected value, the first
+        /// one encountered will be returned. This overload uses the default comparer
+        /// for the projected type. This operator uses immediate execution, but
+        /// only buffers a single result (the current maximal element).
+        /// </remarks>
+        /// <typeparam name="TSource">Type of the source sequence.</typeparam>
+        /// <typeparam name="TKey">Type of the projected element.</typeparam>
+        /// <param name="this">Source sequence.</param>
+        /// <param name="selector">Selector to use to pick the results to compare</param>
+        /// <returns>The maximal element, according to the projection.</returns>
+        /// <exception cref="ArgumentNullException"><paramref name="this"/> or <paramref name="selector"/> is null</exception>
+        /// <exception cref="InvalidOperationException"><paramref name="this"/> is empty</exception>
+        public static TSource MaxBy<TSource, TKey>( this IEnumerable<TSource> @this, Func<TSource, TKey> selector )
+        {
+            return MaxBy( @this, selector, Comparer<TKey>.Default.Compare );
+        }
+
+        /// <summary>
+        /// Returns the maximal element of the given sequence based on
+        /// a projection and a <see cref="Comparison{T}"/>. The sequence MUST NOT 
+        /// be empty otherwise an <see cref="InvalidOperationException"/> is thrown.
+        /// </summary>
+        /// <remarks>
+        /// If more than one element has the maximal projected value, the first
+        /// one encountered will be returned. This overload uses the default comparer
+        /// for the projected type. This operator uses immediate execution, but
+        /// only buffers a single result (the current maximal element).
+        /// </remarks>
+        /// <typeparam name="TSource">Type of the source sequence.</typeparam>
+        /// <typeparam name="TKey">Type of the projected element.</typeparam>
+        /// <param name="this">Source sequence.</param>
+        /// <param name="selector">Selector to use to pick the results to compare</param>
+        /// <param name="comparison">Comparison function  to use to compare projected values</param>
+        /// <returns>The maximal element, according to the projection.</returns>
+        /// <exception cref="ArgumentNullException"><paramref name="this"/>, <paramref name="selector"/> 
+        /// or <paramref name="comparison"/> is null</exception>
+        /// <exception cref="InvalidOperationException"><paramref name="this"/> is empty</exception>       
+        public static TSource MaxBy<TSource, TKey>( this IEnumerable<TSource> @this, Func<TSource, TKey> selector, Comparison<TKey> comparison )
+        {
+            if( @this == null ) throw new ArgumentNullException( "source" );
+            if( selector == null ) throw new ArgumentNullException( "selector" );
+            if( comparison == null ) throw new ArgumentNullException( "comparer" );
+            using( IEnumerator<TSource> sourceIterator = @this.GetEnumerator() )
+            {
+                if( !sourceIterator.MoveNext() )
+                {
+                    throw new InvalidOperationException( "Sequence was empty" );
+                }
+                TSource max = sourceIterator.Current;
+                TKey maxKey = selector( max );
+                while( sourceIterator.MoveNext() )
+                {
+                    TSource candidate = sourceIterator.Current;
+                    TKey candidateProjected = selector( candidate );
+                    if( comparison( candidateProjected, maxKey ) > 0 )
+                    {
+                        max = candidate;
+                        maxKey = candidateProjected;
+                    }
+                }
+                return max;
+            }
+        }
     }
 }

@@ -90,7 +90,7 @@ namespace Discoverer
         private static void InitalizePaths()
         {
             string p = System.Reflection.Assembly.GetExecutingAssembly().CodeBase;
-            // Code base is like "file:///C:/Documents and Settings/Olivier Spinelli/Mes documents/Dev/CK/Output/Debug/App/CVKTests.DLL"
+            // Code base is like "file:///C:/Users/Spi/Documents/Dev4/CK-Core/Output/Tests/Debug/CK.Discoverer.Tests.DLL"
             StringAssert.StartsWith( "file:///", p, "Code base must start with file:/// protocol." );
 
             p = p.Substring( 8 ).Replace( '/', System.IO.Path.DirectorySeparatorChar );

@@ -27,6 +27,18 @@ namespace CK.Core
         }
 
         /// <summary>
+        /// Registers any numbers of <see cref="IDefaultActivityLoggerSink"/> to the logger collection.
+        /// Duplicate <see cref="IDefaultActivityLoggerSink"/> are silently ignored.
+        /// </summary>
+        /// <param name="sinks">Multiple activity logger implementations.</param>
+        /// <returns>This logger to enable fluent syntax.</returns>
+        public DefaultActivityLogger Register( params IDefaultActivityLoggerSink[] sinks )
+        {
+            foreach( var s in sinks ) Register( s );
+            return this;
+        }
+        
+        /// <summary>
         /// Registers an <see cref="IDefaultActivityLoggerSink"/> to the logger collection.
         /// Duplicate <see cref="IDefaultActivityLoggerSink"/> are silently ignored.
         /// </summary>
@@ -59,7 +71,7 @@ namespace CK.Core
         }
 
         /// <summary>
-        /// Gets the first <see cref="IDefaultActivityLoggerSink"/> that is comaptible with <typeparamref name="T"/> type.
+        /// Gets the first <see cref="IDefaultActivityLoggerSink"/> that is compatible with <typeparamref name="T"/> type.
         /// </summary>
         /// <typeparam name="T">Type of the logger that must be returned.</typeparam>
         /// <returns>The first compatible implementation, or null if no compatible logger exists.</returns>
@@ -69,7 +81,7 @@ namespace CK.Core
         }
 
         /// <summary>
-        /// Gets the first <see cref="IDefaultActivityLoggerSink"/> that is comaptible with <paramref name="loggerType"/> type.
+        /// Gets the first <see cref="IDefaultActivityLoggerSink"/> that is compatible with <paramref name="loggerType"/> type.
         /// </summary>
         /// <param name="loggerType">Type of the logger that must be returned.</param>
         /// <returns>The first compatible implementation, or null if no compatible logger exists.</returns>

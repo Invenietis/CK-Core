@@ -77,7 +77,7 @@ namespace CK.Core
         /// Canonicalizes the path: all '/' and '\' are mapped to <see cref="Path.DirectorySeparatorChar"/> 
         /// (and <see cref="Path.AltDirectorySeparatorChar"/> will also be transformed).
         /// </summary>
-        /// <param name="path">The path to standardize (can be not be null). It is trimmed and if the path is empty, the empty string is returned.</param>
+        /// <param name="path">The path to standardize (must be not be null). It is trimmed and if the path is empty, the empty string is returned.</param>
         /// <param name="ensureTrailingBackslash">
         /// Ensures that the normalized path will end with a <see cref="Path.DirectorySeparatorChar"/>.
         /// It should be true for path to directories because we consider that a directory path SHOULD end with 
@@ -110,6 +110,11 @@ namespace CK.Core
         /// Gets the <see cref="Path.DirectorySeparatorChar"/> as a string.
         /// </summary>
         public static readonly string DirectorySeparatorString = new String( Path.DirectorySeparatorChar, 1 );
+
+        /// <summary>
+        /// Gets the <see cref="Path.AltDirectorySeparatorChar"/> as a string.
+        /// </summary>
+        public static readonly string AltDirectorySeparatorString = new String( Path.AltDirectorySeparatorChar, 1 );
 
         /// <summary>
         /// Finds the first character index of any characters that are invalid in a path.
