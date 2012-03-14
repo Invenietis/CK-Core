@@ -116,9 +116,9 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SimplePlugin", "Tests\CK.Co
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ServiceC.Bis", "Tests\CK.Plugin.Runner.Tests\Plugins\ServiceC.Bis\ServiceC.Bis.csproj", "{E387D25D-7E29-464F-9172-3118A230C3A3}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CK.MultiMode", "CK.Modes\CK.MultiMode.csproj", "{89B2B146-28C7-4037-9412-2E596D77C6FC}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CK.MultiTrait", "CK.MultiTrait\CK.MultiTrait.csproj", "{89B2B146-28C7-4037-9412-2E596D77C6FC}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CK.MultiMode.Tests", "Tests\CK.MultiMode.Tests\CK.MultiMode.Tests.csproj", "{7B6B0068-5CAB-4FF1-8336-DCA7EE2D8D2A}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CK.MultiTrait.Tests", "Tests\CK.MultiTrait.Tests\CK.MultiTrait.Tests.csproj", "{7B6B0068-5CAB-4FF1-8336-DCA7EE2D8D2A}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
