@@ -5,11 +5,11 @@ using System.Runtime.InteropServices;
 // General Information about an assembly is controlled through the following 
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle( "CK.MultiMode.Tests" )]
+[assembly: AssemblyTitle( "CK.MultiTrait.Tests" )]
 [assembly: AssemblyDescription( "" )]
 [assembly: AssemblyConfiguration( "" )]
 [assembly: AssemblyCompany( "Microsoft" )]
-[assembly: AssemblyProduct( "CK.MultiMode.Tests" )]
+[assembly: AssemblyProduct( "CK.MultiTrait.Tests" )]
 [assembly: AssemblyCopyright( "Copyright © Microsoft 2012" )]
 [assembly: AssemblyTrademark( "" )]
 [assembly: AssemblyCulture( "" )]

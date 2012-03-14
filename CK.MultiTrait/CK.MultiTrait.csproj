@@ -36,8 +36,8 @@
     <Reference Include="System.Core" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="MultiModeContext.cs" />
-    <Compile Include="MultiMode.cs" />
+    <Compile Include="MultiTraitContext.cs" />
+    <Compile Include="MultiTrait.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

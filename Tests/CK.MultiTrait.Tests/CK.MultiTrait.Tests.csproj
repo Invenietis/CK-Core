@@ -42,7 +42,7 @@
     <Reference Include="System.Core" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Modes.cs" />
+    <Compile Include="Traits.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -50,9 +50,9 @@
       <Project>{97578828-71EC-46B3-BD9A-44E58292386F}</Project>
       <Name>CK.Core</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\CK.Modes\CK.MultiMode.csproj">
+    <ProjectReference Include="..\..\CK.MultiTrait\CK.MultiTrait.csproj">
       <Project>{89B2B146-28C7-4037-9412-2E596D77C6FC}</Project>
-      <Name>CK.MultiMode</Name>
+      <Name>CK.MultiTrait</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
