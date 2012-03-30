@@ -28,6 +28,7 @@ using System.Reflection;
 using System.Reflection.Emit;
 using System.Threading;
 using CK.Reflection;
+using System.IO;
 
 namespace CK.Plugin.Hosting
 {
@@ -42,8 +43,20 @@ namespace CK.Plugin.Hosting
 
 		static ProxyFactory()
 		{
-			AssemblyName assemblyName = new AssemblyName( "CKProxyAssembly" );
+			AssemblyName assemblyName = new AssemblyName("CKProxyAssembly");
 			assemblyName.Version = new Version( 1, 0, 0, 0 );
+           
+#if(DEBUG) //Signing the DynamicAssembly when being in Release Mode
+            StrongNameKeyPair kp;
+            using( Stream stream = Assembly.GetAssembly( typeof( ProxyFactory ) ).GetManifestResourceStream( "CK.Plugin.DynamicKeyPair.DynamicKeyPair.snk" ) )
+            {
+                //PublicKey : 00240000048000009400000006020000002400005253413100040000010001009fbf2868f04bdf33df4c8c0517bb4c3d743b5b27fcd94009d42d6607446c1887a837e66545221788ecfff8786e85564c839ff56267fe1a3225cd9d8d9caa5aae3ba5d8f67f86ff9dbc5d66f16ba95bacde6d0e02f452fae20022edaea26d31e52870358d0dda69e592ea5cef609a054dac4dbbaa02edc32fb7652df9c0e8e9cd
+                byte[] result = new byte[stream.Length]; 
+                stream.Read(result,0,(int)stream.Length);
+                kp = new StrongNameKeyPair( result );
+            }
+            assemblyName.KeyPair = kp;
+#endif
 			// Creates a new Assembly for running only (not saved).
 			AssemblyBuilder assemblyBuilder = AppDomain.CurrentDomain.DefineDynamicAssembly( assemblyName, AssemblyBuilderAccess.Run );
 			// Creates a new Module

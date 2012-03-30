@@ -16,8 +16,7 @@
     </FileUpgradeFlags>
     <OldToolsVersion>3.5</OldToolsVersion>
     <UpgradeBackupLocation />
-    <TargetFrameworkProfile>
-    </TargetFrameworkProfile>
+    <TargetFrameworkProfile>Client</TargetFrameworkProfile>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -39,6 +38,14 @@
     <WarningLevel>4</WarningLevel>
     <DocumentationFile>bin\Release\CK.Core.xml</DocumentationFile>
     <LangVersion>default</LangVersion>
+    <UseVSHostingProcess>true</UseVSHostingProcess>
+  </PropertyGroup>
+  <PropertyGroup>
+    <SignAssembly>false</SignAssembly>
+  </PropertyGroup>
+  <PropertyGroup>
+    <AssemblyOriginatorKeyFile>
+    </AssemblyOriginatorKeyFile>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
@@ -59,6 +66,7 @@
     <Compile Include="ActivityLogger\LogLevel.cs" />
     <Compile Include="ActivityLogger\IActivityLogger.cs" />
     <Compile Include="CKException.cs" />
+    <Compile Include="ComponentModel\WeakTypeFinder.cs" />
     <Compile Include="IReadOnlyMultiKeyedCollection.cs" />
     <Compile Include="IReadOnlyUniqueKeyedCollection.cs" />
     <Compile Include="IWritableCollector.cs" />
@@ -127,7 +135,6 @@
       <CustomToolNamespace>CK.Core</CustomToolNamespace>
     </EmbeddedResource>
   </ItemGroup>
-  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
     <PostBuildEvent>

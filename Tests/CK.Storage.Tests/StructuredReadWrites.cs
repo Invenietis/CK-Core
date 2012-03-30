@@ -41,7 +41,7 @@ namespace Storage
             using( Stream str = new FileStream( test, FileMode.Open ) )
             {
                 SimpleServiceContainer s = new SimpleServiceContainer();
-                s.Add( typeof( ISimpleTypeFinder ), new SimpleTypeFinder(), null );
+                s.Add( typeof( ISimpleTypeFinder ), new WeakTypeFinder(), null );
                 using( IStructuredReader reader = SimpleStructuredReader.CreateReader( str, s ) )
                 {
                     Assert.That( reader.StorageVersion, Is.GreaterThanOrEqualTo( new Version( 2, 5, 0 ) ) );
@@ -236,7 +236,7 @@ namespace Storage
             using( Stream str = new FileStream( xmlPath, FileMode.Open ) )
             {
                 SimpleServiceContainer s = new SimpleServiceContainer();
-                s.Add( typeof( ISimpleTypeFinder ), new SimpleTypeFinder(), null );
+                s.Add( typeof( ISimpleTypeFinder ), new WeakTypeFinder(), null );
                 using( IStructuredReader reader = SimpleStructuredReader.CreateReader( str, s ) )
                 {
                     Assert.That( reader.ReadObjectElement( "Before" ), Is.EqualTo( 3712 ) );
@@ -271,7 +271,7 @@ namespace Storage
             using( Stream str = new FileStream( xmlPath, FileMode.Open ) )
             {
                 SimpleServiceContainer s = new SimpleServiceContainer();
-                s.Add<ISimpleTypeFinder>( SimpleTypeFinder.Default );
+                s.Add<ISimpleTypeFinder>( new WeakTypeFinder() );
                 using( IStructuredReader reader = SimpleStructuredReader.CreateReader( str, s ) )
                 {
                     Assert.That( reader.ReadObjectElement( "Before" ), Is.EqualTo( 3712 ) );
@@ -297,7 +297,7 @@ namespace Storage
             using( Stream str = new FileStream( xmlPath, FileMode.Open ) )
             {
                 SimpleServiceContainer s = new SimpleServiceContainer();
-                s.Add( typeof( ISimpleTypeFinder ), new SimpleTypeFinder(), null );
+                s.Add( typeof( ISimpleTypeFinder ), new WeakTypeFinder(), null );
                 using( IStructuredReader reader = SimpleStructuredReader.CreateReader( str, s ) )
                 {
                     CheckExactTypeAndValue( typeof( Color ), Color.Red, reader.ReadObjectElement( "data" ) );
@@ -328,7 +328,7 @@ namespace Storage
             using( Stream str = new FileStream( xmlPath, FileMode.Open ) )
             {
                 SimpleServiceContainer s = new SimpleServiceContainer();
-                s.Add( typeof( ISimpleTypeFinder ), new SimpleTypeFinder(), null );
+                s.Add( typeof( ISimpleTypeFinder ), new WeakTypeFinder(), null );
                 using( IStructuredReader reader = SimpleStructuredReader.CreateReader( str, s ) )
                 {
                     ArrayList list2 = (ArrayList)reader.ReadObjectElement( "data" );
@@ -364,7 +364,7 @@ namespace Storage
             using( Stream str = new FileStream( test, FileMode.Open ) )
             {
                 SimpleServiceContainer s = new SimpleServiceContainer();
-                s.Add( typeof( ISimpleTypeFinder ), new SimpleTypeFinder(), null );
+                s.Add( typeof( ISimpleTypeFinder ), new WeakTypeFinder(), null );
                 using( IStructuredReader reader = SimpleStructuredReader.CreateReader( str, s ) )
                 {
                     TestEnumValues value1 = (TestEnumValues)reader.ReadObjectElement( "data" );
@@ -385,7 +385,7 @@ namespace Storage
             using( Stream wrt = new FileStream( xmlPath, FileMode.Create ) )
             {
                 SimpleServiceContainer s = new SimpleServiceContainer();
-                s.Add( typeof( ISimpleTypeFinder ), new SimpleTypeFinder(), null );
+                s.Add( typeof( ISimpleTypeFinder ), new WeakTypeFinder(), null );
                 using( IStructuredWriter writer = SimpleStructuredWriter.CreateWriter( wrt, s ) )
                 {
                     writer.WriteObjectElement( "data", original );
@@ -426,7 +426,7 @@ namespace Storage
             using( Stream str = new FileStream( xmlPath, FileMode.Open ) )
             {
                 SimpleServiceContainer s = new SimpleServiceContainer();
-                s.Add( typeof( ISimpleTypeFinder ), new SimpleTypeFinder(), null );
+                s.Add( typeof( ISimpleTypeFinder ), new WeakTypeFinder(), null );
                 using( IStructuredReader reader = SimpleStructuredReader.CreateReader( str, s ) )
                 {
                     object obj = reader.ReadObjectElement( "data" );
@@ -451,7 +451,7 @@ namespace Storage
             using( Stream str = new FileStream( xmlPath, FileMode.Open ) )
             {
                 SimpleServiceContainer s = new SimpleServiceContainer();
-                s.Add( typeof( ISimpleTypeFinder ), new SimpleTypeFinder(), null );
+                s.Add( typeof( ISimpleTypeFinder ), new WeakTypeFinder(), null );
                 using( IStructuredReader reader = SimpleStructuredReader.CreateReader( str, s ) )
                 {
                     Assert.Throws<CKException>( () => reader.ReadObjectElement( "data" ) );
@@ -487,7 +487,7 @@ namespace Storage
             using( Stream str = new FileStream( xmlPath, FileMode.Open ) )
             {
                 SimpleServiceContainer s = new SimpleServiceContainer();
-                s.Add<ISimpleTypeFinder>( SimpleTypeFinder.Default );
+                s.Add<ISimpleTypeFinder>( new WeakTypeFinder() );
                 using( IStructuredReader reader = SimpleStructuredReader.CreateReader( str, s ) )
                 {
                     object read = reader.ReadObjectElement( "data" );
@@ -503,7 +503,7 @@ namespace Storage
             using( Stream str = new FileStream( xmlPath, FileMode.Open ) )
             {
                 SimpleServiceContainer s = new SimpleServiceContainer();
-                s.Add<ISimpleTypeFinder>( SimpleTypeFinder.Default );
+                s.Add<ISimpleTypeFinder>( new WeakTypeFinder() );
                 using( IStructuredReader reader = SimpleStructuredReader.CreateReader( str, s ) )
                 {
                     reader.ObjectReadExData += ( source, e ) =>
@@ -527,7 +527,7 @@ namespace Storage
             }
         }
 
-        public class UnexistingTypeFinder : SimpleTypeFinder
+        public class UnexistingTypeFinder : WeakTypeFinder
         {
 
             public override Type ResolveType( string assemblyQualifiedName, bool throwOnError )
@@ -631,9 +631,11 @@ namespace Storage
             // A syntax error in version, culture or token is silently ignored...
             Type tSyntaxError = Type.GetType( "ExternalDll.ExternalClass, CK.Storage.Tests.ExternalDll, VersionSYNTAX=1.0.0.0, CultureSYNTAX=neutral, PublicKeyTokenSYNTAX=b77a5c561934e089", true );
             Assert.That( tSyntaxError, Is.Not.Null );
-            // ...actually, long as the namespace.className and assembly is found, everything is okay.
-            Type t2 = Type.GetType( "ExternalDll.ExternalClass, CK.Storage.Tests.ExternalDll, Version=5.0.4.0, Culture=neutral, PublicKeyToken=null", true );
-            Type t1 = Type.GetType( "ExternalDll.ExternalClass, CK.Storage.Tests.ExternalDll, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null", true );
+            //As dlls are signed, version, culture & PublicTokenKey must match. Testing the WeakTypeFinder, that truncates these information, to load the type regardeless of them
+            WeakTypeFinder wtf = new WeakTypeFinder();
+            Type t2 = Type.GetType( wtf.MapType("ExternalDll.ExternalClass, CK.Storage.Tests.ExternalDll, Version=5.0.4.0, Culture=neutral, PublicKeyToken=null"), true );
+            Type t1 = Type.GetType( wtf.MapType("ExternalDll.ExternalClass, CK.Storage.Tests.ExternalDll, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null"), true );
+            //Provinding only namespace.classname, assembly works properly
             Type t0 = Type.GetType( "ExternalDll.ExternalClass, CK.Storage.Tests.ExternalDll", true );
 
             // When the full name or the assembly can not be found, GetType( ..., false ) gently returns null.

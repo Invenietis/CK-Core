@@ -35,7 +35,7 @@ namespace CK.Plugin.Config
         /// Gets or sets the <see cref="IServiceProvider"/> that will be used
         /// while persisting/restoring data.
         /// </summary>
-        IServiceProvider ServiceProvider { get; set; }
+        IServiceProvider ServiceProvider { get; }
 
         void Import( ISharedDictionary source, MergeMode mergeMode );
 

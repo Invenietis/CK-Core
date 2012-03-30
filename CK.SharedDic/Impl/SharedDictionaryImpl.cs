@@ -34,7 +34,7 @@ namespace CK.SharedDic
 {
     internal partial class SharedDictionaryImpl : ISharedDictionary
     {
-        IServiceProvider _serviceProvider;
+        ISimpleServiceContainer _serviceContainer;
         Dictionary< SharedDictionaryEntry, SharedDictionaryEntry > _values;
         Dictionary< object, PluginConfigByObject > _byObject;
         Dictionary< Guid, PluginConfigByPlugin > _byPlugin;
@@ -44,7 +44,8 @@ namespace CK.SharedDic
 
         public SharedDictionaryImpl( IServiceProvider serviceProvider )
         {
-            _serviceProvider = serviceProvider;
+            _serviceContainer = new SimpleServiceContainer( serviceProvider );
+            _serviceContainer.Add<ISimpleTypeFinder>( new CK.Core.WeakTypeFinder() );
             _fragments = new Dictionary<object, List<SkippedFragment>>();
             _values = new Dictionary<SharedDictionaryEntry, SharedDictionaryEntry>();
             _byObject = new Dictionary<object, PluginConfigByObject>();
@@ -54,8 +55,7 @@ namespace CK.SharedDic
 
         public IServiceProvider ServiceProvider
         {
-            get { return _serviceProvider; }
-            set { _serviceProvider = value; }
+            get { return _serviceContainer; }
         }
 
         public bool Contains( object o )

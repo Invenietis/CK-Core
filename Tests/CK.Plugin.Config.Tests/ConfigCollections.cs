@@ -115,14 +115,16 @@ namespace PluginConfig
             PluginStatusCollectionChangingEventArgs lastChanging = null;
             PluginStatusCollectionChangedEventArgs lastChanged = null;
             collection.Changing += ( o, e ) => { lastChanging = e; changingCount++; };
-            collection.Changed += ( o, e ) => { lastChanged = e; changedCount++; };
+            collection.Changed += ( o, e ) => 
+            { 
+                lastChanged = e; changedCount++; 
+            };
 
             using( Stream s = new FileStream( path, FileMode.Open ) )
             {
                 using( var r = SimpleStructuredReader.CreateReader( s, null ) )
                 {
                     r.ReadInlineObjectStructuredElement( "PC", collection );
-                    collection.FireResetEvent();
                 }
             }
 
