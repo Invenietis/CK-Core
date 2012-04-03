@@ -62,42 +62,45 @@ namespace CK.Core
         /// <returns>A trait that contains only already existing traits or null if none already exists.</returns>
         public MultiTrait FindOnlyExisting( string traits, Func<string,bool> collector = null )
         {
-            if( traits == null || traits.Length == 0 ) return _empty;
+            if( traits == null || traits.Length == 0 ) return null;
             traits = traits.Normalize();
             MultiTrait m;
             if( !_traits.TryGetValue( traits, out m ) )
             {
                 int traitCount;
                 string[] splitTraits = SplitMultiTrait( traits, out traitCount );
-                if( traitCount <= 0 ) return _empty;
+                if( traitCount <= 0 ) return null;
                 if( traitCount == 1 )
                 {
                     m = FindOrCreateAtomicTrait( splitTraits[0], false );
                 }
-                traits = String.Join( "+", splitTraits, 0, traitCount );
-                if( !_traits.TryGetValue( traits, out m ) )
+                else
                 {
-                    List<MultiTrait> atomics = new List<MultiTrait>();
-                    for( int i = 0; i < traitCount; ++i )
+                    traits = String.Join( "+", splitTraits, 0, traitCount );
+                    if( !_traits.TryGetValue( traits, out m ) )
                     {
-                        MultiTrait trait = FindOrCreateAtomicTrait( splitTraits[i], false );
-                        if( trait == null )
+                        List<MultiTrait> atomics = new List<MultiTrait>();
+                        for( int i = 0; i < traitCount; ++i )
                         {
-                            if( collector != null && !collector( splitTraits[i] ) ) break;
-                        }
-                        else atomics.Add( trait );
-                    }
-                    if( atomics.Count != 0 )
-                    {
-                        traits = String.Join( "+", atomics );
-                        if( !_traits.TryGetValue( traits, out m ) )
-                        {
-                            lock( _creationLock )
+                            MultiTrait trait = FindOrCreateAtomicTrait( splitTraits[i], false );
+                            if( trait == null )
                             {
-                                if( !_traits.TryGetValue( traits, out m ) )
+                                if( collector != null && !collector( splitTraits[i] ) ) break;
+                            }
+                            else atomics.Add( trait );
+                        }
+                        if( atomics.Count != 0 )
+                        {
+                            traits = String.Join( "+", atomics );
+                            if( !_traits.TryGetValue( traits, out m ) )
+                            {
+                                lock( _creationLock )
                                 {
-                                    m = new MultiTrait( this, traits, atomics.ToReadOnlyList() );
-                                    _traits[traits] = m;
+                                    if( !_traits.TryGetValue( traits, out m ) )
+                                    {
+                                        m = new MultiTrait( this, traits, atomics.ToReadOnlyList() );
+                                        _traits[traits] = m;
+                                    }
                                 }
                             }
                         }

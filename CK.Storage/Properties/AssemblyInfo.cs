@@ -50,7 +50,3 @@ using System;
 
 // The following GUID is for the ID of the typelib if this project is exposed to COM
 [assembly: Guid( "f9993716-02df-4f88-81fd-f2c5f861d032" )]
-
-[assembly: AssemblyDelaySign( false )]
-[assembly: AssemblyKeyFile( @"..\..\..\..\Env\GoodKey.snk" )]
-[assembly: AssemblyKeyName( "" )]

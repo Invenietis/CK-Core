@@ -32,6 +32,12 @@
     <WarningLevel>4</WarningLevel>
     <DocumentationFile>bin\Release\CK.Plugin.Host.xml</DocumentationFile>
   </PropertyGroup>
+  <PropertyGroup>
+    <SignAssembly>true</SignAssembly>
+  </PropertyGroup>
+  <PropertyGroup>
+    <AssemblyOriginatorKeyFile>..\SharedKey.snk</AssemblyOriginatorKeyFile>
+  </PropertyGroup>
   <ItemGroup>
     <Reference Include="Common.Logging, Version=2.0.0.0, Culture=neutral, PublicKeyToken=af08829b84f0328e, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
@@ -93,6 +99,11 @@
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="DynamicKeyPair\DynamicKeyPair.snk" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\SharedKey.snk">
+      <Link>SharedKey.snk</Link>
+    </None>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

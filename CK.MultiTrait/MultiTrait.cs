@@ -142,19 +142,34 @@ namespace CK.Core
             int dist = Int32.MaxValue;
             foreach( var e in elements )
             {
-                MultiTrait mE = _context.FindOnlyExisting( selector( e ) );
-                if( mE != null )
+                string trait = selector( e );
+                if( trait != null )
                 {
-                    if( ReferenceEquals( this, mE ) )
+                    if( trait.Length == 0 )
                     {
-                        best = e;
-                        break;
+                        if( dist == Int32.MaxValue )
+                        {
+                            best = e;
+                            dist = Int32.MaxValue - 1;
+                        }
                     }
-                    int eDist = Fallbacks.IndexOf( mE );
-                    if( eDist >= 0 && eDist < dist )
+                    else
                     {
-                        best = e;
-                        dist = eDist;
+                        MultiTrait mE = _context.FindOnlyExisting( selector( e ) );
+                        if( mE != null )
+                        {
+                            if( ReferenceEquals( this, mE ) )
+                            {
+                                best = e;
+                                break;
+                            }
+                            int eDist = Fallbacks.IndexOf( mE );
+                            if( eDist >= 0 && eDist < dist )
+                            {
+                                best = e;
+                                dist = eDist;
+                            }
+                        }
                     }
                 }
             }

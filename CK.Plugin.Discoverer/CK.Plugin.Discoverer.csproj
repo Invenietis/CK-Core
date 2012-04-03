@@ -36,6 +36,12 @@
     <WarningLevel>4</WarningLevel>
     <DocumentationFile>bin\Release\CK.Plugin.Discoverer.xml</DocumentationFile>
   </PropertyGroup>
+  <PropertyGroup>
+    <SignAssembly>true</SignAssembly>
+  </PropertyGroup>
+  <PropertyGroup>
+    <AssemblyOriginatorKeyFile>..\SharedKey.snk</AssemblyOriginatorKeyFile>
+  </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
     <Reference Include="System.Core">
@@ -71,6 +77,9 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <None Include="..\SharedKey.snk">
+      <Link>SharedKey.snk</Link>
+    </None>
     <None Include="DiscoverImpl.cd" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

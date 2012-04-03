@@ -41,11 +41,10 @@
     <UseVSHostingProcess>true</UseVSHostingProcess>
   </PropertyGroup>
   <PropertyGroup>
-    <SignAssembly>false</SignAssembly>
+    <SignAssembly>true</SignAssembly>
   </PropertyGroup>
   <PropertyGroup>
-    <AssemblyOriginatorKeyFile>
-    </AssemblyOriginatorKeyFile>
+    <AssemblyOriginatorKeyFile>..\SharedKey.snk</AssemblyOriginatorKeyFile>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
@@ -111,6 +110,7 @@
     <Compile Include="Impl\Collections\ReadOnlyListOnIList.cs" />
     <Compile Include="Impl\Collections\Wrapper.cs" />
     <Compile Include="UniqueId\SimpleVersionedUniqueId.cs" />
+    <Compile Include="Util.Converter.cs" />
     <Compile Include="Util.cs" />
     <Compile Include="Impl\ReadOnlyExtension.cs" />
     <Compile Include="InvalidFileException.cs" />
@@ -125,6 +125,8 @@
       <DesignTime>True</DesignTime>
     </Compile>
     <Compile Include="ChangeStatus.cs" />
+    <Compile Include="Util.Hash.cs" />
+    <Compile Include="Util.Math.cs" />
     <Compile Include="WeakReference.cs" />
     <Compile Include="XmlExtension.cs" />
   </ItemGroup>
@@ -134,6 +136,11 @@
       <LastGenOutput>R.Designer.cs</LastGenOutput>
       <CustomToolNamespace>CK.Core</CustomToolNamespace>
     </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\SharedKey.snk">
+      <Link>SharedKey.snk</Link>
+    </None>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
