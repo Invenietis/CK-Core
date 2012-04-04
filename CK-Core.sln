@@ -120,6 +120,16 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CK.MultiTrait", "CK.MultiTr
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CK.MultiTrait.Tests", "Tests\CK.MultiTrait.Tests\CK.MultiTrait.Tests.csproj", "{7B6B0068-5CAB-4FF1-8336-DCA7EE2D8D2A}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Packages", "Packages", "{BE07A70D-AB8C-41F7-A8E6-AC12E7EA11C7}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Nuget", "Nuget", "{7347FEB7-22FB-4802-927D-1B8FC5EBB7CC}"
+	ProjectSection(SolutionItems) = preProject
+		Output\Packages\Nuget\CK.Core.nuspec = Output\Packages\Nuget\CK.Core.nuspec
+		Output\Packages\Nuget\CK.Plugin.nuspec = Output\Packages\Nuget\CK.Plugin.nuspec
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "CKPacage", "CKPacage", "{B66EF332-5B70-4407-BF58-FADE8050860D}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -390,5 +400,7 @@ Global
 		{BB4039C0-D345-41F7-B7A6-6F6FB2ABA952} = {B54D7C86-544F-46EB-81D5-5E9830EBCA86}
 		{E387D25D-7E29-464F-9172-3118A230C3A3} = {B54D7C86-544F-46EB-81D5-5E9830EBCA86}
 		{B46F2FA2-AC8B-4DC8-B609-375F68CDCC73} = {77612365-A0AE-4A3A-B301-5AD1EC2AB0E0}
+		{7347FEB7-22FB-4802-927D-1B8FC5EBB7CC} = {BE07A70D-AB8C-41F7-A8E6-AC12E7EA11C7}
+		{B66EF332-5B70-4407-BF58-FADE8050860D} = {BE07A70D-AB8C-41F7-A8E6-AC12E7EA11C7}
 	EndGlobalSection
 EndGlobal

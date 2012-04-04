@@ -110,6 +110,7 @@
     <Compile Include="Impl\Collections\ReadOnlyListOnIList.cs" />
     <Compile Include="Impl\Collections\Wrapper.cs" />
     <Compile Include="UniqueId\SimpleVersionedUniqueId.cs" />
+    <Compile Include="Uri\UriHelpers.cs" />
     <Compile Include="Util.Converter.cs" />
     <Compile Include="Util.cs" />
     <Compile Include="Impl\ReadOnlyExtension.cs" />
