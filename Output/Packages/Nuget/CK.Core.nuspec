@@ -12,6 +12,6 @@
     <language>en-US</language>
   </metadata>
   <files>
-    <file src="..\..\..\CK.Core\bin\Debug\CK.Core.dll" target="lib" />
+    <file src="..\..\..\CK.Core\bin\Debug\CK.Core.dll" target="lib\net40" />
   </files>
 </package>
