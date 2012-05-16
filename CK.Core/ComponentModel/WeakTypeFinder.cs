@@ -99,48 +99,5 @@ namespace CK.Core
             assemblyName = typeName = String.Empty;
             return false;
         }
-
-        /// <summary>
-        /// Helper method to split the assembly qualified name into its assembly name and full type name.
-        /// </summary>
-        /// <param name="assemblyQualifiedName">The assembly qualified name to split.</param>
-        /// <param name="assemblyName">Assembly name on output or an empty string.</param>
-        /// <param name="fullTypeName">Full type name on output or an empty string.</param>
-        /// <returns>True if the split has been successfully done. False otherwise.</returns>
-        static public bool SplitNames( string assemblyQualifiedName, out string assemblyName, out string fullTypeName )
-        {
-            int i = assemblyQualifiedName.IndexOf( ',' );
-            if( i > 0 && i < assemblyQualifiedName.Length - 1 )
-            {
-                assemblyName = assemblyQualifiedName.Substring( i + 1 ).Trim();
-                fullTypeName = assemblyQualifiedName.Substring( 0, i ).Trim();
-                return assemblyName.Length > 0 && fullTypeName.Length > 0;
-            }
-            assemblyName = fullTypeName = String.Empty;
-            return false;
-        }
-
-        /// <summary>
-        /// Helper method to split an assembly full name in two parts.
-        /// </summary>
-        /// <param name="assemblyFullName">The assembly full name.</param>
-        /// <param name="assemblyName">Set to assembly name only.</param>
-        /// <param name="versionCultureAndPublicKeyToken">Set to extra information.</param>
-        /// <returns>True if the split worked.</returns>
-        static public bool SplitAssemblyFullName( string assemblyFullName, out string assemblyName, out string versionCultureAndPublicKeyToken )
-        {
-            versionCultureAndPublicKeyToken = assemblyName = String.Empty;
-            int i = assemblyFullName.IndexOf( ',' );
-            if( i < 0 ) assemblyName = assemblyFullName;
-            else if( i > 0 )
-            {
-                if( i < assemblyFullName.Length - 1 )
-                {
-                    versionCultureAndPublicKeyToken = assemblyFullName.Substring( i + 1 ).Trim();
-                }
-                assemblyName = assemblyFullName.Substring( 0, i ).Trim();
-            }
-            return assemblyName.Length > 0;
-        }
     }
 }

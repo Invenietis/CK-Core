@@ -47,12 +47,12 @@ namespace Injection
 
         public void Teardown()
         {
-            
+            Assert.That( _serviceHasBeenStopped );
         }
 
         public void Stop()
         {
-            Assert.That( _serviceHasBeenStopped );
+            
         }
     }
 }
