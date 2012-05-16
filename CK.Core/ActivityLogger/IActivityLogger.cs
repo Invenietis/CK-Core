@@ -5,13 +5,13 @@ namespace CK.Core
 {
     /// <summary>
     /// Simple activity logger for end user communication. This is not the same as a classical logging framework: this 
-    /// is dedicated to capture activities in order to display it to a end user.
+    /// is dedicated to capture activities in order to display them to an end user.
     /// </summary>
     public interface IActivityLogger
-    {        
+    {
         /// <summary>
         /// Gets or sets a filter based on the log level.
-        /// This filter applies to the currently opened group.
+        /// This filter applies to the currently opened group (it is automatically restored when <see cref="CloseGroup"/> is called).
         /// </summary>
         LogLevelFilter Filter { get; set; }
 
@@ -22,11 +22,13 @@ namespace CK.Core
         /// See remarks.
         /// </summary>
         /// <param name="level">Log level.</param>
-        /// <param name="text">Text to log.</param>
+        /// <param name="text">Text to log. Ignored if null or empty.</param>
         /// <returns>This logger to enable fluent syntax.</returns>
         /// <remarks>
-        /// A null <paramref name="text"/> is not logged in itself but instead breaks the current <see cref="LogLevel"/>
-        /// (as if a different <see cref="LogLevel"/> was used).
+        /// A null or empty <paramref name="text"/> is not logged.
+        /// The special text "PARK-LEVEL" breaks the current <see cref="LogLevel"/>
+        /// and resets it: the next log, even with the same LogLevel, will be treated as if
+        /// a different LogLevel is used.
         /// </remarks>
         IActivityLogger UnfilteredLog( LogLevel level, string text );
 
@@ -35,7 +37,7 @@ namespace CK.Core
         /// close the group, or the returned object must be disposed.
         /// </summary>
         /// <param name="level">Log level. Since we are opening a group, the current <see cref="Filter"/> is ignored.</param>
-        /// <param name="text">Text to log (the title of the group).</param>
+        /// <param name="text">Text to log (the title of the group). Null text is valid and considered as <see cref="String.Empty"/>.</param>
         /// <param name="getConclusionText">Optional function that will be called on group closing.</param>
         /// <returns>A disposable object that can be used to close the group.</returns>
         /// <remarks>
@@ -47,7 +49,13 @@ namespace CK.Core
         /// <summary>
         /// Closes the current group level, appending an optional conclusion to the opening logged information.
         /// </summary>
+        /// <param name="conclusion">Optional text to conclude the group.</param>
         void CloseGroup( string conclusion );
+
+        /// <summary>
+        /// Gets the <see cref="IActivityLoggerOutput"/> for this logger.
+        /// </summary>
+        IActivityLoggerOutput Output { get; }
     }
 
 }

@@ -6,11 +6,11 @@ using System.Text;
 namespace CK.Core
 {
     /// <summary>
-    /// Simple activity logger implementation for <see cref="DefaultActivityLogger"/>.
+    /// Defines sink for <see cref="ActivityLoggerTap"/>.
     /// Inherits from this interface to implement your own logger (ie: XmlLogger).
     /// Each method described below provides an easy way to react to <see cref="IActivityLogger"/> calls.
     /// </summary>
-    public interface IDefaultActivityLoggerSink
+    public interface IActivityLoggerSink
     {
         /// <summary>
         /// Called for the first text of a <see cref="LogLevel"/>.
@@ -35,14 +35,15 @@ namespace CK.Core
         /// <summary>
         /// Called whenever a group is opened.
         /// </summary>
-        /// <param name="g">The newly opened group.</param>
-        void OnGroupOpen( DefaultActivityLogger.Group g );
+        /// <param name="group">The newly opened group.</param>
+        void OnGroupOpen( IActivityLogGroup group );
 
         /// <summary>
-        /// Called whenever a group is closed.
+        /// Called once the <paramref name="conclusion"/> is known but before the group
+        /// is actually closed.
         /// </summary>
-        /// <param name="g">The closing group.</param>
-        /// <param name="conclusion">Conclusion text.</param>
-        void OnGroupClose( DefaultActivityLogger.Group g, string conclusion );
+        /// <param name="group">The closing group.</param>
+        /// <param name="conclusion">Text that concludes the group. Never null but can be empty.</param>
+        void OnGroupClose( IActivityLogGroup group, string conclusion );
     }
 }

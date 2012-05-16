@@ -10,7 +10,7 @@ namespace CK.Core
     /// <summary>
     /// Helper functions related to <see cref="Uri"/>.
     /// </summary>
-    public static class UriHelpers
+    public static class UriHelper
     {
         /// <summary>
         /// When val is null, the parameter will be removed.
@@ -52,22 +52,10 @@ namespace CK.Core
         /// <param name="val">Value of the parameter. It must be url safe since this method 
         /// will not escape it.</param>
         /// <returns>The url with the appended or updated parameter.</returns>
-        static public string AssumeUrlParameter( this string u, string parameter, string val )
+        static public string AssumeUrlParameter( string u, string parameter, string val )
         {
             if( val == null ) val = String.Empty;
             return AddUrlParameter( u, parameter, val, true );
-        }
-
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="u"></param>
-        /// <param name="parameter"></param>
-        /// <param name="val"></param>
-        /// <returns></returns>
-        static public Uri AssumeUrlParameter( this Uri u, string parameter, string val )
-        {
-            return new Uri( AssumeUrlParameter( u.AbsoluteUri, parameter, val ) );
         }
 
         /// <summary>
@@ -76,34 +64,26 @@ namespace CK.Core
         /// <param name="u">Original url</param>
         /// <param name="parameter">Parameter name to remove.</param>
         /// <returns>An url without the parameter.</returns>
-        static public string RemoveUrlParameter( this string u, string parameter )
+        static public string RemoveUrlParameter( string u, string parameter )
         {
             return AddUrlParameter( u, parameter, null, true );
         }
 
-        static public Uri RemoveUrlParameter( this Uri u, string parameter, string val )
-        {
-            return new Uri( RemoveUrlParameter( u.AbsoluteUri, parameter ) );
-        }
-
         /// <summary>
-        /// Appends the given parameter and value to the url. If this parameter already exists
-        /// in the url (and you do not want duplicated parameters), use <see cref="AssumeUrlParameter"/>
+        /// Appends the given parameter and value to the url. If the parameter name already exists
+        /// in the url (and you do not want duplicated parameters), use <see cref="M:AssumeUrlParameter"/>
         /// instead.
         /// </summary>
         /// <param name="u">Url</param>
         /// <param name="parameter">Name of the parameter.</param>
         /// <param name="val">Value of the parameter. It must be url safe since this method 
         /// will not escape it.</param>
-        /// <returns></returns>
-        static public string AppendUrlParameter( this string u, string parameter, string val )
+        /// <returns>An url with the parameter and value added.</returns>
+        static public string AppendUrlParameter( string u, string parameter, string val )
         {
+            if( val == null ) val = String.Empty; 
             return AddUrlParameter( u, parameter, val, false );
         }
 
-        static public Uri AppendUrlParameter( this Uri u, string parameter, string val )
-        {
-            return new Uri( AppendUrlParameter( u.AbsoluteUri, parameter, val ) );
-        }
     }
 }

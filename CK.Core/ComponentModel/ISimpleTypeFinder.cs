@@ -37,7 +37,8 @@ namespace CK.Core
         /// Gets an (optionnal) mapping from any name of a type to the actual
         /// assembly qualified name that must be used for it.
         /// This function MUST be idempotent (ie. MapType( MapType(x) ) == MapType(x) whatever x is).
-        /// Its default implementation is simply to return its parameter unchanged (no mapping).
+        /// You should use the <see cref="SimpleTypeFinder.Default"/> or <see cref="SimpleTypeFinder.WeakDefault"/> standard
+        /// implementations.
         /// </summary>
         /// <param name="externalName">The assembly qualified name of a type.</param>
         /// <returns>The assembly qualified name (that <see cref="ResolveType"/> can use) of the type to use.</returns>
