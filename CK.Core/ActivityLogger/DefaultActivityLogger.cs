@@ -6,10 +6,47 @@ using System.Text;
 namespace CK.Core
 {
     /// <summary>
-    /// Specialized <see cref="ActivityLogger"/> that contains a non removable <see cref="ActivityLoggerTap"/>.
+    /// Gives access to concrete implementation of <see cref="IDefaultActivityLogger"/> thanks to <see cref="Create"/> factory method.
     /// </summary>
-    public class DefaultActivityLogger : ActivityLogger
+    public class DefaultActivityLogger : ActivityLogger, IDefaultActivityLogger
     {
+        /// <summary>
+        /// Factory method for <see cref="IDefaultActivityLogger"/> implementation.
+        /// </summary>
+        /// <returns>A new <see cref="IDefaultActivityLogger"/> implementation.</returns>
+        static public IDefaultActivityLogger Create()
+        {
+            return new DefaultActivityLogger();
+        }
+
+        class EmptyDefault : ActivityLogger.EmptyLogger, IDefaultActivityLogger
+        {
+            public ActivityLoggerTap Tap
+            {
+                get { return ActivityLoggerTap.Empty; }
+            }
+
+            public IDefaultActivityLogger Register( IActivityLoggerSink sink )
+            {
+                return this;
+            }
+
+            public IDefaultActivityLogger Unregister( IActivityLoggerSink sink )
+            {
+                return this;
+            }
+
+            public IReadOnlyList<IActivityLoggerSink> RegisteredSinks
+            {
+                get { return ReadOnlyListEmpty<IActivityLoggerSink>.Empty; }
+            }
+        }
+
+        /// <summary>
+        /// Empty <see cref="IDefaultActivityLogger"/> (null object design pattern).
+        /// </summary>
+        static public new readonly IDefaultActivityLogger Empty = new EmptyDefault();
+
         ActivityLoggerTap _tap;
 
         class CheckedOutput : ActivityLoggerOutput
@@ -35,10 +72,7 @@ namespace CK.Core
 
         }
 
-        /// <summary>
-        /// Initialize a new <see cref="DefaultActivityLogger"/>.
-        /// </summary>
-        public DefaultActivityLogger()
+        DefaultActivityLogger()
             : base( null )
         {
             SetOutput( new CheckedOutput( this ) );
@@ -46,42 +80,23 @@ namespace CK.Core
             Output.RegisterMuxClient( _tap );
         }
 
-        /// <summary>
-        /// Gets the <see cref="ActivityLoggerTap"/> that manages <see cref="IActivityLoggerSink"/>
-        /// for this <see cref="DefaultActivityLogger"/>.
-        /// </summary>
         public ActivityLoggerTap Tap 
         { 
             get { return _tap; } 
         }
 
-        /// <summary>
-        /// Adds an <see cref="IActivityLoggerSink"/> to the <see cref="RegisteredSinks"/>.
-        /// Duplicate <see cref="IActivityLoggerSink"/> are silently ignored.
-        /// </summary>
-        /// <param name="l">An activity logger sink implementation.</param>
-        /// <returns>This logger to enable fluent syntax.</returns>
-        public DefaultActivityLogger Register( IActivityLoggerSink l )
+        public IDefaultActivityLogger Register( IActivityLoggerSink sink )
         {
-            _tap.Register( l );
+            _tap.Register( sink );
             return this;
         }
 
-        /// <summary>
-        /// Unregisters the given <see cref="IActivityLoggerSink"/> from the collection of loggers.
-        /// Silently ignored unregistered logger.
-        /// </summary>
-        /// <param name="l">An activity logger sink implementation.</param>
-        /// <returns>This logger to enable fluent syntax.</returns>
-        public virtual DefaultActivityLogger Unregister( IActivityLoggerSink l )
+        public IDefaultActivityLogger Unregister( IActivityLoggerSink sink )
         {
-            _tap.Unregister( l );
+            _tap.Unregister( sink );
             return this;
         }
 
-        /// <summary>
-        /// Gets the list of registered <see cref="IActivityLoggerSink"/>.
-        /// </summary>
         public IReadOnlyList<IActivityLoggerSink> RegisteredSinks
         {
             get { return _tap.RegisteredSinks; }

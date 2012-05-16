@@ -73,13 +73,20 @@ namespace CK.Core
             if( obj != null ) obj.Dispose();
         }
 
+
+        [Obsolete( "Use CreateDisposableAction instead.", true )]
+        public static IDisposable DisposeAction( Action a )
+        {
+            return CreateDisposableAction( a );
+        }
+
         /// <summary>
         /// Wraps an action in a <see cref="IDisposable"/> interface
         /// Can be safely called if <paramref name="a"/> is null (the dispose call will do nothing).
         /// See <see cref="ActionDispose"/> to adapt an <see cref="IDisposable"/> interface to an <see cref="Action"/>.
         /// </summary>
         /// <param name="a">The action to call when <see cref="IDisposable.Dispose"/> is called.</param>
-        public static IDisposable DisposeAction( Action a )
+        public static IDisposable CreateDisposableAction( Action a )
         {
             return new DisposableAction() { A = a };
         }
@@ -97,6 +104,13 @@ namespace CK.Core
                 }
             }
         }
+
+        class FakeDisposable : IDisposable { public void  Dispose() { } }
+
+        /// <summary>
+        /// A void, immutable, <see cref="IDisposable"/> that does absolutely nothing.
+        /// </summary>
+        public static readonly IDisposable EmptyDisposable = new FakeDisposable(); 
 
         /// <summary>
         /// Centralized void action call for any type. 

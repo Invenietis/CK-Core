@@ -13,6 +13,49 @@ namespace CK.Core
         List<IActivityLoggerClient> _clients;
         IReadOnlyList<IActivityLoggerClient> _clientsEx;
 
+        internal class EmptyOutput : IActivityLoggerOutput
+        {
+            public IMuxActivityLoggerClient ExternalInput
+            {
+                get { return ActivityLoggerHybridClient.Empty; }
+            }
+
+            public IActivityLoggerClientRegistrar RegisterClient( IActivityLoggerClient client )
+            {
+                return this;
+            }
+
+            public IActivityLoggerClientRegistrar UnregisterClient( IActivityLoggerClient client )
+            {
+                return this;
+            }
+
+            public IReadOnlyList<IActivityLoggerClient> RegisteredClients
+            {
+                get { return ReadOnlyListEmpty<IActivityLoggerClient>.Empty; }
+            }
+
+            public IMuxActivityLoggerClientRegistrar RegisterMuxClient( IMuxActivityLoggerClient client )
+            {
+                return this;
+            }
+
+            public IMuxActivityLoggerClientRegistrar UnregisterMuxClient( IMuxActivityLoggerClient client )
+            {
+                return this;
+            }
+
+            public IReadOnlyList<IMuxActivityLoggerClient> RegisteredMuxClients
+            {
+                get { return ReadOnlyListEmpty<IMuxActivityLoggerClient>.Empty; }
+            }
+        }
+
+        /// <summary>
+        /// Empty <see cref="IActivityLoggerOutput"/> (null object design pattern).
+        /// </summary>
+        static public readonly IActivityLoggerOutput Empty = new EmptyOutput();
+
         /// <summary>
         /// Initializes a new <see cref="ActivityLoggerOutput"/> bound to a <see cref="IActivityLogger"/>.
         /// </summary>

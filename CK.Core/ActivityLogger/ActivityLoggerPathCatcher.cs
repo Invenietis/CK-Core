@@ -11,7 +11,7 @@ namespace CK.Core
     /// and two specific paths, the <see cref="LastErrorPath"/> and the <see cref="LastWarnOrErrorPath"/>.
     /// It is both a <see cref="IMuxActivityLoggerClient"/> and a <see cref="IActivityLoggerClient"/>.
     /// </summary>
-    public class ActivityLoggerPathCatcher : IActivityLoggerClient, IMuxActivityLoggerClient
+    public class ActivityLoggerPathCatcher : ActivityLoggerHybridClient
     {
         /// <summary>
         /// Element of the <see cref="ActivityLoggerPathCatcher.DynamicPath">DynamicPath</see>, <see cref="ActivityLoggerPathCatcher.LastErrorPath">LastErrorPath</see>,
@@ -33,6 +33,40 @@ namespace CK.Core
             /// </summary>
             public string GroupConclusion { get; internal set; }
         }
+
+        /// <summary>
+        /// Reuse the ActivityLoggerPathCatcher: since all hooks are empty, no paths exist.
+        /// </summary>
+        class EmptyPathCatcher : ActivityLoggerPathCatcher
+        {
+            // Security if OnFilterChanged is implemented once on ActivityLoggerPathCatcher.
+            protected override void OnFilterChanged( LogLevelFilter current, LogLevelFilter newValue )
+            {
+            }
+
+            protected override void OnUnfilteredLog( LogLevel level, string text )
+            {
+            }
+
+            protected override void OnOpenGroup( IActivityLogGroup group )
+            {
+            }
+
+            // Security if OnGroupClosing is implemented once on ActivityLoggerPathCatcher.
+            protected override string OnGroupClosing( IActivityLogGroup group, string conclusion )
+            {
+                return null;
+            }
+
+            protected override void OnGroupClosed( IActivityLogGroup group, string conclusion )
+            {
+            }
+        }
+
+        /// <summary>
+        /// Empty <see cref="ActivityLoggerTap"/> (null object design pattern).
+        /// </summary>
+        static public new readonly ActivityLoggerPathCatcher Empty = new EmptyPathCatcher();
 
         IReadOnlyList<PathElement> _errorSnaphot;
         IReadOnlyList<PathElement> _warnSnaphot;
@@ -61,7 +95,7 @@ namespace CK.Core
         }
 
         /// <summary>
-        /// Gets the last where an <see cref="LogLevel.Error"/> or a <see cref="LogLevel.Fatal"/> occured.
+        /// Gets the last <see cref="DynamicPath"/> where an <see cref="LogLevel.Error"/> or a <see cref="LogLevel.Fatal"/> occured.
         /// Null if no error nor fatal occured.
         /// </summary>
         public IReadOnlyList<PathElement> LastErrorPath
@@ -96,11 +130,7 @@ namespace CK.Core
             if( clearLastErrorPath ) _errorSnaphot = null;
         }
 
-        void IActivityLoggerClient.OnFilterChanged( LogLevelFilter current, LogLevelFilter newValue )
-        {
-        }
-
-        void IActivityLoggerClient.OnUnfilteredLog( LogLevel level, string text )
+        protected override void OnUnfilteredLog( LogLevel level, string text )
         {
             if( text != ActivityLogger.ParkLevel )
             {
@@ -116,7 +146,7 @@ namespace CK.Core
             }
         }
 
-        void IActivityLoggerClient.OnOpenGroup( IActivityLogGroup group )
+        protected override void OnOpenGroup( IActivityLogGroup group )
         {
             if( _currentIsGroup || _current == null )
             {
@@ -129,12 +159,7 @@ namespace CK.Core
             CheckSnapshot();
         }
 
-        string IActivityLoggerClient.OnGroupClosing( IActivityLogGroup group, string conclusion )
-        {
-            return null;
-        }
-
-        void IActivityLoggerClient.OnGroupClosed( IActivityLogGroup group, string conclusion )
+        protected override void OnGroupClosed( IActivityLogGroup group, string conclusion )
         {
             if( _path.Count > 0 )
             {
@@ -164,33 +189,5 @@ namespace CK.Core
             }
         }
 
-        #region IMuxActivityLoggerClient relayed to IActivityLoggerClient
-
-        void IMuxActivityLoggerClient.OnFilterChanged( IActivityLogger sender, LogLevelFilter current, LogLevelFilter newValue )
-        {
-            ((IActivityLoggerClient)this).OnFilterChanged( current, newValue );
-        }
-
-        void IMuxActivityLoggerClient.OnUnfilteredLog( IActivityLogger sender, LogLevel level, string text )
-        {
-            ((IActivityLoggerClient)this).OnUnfilteredLog( level, text );
-        }
-
-        void IMuxActivityLoggerClient.OnOpenGroup( IActivityLogger sender, IActivityLogGroup group )
-        {
-            ((IActivityLoggerClient)this).OnOpenGroup( group );
-        }
-
-        string IMuxActivityLoggerClient.OnGroupClosing( IActivityLogger sender, IActivityLogGroup group, string conclusion )
-        {
-            return ((IActivityLoggerClient)this).OnGroupClosing( group, conclusion );
-        }
-
-        void IMuxActivityLoggerClient.OnGroupClosed( IActivityLogger sender, IActivityLogGroup group, string conclusion )
-        {
-            ((IActivityLoggerClient)this).OnGroupClosed( group, conclusion );
-        }
-
-        #endregion
     }
 }

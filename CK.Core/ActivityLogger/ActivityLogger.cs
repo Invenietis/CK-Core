@@ -12,12 +12,48 @@ namespace CK.Core
         /// String to use to break the current <see cref="LogLevel"/> (as if a different <see cref="LogLevel"/> was used).
         /// </summary>
         static public readonly string ParkLevel = "PARK-LEVEL";
-        
+
+        /// <summary>
+        /// Empty (reusable) implementation of <see cref="IActivityLogger"/>.
+        /// </summary>
+        public class EmptyLogger : IActivityLogger
+        {
+            public LogLevelFilter Filter
+            {
+                get { return LogLevelFilter.Off; }
+                set { }
+            }
+
+            public IActivityLogger UnfilteredLog( LogLevel level, string text )
+            {
+                return this;
+            }
+
+            public IDisposable OpenGroup( LogLevel level, Func<string> getConclusionText, string text )
+            {
+                return Util.EmptyDisposable;
+            }
+
+            public void CloseGroup( string conclusion )
+            {
+            }
+
+            public IActivityLoggerOutput Output
+            {
+                get { return ActivityLoggerOutput.Empty; }
+            }
+
+        }
+
+        /// <summary>
+        /// Empty <see cref="IActivityLogger"/> (null object design pattern).
+        /// </summary>
+        static public readonly IActivityLogger Empty = new EmptyLogger();
+
         LogLevelFilter _filter;
         Group _current;
         int _depth;
         ActivityLoggerOutput _output;
-
 
         /// <summary>
         /// Initializes a new <see cref="ActivityLogger"/> with a <see cref="ActivityLoggerOutput"/> as its <see cref="Output"/>.

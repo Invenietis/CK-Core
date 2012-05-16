@@ -58,12 +58,14 @@
     <Compile Include="ActionSequence\ActionSequence.cs" />
     <Compile Include="ActionSequence\ActionSequenceExtension.cs" />
     <Compile Include="ActionSequence\IActionSequence.cs" />
+    <Compile Include="ActivityLogger\ActivityLoggerHybridClient.cs" />
     <Compile Include="ActivityLogger\ActivityLoggerOutput.cs" />
     <Compile Include="ActivityLogger\ActivityLoggerPathCatcher.cs" />
     <Compile Include="ActivityLogger\ActivityLoggerTap.cs" />
     <Compile Include="ActivityLogger\DefaultActivityLogger.cs" />
     <Compile Include="ActivityLogger\IActivityLoggerOutput.cs" />
     <Compile Include="ActivityLogger\IActivityLoggerClientRegistrar.cs" />
+    <Compile Include="ActivityLogger\IDefaultActivityLogger.cs" />
     <Compile Include="ActivityLogger\IMuxActivityLoggerClient.cs" />
     <Compile Include="ActivityLogger\IActivityLoggerSink.cs" />
     <Compile Include="ActivityLogger\IActivityLoggerClient.cs" />

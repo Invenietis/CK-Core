@@ -103,7 +103,7 @@ namespace Core
         [Test]
         public void DefaultImpl()
         {
-            DefaultActivityLogger l = new DefaultActivityLogger();
+            IDefaultActivityLogger l = DefaultActivityLogger.Create();
 
             l.Register( new StringImpl() ).Register( new XmlImpl( new StringWriter() ) );
 
@@ -141,7 +141,7 @@ namespace Core
         [Test]
         public void MultipleClose()
         {
-            DefaultActivityLogger l = new DefaultActivityLogger();
+            IDefaultActivityLogger l = DefaultActivityLogger.Create();
 
             var log1 = new StringImpl();
             var log2 = new XmlImpl( new StringWriter() );
@@ -168,7 +168,7 @@ namespace Core
         [Test]
         public void FilterLevel()
         {
-            DefaultActivityLogger l = new DefaultActivityLogger();
+            IDefaultActivityLogger l = DefaultActivityLogger.Create();
             var log = new StringImpl();
             l.Register( log );
             using( l.Filter( LogLevelFilter.Error ) )
@@ -223,7 +223,7 @@ namespace Core
         [Test]
         public void CloseMismatch()
         {
-            DefaultActivityLogger l = new DefaultActivityLogger();
+            IDefaultActivityLogger l = DefaultActivityLogger.Create();
             var log = new StringImpl();
             l.Register( log );
             {
@@ -261,7 +261,7 @@ namespace Core
         [Test]
         public void ExplicitCloseWins()
         {
-            DefaultActivityLogger l = new DefaultActivityLogger();
+            IDefaultActivityLogger l = DefaultActivityLogger.Create();
             var log = new StringImpl();
             l.Register( log );
 
@@ -293,7 +293,7 @@ namespace Core
         [Test]
         public void PathCatcherTests()
         {
-            var logger = new DefaultActivityLogger();
+            var logger = DefaultActivityLogger.Create();
             ActivityLoggerPathCatcher p = new ActivityLoggerPathCatcher();
             logger.Output.RegisterMuxClient( p );
 

@@ -11,16 +11,54 @@ namespace CK.Core
     public static class ActivityLoggerExtension
     {
 
+        #region Registrar
+
+        /// <summary>
+        /// Registers multiple <see cref="IActivityLoggerClientRegistrar"/>.
+        /// </summary>
+        /// <param name="this">This <see cref="IActivityLoggerClientRegistrar"/> object.</param>
+        /// <param name="clients">Multiple clients to register.</param>
+        /// <returns>This registrar to enable fluent syntax.</returns>
+        public static IActivityLoggerClientRegistrar Register( this IActivityLoggerClientRegistrar @this, IEnumerable<IActivityLoggerClient> clients )
+        {
+            foreach( var c in clients ) @this.RegisterClient( c );
+            return @this;
+        }
+
+        /// <summary>
+        /// Registers multiple <see cref="IActivityLoggerClientRegistrar"/>.
+        /// </summary>
+        /// <param name="this">This <see cref="IActivityLoggerClientRegistrar"/> object.</param>
+        /// <param name="clients">Multiple clients to register.</param>
+        /// <returns>This registrar to enable fluent syntax.</returns>
+        public static IActivityLoggerClientRegistrar Register( this IActivityLoggerClientRegistrar @this, params IActivityLoggerClient[] clients )
+        {
+            return Register( @this, (IEnumerable<IActivityLoggerClient>)clients );
+        }
+
+        /// <summary>
+        /// Registers multiple <see cref="IMuxActivityLoggerClientRegistrar"/>.
+        /// </summary>
+        /// <param name="this">This <see cref="IMuxActivityLoggerClientRegistrar"/> object.</param>
+        /// <param name="clients">Multiple clients to register.</param>
+        /// <returns>This registrar to enable fluent syntax.</returns>
         public static IMuxActivityLoggerClientRegistrar Register( this IMuxActivityLoggerClientRegistrar @this, IEnumerable<IMuxActivityLoggerClient> clients )
         {
             foreach( var c in clients ) @this.RegisterMuxClient( c );
             return @this;
         }
 
+        /// <summary>
+        /// Registers multiple <see cref="IMuxActivityLoggerClientRegistrar"/>.
+        /// </summary>
+        /// <param name="this">This <see cref="IMuxActivityLoggerClientRegistrar"/> object.</param>
+        /// <param name="clients">Multiple clients to register.</param>
+        /// <returns>This registrar to enable fluent syntax.</returns>
         public static IMuxActivityLoggerClientRegistrar Register( this IMuxActivityLoggerClientRegistrar @this, params IMuxActivityLoggerClient[] clients )
         {
             return Register( @this, (IEnumerable<IMuxActivityLoggerClient>)clients );
         }
+        #endregion
 
         #region IActivityLogger OpenGroup( ... ), Filter( level ), Trace(...), Info(...), Warn(...), Error(...) and Error(...).
 

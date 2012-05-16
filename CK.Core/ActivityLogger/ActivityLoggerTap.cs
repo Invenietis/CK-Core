@@ -9,11 +9,47 @@ namespace CK.Core
     /// A tap is both a <see cref="IMuxActivityLoggerClient"/> and a <see cref="IActivityLoggerClient"/> that delivers log data 
     /// to multiple <see cref="IActivityLoggerSink"/> implementations.
     /// </summary>
-    public class ActivityLoggerTap : IActivityLoggerClient, IMuxActivityLoggerClient
+    public class ActivityLoggerTap : ActivityLoggerHybridClient
     {
         int _curLevel;
         List<IActivityLoggerSink> _sinks;
         IReadOnlyList<IActivityLoggerSink> _sinksEx;
+
+        class EmptyTap : ActivityLoggerTap
+        {
+            public override ActivityLoggerTap Register( IActivityLoggerSink l )
+            {
+                return this;
+            }
+            
+            // Security if OnFilterChanged is implemented once on ActivityLoggerTap.
+            protected override void OnFilterChanged( LogLevelFilter current, LogLevelFilter newValue )
+            {
+            }
+
+            protected override void OnUnfilteredLog( LogLevel level, string text )
+            {
+            }
+
+            protected override void OnOpenGroup( IActivityLogGroup group )
+            {
+            }
+
+            // Security if OnGroupClosing is implemented once on ActivityLoggerTap.
+            protected override string OnGroupClosing( IActivityLogGroup group, string conclusion )
+            {
+                return null;
+            }
+
+            protected override void OnGroupClosed( IActivityLogGroup group, string conclusion )
+            {
+            }
+        }
+
+        /// <summary>
+        /// Empty <see cref="ActivityLoggerTap"/> (null object design pattern).
+        /// </summary>
+        static public new readonly ActivityLoggerTap Empty = new EmptyTap();
 
         /// <summary>
         /// Initialize a new <see cref="ActivityLoggerTap"/> bound to a <see cref="IMuxActivityLoggerClientRegistrar"/>.
@@ -58,11 +94,7 @@ namespace CK.Core
             get { return _sinksEx; }
         }
 
-        void IActivityLoggerClient.OnFilterChanged( LogLevelFilter current, LogLevelFilter newValue )
-        {
-        }
-
-        void IActivityLoggerClient.OnUnfilteredLog( LogLevel level, string text )
+        protected override void OnUnfilteredLog( LogLevel level, string text )
         {
             if( text == ActivityLogger.ParkLevel )
             {
@@ -90,7 +122,7 @@ namespace CK.Core
             }
         }
 
-        void IActivityLoggerClient.OnOpenGroup( IActivityLogGroup group )
+        protected override void OnOpenGroup( IActivityLogGroup group )
         {
             if( _curLevel != -1 )
             {
@@ -100,12 +132,7 @@ namespace CK.Core
             foreach( var s in RegisteredSinks ) s.OnGroupOpen( group );
         }
 
-        string IActivityLoggerClient.OnGroupClosing( IActivityLogGroup group, string conclusion )
-        {
-            return null;
-        }
-
-        void IActivityLoggerClient.OnGroupClosed( IActivityLogGroup group, string conclusion )
+        protected override void OnGroupClosed( IActivityLogGroup group, string conclusion )
         {
             if( _curLevel != -1 )
             {
@@ -115,33 +142,5 @@ namespace CK.Core
             foreach( var s in RegisteredSinks ) s.OnGroupClose( group, conclusion );
         }
 
-        #region IMuxActivityLoggerClient relayed to IActivityLoggerClient
-
-        void IMuxActivityLoggerClient.OnFilterChanged( IActivityLogger sender, LogLevelFilter current, LogLevelFilter newValue )
-        {
-            ((IActivityLoggerClient)this).OnFilterChanged( current, newValue );
-        }
-
-        void IMuxActivityLoggerClient.OnUnfilteredLog( IActivityLogger sender, LogLevel level, string text )
-        {
-            ((IActivityLoggerClient)this).OnUnfilteredLog( level, text );
-        }
-
-        void IMuxActivityLoggerClient.OnOpenGroup( IActivityLogger sender, IActivityLogGroup group )
-        {
-            ((IActivityLoggerClient)this).OnOpenGroup( group );
-        }
-
-        string IMuxActivityLoggerClient.OnGroupClosing( IActivityLogger sender, IActivityLogGroup group, string conclusion )
-        {
-            return ((IActivityLoggerClient)this).OnGroupClosing( group, conclusion );
-        }
-
-        void IMuxActivityLoggerClient.OnGroupClosed( IActivityLogger sender, IActivityLogGroup group, string conclusion )
-        {
-            ((IActivityLoggerClient)this).OnGroupClosed( group, conclusion );
-        }
-
-        #endregion
     }
 }
