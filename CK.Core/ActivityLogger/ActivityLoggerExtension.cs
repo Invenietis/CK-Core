@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using System.Collections.Generic;
 
 namespace CK.Core
 {
@@ -10,24 +11,37 @@ namespace CK.Core
     public static class ActivityLoggerExtension
     {
 
+        public static IMuxActivityLoggerClientRegistrar Register( this IMuxActivityLoggerClientRegistrar @this, IEnumerable<IMuxActivityLoggerClient> clients )
+        {
+            foreach( var c in clients ) @this.RegisterMuxClient( c );
+            return @this;
+        }
+
+        public static IMuxActivityLoggerClientRegistrar Register( this IMuxActivityLoggerClientRegistrar @this, params IMuxActivityLoggerClient[] clients )
+        {
+            return Register( @this, (IEnumerable<IMuxActivityLoggerClient>)clients );
+        }
+
+        #region IActivityLogger OpenGroup( ... ), Filter( level ), Trace(...), Info(...), Warn(...), Error(...) and Error(...).
+
         /// <summary>
         /// Opens a log level. <see cref="IActivityLogger.CloseGroup">CloseGroup</see> must be called in order to
         /// close the group, or the returned object must be disposed.
         /// </summary>
-        /// <param name="l">This <see cref="IActivityLogger"/> object.</param>
+        /// <param name="this">This <see cref="IActivityLogger"/> object.</param>
         /// <param name="level">The log level of the group.</param>
         /// <param name="text">The text associated to the opening of the log.</param>
         /// <returns>A disposable object that can be used to close the group.</returns>
-        static public IDisposable OpenGroup( this IActivityLogger l, LogLevel level, string text )
+        public static IDisposable OpenGroup( this IActivityLogger @this, LogLevel level, string text )
         {
-            return l.OpenGroup( level, null, text );
+            return @this.OpenGroup( level, null, text );
         }
 
         /// <summary>
         /// Opens a log level. <see cref="IActivityLogger.CloseGroup">CloseGroup</see> must be called in order to
         /// close the group, or the returned object must be disposed.
         /// </summary>
-        /// <param name="l">This <see cref="IActivityLogger"/> object.</param>
+        /// <param name="this">This <see cref="IActivityLogger"/> object.</param>
         /// <param name="level">Log level. Since we are opening a group, the current <see cref="IActivityLogger.Filter">Filter</see> is ignored.</param>
         /// <param name="getConclusionText">Optional function that will be called on group closing.</param>
         /// <param name="format">A composite format for the group title.</param>
@@ -37,16 +51,16 @@ namespace CK.Core
         /// A group opening is not be filtered since any subordinated logs may occur.
         /// It is left to the implementation to handle (or not) filtering when <see cref="IActivityLogger.CloseGroup">CloseGroup</see> is called.
         /// </remarks>
-        static public IDisposable OpenGroup( this IActivityLogger l, LogLevel level, Func<string> getConclusionText, string format, params object[] arguments )
+        public static IDisposable OpenGroup( this IActivityLogger @this, LogLevel level, Func<string> getConclusionText, string format, params object[] arguments )
         {
-            return l.OpenGroup( level, getConclusionText, String.Format( format, arguments ) );
+            return @this.OpenGroup( level, getConclusionText, String.Format( format, arguments ) );
         }
 
         /// <summary>
         /// Opens a log level. <see cref="IActivityLogger.CloseGroup">CloseGroup</see> must be called in order to
         /// close the group, or the returned object must be disposed.
         /// </summary>
-        /// <param name="l">This <see cref="IActivityLogger"/> object.</param>
+        /// <param name="this">This <see cref="IActivityLogger"/> object.</param>
         /// <param name="level">Log level. Since we are opening a group, the current <see cref="IActivityLogger.Filter">Filter</see> is ignored.</param>
         /// <param name="format">Format of the string.</param>
         /// <param name="arguments">Arguments to format.</param>
@@ -55,9 +69,40 @@ namespace CK.Core
         /// A group opening is not be filtered since any subordinated logs may occur.
         /// It is left to the implementation to handle (or not) filtering when <see cref="IActivityLogger.CloseGroup">CloseGroup</see> is called.
         /// </remarks>
-        static public IDisposable OpenGroup( this IActivityLogger l, LogLevel level, string format, params object[] arguments )
+        public static IDisposable OpenGroup( this IActivityLogger @this, LogLevel level, string format, params object[] arguments )
         {
-            return l.OpenGroup( level, null, String.Format( format, arguments ) );
+            return @this.OpenGroup( level, null, String.Format( format, arguments ) );
+        }
+
+        class LogFilterSentinel : IDisposable
+        {
+            IActivityLogger _logger;
+            LogLevelFilter _prevLevel;
+
+            public LogFilterSentinel( IActivityLogger l, LogLevelFilter filterLevel )
+            {
+                _prevLevel = l.Filter;
+                _logger = l;
+                l.Filter = filterLevel;
+            }
+
+            public void Dispose()
+            {
+                _logger.Filter = _prevLevel;
+            }
+
+        }
+
+        /// <summary>
+        /// Sets a filter level on this <see cref="IActivityLogger"/>. The current <see cref="IActivityLogger.Filter"/> will be automatically 
+        /// restored when the returned <see cref="IDisposable"/> will be disposed.
+        /// </summary>
+        /// <param name="this">This <see cref="IActivityLogger"/> object.</param>
+        /// <param name="filterLevel">The new filter level.</param>
+        /// <returns>A <see cref="IDisposable"/> object that will restore the current level.</returns>
+        public static IDisposable Filter( this IActivityLogger @this, LogLevelFilter filterLevel )
+        {
+            return new LogFilterSentinel( @this, filterLevel );
         }
 
         #region Trace
@@ -65,80 +110,80 @@ namespace CK.Core
         /// <summary>
         /// Logs the text if current <see cref="IActivityLogger.Filter"/> is <see cref="LogLevel.Trace"/> or above.
         /// </summary>
-        /// <param name="a">This <see cref="IActivityLogger"/> object.</param>
+        /// <param name="this">This <see cref="IActivityLogger"/> object.</param>
         /// <param name="text">Text to log as a trace.</param>
         /// <returns>This logger to enable fluent syntax.</returns>
-        public static IActivityLogger Trace( this IActivityLogger a, string text )
+        public static IActivityLogger Trace( this IActivityLogger @this, string text )
         {
-            if( (int)a.Filter <= (int)LogLevel.Trace ) a.UnfilteredLog( LogLevel.Trace, text );
-            return a;
+            if( (int)@this.Filter <= (int)LogLevel.Trace ) @this.UnfilteredLog( LogLevel.Trace, text );
+            return @this;
         }
 
         /// <summary>
         /// Logs a formatted text with one placeholder/parameter if current <see cref="IActivityLogger.Filter"/> is <see cref="LogLevel.Trace"/> or above.
         /// </summary>
-        /// <param name="a">This <see cref="IActivityLogger"/> object.</param>
+        /// <param name="this">This <see cref="IActivityLogger"/> object.</param>
         /// <param name="format">Text format to log as a trace.</param>
         /// <param name="arg0">Parameter to format (placeholder {0}).</param>
         /// <returns>This logger to enable fluent syntax.</returns>
-        public static IActivityLogger Trace( this IActivityLogger a, string format, object arg0 )
+        public static IActivityLogger Trace( this IActivityLogger @this, string format, object arg0 )
         {
-            if( (int)a.Filter <= (int)LogLevel.Trace ) a.UnfilteredLog( LogLevel.Trace, String.Format( format, arg0 ) );
-            return a;
+            if( (int)@this.Filter <= (int)LogLevel.Trace ) @this.UnfilteredLog( LogLevel.Trace, String.Format( format, arg0 ) );
+            return @this;
         }
 
         /// <summary>
         /// Logs a formatted text with two placeholders/parameters if current <see cref="IActivityLogger.Filter"/> is <see cref="LogLevel.Trace"/> or above.
         /// </summary>
-        /// <param name="a">This <see cref="IActivityLogger"/> object.</param>
+        /// <param name="this">This <see cref="IActivityLogger"/> object.</param>
         /// <param name="format">Text format to log as a trace.</param>
         /// <param name="arg0">First parameter to format (placeholder {0}).</param>
         /// <param name="arg1">Second parameter to format (placeholder {1}).</param>
         /// <returns>This logger to enable fluent syntax.</returns>
-        public static IActivityLogger Trace( this IActivityLogger a, string format, object arg0, object arg1 )
+        public static IActivityLogger Trace( this IActivityLogger @this, string format, object arg0, object arg1 )
         {
-            if( (int)a.Filter <= (int)LogLevel.Trace ) a.UnfilteredLog( LogLevel.Trace, String.Format( format, arg0, arg1 ) );
-            return a;
+            if( (int)@this.Filter <= (int)LogLevel.Trace ) @this.UnfilteredLog( LogLevel.Trace, String.Format( format, arg0, arg1 ) );
+            return @this;
         }
 
         /// <summary>
         /// Logs a formatted text with three placeholders/parameters if current <see cref="IActivityLogger.Filter"/> is <see cref="LogLevel.Trace"/> or above.
         /// </summary>
-        /// <param name="a">This <see cref="IActivityLogger"/> object.</param>
+        /// <param name="this">This <see cref="IActivityLogger"/> object.</param>
         /// <param name="format">Text format to log as a trace.</param>
         /// <param name="arg0">First parameter to format (placeholder {0}).</param>
         /// <param name="arg1">Second parameter to format (placeholder {1}).</param>
         /// <param name="arg2">Third parameter to format (placeholder {2}).</param>
         /// <returns>This logger to enable fluent syntax.</returns>
-        public static IActivityLogger Trace( this IActivityLogger a, string format, object arg0, object arg1, object arg2 )
+        public static IActivityLogger Trace( this IActivityLogger @this, string format, object arg0, object arg1, object arg2 )
         {
-            if( (int)a.Filter <= (int)LogLevel.Trace ) a.UnfilteredLog( LogLevel.Trace, String.Format( format, arg0, arg1, arg2 ) );
-            return a;
+            if( (int)@this.Filter <= (int)LogLevel.Trace ) @this.UnfilteredLog( LogLevel.Trace, String.Format( format, arg0, arg1, arg2 ) );
+            return @this;
         }
 
         /// <summary>
         /// Logs a formatted text with placeholders/parameters if current <see cref="IActivityLogger.Filter"/> is <see cref="LogLevel.Trace"/> or above.
         /// </summary>
-        /// <param name="a">This <see cref="IActivityLogger"/> object.</param>
+        /// <param name="this">This <see cref="IActivityLogger"/> object.</param>
         /// <param name="format">Text format to log as a trace.</param>
         /// <param name="args">Multiple parameters to format.</param>
         /// <returns>This logger to enable fluent syntax.</returns>
-        public static IActivityLogger Trace( this IActivityLogger a, string format, params object[] args )
+        public static IActivityLogger Trace( this IActivityLogger @this, string format, params object[] args )
         {
-            if( (int)a.Filter <= (int)LogLevel.Trace ) a.UnfilteredLog( LogLevel.Trace, String.Format( format, args ) );
-            return a;
+            if( (int)@this.Filter <= (int)LogLevel.Trace ) @this.UnfilteredLog( LogLevel.Trace, String.Format( format, args ) );
+            return @this;
         }
 
         /// <summary>
         /// Logs a formatted text by calling a delegate if current <see cref="IActivityLogger.Filter"/> is <see cref="LogLevel.Trace"/> or above.
         /// </summary>
-        /// <param name="a">This <see cref="IActivityLogger"/> object.</param>
+        /// <param name="this">This <see cref="IActivityLogger"/> object.</param>
         /// <param name="text">Delegate that returns a string.</param>
         /// <returns>This logger to enable fluent syntax.</returns>
-        public static IActivityLogger Trace( this IActivityLogger a, Func<string> text )
+        public static IActivityLogger Trace( this IActivityLogger @this, Func<string> text )
         {
-            if( (int)a.Filter <= (int)LogLevel.Trace ) a.UnfilteredLog( LogLevel.Trace, text() );
-            return a;
+            if( (int)@this.Filter <= (int)LogLevel.Trace ) @this.UnfilteredLog( LogLevel.Trace, text() );
+            return @this;
         }
 
         /// <summary>
@@ -146,13 +191,13 @@ namespace CK.Core
         /// </summary>
         /// <typeparam name="T">Type of the parameter that <paramref name="text"/> accepts.</typeparam>
         /// <param name="param">Parameter of the <paramref name="text"/> delegate.</param>
-        /// <param name="a">This <see cref="IActivityLogger"/> object.</param>
+        /// <param name="this">This <see cref="IActivityLogger"/> object.</param>
         /// <param name="text">Delegate that returns a string.</param>
         /// <returns>This logger to enable fluent syntax.</returns>
-        public static IActivityLogger Trace<T>( this IActivityLogger a, T param, Func<T, string> text )
+        public static IActivityLogger Trace<T>( this IActivityLogger @this, T param, Func<T, string> text )
         {
-            if( (int)a.Filter <= (int)LogLevel.Trace ) a.UnfilteredLog( LogLevel.Trace, text( param ) );
-            return a;
+            if( (int)@this.Filter <= (int)LogLevel.Trace ) @this.UnfilteredLog( LogLevel.Trace, text( param ) );
+            return @this;
         }
 
         /// <summary>
@@ -160,15 +205,15 @@ namespace CK.Core
         /// </summary>
         /// <typeparam name="T1">Type of the first parameter that <paramref name="text"/> accepts.</typeparam>
         /// <typeparam name="T2">Type of the second parameter that <paramref name="text"/> accepts.</typeparam>
-        /// <param name="a">This <see cref="IActivityLogger"/> object.</param>
+        /// <param name="this">This <see cref="IActivityLogger"/> object.</param>
         /// <param name="param1">First parameter for the <paramref name="text"/> delegate.</param>
         /// <param name="param2">Second parameter for the <paramref name="text"/> delegate.</param>
         /// <param name="text">Delegate that returns a string.</param>
         /// <returns>This logger to enable fluent syntax.</returns>
-        public static IActivityLogger Trace<T1, T2>( this IActivityLogger a, T1 param1, T2 param2, Func<T1, T2, string> text )
+        public static IActivityLogger Trace<T1, T2>( this IActivityLogger @this, T1 param1, T2 param2, Func<T1, T2, string> text )
         {
-            if( (int)a.Filter <= (int)LogLevel.Trace ) a.UnfilteredLog( LogLevel.Trace, text( param1, param2 ) );
-            return a;
+            if( (int)@this.Filter <= (int)LogLevel.Trace ) @this.UnfilteredLog( LogLevel.Trace, text( param1, param2 ) );
+            return @this;
         }
         #endregion
 
@@ -177,94 +222,94 @@ namespace CK.Core
         /// <summary>
         /// Logs the text if current <see cref="IActivityLogger.Filter"/> is <see cref="LogLevel.Info"/> or above.
         /// </summary>
-        /// <param name="a">This <see cref="IActivityLogger"/> object.</param>
+        /// <param name="this">This <see cref="IActivityLogger"/> object.</param>
         /// <param name="text">Text to log as an info.</param>
         /// <returns>This logger to enable fluent syntax.</returns>
-        public static IActivityLogger Info( this IActivityLogger a, string text )
+        public static IActivityLogger Info( this IActivityLogger @this, string text )
         {
-            if( (int)a.Filter <= (int)LogLevel.Info ) a.UnfilteredLog( LogLevel.Info, text );
-            return a;
+            if( (int)@this.Filter <= (int)LogLevel.Info ) @this.UnfilteredLog( LogLevel.Info, text );
+            return @this;
         }
 
         /// <summary>
         /// Logs a formatted text with one placeholder/parameter if current <see cref="IActivityLogger.Filter"/> is <see cref="LogLevel.Info"/> or above.
         /// </summary>
-        /// <param name="a">This <see cref="IActivityLogger"/> object.</param>
+        /// <param name="this">This <see cref="IActivityLogger"/> object.</param>
         /// <param name="format">Text format to log as an info.</param>
         /// <param name="arg0">Parameter to format (placeholder {0}).</param>
         /// <returns>This logger to enable fluent syntax.</returns>
-        public static IActivityLogger Info( this IActivityLogger a, string format, object arg0 )
+        public static IActivityLogger Info( this IActivityLogger @this, string format, object arg0 )
         {
-            if( (int)a.Filter <= (int)LogLevel.Info ) a.UnfilteredLog( LogLevel.Info, String.Format( format, arg0 ) );
-            return a;
+            if( (int)@this.Filter <= (int)LogLevel.Info ) @this.UnfilteredLog( LogLevel.Info, String.Format( format, arg0 ) );
+            return @this;
         }
 
         /// <summary>
         /// Logs a formatted text with two placeholders/parameters if current <see cref="IActivityLogger.Filter"/> is <see cref="LogLevel.Info"/> or above.
         /// </summary>
-        /// <param name="a">This <see cref="IActivityLogger"/> object.</param>
+        /// <param name="this">This <see cref="IActivityLogger"/> object.</param>
         /// <param name="format">Text format to log as an info.</param>
         /// <param name="arg0">First parameter to format (placeholder {0}).</param>
         /// <param name="arg1">Second parameter to format (placeholder {1}).</param>
         /// <returns>This logger to enable fluent syntax.</returns>
-        public static IActivityLogger Info( this IActivityLogger a, string format, object arg0, object arg1 )
+        public static IActivityLogger Info( this IActivityLogger @this, string format, object arg0, object arg1 )
         {
-            if( (int)a.Filter <= (int)LogLevel.Info ) a.UnfilteredLog( LogLevel.Info, String.Format( format, arg0, arg1 ) );
-            return a;
+            if( (int)@this.Filter <= (int)LogLevel.Info ) @this.UnfilteredLog( LogLevel.Info, String.Format( format, arg0, arg1 ) );
+            return @this;
         }
 
         /// <summary>
         /// Logs a formatted text with three placeholders/parameters if current <see cref="IActivityLogger.Filter"/> is <see cref="LogLevel.Info"/> or above.
         /// </summary>
-        /// <param name="a">This <see cref="IActivityLogger"/> object.</param>
+        /// <param name="this">This <see cref="IActivityLogger"/> object.</param>
         /// <param name="format">Text format to log as an info.</param>
         /// <param name="arg0">First parameter to format (placeholder {0}).</param>
         /// <param name="arg1">Second parameter to format (placeholder {1}).</param>
         /// <param name="arg2">Third parameter to format (placeholder {2}).</param>
         /// <returns>This logger to enable fluent syntax.</returns>
-        public static IActivityLogger Info( this IActivityLogger a, string format, object arg0, object arg1, object arg2 )
+        public static IActivityLogger Info( this IActivityLogger @this, string format, object arg0, object arg1, object arg2 )
         {
-            if( (int)a.Filter <= (int)LogLevel.Info ) a.UnfilteredLog( LogLevel.Info, String.Format( format, arg0, arg1, arg2 ) );
-            return a;
+            if( (int)@this.Filter <= (int)LogLevel.Info ) @this.UnfilteredLog( LogLevel.Info, String.Format( format, arg0, arg1, arg2 ) );
+            return @this;
         }
 
         /// <summary>
         /// Logs a formatted text with placeholders/parameters if current <see cref="IActivityLogger.Filter"/> is <see cref="LogLevel.Info"/> or above.
         /// </summary>
-        /// <param name="a">This <see cref="IActivityLogger"/> object.</param>
+        /// <param name="this">This <see cref="IActivityLogger"/> object.</param>
         /// <param name="format">Text format to log as an info.</param>
         /// <param name="args">Multiple parameters to format.</param>
         /// <returns>This logger to enable fluent syntax.</returns>
-        public static IActivityLogger Info( this IActivityLogger a, string format, params object[] args )
+        public static IActivityLogger Info( this IActivityLogger @this, string format, params object[] args )
         {
-            if( (int)a.Filter <= (int)LogLevel.Info ) a.UnfilteredLog( LogLevel.Info, String.Format( format, args ) );
-            return a;
+            if( (int)@this.Filter <= (int)LogLevel.Info ) @this.UnfilteredLog( LogLevel.Info, String.Format( format, args ) );
+            return @this;
         }
 
         /// <summary>
         /// Logs a formatted text by calling a delegate if current <see cref="IActivityLogger.Filter"/> is <see cref="LogLevel.Info"/> or above.
         /// </summary>
-        /// <param name="a">This <see cref="IActivityLogger"/> object.</param>
+        /// <param name="this">This <see cref="IActivityLogger"/> object.</param>
         /// <param name="text">Delegate that returns a string.</param>
         /// <returns>This logger to enable fluent syntax.</returns>
-        public static IActivityLogger Info( this IActivityLogger a, Func<string> text )
+        public static IActivityLogger Info( this IActivityLogger @this, Func<string> text )
         {
-            if( (int)a.Filter <= (int)LogLevel.Info ) a.UnfilteredLog( LogLevel.Info, text() );
-            return a;
+            if( (int)@this.Filter <= (int)LogLevel.Info ) @this.UnfilteredLog( LogLevel.Info, text() );
+            return @this;
         }
 
         /// <summary>
         /// Logs a formatted text by calling a delegate if current <see cref="IActivityLogger.Filter"/> is <see cref="LogLevel.Info"/> or above.
         /// </summary>
         /// <typeparam name="T">Type of the parameter that <paramref name="text"/> accepts.</typeparam>
-        /// <param name="a">This <see cref="IActivityLogger"/> object.</param>
+        /// <param name="this">This <see cref="IActivityLogger"/> object.</param>
         /// <param name="param">Parameter of the <paramref name="text"/> delegate.</param>
         /// <param name="text">Delegate that returns a string.</param>
         /// <returns>This logger to enable fluent syntax.</returns>
-        public static IActivityLogger Info<T>( this IActivityLogger a, T param, Func<T, string> text )
+        public static IActivityLogger Info<T>( this IActivityLogger @this, T param, Func<T, string> text )
         {
-            if( (int)a.Filter <= (int)LogLevel.Info ) a.UnfilteredLog( LogLevel.Info, text( param ) );
-            return a;
+            if( (int)@this.Filter <= (int)LogLevel.Info ) @this.UnfilteredLog( LogLevel.Info, text( param ) );
+            return @this;
         }
 
         /// <summary>
@@ -272,15 +317,15 @@ namespace CK.Core
         /// </summary>
         /// <typeparam name="T1">Type of the first parameter that <paramref name="text"/> accepts.</typeparam>
         /// <typeparam name="T2">Type of the second parameter that <paramref name="text"/> accepts.</typeparam>
-        /// <param name="a">This <see cref="IActivityLogger"/> object.</param>
+        /// <param name="this">This <see cref="IActivityLogger"/> object.</param>
         /// <param name="param1">First parameter for the <paramref name="text"/> delegate.</param>
         /// <param name="param2">Second parameter for the <paramref name="text"/> delegate.</param>
         /// <param name="text">Delegate that returns a string.</param>
         /// <returns>This logger to enable fluent syntax.</returns>
-        public static IActivityLogger Info<T1, T2>( this IActivityLogger a, T1 param1, T2 param2, Func<T1, T2, string> text )
+        public static IActivityLogger Info<T1, T2>( this IActivityLogger @this, T1 param1, T2 param2, Func<T1, T2, string> text )
         {
-            if( (int)a.Filter <= (int)LogLevel.Info ) a.UnfilteredLog( LogLevel.Info, text( param1, param2 ) );
-            return a;
+            if( (int)@this.Filter <= (int)LogLevel.Info ) @this.UnfilteredLog( LogLevel.Info, text( param1, param2 ) );
+            return @this;
         }
         #endregion
 
@@ -289,94 +334,94 @@ namespace CK.Core
         /// <summary>
         /// Logs the text if current <see cref="IActivityLogger.Filter"/> is <see cref="LogLevel.Warn"/> or above.
         /// </summary>
-        /// <param name="a">This <see cref="IActivityLogger"/> object.</param>
+        /// <param name="this">This <see cref="IActivityLogger"/> object.</param>
         /// <param name="text">Text to log as a warning.</param>
         /// <returns>This logger to enable fluent syntax.</returns>
-        public static IActivityLogger Warn( this IActivityLogger a, string text )
+        public static IActivityLogger Warn( this IActivityLogger @this, string text )
         {
-            if( (int)a.Filter <= (int)LogLevel.Warn ) a.UnfilteredLog( LogLevel.Warn, text );
-            return a;
+            if( (int)@this.Filter <= (int)LogLevel.Warn ) @this.UnfilteredLog( LogLevel.Warn, text );
+            return @this;
         }
 
         /// <summary>
         /// Logs a formatted text with one placeholder/parameter if current <see cref="IActivityLogger.Filter"/> is <see cref="LogLevel.Warn"/> or above.
         /// </summary>
-        /// <param name="a">This <see cref="IActivityLogger"/> object.</param>
+        /// <param name="this">This <see cref="IActivityLogger"/> object.</param>
         /// <param name="format">Text format to log as a warning.</param>
         /// <param name="arg0">Parameter to format (placeholder {0}).</param>
         /// <returns>This logger to enable fluent syntax.</returns>
-        public static IActivityLogger Warn( this IActivityLogger a, string format, object arg0 )
+        public static IActivityLogger Warn( this IActivityLogger @this, string format, object arg0 )
         {
-            if( (int)a.Filter <= (int)LogLevel.Warn ) a.UnfilteredLog( LogLevel.Warn, String.Format( format, arg0 ) );
-            return a;
+            if( (int)@this.Filter <= (int)LogLevel.Warn ) @this.UnfilteredLog( LogLevel.Warn, String.Format( format, arg0 ) );
+            return @this;
         }
 
         /// <summary>
         /// Logs a formatted text with two placeholders/parameters if current <see cref="IActivityLogger.Filter"/> is <see cref="LogLevel.Warn"/> or above.
         /// </summary>
-        /// <param name="a">This <see cref="IActivityLogger"/> object.</param>
+        /// <param name="this">This <see cref="IActivityLogger"/> object.</param>
         /// <param name="format">Text format to log as a warning.</param>
         /// <param name="arg0">First parameter to format (placeholder {0}).</param>
         /// <param name="arg1">Second parameter to format (placeholder {1}).</param>
         /// <returns>This logger to enable fluent syntax.</returns>
-        public static IActivityLogger Warn( this IActivityLogger a, string format, object arg0, object arg1 )
+        public static IActivityLogger Warn( this IActivityLogger @this, string format, object arg0, object arg1 )
         {
-            if( (int)a.Filter <= (int)LogLevel.Warn ) a.UnfilteredLog( LogLevel.Warn, String.Format( format, arg0, arg1 ) );
-            return a;
+            if( (int)@this.Filter <= (int)LogLevel.Warn ) @this.UnfilteredLog( LogLevel.Warn, String.Format( format, arg0, arg1 ) );
+            return @this;
         }
 
         /// <summary>
         /// Logs a formatted text with three placeholders/parameters if current <see cref="IActivityLogger.Filter"/> is <see cref="LogLevel.Warn"/> or above.
         /// </summary>
-        /// <param name="a">This <see cref="IActivityLogger"/> object.</param>
+        /// <param name="this">This <see cref="IActivityLogger"/> object.</param>
         /// <param name="format">Text format to log as a warning.</param>
         /// <param name="arg0">First parameter to format (placeholder {0}).</param>
         /// <param name="arg1">Second parameter to format (placeholder {1}).</param>
         /// <param name="arg2">Third parameter to format (placeholder {2}).</param>
         /// <returns>This logger to enable fluent syntax.</returns>
-        public static IActivityLogger Warn( this IActivityLogger a, string format, object arg0, object arg1, object arg2 )
+        public static IActivityLogger Warn( this IActivityLogger @this, string format, object arg0, object arg1, object arg2 )
         {
-            if( (int)a.Filter <= (int)LogLevel.Warn ) a.UnfilteredLog( LogLevel.Warn, String.Format( format, arg0, arg1, arg2 ) );
-            return a;
+            if( (int)@this.Filter <= (int)LogLevel.Warn ) @this.UnfilteredLog( LogLevel.Warn, String.Format( format, arg0, arg1, arg2 ) );
+            return @this;
         }
 
         /// <summary>
         /// Logs a formatted text with placeholders/parameters if current <see cref="IActivityLogger.Filter"/> is <see cref="LogLevel.Warn"/> or above.
         /// </summary>
-        /// <param name="a">This <see cref="IActivityLogger"/> object.</param>
+        /// <param name="this">This <see cref="IActivityLogger"/> object.</param>
         /// <param name="format">Text format to log as a warning.</param>
         /// <param name="args">Multiple parameters to format.</param>
         /// <returns>This logger to enable fluent syntax.</returns>
-        public static IActivityLogger Warn( this IActivityLogger a, string format, params object[] args )
+        public static IActivityLogger Warn( this IActivityLogger @this, string format, params object[] args )
         {
-            if( (int)a.Filter <= (int)LogLevel.Warn ) a.UnfilteredLog( LogLevel.Warn, String.Format( format, args ) );
-            return a;
+            if( (int)@this.Filter <= (int)LogLevel.Warn ) @this.UnfilteredLog( LogLevel.Warn, String.Format( format, args ) );
+            return @this;
         }
 
         /// <summary>
         /// Logs a formatted text by calling a delegate if current <see cref="IActivityLogger.Filter"/> is <see cref="LogLevel.Warn"/> or above.
         /// </summary>
-        /// <param name="a">This <see cref="IActivityLogger"/> object.</param>
+        /// <param name="this">This <see cref="IActivityLogger"/> object.</param>
         /// <param name="text">Delegate that returns a string.</param>
         /// <returns>This logger to enable fluent syntax.</returns>
-        public static IActivityLogger Warn( this IActivityLogger a, Func<string> text )
+        public static IActivityLogger Warn( this IActivityLogger @this, Func<string> text )
         {
-            if( (int)a.Filter <= (int)LogLevel.Warn ) a.UnfilteredLog( LogLevel.Warn, text() );
-            return a;
+            if( (int)@this.Filter <= (int)LogLevel.Warn ) @this.UnfilteredLog( LogLevel.Warn, text() );
+            return @this;
         }
 
         /// <summary>
         /// Logs a formatted text by calling a delegate if current <see cref="IActivityLogger.Filter"/> is <see cref="LogLevel.Warn"/> or above.
         /// </summary>
         /// <typeparam name="T">Type of the parameter that <paramref name="text"/> accepts.</typeparam>
-        /// <param name="a">This <see cref="IActivityLogger"/> object.</param>
+        /// <param name="this">This <see cref="IActivityLogger"/> object.</param>
         /// <param name="param">Parameter of the <paramref name="text"/> delegate.</param>
         /// <param name="text">Delegate that returns a string.</param>
         /// <returns>This logger to enable fluent syntax.</returns>
-        public static IActivityLogger Warn<T>( this IActivityLogger a, T param, Func<T, string> text )
+        public static IActivityLogger Warn<T>( this IActivityLogger @this, T param, Func<T, string> text )
         {
-            if( (int)a.Filter <= (int)LogLevel.Warn ) a.UnfilteredLog( LogLevel.Warn, text( param ) );
-            return a;
+            if( (int)@this.Filter <= (int)LogLevel.Warn ) @this.UnfilteredLog( LogLevel.Warn, text( param ) );
+            return @this;
         }
 
         /// <summary>
@@ -384,15 +429,15 @@ namespace CK.Core
         /// </summary>
         /// <typeparam name="T1">Type of the first parameter that <paramref name="text"/> accepts.</typeparam>
         /// <typeparam name="T2">Type of the second parameter that <paramref name="text"/> accepts.</typeparam>
-        /// <param name="a">This <see cref="IActivityLogger"/> object.</param>
+        /// <param name="this">This <see cref="IActivityLogger"/> object.</param>
         /// <param name="param1">First parameter for the <paramref name="text"/> delegate.</param>
         /// <param name="param2">Second parameter for the <paramref name="text"/> delegate.</param>
         /// <param name="text">Delegate that returns a string.</param>
         /// <returns>This logger to enable fluent syntax.</returns>
-        public static IActivityLogger Warn<T1, T2>( this IActivityLogger a, T1 param1, T2 param2, Func<T1, T2, string> text )
+        public static IActivityLogger Warn<T1, T2>( this IActivityLogger @this, T1 param1, T2 param2, Func<T1, T2, string> text )
         {
-            if( (int)a.Filter <= (int)LogLevel.Warn ) a.UnfilteredLog( LogLevel.Warn, text( param1, param2 ) );
-            return a;
+            if( (int)@this.Filter <= (int)LogLevel.Warn ) @this.UnfilteredLog( LogLevel.Warn, text( param1, param2 ) );
+            return @this;
         }
         #endregion
 
@@ -401,94 +446,94 @@ namespace CK.Core
         /// <summary>
         /// Logs the text if current <see cref="IActivityLogger.Filter"/> is <see cref="LogLevel.Error"/> or above.
         /// </summary>
-        /// <param name="a">This <see cref="IActivityLogger"/> object.</param>
+        /// <param name="this">This <see cref="IActivityLogger"/> object.</param>
         /// <param name="text">Text to log as an error.</param>
         /// <returns>This logger to enable fluent syntax.</returns>
-        public static IActivityLogger Error( this IActivityLogger a, string text )
+        public static IActivityLogger Error( this IActivityLogger @this, string text )
         {
-            if( (int)a.Filter <= (int)LogLevel.Error ) a.UnfilteredLog( LogLevel.Error, text );
-            return a;
+            if( (int)@this.Filter <= (int)LogLevel.Error ) @this.UnfilteredLog( LogLevel.Error, text );
+            return @this;
         }
 
         /// <summary>
         /// Logs a formatted text with one placeholder/parameter if current <see cref="IActivityLogger.Filter"/> is <see cref="LogLevel.Error"/> or above.
         /// </summary>
-        /// <param name="a">This <see cref="IActivityLogger"/> object.</param>
+        /// <param name="this">This <see cref="IActivityLogger"/> object.</param>
         /// <param name="format">Text format to log as an error.</param>
         /// <param name="arg0">Parameter to format (placeholder {0}).</param>
         /// <returns>This logger to enable fluent syntax.</returns>
-        public static IActivityLogger Error( this IActivityLogger a, string format, object arg0 )
+        public static IActivityLogger Error( this IActivityLogger @this, string format, object arg0 )
         {
-            if( (int)a.Filter <= (int)LogLevel.Error ) a.UnfilteredLog( LogLevel.Error, String.Format( format, arg0 ) );
-            return a;
+            if( (int)@this.Filter <= (int)LogLevel.Error ) @this.UnfilteredLog( LogLevel.Error, String.Format( format, arg0 ) );
+            return @this;
         }
 
         /// <summary>
         /// Logs a formatted text with two placeholders/parameters if current <see cref="IActivityLogger.Filter"/> is <see cref="LogLevel.Error"/> or above.
         /// </summary>
-        /// <param name="a">This <see cref="IActivityLogger"/> object.</param>
+        /// <param name="this">This <see cref="IActivityLogger"/> object.</param>
         /// <param name="format">Text format to log as an error.</param>
         /// <param name="arg0">First parameter to format (placeholder {0}).</param>
         /// <param name="arg1">Second parameter to format (placeholder {1}).</param>
         /// <returns>This logger to enable fluent syntax.</returns>
-        public static IActivityLogger Error( this IActivityLogger a, string format, object arg0, object arg1 )
+        public static IActivityLogger Error( this IActivityLogger @this, string format, object arg0, object arg1 )
         {
-            if( (int)a.Filter <= (int)LogLevel.Error ) a.UnfilteredLog( LogLevel.Error, String.Format( format, arg0, arg1 ) );
-            return a;
+            if( (int)@this.Filter <= (int)LogLevel.Error ) @this.UnfilteredLog( LogLevel.Error, String.Format( format, arg0, arg1 ) );
+            return @this;
         }
 
         /// <summary>
         /// Logs a formatted text with three placeholders/parameters if current <see cref="IActivityLogger.Filter"/> is <see cref="LogLevel.Error"/> or above.
         /// </summary>
-        /// <param name="a">This <see cref="IActivityLogger"/> object.</param>
+        /// <param name="this">This <see cref="IActivityLogger"/> object.</param>
         /// <param name="format">Text format to log as an error.</param>
         /// <param name="arg0">First parameter to format (placeholder {0}).</param>
         /// <param name="arg1">Second parameter to format (placeholder {1}).</param>
         /// <param name="arg2">Third parameter to format (placeholder {2}).</param>
         /// <returns>This logger to enable fluent syntax.</returns>
-        public static IActivityLogger Error( this IActivityLogger a, string format, object arg0, object arg1, object arg2 )
+        public static IActivityLogger Error( this IActivityLogger @this, string format, object arg0, object arg1, object arg2 )
         {
-            if( (int)a.Filter <= (int)LogLevel.Error ) a.UnfilteredLog( LogLevel.Error, String.Format( format, arg0, arg1, arg2 ) );
-            return a;
+            if( (int)@this.Filter <= (int)LogLevel.Error ) @this.UnfilteredLog( LogLevel.Error, String.Format( format, arg0, arg1, arg2 ) );
+            return @this;
         }
 
         /// <summary>
         /// Logs a formatted text with placeholders/parameters if current <see cref="IActivityLogger.Filter"/> is <see cref="LogLevel.Error"/> or above.
         /// </summary>
-        /// <param name="a">This <see cref="IActivityLogger"/> object.</param>
+        /// <param name="this">This <see cref="IActivityLogger"/> object.</param>
         /// <param name="format">Text format to log as an error.</param>
         /// <param name="args">Multiple parameters to format.</param>
         /// <returns>This logger to enable fluent syntax.</returns>
-        public static IActivityLogger Error( this IActivityLogger a, string format, params object[] args )
+        public static IActivityLogger Error( this IActivityLogger @this, string format, params object[] args )
         {
-            if( (int)a.Filter <= (int)LogLevel.Error ) a.UnfilteredLog( LogLevel.Error, String.Format( format, args ) );
-            return a;
+            if( (int)@this.Filter <= (int)LogLevel.Error ) @this.UnfilteredLog( LogLevel.Error, String.Format( format, args ) );
+            return @this;
         }
 
         /// <summary>
         /// Logs a formatted text by calling a delegate if current <see cref="IActivityLogger.Filter"/> is <see cref="LogLevel.Error"/> or above.
         /// </summary>
-        /// <param name="a">This <see cref="IActivityLogger"/> object.</param>
+        /// <param name="this">This <see cref="IActivityLogger"/> object.</param>
         /// <param name="text">Delegate that returns a string.</param>
         /// <returns>This logger to enable fluent syntax.</returns>
-        public static IActivityLogger Error( this IActivityLogger a, Func<string> text )
+        public static IActivityLogger Error( this IActivityLogger @this, Func<string> text )
         {
-            if( (int)a.Filter <= (int)LogLevel.Error ) a.UnfilteredLog( LogLevel.Error, text() );
-            return a;
+            if( (int)@this.Filter <= (int)LogLevel.Error ) @this.UnfilteredLog( LogLevel.Error, text() );
+            return @this;
         }
 
         /// <summary>
         /// Logs a formatted text by calling a delegate if current <see cref="IActivityLogger.Filter"/> is <see cref="LogLevel.Error"/> or above.
         /// </summary>
         /// <typeparam name="T">Type of the parameter that <paramref name="text"/> accepts.</typeparam>
-        /// <param name="a">This <see cref="IActivityLogger"/> object.</param>
+        /// <param name="this">This <see cref="IActivityLogger"/> object.</param>
         /// <param name="param">Parameter of the <paramref name="text"/> delegate.</param>
         /// <param name="text">Delegate that returns a string.</param>
         /// <returns>This logger to enable fluent syntax.</returns>
-        public static IActivityLogger Error<T>( this IActivityLogger a, T param, Func<T, string> text )
+        public static IActivityLogger Error<T>( this IActivityLogger @this, T param, Func<T, string> text )
         {
-            if( (int)a.Filter <= (int)LogLevel.Error ) a.UnfilteredLog( LogLevel.Error, text( param ) );
-            return a;
+            if( (int)@this.Filter <= (int)LogLevel.Error ) @this.UnfilteredLog( LogLevel.Error, text( param ) );
+            return @this;
         }
 
         /// <summary>
@@ -496,15 +541,15 @@ namespace CK.Core
         /// </summary>
         /// <typeparam name="T1">Type of the first parameter that <paramref name="text"/> accepts.</typeparam>
         /// <typeparam name="T2">Type of the second parameter that <paramref name="text"/> accepts.</typeparam>
-        /// <param name="a">This <see cref="IActivityLogger"/> object.</param>
+        /// <param name="this">This <see cref="IActivityLogger"/> object.</param>
         /// <param name="param1">First parameter for the <paramref name="text"/> delegate.</param>
         /// <param name="param2">Second parameter for the <paramref name="text"/> delegate.</param>
         /// <param name="text">Delegate that returns a string.</param>
         /// <returns>This logger to enable fluent syntax.</returns>
-        public static IActivityLogger Error<T1, T2>( this IActivityLogger a, T1 param1, T2 param2, Func<T1, T2, string> text )
+        public static IActivityLogger Error<T1, T2>( this IActivityLogger @this, T1 param1, T2 param2, Func<T1, T2, string> text )
         {
-            if( (int)a.Filter <= (int)LogLevel.Error ) a.UnfilteredLog( LogLevel.Error, text( param1, param2 ) );
-            return a;
+            if( (int)@this.Filter <= (int)LogLevel.Error ) @this.UnfilteredLog( LogLevel.Error, text( param1, param2 ) );
+            return @this;
         }
         #endregion
 
@@ -513,94 +558,94 @@ namespace CK.Core
         /// <summary>
         /// Logs the text if current <see cref="IActivityLogger.Filter"/> is <see cref="LogLevel.Fatal"/> or above.
         /// </summary>
-        /// <param name="a">This <see cref="IActivityLogger"/> object.</param>
+        /// <param name="this">This <see cref="IActivityLogger"/> object.</param>
         /// <param name="text">Text to log as a fatal error.</param>
         /// <returns>This logger to enable fluent syntax.</returns>
-        public static IActivityLogger Fatal( this IActivityLogger a, string text )
+        public static IActivityLogger Fatal( this IActivityLogger @this, string text )
         {
-            if( (int)a.Filter <= (int)LogLevel.Fatal ) a.UnfilteredLog( LogLevel.Fatal, text );
-            return a;
+            if( (int)@this.Filter <= (int)LogLevel.Fatal ) @this.UnfilteredLog( LogLevel.Fatal, text );
+            return @this;
         }
 
         /// <summary>
         /// Logs a formatted text with one placeholder/parameter if current <see cref="IActivityLogger.Filter"/> is <see cref="LogLevel.Fatal"/> or above.
         /// </summary>
-        /// <param name="a">This <see cref="IActivityLogger"/> object.</param>
+        /// <param name="this">This <see cref="IActivityLogger"/> object.</param>
         /// <param name="format">Text format to log as a fatal error.</param>
         /// <param name="arg0">Parameter to format (placeholder {0}).</param>
         /// <returns>This logger to enable fluent syntax.</returns>
-        public static IActivityLogger Fatal( this IActivityLogger a, string format, object arg0 )
+        public static IActivityLogger Fatal( this IActivityLogger @this, string format, object arg0 )
         {
-            if( (int)a.Filter <= (int)LogLevel.Fatal ) a.UnfilteredLog( LogLevel.Fatal, String.Format( format, arg0 ) );
-            return a;
+            if( (int)@this.Filter <= (int)LogLevel.Fatal ) @this.UnfilteredLog( LogLevel.Fatal, String.Format( format, arg0 ) );
+            return @this;
         }
 
         /// <summary>
         /// Logs a formatted text with two placeholders/parameters if current <see cref="IActivityLogger.Filter"/> is <see cref="LogLevel.Fatal"/> or above.
         /// </summary>
-        /// <param name="a">This <see cref="IActivityLogger"/> object.</param>
+        /// <param name="this">This <see cref="IActivityLogger"/> object.</param>
         /// <param name="format">Text format to log as a fatal error.</param>
         /// <param name="arg0">First parameter to format (placeholder {0}).</param>
         /// <param name="arg1">Second parameter to format (placeholder {1}).</param>
         /// <returns>This logger to enable fluent syntax.</returns>
-        public static IActivityLogger Fatal( this IActivityLogger a, string format, object arg0, object arg1 )
+        public static IActivityLogger Fatal( this IActivityLogger @this, string format, object arg0, object arg1 )
         {
-            if( (int)a.Filter <= (int)LogLevel.Fatal ) a.UnfilteredLog( LogLevel.Fatal, String.Format( format, arg0, arg1 ) );
-            return a;
+            if( (int)@this.Filter <= (int)LogLevel.Fatal ) @this.UnfilteredLog( LogLevel.Fatal, String.Format( format, arg0, arg1 ) );
+            return @this;
         }
 
         /// <summary>
         /// Logs a formatted text with three placeholders/parameters if current <see cref="IActivityLogger.Filter"/> is <see cref="LogLevel.Fatal"/> or above.
         /// </summary>
-        /// <param name="a">This <see cref="IActivityLogger"/> object.</param>
+        /// <param name="this">This <see cref="IActivityLogger"/> object.</param>
         /// <param name="format">Text format to log as a fatal error.</param>
         /// <param name="arg0">First parameter to format (placeholder {0}).</param>
         /// <param name="arg1">Second parameter to format (placeholder {1}).</param>
         /// <param name="arg2">Third parameter to format (placeholder {2}).</param>
         /// <returns>This logger to enable fluent syntax.</returns>
-        public static IActivityLogger Fatal( this IActivityLogger a, string format, object arg0, object arg1, object arg2 )
+        public static IActivityLogger Fatal( this IActivityLogger @this, string format, object arg0, object arg1, object arg2 )
         {
-            if( (int)a.Filter <= (int)LogLevel.Fatal ) a.UnfilteredLog( LogLevel.Fatal, String.Format( format, arg0, arg1, arg2 ) );
-            return a;
+            if( (int)@this.Filter <= (int)LogLevel.Fatal ) @this.UnfilteredLog( LogLevel.Fatal, String.Format( format, arg0, arg1, arg2 ) );
+            return @this;
         }
 
         /// <summary>
         /// Logs a formatted text with placeholders/parameters if current <see cref="IActivityLogger.Filter"/> is <see cref="LogLevel.Fatal"/> or above.
         /// </summary>
-        /// <param name="a">This <see cref="IActivityLogger"/> object.</param>
+        /// <param name="this">This <see cref="IActivityLogger"/> object.</param>
         /// <param name="format">Text format to log as a fatal error.</param>
         /// <param name="args">Multiple parameters to format.</param>
         /// <returns>This logger to enable fluent syntax.</returns>
-        public static IActivityLogger Fatal( this IActivityLogger a, string format, params object[] args )
+        public static IActivityLogger Fatal( this IActivityLogger @this, string format, params object[] args )
         {
-            if( (int)a.Filter <= (int)LogLevel.Fatal ) a.UnfilteredLog( LogLevel.Fatal, String.Format( format, args ) );
-            return a;
+            if( (int)@this.Filter <= (int)LogLevel.Fatal ) @this.UnfilteredLog( LogLevel.Fatal, String.Format( format, args ) );
+            return @this;
         }
 
         /// <summary>
         /// Logs a formatted text by calling a delegate if current <see cref="IActivityLogger.Filter"/> is <see cref="LogLevel.Fatal"/> or above.
         /// </summary>
-        /// <param name="a">This <see cref="IActivityLogger"/> object.</param>
+        /// <param name="this">This <see cref="IActivityLogger"/> object.</param>
         /// <param name="text">Delegate that returns a string.</param>
         /// <returns>This logger to enable fluent syntax.</returns>
-        public static IActivityLogger Fatal( this IActivityLogger a, Func<string> text )
+        public static IActivityLogger Fatal( this IActivityLogger @this, Func<string> text )
         {
-            if( (int)a.Filter <= (int)LogLevel.Fatal ) a.UnfilteredLog( LogLevel.Fatal, text() );
-            return a;
+            if( (int)@this.Filter <= (int)LogLevel.Fatal ) @this.UnfilteredLog( LogLevel.Fatal, text() );
+            return @this;
         }
 
         /// <summary>
         /// Logs a formatted text by calling a delegate if current <see cref="IActivityLogger.Filter"/> is <see cref="LogLevel.Fatal"/> or above.
         /// </summary>
         /// <typeparam name="T">Type of the parameter that <paramref name="text"/> accepts.</typeparam>
-        /// <param name="a">This <see cref="IActivityLogger"/> object.</param>
+        /// <param name="this">This <see cref="IActivityLogger"/> object.</param>
         /// <param name="param">Parameter of the <paramref name="text"/> delegate.</param>
         /// <param name="text">Delegate that returns a string.</param>
         /// <returns>This logger to enable fluent syntax.</returns>
-        public static IActivityLogger Fatal<T>( this IActivityLogger a, T param, Func<T, string> text )
+        public static IActivityLogger Fatal<T>( this IActivityLogger @this, T param, Func<T, string> text )
         {
-            if( (int)a.Filter <= (int)LogLevel.Fatal ) a.UnfilteredLog( LogLevel.Fatal, text( param ) );
-            return a;
+            if( (int)@this.Filter <= (int)LogLevel.Fatal ) @this.UnfilteredLog( LogLevel.Fatal, text( param ) );
+            return @this;
         }
 
         /// <summary>
@@ -608,16 +653,18 @@ namespace CK.Core
         /// </summary>
         /// <typeparam name="T1">Type of the first parameter that <paramref name="text"/> accepts.</typeparam>
         /// <typeparam name="T2">Type of the second parameter that <paramref name="text"/> accepts.</typeparam>
-        /// <param name="a">This <see cref="IActivityLogger"/> object.</param>
+        /// <param name="this">This <see cref="IActivityLogger"/> object.</param>
         /// <param name="param1">First parameter for the <paramref name="text"/> delegate.</param>
         /// <param name="param2">Second parameter for the <paramref name="text"/> delegate.</param>
         /// <param name="text">Delegate that returns a string.</param>
         /// <returns>This logger to enable fluent syntax.</returns>
-        public static IActivityLogger Fatal<T1, T2>( this IActivityLogger a, T1 param1, T2 param2, Func<T1, T2, string> text )
+        public static IActivityLogger Fatal<T1, T2>( this IActivityLogger @this, T1 param1, T2 param2, Func<T1, T2, string> text )
         {
-            if( (int)a.Filter <= (int)LogLevel.Fatal ) a.UnfilteredLog( LogLevel.Fatal, text( param1, param2 ) );
-            return a;
+            if( (int)@this.Filter <= (int)LogLevel.Fatal ) @this.UnfilteredLog( LogLevel.Fatal, text( param1, param2 ) );
+            return @this;
         }
+        #endregion
+
         #endregion
 
     }

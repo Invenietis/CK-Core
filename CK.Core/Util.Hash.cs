@@ -35,7 +35,7 @@ namespace CK.Core
 	{    
         /// <summary>
         /// Provides methods to combine hash values: use <see cref="StartValue"/> and then 
-        /// chain calls to the <see cref="Combine"/> methods.
+        /// chain calls to the <see cref="M:Combine"/> methods.
         /// Based on Daniel J. Bernstein algorithm (http://cr.yp.to/cdb/cdb.txt).
         /// </summary>
         public static class Hash
@@ -43,7 +43,7 @@ namespace CK.Core
 
             /// <summary>
             /// Gets a very classical start value (see remarks) that can be then be used 
-            /// by the multiple <see cref="Combine"/> methods. Use <see cref="Int64.GetHashCode"/> to
+            /// by the multiple <see cref="M:Combine"/> methods. Use <see cref="Int64.GetHashCode"/> to
             /// obtain a final integer (Int32) hash code.
             /// </summary>
             /// <remarks>

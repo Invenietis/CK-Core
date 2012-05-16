@@ -15,7 +15,7 @@ namespace Core
     public class ActivityLoggerTests
     {
 
-        public class StringImpl : IDefaultActivityLoggerSink, IDisposable
+        public class StringImpl : IActivityLoggerSink
         {
             public StringWriter Writer { get; set; }
 
@@ -41,40 +41,23 @@ namespace Core
                 Writer.Flush();
             }
 
-            public void OnGroupOpen( DefaultActivityLogger.Group g )
+            public void OnGroupOpen( IActivityLogGroup g )
             {
                 Debug.Assert( Writer != null );
                 Writer.WriteLine();
-                Writer.Write( "++ {0} / {1} / {2}", g.Depth, g.GroupLevel, g.GroupText );
+                Writer.Write( new String( '+', g.Depth ) ); 
+                Writer.Write( "{1} ({0})", g.GroupLevel, g.GroupText );
             }
 
-            public void OnGroupClose( DefaultActivityLogger.Group g, string conclusion )
+            public void OnGroupClose( IActivityLogGroup g, string conclusion )
             {
                 Writer.WriteLine();
-                Writer.Write( "-- {0}", conclusion );
+                Writer.Write( new String( '-', g.Depth ) );
+                Writer.Write( conclusion );
             }
-
-            public void Dispose()
-            {
-                if( Writer != null )
-                {
-                    Writer.Flush();
-                    Writer.Close();
-                    Writer.Dispose();
-                }
-            }
-
-            #region IActivityLoggerImpl Membres
-
-            public IActivityLogger Logger
-            {
-                get { throw new NotImplementedException(); }
-            }
-
-            #endregion
         }
 
-        public class XmlImpl : IDefaultActivityLoggerSink
+        public class XmlImpl : IActivityLoggerSink
         {
             XmlWriter XmlWriter { get; set; }
 
@@ -88,20 +71,21 @@ namespace Core
 
             public void OnEnterLevel( LogLevel level, string text )
             {
-                XmlWriter.WriteElementString( level.ToString(), text );
+                XmlWriter.WriteStartElement( level.ToString() );
+                XmlWriter.WriteString( text );
             }
 
             public void OnContinueOnSameLevel( LogLevel level, string text )
             {
-                XmlWriter.WriteElementString( level.ToString(), text );
+                XmlWriter.WriteString( text );
             }
 
             public void OnLeaveLevel( LogLevel level )
             {
-                //XmlWriter.Flush();
+                XmlWriter.WriteEndElement();
             }
 
-            public void OnGroupOpen( DefaultActivityLogger.Group g )
+            public void OnGroupOpen( IActivityLogGroup g )
             {
                 XmlWriter.WriteStartElement( g.GroupLevel.ToString() + "s" );
                 XmlWriter.WriteAttributeString( "Depth", g.Depth.ToString() );
@@ -109,7 +93,7 @@ namespace Core
                 XmlWriter.WriteAttributeString( "Text", g.GroupText.ToString() );
             }
 
-            public void OnGroupClose( DefaultActivityLogger.Group g, string conclusion )
+            public void OnGroupClose( IActivityLogGroup g, string conclusion )
             {
                 XmlWriter.WriteEndElement();
                 XmlWriter.Flush();
@@ -123,7 +107,7 @@ namespace Core
 
             l.Register( new StringImpl() ).Register( new XmlImpl( new StringWriter() ) );
 
-            Assert.That( l.RegisteredLoggers.Count(), Is.EqualTo( 2 ) );
+            Assert.That( l.RegisteredSinks.Count, Is.EqualTo( 2 ) );
 
             using( l.OpenGroup( LogLevel.Trace, () => "EndMainGroup", "MainGroup" ) )
             {
@@ -144,13 +128,13 @@ namespace Core
                 }
             }
 
-            Console.WriteLine( l.FirstLogger<StringImpl>().Writer );
-            Console.WriteLine( l.FirstLogger<XmlImpl>().InnerWriter );
+            Console.WriteLine( l.RegisteredSinks.OfType<StringImpl>().Single().Writer );
+            Console.WriteLine( l.RegisteredSinks.OfType<XmlImpl>().Single().InnerWriter );
 
-            XPathDocument d = new XPathDocument( new StringReader( l.FirstLogger<XmlImpl>().InnerWriter.ToString() ) );
+            XPathDocument d = new XPathDocument( new StringReader( l.RegisteredSinks.OfType<XmlImpl>().Single().InnerWriter.ToString() ) );
 
             Assert.That( d.CreateNavigator().SelectDescendants( "Info", String.Empty, false ), Is.Not.Empty.And.Count.EqualTo( 3 ) );
-            Assert.That( d.CreateNavigator().SelectDescendants( "Trace", String.Empty, false ), Is.Not.Empty.And.Count.EqualTo( 4 ) );
+            Assert.That( d.CreateNavigator().SelectDescendants( "Trace", String.Empty, false ), Is.Not.Empty.And.Count.EqualTo( 2 ) );
 
         }
 
@@ -163,7 +147,7 @@ namespace Core
             var log2 = new XmlImpl( new StringWriter() );
             l.Register( log1 ).Register( log2 );
 
-            Assert.That( l.RegisteredLoggers.Count(), Is.EqualTo( 2 ) );
+            Assert.That( l.RegisteredSinks.Count, Is.EqualTo( 2 ) );
 
             using( l.OpenGroup( LogLevel.Trace, () => "End First", "First" ) )
             {
@@ -177,9 +161,223 @@ namespace Core
             Console.WriteLine( log1.Writer.ToString() );
             Console.WriteLine( log2.InnerWriter.ToString() );
 
-            Assert.That( log1.Writer.ToString(), Is.Not.ContainsSubstring( "End First" ), "Close forgets other closes..." );
-            Assert.That( log1.Writer.ToString(), Is.Not.ContainsSubstring( "Close it again" ), "Close forgets other closes..." );
+            Assert.That( log1.Writer.ToString(), Is.Not.StringContaining( "End First" ), "Close forgets other closes..." );
+            Assert.That( log1.Writer.ToString(), Is.Not.StringContaining( "Close it again" ), "Close forgets other closes..." );
         }
 
+        [Test]
+        public void FilterLevel()
+        {
+            DefaultActivityLogger l = new DefaultActivityLogger();
+            var log = new StringImpl();
+            l.Register( log );
+            using( l.Filter( LogLevelFilter.Error ) )
+            {
+                l.Trace( "NO SHOW" );
+                l.Info( "NO SHOW" );
+                l.Warn( "NO SHOW" );
+                l.Error( "Error n°1" );
+                using( l.Filter( LogLevelFilter.Warn ) )
+                {
+                    l.Trace( "NO SHOW" );
+                    l.Info( "NO SHOW" );
+                    l.Warn( "Warn n°1" );
+                    l.Error( "Error n°2" );
+                    using( l.OpenGroup( LogLevel.Info, "GroupInfo" ) )
+                    {
+                        Assert.That( l.Filter, Is.EqualTo( LogLevelFilter.Warn ), "Groups does not change the current filter level." );
+                        l.Trace( "NO SHOW" );
+                        l.Info( "NO SHOW" );
+                        l.Warn( "Warn n°2" );
+                        l.Error( "Error n°3" );
+                        // Changing the level inside a Group.
+                        l.Filter = LogLevelFilter.Fatal;
+                        l.Error( "NO SHOW" );
+                        l.Fatal( "Fatal n°1" );
+                    }
+                    Assert.That( l.Filter, Is.EqualTo( LogLevelFilter.Warn ), "But Groups restores the original filter level when closed." );
+                    l.Trace( "NO SHOW" );
+                    l.Info( "NO SHOW" );
+                    l.Warn( "Warn n°3" );
+                    l.Error( "Error n°4" );
+                    l.Fatal( "Fatal n°2" );
+                }
+                l.Trace( "NO SHOW" );
+                l.Info( "NO SHOW" );
+                l.Warn( "NO SHOW" );
+                l.Error( "Error n°5" );
+            }
+            Assert.That( log.Writer.ToString(), Is.Not.StringContaining( "NO SHOW" ) );
+            Assert.That( log.Writer.ToString(), Is.StringContaining( "Error n°1" )
+                                                    .And.StringContaining( "Error n°2" )
+                                                    .And.StringContaining( "Error n°3" )
+                                                    .And.StringContaining( "Error n°4" )
+                                                    .And.StringContaining( "Error n°5" ) );
+            Assert.That( log.Writer.ToString(), Is.StringContaining( "Warn n°1" )
+                                                    .And.StringContaining( "Warn n°2" )
+                                                    .And.StringContaining( "Warn n°3" ) );
+            Assert.That( log.Writer.ToString(), Is.StringContaining( "Fatal n°1" )
+                                                    .And.StringContaining( "Fatal n°2" ) );
+        }
+
+        [Test]
+        public void CloseMismatch()
+        {
+            DefaultActivityLogger l = new DefaultActivityLogger();
+            var log = new StringImpl();
+            l.Register( log );
+            {
+                IDisposable g0 = l.OpenGroup( LogLevel.Trace, "First" );
+                IDisposable g1 = l.OpenGroup( LogLevel.Trace, "Second" );
+                IDisposable g2 = l.OpenGroup( LogLevel.Trace, "Third" );
+
+                g1.Dispose();
+                l.Trace( "Inside First" );
+                g0.Dispose();
+                l.Trace( "At root" );
+
+                var end = "Trace: Inside First" + Environment.NewLine + "-" + Environment.NewLine + "Trace: At root";
+                Assert.That( log.Writer.ToString(), Is.StringEnding( end ) );
+            }
+            {
+                // g2 is closed after g1.
+                IDisposable g0 = l.OpenGroup( LogLevel.Trace, "First" );
+                IDisposable g1 = l.OpenGroup( LogLevel.Trace, "Second" );
+                IDisposable g2 = l.OpenGroup( LogLevel.Trace, "Third" );
+                log.Writer.GetStringBuilder().Clear();
+                g1.Dispose();
+                // g2 has already been disposed by g1. 
+                // Nothing changed.
+                g2.Dispose();
+                l.Trace( "Inside First" );
+                g0.Dispose();
+                l.Trace( "At root" );
+
+                var end = "Trace: Inside First" + Environment.NewLine + "-" + Environment.NewLine + "Trace: At root";
+                Assert.That( log.Writer.ToString(), Is.StringEnding( end ) );
+            }
+        }
+
+        [Test]
+        public void ExplicitCloseWins()
+        {
+            DefaultActivityLogger l = new DefaultActivityLogger();
+            var log = new StringImpl();
+            l.Register( log );
+
+            // No explicit close conclusion: Success!
+            using( l.OpenGroup( LogLevel.Trace, () => "Success!", "First" ) )
+            {
+                l.Error( "Pouf" );
+            }
+            Assert.That( log.Writer.ToString(), Is.StringContaining( "Pouf" ) );
+            Assert.That( log.Writer.ToString(), Is.Not.StringContaining( "Failed!" ), "Default conclusion wins." );
+            Assert.That( log.Writer.ToString(), Is.StringContaining( "Success!" ), "Default conclusion." );
+
+            log.Writer.GetStringBuilder().Clear();
+            Assert.That( log.Writer.ToString(), Is.Empty );
+
+            // Explicit conclusion: Failed!
+            using( l.OpenGroup( LogLevel.Trace, () => "Success!", "First" ) )
+            {
+                l.Error( "Pouf" );
+                l.CloseGroup( "Failed!" );
+            }
+            Console.WriteLine( log.Writer.ToString() );
+
+            Assert.That( log.Writer.ToString(), Is.StringContaining( "Pouf" ) );
+            Assert.That( log.Writer.ToString(), Is.StringContaining( "Failed!" ), "Explicit conclusion wins." );
+            Assert.That( log.Writer.ToString(), Is.Not.StringContaining( "Success!" ), "Explicit conclusion wins." );
+        }
+
+        [Test]
+        public void PathCatcherTests()
+        {
+            var logger = new DefaultActivityLogger();
+            ActivityLoggerPathCatcher p = new ActivityLoggerPathCatcher();
+            logger.Output.RegisterMuxClient( p );
+
+            logger.Trace( "Trace n°1" );
+            Assert.That( p.DynamicPath.Select( e => e.Level.ToString() + '|' + e.Text ).Single(), Is.EqualTo( "Trace|Trace n°1" ) );
+            Assert.That( p.LastErrorPath, Is.Null );
+            Assert.That( p.LastWarnOrErrorPath, Is.Null );
+
+            logger.Trace( "Trace n°2" );
+            Assert.That( p.DynamicPath.Select( e => e.Level.ToString() + '|' + e.Text ).Single(), Is.EqualTo( "Trace|Trace n°2" ) );
+            Assert.That( p.LastErrorPath, Is.Null );
+            Assert.That( p.LastWarnOrErrorPath, Is.Null );
+
+            logger.Warn( "W1" );
+            Assert.That( p.DynamicPath.Select( e => e.Level.ToString() + '|' + e.Text ).Single(), Is.EqualTo( "Warn|W1" ) );
+            Assert.That( p.LastErrorPath, Is.Null );
+            Assert.That( p.LastWarnOrErrorPath.Select( e => e.Level.ToString() + '|' + e.Text ).Single(), Is.EqualTo( "Warn|W1" ) );
+
+            logger.Error( "E2" );
+            Assert.That( p.DynamicPath.Select( e => e.Level.ToString() + '|' + e.Text ).Single(), Is.EqualTo( "Error|E2" ) );
+            Assert.That( p.LastErrorPath.Select( e => e.Level.ToString() + '|' + e.Text ).Single(), Is.EqualTo( "Error|E2" ) );
+            Assert.That( p.LastWarnOrErrorPath.Select( e => e.Level.ToString() + '|' + e.Text ).Single(), Is.EqualTo( "Error|E2" ) );
+
+            p.ClearLastWarnOrErrorPath();
+            Assert.That( p.LastErrorPath, Is.Not.Null );
+            Assert.That( p.LastWarnOrErrorPath, Is.Null );
+
+            p.ClearLastErrorPath();
+            Assert.That( p.LastErrorPath, Is.Null );
+
+            using( logger.OpenGroup( LogLevel.Trace, "G1" ) )
+            {
+                using( logger.OpenGroup( LogLevel.Info, "G2" ) )
+                {
+                    Assert.That( String.Join( ">", p.DynamicPath.Select( e => e.Text ) ), Is.EqualTo( "G1>G2" ) );
+                    Assert.That( p.LastErrorPath, Is.Null );
+                    using( logger.OpenGroup( LogLevel.Trace, "G3" ) )
+                    {
+                        using( logger.OpenGroup( LogLevel.Info, "G4" ) )
+                        {
+                            logger.Warn( "W1" );
+                            Assert.That( String.Join( ">", p.DynamicPath.Select( e => e.Text ) ), Is.EqualTo( "G1>G2>G3>G4>W1" ) );
+                            Assert.That( p.LastErrorPath, Is.Null );
+                            Assert.That( String.Join( ">", p.LastWarnOrErrorPath.Select( e => e.Level.ToString() + '|' + e.Text ) ), Is.EqualTo( "Trace|G1>Info|G2>Trace|G3>Info|G4>Warn|W1" ) );
+                        }
+                        Assert.That( String.Join( ">", p.DynamicPath.Select( e => e.Text ) ), Is.EqualTo( "G1>G2>G3" ) );
+                        Assert.That( p.LastErrorPath, Is.Null );
+                        Assert.That( String.Join( ">", p.LastWarnOrErrorPath.Select( e => e.Level.ToString() + '|' + e.Text ) ), Is.EqualTo( "Trace|G1>Info|G2>Trace|G3>Info|G4>Warn|W1" ) );
+
+                        logger.Error( "E1" );
+                        Assert.That( String.Join( ">", p.DynamicPath.Select( e => e.Text ) ), Is.EqualTo( "G1>G2>G3>E1" ) );
+                        Assert.That( String.Join( ">", p.LastErrorPath.Select( e => e.Level.ToString() + '|' + e.Text ) ), Is.EqualTo( "Trace|G1>Info|G2>Trace|G3>Error|E1" ) );
+                        Assert.That( String.Join( ">", p.LastWarnOrErrorPath.Select( e => e.Level.ToString() + '|' + e.Text ) ), Is.EqualTo( "Trace|G1>Info|G2>Trace|G3>Error|E1" ) );
+                    }
+                    Assert.That( String.Join( ">", p.DynamicPath.Select( e => e.Text ) ), Is.EqualTo( "G1>G2" ) );
+                    Assert.That( String.Join( ">", p.LastErrorPath.Select( e => e.Level.ToString() + '|' + e.Text ) ), Is.EqualTo( "Trace|G1>Info|G2>Trace|G3>Error|E1" ) );
+                    Assert.That( String.Join( ">", p.LastWarnOrErrorPath.Select( e => e.Level.ToString() + '|' + e.Text ) ), Is.EqualTo( "Trace|G1>Info|G2>Trace|G3>Error|E1" ) );
+                }
+                Assert.That( String.Join( ">", p.DynamicPath.Select( e => e.Text ) ), Is.EqualTo( "G1" ) );
+                using( logger.OpenGroup( LogLevel.Trace, "G2Bis" ) )
+                {
+                    Assert.That( String.Join( ">", p.DynamicPath.Select( e => e.Text ) ), Is.EqualTo( "G1>G2Bis" ) );
+                    Assert.That( String.Join( ">", p.LastErrorPath.Select( e => e.Level.ToString() + '|' + e.Text ) ), Is.EqualTo( "Trace|G1>Info|G2>Trace|G3>Error|E1" ) );
+                    Assert.That( String.Join( ">", p.LastWarnOrErrorPath.Select( e => e.Level.ToString() + '|' + e.Text ) ), Is.EqualTo( "Trace|G1>Info|G2>Trace|G3>Error|E1" ) );
+
+                    logger.Warn( "W2" );
+                    Assert.That( String.Join( ">", p.DynamicPath.Select( e => e.Text ) ), Is.EqualTo( "G1>G2Bis>W2" ) );
+                    Assert.That( String.Join( ">", p.LastWarnOrErrorPath.Select( e => e.Level.ToString() + '|' + e.Text ) ), Is.EqualTo( "Trace|G1>Trace|G2Bis>Warn|W2" ) );
+                    Assert.That( String.Join( ">", p.LastErrorPath.Select( e => e.Level.ToString() + '|' + e.Text ) ), Is.EqualTo( "Trace|G1>Info|G2>Trace|G3>Error|E1" ) );
+                }
+                logger.Fatal( "F1" );
+                Assert.That( String.Join( ">", p.DynamicPath.Select( e => e.Text ) ), Is.EqualTo( "G1>F1" ) );
+                Assert.That( String.Join( ">", p.LastWarnOrErrorPath.Select( e => e.Level.ToString() + '|' + e.Text ) ), Is.EqualTo( "Trace|G1>Fatal|F1" ) );
+                Assert.That( String.Join( ">", p.LastErrorPath.Select( e => e.Level.ToString() + '|' + e.Text ) ), Is.EqualTo( "Trace|G1>Fatal|F1" ) );
+            }
+            logger.Warn( "W3" );
+            Assert.That( String.Join( ">", p.DynamicPath.Select( e => e.Text ) ), Is.EqualTo( "W3" ) );
+            Assert.That( String.Join( ">", p.LastWarnOrErrorPath.Select( e => e.Level.ToString() + '|' + e.Text ) ), Is.EqualTo( "Warn|W3" ) );
+            Assert.That( String.Join( ">", p.LastErrorPath.Select( e => e.Level.ToString() + '|' + e.Text ) ), Is.EqualTo( "Trace|G1>Fatal|F1" ) );
+
+            p.ClearLastWarnOrErrorPath( true );
+            Assert.That( p.LastErrorPath, Is.Null );
+            Assert.That( p.LastWarnOrErrorPath, Is.Null );
+
+        }
     }
 }

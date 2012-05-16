@@ -12,9 +12,9 @@ namespace CK.Core.Tests
 
         void TestAssume( string result, string u, string param, string newValue )
         {
-            Assert.AreEqual( result, UriHelpers.AssumeUrlParameter( u, param, newValue ) );
+            Assert.AreEqual( result, UriHelper.AssumeUrlParameter( u, param, newValue ) );
             string prefix = "http://";
-            Assert.AreEqual( new Uri( prefix + result ), UriHelpers.AssumeUrlParameter( new Uri( prefix + u ), param, newValue ) );
+            Assert.AreEqual( new Uri( prefix + result ), new Uri( prefix + u ).AssumeUrlParameter( param, newValue ) );
         }
 
         [Test]
@@ -37,17 +37,17 @@ namespace CK.Core.Tests
             TestAssume( "test.com?a=z&kilo=1", "test.com?a=z&kilo", "kilo", "1" );
             TestAssume( "test.com?a=z&kilo=1", "test.com?a=z&kilo=", "kilo", "1" );
 
-            Assert.That( "test.com?a=z&kilo=1".RemoveUrlParameter( "a" ) == "test.com?kilo=1" );
-            Assert.That( "test.com?a=z&kilo=1".RemoveUrlParameter( "kilo" ) == "test.com?a=z" );
-            Assert.That( "test.com?a=z&toto=6&kilo=1".RemoveUrlParameter( "toto" ) == "test.com?a=z&kilo=1" );
+            Assert.That( UriHelper.RemoveUrlParameter( "test.com?a=z&kilo=1", "a" ) == "test.com?kilo=1" );
+            Assert.That( UriHelper.RemoveUrlParameter( "test.com?a=z&kilo=1", "kilo" ) == "test.com?a=z" );
+            Assert.That( UriHelper.RemoveUrlParameter( "test.com?a=z&toto=6&kilo=1", "toto" ) == "test.com?a=z&kilo=1" );
 
-            Assert.That( "test.com?&a=z&kilo=1".RemoveUrlParameter( "a" ) == "test.com?&kilo=1" );
-            Assert.That( "test.com?&a=z&kilo=1".RemoveUrlParameter( "kilo" ) == "test.com?&a=z" );
-            Assert.That( "test.com?&a=z&toto=6&kilo=1".RemoveUrlParameter( "toto" ) == "test.com?&a=z&kilo=1" );
+            Assert.That( UriHelper.RemoveUrlParameter( "test.com?&a=z&kilo=1", "a" ) == "test.com?&kilo=1" );
+            Assert.That( UriHelper.RemoveUrlParameter( "test.com?&a=z&kilo=1", "kilo" ) == "test.com?&a=z" );
+            Assert.That( UriHelper.RemoveUrlParameter( "test.com?&a=z&toto=6&kilo=1", "toto" ) == "test.com?&a=z&kilo=1" );
 
-            Assert.That( "test.com?&a=z&kilo=1".RemoveUrlParameter( "edhoe" ) == "test.com?&a=z&kilo=1" );
-            Assert.That( "test.com?&a=z&kilo=1".RemoveUrlParameter( "" ) == "test.com?&a=z&kilo=1" );
-            Assert.That( "test.com?&a=z&kilo=1".RemoveUrlParameter( null ) == "test.com?&a=z&kilo=1" );
+            Assert.That( UriHelper.RemoveUrlParameter( "test.com?&a=z&kilo=1", "edhoe" ) == "test.com?&a=z&kilo=1" );
+            Assert.That( UriHelper.RemoveUrlParameter( "test.com?&a=z&kilo=1", "" ) == "test.com?&a=z&kilo=1" );
+            Assert.That( UriHelper.RemoveUrlParameter( "test.com?&a=z&kilo=1", null ) == "test.com?&a=z&kilo=1" );
         }
 
     }
