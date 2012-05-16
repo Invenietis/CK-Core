@@ -39,6 +39,27 @@ namespace CK.Core
         /// </summary>
         public static readonly ISimpleTypeFinder Default = new SimpleTypeFinder();
 
+        class WeakTypeFinder : SimpleTypeFinder
+        {
+            public override string MapType( string assemblyQualifiedName )
+            {
+                string weakTypeName;
+                if( !WeakenAssemblyQualifiedName( assemblyQualifiedName, out weakTypeName ) )
+                {
+                    throw new ArgumentException( String.Format( R.InvalidAssemblyQualifiedName, assemblyQualifiedName ), "assemblyQualifiedName" );
+                }
+                return weakTypeName;
+            }
+        }
+        /// <summary>
+        /// An implementation of <see cref="ISimpleTypeFinder"/> that can be used to load types regardless of 
+        /// the version, culture, architecture and public key token (strongly-named assemblies) of the type names.
+        /// </summary>
+        /// <remarks>
+        /// The type name used is in the following format: "TypeNamespace.TypeName, AssemblyName".
+        /// </remarks>
+        public static readonly ISimpleTypeFinder WeakDefault = new WeakTypeFinder();
+
         /// <summary>
         /// Default implementation returns exactly its <paramref name="assemblyQualifiedName"/> parameter.
         /// </summary>
@@ -46,6 +67,8 @@ namespace CK.Core
         /// <returns>The assembly qualified name to use.</returns>
         public virtual string MapType( string assemblyQualifiedName )
         {
+            if( assemblyQualifiedName == null ) throw new ArgumentNullException( "assemblyQualifiedName" );
+            if( String.IsNullOrEmpty( assemblyQualifiedName ) || !assemblyQualifiedName.Contains(",") ) throw new ArgumentException( String.Format( R.InvalidAssemblyQualifiedName, assemblyQualifiedName ), "assemblyQualifiedName" );
             return assemblyQualifiedName;
         }
 
@@ -77,28 +100,58 @@ namespace CK.Core
             }
         }
 
-        /// <summary>
-        /// Helper method to split the assembly qualified name into its assembly name and full type name.
-        /// </summary>
-        /// <param name="assemblyQualifiedName">The assembly qualified name to split.</param>
-        /// <param name="assemblyName">Assembly name on output or an empty string.</param>
-        /// <param name="fullTypeName">Full type name on output or an empty string.</param>
-        /// <returns>True if the split has been successfully done. False otherwise.</returns>
-        static public bool SplitNames( string assemblyQualifiedName, out string assemblyName, out string fullTypeName )
+        [Obsolete( "Use SplitAssemblyQualifiedName (and INVERT the 2 output parameters!!).", true )]
+        static public bool SplitNames( string assemblyQualifiedName, out string assemblyFullName, out string fullTypeName )
         {
             int i = assemblyQualifiedName.IndexOf( ',' );
             if( i > 0 && i < assemblyQualifiedName.Length - 1 )
             {
-                assemblyName = assemblyQualifiedName.Substring( Char.IsWhiteSpace( assemblyQualifiedName, i + 1 ) ? i + 2 : i + 1 ).Trim();
+                assemblyFullName = assemblyQualifiedName.Substring( Char.IsWhiteSpace( assemblyQualifiedName, i + 1 ) ? i + 2 : i + 1 ).Trim();
                 fullTypeName = assemblyQualifiedName.Substring( 0, i ).Trim();
-                return assemblyName.Length > 0 && fullTypeName.Length > 0;
+                return assemblyFullName.Length > 0 && fullTypeName.Length > 0;
             }
-            assemblyName = fullTypeName = String.Empty;
+            assemblyFullName = fullTypeName = String.Empty;
+            return false;
+        }
+
+
+        static public bool WeakenAssemblyQualifiedName( string assemblyQualifiedName, out string weakTypeName )
+        {
+            weakTypeName = String.Empty;
+            string fullTypeName, assemblyFullName, assemblyName, versionCultureAndPublicKeyToken;
+            if( SplitAssemblyQualifiedName( assemblyQualifiedName, out fullTypeName, out assemblyFullName )
+                && SplitAssemblyFullName( assemblyFullName, out assemblyName, out versionCultureAndPublicKeyToken ) )
+            {
+                weakTypeName = fullTypeName + ", " + assemblyName;
+                return true;
+            }
             return false;
         }
 
         /// <summary>
-        /// Helper method to split an assembly full name in two parts.
+        /// Helper method to split the assembly qualified name into its assembly name and full type name.
+        /// "CK.Core.SimpleTypeFinder, CK.Core, version=1.0.0, culture='fr-FR'" gives "CK.Core.SimpleTypeFinder" and "CK.Core, version=1.0.0, culture='fr-FR'".
+        /// </summary>
+        /// <param name="assemblyQualifiedName">The assembly qualified name to split.</param>
+        /// <param name="fullTypeName">Full type name on output or an empty string.</param>
+        /// <param name="assemblyFullName">Assembly full name on output or an empty string.</param>
+        /// <returns>True if the split has been successfully done. False otherwise.</returns>
+        static public bool SplitAssemblyQualifiedName( string assemblyQualifiedName, out string fullTypeName, out string assemblyFullName )
+        {
+            int i = assemblyQualifiedName.IndexOf( ',' );
+            if( i > 0 && i < assemblyQualifiedName.Length - 1 )
+            {
+                assemblyFullName = assemblyQualifiedName.Substring( Char.IsWhiteSpace( assemblyQualifiedName, i + 1 ) ? i + 2 : i + 1 ).Trim();
+                fullTypeName = assemblyQualifiedName.Substring( 0, i ).Trim();
+                return assemblyFullName.Length > 0 && fullTypeName.Length > 0;
+            }
+            assemblyFullName = fullTypeName = String.Empty;
+            return false;
+        }
+
+        /// <summary>
+        /// Helper method to split an assembly full name in two parts: 
+        /// "CK.Core, version=1.0.0, culture='fr-FR'" gives "CK.Core" and "version=1.0.0, culture='fr-FR'".
         /// </summary>
         /// <param name="assemblyFullName">The assembly full name.</param>
         /// <param name="assemblyName">Set to assembly name only.</param>

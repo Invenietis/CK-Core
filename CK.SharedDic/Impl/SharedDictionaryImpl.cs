@@ -45,7 +45,7 @@ namespace CK.SharedDic
         public SharedDictionaryImpl( IServiceProvider serviceProvider )
         {
             _serviceContainer = new SimpleServiceContainer( serviceProvider );
-            _serviceContainer.Add<ISimpleTypeFinder>( new CK.Core.WeakTypeFinder() );
+            _serviceContainer.Add<ISimpleTypeFinder>( SimpleTypeFinder.WeakDefault );
             _fragments = new Dictionary<object, List<SkippedFragment>>();
             _values = new Dictionary<SharedDictionaryEntry, SharedDictionaryEntry>();
             _byObject = new Dictionary<object, PluginConfigByObject>();

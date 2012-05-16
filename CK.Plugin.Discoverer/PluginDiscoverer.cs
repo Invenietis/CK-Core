@@ -36,7 +36,7 @@ using CK.Plugin.Discoverer.Runner;
 namespace CK.Plugin.Discoverer
 {
     public sealed class PluginDiscoverer : IPluginDiscoverer
-	{
+    {
         int _currentVersion;
         int _discoverCount;
 
@@ -50,8 +50,8 @@ namespace CK.Plugin.Discoverer
         List<ServiceInfo> _allServices;
         List<PluginInfo> _allPlugins;
         List<PluginConfigAccessorInfo> _allEditors;
-        Dictionary<Guid,PluginInfo> _pluginsById;
-        Dictionary<string,ServiceInfo> _servicesByAssemblyQualifiedName;
+        Dictionary<Guid, PluginInfo> _pluginsById;
+        Dictionary<string, ServiceInfo> _servicesByAssemblyQualifiedName;
 
         #region IPluginDiscoverer implementation
 
@@ -121,7 +121,7 @@ namespace CK.Plugin.Discoverer
 
             // Second chance: find the assembly (without Version, Culture and PulicKeyToken).
             string assemblyFullName, fullTypeName;
-            if( SimpleTypeFinder.SplitNames( serviceAssemblyQualifiedName, out assemblyFullName, out fullTypeName ) )
+            if( SimpleTypeFinder.SplitAssemblyQualifiedName( serviceAssemblyQualifiedName, out fullTypeName, out assemblyFullName ) )
             {
                 PluginAssemblyInfo a = FindAssembly( assemblyFullName );
                 if( a != null )
@@ -205,8 +205,8 @@ namespace CK.Plugin.Discoverer
                 files = new List<FileInfo>();
             foreach( FileInfo f in dir.GetFiles( "*.dll" ) )
                 if( FileFilter( f ) ) files.Add( f );
-			if( recurse )
-				foreach( DirectoryInfo d in dir.GetDirectories() ) Discover( d, recurse, files );
+            if( recurse )
+                foreach( DirectoryInfo d in dir.GetDirectories() ) Discover( d, recurse, files );
 
             LaunchDiscover( files );
         }
@@ -264,9 +264,9 @@ namespace CK.Plugin.Discoverer
                             && o.PluginId == PluginId;
                 }
 
-                public Guid PluginId{ get; private set; }
+                public Guid PluginId { get; private set; }
 
-                public Guid EditedPluginId{ get; private set; }
+                public Guid EditedPluginId { get; private set; }
 
                 public EditorKey( Guid pluginId, Guid editedId )
                 {
@@ -318,10 +318,10 @@ namespace CK.Plugin.Discoverer
             internal IReadOnlyList<string> NewMissingAssemblies { get; private set; }
             internal IReadOnlyList<string> DeletedMissingAssemblies { get; private set; }
 
-            Dictionary<string,PluginAssemblyInfo> _dicAssemblies;
-            Dictionary<KeyValuePair<Guid,Version>,PluginInfo> _dicPlugins;
-            Dictionary<string,ServiceInfo> _dicServices;
-            Dictionary<EditorKey,PluginConfigAccessorInfo> _dicEditors;
+            Dictionary<string, PluginAssemblyInfo> _dicAssemblies;
+            Dictionary<KeyValuePair<Guid, Version>, PluginInfo> _dicPlugins;
+            Dictionary<string, ServiceInfo> _dicServices;
+            Dictionary<EditorKey, PluginConfigAccessorInfo> _dicEditors;
 
             public Merger( PluginDiscoverer discoverer )
             {
@@ -413,7 +413,7 @@ namespace CK.Plugin.Discoverer
 
                 List<Runner.PluginInfo> runnerAllPlugins = new List<Runner.PluginInfo>();
                 List<Runner.ServiceInfo> runnerAllServices = new List<Runner.ServiceInfo>();
-                List<Runner.PluginConfigAccessorInfo> runnerAllEditors = new List<Runner.PluginConfigAccessorInfo>();                
+                List<Runner.PluginConfigAccessorInfo> runnerAllEditors = new List<Runner.PluginConfigAccessorInfo>();
 
                 foreach( Runner.PluginAssemblyInfo assembly in data.AllAssemblies )
                 {
@@ -470,7 +470,7 @@ namespace CK.Plugin.Discoverer
                 }
                 else
                 {
-                    Debug.Assert( f != null && (_hasBeenDiscovered.Contains( f ) || (f.LastChangedVersion != _discoverer.CurrentVersion)) );
+                    Debug.Assert( f != null && ( _hasBeenDiscovered.Contains( f ) || ( f.LastChangedVersion != _discoverer.CurrentVersion ) ) );
                     if( f.LastChangedVersion != _discoverer.CurrentVersion
                         && !_hasBeenDiscovered.Contains( f ) )
                     {
@@ -533,7 +533,7 @@ namespace CK.Plugin.Discoverer
                 }
                 else
                 {
-                    Debug.Assert( f != null && (_hasBeenDiscovered.Contains( f ) || (f.LastChangedVersion != _discoverer.CurrentVersion)) );
+                    Debug.Assert( f != null && ( _hasBeenDiscovered.Contains( f ) || ( f.LastChangedVersion != _discoverer.CurrentVersion ) ) );
 
                     if( f.LastChangedVersion != _discoverer.CurrentVersion
                         && !_hasBeenDiscovered.Contains( f ) )
@@ -557,7 +557,7 @@ namespace CK.Plugin.Discoverer
             internal ServiceInfo FindOrCreate( Runner.ServiceInfo service )
             {
                 ServiceInfo f = null;
-                if ( !_dicServices.TryGetValue( service.AssemblyQualifiedName, out f ) )
+                if( !_dicServices.TryGetValue( service.AssemblyQualifiedName, out f ) )
                 {
                     f = new ServiceInfo( _discoverer );
                     _dicServices.Add( service.AssemblyQualifiedName, f );
@@ -569,7 +569,7 @@ namespace CK.Plugin.Discoverer
                 }
                 else
                 {
-                    Debug.Assert( f != null && (_hasBeenDiscovered.Contains( f ) || (f.LastChangedVersion != _discoverer.CurrentVersion)) );
+                    Debug.Assert( f != null && ( _hasBeenDiscovered.Contains( f ) || ( f.LastChangedVersion != _discoverer.CurrentVersion ) ) );
                     if( f.LastChangedVersion != _discoverer.CurrentVersion
                         && !_hasBeenDiscovered.Contains( f ) )
                     {
@@ -599,7 +599,7 @@ namespace CK.Plugin.Discoverer
                 }
                 else
                 {
-                    Debug.Assert( f != null && (_hasBeenDiscovered.Contains( f ) || (f.LastChangedVersion != _discoverer.CurrentVersion)) );
+                    Debug.Assert( f != null && ( _hasBeenDiscovered.Contains( f ) || ( f.LastChangedVersion != _discoverer.CurrentVersion ) ) );
                     if( f.LastChangedVersion != _discoverer.CurrentVersion
                         && !_hasBeenDiscovered.Contains( f ) )
                     {
@@ -612,7 +612,7 @@ namespace CK.Plugin.Discoverer
 
             #endregion
 
-            static internal bool GenericMergeLists<T1,T2>( IList<T1> left, IList<T2> right, Func<T2,T1> findOrCreate, IList<T1> deletedElements)
+            static internal bool GenericMergeLists<T1, T2>( IList<T1> left, IList<T2> right, Func<T2, T1> findOrCreate, IList<T1> deletedElements )
                 where T1 : IComparable<T1>
             {
                 return GenericMergeLists<T1, T2>( left, right, findOrCreate, null, deletedElements );
@@ -631,9 +631,9 @@ namespace CK.Plugin.Discoverer
             /// <param name="onDelete"></param>
             /// <param name="deletedElements"></param>
             /// <returns></returns>
-            static internal bool GenericMergeLists<T1,T2>( IList<T1> left, IList<T2> right, Func<T2,T1> findOrCreate, Action<T1> onDelete, IList<T1> deletedElements)
+            static internal bool GenericMergeLists<T1, T2>( IList<T1> left, IList<T2> right, Func<T2, T1> findOrCreate, Action<T1> onDelete, IList<T1> deletedElements )
                 where T1 : IComparable<T1>
-            {               
+            {
                 Debug.Assert( left.IsSortedStrict() && right.IsSortedStrict() );
 
                 bool somethingChange = false;
@@ -645,7 +645,7 @@ namespace CK.Plugin.Discoverer
                 {
                     if( cL == 0 )
                     {
-                        while ( cR-- > 0 )//If there is nothing left in the left collection: add every object from the right collection to the left collection
+                        while( cR-- > 0 )//If there is nothing left in the left collection: add every object from the right collection to the left collection
                         {
                             T1 elR = findOrCreate( right[iR] );
                             left.Add( elR );
@@ -687,7 +687,7 @@ namespace CK.Plugin.Discoverer
                     else
                     {
                         Debug.Assert( eL.CompareTo( eR ) != 0, "Since they are not the same." );
-                        if ( cmp > 0 )//if the object on the right is higher than the object on the left, it means that the object on the left won't be found in the right collection, so we delete it.
+                        if( cmp > 0 )//if the object on the right is higher than the object on the left, it means that the object on the left won't be found in the right collection, so we delete it.
                         {
                             if( deletedElements != null ) deletedElements.Add( eL );
                             somethingChange = true;

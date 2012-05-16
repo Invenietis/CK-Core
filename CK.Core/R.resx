@@ -135,6 +135,9 @@
   <data name="ExpectedXmlEndElement" xml:space="preserve">
     <value>Expected EndElement token named {0}.</value>
   </data>
+  <data name="InvalidAssemblyQualifiedName" xml:space="preserve">
+    <value>"{0}" is not a valid assembly qualified name.</value>
+  </data>
   <data name="ServiceAlreadyDirectlySupported" xml:space="preserve">
     <value>Service {0} is directly supported by the container.</value>
   </data>
