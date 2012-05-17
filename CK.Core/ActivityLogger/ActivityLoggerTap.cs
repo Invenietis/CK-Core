@@ -54,7 +54,6 @@ namespace CK.Core
         /// <summary>
         /// Initialize a new <see cref="ActivityLoggerTap"/> bound to a <see cref="IMuxActivityLoggerClientRegistrar"/>.
         /// </summary>
-        /// <param name="server">The <see cref="IMuxActivityLoggerClientRegistrar"/> to listen to.</param>
         public ActivityLoggerTap( )
         {
             _curLevel = -1;
@@ -94,6 +93,11 @@ namespace CK.Core
             get { return _sinksEx; }
         }
 
+        /// <summary>
+        /// Sends log to sinks (handles level changes).
+        /// </summary>
+        /// <param name="level">Log level.</param>
+        /// <param name="text">Text (not null).</param>
         protected override void OnUnfilteredLog( LogLevel level, string text )
         {
             if( text == ActivityLogger.ParkLevel )
@@ -122,6 +126,10 @@ namespace CK.Core
             }
         }
 
+        /// <summary>
+        /// Sends log to sinks (<see cref="IActivityLoggerSink.OnGroupOpen"/>.
+        /// </summary>
+        /// <param name="group">The newly opened <see cref="IActivityLogGroup"/>.</param>
         protected override void OnOpenGroup( IActivityLogGroup group )
         {
             if( _curLevel != -1 )
@@ -132,6 +140,11 @@ namespace CK.Core
             foreach( var s in RegisteredSinks ) s.OnGroupOpen( group );
         }
 
+        /// <summary>
+        /// Sends log to sinks (<see cref="IActivityLoggerSink.OnGroupClose"/>.
+        /// </summary>
+        /// <param name="group">The closed group.</param>
+        /// <param name="conclusion">Text that concludes the group. Never null but can be empty.</param>
         protected override void OnGroupClosed( IActivityLogGroup group, string conclusion )
         {
             if( _curLevel != -1 )

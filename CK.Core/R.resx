@@ -120,6 +120,9 @@
   <data name="ActionSequenceReadOnly" xml:space="preserve">
     <value>ActionSequence is read only: no action can be appended.</value>
   </data>
+  <data name="ActivityLoggerNonRemoveableClient" xml:space="preserve">
+    <value>The ActivityLogger client is in NonRemoveableClients list.</value>
+  </data>
   <data name="ArgumentCountNegative" xml:space="preserve">
     <value>Argument count can not be negative.</value>
   </data>

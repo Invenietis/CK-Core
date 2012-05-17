@@ -25,25 +25,27 @@ namespace CK.Core
 
         /// <summary>
         /// Registers an <see cref="IMuxActivityLoggerClient"/> to the <see cref="RegisteredMuxClients"/> list.
-        /// Duplicate IActivityLoggerClient are silently ignored.
+        /// Duplicate IMuxActivityLoggerClient are silently ignored.
         /// </summary>
-        /// <param name="l">An <see cref="IMuxActivityLoggerClient"/> implementation.</param>
+        /// <param name="client">An <see cref="IMuxActivityLoggerClient"/> implementation.</param>
         /// <returns>This object to enable fluent syntax.</returns>
-        public IMuxActivityLoggerClientRegistrar RegisterMuxClient( IMuxActivityLoggerClient client )
+        public virtual IMuxActivityLoggerClientRegistrar RegisterMuxClient( IMuxActivityLoggerClient client )
         {
-            if( !_clients.Contains( client ) && OnBeforeAdd( client ) ) _clients.Add( client );
+            if( client == null ) throw new ArgumentNullException( "client" );
+            if( !_clients.Contains( client ) ) DoAdd( client );
             return this;
         }
 
         /// <summary>
         /// Unregisters the given <see cref="IMuxActivityLoggerClient"/> from the <see cref="RegisteredMuxClients"/> list.
-        /// Silently ignored unregistered client.
+        /// Silently ignores unregistered client.
         /// </summary>
-        /// <param name="l">An <see cref="IMuxActivityLoggerClient"/> implementation.</param>
+        /// <param name="client">An <see cref="IMuxActivityLoggerClient"/> implementation.</param>
         /// <returns>This object to enable fluent syntax.</returns>
-        public IMuxActivityLoggerClientRegistrar UnregisterMuxClient( IMuxActivityLoggerClient client )
+        public virtual IMuxActivityLoggerClientRegistrar UnregisterMuxClient( IMuxActivityLoggerClient client )
         {
-            if( _clients.Remove( client ) ) OnAfterRemoved( client );
+            if( client == null ) throw new ArgumentNullException( "client" );
+            DoRemove( client );
             return this;
         }
 
@@ -56,21 +58,22 @@ namespace CK.Core
         }
 
         /// <summary>
-        /// Overriddable method to validate any new client.
+        /// Directly removes the client from the list.
         /// </summary>
-        /// <param name="client">The client that will be added.</param>
-        /// <returns>True to add the client, false to reject it.</returns>
-        protected virtual bool OnBeforeAdd( IMuxActivityLoggerClient client )
+        /// <param name="client">The client to remove.</param>
+        /// <returns>True if has been found and removed.</returns>
+        protected bool DoRemove( IMuxActivityLoggerClient client )
         {
-            return true;
+            return _clients.Remove( client );
         }
 
         /// <summary>
-        /// Overriddable method to validate any remove of client.
+        /// Directly adds the client into the list. No check is done.
         /// </summary>
-        /// <param name="client">The remove client. Can be added back if necessary.</param>
-        protected virtual void OnAfterRemoved( IMuxActivityLoggerClient client )
+        /// <param name="client">The client to add.</param>
+        protected void DoAdd( IMuxActivityLoggerClient client )
         {
+            _clients.Add( client );
         }
 
         void IMuxActivityLoggerClient.OnFilterChanged( IActivityLogger sender, LogLevelFilter current, LogLevelFilter newValue )

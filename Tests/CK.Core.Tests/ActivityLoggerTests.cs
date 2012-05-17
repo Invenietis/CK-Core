@@ -166,6 +166,18 @@ namespace Core
         }
 
         [Test]
+        public void DefaultActivityLoggerDefaults()
+        {
+            IDefaultActivityLogger l = DefaultActivityLogger.Create();
+            Assert.Throws<InvalidOperationException>( () => l.Output.UnregisterClient( l.Tap ) );
+            Assert.Throws<InvalidOperationException>( () => l.Output.UnregisterMuxClient( l.Tap ) );
+            Assert.Throws<InvalidOperationException>( () => l.Output.UnregisterClient( l.PathCatcher ) );
+            Assert.Throws<InvalidOperationException>( () => l.Output.UnregisterMuxClient( l.PathCatcher ) );
+            Assert.Throws<InvalidOperationException>( () => l.Output.UnregisterClient( l.ErrorCounter ) );
+            Assert.Throws<InvalidOperationException>( () => l.Output.UnregisterMuxClient( l.ErrorCounter ) );
+        }
+
+        [Test]
         public void FilterLevel()
         {
             IDefaultActivityLogger l = DefaultActivityLogger.Create();
@@ -313,11 +325,12 @@ namespace Core
             Assert.That( p.LastWarnOrErrorPath.Select( e => e.Level.ToString() + '|' + e.Text ).Single(), Is.EqualTo( "Warn|W1" ) );
 
             logger.Error( "E2" );
-            Assert.That( p.DynamicPath.Select( e => e.Level.ToString() + '|' + e.Text ).Single(), Is.EqualTo( "Error|E2" ) );
+            logger.Warn( "W1bis" );
+            Assert.That( p.DynamicPath.Select( e => e.Level.ToString() + '|' + e.Text ).Single(), Is.EqualTo( "Warn|W1bis" ) );
             Assert.That( p.LastErrorPath.Select( e => e.Level.ToString() + '|' + e.Text ).Single(), Is.EqualTo( "Error|E2" ) );
-            Assert.That( p.LastWarnOrErrorPath.Select( e => e.Level.ToString() + '|' + e.Text ).Single(), Is.EqualTo( "Error|E2" ) );
+            Assert.That( p.LastWarnOrErrorPath.Select( e => e.Level.ToString() + '|' + e.Text ).Single(), Is.EqualTo( "Warn|W1bis" ) );
 
-            p.ClearLastWarnOrErrorPath();
+            p.ClearLastWarnPath();
             Assert.That( p.LastErrorPath, Is.Not.Null );
             Assert.That( p.LastWarnOrErrorPath, Is.Null );
 
@@ -374,10 +387,70 @@ namespace Core
             Assert.That( String.Join( ">", p.LastWarnOrErrorPath.Select( e => e.Level.ToString() + '|' + e.Text ) ), Is.EqualTo( "Warn|W3" ) );
             Assert.That( String.Join( ">", p.LastErrorPath.Select( e => e.Level.ToString() + '|' + e.Text ) ), Is.EqualTo( "Trace|G1>Fatal|F1" ) );
 
-            p.ClearLastWarnOrErrorPath( true );
+            p.ClearLastWarnPath( true );
             Assert.That( p.LastErrorPath, Is.Null );
             Assert.That( p.LastWarnOrErrorPath, Is.Null );
 
         }
+
+        [Test]
+        public void ErrorCounterTests()
+        {
+            var logger = new ActivityLogger();
+            ActivityLoggerErrorCounter c = new ActivityLoggerErrorCounter();
+            ActivityLoggerPathCatcher p = new ActivityLoggerPathCatcher();
+            logger.Output.RegisterMuxClient( c );
+            logger.Output.RegisterClient( p );
+
+            Assert.That( c.ConclusionMode, Is.EqualTo( ActivityLoggerErrorCounter.ConclusionTextMode.SetWhenEmpty ), "Must be the default." );
+
+            logger.Trace( "T1" );
+            Assert.That( !c.HasWarnOrError && !c.HasError );
+            Assert.That( c.MaxLogLevel == LogLevel.Trace );
+            Assert.That( c.GetCurrentMessage(), Is.Null );
+
+            logger.Warn( "W1" );
+            Assert.That( c.HasWarnOrError && !c.HasError );
+            Assert.That( c.MaxLogLevel == LogLevel.Warn );
+            Assert.That( c.GetCurrentMessage(), Is.Not.Null.And.Not.Empty );
+
+            logger.Error( "E2" );
+            Assert.That( c.HasWarnOrError && c.HasError );
+            Assert.That( c.ErrorCount == 1 );
+            Assert.That( c.MaxLogLevel == LogLevel.Error );
+            Assert.That( c.GetCurrentMessage(), Is.Not.Null.And.Not.Empty );
+
+            c.ClearWarn();
+            Assert.That( c.HasWarnOrError && c.HasError );
+            Assert.That( c.MaxLogLevel == LogLevel.Error );
+            Assert.That( c.GetCurrentMessage(), Is.Not.Null );
+
+            c.ClearError();
+            Assert.That( !c.HasWarnOrError && !c.HasError );
+            Assert.That( c.ErrorCount == 0 );
+            Assert.That( c.MaxLogLevel == LogLevel.Info );
+            Assert.That( c.GetCurrentMessage(), Is.Null );
+
+            using( logger.OpenGroup( LogLevel.Trace, "G1" ) )
+            {
+                using( logger.OpenGroup( LogLevel.Info, "G2" ) )
+                {
+                    logger.Error( "E2" );
+                    logger.Fatal( "F1" );
+                    Assert.That( c.HasWarnOrError && c.HasError );
+                    Assert.That( c.ErrorCount == 1 && c.FatalCount == 1 );
+                    Assert.That( c.WarnCount == 0 );
+                }
+                Assert.That( String.Join( ">", p.LastErrorPath.Select( e => e.Text + '-' + e.GroupConclusion ) ), Is.EqualTo( "G1->G2-1 Fatal error, 1 Error>F1-" ) );
+                logger.Error( "E3" );
+                logger.Fatal( "F2" );
+                logger.Warn( "W2" );
+                Assert.That( c.HasWarnOrError && c.HasError );
+                Assert.That( c.ErrorCount == 2 );
+                Assert.That( c.MaxLogLevel == LogLevel.Fatal );
+            }
+            Assert.That( String.Join( ">", p.LastErrorPath.Select( e => e.Text + '-' + e.GroupConclusion ) ), Is.EqualTo( "G1-2 Fatal errors, 2 Errors, 1 Warning>F2-" ) );
+        }
+
     }
 }

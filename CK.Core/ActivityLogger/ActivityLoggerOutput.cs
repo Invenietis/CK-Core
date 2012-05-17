@@ -12,6 +12,7 @@ namespace CK.Core
     {
         List<IActivityLoggerClient> _clients;
         IReadOnlyList<IActivityLoggerClient> _clientsEx;
+        List<IActivityLoggerClientBase> _nonRemoveableClients;
 
         internal class EmptyOutput : IActivityLoggerOutput
         {
@@ -49,6 +50,12 @@ namespace CK.Core
             {
                 get { return ReadOnlyListEmpty<IMuxActivityLoggerClient>.Empty; }
             }
+
+            // TODO (one day): implement a null object for List<T>.
+            public IList<IActivityLoggerClientBase> NonRemoveableClients 
+            {
+                get { return new List<IActivityLoggerClientBase>(); } 
+            }
         }
 
         /// <summary>
@@ -65,6 +72,7 @@ namespace CK.Core
             Logger = logger;
             _clients = new List<IActivityLoggerClient>();
             _clientsEx = new ReadOnlyListOnIList<IActivityLoggerClient>( _clients );
+            _nonRemoveableClients = new List<IActivityLoggerClientBase>();
         }
 
         /// <summary>
@@ -75,7 +83,29 @@ namespace CK.Core
         {
             get { return this; } 
         }
-        
+
+        /// <summary>
+        /// Gets a modifiable list of either <see cref="IMuxActivityLoggerClient"/> or <see cref="IActivityLoggerClient"/>
+        /// that can not be removed.
+        /// </summary>
+        /// <remarks>
+        /// <para>
+        /// Already registered hybrid clients (that support both <see cref="IMuxActivityLoggerClient"/> and <see cref="IActivityLoggerClient"/>)
+        /// can be added at any time in <see cref="IActivityLoggerClientRegistrar.RegisteredClients"/> or <see cref="IMuxActivityLoggerClientRegistrar.RegisteredMuxClients"/>:
+        /// they are automatically removed from the other registrar.
+        /// </para>
+        /// <para>
+        /// This behavior (that avoids stuterring: logs sent twice since the same client is registered in both registrar), also applies to clients that are 
+        /// registered in this NonRemoveableClients list. This list simply guraranty that an <see cref="InvalidOperationException"/> will be thrown 
+        /// if a call to <see cref="IActivityLoggerClientRegistrar.UnregisterClient"/> or <see cref="IMuxActivityLoggerClientRegistrar.UnregisterMuxClient"/> is 
+        /// done on a non removeable client.
+        /// </para>
+        /// </remarks>
+        public IList<IActivityLoggerClientBase> NonRemoveableClients 
+        { 
+            get { return _nonRemoveableClients; } 
+        }
+
         /// <summary>
         /// Gets the associated <see cref="IActivityLogger"/>.
         /// </summary>
@@ -83,25 +113,69 @@ namespace CK.Core
 
         /// <summary>
         /// Registers an <see cref="IActivityLoggerClient"/> to the <see cref="RegisteredClients"/> list.
+        /// Removes the <paramref name="client"/> from <see cref="IMuxActivityLoggerClientRegistrar.RegisteredMuxClients">RegisteredMuxClients</see> if
+        /// it is also a <see cref="IMuxActivityLoggerClient"/> to avoid stuttering.
         /// Duplicate IActivityLoggerClient are silently ignored.
         /// </summary>
         /// <param name="client">An <see cref="IActivityLoggerClient"/> implementation.</param>
         /// <returns>This object to enable fluent syntax.</returns>
         public IActivityLoggerClientRegistrar RegisterClient( IActivityLoggerClient client )
         {
-            if( !_clients.Contains( client ) && OnBeforeAdd( client ) ) _clients.Add( client );
+            if( client == null ) throw new ArgumentNullException( "client" );
+            if( !_clients.Contains( client ) )
+            {
+                IMuxActivityLoggerClient mux = client as IMuxActivityLoggerClient;
+                if( mux != null ) DoRemove( mux );
+                _clients.Add( client );
+            }
+            return this;
+        }
+
+        /// <summary>
+        /// Registers an <see cref="IMuxActivityLoggerClient"/> to the <see cref="IMuxActivityLoggerClientRegistrar.RegisteredMuxClients">RegisteredMuxClients</see> list.
+        /// Removes the <paramref name="client"/> from <see cref="RegisteredClients"/> if
+        /// it is also a <see cref="IActivityLoggerClient"/> to avoid stuttering.
+        /// Duplicate IMuxActivityLoggerClient are silently ignored.
+        /// </summary>
+        /// <param name="client">An <see cref="IMuxActivityLoggerClient"/> implementation.</param>
+        /// <returns>This object to enable fluent syntax.</returns>
+        public override IMuxActivityLoggerClientRegistrar RegisterMuxClient( IMuxActivityLoggerClient client )
+        {
+            if( client == null ) throw new ArgumentNullException( "client" );
+            if( !RegisteredMuxClients.Contains( client ) )
+            {
+                IActivityLoggerClient c = client as IActivityLoggerClient;
+                if( c != null ) _clients.Remove( c );
+                DoAdd( client );
+            }
             return this;
         }
 
         /// <summary>
         /// Unregisters the given <see cref="IActivityLoggerClient"/> from the <see cref="RegisteredClients"/> list.
-        /// Silently ignored unregistered client.
+        /// Silently ignores unregistered client but throws an <see cref="InvalidOperationException"/> if it belongs to <see cref="NonRemoveableClients"/> list.
         /// </summary>
         /// <param name="client">An <see cref="IActivityLoggerClient"/> implementation.</param>
         /// <returns>This object to enable fluent syntax.</returns>
         public IActivityLoggerClientRegistrar UnregisterClient( IActivityLoggerClient client )
         {
-            if( _clients.Remove( client ) ) OnAfterRemoved( client );
+            if( client == null ) throw new ArgumentNullException( "client" );
+            if( _nonRemoveableClients.Contains( client ) ) throw new InvalidOperationException( R.ActivityLoggerNonRemoveableClient );
+            _clients.Remove( client );
+            return this;
+        }
+
+        /// <summary>
+        /// Unregisters the given <see cref="IMuxActivityLoggerClient"/> from the <see cref="IMuxActivityLoggerClientRegistrar.RegisteredMuxClients">RegisteredMuxClients</see> list.
+        /// Silently ignores unregistered client but throws an <see cref="InvalidOperationException"/> if it belongs to <see cref="NonRemoveableClients"/> list.
+        /// </summary>
+        /// <param name="client">An <see cref="IMuxActivityLoggerClient"/> implementation.</param>
+        /// <returns>This object to enable fluent syntax.</returns>
+        public override IMuxActivityLoggerClientRegistrar UnregisterMuxClient( IMuxActivityLoggerClient client )
+        {
+            if( client == null ) throw new ArgumentNullException( "client" );
+            if( _nonRemoveableClients.Contains( client ) ) throw new InvalidOperationException( R.ActivityLoggerNonRemoveableClient );
+            DoRemove( client );
             return this;
         }
 
@@ -111,40 +185,6 @@ namespace CK.Core
         public IReadOnlyList<IActivityLoggerClient> RegisteredClients
         {
             get { return _clientsEx; }
-        }
-
-        /// <summary>
-        /// Removes from <see cref="IMuxActivityLoggerClientRegistrar.RegisteredMuxClients">RegisteredMuxClients</see> if
-        /// the <paramref name="client"/> is also a <see cref="IMuxActivityLoggerClient"/> to avoid stuttering.
-        /// </summary>
-        /// <param name="client">The client that will be added.</param>
-        /// <returns>True to add the client, false to reject it.</returns>
-        protected virtual bool OnBeforeAdd( IActivityLoggerClient client )
-        {
-            IMuxActivityLoggerClient mux = client as IMuxActivityLoggerClient;
-            if( mux != null ) UnregisterMuxClient( mux );
-            return true;
-        }
-
-        /// <summary>
-        /// Removes from <see cref="RegisteredClients" /> if the <paramref name="client"/> is 
-        /// also a <see cref="IActivityLoggerClient"/> to avoid stuttering.
-        /// </summary>
-        /// <param name="client">The client that will be added.</param>
-        /// <returns>True to add the client, false to reject it.</returns>
-        protected override bool OnBeforeAdd( IMuxActivityLoggerClient client )
-        {
-            IActivityLoggerClient c = client as IActivityLoggerClient;
-            if( c != null ) UnregisterClient( c );
-            return true;
-        }
-
-        /// <summary>
-        /// Overriddable method to validate any remove of client.
-        /// </summary>
-        /// <param name="client">The remove client. Can be added back if necessary.</param>
-        protected virtual void OnAfterRemoved( IActivityLoggerClient client )
-        {
         }
 
         internal void OnFilterChanged( LogLevelFilter current, LogLevelFilter newValue )

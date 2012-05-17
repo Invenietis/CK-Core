@@ -39,7 +39,7 @@ namespace CK.Core
         /// </summary>
         class EmptyPathCatcher : ActivityLoggerPathCatcher
         {
-            // Security if OnFilterChanged is implemented once on ActivityLoggerPathCatcher.
+            // Security if OnFilterChanged is implemented one day on ActivityLoggerPathCatcher.
             protected override void OnFilterChanged( LogLevelFilter current, LogLevelFilter newValue )
             {
             }
@@ -52,7 +52,7 @@ namespace CK.Core
             {
             }
 
-            // Security if OnGroupClosing is implemented once on ActivityLoggerPathCatcher.
+            // Security if OnGroupClosing is implemented one day on ActivityLoggerPathCatcher.
             protected override string OnGroupClosing( IActivityLogGroup group, string conclusion )
             {
                 return null;
@@ -64,7 +64,7 @@ namespace CK.Core
         }
 
         /// <summary>
-        /// Empty <see cref="ActivityLoggerTap"/> (null object design pattern).
+        /// Empty <see cref="ActivityLoggerPathCatcher"/> (null object design pattern).
         /// </summary>
         static public new readonly ActivityLoggerPathCatcher Empty = new EmptyPathCatcher();
 
@@ -124,12 +124,18 @@ namespace CK.Core
         /// Clears current <see cref="LastWarnOrErrorPath"/> (sets it to null), and
         /// optionnaly clears <see cref="LastErrorPath"/>.
         /// </summary>
-        public void ClearLastWarnOrErrorPath( bool clearLastErrorPath = false )
+        public void ClearLastWarnPath( bool clearLastErrorPath = false )
         {
             _warnSnaphot = null;
             if( clearLastErrorPath ) _errorSnaphot = null;
         }
 
+        /// <summary>
+        /// Appends or updates the last <see cref="PathElement"/> of <see cref="DynamicPath"/>
+        /// and handles errors or warning.
+        /// </summary>
+        /// <param name="level">Log level.</param>
+        /// <param name="text">Text (not null).</param>
         protected override void OnUnfilteredLog( LogLevel level, string text )
         {
             if( text != ActivityLogger.ParkLevel )
@@ -146,6 +152,11 @@ namespace CK.Core
             }
         }
 
+        /// <summary>
+        /// Appends or updates the last <see cref="PathElement"/> of <see cref="DynamicPath"/>
+        /// and handles errors or warning.
+        /// </summary>
+        /// <param name="group">The newly opened <see cref="IActivityLogGroup"/>.</param>
         protected override void OnOpenGroup( IActivityLogGroup group )
         {
             if( _currentIsGroup || _current == null )
@@ -159,6 +170,11 @@ namespace CK.Core
             CheckSnapshot();
         }
 
+        /// <summary>
+        /// Removes one or two last <see cref="PathElement"/> of <see cref="DynamicPath"/>.
+        /// </summary>
+        /// <param name="group">The closed group.</param>
+        /// <param name="conclusion">Text that concludes the group. Never null but can be empty.</param>
         protected override void OnGroupClosed( IActivityLogGroup group, string conclusion )
         {
             if( _path.Count > 0 )
@@ -181,7 +197,9 @@ namespace CK.Core
             Debug.Assert( _current != null );
             if( _current.Level >= LogLevel.Warn )
             {
-                _warnSnaphot = _path.ToReadOnlyList();
+                // Clone the last element if it is not a group: since it is updated
+                // with levels, it has to be snapshoted.
+                _warnSnaphot = _path.Select( ( e, idx ) => _currentIsGroup || idx < _path.Count-1 ? e : new PathElement() { Level = e.Level, Text = e.Text } ).ToReadOnlyList();
                 if( _current.Level >= LogLevel.Error )
                 {
                     _errorSnaphot = _warnSnaphot;

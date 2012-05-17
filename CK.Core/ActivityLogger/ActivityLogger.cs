@@ -6,6 +6,9 @@ using System.Diagnostics;
 
 namespace CK.Core
 {
+    /// <summary>
+    /// Concrete implementation of <see cref="IActivityLogger"/>.
+    /// </summary>
     public class ActivityLogger : IActivityLogger
     {
         /// <summary>
@@ -18,27 +21,27 @@ namespace CK.Core
         /// </summary>
         public class EmptyLogger : IActivityLogger
         {
-            public LogLevelFilter Filter
+            LogLevelFilter IActivityLogger.Filter
             {
                 get { return LogLevelFilter.Off; }
                 set { }
             }
 
-            public IActivityLogger UnfilteredLog( LogLevel level, string text )
+            IActivityLogger IActivityLogger.UnfilteredLog( LogLevel level, string text )
             {
                 return this;
             }
 
-            public IDisposable OpenGroup( LogLevel level, Func<string> getConclusionText, string text )
+            IDisposable IActivityLogger.OpenGroup( LogLevel level, Func<string> getConclusionText, string text )
             {
                 return Util.EmptyDisposable;
             }
 
-            public void CloseGroup( string conclusion )
+            void IActivityLogger.CloseGroup( string conclusion )
             {
             }
 
-            public IActivityLoggerOutput Output
+            IActivityLoggerOutput IActivityLogger.Output
             {
                 get { return ActivityLoggerOutput.Empty; }
             }
@@ -147,7 +150,7 @@ namespace CK.Core
             /// <param name="text">The <see cref="GroupText"/>.</param>
             /// <param name="defaultConclusionText">
             /// Optional delegate to call on close to obtain a conclusion text if no 
-            /// explicit conclusion is provided through <see cref="DefaultActivityLogger.CloseGroup"/>.
+            /// explicit conclusion is provided through <see cref="IActivityLogger.CloseGroup"/>.
             /// </param>
             internal protected Group( ActivityLogger logger, LogLevel level, string text, Func<string> defaultConclusionText )
             {

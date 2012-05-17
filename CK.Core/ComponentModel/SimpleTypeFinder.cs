@@ -54,6 +54,7 @@ namespace CK.Core
         /// <summary>
         /// An implementation of <see cref="ISimpleTypeFinder"/> that can be used to load types regardless of 
         /// the version, culture, architecture and public key token (strongly-named assemblies) of the type names.
+        /// (See <see cref="WeakenAssemblyQualifiedName"/>.)
         /// </summary>
         /// <remarks>
         /// The type name used is in the following format: "TypeNamespace.TypeName, AssemblyName".
@@ -68,7 +69,10 @@ namespace CK.Core
         public virtual string MapType( string assemblyQualifiedName )
         {
             if( assemblyQualifiedName == null ) throw new ArgumentNullException( "assemblyQualifiedName" );
-            if( String.IsNullOrEmpty( assemblyQualifiedName ) || !assemblyQualifiedName.Contains(",") ) throw new ArgumentException( String.Format( R.InvalidAssemblyQualifiedName, assemblyQualifiedName ), "assemblyQualifiedName" );
+            if( String.IsNullOrEmpty( assemblyQualifiedName ) || !assemblyQualifiedName.Contains( "," ) )
+            {
+                throw new ArgumentException( String.Format( R.InvalidAssemblyQualifiedName, assemblyQualifiedName ), "assemblyQualifiedName" );
+            }
             return assemblyQualifiedName;
         }
 
@@ -156,7 +160,7 @@ namespace CK.Core
         /// <param name="assemblyFullName">The assembly full name.</param>
         /// <param name="assemblyName">Set to assembly name only.</param>
         /// <param name="versionCultureAndPublicKeyToken">Set to extra information.</param>
-        /// <returns>True if the split worked.</returns>
+        /// <returns>True if the split worked. False otherwise.</returns>
         static public bool SplitAssemblyFullName( string assemblyFullName, out string assemblyName, out string versionCultureAndPublicKeyToken )
         {
             versionCultureAndPublicKeyToken = assemblyName = String.Empty;

@@ -73,7 +73,6 @@ namespace CK.Core
             if( obj != null ) obj.Dispose();
         }
 
-
         [Obsolete( "Use CreateDisposableAction instead.", true )]
         public static IDisposable DisposeAction( Action a )
         {

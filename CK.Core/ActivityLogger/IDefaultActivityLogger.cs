@@ -9,6 +9,18 @@ namespace CK.Core
     public interface IDefaultActivityLogger : IActivityLogger
     {
         /// <summary>
+        /// Gets the <see cref="ActivityLoggerErrorCounter"/> that manages fatal errors, errors and warnings
+        /// and automatic conclusion of groups with such information.
+        /// </summary>
+        ActivityLoggerErrorCounter ErrorCounter { get; }
+
+        /// <summary>
+        /// Gets the <see cref="ActivityLoggerPathCatcher"/> that exposes and maintains <see cref="ActivityLoggerPathCatcher.DynamicPath">DynamicPath</see>,
+        /// <see cref="ActivityLoggerPathCatcher.LastErrorPath">LastErrorPath</see> and <see cref="ActivityLoggerPathCatcher.LastWarnOrErrorPath">LastWarnOrErrorPath</see>.
+        /// </summary>
+        ActivityLoggerPathCatcher PathCatcher { get; } 
+
+        /// <summary>
         /// Gets the <see cref="ActivityLoggerTap"/> that manages <see cref="IActivityLoggerSink"/>
         /// for this <see cref="DefaultActivityLogger"/>.
         /// </summary>

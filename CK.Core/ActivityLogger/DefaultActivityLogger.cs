@@ -40,6 +40,17 @@ namespace CK.Core
             {
                 get { return ReadOnlyListEmpty<IActivityLoggerSink>.Empty; }
             }
+
+            public ActivityLoggerErrorCounter ErrorCounter
+            {
+                get { return ActivityLoggerErrorCounter.Empty; }
+            }
+
+            public ActivityLoggerPathCatcher PathCatcher
+            {
+                get { return ActivityLoggerPathCatcher.Empty; }
+            }
+
         }
 
         /// <summary>
@@ -48,56 +59,48 @@ namespace CK.Core
         static public new readonly IDefaultActivityLogger Empty = new EmptyDefault();
 
         ActivityLoggerTap _tap;
-
-        class CheckedOutput : ActivityLoggerOutput
-        {
-            public CheckedOutput( DefaultActivityLogger logger )
-                : base( logger )
-            {
-            }
-
-            new DefaultActivityLogger Logger { get { return (DefaultActivityLogger)base.Logger; } }
-
-            protected override void OnAfterRemoved( IActivityLoggerClient client )
-            {
-                if( client == Logger._tap && !RegisteredMuxClients.Contains( client ) ) throw new InvalidOperationException();
-                base.OnAfterRemoved( client );
-            }
-
-            protected override void OnAfterRemoved( IMuxActivityLoggerClient client )
-            {
-                if( client == Logger._tap && !RegisteredClients.Contains( client ) ) throw new InvalidOperationException();
-                base.OnAfterRemoved( client );
-            }
-
-        }
+        ActivityLoggerErrorCounter _errorCounter;
+        ActivityLoggerPathCatcher _pathCatcher;
 
         DefaultActivityLogger()
-            : base( null )
         {
-            SetOutput( new CheckedOutput( this ) );
             _tap = new ActivityLoggerTap();
+            _errorCounter = new ActivityLoggerErrorCounter();
+            _pathCatcher = new ActivityLoggerPathCatcher();
             Output.RegisterMuxClient( _tap );
+            Output.RegisterMuxClient( _errorCounter );
+            Output.RegisterMuxClient( _pathCatcher );
+            Output.NonRemoveableClients.AddRangeArray( _tap, _errorCounter, _pathCatcher );
         }
 
-        public ActivityLoggerTap Tap 
+        ActivityLoggerTap IDefaultActivityLogger.Tap 
         { 
             get { return _tap; } 
         }
 
-        public IDefaultActivityLogger Register( IActivityLoggerSink sink )
+        ActivityLoggerErrorCounter IDefaultActivityLogger.ErrorCounter
+        {
+            get { return _errorCounter; }
+        }
+
+        ActivityLoggerPathCatcher IDefaultActivityLogger.PathCatcher
+        {
+            get { return _pathCatcher; }
+        }
+
+        IDefaultActivityLogger IDefaultActivityLogger.Register( IActivityLoggerSink sink )
         {
             _tap.Register( sink );
             return this;
         }
 
-        public IDefaultActivityLogger Unregister( IActivityLoggerSink sink )
+        IDefaultActivityLogger IDefaultActivityLogger.Unregister( IActivityLoggerSink sink )
         {
             _tap.Unregister( sink );
             return this;
         }
 
-        public IReadOnlyList<IActivityLoggerSink> RegisteredSinks
+        IReadOnlyList<IActivityLoggerSink> IDefaultActivityLogger.RegisteredSinks
         {
             get { return _tap.RegisteredSinks; }
         }

@@ -8,7 +8,7 @@ namespace CK.Core
     /// <summary>
     /// Listener for multiple <see cref="IActivityLogger"/>. See <see cref="IMuxActivityLoggerClientRegistrar"/>.
     /// </summary>
-    public interface IMuxActivityLoggerClient
+    public interface IMuxActivityLoggerClient : IActivityLoggerClientBase
     {
         /// <summary>
         /// Called when <see cref="IActivityLogger.Filter"/> is about to change.

@@ -57,8 +57,9 @@ namespace CK.Core
         }
 
         /// <summary>
-        /// Routes the call to the associated <see cref="IActivityLoggerClient"/> (after having called 
-        /// <see cref="CreateClient"/> if necessary).
+        /// Routes the call to the associated <see cref="IActivityLoggerClient"/> (after having 
+        /// called <see cref="CreateClient"/> if necessary).
+        /// </summary>
         /// <param name="sender">The sender logger.</param>
         /// <param name="level">Log level.</param>
         /// <param name="text">Text to log (never null).</param>
@@ -70,6 +71,7 @@ namespace CK.Core
         /// <summary>
         /// Routes the call to the associated <see cref="IActivityLoggerClient"/> (after having called 
         /// <see cref="CreateClient"/> if necessary).
+        /// </summary>
         /// <param name="sender">The sender logger.</param>
         /// <param name="group">The newly opened <see cref="IActivityLogGroup"/>.</param>
         void IMuxActivityLoggerClient.OnOpenGroup( IActivityLogger sender, IActivityLogGroup group )
@@ -80,6 +82,7 @@ namespace CK.Core
         /// <summary>
         /// Routes the call to the associated <see cref="IActivityLoggerClient"/> (after having called 
         /// <see cref="CreateClient"/> if necessary).
+        /// </summary>
         /// <param name="sender">The sender logger.</param>
         /// <param name="group">The group that will be closed.</param>
         /// <param name="conclusion">The conclusion to associate to the closing group.</param>
@@ -93,6 +96,7 @@ namespace CK.Core
         /// <summary>
         /// Routes the call to the associated <see cref="IActivityLoggerClient"/> (after having called 
         /// <see cref="CreateClient"/> if necessary).
+        /// </summary>
         /// <param name="sender">The sender logger.</param>
         /// <param name="group">The group that will be closed.</param>
         /// <param name="conclusion">The conclusion associated to the closed group.</param>
@@ -105,7 +109,7 @@ namespace CK.Core
         /// Must be overriden to create a new <see cref="IActivityLoggerClient"/> for the given <see cref="IActivityLogger"/>.
         /// </summary>
         /// <param name="logger">The new sender for which a <see cref="IActivityLoggerClient"/> must be created.</param>
-        /// <returns>A new concrete <see cref="DemuxClient"/> bound to the logger.</returns>
+        /// <returns>A new concrete <see cref="IActivityLoggerClient"/> bound to the given logger.</returns>
         protected abstract IActivityLoggerClient CreateClient( IActivityLogger logger );
     }
 }
