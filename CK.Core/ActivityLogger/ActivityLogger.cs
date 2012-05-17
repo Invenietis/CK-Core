@@ -48,10 +48,53 @@ namespace CK.Core
 
         }
 
+        class ActivityLoggerThrowError : IActivityLogger
+        {
+            public LogLevelFilter Filter
+            {
+                get { return LogLevelFilter.Error; }
+                set { }
+            }
+
+            public IDisposable OpenGroup( LogLevel level, Func<string> getConclusionText, string text )
+            {
+                if( level >= LogLevel.Warn ) throw new Exception( text );
+                return Util.EmptyDisposable;
+            }
+
+            public IActivityLoggerOutput Output
+            {
+                get { return ActivityLogger.Empty.Output; }
+            }
+
+            public IActivityLogger UnfilteredLog( LogLevel level, string text )
+            {
+                if( level >= LogLevel.Warn ) throw new Exception( text );
+                return this;
+            }
+
+            public void CloseGroup( string conclusion )
+            {
+            }
+
+        }
+
         /// <summary>
         /// Empty <see cref="IActivityLogger"/> (null object design pattern).
         /// </summary>
         static public readonly IActivityLogger Empty = new EmptyLogger();
+
+        /// <summary>
+        /// Implementation of a <see cref="IActivityLogger"/> with a fixed <see cref="IActivityLogger.Filter"/>
+        /// set to <see cref="LogLevel.Error"/> and an empty <see cref="IActivityLogger.Output"/> that
+        /// throws <see cref="Exception"/> for any <see cref="LogLevel.Fatal"/> or <see cref="LogLevel.Error"/> log.
+        /// </summary>
+        /// <remarks>
+        /// This singleton can be used to invert the way error are managed in an existing code: if a code 
+        /// uses a logger to describe its errors (and typically returns false to indicate an error), it is 
+        /// easy to call it with this special logger to make it work in "strict exception mode".
+        /// </remarks>
+        static public readonly IActivityLogger FatalOrErrorThrow = new ActivityLoggerThrowError();
 
         LogLevelFilter _filter;
         Group _current;
