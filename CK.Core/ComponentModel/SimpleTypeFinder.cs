@@ -62,6 +62,8 @@ namespace CK.Core
 
         /// <summary>
         /// Default implementation returns exactly its <paramref name="assemblyQualifiedName"/> parameter.
+        /// Throws an <see cref="ArgumentNullException" /> if <paramref name="assemblyQualifiedName"/> is null.
+        /// Throws an <see cref="ArgumentException" /> if <paramref name="assemblyQualifiedName"/> is empty or has no commas (an AQN should aways have at least one).
         /// </summary>
         /// <param name="assemblyQualifiedName">The assembly qualified name of a type.</param>
         /// <returns>The assembly qualified name to use.</returns>
@@ -100,6 +102,9 @@ namespace CK.Core
             }
         }
 
+        /// <summary>
+        /// Obsolete version of <see cref="WeakenAssemblyQualifiedName"/>
+        /// </summary>
         [Obsolete( "Use SplitAssemblyQualifiedName (and INVERT the 2 output parameters!!).", true )]
         static public bool SplitNames( string assemblyQualifiedName, out string assemblyFullName, out string fullTypeName )
         {
@@ -114,7 +119,14 @@ namespace CK.Core
             return false;
         }
 
-
+        /// <summary>
+        /// Helper method to remove version, architecture, publiTokenKey and culture from the assembly qualified name into its assembly name passed as parameter.
+        /// "CK.Core.SimpleTypeFinder, CK.Core, version=1.0.0, culture='fr-FR'" gives "CK.Core.SimpleTypeFinder, CK.Core".
+        /// Used to remove strong name from an strongly-named assembly qualified name
+        /// </summary>
+        /// <param name="assemblyQualifiedName">The assembly qualified name to weaken.</param>
+        /// <param name="weakTypeName">The weakened assembly qualified name on output or an empty string.</param>
+        /// <returns>True if the split has been successfully done. False otherwise.</returns>
         static public bool WeakenAssemblyQualifiedName( string assemblyQualifiedName, out string weakTypeName )
         {
             weakTypeName = String.Empty;
@@ -134,8 +146,8 @@ namespace CK.Core
         /// </summary>
         /// <param name="assemblyQualifiedName">The assembly qualified name to split.</param>
         /// <param name="fullTypeName">Full type name on output or an empty string.</param>
-        /// <param name="assemblyFullName">Assembly full name on output or an empty string.</param>
-        /// <returns>True if the split has been successfully done. False otherwise.</returns>
+        /// <param name="assemblyFullName">Weaken type name on output or an empty string if the weaking hasn't work.</param>
+        /// <returns>True if the weakening has been successfully done. False otherwise.</returns>
         static public bool SplitAssemblyQualifiedName( string assemblyQualifiedName, out string fullTypeName, out string assemblyFullName )
         {
             int i = assemblyQualifiedName.IndexOf( ',' );
