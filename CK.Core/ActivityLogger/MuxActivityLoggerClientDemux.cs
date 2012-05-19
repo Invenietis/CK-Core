@@ -85,11 +85,10 @@ namespace CK.Core
         /// </summary>
         /// <param name="sender">The sender logger.</param>
         /// <param name="group">The group that will be closed.</param>
-        /// <param name="conclusion">The conclusion to associate to the closing group.</param>
-        /// <returns>The new conclusion that should be associated to the group. Returning null has no effect on the current conclusion.</returns>
-        string IMuxActivityLoggerClient.OnGroupClosing( IActivityLogger sender, IActivityLogGroup group, string conclusion )
+        /// <param name="conclusions">Mutable conclusions associated to the closing group.</param>
+        void IMuxActivityLoggerClient.OnGroupClosing( IActivityLogger sender, IActivityLogGroup group, IList<ActivityLogGroupConclusion> conclusions )
         {
-            return FindOrCreate( sender ).OnGroupClosing( group, conclusion );
+            FindOrCreate( sender ).OnGroupClosing( group, conclusions );
         }
 
 
@@ -99,10 +98,10 @@ namespace CK.Core
         /// </summary>
         /// <param name="sender">The sender logger.</param>
         /// <param name="group">The group that will be closed.</param>
-        /// <param name="conclusion">The conclusion associated to the closed group.</param>
-        void IMuxActivityLoggerClient.OnGroupClosed( IActivityLogger sender, IActivityLogGroup group, string conclusion )
+        /// <param name="conclusions">Texts that conclude the closed group.</param>
+        void IMuxActivityLoggerClient.OnGroupClosed( IActivityLogger sender, IActivityLogGroup group, IReadOnlyList<ActivityLogGroupConclusion> conclusions )
         {
-            FindOrCreate( sender ).OnGroupClosed( group, conclusion );
+            FindOrCreate( sender ).OnGroupClosed( group, conclusions );
         }
 
         /// <summary>

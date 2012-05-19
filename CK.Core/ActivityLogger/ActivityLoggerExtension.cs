@@ -1,15 +1,87 @@
 ﻿using System;
 using System.Linq;
 using System.Collections.Generic;
+using System.Text;
 
 namespace CK.Core
 {
-
     /// <summary>
-    /// Provides extension methods for <see cref="IActivityLogger"/>.
+    /// Provides extension methods for <see cref="IActivityLogger"/> and other types from the Activity logger framework.
     /// </summary>
     public static class ActivityLoggerExtension
     {
+        /// <summary>
+        /// Gets this Group conclusions as a readeable string.
+        /// </summary>
+        /// <param name="this">This group conclusion.</param>
+        /// <param name="conclusionSeparator">Conclusion separator.</param>
+        /// <returns>A lovely concatened string of conclusions.</returns>
+        public static string ToStringGroupConclusion( this IEnumerable<ActivityLogGroupConclusion> @this, string conclusionSeparator = " - " )
+        {
+            if( @this == null ) return String.Empty;
+            StringBuilder b = new StringBuilder();
+            foreach( var e in @this )
+            {
+                if( b.Length > 0 ) b.Append( conclusionSeparator );
+                b.Append( e.Conclusion );
+            }
+            return b.ToString();
+        }
+
+        /// <summary>
+        /// Gets the path as a readable string.
+        /// </summary>
+        /// <param name="this">This path.</param>
+        /// <param name="elementSeparator">Between elements.</param>
+        /// <param name="withoutConclusionFormat">There must be 3 placeholders {0} for the level, {1} for the text and {2} for the conclusion.</param>
+        /// <param name="withConclusionFormat">There must be 2 placeholders {0} for the level and {1} for the text.</param>
+        /// <param name="conclusionSeparator">Conclusion separator.</param>
+        /// <param name="fatal">For Fatal errors.</param>
+        /// <param name="error">For Errors.</param>
+        /// <param name="warn">For Warnings.</param>
+        /// <param name="info">For Infos.</param>
+        /// <param name="trace">For Traces.</param>
+        /// <returns>A lovely path.</returns>
+        public static string ToStringPath( this IEnumerable<ActivityLoggerPathCatcher.PathElement> @this,
+            string elementSeparator = "> ",
+            string withoutConclusionFormat = "{0}{1} ",
+            string withConclusionFormat = "{0}{1} -{{ {2} }}",
+            string conclusionSeparator = " - ",
+            string fatal = "[Fatal]- ",
+            string error = "[Error]- ",
+            string warn = "[Warning]- ",
+            string info = "[Info]- ",
+            string trace = "" )
+        {
+            if( @this == null ) return String.Empty;
+            StringBuilder b = new StringBuilder();
+            foreach( var e in @this )
+            {
+                if( b.Length > 0 ) b.Append( elementSeparator );
+                string prefix = trace;
+                switch( e.Level )
+                {
+                    case LogLevel.Fatal: prefix = fatal; break;
+                    case LogLevel.Error: prefix = error; break;
+                    case LogLevel.Warn: prefix = warn; break;
+                    case LogLevel.Info: prefix = info; break;
+                }
+                if( e.GroupConclusion != null ) b.AppendFormat( withConclusionFormat, prefix, e.Text, e.GroupConclusion.ToStringGroupConclusion( conclusionSeparator ) );
+                else b.AppendFormat( withoutConclusionFormat, prefix, e.Text );
+            }
+            return b.ToString();
+        }
+
+        /// <summary>
+        /// Concatenation of <see cref="IActivityLoggerClientRegistrar.RegisteredClients">RegisteredClients</see> 
+        /// and <see cref="IMuxActivityLoggerClientRegistrar.RegisteredMuxClients">RegisteredMuxClients</see>
+        /// </summary>
+        /// <param name="this">This <see cref="IActivityLoggerOutput"/>.</param>
+        /// <returns>The enumeration of all output clients.</returns>
+        public static IEnumerable<IActivityLoggerClientBase> AllClients( this IActivityLoggerOutput @this )
+        {
+            return @this.RegisteredClients.Cast<IActivityLoggerClientBase>().Concat( @this.RegisteredMuxClients );
+        }
 
         #region Registrar
 
@@ -60,7 +132,42 @@ namespace CK.Core
         }
         #endregion
 
-        #region IActivityLogger OpenGroup( ... ), Filter( level ), Trace(...), Info(...), Warn(...), Error(...) and Error(...).
+        #region IActivityLogger.Filter( level )
+        
+        class LogFilterSentinel : IDisposable
+        {
+            IActivityLogger _logger;
+            LogLevelFilter _prevLevel;
+
+            public LogFilterSentinel( IActivityLogger l, LogLevelFilter filterLevel )
+            {
+                _prevLevel = l.Filter;
+                _logger = l;
+                l.Filter = filterLevel;
+            }
+
+            public void Dispose()
+            {
+                _logger.Filter = _prevLevel;
+            }
+
+        }
+
+        /// <summary>
+        /// Sets a filter level on this <see cref="IActivityLogger"/>. The current <see cref="IActivityLogger.Filter"/> will be automatically 
+        /// restored when the returned <see cref="IDisposable"/> will be disposed.
+        /// </summary>
+        /// <param name="this">This <see cref="IActivityLogger"/> object.</param>
+        /// <param name="filterLevel">The new filter level.</param>
+        /// <returns>A <see cref="IDisposable"/> object that will restore the current level.</returns>
+        public static IDisposable Filter( this IActivityLogger @this, LogLevelFilter filterLevel )
+        {
+            return new LogFilterSentinel( @this, filterLevel );
+        }
+
+        #endregion IActivityLogger.Filter( level )
+
+        #region IActivityLogger.OpenGroup( ... )
 
         /// <summary>
         /// Opens a log level. <see cref="IActivityLogger.CloseGroup">CloseGroup</see> must be called in order to
@@ -112,36 +219,9 @@ namespace CK.Core
             return @this.OpenGroup( level, null, String.Format( format, arguments ) );
         }
 
-        class LogFilterSentinel : IDisposable
-        {
-            IActivityLogger _logger;
-            LogLevelFilter _prevLevel;
+        #endregion
 
-            public LogFilterSentinel( IActivityLogger l, LogLevelFilter filterLevel )
-            {
-                _prevLevel = l.Filter;
-                _logger = l;
-                l.Filter = filterLevel;
-            }
-
-            public void Dispose()
-            {
-                _logger.Filter = _prevLevel;
-            }
-
-        }
-
-        /// <summary>
-        /// Sets a filter level on this <see cref="IActivityLogger"/>. The current <see cref="IActivityLogger.Filter"/> will be automatically 
-        /// restored when the returned <see cref="IDisposable"/> will be disposed.
-        /// </summary>
-        /// <param name="this">This <see cref="IActivityLogger"/> object.</param>
-        /// <param name="filterLevel">The new filter level.</param>
-        /// <returns>A <see cref="IDisposable"/> object that will restore the current level.</returns>
-        public static IDisposable Filter( this IActivityLogger @this, LogLevelFilter filterLevel )
-        {
-            return new LogFilterSentinel( @this, filterLevel );
-        }
+        #region IActivityLogger Trace(...), Info(...), Warn(...), Error(...) and Fatal(...).
 
         #region Trace
 
@@ -166,7 +246,11 @@ namespace CK.Core
         /// <returns>This logger to enable fluent syntax.</returns>
         public static IActivityLogger Trace( this IActivityLogger @this, string format, object arg0 )
         {
-            if( (int)@this.Filter <= (int)LogLevel.Trace ) @this.UnfilteredLog( LogLevel.Trace, String.Format( format, arg0 ) );
+            if( (int)@this.Filter <= (int)LogLevel.Trace )
+            {
+                if( arg0 is Exception ) throw new ArgumentException( "Possible use of the wrong overload: Use the form that takes a first parameter of type Exception and then the string text instead of this ( string format, string arg0 ) overload to log the exception, or calls this overload explicitely with the Exception.Message string.", "arg0" );
+                @this.UnfilteredLog( LogLevel.Trace, String.Format( format, arg0 ) );
+            }
             return @this;
         }
 
@@ -278,7 +362,11 @@ namespace CK.Core
         /// <returns>This logger to enable fluent syntax.</returns>
         public static IActivityLogger Info( this IActivityLogger @this, string format, object arg0 )
         {
-            if( (int)@this.Filter <= (int)LogLevel.Info ) @this.UnfilteredLog( LogLevel.Info, String.Format( format, arg0 ) );
+            if( (int)@this.Filter <= (int)LogLevel.Info )
+            {
+                if( arg0 is Exception ) throw new ArgumentException( "Possible use of the wrong overload: Use the form that takes a first parameter of type Exception and then the string text instead of this ( string format, string arg0 ) overload to log the exception, or calls this overload explicitely with the Exception.Message string.", "arg0" );
+                @this.UnfilteredLog( LogLevel.Info, String.Format( format, arg0 ) );
+            }
             return @this;
         }
 
@@ -390,7 +478,11 @@ namespace CK.Core
         /// <returns>This logger to enable fluent syntax.</returns>
         public static IActivityLogger Warn( this IActivityLogger @this, string format, object arg0 )
         {
-            if( (int)@this.Filter <= (int)LogLevel.Warn ) @this.UnfilteredLog( LogLevel.Warn, String.Format( format, arg0 ) );
+            if( (int)@this.Filter <= (int)LogLevel.Warn )
+            {
+                if( arg0 is Exception ) throw new ArgumentException( "Possible use of the wrong overload: Use the form that takes a first parameter of type Exception and then the string text instead of this ( string format, string arg0 ) overload to log the exception, or calls this overload explicitely with the Exception.Message string.", "arg0" );
+                @this.UnfilteredLog( LogLevel.Warn, String.Format( format, arg0 ) );
+            }
             return @this;
         }
 
@@ -502,7 +594,11 @@ namespace CK.Core
         /// <returns>This logger to enable fluent syntax.</returns>
         public static IActivityLogger Error( this IActivityLogger @this, string format, object arg0 )
         {
-            if( (int)@this.Filter <= (int)LogLevel.Error ) @this.UnfilteredLog( LogLevel.Error, String.Format( format, arg0 ) );
+            if( (int)@this.Filter <= (int)LogLevel.Error )
+            {
+                if( arg0 is Exception ) throw new ArgumentException( "Possible use of the wrong overload: Use the form that takes a first parameter of type Exception and then the string text instead of this ( string format, string arg0 ) overload to log the exception, or calls this overload explicitely with the Exception.Message string.", "arg0" );
+                @this.UnfilteredLog( LogLevel.Error, String.Format( format, arg0 ) );
+            }
             return @this;
         }
 
@@ -614,7 +710,11 @@ namespace CK.Core
         /// <returns>This logger to enable fluent syntax.</returns>
         public static IActivityLogger Fatal( this IActivityLogger @this, string format, object arg0 )
         {
-            if( (int)@this.Filter <= (int)LogLevel.Fatal ) @this.UnfilteredLog( LogLevel.Fatal, String.Format( format, arg0 ) );
+            if( (int)@this.Filter <= (int)LogLevel.Fatal )
+            {
+                if( arg0 is Exception ) throw new ArgumentException( "Possible use of the wrong overload: Use the form that takes a first parameter of type Exception and then the string text instead of this ( string format, string arg0 ) overload to log the exception, or calls this overload explicitely with the Exception.Message string.", "arg0" );
+                @this.UnfilteredLog( LogLevel.Fatal, String.Format( format, arg0 ) );
+            }
             return @this;
         }
 
@@ -705,5 +805,566 @@ namespace CK.Core
 
         #endregion
 
+        #region IActivityLogger Trace( Exception ), Warn( Exception ), Error( Exception ), Fatal( Exception ), OpenGroup( Exception ).
+
+        #region Trace
+
+        /// <summary>
+        /// Logs the exception as a trace.
+        /// </summary>
+        /// <param name="this">This <see cref="IActivityLogger"/> object.</param>
+        /// <param name="ex">The exception to log.</param>
+        /// <returns>This logger to enable fluent syntax.</returns>
+        public static IActivityLogger Trace( this IActivityLogger @this, Exception ex )
+        {
+            if( (int)@this.Filter <= (int)LogLevel.Trace ) @this.UnfilteredLog( LogLevel.Trace, null, ex );
+            return @this;
+        }
+
+        /// <summary>
+        /// Logs the exception as a trace.
+        /// </summary>
+        /// <param name="this">This <see cref="IActivityLogger"/> object.</param>
+        /// <param name="ex">The exception to log.</param>
+        /// <param name="text">Text to log as a trace.</param>
+        /// <returns>This logger to enable fluent syntax.</returns>
+        public static IActivityLogger Trace( this IActivityLogger @this, Exception ex, string text )
+        {
+            if( (int)@this.Filter <= (int)LogLevel.Trace ) @this.UnfilteredLog( LogLevel.Trace, text, ex );
+            return @this;
+        }
+
+        /// <summary>
+        /// Logs the exception as a trace.
+        /// </summary>
+        /// <param name="this">This <see cref="IActivityLogger"/> object.</param>
+        /// <param name="ex">The exception to log.</param>
+        /// <param name="format">Text format to log as a trace.</param>
+        /// <param name="arg0">Parameter to format (placeholder {0}).</param>
+        /// <returns>This logger to enable fluent syntax.</returns>
+        public static IActivityLogger Trace( this IActivityLogger @this, Exception ex, string format, object arg0 )
+        {
+            if( (int)@this.Filter <= (int)LogLevel.Trace ) @this.UnfilteredLog( LogLevel.Trace, String.Format( format, arg0 ), ex );
+            return @this;
+        }
+
+        /// <summary>
+        /// Logs the exception as a trace.
+        /// </summary>
+        /// <param name="this">This <see cref="IActivityLogger"/> object.</param>
+        /// <param name="ex">The exception to log.</param>
+        /// <param name="format">Text format to log as a trace.</param>
+        /// <param name="arg0">First parameter to format (placeholder {0}).</param>
+        /// <param name="arg1">Second parameter to format (placeholder {1}).</param>
+        /// <returns>This logger to enable fluent syntax.</returns>
+        public static IActivityLogger Trace( this IActivityLogger @this, Exception ex, string format, object arg0, object arg1 )
+        {
+            if( (int)@this.Filter <= (int)LogLevel.Trace ) @this.UnfilteredLog( LogLevel.Trace, String.Format( format, arg0, arg1 ), ex );
+            return @this;
+        }
+
+        /// <summary>
+        /// Logs the exception as a trace.
+        /// </summary>
+        /// <param name="this">This <see cref="IActivityLogger"/> object.</param>
+        /// <param name="ex">The exception to log.</param>
+        /// <param name="format">Text format to log as a trace.</param>
+        /// <param name="arg0">First parameter to format (placeholder {0}).</param>
+        /// <param name="arg1">Second parameter to format (placeholder {1}).</param>
+        /// <param name="arg2">Third parameter to format (placeholder {2}).</param>
+        /// <returns>This logger to enable fluent syntax.</returns>
+        public static IActivityLogger Trace( this IActivityLogger @this, Exception ex, string format, object arg0, object arg1, object arg2 )
+        {
+            if( (int)@this.Filter <= (int)LogLevel.Trace ) @this.UnfilteredLog( LogLevel.Trace, String.Format( format, arg0, arg1 ), ex );
+            return @this;
+        }
+
+        /// <summary>
+        /// Logs the exception as a trace.
+        /// </summary>
+        /// <param name="this">This <see cref="IActivityLogger"/> object.</param>
+        /// <param name="ex">The exception to log.</param>
+        /// <param name="format">Text format to log as a trace.</param>
+        /// <param name="args">Multiple parameters to format.</param>
+        /// <returns>This logger to enable fluent syntax.</returns>
+        public static IActivityLogger Trace( this IActivityLogger @this, Exception ex, string format, params object[] args )
+        {
+            if( (int)@this.Filter <= (int)LogLevel.Trace ) @this.UnfilteredLog( LogLevel.Trace, String.Format( format, args ), ex );
+            return @this;
+        }
+
+        #endregion
+
+        #region Info
+
+        /// <summary>
+        /// Logs the exception as an information if current <see cref="IActivityLogger.Filter"/> is <see cref="LogLevel.Info"/> or above.
+        /// </summary>
+        /// <param name="this">This <see cref="IActivityLogger"/> object.</param>
+        /// <param name="ex">The exception to log.</param>
+        /// <returns>This logger to enable fluent syntax.</returns>
+        public static IActivityLogger Info( this IActivityLogger @this, Exception ex )
+        {
+            if( (int)@this.Filter <= (int)LogLevel.Info ) @this.UnfilteredLog( LogLevel.Info, null, ex );
+            return @this;
+        }
+
+        /// <summary>
+        /// Logs the exception as an information if current <see cref="IActivityLogger.Filter"/> is <see cref="LogLevel.Info"/> or above.
+        /// </summary>
+        /// <param name="this">This <see cref="IActivityLogger"/> object.</param>
+        /// <param name="ex">The exception to log.</param>
+        /// <param name="text">Text to log as an information.</param>
+        /// <returns>This logger to enable fluent syntax.</returns>
+        public static IActivityLogger Info( this IActivityLogger @this, Exception ex, string text )
+        {
+            if( (int)@this.Filter <= (int)LogLevel.Info ) @this.UnfilteredLog( LogLevel.Info, text, ex );
+            return @this;
+        }
+
+        /// <summary>
+        /// Logs the exception as an information if current <see cref="IActivityLogger.Filter"/> is <see cref="LogLevel.Info"/> or above.
+        /// </summary>
+        /// <param name="this">This <see cref="IActivityLogger"/> object.</param>
+        /// <param name="ex">The exception to log.</param>
+        /// <param name="format">Text format to log as an information.</param>
+        /// <param name="arg0">Parameter to format (placeholder {0}).</param>
+        /// <returns>This logger to enable fluent syntax.</returns>
+        public static IActivityLogger Info( this IActivityLogger @this, Exception ex, string format, object arg0 )
+        {
+            if( (int)@this.Filter <= (int)LogLevel.Info ) @this.UnfilteredLog( LogLevel.Info, String.Format( format, arg0 ), ex );
+            return @this;
+        }
+
+        /// <summary>
+        /// Logs the exception as an information if current <see cref="IActivityLogger.Filter"/> is <see cref="LogLevel.Info"/> or above.
+        /// </summary>
+        /// <param name="this">This <see cref="IActivityLogger"/> object.</param>
+        /// <param name="ex">The exception to log.</param>
+        /// <param name="format">Text format to log as an information.</param>
+        /// <param name="arg0">First parameter to format (placeholder {0}).</param>
+        /// <param name="arg1">Second parameter to format (placeholder {1}).</param>
+        /// <returns>This logger to enable fluent syntax.</returns>
+        public static IActivityLogger Info( this IActivityLogger @this, Exception ex, string format, object arg0, object arg1 )
+        {
+            if( (int)@this.Filter <= (int)LogLevel.Info ) @this.UnfilteredLog( LogLevel.Info, String.Format( format, arg0, arg1 ), ex );
+            return @this;
+        }
+
+        /// <summary>
+        /// Logs the exception as an information if current <see cref="IActivityLogger.Filter"/> is <see cref="LogLevel.Info"/> or above.
+        /// </summary>
+        /// <param name="this">This <see cref="IActivityLogger"/> object.</param>
+        /// <param name="ex">The exception to log.</param>
+        /// <param name="format">Text format to log as an information.</param>
+        /// <param name="arg0">First parameter to format (placeholder {0}).</param>
+        /// <param name="arg1">Second parameter to format (placeholder {1}).</param>
+        /// <param name="arg2">Third parameter to format (placeholder {2}).</param>
+        /// <returns>This logger to enable fluent syntax.</returns>
+        public static IActivityLogger Info( this IActivityLogger @this, Exception ex, string format, object arg0, object arg1, object arg2 )
+        {
+            if( (int)@this.Filter <= (int)LogLevel.Info ) @this.UnfilteredLog( LogLevel.Info, String.Format( format, arg0, arg1 ), ex );
+            return @this;
+        }
+
+        /// <summary>
+        /// Logs the exception as an information if current <see cref="IActivityLogger.Filter"/> is <see cref="LogLevel.Info"/> or above.
+        /// </summary>
+        /// <param name="this">This <see cref="IActivityLogger"/> object.</param>
+        /// <param name="ex">The exception to log.</param>
+        /// <param name="format">Text format to log as an information.</param>
+        /// <param name="args">Multiple parameters to format.</param>
+        /// <returns>This logger to enable fluent syntax.</returns>
+        public static IActivityLogger Info( this IActivityLogger @this, Exception ex, string format, params object[] args )
+        {
+            if( (int)@this.Filter <= (int)LogLevel.Info ) @this.UnfilteredLog( LogLevel.Info, String.Format( format, args ), ex );
+            return @this;
+        }
+
+        #endregion
+
+        #region Warn
+
+        /// <summary>
+        /// Logs the exception as a warning if current <see cref="IActivityLogger.Filter"/> is <see cref="LogLevel.Warn"/> or above.
+        /// </summary>
+        /// <param name="this">This <see cref="IActivityLogger"/> object.</param>
+        /// <param name="ex">The exception to log.</param>
+        /// <returns>This logger to enable fluent syntax.</returns>
+        public static IActivityLogger Warn( this IActivityLogger @this, Exception ex )
+        {
+            if( (int)@this.Filter <= (int)LogLevel.Warn ) @this.UnfilteredLog( LogLevel.Warn, null, ex );
+            return @this;
+        }
+
+        /// <summary>
+        /// Logs the exception as a warning if current <see cref="IActivityLogger.Filter"/> is <see cref="LogLevel.Warn"/> or above.
+        /// </summary>
+        /// <param name="this">This <see cref="IActivityLogger"/> object.</param>
+        /// <param name="ex">The exception to log.</param>
+        /// <param name="text">Text to log as a warning.</param>
+        /// <returns>This logger to enable fluent syntax.</returns>
+        public static IActivityLogger Warn( this IActivityLogger @this, Exception ex, string text )
+        {
+            if( (int)@this.Filter <= (int)LogLevel.Warn ) @this.UnfilteredLog( LogLevel.Warn, text, ex );
+            return @this;
+        }
+
+        /// <summary>
+        /// Logs the exception as a warning if current <see cref="IActivityLogger.Filter"/> is <see cref="LogLevel.Warn"/> or above.
+        /// </summary>
+        /// <param name="this">This <see cref="IActivityLogger"/> object.</param>
+        /// <param name="ex">The exception to log.</param>
+        /// <param name="format">Text format to log as a warning.</param>
+        /// <param name="arg0">Parameter to format (placeholder {0}).</param>
+        /// <returns>This logger to enable fluent syntax.</returns>
+        public static IActivityLogger Warn( this IActivityLogger @this, Exception ex, string format, object arg0 )
+        {
+            if( (int)@this.Filter <= (int)LogLevel.Warn ) @this.UnfilteredLog( LogLevel.Warn, String.Format( format, arg0 ), ex );
+            return @this;
+        }
+
+        /// <summary>
+        /// Logs the exception as a warning if current <see cref="IActivityLogger.Filter"/> is <see cref="LogLevel.Warn"/> or above.
+        /// </summary>
+        /// <param name="this">This <see cref="IActivityLogger"/> object.</param>
+        /// <param name="ex">The exception to log.</param>
+        /// <param name="format">Text format to log as a warning.</param>
+        /// <param name="arg0">First parameter to format (placeholder {0}).</param>
+        /// <param name="arg1">Second parameter to format (placeholder {1}).</param>
+        /// <returns>This logger to enable fluent syntax.</returns>
+        public static IActivityLogger Warn( this IActivityLogger @this, Exception ex, string format, object arg0, object arg1 )
+        {
+            if( (int)@this.Filter <= (int)LogLevel.Warn ) @this.UnfilteredLog( LogLevel.Warn, String.Format( format, arg0, arg1 ), ex );
+            return @this;
+        }
+
+        /// <summary>
+        /// Logs the exception as a warning if current <see cref="IActivityLogger.Filter"/> is <see cref="LogLevel.Warn"/> or above.
+        /// </summary>
+        /// <param name="this">This <see cref="IActivityLogger"/> object.</param>
+        /// <param name="ex">The exception to log.</param>
+        /// <param name="format">Text format to log as a warning.</param>
+        /// <param name="arg0">First parameter to format (placeholder {0}).</param>
+        /// <param name="arg1">Second parameter to format (placeholder {1}).</param>
+        /// <param name="arg2">Third parameter to format (placeholder {2}).</param>
+        /// <returns>This logger to enable fluent syntax.</returns>
+        public static IActivityLogger Warn( this IActivityLogger @this, Exception ex, string format, object arg0, object arg1, object arg2 )
+        {
+            if( (int)@this.Filter <= (int)LogLevel.Warn ) @this.UnfilteredLog( LogLevel.Warn, String.Format( format, arg0, arg1 ), ex );
+            return @this;
+        }
+
+        /// <summary>
+        /// Logs the exception as a warning if current <see cref="IActivityLogger.Filter"/> is <see cref="LogLevel.Warn"/> or above.
+        /// </summary>
+        /// <param name="this">This <see cref="IActivityLogger"/> object.</param>
+        /// <param name="ex">The exception to log.</param>
+        /// <param name="format">Text format to log as a warning.</param>
+        /// <param name="args">Multiple parameters to format.</param>
+        /// <returns>This logger to enable fluent syntax.</returns>
+        public static IActivityLogger Warn( this IActivityLogger @this, Exception ex, string format, params object[] args )
+        {
+            if( (int)@this.Filter <= (int)LogLevel.Warn ) @this.UnfilteredLog( LogLevel.Warn, String.Format( format, args ), ex );
+            return @this;
+        }
+
+        #endregion
+
+        #region Error
+
+        /// <summary>
+        /// Logs the exception as an error if current <see cref="IActivityLogger.Filter"/> is <see cref="LogLevel.Error"/> or above.
+        /// </summary>
+        /// <param name="this">This <see cref="IActivityLogger"/> object.</param>
+        /// <param name="ex">The exception to log.</param>
+        /// <returns>This logger to enable fluent syntax.</returns>
+        public static IActivityLogger Error( this IActivityLogger @this, Exception ex )
+        {
+            if( (int)@this.Filter <= (int)LogLevel.Error ) @this.UnfilteredLog( LogLevel.Error, null, ex );
+            return @this;
+        }
+
+        /// <summary>
+        /// Logs the exception as an error if current <see cref="IActivityLogger.Filter"/> is <see cref="LogLevel.Error"/> or above.
+        /// </summary>
+        /// <param name="this">This <see cref="IActivityLogger"/> object.</param>
+        /// <param name="ex">The exception to log.</param>
+        /// <param name="text">Text to log as an error.</param>
+        /// <returns>This logger to enable fluent syntax.</returns>
+        public static IActivityLogger Error( this IActivityLogger @this, Exception ex, string text )
+        {
+            if( (int)@this.Filter <= (int)LogLevel.Error ) @this.UnfilteredLog( LogLevel.Error, text, ex );
+            return @this;
+        }
+
+        /// <summary>
+        /// Logs the exception as an error if current <see cref="IActivityLogger.Filter"/> is <see cref="LogLevel.Error"/> or above.
+        /// </summary>
+        /// <param name="this">This <see cref="IActivityLogger"/> object.</param>
+        /// <param name="ex">The exception to log.</param>
+        /// <param name="format">Text format to log as an error.</param>
+        /// <param name="arg0">Parameter to format (placeholder {0}).</param>
+        /// <returns>This logger to enable fluent syntax.</returns>
+        public static IActivityLogger Error( this IActivityLogger @this, Exception ex, string format, object arg0 )
+        {
+            if( (int)@this.Filter <= (int)LogLevel.Error ) @this.UnfilteredLog( LogLevel.Error, String.Format( format, arg0 ), ex );
+            return @this;
+        }
+
+        /// <summary>
+        /// Logs the exception as an error if current <see cref="IActivityLogger.Filter"/> is <see cref="LogLevel.Error"/> or above.
+        /// </summary>
+        /// <param name="this">This <see cref="IActivityLogger"/> object.</param>
+        /// <param name="ex">The exception to log.</param>
+        /// <param name="format">Text format to log as an error.</param>
+        /// <param name="arg0">First parameter to format (placeholder {0}).</param>
+        /// <param name="arg1">Second parameter to format (placeholder {1}).</param>
+        /// <returns>This logger to enable fluent syntax.</returns>
+        public static IActivityLogger Error( this IActivityLogger @this, Exception ex, string format, object arg0, object arg1 )
+        {
+            if( (int)@this.Filter <= (int)LogLevel.Error ) @this.UnfilteredLog( LogLevel.Error, String.Format( format, arg0, arg1 ), ex );
+            return @this;
+        }
+
+        /// <summary>
+        /// Logs the exception as an error if current <see cref="IActivityLogger.Filter"/> is <see cref="LogLevel.Error"/> or above.
+        /// </summary>
+        /// <param name="this">This <see cref="IActivityLogger"/> object.</param>
+        /// <param name="ex">The exception to log.</param>
+        /// <param name="format">Text format to log as an error.</param>
+        /// <param name="arg0">First parameter to format (placeholder {0}).</param>
+        /// <param name="arg1">Second parameter to format (placeholder {1}).</param>
+        /// <param name="arg2">Third parameter to format (placeholder {2}).</param>
+        /// <returns>This logger to enable fluent syntax.</returns>
+        public static IActivityLogger Error( this IActivityLogger @this, Exception ex, string format, object arg0, object arg1, object arg2 )
+        {
+            if( (int)@this.Filter <= (int)LogLevel.Error ) @this.UnfilteredLog( LogLevel.Error, String.Format( format, arg0, arg1 ), ex );
+            return @this;
+        }
+
+        /// <summary>
+        /// Logs the exception as an error if current <see cref="IActivityLogger.Filter"/> is <see cref="LogLevel.Error"/> or above.
+        /// </summary>
+        /// <param name="this">This <see cref="IActivityLogger"/> object.</param>
+        /// <param name="ex">The exception to log.</param>
+        /// <param name="format">Text format to log as an error.</param>
+        /// <param name="args">Multiple parameters to format.</param>
+        /// <returns>This logger to enable fluent syntax.</returns>
+        public static IActivityLogger Error( this IActivityLogger @this, Exception ex, string format, params object[] args )
+        {
+            if( (int)@this.Filter <= (int)LogLevel.Error ) @this.UnfilteredLog( LogLevel.Error, String.Format( format, args ), ex );
+            return @this;
+        }
+
+        #endregion
+
+        #region Fatal
+
+        /// <summary>
+        /// Logs the exception (except if current <see cref="IActivityLogger.Filter"/> is <see cref="LogLevelFilter.Off"/>).
+        /// </summary>
+        /// <param name="this">This <see cref="IActivityLogger"/> object.</param>
+        /// <param name="ex">The exception to log.</param>
+        /// <returns>This logger to enable fluent syntax.</returns>
+        public static IActivityLogger Fatal( this IActivityLogger @this, Exception ex )
+        {
+            if( (int)@this.Filter <= (int)LogLevel.Fatal ) @this.UnfilteredLog( LogLevel.Fatal, null, ex );
+            return @this;
+        }
+
+        /// <summary>
+        /// Logs the exception (except if current <see cref="IActivityLogger.Filter"/> is <see cref="LogLevelFilter.Off"/>).
+        /// </summary>
+        /// <param name="this">This <see cref="IActivityLogger"/> object.</param>
+        /// <param name="ex">The exception to log.</param>
+        /// <param name="text">Text to log as a fatal error.</param>
+        /// <returns>This logger to enable fluent syntax.</returns>
+        public static IActivityLogger Fatal( this IActivityLogger @this, Exception ex, string text )
+        {
+            if( (int)@this.Filter <= (int)LogLevel.Fatal ) @this.UnfilteredLog( LogLevel.Fatal, text, ex );
+            return @this;
+        }
+
+        /// <summary>
+        /// Logs the exception (except if current <see cref="IActivityLogger.Filter"/> is <see cref="LogLevelFilter.Off"/>).
+        /// </summary>
+        /// <param name="this">This <see cref="IActivityLogger"/> object.</param>
+        /// <param name="ex">The exception to log.</param>
+        /// <param name="format">Text format to log as a fatal error.</param>
+        /// <param name="arg0">Parameter to format (placeholder {0}).</param>
+        /// <returns>This logger to enable fluent syntax.</returns>
+        public static IActivityLogger Fatal( this IActivityLogger @this, Exception ex, string format, object arg0 )
+        {
+            if( (int)@this.Filter <= (int)LogLevel.Fatal ) @this.UnfilteredLog( LogLevel.Fatal, String.Format( format, arg0 ), ex );
+            return @this;
+        }
+
+        /// <summary>
+        /// Logs the exception (except if current <see cref="IActivityLogger.Filter"/> is <see cref="LogLevelFilter.Off"/>).
+        /// </summary>
+        /// <param name="this">This <see cref="IActivityLogger"/> object.</param>
+        /// <param name="ex">The exception to log.</param>
+        /// <param name="format">Text format to log as a fatal error.</param>
+        /// <param name="arg0">First parameter to format (placeholder {0}).</param>
+        /// <param name="arg1">Second parameter to format (placeholder {1}).</param>
+        /// <returns>This logger to enable fluent syntax.</returns>
+        public static IActivityLogger Fatal( this IActivityLogger @this, Exception ex, string format, object arg0, object arg1 )
+        {
+            if( (int)@this.Filter <= (int)LogLevel.Fatal ) @this.UnfilteredLog( LogLevel.Fatal, String.Format( format, arg0, arg1 ), ex );
+            return @this;
+        }
+
+        /// <summary>
+        /// Logs the exception (except if current <see cref="IActivityLogger.Filter"/> is <see cref="LogLevelFilter.Off"/>).
+        /// </summary>
+        /// <param name="this">This <see cref="IActivityLogger"/> object.</param>
+        /// <param name="ex">The exception to log.</param>
+        /// <param name="format">Text format to log as a fatal error.</param>
+        /// <param name="arg0">First parameter to format (placeholder {0}).</param>
+        /// <param name="arg1">Second parameter to format (placeholder {1}).</param>
+        /// <param name="arg2">Third parameter to format (placeholder {2}).</param>
+        /// <returns>This logger to enable fluent syntax.</returns>
+        public static IActivityLogger Fatal( this IActivityLogger @this, Exception ex, string format, object arg0, object arg1, object arg2 )
+        {
+            if( (int)@this.Filter <= (int)LogLevel.Fatal ) @this.UnfilteredLog( LogLevel.Fatal, String.Format( format, arg0, arg1 ), ex );
+            return @this;
+        }
+
+        /// <summary>
+        /// Logs the exception (except if current <see cref="IActivityLogger.Filter"/> is <see cref="LogLevelFilter.Off"/>).
+        /// </summary>
+        /// <param name="this">This <see cref="IActivityLogger"/> object.</param>
+        /// <param name="ex">The exception to log.</param>
+        /// <param name="format">Text format to log as a fatal error.</param>
+        /// <param name="args">Multiple parameters to format.</param>
+        /// <returns>This logger to enable fluent syntax.</returns>
+        public static IActivityLogger Fatal( this IActivityLogger @this, Exception ex, string format, params object[] args )
+        {
+            if( (int)@this.Filter <= (int)LogLevel.Fatal ) @this.UnfilteredLog( LogLevel.Fatal, String.Format( format, args ), ex );
+            return @this;
+        }
+
+        #endregion
+
+        #region OpenGroup
+
+        /// <summary>
+        /// Opens a log level associated to an <see cref="Exception"/>. <see cref="IActivityLogger.CloseGroup">CloseGroup</see> must be called in order to
+        /// close the group, or the returned object must be disposed.
+        /// </summary>
+        /// <param name="this">This <see cref="IActivityLogger"/> object.</param>
+        /// <param name="level">Log level. Since we are opening a group, the current <see cref="IActivityLogger.Filter">Filter</see> is ignored.</param>
+        /// <param name="ex">The exception to log.</param>
+        /// <returns>A disposable object that can be used to close the group.</returns>
+        /// <remarks>
+        /// A group opening is not be filtered since any subordinated logs may occur.
+        /// It is left to the implementation to handle (or not) filtering when <see cref="IActivityLogger.CloseGroup">CloseGroup</see> is called.
+        /// </remarks>
+        public static IDisposable OpenGroup( this IActivityLogger @this, LogLevel level, Exception ex )
+        {
+            return @this.OpenGroup( level, null, null, ex );
+        }
+
+        /// <summary>
+        /// Opens a log level associated to an <see cref="Exception"/>. <see cref="IActivityLogger.CloseGroup">CloseGroup</see> must be called in order to
+        /// close the group, or the returned object must be disposed.
+        /// </summary>
+        /// <param name="this">This <see cref="IActivityLogger"/> object.</param>
+        /// <param name="level">Log level. Since we are opening a group, the current <see cref="IActivityLogger.Filter">Filter</see> is ignored.</param>
+        /// <param name="ex">The exception to log.</param>
+        /// <param name="text">The group title.</param>
+        /// <returns>A disposable object that can be used to close the group.</returns>
+        /// <remarks>
+        /// A group opening is not be filtered since any subordinated logs may occur.
+        /// It is left to the implementation to handle (or not) filtering when <see cref="IActivityLogger.CloseGroup">CloseGroup</see> is called.
+        /// </remarks>
+        public static IDisposable OpenGroup( this IActivityLogger @this, LogLevel level, Exception ex, string text )
+        {
+            return @this.OpenGroup( level, null, text, ex );
+        }
+
+        /// <summary>
+        /// Opens a log level associated to an <see cref="Exception"/>. <see cref="IActivityLogger.CloseGroup">CloseGroup</see> must be called in order to
+        /// close the group, or the returned object must be disposed.
+        /// </summary>
+        /// <param name="this">This <see cref="IActivityLogger"/> object.</param>
+        /// <param name="level">Log level. Since we are opening a group, the current <see cref="IActivityLogger.Filter">Filter</see> is ignored.</param>
+        /// <param name="ex">Exception to log.</param>
+        /// <param name="format">Text format for group title.</param>
+        /// <param name="arg0">Parameter to format (placeholder {0}).</param>
+        /// <returns>A disposable object that can be used to close the group.</returns>
+        /// <remarks>
+        /// A group opening is not be filtered since any subordinated logs may occur.
+        /// It is left to the implementation to handle (or not) filtering when <see cref="IActivityLogger.CloseGroup">CloseGroup</see> is called.
+        /// </remarks>
+        public static IDisposable OpenGroup( this IActivityLogger @this, LogLevel level, Exception ex, string format, object arg0 )
+        {
+            return @this.OpenGroup( level, null, String.Format( format, arg0 ), ex );
+        }
+
+        /// <summary>
+        /// Opens a log level associated to an <see cref="Exception"/>. <see cref="IActivityLogger.CloseGroup">CloseGroup</see> must be called in order to
+        /// close the group, or the returned object must be disposed.
+        /// </summary>
+        /// <param name="this">This <see cref="IActivityLogger"/> object.</param>
+        /// <param name="level">Log level. Since we are opening a group, the current <see cref="IActivityLogger.Filter">Filter</see> is ignored.</param>
+        /// <param name="ex">Exception to log.</param>
+        /// <param name="format">Text format for group title.</param>
+        /// <param name="arg0">First parameter to format (placeholder {0}).</param>
+        /// <param name="arg1">Second parameter to format (placeholder {1}).</param>
+        /// <returns>A disposable object that can be used to close the group.</returns>
+        /// <remarks>
+        /// A group opening is not be filtered since any subordinated logs may occur.
+        /// It is left to the implementation to handle (or not) filtering when <see cref="IActivityLogger.CloseGroup">CloseGroup</see> is called.
+        /// </remarks>
+        public static IDisposable OpenGroup( this IActivityLogger @this, LogLevel level, Exception ex, string format, object arg0, object arg1 )
+        {
+            return @this.OpenGroup( level, null, String.Format( format, arg0, arg1 ), ex );
+        }
+
+        /// <summary>
+        /// Opens a log level associated to an <see cref="Exception"/>. <see cref="IActivityLogger.CloseGroup">CloseGroup</see> must be called in order to
+        /// close the group, or the returned object must be disposed.
+        /// </summary>
+        /// <param name="this">This <see cref="IActivityLogger"/> object.</param>
+        /// <param name="level">Log level. Since we are opening a group, the current <see cref="IActivityLogger.Filter">Filter</see> is ignored.</param>
+        /// <param name="ex">Exception to log.</param>
+        /// <param name="format">Text format for group title.</param>
+        /// <param name="arg0">First parameter to format (placeholder {0}).</param>
+        /// <param name="arg1">Second parameter to format (placeholder {1}).</param>
+        /// <param name="arg2">Third parameter to format (placeholder {2}).</param>
+        /// <returns>A disposable object that can be used to close the group.</returns>
+        /// <remarks>
+        /// A group opening is not be filtered since any subordinated logs may occur.
+        /// It is left to the implementation to handle (or not) filtering when <see cref="IActivityLogger.CloseGroup">CloseGroup</see> is called.
+        /// </remarks>
+        public static IDisposable OpenGroup( this IActivityLogger @this, LogLevel level, Exception ex, string format, object arg0, object arg1, object arg2 )
+        {
+            return @this.OpenGroup( level, null, String.Format( format, arg0, arg1, arg2 ), ex );
+        }
+
+        /// <summary>
+        /// Opens a log level associated to an <see cref="Exception"/>. <see cref="IActivityLogger.CloseGroup">CloseGroup</see> must be called in order to
+        /// close the group, or the returned object must be disposed.
+        /// </summary>
+        /// <param name="this">This <see cref="IActivityLogger"/> object.</param>
+        /// <param name="level">Log level. Since we are opening a group, the current <see cref="IActivityLogger.Filter">Filter</see> is ignored.</param>
+        /// <param name="ex">Exception to log.</param>
+        /// <param name="format">A composite format for the group title.</param>
+        /// <param name="arguments">Arguments to format.</param>
+        /// <returns>A disposable object that can be used to close the group.</returns>
+        /// <remarks>
+        /// A group opening is not be filtered since any subordinated logs may occur.
+        /// It is left to the implementation to handle (or not) filtering when <see cref="IActivityLogger.CloseGroup">CloseGroup</see> is called.
+        /// </remarks>
+        public static IDisposable OpenGroup( this IActivityLogger @this, LogLevel level, Exception ex, string format, params object[] arguments )
+        {
+            return @this.OpenGroup( level, null, String.Format( format, arguments ), ex );
+        }
+
+        #endregion
+
+        #endregion
     }
 }

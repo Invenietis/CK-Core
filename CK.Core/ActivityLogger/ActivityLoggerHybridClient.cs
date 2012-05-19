@@ -55,16 +55,14 @@ namespace CK.Core
         }
 
         /// <summary>
-        /// Called once the <paramref name="conclusion"/> is known at the group level but before the group
-        /// is actually closed: clients can update or set the conclusion for the group.
+        /// Called once the conclusion is known at the group level (if it exists, the <see cref="ActivityLogGroupConclusion.Emitter"/> is the <see cref="IActivityLogger"/> itself) 
+        /// but before the group is actually closed: clients can update the conclusions for the group.
         /// Does nothing by default.
         /// </summary>
         /// <param name="group">The closing group.</param>
-        /// <param name="conclusion">Text that concludes the group. Never null but can be empty.</param>
-        /// <returns>The new conclusion that should be associated to the group. Returning null has no effect on the current conclusion.</returns>
-        protected virtual string OnGroupClosing( IActivityLogGroup group, string conclusion )
+        /// <param name="conclusions">Mutable conclusions associated to the closing group.</param>
+        protected virtual void OnGroupClosing( IActivityLogGroup group, IList<ActivityLogGroupConclusion> conclusions )
         {
-            return null;
         }
 
         /// <summary>
@@ -72,8 +70,8 @@ namespace CK.Core
         /// Does nothing by default.
         /// </summary>
         /// <param name="group">The closed group.</param>
-        /// <param name="conclusion">Text that concludes the group. Never null but can be empty.</param>
-        protected virtual void OnGroupClosed( IActivityLogGroup group, string conclusion )
+        /// <param name="conclusions">Text that conclude the group. Never null but can be empty.</param>
+        protected virtual void OnGroupClosed( IActivityLogGroup group, IReadOnlyList<ActivityLogGroupConclusion> conclusions )
         {
         }
 
@@ -94,14 +92,14 @@ namespace CK.Core
             OnOpenGroup( group );
         }
 
-        string IActivityLoggerClient.OnGroupClosing( IActivityLogGroup group, string conclusion )
+        void IActivityLoggerClient.OnGroupClosing( IActivityLogGroup group, IList<ActivityLogGroupConclusion> conclusions )
         {
-            return OnGroupClosing( group, conclusion );
+            OnGroupClosing( group, conclusions );
         }
 
-        void IActivityLoggerClient.OnGroupClosed( IActivityLogGroup group, string conclusion )
+        void IActivityLoggerClient.OnGroupClosed( IActivityLogGroup group, IReadOnlyList<ActivityLogGroupConclusion> conclusions )
         {
-            OnGroupClosed( group, conclusion );
+            OnGroupClosed( group, conclusions );
         }
 
         #endregion
@@ -123,14 +121,14 @@ namespace CK.Core
             OnOpenGroup( group );
         }
 
-        string IMuxActivityLoggerClient.OnGroupClosing( IActivityLogger sender, IActivityLogGroup group, string conclusion )
+        void IMuxActivityLoggerClient.OnGroupClosing( IActivityLogger sender, IActivityLogGroup group, IList<ActivityLogGroupConclusion> conclusions )
         {
-            return OnGroupClosing( group, conclusion );
+            OnGroupClosing( group, conclusions );
         }
 
-        void IMuxActivityLoggerClient.OnGroupClosed( IActivityLogger sender, IActivityLogGroup group, string conclusion )
+        void IMuxActivityLoggerClient.OnGroupClosed( IActivityLogger sender, IActivityLogGroup group, IReadOnlyList<ActivityLogGroupConclusion> conclusions )
         {
-            OnGroupClosed( group, conclusion );
+            OnGroupClosed( group, conclusions );
         }
 
         #endregion

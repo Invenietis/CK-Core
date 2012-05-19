@@ -73,7 +73,7 @@ namespace CK.Core
         /// <param name="client">The client to add.</param>
         protected void DoAdd( IMuxActivityLoggerClient client )
         {
-            _clients.Add( client );
+            _clients.Insert( 0, client );
         }
 
         void IMuxActivityLoggerClient.OnFilterChanged( IActivityLogger sender, LogLevelFilter current, LogLevelFilter newValue )
@@ -91,15 +91,14 @@ namespace CK.Core
             foreach( var l in RegisteredMuxClients ) l.OnOpenGroup( sender, group );
         }
 
-        string IMuxActivityLoggerClient.OnGroupClosing( IActivityLogger sender, IActivityLogGroup group, string conclusion )
+        void IMuxActivityLoggerClient.OnGroupClosing( IActivityLogger sender, IActivityLogGroup group, IList<ActivityLogGroupConclusion> conclusions )
         {
-            foreach( var l in RegisteredMuxClients ) conclusion = l.OnGroupClosing( sender, group, conclusion ) ?? conclusion;
-            return conclusion;
+            foreach( var l in RegisteredMuxClients ) l.OnGroupClosing( sender, group, conclusions );
         }
 
-        void IMuxActivityLoggerClient.OnGroupClosed( IActivityLogger sender, IActivityLogGroup group, string conclusion )
+        void IMuxActivityLoggerClient.OnGroupClosed( IActivityLogger sender, IActivityLogGroup group, IReadOnlyList<ActivityLogGroupConclusion> conclusions )
         {
-            foreach( var l in RegisteredMuxClients ) l.OnGroupClosed( sender, group, conclusion );
+            foreach( var l in RegisteredMuxClients ) l.OnGroupClosed( sender, group, conclusions );
         }
 
     }

@@ -19,6 +19,161 @@ namespace CK.Core
         static readonly string DefaultSeparator = ", ";
 
         /// <summary>
+        /// Encapsulates error information.
+        /// It is used as the <see cref="ActivityLogGroupConclusion.Conclusion"/> object: the <see cref="ToString"/> method
+        /// displays the conclusion in a default text format.
+        /// </summary>
+        public class State
+        {
+            internal readonly State Parent;
+
+            internal State( State parent )
+            {
+                MaxLogLevel = LogLevel.None;
+                Parent = parent;
+            }
+
+            /// <summary>
+            /// Gets the current number of fatal errors.
+            /// </summary>
+            public int FatalCount { get; private set; }
+
+            /// <summary>
+            /// Gets the current number of errors.
+            /// </summary>
+            public int ErrorCount { get; private set; }
+
+            /// <summary>
+            /// Gets the current number of warnings.
+            /// </summary>
+            public int WarnCount { get; private set; }
+
+            /// <summary>
+            /// Gets the current maximum <see cref="LogLevel"/>.
+            /// </summary>
+            public LogLevel MaxLogLevel { get; private set; }
+
+            /// <summary>
+            /// Gets whether an error or a fatal occurred.
+            /// </summary>
+            public bool HasError
+            {
+                get { return MaxLogLevel >= LogLevel.Error; }
+            }
+
+            /// <summary>
+            /// Gets whether an a fatal, an error or a warn occurred.
+            /// </summary>
+            public bool HasWarnOrError
+            {
+                get { return MaxLogLevel >= LogLevel.Warn; }
+            }
+
+            /// <summary>
+            /// Resets <see cref="FatalCount"/> and <see cref="ErrorCount"/>.
+            /// </summary>
+            public void ClearError()
+            {
+                if( MaxLogLevel > LogLevel.Warn )
+                {
+                    FatalCount = ErrorCount = 0;
+                    MaxLogLevel = WarnCount > 0 ? LogLevel.Warn : LogLevel.Info;
+                }
+            }
+
+            /// <summary>
+            /// Resets current <see cref="WarnCount"/>, and optionnaly <see cref="FatalCount"/> and <see cref="ErrorCount"/>.
+            /// </summary>
+            public void ClearWarn( bool clearError = false )
+            {
+                WarnCount = 0;
+                if( MaxLogLevel == LogLevel.Warn ) MaxLogLevel = LogLevel.Info;
+                else if( clearError ) ClearError();
+            }
+
+            /// <summary>
+            /// Gets the current message if <see cref="HasWarnOrError"/> is true, otherwise null.
+            /// </summary>
+            /// <returns>Formatted message or null if no error nor warning occurred.</returns>
+            public override string ToString()
+            {
+                if( HasWarnOrError )
+                {
+                    string s = String.Empty;
+                    if( FatalCount == 1 ) s += DefaultFatalConclusionFormat;
+                    else if( FatalCount > 1 ) s += String.Format( DefaultFatalsConclusionFormat, FatalCount );
+                    if( ErrorCount > 0 )
+                    {
+                        if( s.Length > 0 ) s += DefaultSeparator;
+                        if( ErrorCount == 1 ) s += DefaultErrorConclusionFormat;
+                        else if( ErrorCount > 1 ) s += String.Format( DefaultErrorsConclusionFormat, ErrorCount );
+                    }
+                    if( WarnCount > 0 )
+                    {
+                        if( s.Length > 0 ) s += DefaultSeparator;
+                        if( WarnCount == 1 ) s += DefaultWarnConclusionFormat;
+                        else if( WarnCount > 1 ) s += String.Format( DefaultWarnsConclusionFormat, WarnCount );
+                    }
+                    return s;
+                }
+                return null;
+            }
+
+            internal void CatchLevel( LogLevel level )
+            {
+                switch( level )
+                {
+                    case LogLevel.Fatal:
+                        {
+                            State s = this;
+                            do
+                            {
+                                s.FatalCount = s.FatalCount + 1;
+                                s.MaxLogLevel = LogLevel.Fatal;
+                            }
+                            while( (s = s.Parent) != null );
+                            break;
+                        }
+                    case LogLevel.Error:
+                        {
+                            State s = this;
+                            do
+                            {
+                                s.ErrorCount = s.ErrorCount + 1;
+                                if( s.MaxLogLevel != LogLevel.Fatal ) s.MaxLogLevel = LogLevel.Error;
+                            }
+                            while( (s = s.Parent) != null );
+                            break;
+                        }
+                    case LogLevel.Warn:
+                        {
+                            State s = this;
+                            do
+                            {
+                                s.WarnCount = s.WarnCount + 1;
+                                if( s.MaxLogLevel < LogLevel.Warn ) s.MaxLogLevel = LogLevel.Warn;
+                            }
+                            while( (s = s.Parent) != null );
+                            break;
+                        }
+                    default:
+                        {
+                            State s = this;
+                            do
+                            {
+                                if( s.MaxLogLevel < level ) s.MaxLogLevel = level;
+                            }
+                            while( (s = s.Parent) != null );
+                            break;
+                        }
+                }
+            }
+        }
+
+        State _root;
+        State _current;
+
+        /// <summary>
         /// Reuse the ActivityLoggerErrorCounter: since all hooks are empty, nothing happens.
         /// </summary>
         class EmptyErrorCounter : ActivityLoggerErrorCounter
@@ -36,13 +191,12 @@ namespace CK.Core
             {
             }
 
-            protected override string OnGroupClosing( IActivityLogGroup group, string conclusion )
+            protected override void OnGroupClosing( IActivityLogGroup group, IList<ActivityLogGroupConclusion> conclusions )
             {
-                return null;
             }
 
             // Security if OnGroupClosed is implemented one day on ActivityLoggerErrorCounter.
-            protected override void OnGroupClosed( IActivityLogGroup group, string conclusion )
+            protected override void OnGroupClosed( IActivityLogGroup group, IReadOnlyList<ActivityLogGroupConclusion> conclusions )
             {
             }
         }
@@ -57,121 +211,31 @@ namespace CK.Core
         /// </summary>
         public ActivityLoggerErrorCounter()
         {
-            MaxLogLevel = LogLevel.Trace;
-            ConclusionMode = ConclusionTextMode.SetWhenEmpty;
+            _current = _root = new State( null );
+            GenerateConclusion = true;
         }
 
         /// <summary>
-        /// Defines how conclusion text for groups must be updated.
+        /// Gets the root <see cref="State"/>.
         /// </summary>
-        public enum ConclusionTextMode
-        {
-            /// <summary>
-            /// Conclusion is not handled.
-            /// </summary>
-            None,
-            /// <summary>
-            /// <see cref="GetCurrentMessage"/> is set as the conclusion 
-            /// only if no conclusion exist.
-            /// </summary>
-            SetWhenEmpty,
-            /// <summary>
-            /// Appends <see cref="GetCurrentMessage"/> to the conclusion.
-            /// </summary>
-            AlwaysAppend
+        public State Root 
+        { 
+            get { return _root; } 
         }
 
         /// <summary>
-        /// Gets or sets the <see cref="ConclusionTextMode"/>.
-        /// Defaults to <see cref="ConclusionTextMode.SetWhenEmpty"/>.
+        /// Gets the current <see cref="State"/>.
         /// </summary>
-        public ConclusionTextMode ConclusionMode { get; set; }
-
-        /// <summary>
-        /// Gets the current number of fatal errors.
-        /// </summary>
-        public int FatalCount { get; private set; }
-
-        /// <summary>
-        /// Gets the current number of errors.
-        /// </summary>
-        public int ErrorCount { get; private set; }
-
-        /// <summary>
-        /// Gets the current number of warnings.
-        /// </summary>
-        public int WarnCount { get; private set; }
-
-        /// <summary>
-        /// Gets the current maximum <see cref="LogLevel"/>.
-        /// </summary>
-        public LogLevel MaxLogLevel { get; private set; }
-
-        /// <summary>
-        /// Gets whether an error or a fatal occurred.
-        /// </summary>
-        public bool HasError
-        {
-            get { return MaxLogLevel >= LogLevel.Error; }
+        public State Current 
+        { 
+            get { return _current; } 
         }
 
         /// <summary>
-        /// Gets whether an a fatal, an error or a warn occurred.
+        /// Gets or sets whether the Group conclusion must be generated.
+        /// Defaults to true.
         /// </summary>
-        public bool HasWarnOrError
-        {
-            get { return MaxLogLevel >= LogLevel.Warn; }
-        }
-
-        /// <summary>
-        /// Resets <see cref="FatalCount"/> and <see cref="ErrorCount"/>.
-        /// </summary>
-        public void ClearError()
-        {
-            if( MaxLogLevel > LogLevel.Warn )
-            {
-                FatalCount = ErrorCount = 0;
-                MaxLogLevel = WarnCount > 0 ? LogLevel.Warn : LogLevel.Info;
-            }
-        }
-
-        /// <summary>
-        /// Resets current <see cref="WarnCount"/>, and optionnaly <see cref="FatalCount"/> and <see cref="ErrorCount"/>.
-        /// </summary>
-        public void ClearWarn( bool clearError = false )
-        {
-            WarnCount = 0;
-            if( MaxLogLevel == LogLevel.Warn ) MaxLogLevel = LogLevel.Info;
-            else if( clearError ) ClearError();
-        }
-
-        /// <summary>
-        /// Gets the current message if <see cref="HasWarnOrError"/> is true, otherwise null.
-        /// </summary>
-        /// <returns>Formatted message or null if no error nor warning occurred.</returns>
-        public string GetCurrentMessage()
-        {
-            if( HasWarnOrError )
-            {
-                string s = String.Empty;
-                if( FatalCount == 1 ) s += DefaultFatalConclusionFormat;
-                else if( FatalCount > 1 ) s += String.Format( DefaultFatalsConclusionFormat, FatalCount );
-                if( ErrorCount > 0 )
-                {
-                    if( s.Length > 0 ) s += DefaultSeparator;
-                    if( ErrorCount == 1 ) s += DefaultErrorConclusionFormat;
-                    else if( ErrorCount > 1 ) s += String.Format( DefaultErrorsConclusionFormat, ErrorCount );
-                }
-                if( WarnCount > 0 )
-                {
-                    if( s.Length > 0 ) s += DefaultSeparator;
-                    if( WarnCount == 1 ) s += DefaultWarnConclusionFormat;
-                    else if( WarnCount > 1 ) s += String.Format( DefaultWarnsConclusionFormat, WarnCount );
-                }
-                return s;
-            }
-            return null;
-        }
+        public bool GenerateConclusion { get; set; }
 
         /// <summary>
         /// Updates error counters.
@@ -180,7 +244,7 @@ namespace CK.Core
         /// <param name="text">Text (not null).</param>
         protected override void OnUnfilteredLog( LogLevel level, string text )
         {
-            CatchLevel( level );
+            _current.CatchLevel( level );
         }
 
         /// <summary>
@@ -189,54 +253,32 @@ namespace CK.Core
         /// <param name="group">The newly opened <see cref="IActivityLogGroup"/>.</param>
         protected override void OnOpenGroup( IActivityLogGroup group )
         {
-            CatchLevel( group.GroupLevel );
-        }
-
-        private void CatchLevel( LogLevel level )
-        {           
-            switch( level )
-            {
-                case LogLevel.Fatal: 
-                    FatalCount = FatalCount + 1; 
-                    MaxLogLevel = LogLevel.Fatal; 
-                    break;
-                case LogLevel.Error: 
-                    ErrorCount = ErrorCount + 1; 
-                    if( MaxLogLevel != LogLevel.Fatal ) MaxLogLevel = LogLevel.Error; 
-                    break;
-                case LogLevel.Warn: 
-                    WarnCount = WarnCount + 1; 
-                    if( MaxLogLevel < LogLevel.Warn ) MaxLogLevel = LogLevel.Warn; 
-                    break;
-                default:
-                    if( MaxLogLevel < level ) MaxLogLevel = level;
-                    break;
-            }
+            _current = new State( _current );
+            _current.CatchLevel( group.GroupLevel );
         }
 
         /// <summary>
         /// Handles group conclusion.
         /// </summary>
         /// <param name="group">The closing group.</param>
-        /// <param name="conclusion">Text that concludes the group. Never null but can be empty.</param>
-        /// <returns>The potentially overriden conclusion.</returns>
-        protected override string OnGroupClosing( IActivityLogGroup group, string conclusion )
+        /// <param name="conclusions">Mutable conclusions associated to the closing group.</param>
+        protected override void OnGroupClosing( IActivityLogGroup group, IList<ActivityLogGroupConclusion> conclusions )
         {
-            switch( ConclusionMode )
+            if( GenerateConclusion && _current != _root && _current.HasWarnOrError )
             {
-                case ConclusionTextMode.AlwaysAppend:
-                    {
-                        return conclusion += " - " + GetCurrentMessage();
-                    }
-                case ConclusionTextMode.SetWhenEmpty:
-                    {
-                        if( conclusion.Length == 0 ) return GetCurrentMessage();
-                        break;
-                    }
+                conclusions.Add( new ActivityLogGroupConclusion( _current, this ) );
             }
-            return null;
-        } 
+        }
 
+        /// <summary>
+        /// Restores current to the previous one (or keep it on the root if no opened group exist).
+        /// </summary>
+        /// <param name="group">The log group.</param>
+        /// <param name="conclusions">Texts that conclude the group.</param>
+        protected override void OnGroupClosed( IActivityLogGroup group, IReadOnlyList<ActivityLogGroupConclusion> conclusions )
+        {
+            if( _current.Parent != null ) _current = _current.Parent;
+        }
 
 
     }

@@ -39,11 +39,11 @@ namespace CK.Core
         void OnGroupOpen( IActivityLogGroup group );
 
         /// <summary>
-        /// Called once the <paramref name="conclusion"/> is known but before the group
-        /// is actually closed.
+        /// Called once the conclusion is known at the group level (if it exists, the <see cref="ActivityLogGroupConclusion.Emitter"/> is the <see cref="IActivityLogger"/> itself) 
+        /// but before the group is actually closed: clients can update the conclusions for the group.
         /// </summary>
         /// <param name="group">The closing group.</param>
-        /// <param name="conclusion">Text that concludes the group. Never null but can be empty.</param>
-        void OnGroupClose( IActivityLogGroup group, string conclusion );
+        /// <param name="conclusions">Texts that concludes the group. Never null but can be empty.</param>
+        void OnGroupClose( IActivityLogGroup group, IReadOnlyList<ActivityLogGroupConclusion> conclusions );
     }
 }

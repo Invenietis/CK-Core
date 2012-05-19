@@ -51,10 +51,9 @@ namespace CK.Core
                 get { return ReadOnlyListEmpty<IMuxActivityLoggerClient>.Empty; }
             }
 
-            // TODO (one day): implement a null object for List<T>.
             public IList<IActivityLoggerClientBase> NonRemoveableClients 
             {
-                get { return new List<IActivityLoggerClientBase>(); } 
+                get { return (IList<IActivityLoggerClientBase>)ReadOnlyListEmpty<IActivityLoggerClientBase>.Empty; } 
             }
         }
 
@@ -126,7 +125,7 @@ namespace CK.Core
             {
                 IMuxActivityLoggerClient mux = client as IMuxActivityLoggerClient;
                 if( mux != null ) DoRemove( mux );
-                _clients.Add( client );
+                _clients.Insert( 0, client );
             }
             return this;
         }
@@ -205,16 +204,16 @@ namespace CK.Core
             ((IMuxActivityLoggerClient)this).OnOpenGroup( Logger, group );
         }
 
-        internal string OnGroupClosing( IActivityLogGroup group, string conclusion )
+        internal void OnGroupClosing( IActivityLogGroup group, IList<ActivityLogGroupConclusion> conclusions )
         {
-            foreach( var l in _clients ) conclusion = l.OnGroupClosing( group, conclusion ) ?? conclusion;
-            return ((IMuxActivityLoggerClient)this).OnGroupClosing( Logger, group, conclusion );
+            foreach( var l in _clients ) l.OnGroupClosing( group, conclusions );
+            ((IMuxActivityLoggerClient)this).OnGroupClosing( Logger, group, conclusions );
         }
 
-        internal void OnGroupClosed( IActivityLogGroup group, string conclusion )
+        internal void OnGroupClosed( IActivityLogGroup group, IReadOnlyList<ActivityLogGroupConclusion> conclusions )
         {
-            foreach( var l in _clients ) l.OnGroupClosed( group, conclusion );
-            ((IMuxActivityLoggerClient)this).OnGroupClosed( Logger, group, conclusion );
+            foreach( var l in _clients ) l.OnGroupClosed( group, conclusions );
+            ((IMuxActivityLoggerClient)this).OnGroupClosed( Logger, group, conclusions );
         }
     }
 }

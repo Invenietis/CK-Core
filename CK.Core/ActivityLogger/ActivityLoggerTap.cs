@@ -36,12 +36,11 @@ namespace CK.Core
             }
 
             // Security if OnGroupClosing is implemented once on ActivityLoggerTap.
-            protected override string OnGroupClosing( IActivityLogGroup group, string conclusion )
+            protected override void OnGroupClosing( IActivityLogGroup group, IList<ActivityLogGroupConclusion> conclusions )
             {
-                return null;
             }
 
-            protected override void OnGroupClosed( IActivityLogGroup group, string conclusion )
+            protected override void OnGroupClosed( IActivityLogGroup group, IReadOnlyList<ActivityLogGroupConclusion> conclusions )
             {
             }
         }
@@ -144,15 +143,15 @@ namespace CK.Core
         /// Sends log to sinks (<see cref="IActivityLoggerSink.OnGroupClose"/>.
         /// </summary>
         /// <param name="group">The closed group.</param>
-        /// <param name="conclusion">Text that concludes the group. Never null but can be empty.</param>
-        protected override void OnGroupClosed( IActivityLogGroup group, string conclusion )
+        /// <param name="conclusions">Texts that conclude the group. Never null but can be empty.</param>
+        protected override void OnGroupClosed( IActivityLogGroup group, IReadOnlyList<ActivityLogGroupConclusion> conclusions )
         {
             if( _curLevel != -1 )
             {
                 foreach( var s in RegisteredSinks ) s.OnLeaveLevel( (LogLevel)_curLevel );
                 _curLevel = -1;
             }
-            foreach( var s in RegisteredSinks ) s.OnGroupClose( group, conclusion );
+            foreach( var s in RegisteredSinks ) s.OnGroupClose( group, conclusions );
         }
 
     }

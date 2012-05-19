@@ -58,11 +58,13 @@
     <Compile Include="ActionSequence\ActionSequence.cs" />
     <Compile Include="ActionSequence\ActionSequenceExtension.cs" />
     <Compile Include="ActionSequence\IActionSequence.cs" />
+    <Compile Include="ActivityLogger\ActivityLoggerConsoleSync.cs" />
     <Compile Include="ActivityLogger\ActivityLoggerErrorCounter.cs" />
     <Compile Include="ActivityLogger\ActivityLoggerHybridClient.cs" />
     <Compile Include="ActivityLogger\ActivityLoggerOutput.cs" />
     <Compile Include="ActivityLogger\ActivityLoggerPathCatcher.cs" />
     <Compile Include="ActivityLogger\ActivityLoggerTap.cs" />
+    <Compile Include="ActivityLogger\ActivityLogGroupConclusion.cs" />
     <Compile Include="ActivityLogger\DefaultActivityLogger.cs" />
     <Compile Include="ActivityLogger\IActivityLoggerClientBase.cs" />
     <Compile Include="ActivityLogger\IActivityLoggerOutput.cs" />
@@ -116,7 +118,7 @@
     <Compile Include="DictionaryExtension.cs" />
     <Compile Include="EnumerableExtension.cs" />
     <Compile Include="Impl\Collections\Adapter.cs" />
-    <Compile Include="Impl\Collections\EnumEmpty.cs" />
+    <Compile Include="Impl\Collections\EnumeratorEmpty.cs" />
     <Compile Include="Impl\Collections\EnumerableConverter.cs" />
     <Compile Include="Impl\Collections\EnumMono.cs" />
     <Compile Include="Impl\Collections\ReadOnlyCollectionOnICollection.cs" />

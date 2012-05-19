@@ -67,10 +67,21 @@ namespace CK.Core
             _tap = new ActivityLoggerTap();
             _errorCounter = new ActivityLoggerErrorCounter();
             _pathCatcher = new ActivityLoggerPathCatcher();
+            
+            // Order does not really matter matters here thankd to Closing/Closed pattern, but
+            // we order them in the "logical" sense.
+            //
+            // Registered as a Multiplexed client: will be the last one as beeing called: it is the final sink.
             Output.RegisterMuxClient( _tap );
-            Output.RegisterMuxClient( _errorCounter );
-            Output.RegisterMuxClient( _pathCatcher );
-            Output.NonRemoveableClients.AddRangeArray( _tap, _errorCounter, _pathCatcher );
+
+            // Registered as a normal client: they will not receive
+            // external outputs.
+            // Will be called AFTER the ErrorCounter.
+            Output.RegisterClient( _pathCatcher );
+            // Will be called first.
+            Output.RegisterClient( _errorCounter );
+            
+            Output.NonRemoveableClients.AddRangeArray( _tap, _pathCatcher, _errorCounter );
         }
 
         ActivityLoggerTap IDefaultActivityLogger.Tap 

@@ -7,28 +7,32 @@ namespace CK.Core
     public enum LogLevelFilter
     {
         /// <summary>
-        /// Everythnig is logged (<see cref="LogLevel.Trace"/>).
+        /// No filter (same effect as <see cref="LogLevelFilter.Trace"/>.
         /// </summary>
-        Trace = 0,
+        None = 0,
+        /// <summary>
+        /// Everything is logged (<see cref="LogLevel.Trace"/>).
+        /// </summary>
+        Trace = 1,
         /// <summary>
         /// Only <see cref="LogLevel.Info"/> and above is logged.
         /// </summary>
-        Info = 1,
+        Info = 2,
         /// <summary>
         /// Only <see cref="LogLevel.Warn"/> and above is logged.
         /// </summary>
-        Warn = 2,
+        Warn = 3,
         /// <summary>
         /// Only <see cref="LogLevel.Error"/> and above is logged.
         /// </summary>
-        Error = 3,
+        Error = 4,
         /// <summary>
         /// Only <see cref="LogLevel.Fatal"/> is logged.
         /// </summary>
-        Fatal = 4,
+        Fatal = 5,
         /// <summary>
         /// Do not log anything.
         /// </summary>
-        Off = 5
+        Off = 6
     }
 }

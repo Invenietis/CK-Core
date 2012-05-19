@@ -34,22 +34,21 @@ namespace CK.Core
         void OnOpenGroup( IActivityLogger sender, IActivityLogGroup group );
 
         /// <summary>
-        /// Called once the <paramref name="conclusion"/> is known at the group level but before the group
-        /// is actually closed: clients can update or set the conclusion for the group.
+        /// Called once the conclusion is known at the group level (if it exists, the <see cref="ActivityLogGroupConclusion.Emitter"/> is the <see cref="IActivityLogger"/> itself) 
+        /// but before the group is actually closed: clients can update the conclusions for the group.
         /// </summary>
         /// <param name="sender">The sender logger.</param>
         /// <param name="group">The closing group.</param>
-        /// <param name="conclusion">Text that concludes the group. Never null but can be empty.</param>
-        /// <returns>The new conclusion that should be associated to the group. Returning null has no effect on the current conclusion.</returns>
-        string OnGroupClosing( IActivityLogger sender, IActivityLogGroup group, string conclusion );
+        /// <param name="conclusions">Mutable conclusions associated to the closing group.</param>
+        void OnGroupClosing( IActivityLogger sender, IActivityLogGroup group, IList<ActivityLogGroupConclusion> conclusions );
 
         /// <summary>
         /// Called when the group is actually closed.
         /// </summary>
         /// <param name="sender">The sender logger.</param>
         /// <param name="group">The closed group.</param>
-        /// <param name="conclusion">Text that concludes the group. Never null but can be empty.</param>
-        void OnGroupClosed( IActivityLogger sender, IActivityLogGroup group, string conclusion );
+        /// <param name="conclusions">Texts that conclude the group. Never null but can be empty.</param>
+        void OnGroupClosed( IActivityLogger sender, IActivityLogGroup group, IReadOnlyList<ActivityLogGroupConclusion> conclusions );
     }
 
 }

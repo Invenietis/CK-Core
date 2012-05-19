@@ -10,12 +10,17 @@ namespace CK.Core
     public interface IActivityLogGroup
     {
         /// <summary>
-        /// Get the previous group. Null if this is a top level group.
+        /// Gets the origin <see cref="IActivityLogger"/> for the log group.
+        /// </summary>
+        IActivityLogger OriginLogger { get; }
+
+        /// <summary>
+        /// Get the previous group in its <see cref="OriginLogger"/>. Null if this is a top level group.
         /// </summary>
         IActivityLogGroup Parent { get; }
 
         /// <summary>
-        /// Gets the depth of this group (1 for top level groups).
+        /// Gets the depth of this group in its <see cref="OriginLogger"/> (1 for top level groups).
         /// </summary>
         int Depth { get; }
 
@@ -35,5 +40,14 @@ namespace CK.Core
         /// </summary>
         string GroupText { get; }
 
+        /// <summary>
+        /// Gets the associated <see cref="Exception"/> if it exists.
+        /// </summary>
+        Exception Exception { get; }
+
+        /// <summary>
+        /// Gets whether the <see cref="GroupText"/> is actually the <see cref="Exception"/> message.
+        /// </summary>
+        bool IsGroupTextTheExceptionMessage { get; }
     }
 }

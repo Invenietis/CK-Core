@@ -28,10 +28,9 @@ namespace CK.Core
             /// </summary>
             public string Text { get; internal set; }
             /// <summary>
-            /// Gets the conclusion associated to a group. Null if ther is no conclusion
-            /// or if this element does not correspond to a group.
+            /// Gets the conclusions associated to a group. Null if this element does not correspond to a group.
             /// </summary>
-            public string GroupConclusion { get; internal set; }
+            public IReadOnlyList<ActivityLogGroupConclusion> GroupConclusion { get; internal set; }
         }
 
         /// <summary>
@@ -53,12 +52,11 @@ namespace CK.Core
             }
 
             // Security if OnGroupClosing is implemented one day on ActivityLoggerPathCatcher.
-            protected override string OnGroupClosing( IActivityLogGroup group, string conclusion )
+            protected override void OnGroupClosing( IActivityLogGroup group, IList<ActivityLogGroupConclusion> conclusions )
             {
-                return null;
             }
 
-            protected override void OnGroupClosed( IActivityLogGroup group, string conclusion )
+            protected override void OnGroupClosed( IActivityLogGroup group, IReadOnlyList<ActivityLogGroupConclusion> conclusions )
             {
             }
         }
@@ -75,6 +73,7 @@ namespace CK.Core
         IReadOnlyList<PathElement> _pathEx;
         PathElement _current;
         bool _currentIsGroup;
+        bool _currentIsGroupClosed;
 
         /// <summary>
         /// Initializes a new <see cref="ActivityLoggerPathCatcher"/>.
@@ -88,6 +87,7 @@ namespace CK.Core
         /// <summary>
         /// Gets the current (mutable) path. You should use <see cref="ReadOnlyExtension.ToReadOnlyList{T}(IList{T})"/> or other ToArray 
         /// or ToList methods to take a snapshot of this list.
+        /// Use the extension method <see cref="ActivityLoggerExtension.ToStringPath"/> to easily format this path.
         /// </summary>
         public IReadOnlyList<PathElement> DynamicPath
         {
@@ -97,6 +97,7 @@ namespace CK.Core
         /// <summary>
         /// Gets the last <see cref="DynamicPath"/> where an <see cref="LogLevel.Error"/> or a <see cref="LogLevel.Fatal"/> occured.
         /// Null if no error nor fatal occured.
+        /// Use the extension method <see cref="ActivityLoggerExtension.ToStringPath"/> to easily format this path.
         /// </summary>
         public IReadOnlyList<PathElement> LastErrorPath
         {
@@ -114,6 +115,7 @@ namespace CK.Core
         /// <summary>
         /// Gets the last path with a <see cref="LogLevel.Fatal"/>, <see cref="LogLevel.Error"/> or a <see cref="LogLevel.Warn"/>.
         /// Null if no error, fatal nor warn occured.
+        /// Use the extension method <see cref="ActivityLoggerExtension.ToStringPath"/> to easily format this path.
         /// </summary>
         public IReadOnlyList<PathElement> LastWarnOrErrorPath
         {
@@ -140,6 +142,7 @@ namespace CK.Core
         {
             if( text != ActivityLogger.ParkLevel )
             {
+                if( _currentIsGroupClosed ) HandleCurrentGroupIsClosed();
                 if( _currentIsGroup || _current == null )
                 {
                     _current = new PathElement();
@@ -159,6 +162,7 @@ namespace CK.Core
         /// <param name="group">The newly opened <see cref="IActivityLogGroup"/>.</param>
         protected override void OnOpenGroup( IActivityLogGroup group )
         {
+            if( _currentIsGroupClosed ) HandleCurrentGroupIsClosed();
             if( _currentIsGroup || _current == null )
             {
                 _current = new PathElement();
@@ -174,22 +178,35 @@ namespace CK.Core
         /// Removes one or two last <see cref="PathElement"/> of <see cref="DynamicPath"/>.
         /// </summary>
         /// <param name="group">The closed group.</param>
-        /// <param name="conclusion">Text that concludes the group. Never null but can be empty.</param>
-        protected override void OnGroupClosed( IActivityLogGroup group, string conclusion )
+        /// <param name="conclusions">Texts that conclude the group. Never null but can be empty.</param>
+        protected override void OnGroupClosed( IActivityLogGroup group, IReadOnlyList<ActivityLogGroupConclusion> conclusions )
         {
+            if( _currentIsGroupClosed ) HandleCurrentGroupIsClosed();
             if( _path.Count > 0 )
             {
                 if( !_currentIsGroup ) _path.RemoveAt( _path.Count - 1 );
+                
+                _currentIsGroupClosed = false;
                 _current = null;
                 if( _path.Count > 0 )
                 {
                     _current = _path[_path.Count - 1];
-                    _current.GroupConclusion = conclusion;
-                    _path.RemoveAt( _path.Count - 1 );
-                    if( _path.Count > 0 ) _current = _path[_path.Count - 1];
+                    _current.GroupConclusion = conclusions;
+                    _currentIsGroup = true;
+                    _currentIsGroupClosed = _path.Count > 0;
                 }
-                _currentIsGroup = _current != null;
+                else _currentIsGroup = false;
             }
+        }
+
+        void HandleCurrentGroupIsClosed()
+        {
+            Debug.Assert( _currentIsGroupClosed && _path.Count > 0 );
+            _current = null;
+            _path.RemoveAt( _path.Count - 1 );
+            if( _path.Count > 0 ) _current = _path[_path.Count - 1];
+            _currentIsGroup = _current != null;
+            _currentIsGroupClosed = false;
         }
 
         void CheckSnapshot()
