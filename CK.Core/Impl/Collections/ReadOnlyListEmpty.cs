@@ -28,26 +28,24 @@ using System;
 namespace CK.Core
 {
     /// <summary>
-    /// Empty read only list.
+    /// Empty read only list. The <see cref="Empty"/> null object is also a <see cref="IList{T}"/>:
+    /// by casting it, it also provides an empty read only <see cref="IList{T}"/>.
     /// </summary>
     /// <typeparam name="T">Contained elements type.</typeparam>
-    public sealed class ReadOnlyListEmpty<T> : IReadOnlyList<T>
+    public sealed class ReadOnlyListEmpty<T> : IReadOnlyList<T>, IList<T>
     {
         /// <summary>
-        /// Static empty <see cref="ReadOnlyListEmpty{T}"/>
-        /// that will be used by the entire system.
+        /// Static empty <see cref="ReadOnlyListEmpty{T}"/>. Can also be used as an 
+        /// empty <see cref="IList{T}"/>
         /// </summary>
 		static public readonly IReadOnlyList<T> Empty = new ReadOnlyListEmpty<T>();
 
-        /// <summary>
-        /// Constructor
-        /// </summary>
-		public ReadOnlyListEmpty()
+		private ReadOnlyListEmpty()
         {
         }
 
         /// <summary>
-        /// Gets the index of the given element into the list.
+        /// Gets the index of the an element: always <see cref="Int32.MinValue"/>.
         /// </summary>
         /// <param name="item">Element to find in the list</param>
         /// <returns>Index of the given element</returns>
@@ -57,7 +55,7 @@ namespace CK.Core
         }
 
         /// <summary>
-        /// Gets an element at the given index.
+        /// Gets an element at the given index: always throws an <see cref="ArgumentOutOfRangeException"/>.
         /// </summary>
         /// <param name="i">index of the element to find</param>
         /// <returns>New <see cref="IndexOutOfRangeException"/>. 
@@ -68,9 +66,9 @@ namespace CK.Core
         }
 
         /// <summary>
-        /// Gets if the given element is contained into the list.
+        /// Gets always false.
         /// </summary>
-        /// <param name="item">Element to find</param>
+        /// <param name="item">Item to find</param>
         /// <returns>False in all cases, a <see cref="ReadOnlyListEmpty{T}"/> doesn't contains any elements.</returns>
 		public bool Contains( object item )
 		{
@@ -78,8 +76,7 @@ namespace CK.Core
 		}
 
         /// <summary>
-        /// Gets the count of the list.
-        /// It will be 0 in all cases.
+        /// Gets the number of items of the list: it will always be 0.
         /// </summary>
 		public int Count
 		{
@@ -87,19 +84,73 @@ namespace CK.Core
 		}
 
         /// <summary>
-        /// Gets the underlying enumerator.
+        /// Gets the underlying empty enumerator.
         /// </summary>
-        /// <returns></returns>
+        /// <returns>An empty enumerator.</returns>
 		public IEnumerator<T> GetEnumerator()
 		{
-			return EnumEmpty<T>.Empty;
+			return EnumeratorEmpty<T>.Empty;
 		}
 
 		IEnumerator IEnumerable.GetEnumerator()
 		{
-            return EnumEmpty<T>.Empty;
+            return EnumeratorEmpty<T>.Empty;
 		}
 
-	}
+
+        #region IList<T> explicit implementation
+
+        int IList<T>.IndexOf( T item )
+        {
+            return IndexOf( item );
+        }
+
+        void IList<T>.Insert( int index, T item )
+        {
+        }
+
+        void IList<T>.RemoveAt( int index )
+        {
+            throw new ArgumentOutOfRangeException( "i", "The index is out of the range of acceptable values. The list is empty." );
+        }
+
+        T IList<T>.this[int index]
+        {
+            get { return this[index]; }
+            set
+            {
+                throw new ArgumentOutOfRangeException( "i", "The index is out of the range of acceptable values. The list is empty." );
+            }
+        }
+
+        void ICollection<T>.Add( T item )
+        {
+        }
+
+        void ICollection<T>.Clear()
+        {
+        }
+
+        bool ICollection<T>.Contains( T item )
+        {
+            return false;
+        }
+
+        void ICollection<T>.CopyTo( T[] array, int arrayIndex )
+        {
+        }
+
+        bool ICollection<T>.IsReadOnly
+        {
+            get { return true; }
+        }
+
+        bool ICollection<T>.Remove( T item )
+        {
+            return false;
+        }
+
+        #endregion
+    }
 }
 
