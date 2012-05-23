@@ -41,14 +41,19 @@ namespace CK.Core
 
         class WeakTypeFinder : SimpleTypeFinder
         {
-            public override string MapType( string assemblyQualifiedName )
+            public override Type ResolveType( string assemblyQualifiedName, bool throwOnError )
             {
-                string weakTypeName;
-                if( !WeakenAssemblyQualifiedName( assemblyQualifiedName, out weakTypeName ) )
+                Type done = base.ResolveType( assemblyQualifiedName, false );
+                if( done == null )
                 {
-                    throw new ArgumentException( String.Format( R.InvalidAssemblyQualifiedName, assemblyQualifiedName ), "assemblyQualifiedName" );
+                    string weakTypeName;
+                    if( !WeakenAssemblyQualifiedName( assemblyQualifiedName, out weakTypeName ) && throwOnError )
+                    {
+                        throw new ArgumentException( String.Format( R.InvalidAssemblyQualifiedName, assemblyQualifiedName ), "assemblyQualifiedName" );
+                    }
+                    done = base.ResolveType( weakTypeName, throwOnError );
                 }
-                return weakTypeName;
+                return done;
             }
         }
         /// <summary>
@@ -60,27 +65,20 @@ namespace CK.Core
         /// </remarks>
         public static readonly ISimpleTypeFinder WeakDefault = new WeakTypeFinder();
 
-        /// <summary>
-        /// Default implementation returns exactly its <paramref name="assemblyQualifiedName"/> parameter.
-        /// Throws an <see cref="ArgumentNullException" /> if <paramref name="assemblyQualifiedName"/> is null.
-        /// Throws an <see cref="ArgumentException" /> if <paramref name="assemblyQualifiedName"/> is empty or has no commas (an AQN should aways have at least one).
-        /// </summary>
-        /// <param name="assemblyQualifiedName">The assembly qualified name of a type.</param>
-        /// <returns>The assembly qualified name to use.</returns>
-        public virtual string MapType( string assemblyQualifiedName )
+        private static void CheckAssemblyQualifiedNameValid( string assemblyQualifiedName )
         {
             if( assemblyQualifiedName == null ) throw new ArgumentNullException( "assemblyQualifiedName" );
-            if( String.IsNullOrEmpty( assemblyQualifiedName ) || !assemblyQualifiedName.Contains(",") ) throw new ArgumentException( String.Format( R.InvalidAssemblyQualifiedName, assemblyQualifiedName ), "assemblyQualifiedName" );
-            return assemblyQualifiedName;
+            if( String.IsNullOrEmpty( assemblyQualifiedName ) || !assemblyQualifiedName.Contains( "," ) ) throw new ArgumentException( String.Format( R.InvalidAssemblyQualifiedName, assemblyQualifiedName ), "assemblyQualifiedName" );
         }
 
         /// <summary>
-        /// Simple implementation that calls <see cref="MapType"/> and then <see cref="Type.GetType(string,bool)"/>.
+        /// Simple implementation that checks that the assembly qualified name set as parameter is valid, then calls <see cref="Type.GetType(string,bool)"/>.
         /// </summary>
         /// <param name="assemblyQualifiedName">The assembly qualified name of a type.</param>
         /// <param name="throwOnError">
         /// True to ALWAYS throw a <see cref="TypeLoadException"/> if the type is not found.
-        /// False prevents any exception to be thrown and simply returns null.
+        /// It may also throw <see cref="ArgumentNullException"/> and <see cref="ArgumentException"/> when the assembly qualified name is not valid
+        /// False prevents any exception from being thrown and simply returns null.
         /// </param>
         /// <returns>The type or null if not found and <paramref name="throwOnError"/> is false.</returns>
         /// <exception cref="TypeLoadException">
@@ -89,7 +87,7 @@ namespace CK.Core
         /// </exception>
         public virtual Type ResolveType( string assemblyQualifiedName, bool throwOnError )
         {
-            assemblyQualifiedName = MapType( assemblyQualifiedName );
+            if( throwOnError ) CheckAssemblyQualifiedNameValid( assemblyQualifiedName );
             try
             {
                 return Type.GetType( assemblyQualifiedName, throwOnError );
@@ -185,5 +183,5 @@ namespace CK.Core
             return assemblyName.Length > 0;
         }
 
-     }
+    }
 }

@@ -297,7 +297,7 @@ namespace Storage
             using( Stream str = new FileStream( xmlPath, FileMode.Open ) )
             {
                 SimpleServiceContainer s = new SimpleServiceContainer();
-                s.Add( typeof( ISimpleTypeFinder ), SimpleTypeFinder.WeakDefault, null );
+                //s.Add( typeof( ISimpleTypeFinder ), SimpleTypeFinder.WeakDefault, null );
                 using( IStructuredReader reader = SimpleStructuredReader.CreateReader( str, s ) )
                 {
                     CheckExactTypeAndValue( typeof( Color ), Color.Red, reader.ReadObjectElement( "data" ) );
@@ -633,8 +633,8 @@ namespace Storage
             Assert.That( tSyntaxError, Is.Not.Null );
             //As dlls are signed, version, culture & PublicTokenKey must match. Testing the WeakTypeFinder, that truncates these information, to load the type regardeless of them
             ISimpleTypeFinder wtf = SimpleTypeFinder.WeakDefault;
-            Type t2 = Type.GetType( wtf.MapType("ExternalDll.ExternalClass, CK.Storage.Tests.ExternalDll, Version=5.0.4.0, Culture=neutral, PublicKeyToken=null"), true );
-            Type t1 = Type.GetType( wtf.MapType("ExternalDll.ExternalClass, CK.Storage.Tests.ExternalDll, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null"), true );
+            Type t2 = SimpleTypeFinder.WeakDefault.ResolveType("ExternalDll.ExternalClass, CK.Storage.Tests.ExternalDll, Version=5.0.4.0, Culture=neutral, PublicKeyToken=null", true );
+            Type t1 = SimpleTypeFinder.WeakDefault.ResolveType("ExternalDll.ExternalClass, CK.Storage.Tests.ExternalDll, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null", true );
             //Provinding only namespace.classname, assembly works properly
             Type t0 = Type.GetType( "ExternalDll.ExternalClass, CK.Storage.Tests.ExternalDll", true );
 

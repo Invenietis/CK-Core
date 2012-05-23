@@ -24,7 +24,7 @@ namespace CK.Plugin.Runner.Apply
             TestBase.CleanupTestDir();
         }
 
-        void CheckStartStop( Action beforeStart, Action afterStart, Action beforeStop, Action afterStop, bool startSucceed, bool stopSucceed, params Guid[] idToStart )
+        void CheckStartStop( Action beforeStart, Action afterStart, Action beforeStop, Action afterStop, bool startSucceed, bool stopSucceed, bool stopLaunchedOptionals, params Guid[] idToStart )
         {
             // Set a new user action --> start plugins
             for( int i = 0; i < idToStart.Length; i++ )
@@ -33,7 +33,7 @@ namespace CK.Plugin.Runner.Apply
             if( beforeStart != null ) beforeStart();
 
             // So apply the change
-            Assert.That( PluginRunner.Apply() == startSucceed );
+            Assert.That( PluginRunner.Apply( stopLaunchedOptionals ) == startSucceed );
 
             if( afterStart != null ) afterStart();
 
@@ -44,14 +44,19 @@ namespace CK.Plugin.Runner.Apply
             if( beforeStop != null ) beforeStop();
 
             // So apply the change
-            Assert.IsTrue( PluginRunner.Apply() == stopSucceed );
+            Assert.IsTrue( PluginRunner.Apply(stopLaunchedOptionals) == stopSucceed );
 
             if( afterStop != null ) afterStop();
         }
 
         void CheckStartStop( Action beforeStart, Action afterStart, Action beforeStop, Action afterStop, params Guid[] idToStart )
         {
-            CheckStartStop( beforeStart, afterStart, beforeStop, afterStop, true, true, idToStart );
+            CheckStartStop( beforeStart, afterStart, beforeStop, afterStop, true, true, true, idToStart );
+        }
+
+        void CheckStartStop( Action beforeStart, Action afterStart, Action beforeStop, Action afterStop, bool stopLaunchedOptionals, params Guid[] idToStart )
+        {
+            CheckStartStop( beforeStart, afterStart, beforeStop, afterStop, true, true, stopLaunchedOptionals, idToStart );
         }
 
         [Test]
@@ -71,17 +76,13 @@ namespace CK.Plugin.Runner.Apply
                 Assert.That( PluginRunner.IsPluginRunning( PluginRunner.Discoverer.FindPlugin( id2 ) ) );
             };
 
-            Action beforeStop = () =>
-            {
-                CheckStartStop( null, null, null, null, id2 );
-            };
             Action afterStop = () =>
             {
                 Assert.That( !PluginRunner.IsPluginRunning( PluginRunner.Discoverer.FindPlugin( id ) ) );
                 Assert.That( !PluginRunner.IsPluginRunning( PluginRunner.Discoverer.FindPlugin( id2 ) ) );
             };
 
-            CheckStartStop( null, afterStart, beforeStop, null, id );
+            CheckStartStop( null, afterStart, null, null, true, id );
         }
 
         /// <summary>
