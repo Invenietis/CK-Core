@@ -1,4 +1,27 @@
-﻿using System;
+#region LGPL License
+/*----------------------------------------------------------------------------
+* This file (CK.Core\ActivityLogger\IActivityLogger.cs) is part of CiviKey. 
+*  
+* CiviKey is free software: you can redistribute it and/or modify 
+* it under the terms of the GNU Lesser General Public License as published 
+* by the Free Software Foundation, either version 3 of the License, or 
+* (at your option) any later version. 
+*  
+* CiviKey is distributed in the hope that it will be useful, 
+* but WITHOUT ANY WARRANTY; without even the implied warranty of
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
+* GNU Lesser General Public License for more details. 
+* You should have received a copy of the GNU Lesser General Public License 
+* along with CiviKey.  If not, see <http://www.gnu.org/licenses/>. 
+*  
+* Copyright © 2007-2012, 
+*     Invenietis <http://www.invenietis.com>,
+*     In’Tech INFO <http://www.intechinfo.fr>,
+* All rights reserved. 
+*-----------------------------------------------------------------------------*/
+#endregion
+
+using System;
 using System.Collections.Generic;
 
 namespace CK.Core
@@ -51,8 +74,11 @@ namespace CK.Core
         /// <summary>
         /// Closes the current group level, appending an optional conclusion to the opening logged information.
         /// </summary>
-        /// <param name="conclusion">Optional text to conclude the group.</param>
-        void CloseGroup( string conclusion );
+        /// <param name="conclusion">
+        /// Optional object text (usually a string but can be any object with an 
+        /// overriden <see cref="Object.ToString"/> method) to conclude the group.
+        /// </param>
+        void CloseGroup( object conclusion = null );
 
         /// <summary>
         /// Gets the <see cref="IActivityLoggerOutput"/> for this logger.

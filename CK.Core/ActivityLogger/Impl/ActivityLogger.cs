@@ -1,4 +1,27 @@
-﻿using System;
+#region LGPL License
+/*----------------------------------------------------------------------------
+* This file (CK.Core\ActivityLogger\Impl\ActivityLogger.cs) is part of CiviKey. 
+*  
+* CiviKey is free software: you can redistribute it and/or modify 
+* it under the terms of the GNU Lesser General Public License as published 
+* by the Free Software Foundation, either version 3 of the License, or 
+* (at your option) any later version. 
+*  
+* CiviKey is distributed in the hope that it will be useful, 
+* but WITHOUT ANY WARRANTY; without even the implied warranty of
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
+* GNU Lesser General Public License for more details. 
+* You should have received a copy of the GNU Lesser General Public License 
+* along with CiviKey.  If not, see <http://www.gnu.org/licenses/>. 
+*  
+* Copyright © 2007-2012, 
+*     Invenietis <http://www.invenietis.com>,
+*     In’Tech INFO <http://www.intechinfo.fr>,
+* All rights reserved. 
+*-----------------------------------------------------------------------------*/
+#endregion
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -15,43 +38,6 @@ namespace CK.Core
         /// String to use to break the current <see cref="LogLevel"/> (as if a different <see cref="LogLevel"/> was used).
         /// </summary>
         static public readonly string ParkLevel = "PARK-LEVEL";
-
-        /// <summary>
-        /// Empty (reusable) implementation of <see cref="IActivityLogger"/>.
-        /// </summary>
-        public class EmptyLogger : IActivityLogger
-        {
-            LogLevelFilter IActivityLogger.Filter
-            {
-                get { return LogLevelFilter.Off; }
-                set { }
-            }
-
-            IActivityLogger IActivityLogger.UnfilteredLog( LogLevel level, string text, Exception ex )
-            {
-                return this;
-            }
-
-            IDisposable IActivityLogger.OpenGroup( LogLevel level, Func<string> getConclusionText, string text, Exception ex )
-            {
-                return Util.EmptyDisposable;
-            }
-
-            void IActivityLogger.CloseGroup( string conclusion )
-            {
-            }
-
-            IActivityLoggerOutput IActivityLogger.Output
-            {
-                get { return ActivityLoggerOutput.Empty; }
-            }
-
-        }
-
-        /// <summary>
-        /// Empty <see cref="IActivityLogger"/> (null object design pattern).
-        /// </summary>
-        static public readonly IActivityLogger Empty = new EmptyLogger();
 
         LogLevelFilter _filter;
         Group _current;
@@ -238,23 +224,23 @@ namespace CK.Core
                 }
             }           
 
-            internal string GroupClose( string externalConclusion )
+            internal object GroupClose( object externalConclusion )
             {
-                string conclusion = OnGroupClose( externalConclusion );
+                object conclusion = OnGroupClose( externalConclusion );
                 _logger = null;
-                return conclusion ?? String.Empty;
+                return conclusion;
             }
 
             /// <summary>
             /// Called whenever the group is closing.
             /// Must return the actual conclusion that will be used for the group: if the <paramref name="externalConclusion"/> is 
-            /// not null, empty or white space, it takes precedence on the (optional) <see cref="GetConclusionText"/> functions.
+            /// not null, it takes precedence on the (optional) <see cref="GetConclusionText"/> functions.
             /// </summary>
             /// <param name="externalConclusion">Conclusion parameter: comes from <see cref="IActivityLogger.CloseGroup"/>. Can be null.</param>
             /// <returns>The final conclusion to use.</returns>
-            protected virtual string OnGroupClose( string externalConclusion )
+            protected virtual object OnGroupClose( object externalConclusion )
             {
-                if( String.IsNullOrWhiteSpace( externalConclusion ) )
+                if( externalConclusion == null )
                 {
                     externalConclusion = ConsumeConclusionText();
                 }
@@ -308,17 +294,18 @@ namespace CK.Core
         /// <summary>
         /// Closes the current <see cref="Group"/>.
         /// </summary>
-        /// <param name="conclusion">Optional text to conclude the group.</param>
-        public virtual void CloseGroup( string conclusion = null )
+        /// <param name="conclusion">
+        /// Optional object text (usually a string but can be any object with an 
+        /// overriden <see cref="Object.ToString"/> method) to conclude the group.
+        /// </param>
+        public virtual void CloseGroup( object conclusion = null )
         {
             Group g = _current;
             if( g != null )
             {
                 conclusion = g.GroupClose( conclusion );
-                Debug.Assert( conclusion != null );
-                 
                 var conclusions = new List<ActivityLogGroupConclusion>();
-                if( !String.IsNullOrWhiteSpace( conclusion ) ) conclusions.Add( new ActivityLogGroupConclusion( conclusion, this ) );                
+                if( conclusion != null ) conclusions.Add( new ActivityLogGroupConclusion( conclusion, this ) );                
                 _output.OnGroupClosing( g, conclusions );
                 --_depth;
                 Filter = g.Filter;

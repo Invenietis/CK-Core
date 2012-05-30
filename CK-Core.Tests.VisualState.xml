@@ -1,45 +1,43 @@
 <?xml version="1.0" encoding="utf-8"?>
 <VisualState xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" ShowCheckBoxes="false">
-  <TopNode>[0-1056]Core.Collection</TopNode>
+  <TopNode>[0-1049]Core</TopNode>
   <SelectedNode>[0-1000]C:\Users\Spi\Documents\Dev4\CK-Core\CK-Core.Tests.nunit</SelectedNode>
   <ExcludeCategories>false</ExcludeCategories>
   <Nodes>
     <Node UniqueName="[0-1000]C:\Users\Spi\Documents\Dev4\CK-Core\CK-Core.Tests.nunit" Expanded="true" />
-    <Node UniqueName="[0-1052]C:\Users\Spi\Documents\Dev4\CK-Core\Output\Tests\Debug\CK.Core.Tests.dll" Expanded="true" />
-    <Node UniqueName="[0-1054]CK" Expanded="true" />
-    <Node UniqueName="[0-1055]CK.Core" Expanded="true" />
-    <Node UniqueName="[0-1057]CK.Core.Tests" Expanded="true" />
-    <Node UniqueName="[0-1053]Core" Expanded="true" />
-    <Node UniqueName="[0-1028]Core.ActivityLoggerTests" Expanded="true" />
-    <Node UniqueName="[0-1056]Core.Collection" Expanded="true" />
-    <Node UniqueName="[0-1069]C:\Users\Spi\Documents\Dev4\CK-Core\Output\Tests\Debug\CK.Reflection.Tests.dll" Expanded="true" />
-    <Node UniqueName="[0-1070]CK" Expanded="true" />
-    <Node UniqueName="[0-1071]CK.Reflection" Expanded="true" />
-    <Node UniqueName="[0-1072]CK.Reflection.Tests" Expanded="true" />
-    <Node UniqueName="[0-1065]CK.Reflection.Tests.ObjectAndType" Expanded="true" />
-    <Node UniqueName="[0-1110]C:\Users\Spi\Documents\Dev4\CK-Core\Output\Tests\Debug\CK.SharedDic.Tests.dll" Expanded="true" />
-    <Node UniqueName="[0-1111]SharedDic" Expanded="true" />
-    <Node UniqueName="[0-1112]SharedDic.OverrideArchitecture" Expanded="true" />
-    <Node UniqueName="[0-1139]C:\Users\Spi\Documents\Dev4\CK-Core\Output\Tests\Debug\CK.Storage.Tests.dll" Expanded="true" />
-    <Node UniqueName="[0-1140]Storage" Expanded="true" />
-    <Node UniqueName="[0-1164]C:\Users\Spi\Documents\Dev4\CK-Core\Output\Tests\Debug\CK.Discoverer.Tests.dll" Expanded="true" />
-    <Node UniqueName="[0-1165]Discoverer" Expanded="true" />
-    <Node UniqueName="[0-1187]C:\Users\Spi\Documents\Dev4\CK-Core\Output\Tests\Debug\CK.Plugin.Config.Tests.dll" Expanded="true" />
-    <Node UniqueName="[0-1188]PluginConfig" Expanded="true" />
-    <Node UniqueName="[0-1205]C:\Users\Spi\Documents\Dev4\CK-Core\Output\Tests\Debug\CK.Plugin.Host.Tests.dll" Expanded="true" />
-    <Node UniqueName="[0-1206]CK" Expanded="true" />
-    <Node UniqueName="[0-1207]CK.Plugin" Expanded="true" />
-    <Node UniqueName="[0-1208]CK.Plugin.Host" Expanded="true" />
-    <Node UniqueName="[0-1209]CK.Plugin.Host.Tests" Expanded="true" />
-    <Node UniqueName="[0-1210]CK.Plugin.Host.Tests.TestEmits" Expanded="true" />
-    <Node UniqueName="[0-1267]C:\Users\Spi\Documents\Dev4\CK-Core\Output\Tests\Debug\CK.Plugin.Runner.Tests.dll" Expanded="true" />
-    <Node UniqueName="[0-1268]CK" Expanded="true" />
-    <Node UniqueName="[0-1269]CK.Plugin" Expanded="true" />
-    <Node UniqueName="[0-1270]CK.Plugin.Runner" Expanded="true" />
-    <Node UniqueName="[0-1271]CK.Plugin.Runner.Apply" Expanded="true" />
-    <Node UniqueName="[0-1281]C:\Users\Spi\Documents\Dev4\CK-Core\Output\Tests\Debug\CK.Context.Tests.dll" Expanded="true" />
-    <Node UniqueName="[0-1282]CK" Expanded="true" />
-    <Node UniqueName="[0-1283]CK.Context" Expanded="true" />
-    <Node UniqueName="[0-1284]CK.Context.Tests" Expanded="true" />
+    <Node UniqueName="[0-1048]C:\Users\Spi\Documents\Dev4\CK-Core\Output\Tests\Debug\CK.Core.Tests.dll" Expanded="true" />
+    <Node UniqueName="[0-1051]CK" Expanded="true" />
+    <Node UniqueName="[0-1052]CK.Core" Expanded="true" />
+    <Node UniqueName="[0-1053]CK.Core.Tests" Expanded="true" />
+    <Node UniqueName="[0-1049]Core" Expanded="true" />
+    <Node UniqueName="[0-1050]Core.Collection" Expanded="true" />
+    <Node UniqueName="[0-1065]C:\Users\Spi\Documents\Dev4\CK-Core\Output\Tests\Debug\CK.Reflection.Tests.dll" Expanded="true" />
+    <Node UniqueName="[0-1066]CK" Expanded="true" />
+    <Node UniqueName="[0-1067]CK.Reflection" Expanded="true" />
+    <Node UniqueName="[0-1068]CK.Reflection.Tests" Expanded="true" />
+    <Node UniqueName="[0-1106]C:\Users\Spi\Documents\Dev4\CK-Core\Output\Tests\Debug\CK.SharedDic.Tests.dll" Expanded="true" />
+    <Node UniqueName="[0-1107]SharedDic" Expanded="true" />
+    <Node UniqueName="[0-1108]SharedDic.OverrideArchitecture" Expanded="true" />
+    <Node UniqueName="[0-1135]C:\Users\Spi\Documents\Dev4\CK-Core\Output\Tests\Debug\CK.Storage.Tests.dll" Expanded="true" />
+    <Node UniqueName="[0-1136]Storage" Expanded="true" />
+    <Node UniqueName="[0-1160]C:\Users\Spi\Documents\Dev4\CK-Core\Output\Tests\Debug\CK.Discoverer.Tests.dll" Expanded="true" />
+    <Node UniqueName="[0-1161]Discoverer" Expanded="true" />
+    <Node UniqueName="[0-1183]C:\Users\Spi\Documents\Dev4\CK-Core\Output\Tests\Debug\CK.Plugin.Config.Tests.dll" Expanded="true" />
+    <Node UniqueName="[0-1184]PluginConfig" Expanded="true" />
+    <Node UniqueName="[0-1201]C:\Users\Spi\Documents\Dev4\CK-Core\Output\Tests\Debug\CK.Plugin.Host.Tests.dll" Expanded="true" />
+    <Node UniqueName="[0-1202]CK" Expanded="true" />
+    <Node UniqueName="[0-1203]CK.Plugin" Expanded="true" />
+    <Node UniqueName="[0-1204]CK.Plugin.Host" Expanded="true" />
+    <Node UniqueName="[0-1205]CK.Plugin.Host.Tests" Expanded="true" />
+    <Node UniqueName="[0-1206]CK.Plugin.Host.Tests.TestEmits" Expanded="true" />
+    <Node UniqueName="[0-1263]C:\Users\Spi\Documents\Dev4\CK-Core\Output\Tests\Debug\CK.Plugin.Runner.Tests.dll" Expanded="true" />
+    <Node UniqueName="[0-1264]CK" Expanded="true" />
+    <Node UniqueName="[0-1265]CK.Plugin" Expanded="true" />
+    <Node UniqueName="[0-1266]CK.Plugin.Runner" Expanded="true" />
+    <Node UniqueName="[0-1267]CK.Plugin.Runner.Apply" Expanded="true" />
+    <Node UniqueName="[0-1277]C:\Users\Spi\Documents\Dev4\CK-Core\Output\Tests\Debug\CK.Context.Tests.dll" Expanded="true" />
+    <Node UniqueName="[0-1278]CK" Expanded="true" />
+    <Node UniqueName="[0-1279]CK.Context" Expanded="true" />
+    <Node UniqueName="[0-1280]CK.Context.Tests" Expanded="true" />
   </Nodes>
 </VisualState>
