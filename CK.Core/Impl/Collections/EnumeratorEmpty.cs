@@ -1,6 +1,6 @@
 #region LGPL License
 /*----------------------------------------------------------------------------
-* This file (CK.Core\Impl\Collections\EnumEmpty.cs) is part of CiviKey. 
+* This file (CK.Core\Impl\Collections\EnumeratorEmpty.cs) is part of CiviKey. 
 *  
 * CiviKey is free software: you can redistribute it and/or modify 
 * it under the terms of the GNU Lesser General Public License as published 
@@ -14,7 +14,7 @@
 * You should have received a copy of the GNU Lesser General Public License 
 * along with CiviKey.  If not, see <http://www.gnu.org/licenses/>. 
 *  
-* Copyright © 2007-2010, 
+* Copyright © 2007-2012, 
 *     Invenietis <http://www.invenietis.com>,
 *     In’Tech INFO <http://www.intechinfo.fr>,
 * All rights reserved. 
@@ -30,16 +30,16 @@ namespace CK.Core
     /// Defines a unique empty enumerator.
     /// Use <see cref="ReadOnlyListEmpty{T}.Empty"/> singleton for an empty <see cref="IEnumerable{T}"/>.
     /// </summary>
-	public sealed class EnumEmpty<T> : IEnumerator<T>
+	public sealed class EnumeratorEmpty<T> : IEnumerator<T>
 	{
         /// <summary>
-        /// Gets the default <see cref="EnumEmpty{T}"/>.
+        /// Gets the default <see cref="EnumeratorEmpty{T}"/>.
         /// This field is static readonly and is thread safe by design.
         /// </summary>
-        public static readonly IEnumerator<T> Empty = new EnumEmpty<T>();
+        public static readonly IEnumerator<T> Empty = new EnumeratorEmpty<T>();
 
         /// <summary>
-        /// Gets the current element.
+        /// Gets the current element (the default value for the type of elements).
         /// </summary>
 		public T Current
 		{

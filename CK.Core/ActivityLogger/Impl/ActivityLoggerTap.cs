@@ -1,4 +1,27 @@
-﻿using System;
+#region LGPL License
+/*----------------------------------------------------------------------------
+* This file (CK.Core\ActivityLogger\Impl\ActivityLoggerTap.cs) is part of CiviKey. 
+*  
+* CiviKey is free software: you can redistribute it and/or modify 
+* it under the terms of the GNU Lesser General Public License as published 
+* by the Free Software Foundation, either version 3 of the License, or 
+* (at your option) any later version. 
+*  
+* CiviKey is distributed in the hope that it will be useful, 
+* but WITHOUT ANY WARRANTY; without even the implied warranty of
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
+* GNU Lesser General Public License for more details. 
+* You should have received a copy of the GNU Lesser General Public License 
+* along with CiviKey.  If not, see <http://www.gnu.org/licenses/>. 
+*  
+* Copyright © 2007-2012, 
+*     Invenietis <http://www.invenietis.com>,
+*     In’Tech INFO <http://www.intechinfo.fr>,
+* All rights reserved. 
+*-----------------------------------------------------------------------------*/
+#endregion
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -36,12 +59,11 @@ namespace CK.Core
             }
 
             // Security if OnGroupClosing is implemented once on ActivityLoggerTap.
-            protected override string OnGroupClosing( IActivityLogGroup group, string conclusion )
+            protected override void OnGroupClosing( IActivityLogGroup group, IList<ActivityLogGroupConclusion> conclusions )
             {
-                return null;
             }
 
-            protected override void OnGroupClosed( IActivityLogGroup group, string conclusion )
+            protected override void OnGroupClosed( IActivityLogGroup group, IReadOnlyList<ActivityLogGroupConclusion> conclusions )
             {
             }
         }
@@ -54,7 +76,6 @@ namespace CK.Core
         /// <summary>
         /// Initialize a new <see cref="ActivityLoggerTap"/> bound to a <see cref="IMuxActivityLoggerClientRegistrar"/>.
         /// </summary>
-        /// <param name="server">The <see cref="IMuxActivityLoggerClientRegistrar"/> to listen to.</param>
         public ActivityLoggerTap( )
         {
             _curLevel = -1;
@@ -94,6 +115,11 @@ namespace CK.Core
             get { return _sinksEx; }
         }
 
+        /// <summary>
+        /// Sends log to sinks (handles level changes).
+        /// </summary>
+        /// <param name="level">Log level.</param>
+        /// <param name="text">Text (not null).</param>
         protected override void OnUnfilteredLog( LogLevel level, string text )
         {
             if( text == ActivityLogger.ParkLevel )
@@ -122,6 +148,10 @@ namespace CK.Core
             }
         }
 
+        /// <summary>
+        /// Sends log to sinks (<see cref="IActivityLoggerSink.OnGroupOpen"/>.
+        /// </summary>
+        /// <param name="group">The newly opened <see cref="IActivityLogGroup"/>.</param>
         protected override void OnOpenGroup( IActivityLogGroup group )
         {
             if( _curLevel != -1 )
@@ -132,14 +162,19 @@ namespace CK.Core
             foreach( var s in RegisteredSinks ) s.OnGroupOpen( group );
         }
 
-        protected override void OnGroupClosed( IActivityLogGroup group, string conclusion )
+        /// <summary>
+        /// Sends log to sinks (<see cref="IActivityLoggerSink.OnGroupClose"/>.
+        /// </summary>
+        /// <param name="group">The closed group.</param>
+        /// <param name="conclusions">Texts that conclude the group. Never null but can be empty.</param>
+        protected override void OnGroupClosed( IActivityLogGroup group, IReadOnlyList<ActivityLogGroupConclusion> conclusions )
         {
             if( _curLevel != -1 )
             {
                 foreach( var s in RegisteredSinks ) s.OnLeaveLevel( (LogLevel)_curLevel );
                 _curLevel = -1;
             }
-            foreach( var s in RegisteredSinks ) s.OnGroupClose( group, conclusion );
+            foreach( var s in RegisteredSinks ) s.OnGroupClose( group, conclusions );
         }
 
     }

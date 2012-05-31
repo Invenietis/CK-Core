@@ -70,6 +70,15 @@ namespace CK.Core {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The ActivityLogger client is in NonRemoveableClients list..
+        /// </summary>
+        internal static string ActivityLoggerNonRemoveableClient {
+            get {
+                return ResourceManager.GetString("ActivityLoggerNonRemoveableClient", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Argument count can not be negative..
         /// </summary>
         internal static string ArgumentCountNegative {

@@ -1,4 +1,4 @@
-﻿#region LGPL License
+#region LGPL License
 /*----------------------------------------------------------------------------
 * This file (CK.Core\ComponentModel\SimpleTypeFinder.cs) is part of CiviKey. 
 *  
@@ -14,7 +14,7 @@
 * You should have received a copy of the GNU Lesser General Public License 
 * along with CiviKey.  If not, see <http://www.gnu.org/licenses/>. 
 *  
-* Copyright © 2007-2010, 
+* Copyright © 2007-2012, 
 *     Invenietis <http://www.invenietis.com>,
 *     In’Tech INFO <http://www.intechinfo.fr>,
 * All rights reserved. 
@@ -59,6 +59,7 @@ namespace CK.Core
         /// <summary>
         /// An implementation of <see cref="ISimpleTypeFinder"/> that can be used to load types regardless of 
         /// the version, culture, architecture and public key token (strongly-named assemblies) of the type names.
+        /// (See <see cref="WeakenAssemblyQualifiedName"/>.)
         /// </summary>
         /// <remarks>
         /// The type name used is in the following format: "TypeNamespace.TypeName, AssemblyName".
@@ -68,7 +69,10 @@ namespace CK.Core
         private static void CheckAssemblyQualifiedNameValid( string assemblyQualifiedName )
         {
             if( assemblyQualifiedName == null ) throw new ArgumentNullException( "assemblyQualifiedName" );
-            if( String.IsNullOrEmpty( assemblyQualifiedName ) || !assemblyQualifiedName.Contains( "," ) ) throw new ArgumentException( String.Format( R.InvalidAssemblyQualifiedName, assemblyQualifiedName ), "assemblyQualifiedName" );
+            if( assemblyQualifiedName.Length == 0 || !assemblyQualifiedName.Contains( "," ) )
+            {
+                throw new ArgumentException( String.Format( R.InvalidAssemblyQualifiedName, assemblyQualifiedName ), "assemblyQualifiedName" );
+            }
         }
 
         /// <summary>
@@ -166,7 +170,7 @@ namespace CK.Core
         /// <param name="assemblyFullName">The assembly full name.</param>
         /// <param name="assemblyName">Set to assembly name only.</param>
         /// <param name="versionCultureAndPublicKeyToken">Set to extra information.</param>
-        /// <returns>True if the split worked.</returns>
+        /// <returns>True if the split worked. False otherwise.</returns>
         static public bool SplitAssemblyFullName( string assemblyFullName, out string assemblyName, out string versionCultureAndPublicKeyToken )
         {
             versionCultureAndPublicKeyToken = assemblyName = String.Empty;

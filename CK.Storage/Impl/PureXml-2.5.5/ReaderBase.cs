@@ -1,6 +1,6 @@
 #region LGPL License
 /*----------------------------------------------------------------------------
-* This file (CK.Storage\Impl\SimpleStructuredReader.cs) is part of CiviKey. 
+* This file (CK.Storage\Impl\PureXml-2.5.5\ReaderBase.cs) is part of CiviKey. 
 *  
 * CiviKey is free software: you can redistribute it and/or modify 
 * it under the terms of the GNU Lesser General Public License as published 
@@ -14,7 +14,7 @@
 * You should have received a copy of the GNU Lesser General Public License 
 * along with CiviKey.  If not, see <http://www.gnu.org/licenses/>. 
 *  
-* Copyright © 2007-2010, 
+* Copyright © 2007-2012, 
 *     Invenietis <http://www.invenietis.com>,
 *     In’Tech INFO <http://www.intechinfo.fr>,
 * All rights reserved. 
@@ -41,17 +41,8 @@ namespace CK.Storage
 
         protected ReaderBase( ReaderImpl root )
         {
-            MissingDisposeCallSentinel.DebugCheckMissing( s => Debug.Fail( s ) );
             _root = root ?? (ReaderImpl)this;
         }
-
-        #if DEBUG
-        MissingDisposeCallSentinel _sentinel = new MissingDisposeCallSentinel();
-        ~ReaderBase()
-        {
-            MissingDisposeCallSentinel.RegisterMissing( _sentinel );
-        }
-        #endif
 
         internal ReaderImpl Root
         {
@@ -67,10 +58,6 @@ namespace CK.Storage
         {
             if( _root != null )
             {
-                #if DEBUG
-                _sentinel = null;
-                GC.SuppressFinalize( this );
-                #endif
                 if( _deserializationActions != null ) _deserializationActions.RunOnce();
                 OnDispose();
                 _root = null;

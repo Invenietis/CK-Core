@@ -1,4 +1,27 @@
-﻿using System;
+#region LGPL License
+/*----------------------------------------------------------------------------
+* This file (CK.Core\ActivityLogger\Impl\MuxActivityLoggerClientDemux.cs) is part of CiviKey. 
+*  
+* CiviKey is free software: you can redistribute it and/or modify 
+* it under the terms of the GNU Lesser General Public License as published 
+* by the Free Software Foundation, either version 3 of the License, or 
+* (at your option) any later version. 
+*  
+* CiviKey is distributed in the hope that it will be useful, 
+* but WITHOUT ANY WARRANTY; without even the implied warranty of
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
+* GNU Lesser General Public License for more details. 
+* You should have received a copy of the GNU Lesser General Public License 
+* along with CiviKey.  If not, see <http://www.gnu.org/licenses/>. 
+*  
+* Copyright © 2007-2012, 
+*     Invenietis <http://www.invenietis.com>,
+*     In’Tech INFO <http://www.intechinfo.fr>,
+* All rights reserved. 
+*-----------------------------------------------------------------------------*/
+#endregion
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -57,8 +80,9 @@ namespace CK.Core
         }
 
         /// <summary>
-        /// Routes the call to the associated <see cref="IActivityLoggerClient"/> (after having called 
-        /// <see cref="CreateClient"/> if necessary).
+        /// Routes the call to the associated <see cref="IActivityLoggerClient"/> (after having 
+        /// called <see cref="CreateClient"/> if necessary).
+        /// </summary>
         /// <param name="sender">The sender logger.</param>
         /// <param name="level">Log level.</param>
         /// <param name="text">Text to log (never null).</param>
@@ -70,6 +94,7 @@ namespace CK.Core
         /// <summary>
         /// Routes the call to the associated <see cref="IActivityLoggerClient"/> (after having called 
         /// <see cref="CreateClient"/> if necessary).
+        /// </summary>
         /// <param name="sender">The sender logger.</param>
         /// <param name="group">The newly opened <see cref="IActivityLogGroup"/>.</param>
         void IMuxActivityLoggerClient.OnOpenGroup( IActivityLogger sender, IActivityLogGroup group )
@@ -80,32 +105,33 @@ namespace CK.Core
         /// <summary>
         /// Routes the call to the associated <see cref="IActivityLoggerClient"/> (after having called 
         /// <see cref="CreateClient"/> if necessary).
+        /// </summary>
         /// <param name="sender">The sender logger.</param>
         /// <param name="group">The group that will be closed.</param>
-        /// <param name="conclusion">The conclusion to associate to the closing group.</param>
-        /// <returns>The new conclusion that should be associated to the group. Returning null has no effect on the current conclusion.</returns>
-        string IMuxActivityLoggerClient.OnGroupClosing( IActivityLogger sender, IActivityLogGroup group, string conclusion )
+        /// <param name="conclusions">Mutable conclusions associated to the closing group.</param>
+        void IMuxActivityLoggerClient.OnGroupClosing( IActivityLogger sender, IActivityLogGroup group, IList<ActivityLogGroupConclusion> conclusions )
         {
-            return FindOrCreate( sender ).OnGroupClosing( group, conclusion );
+            FindOrCreate( sender ).OnGroupClosing( group, conclusions );
         }
 
 
         /// <summary>
         /// Routes the call to the associated <see cref="IActivityLoggerClient"/> (after having called 
         /// <see cref="CreateClient"/> if necessary).
+        /// </summary>
         /// <param name="sender">The sender logger.</param>
         /// <param name="group">The group that will be closed.</param>
-        /// <param name="conclusion">The conclusion associated to the closed group.</param>
-        void IMuxActivityLoggerClient.OnGroupClosed( IActivityLogger sender, IActivityLogGroup group, string conclusion )
+        /// <param name="conclusions">Texts that conclude the closed group.</param>
+        void IMuxActivityLoggerClient.OnGroupClosed( IActivityLogger sender, IActivityLogGroup group, IReadOnlyList<ActivityLogGroupConclusion> conclusions )
         {
-            FindOrCreate( sender ).OnGroupClosed( group, conclusion );
+            FindOrCreate( sender ).OnGroupClosed( group, conclusions );
         }
 
         /// <summary>
         /// Must be overriden to create a new <see cref="IActivityLoggerClient"/> for the given <see cref="IActivityLogger"/>.
         /// </summary>
         /// <param name="logger">The new sender for which a <see cref="IActivityLoggerClient"/> must be created.</param>
-        /// <returns>A new concrete <see cref="DemuxClient"/> bound to the logger.</returns>
+        /// <returns>A new concrete <see cref="IActivityLoggerClient"/> bound to the given logger.</returns>
         protected abstract IActivityLoggerClient CreateClient( IActivityLogger logger );
     }
 }
