@@ -59,53 +59,21 @@ namespace CK.Plugin.Discoverer
 
         public event EventHandler<DiscoverDoneEventArgs> DiscoverDone;
 
-        public IReadOnlyCollection<IAssemblyInfo> AllAssemblies
-        {
-            get;
-            private set;
-        }
+        public IReadOnlyCollection<IAssemblyInfo> AllAssemblies { get; private set; }
 
-        public IReadOnlyCollection<IAssemblyInfo> PluginOrServiceAssemblies
-        {
-            get;
-            private set;
-        }
+        public IReadOnlyCollection<IAssemblyInfo> PluginOrServiceAssemblies { get; private set; }
 
-        public IReadOnlyCollection<IPluginInfo> Plugins
-        {
-            get;
-            private set;
-        }
+        public IReadOnlyCollection<IPluginInfo> Plugins { get; private set; }
 
-        public IReadOnlyCollection<IPluginInfo> AllPlugins
-        {
-            get;
-            private set;
-        }
+        public IReadOnlyCollection<IPluginInfo> AllPlugins { get; private set; }
 
-        public IReadOnlyCollection<IPluginInfo> OldVersionnedPlugins
-        {
-            get;
-            private set;
-        }
+        public IReadOnlyCollection<IPluginInfo> OldVersionnedPlugins { get; private set; }
 
-        public IReadOnlyCollection<IServiceInfo> Services
-        {
-            get;
-            private set;
-        }
+        public IReadOnlyCollection<IServiceInfo> Services { get; private set; }
 
-        public IReadOnlyCollection<IServiceInfo> AllServices
-        {
-            get;
-            private set;
-        }
+        public IReadOnlyCollection<IServiceInfo> AllServices { get; private set; }
 
-        public IReadOnlyCollection<IServiceInfo> NotFoundServices
-        {
-            get;
-            private set;
-        }
+        public IReadOnlyCollection<IServiceInfo> NotFoundServices { get; private set; }
 
         public IPluginInfo FindPlugin( Guid pluginId )
         {
@@ -123,7 +91,7 @@ namespace CK.Plugin.Discoverer
             string assemblyFullName, fullTypeName;
             if( SimpleTypeFinder.SplitAssemblyQualifiedName( serviceAssemblyQualifiedName, out fullTypeName, out assemblyFullName ) )
             {
-                PluginAssemblyInfo a = FindAssembly( assemblyFullName );
+                var a = FindAssembly( assemblyFullName );
                 if( a != null )
                 {
                     foreach( var s in a.Services )
@@ -135,7 +103,7 @@ namespace CK.Plugin.Discoverer
             return null;
         }
 
-        PluginAssemblyInfo FindAssembly( string assemblyFullName )
+        public IAssemblyInfo FindAssembly( string assemblyFullName )
         {
             string assemblyName, versionCultureAndPublicKeyToken;
             if( SimpleTypeFinder.SplitAssemblyFullName( assemblyFullName, out assemblyName, out versionCultureAndPublicKeyToken ) )

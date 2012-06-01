@@ -28,17 +28,34 @@ using System.Text;
 using System.IO;
 using NUnit.Framework;
 using System.Threading;
+using System.Reflection;
+using CK.Core;
+
 
 namespace Discoverer
 {
-    public class TestBase
+    public static class TestBase
     {
         static string _testFolder;
         static string _appFolder;
         static string _pluginFolder;
+        static string _currentPublicKeyToken;
 
         static DirectoryInfo _testFolderDir;
         static DirectoryInfo _appFolderDir;
+
+        public static string CurrentPublicKeyToken
+        {
+            get
+            {
+                if( _currentPublicKeyToken == null )
+                {
+                    Assembly theReference = Assembly.GetAssembly( typeof( CK.Plugin.Discoverer.PluginDiscoverer ) );
+                    _currentPublicKeyToken = Util.Converter.BytesToString( theReference.GetName().GetPublicKeyToken(), false, true );
+                }
+                return _currentPublicKeyToken;
+            }
+        }
 
         public static string AppFolder
         {

@@ -98,6 +98,75 @@ namespace Discoverer
         }
 
         [Test]
+        public void TestFindService()
+        {
+            // ServiceA is signed.
+            TestBase.CopyPluginToTestDir( "ServiceA.dll" );
+            { 
+                // Finding a service in a Signed dll with the right signature and then finding it with other signatures.
+                PluginDiscoverer discoverer = new PluginDiscoverer();
+                discoverer.Discover( TestBase.TestFolderDir, true );
+                IServiceInfo s = discoverer.FindService( "CK.Tests.Plugin.IServiceA, ServiceA, Version=1.0.0.0, Culture=neutral, PublicKeyToken=" + TestBase.CurrentPublicKeyToken );
+                Assert.That( s, Is.Not.Null );
+                Assert.That( s.AssemblyQualifiedName, Is.StringEnding( TestBase.CurrentPublicKeyToken ), "All dlls MUST share the same public key token." );
+                Assert.That( discoverer.FindService( "CK.Tests.Plugin.IServiceA, ServiceA, Version=1.0.0.0, Culture=neutral, PublicKeyToken=FFFFFFF" ), Is.SameAs( s ) );
+                Assert.That( discoverer.FindService( "CK.Tests.Plugin.IServiceA, ServiceA" ), Is.SameAs( s ) );
+            }
+            {
+                // Finding a service in a Signed dll with other signatures and then with the right signature.
+                PluginDiscoverer discoverer = new PluginDiscoverer();
+                discoverer.Discover( TestBase.TestFolderDir, true );
+                IServiceInfo s = discoverer.FindService( "CK.Tests.Plugin.IServiceA, ServiceA, Version=1.0.0.0, Culture=neutral, PublicKeyToken=FFFFFFF" );
+                Assert.That( s, Is.Not.Null );
+                Assert.That( s.AssemblyQualifiedName, Is.StringEnding( TestBase.CurrentPublicKeyToken ), "All dlls MUST share the same public key token." );
+                Assert.That( discoverer.FindService( "CK.Tests.Plugin.IServiceA, ServiceA" ), Is.SameAs( s ) );
+                Assert.That( discoverer.FindService( "CK.Tests.Plugin.IServiceA, ServiceA, Version=1.0.0.0, Culture=neutral, PublicKeyToken=" + TestBase.CurrentPublicKeyToken ), Is.SameAs( s ) );
+            }
+            // ServiceC.Model.dll is NOT signed.
+            TestBase.CopyPluginToTestDir( "ServiceC.Model.dll" );
+            {
+                // Finding a service in an UNsigned dll with the right signature and then finding it with "signed" signatures.
+                PluginDiscoverer discoverer = new PluginDiscoverer();
+                discoverer.Discover( TestBase.TestFolderDir, true );
+                IServiceInfo s = discoverer.FindService( "CK.Tests.Plugin.IServiceC, ServiceC.Model" );
+                Assert.That( s, Is.Not.Null );
+                Assert.That( discoverer.FindService( "CK.Tests.Plugin.IServiceC, ServiceC.Model, Version=1.0.0.0, Culture=neutral, PublicKeyToken=" + TestBase.CurrentPublicKeyToken ), Is.SameAs( s ) );
+            }
+            {
+                // Finding a service in an UNsigned dll with other signatures and then with the right signature.
+                PluginDiscoverer discoverer = new PluginDiscoverer();
+                discoverer.Discover( TestBase.TestFolderDir, true );
+                IServiceInfo s = discoverer.FindService( "CK.Tests.Plugin.IServiceC, ServiceC.Model, Version=1.0.0.0, Culture=neutral, PublicKeyToken=FFFFFFF" );
+                Assert.That( s, Is.Not.Null );
+                Assert.That( discoverer.FindService( "CK.Tests.Plugin.IServiceC, ServiceC.Model" ), Is.SameAs( s ) );
+                Assert.That( discoverer.FindService( "CK.Tests.Plugin.IServiceC, ServiceC.Model, Version=1.0.0.0, Culture=neutral, PublicKeyToken=" + TestBase.CurrentPublicKeyToken ), Is.SameAs( s ) );
+            }
+        }
+
+        [Test]
+        public void TestFindAssembly()
+        {
+            {
+                PluginDiscoverer discoverer = new PluginDiscoverer();
+                TestBase.CopyPluginToTestDir( "ServiceA.dll" );
+                discoverer.Discover( TestBase.TestFolderDir, true );
+                IAssemblyInfo a = discoverer.FindAssembly( "ServiceA, Version=1.0.0.0, Culture=neutral, PublicKeyToken=" + TestBase.CurrentPublicKeyToken );
+                Assert.That( a, Is.Not.Null );
+                Assert.That( a.AssemblyName.FullName, Is.StringEnding( TestBase.CurrentPublicKeyToken ), "All dlls MUST share the same public key token." );
+                Assert.That( discoverer.FindAssembly( "ServiceA, Version=1.0.0.0, Culture=neutral, PublicKeyToken=FFFFFFF" ), Is.SameAs( a ) );
+            }
+            {
+                PluginDiscoverer discoverer = new PluginDiscoverer();
+                TestBase.CopyPluginToTestDir( "ServiceA.dll" );
+                discoverer.Discover( TestBase.TestFolderDir, true );
+                IAssemblyInfo a = discoverer.FindAssembly( "ServiceA, Version=1.0.0.0, Culture=neutral, PublicKeyToken=FFFFFFF" );
+                Assert.That( a, Is.Not.Null );
+                Assert.That( a.AssemblyName.FullName, Is.StringEnding( TestBase.CurrentPublicKeyToken ), "All dlls MUST share the same public key token." );
+                Assert.That( discoverer.FindAssembly( "ServiceA, Version=1.0.0.0, Culture=neutral, PublicKeyToken=" + TestBase.CurrentPublicKeyToken ), Is.SameAs( a ) );
+            }
+        }
+
+        [Test]
         public void TestDiscoverTwoPlugins()
         {
             PluginDiscoverer discoverer = new PluginDiscoverer();

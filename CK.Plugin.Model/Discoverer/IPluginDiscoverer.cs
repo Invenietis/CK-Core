@@ -95,11 +95,19 @@ namespace CK.Plugin
         IPluginInfo FindPlugin( Guid pluginId );
 
         /// <summary>
-        /// Gets the <see cref="IServiceInfo"/> associated to the given assembly qualified name.
+        /// Gets the <see cref="IServiceInfo"/> associated to the given service interface fully qualified type name
+        /// (lookup is done regardless of Version, Culture or PublicKeyToken).
         /// </summary>
-        /// <param name="assemblyQualifiedName"></param>
-        /// <returns></returns>
+        /// <param name="assemblyQualifiedName">The fully qualified type name of the service interface.</param>
+        /// <returns>The service info on success, null if not found.</returns>
         IServiceInfo FindService( string assemblyQualifiedName );
+
+        /// <summary>
+        /// Gets the <see cref="IAssemblyInfo"/> associated to the given assembly full name (lookup is done regardless of Version, Culture or PublicKeyToken).
+        /// </summary>
+        /// <param name="assemblyFullName">Full name of the assembly.</param>
+        /// <returns>The assembly info on success, null if not found.</returns>
+        IAssemblyInfo FindAssembly( string assemblyFullName );
 
         /// <summary>
         /// Gets the number of discover previously done.

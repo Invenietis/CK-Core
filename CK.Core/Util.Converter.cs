@@ -43,24 +43,26 @@ namespace CK.Core
             /// </summary>
             /// <param name="bytes">A non null array of bytes.</param>
             /// <param name="zeroxPrefix">False to not prefix the result with 0x.</param>
+            /// <param name="lowerCase">True to use upper case A...F (instead of a...f).</param>
             /// <returns>The bytes expressed as a an hexadecimal string.</returns>
-            public static string BytesToString( byte[] bytes, bool zeroxPrefix = true )
+            public static string BytesToString( byte[] bytes, bool zeroxPrefix = true, bool lowerCase = false )
             {
                 if( bytes == null ) throw new ArgumentNullException();
-                int len = zeroxPrefix ? (1 + bytes.Length) * 2 : bytes.Length * 2;
-                char[] r = new Char[len];
+                int len = bytes.Length;
+                char[] r = new Char[ 2 * (zeroxPrefix ? len+1 : len) ];
                 int j = -1;
                 if( zeroxPrefix )
                 {
                     r[0] = '0';
                     r[j = 1] = 'x';
                 }
+                char[] chars = lowerCase ? _hexCharsLower : _hexChars;
                 int i = 0;
-                while( --len > 0 )
+                while( len-- > 0 )
                 {
                     byte b = bytes[i++];
-                    r[++j] = _hexChars[(b >> 4) & 0x0F];
-                    r[++j] = _hexChars[b & 0x0F];
+                    r[++j] = chars[(b >> 4) & 0x0F];
+                    r[++j] = chars[b & 0x0F];
                 }
                 return new String( r );
             }

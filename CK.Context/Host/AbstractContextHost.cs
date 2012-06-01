@@ -215,12 +215,12 @@ namespace CK.Context
             SaveUserConfig( EnsureCurrentUserProfile( true ).Address, true );
         }
 
-        public virtual void SaveUserConfig( Uri address, bool setAdressAsCurrent )
+        public virtual void SaveUserConfig( Uri address, bool setAddressAsCurrent )
         {
             using( IStructuredWriter sw = OpenWrite( address ) )
             {
                 _ctx.ConfigManager.Extended.SaveUserConfig( sw );
-                if( setAdressAsCurrent )
+                if( setAddressAsCurrent )
                     _ctx.ConfigManager.SystemConfiguration.CurrentUserProfile = _ctx.ConfigManager.SystemConfiguration.UserProfiles.FindOrCreate( address );
             }
         }
