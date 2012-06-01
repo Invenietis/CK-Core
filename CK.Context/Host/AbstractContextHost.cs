@@ -163,9 +163,10 @@ namespace CK.Context
 
         public virtual void SaveSystemConfig()
         {
-            using( var sw = OpenWrite( GetSystemConfigAddress() ) )
+            using( var w = OpenWrite( GetSystemConfigAddress() ) )
             {
-                _ctx.ConfigManager.Extended.SaveSystemConfig( sw );
+                _ctx.ConfigManager.Extended.SaveSystemConfig( w.StructuredWriter );
+                w.SaveChanges();
             }
         }
 
@@ -217,11 +218,12 @@ namespace CK.Context
 
         public virtual void SaveUserConfig( Uri address, bool setAddressAsCurrent )
         {
-            using( IStructuredWriter sw = OpenWrite( address ) )
+            using( IProtectedStructuredWriter w = OpenWrite( address ) )
             {
-                _ctx.ConfigManager.Extended.SaveUserConfig( sw );
+                _ctx.ConfigManager.Extended.SaveUserConfig( w.StructuredWriter );
                 if( setAddressAsCurrent )
                     _ctx.ConfigManager.SystemConfiguration.CurrentUserProfile = _ctx.ConfigManager.SystemConfiguration.UserProfiles.FindOrCreate( address );
+                w.SaveChanges();
             }
         }
 
@@ -287,22 +289,23 @@ namespace CK.Context
 
         public void SaveContext( Uri address )
         {
-            using( IStructuredWriter sw = OpenWrite( address ) )
+            using( var w = OpenWrite( address ) )
             {
-                _ctx.SaveContext( sw );
+                _ctx.SaveContext( w.StructuredWriter );
                 _ctx.ConfigManager.UserConfiguration.CurrentContextProfile = _ctx.ConfigManager.UserConfiguration.ContextProfiles.FindOrCreate( address );
+                w.SaveChanges();
             }
         }
 
         #endregion
 
-        protected virtual IStructuredWriter OpenWrite( Uri u )
+        protected virtual IProtectedStructuredWriter OpenWrite( Uri u )
         {
             if( u == null ) throw new ArgumentNullException( "u" );
          
             if( !u.IsFile ) throw new ArgumentException( "Only file:// protocol is currently supported." );
-            string path = u.LocalPath;
-            return SimpleStructuredWriter.CreateWriter( new FileStream( path, FileMode.Create ), _ctx );
+
+            return new FileProtectedStructuredWriter( u.LocalPath, _ctx, SimpleStructuredWriter.CreateWriter );
         }
 
         protected virtual IStructuredReader OpenRead( Uri u, bool throwIfMissing )
