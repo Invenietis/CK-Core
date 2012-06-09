@@ -50,6 +50,8 @@
     <Reference Include="System.XML" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="FileProtectedStructuredWriter.cs" />
+    <Compile Include="IProtectedStructuredWriter.cs" />
     <Compile Include="Impl\PureXml-2.5.5\WriterImplSub.cs" />
     <Compile Include="Impl\PureXml-2.5.5\WriterBase.cs" />
     <Compile Include="ISubStructuredWriter.cs" />
