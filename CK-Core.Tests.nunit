@@ -1,11 +1,13 @@
 ﻿<NUnitProject>
   <Config name="Debug" binpathtype="Auto">
     <assembly path="Output\Tests\Debug\CK.Core.Tests.dll" />
+    <assembly path="Output\Tests\Debug\CK.MultiTrait.Tests.dll" />
     <assembly path="Output\Tests\Debug\CK.Reflection.Tests.dll" />
     <assembly path="Output\Tests\Debug\CK.Storage.Tests.dll" />
   </Config>
   <Config name="Release" binpathtype="Auto">
     <assembly path="Output\Tests\Release\CK.Core.Tests.dll" />
+    <assembly path="Output\Tests\Debug\CK.MultiTrait.Tests.dll" />
     <assembly path="Output\Tests\Release\CK.Reflection.Tests.dll" />
     <assembly path="Output\Tests\Release\CK.Storage.Tests.dll" />
   </Config>

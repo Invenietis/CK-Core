@@ -36,19 +36,19 @@ namespace CK.Core
         T _val;
 
         /// <summary>
-        /// Constructor
+        /// Initializes a new <see cref="IReadOnlyList{T}"/> with one element (that can be null if <typeparamref name="T"/> is a reference type).
         /// </summary>
-        /// <param name="val">Element contained by the <see cref="ReadOnlyListMono{T}"/></param>
+        /// <param name="val">Element contained by the <see cref="ReadOnlyListMono{T}"/> (can be null).</param>
 		public ReadOnlyListMono( T val )
         {
             _val = val;
         }
 
         /// <summary>
-        /// Gets the index of the given item.
+        /// Gets the index of the given item (uses <see cref="EqualityComparer{T}.Default"/>).
         /// </summary>
         /// <param name="item">Item to find</param>
-        /// <returns>Index of the item, 0 or <see cref="Int32.MinValue"/> if it is not found</returns>
+        /// <returns>Index of the item (for this implementation, it is necessarily 0) or <see cref="Int32.MinValue"/> if it is not found</returns>
         public int IndexOf( object item )
         {
             return item is T ? (EqualityComparer<T>.Default.Equals( _val, (T)item ) ? 0 : Int32.MinValue) : Int32.MinValue;
@@ -65,7 +65,7 @@ namespace CK.Core
         }
 
         /// <summary>
-        /// Gets if the given item is contained into the list.
+        /// Gets if the given item is contained into the list (uses <see cref="EqualityComparer{T}.Default"/>).
         /// </summary>
         /// <param name="item">Item to find</param>
         /// <returns>True if the item is found, false otherwise.</returns>
@@ -85,7 +85,7 @@ namespace CK.Core
         /// <summary>
         /// Gets the underlying enumerator, <see cref="EnumMono{T}"/> actually.
         /// </summary>
-        /// <returns></returns>
+        /// <returns>An enumerator.</returns>
 		public IEnumerator<T> GetEnumerator()
 		{
 			return new EnumMono<T>( _val );

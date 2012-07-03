@@ -42,19 +42,25 @@ namespace CK.Core
 		/// <summary>
 		/// Initializes a new <see cref="ReadOnlyListOnIList{T}"/> around a <see cref="IList{T}"/>.
 		/// </summary>
-		/// <param name="list">List to wrap.</param>
-		public ReadOnlyListOnIList( IList<T> list )
+        /// <param name="inner">List to wrap. Must not be null.</param>
+		public ReadOnlyListOnIList( IList<T> inner )
         {
-			_inner = list;
+            if( inner == null ) throw new ArgumentNullException( "inner" ); 
+            _inner = inner;
         }
 
 		/// <summary>
-		/// Gets or sets the wrapped list.
+		/// Gets or sets the wrapped list. Must not be null (nor itself).
 		/// </summary>
         public IList<T> Inner
         {
             get { return _inner; }
-            set { _inner = value; }
+            set 
+            {
+                if( value == null ) throw new ArgumentNullException( "value" );
+                if( value == this ) throw new ArgumentException( "Auto reference in adapter.", "value" );
+                _inner = value; 
+            }
         }
 
 		/// <summary>
