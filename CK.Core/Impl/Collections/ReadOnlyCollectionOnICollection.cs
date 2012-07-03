@@ -37,16 +37,17 @@ namespace CK.Core
     [DebuggerTypeProxy( typeof( Impl.ReadOnlyCollectionDebuggerView<> ) ), DebuggerDisplay( "Count = {Count}" )]
     public sealed class ReadOnlyCollectionOnICollection<T> : IReadOnlyCollection<T>, ICollection<T>
     {
-		ICollection<T> _c;
+		ICollection<T> _inner;
 
 		/// <summary>
 		/// Initializes a new <see cref="ReadOnlyCollectionOnICollection{T}"/> around a <see cref="ICollection{T}"/>.
 		/// </summary>
-		/// <param name="c">Collection to wrap.</param>
+		/// <param name="inner">Collection to wrap.</param>
         [TargetedPatchingOptOut( "Performance critical to inline across NGen image boundaries" )]
-        public ReadOnlyCollectionOnICollection( ICollection<T> c )
+        public ReadOnlyCollectionOnICollection( ICollection<T> inner )
         {
-			_c = c;
+            if( inner == null ) throw new ArgumentNullException( "inner" );
+            _inner = inner;
         }
 
         /// <summary>
@@ -54,8 +55,13 @@ namespace CK.Core
         /// </summary>
         public ICollection<T> Inner
         {
-            get { return _c; }
-            set { _c = value; }
+            get { return _inner; }
+            set 
+            {
+                if( value == null ) throw new ArgumentNullException( "value" );
+                if( value == this ) throw new ArgumentException( "Auto reference in adapter.", "value" );
+                _inner = value; 
+            }
         }
 
 		/// <summary>
@@ -65,7 +71,7 @@ namespace CK.Core
 		/// <returns>True if the item is contained in the collection.</returns>
         public bool Contains( object item )
         {
-            return item is T ? _c.Contains( (T)item ) : false;
+            return item is T ? _inner.Contains( (T)item ) : false;
         }
 
 		/// <summary>
@@ -73,7 +79,7 @@ namespace CK.Core
 		/// </summary>
         public int Count
         {
-            get { return _c.Count; }
+            get { return _inner.Count; }
         }
 
 		/// <summary>
@@ -82,7 +88,7 @@ namespace CK.Core
 		/// <returns>A IEnumerator that can be used to iterate through the collection.</returns>
         public IEnumerator<T> GetEnumerator()
 		{
-			return _c.GetEnumerator();
+			return _inner.GetEnumerator();
 		}
 
         IEnumerator IEnumerable.GetEnumerator()
@@ -104,12 +110,12 @@ namespace CK.Core
 
         bool ICollection<T>.Contains( T item )
         {
-            return _c.Contains( item );
+            return _inner.Contains( item );
         }
 
         void ICollection<T>.CopyTo( T[] array, int arrayIndex )
         {
-            _c.CopyTo( array, arrayIndex );
+            _inner.CopyTo( array, arrayIndex );
         }
 
         bool ICollection<T>.IsReadOnly

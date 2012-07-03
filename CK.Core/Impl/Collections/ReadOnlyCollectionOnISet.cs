@@ -36,16 +36,16 @@ namespace CK.Core
     [DebuggerTypeProxy( typeof( Impl.ReadOnlyCollectionDebuggerView<> ) ), DebuggerDisplay( "Count = {Count}" )]
     public sealed class ReadOnlyCollectionOnISet<T> : IReadOnlyCollection<T>, ICollection<T>
     {
-		ISet<T> _c;
+		ISet<T> _inner;
 
 		/// <summary>
         /// Initializes a new <see cref="ReadOnlyCollectionOnISet{T}"/> around a <see cref="ISet{T}"/>.
 		/// </summary>
-		/// <param name="c">Hash set to wrap.</param>
+		/// <param name="inner">Hash set to wrap.</param>
         [TargetedPatchingOptOut( "Performance critical to inline across NGen image boundaries" )]
-        public ReadOnlyCollectionOnISet( ISet<T> c )
+        public ReadOnlyCollectionOnISet( ISet<T> inner )
         {
-			_c = c;
+			_inner = inner;
         }
 
 		/// <summary>
@@ -56,15 +56,28 @@ namespace CK.Core
         [TargetedPatchingOptOut( "Performance critical to inline across NGen image boundaries" )]
         public bool Contains( object item )
         {
-            return item is T ? _c.Contains( (T)item ) : false;
+            return item is T ? _inner.Contains( (T)item ) : false;
         }
 
-		/// <summary>
+        /// <summary>
+        /// Gets or sets the wrapped set.
+        /// </summary>
+        public ISet<T> Inner
+        {
+            get { return _inner; }
+            set
+            {
+                if( value == null ) throw new ArgumentNullException( "value" );
+                _inner = value;
+            }
+        }
+
+        /// <summary>
 		/// Gets the number of items of the collection.
 		/// </summary>
         public int Count
         {
-            get { return _c.Count; }
+            get { return _inner.Count; }
         }
 
 		/// <summary>
@@ -74,7 +87,7 @@ namespace CK.Core
         [TargetedPatchingOptOut( "Performance critical to inline across NGen image boundaries" )]
         public IEnumerator<T> GetEnumerator()
 		{
-			return _c.GetEnumerator();
+			return _inner.GetEnumerator();
 		}
 
         [TargetedPatchingOptOut( "Performance critical to inline across NGen image boundaries" )]
@@ -98,12 +111,12 @@ namespace CK.Core
 
         bool ICollection<T>.Contains( T item )
         {
-            return _c.Contains( item );
+            return _inner.Contains( item );
         }
 
         void ICollection<T>.CopyTo( T[] array, int arrayIndex )
         {
-            _c.CopyTo( array, arrayIndex );
+            _inner.CopyTo( array, arrayIndex );
         }
 
         bool ICollection<T>.IsReadOnly
