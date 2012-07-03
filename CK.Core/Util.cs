@@ -1,6 +1,6 @@
 #region LGPL License
 /*----------------------------------------------------------------------------
-* This file (CK.Core\Impl\Extension.cs) is part of CiviKey. 
+* This file (CK.Core\Util.cs) is part of CiviKey. 
 *  
 * CiviKey is free software: you can redistribute it and/or modify 
 * it under the terms of the GNU Lesser General Public License as published 
@@ -14,7 +14,7 @@
 * You should have received a copy of the GNU Lesser General Public License 
 * along with CiviKey.  If not, see <http://www.gnu.org/licenses/>. 
 *  
-* Copyright © 2007-2010, 
+* Copyright © 2007-2012, 
 *     Invenietis <http://www.invenietis.com>,
 *     In’Tech INFO <http://www.intechinfo.fr>,
 * All rights reserved. 
@@ -58,9 +58,10 @@ namespace CK.Core
         static public readonly DateTime UnixEpoch = new DateTime( 1970, 1, 1, 0, 0, 0, DateTimeKind.Utc );
 
         /// <summary>
-        /// Private array currently used by Converter functions.
+        /// Private arrays currently used by Converter functions.
         /// </summary>
         static char[] _hexChars = new char[] { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F' };
+        static char[] _hexCharsLower = new char[] { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f' };
 
         /// <summary>
         /// Centralized <see cref="IDisposable.Dispose"/> action call: it adapts an <see cref="IDisposable"/> interface to an <see cref="Action"/>.
@@ -73,13 +74,19 @@ namespace CK.Core
             if( obj != null ) obj.Dispose();
         }
 
+        [Obsolete( "Use CreateDisposableAction instead.", true )]
+        public static IDisposable DisposeAction( Action a )
+        {
+            return CreateDisposableAction( a );
+        }
+
         /// <summary>
         /// Wraps an action in a <see cref="IDisposable"/> interface
         /// Can be safely called if <paramref name="a"/> is null (the dispose call will do nothing).
         /// See <see cref="ActionDispose"/> to adapt an <see cref="IDisposable"/> interface to an <see cref="Action"/>.
         /// </summary>
         /// <param name="a">The action to call when <see cref="IDisposable.Dispose"/> is called.</param>
-        public static IDisposable DisposeAction( Action a )
+        public static IDisposable CreateDisposableAction( Action a )
         {
             return new DisposableAction() { A = a };
         }
@@ -97,6 +104,13 @@ namespace CK.Core
                 }
             }
         }
+
+        class FakeDisposable : IDisposable { public void  Dispose() { } }
+
+        /// <summary>
+        /// A void, immutable, <see cref="IDisposable"/> that does absolutely nothing.
+        /// </summary>
+        public static readonly IDisposable EmptyDisposable = new FakeDisposable(); 
 
         /// <summary>
         /// Centralized void action call for any type. 
