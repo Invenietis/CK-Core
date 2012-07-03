@@ -1,6 +1,6 @@
 #region LGPL License
 /*----------------------------------------------------------------------------
-* This file (CK.Core\Impl\Extension.cs) is part of CiviKey. 
+* This file (CK.Core\Util.Hash.cs) is part of CiviKey. 
 *  
 * CiviKey is free software: you can redistribute it and/or modify 
 * it under the terms of the GNU Lesser General Public License as published 
@@ -14,7 +14,7 @@
 * You should have received a copy of the GNU Lesser General Public License 
 * along with CiviKey.  If not, see <http://www.gnu.org/licenses/>. 
 *  
-* Copyright © 2007-2010, 
+* Copyright © 2007-2012, 
 *     Invenietis <http://www.invenietis.com>,
 *     In’Tech INFO <http://www.intechinfo.fr>,
 * All rights reserved. 
@@ -35,7 +35,7 @@ namespace CK.Core
 	{    
         /// <summary>
         /// Provides methods to combine hash values: use <see cref="StartValue"/> and then 
-        /// chain calls to the <see cref="Combine"/> methods.
+        /// chain calls to the <see cref="M:Combine"/> methods.
         /// Based on Daniel J. Bernstein algorithm (http://cr.yp.to/cdb/cdb.txt).
         /// </summary>
         public static class Hash
@@ -43,7 +43,7 @@ namespace CK.Core
 
             /// <summary>
             /// Gets a very classical start value (see remarks) that can be then be used 
-            /// by the multiple <see cref="Combine"/> methods. Use <see cref="Int64.GetHashCode"/> to
+            /// by the multiple <see cref="M:Combine"/> methods. Use <see cref="Int64.GetHashCode"/> to
             /// obtain a final integer (Int32) hash code.
             /// </summary>
             /// <remarks>

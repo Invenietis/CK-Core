@@ -120,6 +120,9 @@
   <data name="ActionSequenceReadOnly" xml:space="preserve">
     <value>ActionSequence is read only: no action can be appended.</value>
   </data>
+  <data name="ActivityLoggerNonRemoveableClient" xml:space="preserve">
+    <value>The ActivityLogger client is in NonRemoveableClients list.</value>
+  </data>
   <data name="ArgumentCountNegative" xml:space="preserve">
     <value>Argument count can not be negative.</value>
   </data>
@@ -134,6 +137,9 @@
   </data>
   <data name="ExpectedXmlEndElement" xml:space="preserve">
     <value>Expected EndElement token named {0}.</value>
+  </data>
+  <data name="InvalidAssemblyQualifiedName" xml:space="preserve">
+    <value>"{0}" is not a valid assembly qualified name.</value>
   </data>
   <data name="ServiceAlreadyDirectlySupported" xml:space="preserve">
     <value>Service {0} is directly supported by the container.</value>

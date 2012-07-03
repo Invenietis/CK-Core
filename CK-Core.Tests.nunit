@@ -1,26 +1,13 @@
 ﻿<NUnitProject>
-  <Settings activeconfig="Debug" />
   <Config name="Debug" binpathtype="Auto">
     <assembly path="Output\Tests\Debug\CK.Core.Tests.dll" />
     <assembly path="Output\Tests\Debug\CK.Reflection.Tests.dll" />
-    <assembly path="Output\Tests\Debug\CK.SharedDic.Tests.dll" />
     <assembly path="Output\Tests\Debug\CK.Storage.Tests.dll" />
-    <assembly path="Output\Tests\Debug\CK.Discoverer.Tests.dll" />
-    <assembly path="Output\Tests\Debug\CK.Plugin.Config.Tests.dll" />
-    <assembly path="Output\Tests\Debug\CK.Plugin.Host.Tests.dll" />
-    <assembly path="Output\Tests\Debug\CK.Plugin.Runner.Tests.dll" />
-    <assembly path="Output\Tests\Debug\CK.Context.Tests.dll" />
   </Config>
   <Config name="Release" binpathtype="Auto">
     <assembly path="Output\Tests\Release\CK.Core.Tests.dll" />
     <assembly path="Output\Tests\Release\CK.Reflection.Tests.dll" />
-    <assembly path="Output\Tests\Release\CK.SharedDic.Tests.dll" />
     <assembly path="Output\Tests\Release\CK.Storage.Tests.dll" />
-    <assembly path="Output\Tests\Release\CK.Discoverer.Tests.dll" />
-    <assembly path="Output\Tests\Release\CK.Plugin.Config.Tests.dll" />
-    <assembly path="Output\Tests\Release\CK.Plugin.Host.Tests.dll" />
-    <assembly path="Output\Tests\Release\CK.Plugin.Runner.Tests.dll" />
-    <assembly path="Output\Tests\Release\CK.Context.Tests.dll" />
   </Config>
 </NUnitProject>
 
