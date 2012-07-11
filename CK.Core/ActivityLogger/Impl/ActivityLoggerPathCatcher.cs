@@ -54,6 +54,15 @@ namespace CK.Core
             /// Gets the conclusions associated to a group. Null if this element does not correspond to a group.
             /// </summary>
             public IReadOnlyList<ActivityLogGroupConclusion> GroupConclusion { get; internal set; }
+
+            /// <summary>
+            /// Overriden to return the <see cref="Text"/> of this element.
+            /// </summary>
+            /// <returns>This <see cref="Text"/> property.</returns>
+            public override string ToString()
+            {
+                return Text;
+            }
         }
 
         /// <summary>

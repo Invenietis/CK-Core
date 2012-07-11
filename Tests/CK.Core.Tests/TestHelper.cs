@@ -33,7 +33,6 @@ namespace Core
     {
         static IDefaultActivityLogger _logger;
         static ActivityLoggerConsoleSync _console;
-        static string _scriptFolder;
 
         static TestHelper()
         {
