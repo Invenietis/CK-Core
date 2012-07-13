@@ -66,12 +66,13 @@
     <Compile Include="ActivityLogger\IActivityLoggerClientRegistrar.cs" />
     <Compile Include="ActivityLogger\IActivityLoggerOutput.cs" />
     <Compile Include="ActivityLogger\IActivityLogGroup.cs" />
-    <Compile Include="ActivityLogger\Impl\ActivityLoggerConsoleSync.cs" />
+    <Compile Include="ActivityLogger\Impl\ActivityLoggerConsoleSink.cs" />
     <Compile Include="ActivityLogger\Impl\ActivityLoggerErrorCounter.cs" />
     <Compile Include="ActivityLogger\Impl\ActivityLoggerHybridClient.cs" />
     <Compile Include="ActivityLogger\Impl\ActivityLoggerOutput.cs" />
     <Compile Include="ActivityLogger\Impl\ActivityLoggerPathCatcher.cs" />
     <Compile Include="ActivityLogger\Impl\ActivityLoggerTap.cs" />
+    <Compile Include="ActivityLogger\Impl\ActivityLoggerSimpleCollector.cs" />
     <Compile Include="ActivityLogger\Impl\DefaultActivityLogger.cs" />
     <Compile Include="ActivityLogger\Impl\IDefaultActivityLogger.cs" />
     <Compile Include="ActivityLogger\Impl\IActivityLoggerSink.cs" />
