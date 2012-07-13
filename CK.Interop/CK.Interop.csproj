@@ -43,12 +43,10 @@
     <Reference Include="System.Core" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Api\DesktopWindowManager.cs" />
     <Compile Include="NativeDllAttribute.cs" />
     <Compile Include="DllImportAttribute.cs" />
     <Compile Include="PInvoker.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Api\Win.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\CK.Reflection\CK.Reflection.csproj">
