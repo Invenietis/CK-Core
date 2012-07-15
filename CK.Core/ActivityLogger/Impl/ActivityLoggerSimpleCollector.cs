@@ -97,6 +97,11 @@ namespace CK.Core
             _entries.Clear();
         }
 
+        /// <summary>
+        /// Appends any log with level equal or above <see cref="LevelFilter"/> to <see cref="Entries"/>.
+        /// </summary>
+        /// <param name="level">Level of the log.</param>
+        /// <param name="text">Text of the log.</param>
         protected override void OnUnfilteredLog( LogLevel level, string text )
         {
             if( (int)level >= (int)_filter )
@@ -105,6 +110,10 @@ namespace CK.Core
             }
         }
 
+        /// <summary>
+        /// Appends any group with level equal or above <see cref="LevelFilter"/> to <see cref="Entries"/>.
+        /// </summary>
+        /// <param name="group">Log group description.</param>
         protected override void OnOpenGroup( IActivityLogGroup group )
         {
             if( (int)group.GroupLevel >= (int)_filter )

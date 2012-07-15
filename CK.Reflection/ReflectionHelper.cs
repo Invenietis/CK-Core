@@ -38,7 +38,7 @@ namespace CK.Reflection
     static public class ReflectionHelper
     {
         /// <summary>
-        /// Describes the behavior of <see cref="CreateSetter"/> methods when no setter exists 
+        /// Describes the behavior of <see cref="M:CreateSetter"/> methods when no setter exists 
         /// on the property.
         /// </summary>
         public enum CreateInvalidSetterOption
@@ -77,6 +77,7 @@ namespace CK.Reflection
         /// <typeparam name="TProperty">Property type (will be inferred by the compiler).</typeparam>
         /// <param name="source">An instance of the <typeparamref name="THolder"/>.</param>
         /// <param name="propertyLambda">A lambda function that selects the property.</param>
+        /// <param name="o">Error handling options. Defaults to <see cref="CreateInvalidSetterOption.ThrowException"/>.</param>
         /// <returns>An action that takes an holder instance and the value to set.</returns>
         public static Action<THolder, TProperty> CreateSetter<THolder, TProperty>( THolder source, Expression<Func<THolder, TProperty>> propertyLambda, CreateInvalidSetterOption o = CreateInvalidSetterOption.ThrowException )
         {
@@ -113,6 +114,7 @@ namespace CK.Reflection
         /// <typeparam name="THolder">Property holder type.</typeparam>
         /// <typeparam name="TProperty">Property type.</typeparam>
         /// <param name="propertyLambda">A lambda function that selects the property.</param>
+        /// <param name="o">Error handling options. Defaults to <see cref="CreateInvalidSetterOption.ThrowException"/>.</param>
         /// <returns>An action that takes an holder instance and the value to set.</returns>
         public static Action<THolder, TProperty> CreateSetter<THolder, TProperty>( Expression<Func<THolder, TProperty>> propertyLambda, CreateInvalidSetterOption o = CreateInvalidSetterOption.ThrowException )
         {
@@ -202,9 +204,9 @@ namespace CK.Reflection
         /// <summary>
         /// Creates an array of type of a method parameters.
         /// </summary>
-        /// <param name="m">The method for which parameter types must be extracted.</param>
-        /// <param name="typeToPrepend">Type that must be injected as the fist type in the resulting array 
-        /// (typically the <see cref="MemberInfo.DeclaringType">declaring type of the method</see> - the this parameter).</param>
+        /// <param name="parametersInfo">The parameter info.</param>
+        /// <param name="typeToPrepend">Extra type that must be injected as the fist type in the resulting array 
+        /// (typically the <see cref="MemberInfo.DeclaringType">declaring type of the method</see> - the 'this' parameter).</param>
         /// <returns>Parameters' types.</returns>
         /// <remarks>
         /// Implementation is faster (and more simple?) than using a linq select...
@@ -225,7 +227,7 @@ namespace CK.Reflection
         /// and others add_XXX) of the given interface type.
         /// </summary>
         /// <param name="interfaceType">Type to process, must be an interface.</param>
-        /// <returns><see cref="IEnumerable"/> of <see cref="MethodInfo"/>.</returns>
+        /// <returns>An <see cref="IEnumerable{T}"/> of <see cref="MethodInfo"/>.</returns>
         public static IEnumerable<MethodInfo> GetFlattenMethods( Type interfaceType )
         {
             return GetFlattenMembers( interfaceType, type => type.GetMethods() );
@@ -235,7 +237,7 @@ namespace CK.Reflection
         /// Gets all properties (including inherited properties) of the given interface type.
         /// </summary>
         /// <param name="interfaceType">Type to process, must be an interface.</param>
-        /// <returns><see cref="IEnumerable"/> of <see cref="PropertyInfo"/>.</returns>
+        /// <returns>An <see cref="IEnumerable{T}"/> of <see cref="PropertyInfo"/>.</returns>
         public static IEnumerable<PropertyInfo> GetFlattenProperties( Type interfaceType )
         {
             return GetFlattenMembers( interfaceType, type => type.GetProperties() );
@@ -245,7 +247,7 @@ namespace CK.Reflection
         /// Gets all events (including inherited events) of the given interface type.
         /// </summary>
         /// <param name="interfaceType">Type to process, must be an interface.</param>
-        /// <returns><see cref="IEnumerable"/> of <see cref="EventInfo"/>.</returns>
+        /// <returns>An <see cref="IEnumerable{T}"/> of <see cref="EventInfo"/>.</returns>
         public static IEnumerable<EventInfo> GetFlattenEvents( Type interfaceType )
         {
             return GetFlattenMembers( interfaceType, type => type.GetEvents() );
@@ -257,7 +259,7 @@ namespace CK.Reflection
         /// <typeparam name="T">Type of the element that you're looking for. <see cref="MethodInfo"/> for example.</typeparam>
         /// <param name="interfaceType">Type to process, it must be an interface.</param>
         /// <param name="getFunction">Function that takes a type and return an <see cref="IEnumerable{T}"/>, a possible implementation can be the lambda <c>t => t.GetMethods()</c></param>
-        /// <returns><see cref="IEnumerable{T}"/> that contains elements returned by the <paramref name="getFunction"/>.</returns>
+        /// <returns>An <see cref="IEnumerable{T}"/> that contains elements returned by the <paramref name="getFunction"/>.</returns>
         public static IEnumerable<T> GetFlattenMembers<T>( Type interfaceType, Func<Type, IEnumerable<T>> getFunction )
         {
             if( interfaceType == null ) throw new ArgumentNullException( "interfaceType" );

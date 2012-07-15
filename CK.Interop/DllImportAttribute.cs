@@ -59,13 +59,13 @@ namespace CK.Interop
         public bool BestFitMapping = true;
 
         /// <summary>
-        /// Indicates the calling convention of an entry point. Defaults to <see cref="CallingConvention.Winapi"/>.
+        /// Indicates the calling convention of an entry point. Defaults to <see cref="System.Runtime.InteropServices.CallingConvention.Winapi"/>.
         /// </summary>
         public CallingConvention CallingConvention = CallingConvention.Winapi;
 
         /// <summary>
         /// Indicates how to marshal string parameters to the method and controls name mangling.
-        /// Defaults to <see cref="CharSet.Auto"/> (and not to <see cref="CharSet.Ansi"/> that is the default of c# and VB language).
+        /// Defaults to <see cref="System.Runtime.InteropServices.CharSet.Auto"/> (and not to <see cref="System.Runtime.InteropServices.CharSet.Ansi"/> that is the default of C# and VB language).
         /// </summary>
         public CharSet CharSet = CharSet.Auto;
 
