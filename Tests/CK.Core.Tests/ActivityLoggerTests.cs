@@ -556,5 +556,41 @@ namespace Core
             Assert.That( String.Join( ">", p.LastWarnOrErrorPath.Select( e => e.Text + '-' + e.GroupConclusion.ToStringGroupConclusion() ) ), Is.EqualTo( "G1-2 Fatal errors, 3 Errors, 1 Warning>W2-" ) );
         }
 
+        [Test]
+        public void SimpleCollectorTest()
+        {
+            IDefaultActivityLogger d = DefaultActivityLogger.Create();
+            var c = new ActivityLoggerSimpleCollector();
+            d.Output.RegisterClient( c );
+            d.Warn( "1" );
+            d.Error( "2" );
+            d.Fatal( "3" );
+            d.Trace( "4" );
+            d.Info( "5" );
+            d.Warn( "6" );
+            Assert.That( String.Join( ",", c.Entries.Select( e => e.Text ) ), Is.EqualTo( "2,3" ) );
+
+            c.LevelFilter = LogLevelFilter.Fatal;
+            Assert.That( String.Join( ",", c.Entries.Select( e => e.Text ) ), Is.EqualTo( "3" ) );
+
+            c.LevelFilter = LogLevelFilter.Off;
+            Assert.That( String.Join( ",", c.Entries.Select( e => e.Text ) ), Is.EqualTo( "" ) );
+            
+            c.LevelFilter = LogLevelFilter.Warn;
+            using( d.OpenGroup( LogLevel.Warn, "1" ) )
+            {
+                d.Error( "2" );
+                using( d.OpenGroup( LogLevel.Fatal, "3" ) )
+                {
+                    d.Trace( "4" );
+                    d.Info( "5" );
+                }
+            }
+            d.Warn( "6" );
+            Assert.That( String.Join( ",", c.Entries.Select( e => e.Text ) ), Is.EqualTo( "1,2,3,6" ) );
+
+            c.LevelFilter = LogLevelFilter.Fatal;
+            Assert.That( String.Join( ",", c.Entries.Select( e => e.Text ) ), Is.EqualTo( "3" ) );
+        }
     }
 }

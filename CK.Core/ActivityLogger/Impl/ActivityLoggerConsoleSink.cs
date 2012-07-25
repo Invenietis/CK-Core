@@ -29,17 +29,17 @@ using System.Text;
 namespace CK.Core
 {
     /// <summary>
-    /// Sink the logs to the console.
+    /// Sinks the logs to the console.
     /// </summary>
-    public class ActivityLoggerConsoleSync : IActivityLoggerSink
-    {
+    public class ActivityLoggerConsoleSink : IActivityLoggerSink
+    { 
         string _prefix;
         string _prefixLevel;
 
         /// <summary>
-        /// Initializes a new <see cref="ActivityLoggerConsoleSync"/>.
+        /// Initializes a new <see cref="ActivityLoggerConsoleSink"/>.
         /// </summary>
-        public ActivityLoggerConsoleSync()
+        public ActivityLoggerConsoleSink()
         {
             _prefixLevel = _prefix = String.Empty;
         }
@@ -114,4 +114,10 @@ namespace CK.Core
         }
 
     }
+
+    [Obsolete( "Use ActivityLoggerConsoleSink (sorry for the typo...).", true )]
+    public class ActivityLoggerConsoleSync : ActivityLoggerConsoleSink
+    {
+    }
+
 }

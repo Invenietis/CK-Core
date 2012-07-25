@@ -32,12 +32,11 @@ namespace Core
     static class TestHelper
     {
         static IDefaultActivityLogger _logger;
-        static ActivityLoggerConsoleSync _console;
-        static string _scriptFolder;
+        static ActivityLoggerConsoleSink _console;
 
         static TestHelper()
         {
-            _console = new ActivityLoggerConsoleSync();
+            _console = new ActivityLoggerConsoleSink();
             _logger = DefaultActivityLogger.Create().Register( _console );
         }
 
