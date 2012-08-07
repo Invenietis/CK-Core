@@ -1,6 +1,6 @@
 #region LGPL License
 /*----------------------------------------------------------------------------
-* This file (CK.Core\ActivityLogger\Impl\ActivityLoggerConsoleSync.cs) is part of CiviKey. 
+* This file (CK.Core\ActivityLogger\Impl\ActivityLoggerTextWriterSink.cs) is part of CiviKey. 
 *  
 * CiviKey is free software: you can redistribute it and/or modify 
 * it under the terms of the GNU Lesser General Public License as published 
@@ -40,7 +40,7 @@ namespace CK.Core
         string _prefixLevel;
 
         /// <summary>
-        /// Initializes a new <see cref="ActivityLoggerConsoleSink"/>.
+        /// Initializes a new <see cref="ActivityLoggerTextWriterSink"/>.
         /// </summary>
         public ActivityLoggerTextWriterSink( TextWriter writer )
         {
