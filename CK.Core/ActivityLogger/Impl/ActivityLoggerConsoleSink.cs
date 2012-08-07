@@ -44,8 +44,9 @@ namespace CK.Core
             _prefixLevel = _prefix = String.Empty;
         }
 
-        void IActivityLoggerSink.OnEnterLevel( LogLevel level, string text )
+        void IActivityLoggerSink.OnEnterLevel(LogLevel level, string text)
         {
+            this.OnEnterLevel(level, text);
             Console.Write( _prefix + "- " + level.ToString() + ": " );
             _prefixLevel = _prefix + new String( ' ', level.ToString().Length + 4 );
             Console.WriteLine( text.Replace( Environment.NewLine, Environment.NewLine + _prefixLevel ) );
@@ -56,8 +57,9 @@ namespace CK.Core
             Console.WriteLine( _prefixLevel + text.Replace( Environment.NewLine, Environment.NewLine + _prefixLevel ) );
         }
 
-        void IActivityLoggerSink.OnLeaveLevel( LogLevel level )
+        void IActivityLoggerSink.OnLeaveLevel(LogLevel level)
         {
+            this.OnLeaveLevel(level);
             _prefixLevel = _prefix;
         }
 
@@ -111,6 +113,18 @@ namespace CK.Core
             }
             _prefix = _prefix.Remove( _prefix.Length - 3 );
             Console.WriteLine( _prefix + " └─────────────────────────────────────────────────────────────────────────" );
+        }
+
+
+
+        protected virtual void OnEnterLevel(LogLevel level, string text)
+        {
+
+        }
+
+        protected virtual void OnLeaveLevel(LogLevel level)
+        {
+
         }
 
     }

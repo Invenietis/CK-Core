@@ -66,6 +66,7 @@
     <Compile Include="ActivityLogger\IActivityLoggerClientRegistrar.cs" />
     <Compile Include="ActivityLogger\IActivityLoggerOutput.cs" />
     <Compile Include="ActivityLogger\IActivityLogGroup.cs" />
+    <Compile Include="ActivityLogger\Impl\ActivityLoggerConsoleColorSink.cs" />
     <Compile Include="ActivityLogger\Impl\ActivityLoggerConsoleSink.cs" />
     <Compile Include="ActivityLogger\Impl\ActivityLoggerErrorCounter.cs" />
     <Compile Include="ActivityLogger\Impl\ActivityLoggerHybridClient.cs" />
