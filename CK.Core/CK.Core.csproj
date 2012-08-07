@@ -73,6 +73,7 @@
     <Compile Include="ActivityLogger\Impl\ActivityLoggerPathCatcher.cs" />
     <Compile Include="ActivityLogger\Impl\ActivityLoggerTap.cs" />
     <Compile Include="ActivityLogger\Impl\ActivityLoggerSimpleCollector.cs" />
+    <Compile Include="ActivityLogger\Impl\ActivityLoggerTextWriterSink.cs" />
     <Compile Include="ActivityLogger\Impl\DefaultActivityLogger.cs" />
     <Compile Include="ActivityLogger\Impl\IDefaultActivityLogger.cs" />
     <Compile Include="ActivityLogger\Impl\IActivityLoggerSink.cs" />
