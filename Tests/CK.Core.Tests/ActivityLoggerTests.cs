@@ -592,5 +592,27 @@ namespace Core
             c.LevelFilter = LogLevelFilter.Fatal;
             Assert.That( String.Join( ",", c.Entries.Select( e => e.Text ) ), Is.EqualTo( "3" ) );
         }
+
+        [Test]
+        public void CatchTests()
+        {
+            IDefaultActivityLogger d = DefaultActivityLogger.Create();
+            d.Error( "Pouf" );
+            using( d.Catch( e => Assert.That( String.Join( ",", e.Select( t => t.Text ) ) == "One,Two" ) ) )
+            {
+                d.Error( "One" );
+                d.Warn( "Warn" );
+                d.Fatal( "Two" );
+            }
+            d.Error( "Out..." );
+            using( d.Catch( e => e.Single( t => t.Text == "Two" ), LogLevelFilter.Fatal ) )
+            {
+                d.Error( "One" );
+                d.Warn( "Warn" );
+                d.Fatal( "Two" );
+            }
+            Assert.Throws<ArgumentNullException>( () => d.Catch( null ) );
+        }
+
     }
 }

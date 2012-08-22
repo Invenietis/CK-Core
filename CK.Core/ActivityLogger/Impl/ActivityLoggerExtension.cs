@@ -106,6 +106,31 @@ namespace CK.Core
             return @this.RegisteredClients.Cast<IActivityLoggerClientBase>().Concat( @this.RegisteredMuxClients );
         }
 
+        /// <summary>
+        /// Enables simple "using" syntax to easily catch any <see cref="LogLevel.Error"/> or <see cref="LogLevel.Fatal"/> entries.
+        /// </summary>
+        /// <param name="this">This <see cref="IActivityLogger"/>.</param>
+        /// <param name="errorHandler">An action that accepts a list of fatal or error <see cref="ActivityLoggerSimpleCollector.Entry">entries</see>.</param>
+        /// <param name="level">Defines the level of the entries caught (by default fatal or error entries).</param>
+        /// <param name="asMuxClient">Optionaly registers the handler to also catch entries emitted by other loggers that are bound to this one.</param>
+        /// <returns>A <see cref="IDisposable"/> object used to manage the scope of this handler.</returns>
+        public static IDisposable Catch( this IActivityLogger @this, Action<IReadOnlyList<ActivityLoggerSimpleCollector.Entry>> errorHandler, LogLevelFilter level = LogLevelFilter.Error, bool asMuxClient = false )
+        {
+            if( errorHandler == null ) throw new ArgumentNullException( "errorHandler" );
+            ActivityLoggerSimpleCollector errorTracker = new ActivityLoggerSimpleCollector() { LevelFilter = level };
+            if( asMuxClient )
+                @this.Output.RegisterMuxClient( errorTracker );
+            else @this.Output.RegisterClient( errorTracker );
+            return Util.CreateDisposableAction( () =>
+            {
+                if( asMuxClient )
+                    @this.Output.UnregisterMuxClient( errorTracker );
+                else @this.Output.UnregisterClient( errorTracker );
+                errorHandler( errorTracker.Entries );
+            } );
+        }
+
+
         #region Registrar
 
         /// <summary>
