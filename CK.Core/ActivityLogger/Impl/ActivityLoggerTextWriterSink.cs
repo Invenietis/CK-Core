@@ -30,7 +30,7 @@ using System.IO;
 namespace CK.Core
 {
     /// <summary>
-    /// Sinks the logs to the console.
+    /// Sinks the logs to a <see cref="TextWriter"/>.
     /// </summary>
     public class ActivityLoggerTextWriterSink : IActivityLoggerSink
     {
