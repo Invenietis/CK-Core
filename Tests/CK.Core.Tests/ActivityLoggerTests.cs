@@ -597,6 +597,9 @@ namespace Core
         public void CatchTests()
         {
             IDefaultActivityLogger d = DefaultActivityLogger.Create();
+            
+            Assert.Throws<ArgumentNullException>( () => d.Catch( null ) );
+
             d.Error( "Pouf" );
             using( d.Catch( e => Assert.That( String.Join( ",", e.Select( t => t.Text ) ) == "One,Two" ) ) )
             {
@@ -611,7 +614,18 @@ namespace Core
                 d.Warn( "Warn" );
                 d.Fatal( "Two" );
             }
-            Assert.Throws<ArgumentNullException>( () => d.Catch( null ) );
+
+            using( d.Catch( e => Assert.Fail( "No Error occured." ) ) )
+            {
+                d.Trace( "One" );
+                d.Warn( "Warn" );
+            }
+            
+            using( d.Catch( e => Assert.Fail( "No Fatal occured." ), LogLevelFilter.Fatal ) )
+            {
+                d.Error( "One" );
+                d.Warn( "Warn" );
+            }
         }
 
     }
