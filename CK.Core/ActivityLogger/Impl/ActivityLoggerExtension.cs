@@ -107,7 +107,7 @@ namespace CK.Core
         }
 
         /// <summary>
-        /// Enables simple "using" syntax to easily catch any <see cref="LogLevel.Error"/> or <see cref="LogLevel.Fatal"/> entries.
+        /// Enables simple "using" syntax to easily catch any <see cref="LogLevel"/> (or above) entries (defaults to <see cref="LogLevel.Error"/>).
         /// </summary>
         /// <param name="this">This <see cref="IActivityLogger"/>.</param>
         /// <param name="errorHandler">An action that accepts a list of fatal or error <see cref="ActivityLoggerSimpleCollector.Entry">entries</see>.</param>
@@ -126,10 +126,9 @@ namespace CK.Core
                 if( asMuxClient )
                     @this.Output.UnregisterMuxClient( errorTracker );
                 else @this.Output.UnregisterClient( errorTracker );
-                errorHandler( errorTracker.Entries );
+                if( errorTracker.Entries.Count > 0 ) errorHandler( errorTracker.Entries );
             } );
         }
-
 
         #region Registrar
 
