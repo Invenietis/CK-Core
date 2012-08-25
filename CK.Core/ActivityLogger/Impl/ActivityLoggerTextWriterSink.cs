@@ -34,30 +34,42 @@ namespace CK.Core
     /// </summary>
     public class ActivityLoggerTextWriterSink : IActivityLoggerSink
     {
-        TextWriter _writer;
-
+        Func<TextWriter> _writer;
         string _prefix;
         string _prefixLevel;
 
         /// <summary>
-        /// Initializes a new <see cref="ActivityLoggerTextWriterSink"/>.
+        /// Initializes a new <see cref="ActivityLoggerTextWriterSink"/> bound to a 
+        /// function that must return the <see cref="TextWriter"/> to use when needed.
         /// </summary>
-        public ActivityLoggerTextWriterSink( TextWriter writer )
+        public ActivityLoggerTextWriterSink( Func<TextWriter> writer )
         {
             _writer = writer;
             _prefixLevel = _prefix = String.Empty;
         }
 
+        /// <summary>
+        /// Initializes a new <see cref="ActivityLoggerTextWriterSink"/> bound to
+        /// a <see cref="TextWriter"/>.
+        /// </summary>
+        public ActivityLoggerTextWriterSink( TextWriter writer )
+        {
+            _writer = () => writer;
+            _prefixLevel = _prefix = String.Empty;
+        }
+
         void IActivityLoggerSink.OnEnterLevel( LogLevel level, string text )
         {
-            _writer.Write( _prefix + "- " + level.ToString() + ": " );
+            TextWriter w = _writer();
+            w.Write( _prefix + "- " + level.ToString() + ": " );
             _prefixLevel = _prefix + new String( ' ', level.ToString().Length + 4 );
-            _writer.WriteLine( text.Replace( Environment.NewLine, Environment.NewLine + _prefixLevel ) );
+            w.WriteLine( text.Replace( Environment.NewLine, Environment.NewLine + _prefixLevel ) );
         }
 
         void IActivityLoggerSink.OnContinueOnSameLevel( LogLevel level, string text )
         {
-            _writer.WriteLine( _prefixLevel + text.Replace( Environment.NewLine, Environment.NewLine + _prefixLevel ) );
+            TextWriter w = _writer();
+            w.WriteLine( _prefixLevel + text.Replace( Environment.NewLine, Environment.NewLine + _prefixLevel ) );
         }
 
         void IActivityLoggerSink.OnLeaveLevel( LogLevel level )
@@ -67,54 +79,56 @@ namespace CK.Core
 
         void IActivityLoggerSink.OnGroupOpen( IActivityLogGroup g )
         {
-            _writer.Write( "{0}▪►-{1}: ", _prefix, g.GroupLevel.ToString() );
+            TextWriter w = _writer();
+            w.Write( "{0}▪►-{1}: ", _prefix, g.GroupLevel.ToString() );
             _prefix += "▪  ";
             _prefixLevel = _prefix;
-            _writer.WriteLine( g.GroupText.Replace( Environment.NewLine, Environment.NewLine + _prefixLevel ) );
+            w.WriteLine( g.GroupText.Replace( Environment.NewLine, Environment.NewLine + _prefixLevel ) );
         }
 
         void IActivityLoggerSink.OnGroupClose( IActivityLogGroup g, IReadOnlyList<ActivityLogGroupConclusion> conclusions )
         {
+            TextWriter w = _writer();
             if( g.Exception != null )
             {
-                DumpException( !g.IsGroupTextTheExceptionMessage, g.Exception );
+                DumpException( w, !g.IsGroupTextTheExceptionMessage, g.Exception );
             }
             _prefixLevel = _prefix = _prefix.Remove( _prefix.Length - 3 );
             foreach( var c in conclusions )
             {
                 string text = "◄▪-" + c.Conclusion;
-                _writer.WriteLine( _prefixLevel + text.Replace( _prefixLevel + Environment.NewLine, Environment.NewLine + _prefixLevel + "   " ) );
+                w.WriteLine( _prefixLevel + text.Replace( _prefixLevel + Environment.NewLine, Environment.NewLine + _prefixLevel + "   " ) );
             }
         }
 
-        void DumpException( bool displayMessage, Exception ex )
+        void DumpException( TextWriter w, bool displayMessage, Exception ex )
         {
             string p;
 
-            _writer.WriteLine( _prefix + " ┌──────────────────────────■ Exception ■──────────────────────────" );
+            w.WriteLine( _prefix + " ┌──────────────────────────■ Exception ■──────────────────────────" );
             _prefix += " | ";
             if( displayMessage && ex.Message != null )
             {
-                _writer.Write( _prefix + "Message: " );
+                w.Write( _prefix + "Message: " );
                 p = _prefix + "         ";
-                _writer.WriteLine( ex.Message.Replace( Environment.NewLine, Environment.NewLine + p ) );
+                w.WriteLine( ex.Message.Replace( Environment.NewLine, Environment.NewLine + p ) );
             }
             if( ex.StackTrace != null )
             {
-                _writer.Write( _prefix + "Stack: " );
+                w.Write( _prefix + "Stack: " );
                 p = _prefix + "       ";
-                _writer.WriteLine( ex.StackTrace.Replace( Environment.NewLine, Environment.NewLine + p ) );
+                w.WriteLine( ex.StackTrace.Replace( Environment.NewLine, Environment.NewLine + p ) );
             }
             if( ex.InnerException != null )
             {
-                _writer.WriteLine( _prefix + " ┌──────────────────────────▪ [Inner Exception] ▪──────────────────────────" );
+                w.WriteLine( _prefix + " ┌──────────────────────────▪ [Inner Exception] ▪──────────────────────────" );
                 _prefix += " | ";
-                DumpException( true, ex.InnerException );
+                DumpException( w, true, ex.InnerException );
                 _prefix = _prefix.Remove( _prefix.Length - 3 );
-                _writer.WriteLine( _prefix + " └─────────────────────────────────────────────────────────────────────────" );
+                w.WriteLine( _prefix + " └─────────────────────────────────────────────────────────────────────────" );
             }
             _prefix = _prefix.Remove( _prefix.Length - 3 );
-            _writer.WriteLine( _prefix + " └─────────────────────────────────────────────────────────────────────────" );
+            w.WriteLine( _prefix + " └─────────────────────────────────────────────────────────────────────────" );
         }
 
     }

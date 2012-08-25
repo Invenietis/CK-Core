@@ -37,7 +37,7 @@ namespace CK.Core
         /// Initializes a new <see cref="ActivityLoggerConsoleSink"/>.
         /// </summary>
         public ActivityLoggerConsoleSink()
-            : base( Console.Out )
+            : base( () => Console.Out )
         {
 
         }
