@@ -33,9 +33,7 @@ namespace CK.Reflection.Tests
     [TestFixture]
     public class HelperTest
     {
-        int _aReadOnlyProperty;
-
-        public int AnIntProperty { get { return _aReadOnlyProperty; } }
+        public int AnIntProperty { get { return 3; } }
 
         [Test]
         public void PropertyInfoThroughLambda()

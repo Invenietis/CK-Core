@@ -26,27 +26,8 @@ using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System;
 
-// General Information about an assembly is controlled through the following 
-// set of attributes. Change these attribute values to modify the information
-// associated with an assembly.
 [assembly: AssemblyTitle( "CK.Storage" )]
-[assembly: AssemblyDescription("This is a keyboard to help people with disabilities")]
-#if DEBUG
-[assembly: AssemblyConfiguration("Debug")]
-#else
-[assembly: AssemblyConfiguration("Release")]
-#endif
-[assembly: AssemblyCompany("Invenietis")]
-[assembly: AssemblyProduct("Custom Virtual Keyboard")]
-[assembly: AssemblyCopyright("Copyright © Invenietis - In’Tech INFO 2007-2009")]
-[assembly: AssemblyTrademark("")]
+[assembly: AssemblyDescription( "Low-level Storage layer that supports composite/modular Xml data." )]
 [assembly: AssemblyCulture("")]	
-[assembly: CLSCompliant(true)]	
-
-// Setting ComVisible to false makes the types in this assembly not visible 
-// to COM components.  If you need to access a type in this assembly from 
-// COM, set the ComVisible attribute to true on that type.
 [assembly: ComVisible( false )]
-
-// The following GUID is for the ID of the typelib if this project is exposed to COM
 [assembly: Guid( "f9993716-02df-4f88-81fd-f2c5f861d032" )]

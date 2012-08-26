@@ -72,10 +72,10 @@ namespace CK.Reflection.Tests
     {
 
         public event EventHandler Event1;
-        public event EventHandler Event2;
+        public new event EventHandler Event2;
         public int Pouf2 { get; set; }
-        public int Pouf { get; set; }
-        public int Pouf0 { get; set; }
+        public new int Pouf { get; set; }
+        public new int Pouf0 { get; set; }
         public int Pouf3 { get; set; }
         public int Pouf4 { get; set; }
     }
@@ -85,10 +85,10 @@ namespace CK.Reflection.Tests
     {
 
         public event EventHandler Event1;
-        public event EventHandler Event2;
+        public new event EventHandler Event2;
         public int Pouf2 { get; set; }
-        public int Pouf { get; set; }
-        public int Pouf0 { get; set; }
+        public new int Pouf { get; set; }
+        public new int Pouf0 { get; set; }
         public int Pouf3 { get; set; }
         public int Pouf4 { get; set; }
     }
