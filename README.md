@@ -1,5 +1,5 @@
 #CK-Core#
-This solution contains several projects, this is part of the CiviKey project toolbox.
+This solution contains several projects, this is part of the [CiviKey](https://github.com/Invenietis/ck-certified) project toolbox.
 
 ##Content##
 ###CK.Core###
