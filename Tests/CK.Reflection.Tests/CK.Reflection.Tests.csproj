@@ -46,6 +46,9 @@
     <Reference Include="System.Core" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="..\..\SharedAssemblyInfo.cs">
+      <Link>Properties\SharedAssemblyInfo.cs</Link>
+    </Compile>
     <Compile Include="ObjectAndTypeTest.cs" />
     <Compile Include="HelperTest.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -59,7 +62,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="..\..\SharedKey.snk">
-      <Link>SharedKey.snk</Link>
+      <Link>Properties\SharedKey.snk</Link>
     </None>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
