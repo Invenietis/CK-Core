@@ -26,15 +26,11 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CK.MultiTrait", "CK.MultiTr
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CK.MultiTrait.Tests", "Tests\CK.MultiTrait.Tests\CK.MultiTrait.Tests.csproj", "{7B6B0068-5CAB-4FF1-8336-DCA7EE2D8D2A}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Packages", "Packages", "{BE07A70D-AB8C-41F7-A8E6-AC12E7EA11C7}"
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Nuget", "Nuget", "{7347FEB7-22FB-4802-927D-1B8FC5EBB7CC}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Shared Items", "Shared Items", "{E3559EF9-ED4A-4169-9287-6F94CFBD09FA}"
 	ProjectSection(SolutionItems) = preProject
-		Output\Packages\Nuget\CK.Core.nuspec = Output\Packages\Nuget\CK.Core.nuspec
-		Output\Packages\Nuget\CK.Plugin.nuspec = Output\Packages\Nuget\CK.Plugin.nuspec
+		SharedAssemblyInfo.cs = SharedAssemblyInfo.cs
+		SharedKey.snk = SharedKey.snk
 	EndProjectSection
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "CKPacage", "CKPacage", "{B66EF332-5B70-4407-BF58-FADE8050860D}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -92,7 +88,5 @@ Global
 		{712E47A0-449C-4C8A-B891-9A6A64C1323D} = {A87208F3-D73C-4AD4-9FF5-0314968EDD74}
 		{3AA52F84-605A-44B6-AF0E-004E6A3A7B45} = {A87208F3-D73C-4AD4-9FF5-0314968EDD74}
 		{7B6B0068-5CAB-4FF1-8336-DCA7EE2D8D2A} = {A87208F3-D73C-4AD4-9FF5-0314968EDD74}
-		{7347FEB7-22FB-4802-927D-1B8FC5EBB7CC} = {BE07A70D-AB8C-41F7-A8E6-AC12E7EA11C7}
-		{B66EF332-5B70-4407-BF58-FADE8050860D} = {BE07A70D-AB8C-41F7-A8E6-AC12E7EA11C7}
 	EndGlobalSection
 EndGlobal

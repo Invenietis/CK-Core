@@ -55,6 +55,9 @@
     <Reference Include="System.Xml.Linq" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="..\SharedAssemblyInfo.cs">
+      <Link>Properties\SharedAssemblyInfo.cs</Link>
+    </Compile>
     <Compile Include="ActionSequence\ActionSequence.cs" />
     <Compile Include="ActionSequence\ActionSequenceExtension.cs" />
     <Compile Include="ActionSequence\IActionSequence.cs" />
@@ -160,7 +163,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="..\SharedKey.snk">
-      <Link>SharedKey.snk</Link>
+      <Link>Properties\SharedKey.snk</Link>
     </None>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
