@@ -54,11 +54,10 @@ namespace CK.Core
 
         static OSVersionInfo()
         {
-            IsMono = Type.GetType( "System.MonoType", false ) != null;
-
+            IsMono = Type.GetType( "Mono.Runtime", false ) != null;
             PlatformID platformID = Environment.OSVersion.Platform;
             bool isWin32 = platformID == PlatformID.Win32NT || platformID == PlatformID.Win32Windows;
-
+            
             if( Environment.Version.Major == 1 )
             {
                 // Mono 1.0:  unix == 128 (No unix on MS.NET 1.x)
