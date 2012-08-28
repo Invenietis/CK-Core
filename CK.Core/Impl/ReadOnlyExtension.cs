@@ -81,7 +81,7 @@ namespace CK.Core
 
         /// <summary>
         /// Creates a <see cref="IReadOnlyList{T}"/> from a <see cref="IList{U}"/>.
-        /// It is an independant storage (a copy).
+        /// It is an independant storage that keeps the references to the <paramref name="convertor"/> results.
         /// </summary>
         /// <typeparam name="T">The type of the elements of the resulting read only list.</typeparam>
         /// <typeparam name="U">The type of the elements of source.</typeparam>
@@ -121,7 +121,7 @@ namespace CK.Core
 
         /// <summary>
         /// Creates a <see cref="IReadOnlyList{T}"/> from a sub sequence of a <see cref="IList{U}"/> and a convertor delegate.
-        /// It is an independant storage (a copy).
+        /// It is an independant storage that keeps the references to the <paramref name="convertor"/> results.
         /// </summary>
         /// <typeparam name="T">The type of the elements of the resulting read only list.</typeparam>
         /// <typeparam name="U">The type of the elements of source.</typeparam>
@@ -157,7 +157,7 @@ namespace CK.Core
 
         /// <summary>
         /// Creates a <see cref="IReadOnlyList{T}"/> from a <see cref="IList{U}"/> and a convertor delegate, starting at a given index.
-        /// It is an independant storage (a copy).
+        /// It is an independant storage that keeps the references to the <paramref name="convertor"/> results.
         /// </summary>
         /// <typeparam name="T">The type of the elements of out.</typeparam>
         /// <typeparam name="U">The type of the elements of source.</typeparam>
@@ -193,6 +193,7 @@ namespace CK.Core
 
         /// <summary>
         /// Creates a <see cref="IReadOnlyList{T}"/> from a <see cref="ICollection{T}"/>.
+        /// It is an independant storage that keeps the references to the <paramref name="convertor"/> results.
         /// </summary>
         /// <typeparam name="T">The type of the elements of the resulting read only list.</typeparam>
         /// <typeparam name="U">The type of the elements of source.</typeparam>
@@ -218,6 +219,7 @@ namespace CK.Core
 
         /// <summary>
         /// Creates a <see cref="IReadOnlyList{T}"/> from a <see cref="IEnumerable{T}"/>.
+        /// It is an independant storage (a copy).
         /// </summary>
         /// <typeparam name="T">The type of the elements of source.</typeparam>
         /// <param name="source">A <see cref="IEnumerable{T}"/> to create a read only list from.</param>
@@ -256,6 +258,7 @@ namespace CK.Core
 
         /// <summary>
         /// Creates a <see cref="IReadOnlyCollection{T}"/> from a <see cref="IList{T}"/>.
+        /// It is an independant storage (a copy).
         /// </summary>
         /// <typeparam name="T">The type of the elements of source.</typeparam>
         /// <param name="source">A <see cref="IList{T}"/> to create a read only collection from.</param>
@@ -267,6 +270,7 @@ namespace CK.Core
 
         /// <summary>
         /// Creates a <see cref="IReadOnlyCollection{T}"/> from a <see cref="IList{U}"/> and a convertor delegate.
+        /// It is an independant storage that keeps the references to the <paramref name="convertor"/> results.
         /// </summary>
         /// <typeparam name="T">The type of the elements of the resulting read only list.</typeparam>
         /// <typeparam name="U">The type of the elements of source.</typeparam>
@@ -280,6 +284,7 @@ namespace CK.Core
 
         /// <summary>
         /// Creates a <see cref="IReadOnlyCollection{T}"/> from a sub seqence of a <see cref="IList{T}"/>.
+        /// It is an independant storage (a copy).
         /// </summary>
         /// <typeparam name="T">The type of the elements of source.</typeparam>
         /// <param name="source">A <see cref="IList{T}"/> to create a read only list from.</param>
@@ -293,6 +298,7 @@ namespace CK.Core
 
         /// <summary>
         /// Creates a <see cref="IReadOnlyCollection{T}"/> from a sub seqence of a <see cref="IList{U}"/> and a convertor delegate.
+        /// It is an independant storage that keeps the references to the <paramref name="convertor"/> results.
         /// </summary>
         /// <typeparam name="T">The type of the elements of the resulting read only list.</typeparam>
         /// <typeparam name="U">The type of the elements of source.</typeparam>
@@ -308,6 +314,7 @@ namespace CK.Core
 
         /// <summary>
         /// Creates a <see cref="IReadOnlyCollection{T}"/> from a <see cref="IList{T}"/>.
+        /// It is an independant storage (a copy).
         /// </summary>
         /// <typeparam name="T">The type of the elements of source.</typeparam>
         /// <param name="source">A <see cref="IList{T}"/> to create a read only collection from.</param>
@@ -320,6 +327,7 @@ namespace CK.Core
 
         /// <summary>
         /// Creates a <see cref="IReadOnlyCollection{T}"/> from a <see cref="IList{U}"/> and a convertor delegate, starting at a given index.
+        /// It is an independant storage that keeps the references to the <paramref name="convertor"/> results.
         /// </summary>
         /// <typeparam name="T">The type of the elements of the resulting read only list.</typeparam>
         /// <typeparam name="U">The type of the elements of source.</typeparam>
@@ -334,6 +342,7 @@ namespace CK.Core
 
         /// <summary>
         /// Creates a <see cref="IReadOnlyCollection{T}"/> from a <see cref="ICollection{T}"/>.
+        /// It is an independant storage (a copy).
         /// </summary>
         /// <typeparam name="T">The type of the elements of source.</typeparam>
         /// <param name="source">A <see cref="ICollection{T}"/> to create a read only list from.</param>
@@ -345,6 +354,7 @@ namespace CK.Core
 
         /// <summary>
         /// Creates a <see cref="IReadOnlyCollection{T}"/> from a <see cref="ICollection{U}"/>.
+        /// It is an independant storage that keeps the references to the <paramref name="convertor"/> results.
         /// </summary>
         /// <typeparam name="T">The type of the elements of the resulting read only collection.</typeparam>
         /// <typeparam name="U">The type of the elements of source.</typeparam>
@@ -358,6 +368,7 @@ namespace CK.Core
 
         /// <summary>
         /// Creates a <see cref="IReadOnlyCollection{T}"/> from a <see cref="IEnumerable{T}"/>.
+        /// It is an independant storage (a copy).
         /// </summary>
         /// <typeparam name="T">The type of the elements of source.</typeparam>
         /// <param name="source">A <see cref="IEnumerable{T}"/> to create a read only list from.</param>
