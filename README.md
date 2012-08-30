@@ -3,7 +3,9 @@ This solution contains several projects, this is part of the [CiviKey](https://g
 
 ##Content##
 ###CK.Core###
-Contains several helper classes.
+Contains several helper classes and interfaces.
+The most useful and interesting aspect is the ReadOnly and Writable List & Collections (and other Sorted / Observable implementations) framework that have been designed 
+from the ground up to support co and contra variance.
 
 ###CK.Interop###
 Contains LowLevel helpers, for example a DLLImportAttribute that handles defining different dlls regarding the computer's architecture (32 or 64 bit).
@@ -17,7 +19,7 @@ It is also used by the CiviKey project to handle the fact that Ctrl+Alt+Suppr & 
 Contains Reflection helper classes.
 
 ###CK.Storage###
-Contains helper classes & interfaces for structured objects serialization. embeds an implementation for Xml.
+Contains helper classes & interfaces for structured objects serialization. Embeds an implementation for Xml.
 
 ##Bug Tracker##
 If you find any bug, don't hesitate to report it on : [http://civikey.invenietis.com/](http://civikey.invenietis.com/)
