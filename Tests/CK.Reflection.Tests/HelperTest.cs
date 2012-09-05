@@ -276,6 +276,64 @@ namespace CK.Reflection.Tests
             Assert.That( orderedD[0].DeclaringType, Is.SameAs( typeof( D ) ) ); 
         }
 
+        #endregion
+
+        #region Properties inheritance & Attributes
+
+        [AttributeUsage( AttributeTargets.Property, AllowMultiple = false, Inherited = true )]
+        public class PropInheritedAttribute : Attribute
+        {
+        }
+
+        [AttributeUsage( AttributeTargets.Property, AllowMultiple = false, Inherited = false )]
+        public class PropNOTInheritedAttribute : Attribute
+        {
+        }
+
+        public class PA
+        {
+            [PropInheritedAttribute]
+            [PropNOTInheritedAttribute]
+            public int PropA { get; set; }
+            
+            [PropInheritedAttribute]
+            [PropNOTInheritedAttribute]
+            public virtual int PropAVirtual { get; set; }
+            
+        }
+
+        public class PB : PA
+        {
+            public new int PropA { get { return base.PropA; } set { base.PropA = value; } }
+            public override int PropAVirtual { get { return base.PropAVirtual; } set { base.PropAVirtual = value; } }
+        }
+
+        [Test]
+        public void PropertyInheritanceAndAttributes()
+        {
+            {
+                // Case 1:
+                /// the virtual/override case works nearly as it should (must use static methods on Attribute class).
+
+                Assert.That( typeof( PB ).GetProperty( "PropAVirtual" ).GetCustomAttributes( typeof( PropNOTInheritedAttribute ), inherit: true ).Length == 0,
+                    "OK: PropNOTInherited is not available on B.PropAVirtual" );
+                Assert.That( typeof( PB ).GetProperty( "PropA" ).GetCustomAttributes( typeof( PropInheritedAttribute ), inherit: true ).Length == 0,
+                    "KO! PropInheritedAttribute is ALSO NOT available on B.PropAVirtual. PropertyInfo.GetCustomAttributes does NOT honor bool inherit parameter :-(." );
+
+                // To get it, one must use static methods on Attribute class.
+
+                Assert.That( Attribute.GetCustomAttributes( typeof( PB ).GetProperty( "PropAVirtual" ), typeof( PropNOTInheritedAttribute ), inherit: true ).Length == 0,
+                                 "OK: PropNOTInherited is not available on B.PropAVirtual" );
+                Assert.That( Attribute.GetCustomAttributes( typeof( PB ).GetProperty( "PropAVirtual" ), typeof( PropInheritedAttribute ), inherit: true ).Length == 1,
+                    "OK! It works as it should!" );
+            }
+            {
+                // Case 2:
+                // Inheritance does not not work for Masked properties.
+                Assert.That( Attribute.GetCustomAttributes( typeof( PB ).GetProperty( "PropA" ), typeof( PropInheritedAttribute ), inherit: true ).Length == 0,
+                    "No attribute inheritance here, a Masked property is a 'new' property :-)" );
+            }
+        }
 
 
         #endregion
