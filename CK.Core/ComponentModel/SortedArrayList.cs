@@ -116,7 +116,7 @@ namespace CK.Core
         }
 
         /// <summary>
-        /// Locates an element in this list. 
+        /// Locates an element in this list . 
         /// </summary>
         /// <param name="value">The element.</param>
         /// <returns>The result of the <see cref="Util.BinarySearch{T}"/> in the internal array.</returns>
@@ -127,7 +127,7 @@ namespace CK.Core
         }
 
         /// <summary>
-        /// Determines whether this <see cref="SortedArrayList{T}"/> contains a specific value.
+        /// Determines whether this <see cref="SortedArrayList{T}"/> contains a specific value (logarithmic).
         /// </summary>
         /// <param name="value">The value.</param>
         /// <returns>True if the object is found; otherwise, false.</returns>
