@@ -116,7 +116,7 @@ namespace CK.Core
         }
 
         /// <summary>
-        /// Locates an element in this list . 
+        /// Locates an element in this list (logarithmic). 
         /// </summary>
         /// <param name="value">The element.</param>
         /// <returns>The result of the <see cref="Util.BinarySearch{T}"/> in the internal array.</returns>
@@ -137,7 +137,7 @@ namespace CK.Core
         }
 
         /// <summary>
-        /// Covariant compatible overload of <see cref="IndexOf(T)"/>.
+        /// Covariant compatible overload of <see cref="IndexOf(T)"/>  (logarithmic).
         /// If the item is not <typeparamref name="T"/> compatible, the 
         /// value <see cref="Int32.MinValue"/> is returned. See <see cref="IReadOnlyList{T}.IndexOf"/>.
         /// </summary>
@@ -151,7 +151,7 @@ namespace CK.Core
         }
 
         /// <summary>
-        /// Covariant compatible overload of <see cref="Contains(T)"/>.
+        /// Covariant compatible overload of <see cref="Contains(T)"/>  (logarithmic).
         /// </summary>
         /// <param name="item">The item to find.</param>
         /// <returns>True if the object is found; otherwise, false.</returns>

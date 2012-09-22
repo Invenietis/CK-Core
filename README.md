@@ -11,9 +11,10 @@ from the ground up to support co and contra variance.
 Contains LowLevel helpers, for example a DLLImportAttribute that handles defining different dlls regarding the computer's architecture (32 or 64 bit).
 
 ###CK.MultiTrait###
-Contains classes that can be used to handle the combination of different tags. 
-For example, making sure that Alt+Ctrl+Home == Ctrl+Alt+Home == Alt+Home+Ctrl. 
-It is also used by the CiviKey project to handle the fact that Ctrl+Alt+Suppr & Alt+Ctrl+Suppr both trigger the Ctrl+Alt+Suppr action.
+Contains classes that can be used to handle the combination of different tags (traits) in a determinist manner. 
+For example, making sure that Alt+Ctrl+Home == Ctrl+Alt+Home == Alt+Home+Ctrl and that Ctrl+Home > Ctrl: a total order exists on the 
+set of traits combinations based on lexicographical order for atomic trait and the number of traits in a composite. 
+It is actually used by the CiviKey project (Keyboard plugin) to handle keys combination.
 
 ###CK.Reflection###
 Contains Reflection helper classes.

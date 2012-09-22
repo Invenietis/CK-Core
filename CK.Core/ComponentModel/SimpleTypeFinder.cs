@@ -30,7 +30,7 @@ namespace CK.Core
 {
     /// <summary>
     /// Very simple default implementation of the <see cref="ISimpleTypeFinder"/>: it can be used as a base class.
-    /// A static <see cref="Default"/> is available.
+    /// Static <see cref="Default"/> and <see cref="WeakDefault"/> are available.
     /// </summary>
     public class SimpleTypeFinder : ISimpleTypeFinder
     {
