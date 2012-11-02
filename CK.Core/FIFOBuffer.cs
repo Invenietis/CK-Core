@@ -29,7 +29,8 @@ using System.Diagnostics;
 namespace CK.Core
 {
     /// <summary>
-    /// Simple implementation of a fixed size FIFO stack based on a circular buffer.
+    /// Simple implementation of a fixed size FIFO stack based on a circular buffer. 
+    /// The .Net <see cref="Queue{T}"/>'s size increase as needed whereas this FIFO automatically loses the oldest items.
     /// Note that when <typeparamref name="T"/> is a reference type, null can be pushed and pop.
     /// </summary>
     /// <typeparam name="T">Type of the items.</typeparam>

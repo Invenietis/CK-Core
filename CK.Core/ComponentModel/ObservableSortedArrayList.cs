@@ -24,6 +24,7 @@
 using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.ComponentModel;
+using System;
 
 namespace CK.Core
 {
@@ -42,13 +43,24 @@ namespace CK.Core
 
         /// <summary>
         /// Initializes a new <see cref="ObservableSortedArrayList{T}"/> with a <see cref="IComparer{T}"/> 
-        /// and that accepts or not no duplicates.
+        /// and that rejects or allows duplicates.
         /// </summary>
         /// <param name="comparer">The comparer.</param>
         /// <param name="allowDuplicates">True to allow duplicate items.</param>
-        public ObservableSortedArrayList( IComparer<T> comparer, bool allowDuplicates = false ) 
-            : base( comparer, allowDuplicates ) 
-        { 
+        public ObservableSortedArrayList( IComparer<T> comparer, bool allowDuplicates = false )
+            : base( comparer, allowDuplicates )
+        {
+        }
+
+        /// <summary>
+        /// Initializes a new <see cref="ObservableSortedArrayList{T}"/> with a comparison function 
+        /// and that rejects or allows duplicates.
+        /// </summary>
+        /// <param name="comparison">Comparison function to use.</param>
+        /// <param name="allowDuplicates">True to allow duplicate items.</param>
+        public ObservableSortedArrayList( Comparison<T> comparison, bool allowDuplicates = false )
+            : base( comparison, allowDuplicates )
+        {
         }
 
         /// <summary>

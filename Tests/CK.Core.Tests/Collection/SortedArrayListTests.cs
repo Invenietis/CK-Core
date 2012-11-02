@@ -136,6 +136,43 @@ namespace Core.Collection
             CheckList( a, "ABCDEF" );
         }
 
+        [Test]
+        public void IndexOfWithComparison()
+        {
+            var a = new TestMammals( ( a1, a2 ) => a1.Name.CompareTo( a2.Name ) );
+            a.Add( new Mammal( "B" ) );
+            a.Add( new Mammal( "A" ) );
+            a.Add( new Mammal( "D" ) );
+            a.Add( new Mammal( "F" ) );
+            a.Add( new Mammal( "C" ) );
+            a.Add( new Mammal( "E" ) );
+
+            int idx;
+
+            // External use of Util.BinarySearch on the exposed Store of the SortedArrayList.
+            {
+                idx = Util.BinarySearch<Mammal, string>( a.Tab, 0, a.Count, "E", ( m, name ) => m.Name.CompareTo( name ) );
+                Assert.That( idx, Is.EqualTo( 4 ) );
+
+                idx = Util.BinarySearch<Mammal, string>( a.Tab, 0, a.Count, "A", ( m, name ) => m.Name.CompareTo( name ) );
+                Assert.That( idx, Is.EqualTo( 0 ) );
+
+                idx = Util.BinarySearch<Mammal, string>( a.Tab, 0, a.Count, "Z", ( m, name ) => m.Name.CompareTo( name ) );
+                Assert.That( idx, Is.EqualTo( ~6 ) );
+            }
+            // Use of the extended SortedArrayList.IndexOf().
+            {
+                idx = a.IndexOf( "E", ( m, name ) => m.Name.CompareTo( name ) );
+                Assert.That( idx, Is.EqualTo( 4 ) );
+
+                idx = a.IndexOf( "A", ( m, name ) => m.Name.CompareTo( name ) );
+                Assert.That( idx, Is.EqualTo( 0 ) );
+
+                idx = a.IndexOf( "Z", ( m, name ) => m.Name.CompareTo( name ) );
+                Assert.That( idx, Is.EqualTo( ~6 ) );
+            }
+        }
+
         private static void CheckList( TestMammals a, string p )
         {
             HashSet<Mammal> dup = new HashSet<Mammal>();

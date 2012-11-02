@@ -182,7 +182,7 @@ namespace CK.Core
         }
 
         /// <summary>
-        /// Binary search immplementation that relies on an extended comparer: a function that knows how to 
+        /// Binary search implementation that relies on an extended comparer: a function that knows how to 
         /// compare the elements of the array to a key of another type.
         /// </summary>
         /// <typeparam name="T">Type of the elements.</typeparam>

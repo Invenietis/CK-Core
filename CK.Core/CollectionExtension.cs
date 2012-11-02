@@ -56,5 +56,26 @@ namespace CK.Core
             foreach( var i in items ) c.Add( i );
         }
 
+        /// <summary>
+        /// Simple helper that removes elements in a <see cref="IList{T}"/> and returns them as an <see cref="IEnumerable{T}"/>.
+        /// Makes the transfer of items from one list to another easy when combined with <see cref="AddRange"/>.
+        /// </summary>
+        /// <typeparam name="T">The type of the elements in the list.</typeparam>
+        /// <param name="this">This list.</param>
+        /// <param name="removeCondition">Predicate that must return true for items that must be removed from this list.</param>
+        /// <returns>Removed items (can be added into another one).</returns>
+        public static IEnumerable<T> RemoveWhere<T>( this IList<T> @this, Predicate<T> removeCondition )
+        {
+            @this.Select( x => x );
+            for( int i = 0; i < @this.Count; ++i )
+            {
+                T x = @this[i];
+                if( removeCondition( x ) )
+                {
+                    @this.RemoveAt( i-- );
+                    yield return x;
+                }
+            }
+        }
     }
 }
