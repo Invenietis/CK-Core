@@ -29,7 +29,8 @@ namespace CK.Core
     /// This simple interface allows to resolve types from names.
     /// </summary>
     /// <remarks>
-    /// Types mapping is an option that should be used with care.    
+    /// Types mapping (ie. changing the simple rule that says that the name of a type is simply the type's assembly qualified name) is an 
+    /// option that should be used with care.    
     /// </remarks>
 	public interface ISimpleTypeFinder
 	{

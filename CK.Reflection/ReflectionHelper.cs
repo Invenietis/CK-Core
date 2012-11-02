@@ -71,7 +71,7 @@ namespace CK.Reflection
         }
 
         /// <summary>
-        /// Creates a setter fo a property. 
+        /// Creates a setter for a property. 
         /// </summary>
         /// <typeparam name="THolder">Property holder type (will be inferred by the compiler).</typeparam>
         /// <typeparam name="TProperty">Property type (will be inferred by the compiler).</typeparam>

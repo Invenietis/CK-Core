@@ -116,7 +116,7 @@ namespace CK.Core
         }
 
         /// <summary>
-        /// Locates an element in this list. 
+        /// Locates an element in this list (logarithmic). 
         /// </summary>
         /// <param name="value">The element.</param>
         /// <returns>The result of the <see cref="Util.BinarySearch{T}"/> in the internal array.</returns>
@@ -127,7 +127,23 @@ namespace CK.Core
         }
 
         /// <summary>
-        /// Determines whether this <see cref="SortedArrayList{T}"/> contains a specific value.
+        /// Binary search implementation that relies on an extended comparer: a function that knows how to 
+        /// compare the elements of the array to its key. This function must work exactly like this <see cref="Comparator"/>
+        /// but accepts a <typeparamref name="T"/> and the <typeparamref name="TKey"/> that is used to sort the items otherwise
+        /// the result is undefined.
+        /// </summary>
+        /// <typeparam name="TKey">Type of the key.</typeparam>
+        /// <param name="key">The value of the key.</param>
+        /// <param name="comparison">The comparison function.</param>
+        /// <returns>Same as <see cref="Array.BinarySearch(Array,object)"/>: negative index if not found which is the bitwise complement of (the index of the next element plus 1).</returns>
+        public int IndexOf<TKey>( TKey key, Func<T, TKey, int> comparison )
+        {
+            if( comparison == null ) throw new ArgumentNullException();
+            return Util.BinarySearch( _tab, 0, _count, key, comparison );
+        }
+
+        /// <summary>
+        /// Determines whether this <see cref="SortedArrayList{T}"/> contains a specific value (logarithmic).
         /// </summary>
         /// <param name="value">The value.</param>
         /// <returns>True if the object is found; otherwise, false.</returns>
@@ -137,7 +153,7 @@ namespace CK.Core
         }
 
         /// <summary>
-        /// Covariant compatible overload of <see cref="IndexOf(T)"/>.
+        /// Covariant compatible overload of <see cref="IndexOf(T)"/>  (logarithmic).
         /// If the item is not <typeparamref name="T"/> compatible, the 
         /// value <see cref="Int32.MinValue"/> is returned. See <see cref="IReadOnlyList{T}.IndexOf"/>.
         /// </summary>
@@ -151,7 +167,7 @@ namespace CK.Core
         }
 
         /// <summary>
-        /// Covariant compatible overload of <see cref="Contains(T)"/>.
+        /// Covariant compatible overload of <see cref="Contains(T)"/>  (logarithmic).
         /// </summary>
         /// <param name="item">The item to find.</param>
         /// <returns>True if the object is found; otherwise, false.</returns>

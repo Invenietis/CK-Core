@@ -145,8 +145,8 @@ namespace CK.Core
 
         /// <summary>
         /// Covariant IndexOf method: if <paramref name="item"/> is of type <typeparamref name="T"/>
-        /// the <see cref="IndexOf(T)"/> is used but if <paramref name="item"/> is of type <typeparamref name="TKey"/>,
-        /// the <see cref="IndexOf(TKey)"/> is used.
+        /// the linear <see cref="IndexOf(T)"/> is used but if <paramref name="item"/> is of type <typeparamref name="TKey"/>,
+        /// the logarithmic <see cref="IndexOf(TKey)"/> is used.
         /// </summary>
         /// <param name="item">Can be a <typeparamref name="T"/> or a <typeparamref name="TKey"/>.</param>
         /// <returns>The index of the item in the collection.</returns>
