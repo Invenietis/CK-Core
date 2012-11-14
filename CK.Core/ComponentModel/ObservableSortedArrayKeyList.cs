@@ -25,6 +25,7 @@ using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.ComponentModel;
 using System;
+using System.Diagnostics;
 
 namespace CK.Core
 {
@@ -32,7 +33,7 @@ namespace CK.Core
     /// A <see cref="SortedArrayKeyList{T,TKey}"/> that implements <see cref="CollectionChanged"/> and <see cref="PropertyChanged"/> events
     /// in order to be an observable collection.
     /// </summary>
-    public class ObservableSortedArrayKeyList<T,TKey> : SortedArrayKeyList<T,TKey>, IObservableReadOnlyList<T>
+    public class ObservableSortedArrayKeyList<T, TKey> : SortedArrayKeyList<T, TKey>, IObservableReadOnlyList<T>
     {
         /// <summary>
         /// Initializes a new <see cref="ObservableSortedArrayKeyList{T,TKey}"/> with a default comparison function.

@@ -34,7 +34,8 @@ namespace CK.Core
     /// Note that when <typeparamref name="T"/> is a reference type, null can be pushed and pop.
     /// </summary>
     /// <typeparam name="T">Type of the items.</typeparam>
-    public class FIFOBuffer<T> : IReadOnlyList<T>, IWritableCollector<T> 
+    [DebuggerTypeProxy( typeof( Impl.ReadOnlyCollectionDebuggerView<> ) )]
+    public class FIFOBuffer<T> : IReadOnlyList<T>, IWritableCollector<T>
     {
         int _count;
         int _head;
@@ -106,7 +107,7 @@ namespace CK.Core
         /// <returns>The index of the object or -1 if not found.</returns>
         public int IndexOf( object item )
         {
-            return (item == null && default(T) == null ) || item is T ? IndexOf( (T)item ) : Int32.MinValue;
+            return (item == null && default( T ) == null) || item is T ? IndexOf( (T)item ) : Int32.MinValue;
         }
 
         /// <summary>
@@ -136,12 +137,12 @@ namespace CK.Core
         /// <returns>The indexed element.</returns>
         public T this[int index]
         {
-            get 
+            get
             {
                 if( index < 0 || index >= _count ) throw new IndexOutOfRangeException();
                 index += _head;
                 int roll = index - _buffer.Length;
-                return _buffer[ roll >= 0 ? roll : index];
+                return _buffer[roll >= 0 ? roll : index];
             }
         }
 
@@ -242,7 +243,7 @@ namespace CK.Core
         public int CopyTo( T[] array, int arrayIndex, int count )
         {
             if( count < 0 ) throw new ArgumentException();
-            
+
             // Number of item to copy: 
             // if there is enough available space, we copy the whole buffer (_count items) from head to tail.
             // if we need to copy less, we want to copy the count last items (and not the first ones).
@@ -314,5 +315,13 @@ namespace CK.Core
             return (IEnumerator)GetEnumerator();
         }
 
+        /// <summary>
+        /// Overriden to display the current count of items and capacity for this buffer.
+        /// </summary>
+        /// <returns>Current count and capacity.</returns>
+        public override string ToString()
+        {
+            return String.Format( "Count = {0} (Capacity = {1})", _count, _buffer.Length );
+        }
     }
 }

@@ -56,7 +56,10 @@ namespace Core.Collection
         [Test]
         public void NoDuplicateKeyedCollection()
         {
-            var a = new SortedArrayKeyList<int, string>( i => i.ToString() );
+            // Uses an ObservableSortedArrayKeyList just for fun and
+            // to challenge inheritance of DebuggerTypeProxy: the ObservableSortedArrayKeyList is not attributed
+            // but it inherits the DebuggerTypeProxy of its SortedArrayKeyList base class.
+            var a = new ObservableSortedArrayKeyList<int, string>( i => i.ToString() );
             a.AddRangeArray( 3, 2, 1 );
 
             bool exists;

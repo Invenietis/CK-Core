@@ -24,6 +24,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System;
+using System.Diagnostics;
 
 namespace CK.Core
 {
@@ -31,6 +32,7 @@ namespace CK.Core
     /// Implements a mono element <see cref="IReadOnlyList{T}"/>.
     /// </summary>
     /// <typeparam name="T">The type of element in the read only list.</typeparam>
+    [DebuggerTypeProxy( typeof( Impl.ReadOnlyCollectionDebuggerView<> ) ), DebuggerDisplay( "Count = 1" )]
     public sealed class ReadOnlyListMono<T> : IReadOnlyList<T>
     {
         T _val;

@@ -24,6 +24,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System;
+using System.Diagnostics;
 
 namespace CK.Core
 {
@@ -32,6 +33,7 @@ namespace CK.Core
     /// by casting it, it also provides an empty read only <see cref="IList{T}"/>.
     /// </summary>
     /// <typeparam name="T">Contained elements type.</typeparam>
+    [DebuggerTypeProxy( typeof( Impl.ReadOnlyCollectionDebuggerView<> ) ), DebuggerDisplay( "Count = 0" )]
     public sealed class ReadOnlyListEmpty<T> : IReadOnlyList<T>, IList<T>
     {
         /// <summary>

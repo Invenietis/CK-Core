@@ -30,11 +30,39 @@ namespace CK.Core
 {
     /// <summary>
     /// Sorted list of items where the sort order relies on an external key, not the item itself.
-    /// </summary>
+    /// </summary>.
+    [DebuggerTypeProxy( typeof( SortedArrayKeyList<,>.DebuggerView ) ), DebuggerDisplay( "Count = {Count}" )]
     public class SortedArrayKeyList<T, TKey> : SortedArrayList<T>, IReadOnlyMultiKeyedCollection<T, TKey>
     {
         Func<T,TKey> _keySelector;
         Comparison<TKey> _keyComparison;
+
+        class DebuggerView
+        {
+            SortedArrayKeyList<T, TKey> _c;
+
+            public DebuggerView( SortedArrayKeyList<T, TKey> c )
+            {
+                _c = c;
+            }
+
+            /// <summary>
+            /// Gets the items as a flattened array view.
+            /// </summary>
+            [DebuggerBrowsable( DebuggerBrowsableState.RootHidden )]
+            public KeyValuePair<TKey,T>[] Items
+            {
+                get
+                {
+                    var a = new List<KeyValuePair<TKey,T>>();
+                    foreach( var e in _c )
+                    {
+                        a.Add( new KeyValuePair<TKey,T>( _c._keySelector( e ), e ) );
+                    }
+                    return a.ToArray();
+                }
+            }
+        }
 
         /// <summary>
         /// Initializes a new <see cref="SortedArrayKeyList{T,TKey}"/>.

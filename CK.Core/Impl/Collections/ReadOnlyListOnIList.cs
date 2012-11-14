@@ -200,7 +200,7 @@ namespace CK.Core
     /// for some type parameter substitutions.
     /// </para>
     /// </remarks>
-    [DebuggerTypeProxy( typeof( Impl.ReadOnlyCollectionDebuggerView<> ) ), DebuggerDisplay( "Count = {Count}" )]
+    [DebuggerTypeProxy( typeof( Impl.ReadOnlyCollectionDebuggerView<,> ) ), DebuggerDisplay( "Count = {Count}" )]
     public sealed class ReadOnlyListOnIList<T, TInner> : IReadOnlyList<T>, IList<T>
         where TInner : T
     {
