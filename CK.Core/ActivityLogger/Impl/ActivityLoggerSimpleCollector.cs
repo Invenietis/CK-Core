@@ -7,6 +7,7 @@ namespace CK.Core
 {
     /// <summary>
     /// Simple collector of log entries which level is greater or equal to <see cref="LevelFilter"/>.
+    /// Its <see cref="Capacity"/> defaults to 50 (no more than Capacity entries are kept).
     /// </summary>
     public class ActivityLoggerSimpleCollector : ActivityLoggerHybridClient
     {
@@ -27,6 +28,11 @@ namespace CK.Core
             /// Gets the text of the log entry.
             /// </summary>
             public string Text { get; internal set; }
+
+            /// <summary>
+            /// Gets the exception of the log entry if any.
+            /// </summary>
+            public Exception Exception { get; internal set; }
 
             /// <summary>
             /// Overriden to return the <see cref="Text"/> of this element.
@@ -118,7 +124,7 @@ namespace CK.Core
         {
             if( (int)group.GroupLevel >= (int)_filter )
             {
-                _entries.Push( new Entry() { Level = group.GroupLevel, Text = group.GroupText } );
+                _entries.Push( new Entry() { Level = group.GroupLevel, Text = group.GroupText, Exception = group.Exception } );
             }
         }
     }

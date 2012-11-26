@@ -157,7 +157,7 @@ namespace CK.Core
         }
 
         /// <summary>
-        /// Binary search immplementation that relies on a <see cref="Comparison{T}"/>.
+        /// Binary search implementation that relies on a <see cref="Comparison{T}"/>.
         /// </summary>
         /// <typeparam name="T">Type of the elements.</typeparam>
         /// <param name="array">An array of elements.</param>

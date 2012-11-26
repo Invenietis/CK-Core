@@ -102,7 +102,7 @@
     <Compile Include="ComponentModel\ObservableSortedArrayList.cs" />
     <Compile Include="File\FileUtil.cs" />
     <Compile Include="FIFOBuffer.cs" />
-    <Compile Include="Impl\Collections\CollectionDebuggerView.cs" />
+    <Compile Include="Impl\Collections\ReadOnlyCollectionDebuggerView.cs" />
     <Compile Include="IWritableCollection.cs" />
     <Compile Include="SimpleErrorMessage.cs" />
     <Compile Include="ISimpleErrorMessage.cs" />

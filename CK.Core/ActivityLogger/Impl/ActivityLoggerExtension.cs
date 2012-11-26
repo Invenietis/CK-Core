@@ -922,7 +922,7 @@ namespace CK.Core
         /// <returns>This logger to enable fluent syntax.</returns>
         public static IActivityLogger Trace( this IActivityLogger @this, Exception ex, string format, object arg0, object arg1, object arg2 )
         {
-            if( (int)@this.Filter <= (int)LogLevel.Trace ) @this.UnfilteredLog( LogLevel.Trace, String.Format( format, arg0, arg1 ), ex );
+            if( (int)@this.Filter <= (int)LogLevel.Trace ) @this.UnfilteredLog( LogLevel.Trace, String.Format( format, arg0, arg1, arg2 ), ex );
             return @this;
         }
 
@@ -1010,7 +1010,7 @@ namespace CK.Core
         /// <returns>This logger to enable fluent syntax.</returns>
         public static IActivityLogger Info( this IActivityLogger @this, Exception ex, string format, object arg0, object arg1, object arg2 )
         {
-            if( (int)@this.Filter <= (int)LogLevel.Info ) @this.UnfilteredLog( LogLevel.Info, String.Format( format, arg0, arg1 ), ex );
+            if( (int)@this.Filter <= (int)LogLevel.Info ) @this.UnfilteredLog( LogLevel.Info, String.Format( format, arg0, arg1, arg2 ), ex );
             return @this;
         }
 
@@ -1098,7 +1098,7 @@ namespace CK.Core
         /// <returns>This logger to enable fluent syntax.</returns>
         public static IActivityLogger Warn( this IActivityLogger @this, Exception ex, string format, object arg0, object arg1, object arg2 )
         {
-            if( (int)@this.Filter <= (int)LogLevel.Warn ) @this.UnfilteredLog( LogLevel.Warn, String.Format( format, arg0, arg1 ), ex );
+            if( (int)@this.Filter <= (int)LogLevel.Warn ) @this.UnfilteredLog( LogLevel.Warn, String.Format( format, arg0, arg1, arg2 ), ex );
             return @this;
         }
 
@@ -1186,7 +1186,7 @@ namespace CK.Core
         /// <returns>This logger to enable fluent syntax.</returns>
         public static IActivityLogger Error( this IActivityLogger @this, Exception ex, string format, object arg0, object arg1, object arg2 )
         {
-            if( (int)@this.Filter <= (int)LogLevel.Error ) @this.UnfilteredLog( LogLevel.Error, String.Format( format, arg0, arg1 ), ex );
+            if( (int)@this.Filter <= (int)LogLevel.Error ) @this.UnfilteredLog( LogLevel.Error, String.Format( format, arg0, arg1, arg2 ), ex );
             return @this;
         }
 
@@ -1274,7 +1274,7 @@ namespace CK.Core
         /// <returns>This logger to enable fluent syntax.</returns>
         public static IActivityLogger Fatal( this IActivityLogger @this, Exception ex, string format, object arg0, object arg1, object arg2 )
         {
-            if( (int)@this.Filter <= (int)LogLevel.Fatal ) @this.UnfilteredLog( LogLevel.Fatal, String.Format( format, arg0, arg1 ), ex );
+            if( (int)@this.Filter <= (int)LogLevel.Fatal ) @this.UnfilteredLog( LogLevel.Fatal, String.Format( format, arg0, arg1, arg2 ), ex );
             return @this;
         }
 

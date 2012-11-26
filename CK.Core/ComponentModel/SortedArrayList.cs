@@ -24,6 +24,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
 
 namespace CK.Core
 {
@@ -36,6 +37,7 @@ namespace CK.Core
     /// interface should NOT be used. Accessors of the <see cref="IList{T}"/> that defeats the invariant of this class (the fact that elements are sorted, such 
     /// as <see cref="IList{T}.Insert"/>) are explicitely implemented to hide them as much as possible.
     /// </remarks>
+    [DebuggerTypeProxy( typeof( Impl.ReadOnlyCollectionDebuggerView<> ) ), DebuggerDisplay( "Count = {Count}" )]
     public class SortedArrayList<T> : IList<T>, IReadOnlyList<T>, IWritableCollection<T>
     {
         const int _defaultCapacity = 4;
