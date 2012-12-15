@@ -611,7 +611,7 @@ namespace Core
                 d.Fatal( "Two" );
             }
             d.Error( "Out..." );
-            using( d.CatchCounter( e => Assert.That( e == 1 ) ) )
+            using( d.CatchCounter( e => Assert.That( e == 2 ) ) )
             using( d.CatchCounter( ( f, e ) => Assert.That( f == 1 && e == 1 ) ) )
             using( d.CatchCounter( ( f, e, w ) => Assert.That( f == 1 && e == 1 && w == 1 ) ) )
             using( d.Catch( e => e.Single( t => t.Text == "Two" ), LogLevelFilter.Fatal ) )

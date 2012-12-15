@@ -46,6 +46,7 @@
     <Compile Include="..\SharedAssemblyInfo.cs">
       <Link>Properties\SharedAssemblyInfo.cs</Link>
     </Compile>
+    <Compile Include="EmitHelper.cs" />
     <Compile Include="ReflectionHelper.cs" />
     <Compile Include="ILGeneratorExtension.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
