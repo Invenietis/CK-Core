@@ -29,61 +29,7 @@ namespace CK.Reflection.Tests
             return _moduleBuilder.DefineType( abstractType.Name + Interlocked.Increment( ref _typeID ).ToString(), TypeAttributes.Class | TypeAttributes.Public, abstractType );
         }
 
-        //abstract class ABase
-        //{
-        //    public ABase CallFirstMethod( int i )
-        //    {
-        //        return FirstMethod( i );
-        //    }
-
-        //    protected abstract ABase FirstMethod( int i );
-
-        //    public abstract int M2( ref int i, ref ABase a );
-
-        //    public abstract Guid M3( out int i, out ABase a );
-        //}
-
-        //class ABase_VImpl : ABase
-        //{
-        //    protected override ABase FirstMethod( int i )
-        //    {
-        //        return FirstMethod_VImpl( i );
-        //    }
-
-        //    public override int M2( ref int i, ref ABase a )
-        //    {
-        //        return M2_VImpl( ref i, ref a );
-        //    }
-
-        //    public override Guid M3( out int i, out ABase a )
-        //    {
-        //        return M3_VImpl( out i, out a );
-        //    }
-            
-        //    protected virtual ABase FirstMethod_VImpl( int i )
-        //    {
-        //        return null;
-        //    }
-
-        //    protected virtual int M2_VImpl( ref int i, ref ABase a )
-        //    {
-        //        return 0;
-        //    }
-
-        //    protected virtual Guid M3_VImpl( out int i, out ABase a )
-        //    {
-        //        i = 0;
-        //        a = null;
-        //        return new Guid();
-        //    }
-
-        //    protected virtual T M3_VImpl<T>( out int i, out ABase a ) where T : new()
-        //    {
-        //        i = 0;
-        //        a = null;
-        //        return new T();
-        //    }
-        //}
+        #region EmitHelper.ImplementEmptyStubMethod tests
 
         public abstract class A
         {
@@ -145,7 +91,7 @@ namespace CK.Reflection.Tests
         {
             Type t = typeof( A );
             TypeBuilder b = CreateTypeBuilder( t );
-            EmitHelper.ImplementStubMethod( b, t.GetMethod( "FirstMethod", BindingFlags.Instance | BindingFlags.NonPublic ), false );
+            EmitHelper.ImplementEmptyStubMethod( b, t.GetMethod( "FirstMethod", BindingFlags.Instance | BindingFlags.NonPublic ), false );
             Type builtType = b.CreateType();
             A o = (A)Activator.CreateInstance( builtType );
             Assert.That( o.CallFirstMethod( 10 ), Is.Null );
@@ -156,7 +102,7 @@ namespace CK.Reflection.Tests
         {
             Type t = typeof( B );
             TypeBuilder b = CreateTypeBuilder( t );
-            EmitHelper.ImplementStubMethod( b, t.GetMethod( "M" ), false );
+            EmitHelper.ImplementEmptyStubMethod( b, t.GetMethod( "M" ), false );
             Type builtType = b.CreateType();
             B o = (B)Activator.CreateInstance( builtType );
             Assert.That( o.M( 10 ), Is.EqualTo( 0 ) );
@@ -167,7 +113,7 @@ namespace CK.Reflection.Tests
         {
             Type t = typeof( C );
             TypeBuilder b = CreateTypeBuilder( t );
-            EmitHelper.ImplementStubMethod( b, t.GetMethod( "M" ), false );
+            EmitHelper.ImplementEmptyStubMethod( b, t.GetMethod( "M" ), false );
             Type builtType = b.CreateType();
             C o = (C)Activator.CreateInstance( builtType );
             Assert.That( o.M( 10 ), Is.EqualTo( 0 ) );
@@ -178,7 +124,7 @@ namespace CK.Reflection.Tests
         {
             Type t = typeof( D );
             TypeBuilder b = CreateTypeBuilder( t );
-            EmitHelper.ImplementStubMethod( b, t.GetMethod( "M" ), false );
+            EmitHelper.ImplementEmptyStubMethod( b, t.GetMethod( "M" ), false );
             Type builtType = b.CreateType();
             D o = (D)Activator.CreateInstance( builtType );
             Assert.That( o.M( 10 ), Is.EqualTo( Guid.Empty ) );
@@ -189,7 +135,7 @@ namespace CK.Reflection.Tests
         {
             Type t = typeof( E );
             TypeBuilder b = CreateTypeBuilder( t );
-            EmitHelper.ImplementStubMethod( b, t.GetMethod( "M" ), false );
+            EmitHelper.ImplementEmptyStubMethod( b, t.GetMethod( "M" ), false );
             Type builtType = b.CreateType();
             E o = (E)Activator.CreateInstance( builtType );
             int i = 3712;
@@ -202,7 +148,7 @@ namespace CK.Reflection.Tests
         {
             Type t = typeof( F );
             TypeBuilder b = CreateTypeBuilder( t );
-            EmitHelper.ImplementStubMethod( b, t.GetMethod( "M" ), false );
+            EmitHelper.ImplementEmptyStubMethod( b, t.GetMethod( "M" ), false );
             Type builtType = b.CreateType();
             F o = (F)Activator.CreateInstance( builtType );
             int i = 45;
@@ -215,7 +161,7 @@ namespace CK.Reflection.Tests
         {
             Type t = typeof( G );
             TypeBuilder b = CreateTypeBuilder( t );
-            EmitHelper.ImplementStubMethod( b, t.GetMethod( "M" ), false );
+            EmitHelper.ImplementEmptyStubMethod( b, t.GetMethod( "M" ), false );
             Type builtType = b.CreateType();
             G o = (G)Activator.CreateInstance( builtType );
             Guid i = Guid.NewGuid();
@@ -228,7 +174,7 @@ namespace CK.Reflection.Tests
         {
             Type t = typeof( H );
             TypeBuilder b = CreateTypeBuilder( t );
-            EmitHelper.ImplementStubMethod( b, t.GetMethod( "M" ), false );
+            EmitHelper.ImplementEmptyStubMethod( b, t.GetMethod( "M" ), false );
             Type builtType = b.CreateType();
             H o = (H)Activator.CreateInstance( builtType );
             Guid iOrigin = Guid.NewGuid();
@@ -242,7 +188,7 @@ namespace CK.Reflection.Tests
         {
             Type t = typeof( I );
             TypeBuilder b = CreateTypeBuilder( t );
-            EmitHelper.ImplementStubMethod( b, t.GetMethod( "M" ), false );
+            EmitHelper.ImplementEmptyStubMethod( b, t.GetMethod( "M" ), false );
             Type builtType = b.CreateType();
             I o = (I)Activator.CreateInstance( builtType );
             CultureAttribute cOrigin = new CultureAttribute();
@@ -256,7 +202,7 @@ namespace CK.Reflection.Tests
         {
             Type t = typeof( J );
             TypeBuilder b = CreateTypeBuilder( t );
-            EmitHelper.ImplementStubMethod( b, t.GetMethod( "M" ), false );
+            EmitHelper.ImplementEmptyStubMethod( b, t.GetMethod( "M" ), false );
             Type builtType = b.CreateType();
             J o = (J)Activator.CreateInstance( builtType );
             CultureAttribute cOrigin = new CultureAttribute();
@@ -265,5 +211,108 @@ namespace CK.Reflection.Tests
             Assert.That( c, Is.SameAs( cOrigin ) );
         }
 
+        #endregion
+
+        #region EmitHelper.ImplementEmptyStubProperty tests
+        
+        // Note: 
+        // Abstract properties cannot have private accessors.
+        public abstract class PA
+        {
+            public abstract int PublicWriteableValue { get; set; }
+            public abstract int ProtectedWriteableValue { get; protected set; }
+
+            public int PublicProperty { get; protected set; }
+
+            public void SetProtectedValues( int v )
+            {
+                ProtectedWriteableValue = v;
+                PublicProperty = v%255;
+            }
+        }
+
+        public abstract class PB : PA
+        {
+            public new byte PublicProperty { get { return (byte)base.PublicProperty; } }
+        }
+
+        [Test]
+        public void AutoImplementStubProperty()
+        {
+            Type tA = typeof( PA );
+            TypeBuilder bA = CreateTypeBuilder( tA );
+            EmitHelper.ImplementStubProperty( bA, tA.GetProperty( "PublicWriteableValue" ), true );
+            EmitHelper.ImplementStubProperty( bA, tA.GetProperty( "ProtectedWriteableValue" ), true );
+            Type builtTypeA = bA.CreateType();
+            PA oA = (PA)Activator.CreateInstance( builtTypeA );
+            oA.PublicWriteableValue = 4548;
+            oA.SetProtectedValues( 2121 );
+            Assert.That( oA.PublicWriteableValue, Is.EqualTo( 4548 ) );
+            Assert.That( oA.ProtectedWriteableValue, Is.EqualTo( 2121 ) );
+
+            Type tB = typeof( PB );
+            TypeBuilder bB = CreateTypeBuilder( tB );
+            EmitHelper.ImplementStubProperty( bB, tB.GetProperty( "PublicWriteableValue" ), true );
+            EmitHelper.ImplementStubProperty( bB, tB.GetProperty( "ProtectedWriteableValue" ), true );
+            Type builtTypeB = bB.CreateType();
+            PB oB = (PB)Activator.CreateInstance( builtTypeB );
+            oB.PublicWriteableValue = 4548;
+            oB.SetProtectedValues( 2121 );
+            Assert.That( oB.PublicWriteableValue, Is.EqualTo( 4548 ) );
+            Assert.That( oB.ProtectedWriteableValue, Is.EqualTo( 2121 ) );
+            Assert.That( oB.PublicProperty, Is.EqualTo( 2121%255 ) );
+        }
+
+        public abstract class CNonVirtualProperty
+        {
+            int _value;
+
+            public CNonVirtualProperty()
+            {
+                _value = 654312;
+            }
+
+            public int PublicProperty { get { return _value * 2; } set { _value = value * 2; } }
+        }
+
+        [Test]
+        public void AutoImplementStubForNonVirtualPropertyIsStupid()
+        {
+            Type tN = typeof( CNonVirtualProperty );
+            TypeBuilder bN = CreateTypeBuilder( tN );
+            EmitHelper.ImplementStubProperty( bN, tN.GetProperty( "PublicProperty" ), true );
+            Type builtTypeN = bN.CreateType();
+            CNonVirtualProperty oN = (CNonVirtualProperty)Activator.CreateInstance( builtTypeN );
+            Assert.That( oN.PublicProperty, Is.EqualTo( 654312 * 2 ) );
+            oN.PublicProperty = 2;
+            Assert.That( oN.PublicProperty, Is.EqualTo( 2 * 4 ) );
+        }
+
+        public abstract class CVirtualProperty
+        {
+            int _value;
+
+            public CVirtualProperty()
+            {
+                _value = 654312;
+            }
+
+            public virtual int PublicProperty { get { return _value * 2; } set { _value = value * 2; } }
+        }
+
+        [Test]
+        public void AutoImplementStubForVirtualPropertyActuallyReplacesIt()
+        {
+            Type t = typeof( CVirtualProperty );
+            TypeBuilder b = CreateTypeBuilder( t );
+            EmitHelper.ImplementStubProperty( b, t.GetProperty( "PublicProperty" ), false );
+            Type builtType = b.CreateType();
+            CVirtualProperty o = (CVirtualProperty)Activator.CreateInstance( builtType );
+            Assert.That( o.PublicProperty, Is.EqualTo( 0 ), "Initial value is lost." );
+            o.PublicProperty = 2;
+            Assert.That( o.PublicProperty, Is.EqualTo( 2 ), "Mere stub implementation does its job." );
+        }
+
+        #endregion
     }
 }

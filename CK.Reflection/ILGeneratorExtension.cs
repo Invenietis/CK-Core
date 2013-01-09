@@ -147,7 +147,7 @@ namespace CK.Reflection
         }
 
         /// <summary>
-        /// Emits the IL to pop (<see cref="OpCodes.Starg"/>) the top of the stach into the actual argument at the given index.
+        /// Emits the IL to pop (<see cref="OpCodes.Starg"/>) the top of the stack into the actual argument at the given index.
         /// </summary>
         /// <param name="g">This <see cref="ILGenerator"/> object.</param>
         /// <param name="i">Parameter index (0 being the 'this' for instance method).</param>

@@ -49,6 +49,7 @@
     <Compile Include="..\..\SharedAssemblyInfo.cs">
       <Link>Properties\SharedAssemblyInfo.cs</Link>
     </Compile>
+    <Compile Include="AttributesBehavior.cs" />
     <Compile Include="AutoImplementorTests.cs" />
     <Compile Include="ObjectAndTypeTest.cs" />
     <Compile Include="HelperTest.cs" />
