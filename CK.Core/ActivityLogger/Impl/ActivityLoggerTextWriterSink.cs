@@ -61,9 +61,8 @@ namespace CK.Core
         void IActivityLoggerSink.OnEnterLevel( LogLevel level, string text )
         {
             TextWriter w = _writer();
-            w.Write( _prefix + "- " + level.ToString() + ": " );
-            _prefixLevel = _prefix + new String( ' ', level.ToString().Length + 4 );
-            w.WriteLine( text.Replace( Environment.NewLine, Environment.NewLine + _prefixLevel ) );
+            _prefixLevel = _prefix + new String( '\u00A0', level.ToString().Length + 4 );
+            w.WriteLine( _prefix + "-\u00A0" + level.ToString() + ":\u00A0" + text.Replace( Environment.NewLine, Environment.NewLine + _prefixLevel ) );
         }
 
         void IActivityLoggerSink.OnContinueOnSameLevel( LogLevel level, string text )
@@ -80,10 +79,10 @@ namespace CK.Core
         void IActivityLoggerSink.OnGroupOpen( IActivityLogGroup g )
         {
             TextWriter w = _writer();
-            w.Write( "{0}▪►-{1}: ", _prefix, g.GroupLevel.ToString() );
-            _prefix += "▪  ";
+            string start = String.Format( "{0}▪►-{1}:\u00A0", _prefix, g.GroupLevel.ToString() );
+            _prefix += "▪\u00A0\u00A0";
             _prefixLevel = _prefix;
-            w.WriteLine( g.GroupText.Replace( Environment.NewLine, Environment.NewLine + _prefixLevel ) );
+            w.WriteLine( start + g.GroupText.Replace( Environment.NewLine, Environment.NewLine + _prefixLevel ) );
         }
 
         void IActivityLoggerSink.OnGroupClose( IActivityLogGroup g, IReadOnlyList<ActivityLogGroupConclusion> conclusions )
@@ -105,30 +104,31 @@ namespace CK.Core
         {
             string p;
 
-            w.WriteLine( _prefix + " ┌──────────────────────────■ Exception ■──────────────────────────" );
-            _prefix += " | ";
+            w.WriteLine( _prefix + "\u00A0┌──────────────────────────■ Exception ■──────────────────────────" );
+            _prefix += "\u00A0|\u00A0";
+            string start;
             if( displayMessage && ex.Message != null )
             {
-                w.Write( _prefix + "Message: " );
-                p = _prefix + "         ";
-                w.WriteLine( ex.Message.Replace( Environment.NewLine, Environment.NewLine + p ) );
+                start = _prefix + "Message:\u00A0";
+                p = _prefix + "\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0";
+                w.WriteLine( start + ex.Message.Replace( Environment.NewLine, Environment.NewLine + p ) );
             }
             if( ex.StackTrace != null )
             {
-                w.Write( _prefix + "Stack: " );
-                p = _prefix + "       ";
-                w.WriteLine( ex.StackTrace.Replace( Environment.NewLine, Environment.NewLine + p ) );
+                start = _prefix + "Stack:\u00A0";
+                p = _prefix + "\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0";
+                w.WriteLine( start + ex.StackTrace.Replace( Environment.NewLine, Environment.NewLine + p ) );
             }
             if( ex.InnerException != null )
             {
-                w.WriteLine( _prefix + " ┌──────────────────────────▪ [Inner Exception] ▪──────────────────────────" );
-                _prefix += " | ";
+                w.WriteLine( _prefix + "\u00A0┌──────────────────────────▪ [Inner Exception] ▪──────────────────────────" );
+                _prefix += "\u00A0|\u00A0";
                 DumpException( w, true, ex.InnerException );
                 _prefix = _prefix.Remove( _prefix.Length - 3 );
-                w.WriteLine( _prefix + " └─────────────────────────────────────────────────────────────────────────" );
+                w.WriteLine( _prefix + "\u00A0└─────────────────────────────────────────────────────────────────────────" );
             }
             _prefix = _prefix.Remove( _prefix.Length - 3 );
-            w.WriteLine( _prefix + " └─────────────────────────────────────────────────────────────────────────" );
+            w.WriteLine( _prefix + "\u00A0└─────────────────────────────────────────────────────────────────────────" );
         }
 
     }
