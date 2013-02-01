@@ -32,7 +32,7 @@ namespace CK.Core
     /// <summary>
     /// Concrete implementation of <see cref="IActivityLogger"/>.
     /// </summary>
-    public class ActivityLogger : IActivityLogger, IActivityLoggerClientBase
+    public class ActivityLogger : MarshalByRefObject, IActivityLogger, IActivityLoggerClientBase
     {
         /// <summary>
         /// String to use to break the current <see cref="LogLevel"/> (as if a different <see cref="LogLevel"/> was used).
