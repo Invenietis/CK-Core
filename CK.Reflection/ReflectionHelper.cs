@@ -234,7 +234,8 @@ namespace CK.Reflection
         }
 
         /// <summary>
-        /// Gets all properties (including inherited properties) of the given interface type.
+        /// Gets all properties (including inherited properties) of the given interface type (<see cref="Type.GetProperties"/> does not 
+        /// flatten the properties).
         /// </summary>
         /// <param name="interfaceType">Type to process, must be an interface.</param>
         /// <returns>An <see cref="IEnumerable{T}"/> of <see cref="PropertyInfo"/>.</returns>

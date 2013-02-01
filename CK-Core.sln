@@ -28,7 +28,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CK.MultiTrait.Tests", "Test
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Shared Items", "Shared Items", "{E3559EF9-ED4A-4169-9287-6F94CFBD09FA}"
 	ProjectSection(SolutionItems) = preProject
-		SharedAssemblyInfo.cs = SharedAssemblyInfo.cs
 		SharedKey.snk = SharedKey.snk
 	EndProjectSection
 EndProject

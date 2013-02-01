@@ -601,6 +601,9 @@ namespace Core
             Assert.Throws<ArgumentNullException>( () => d.Catch( null ) );
 
             d.Error( "Pouf" );
+            using( d.CatchCounter( e => Assert.That( e == 2 ) ) )
+            using( d.CatchCounter( ( f, e ) => Assert.That( f == 1 && e == 1 ) ) )
+            using( d.CatchCounter( ( f, e, w ) => Assert.That( f == 1 && e == 1 && w == 1 ) ) )
             using( d.Catch( e => Assert.That( String.Join( ",", e.Select( t => t.Text ) ) == "One,Two" ) ) )
             {
                 d.Error( "One" );
@@ -608,6 +611,9 @@ namespace Core
                 d.Fatal( "Two" );
             }
             d.Error( "Out..." );
+            using( d.CatchCounter( e => Assert.That( e == 2 ) ) )
+            using( d.CatchCounter( ( f, e ) => Assert.That( f == 1 && e == 1 ) ) )
+            using( d.CatchCounter( ( f, e, w ) => Assert.That( f == 1 && e == 1 && w == 1 ) ) )
             using( d.Catch( e => e.Single( t => t.Text == "Two" ), LogLevelFilter.Fatal ) )
             {
                 d.Error( "One" );
@@ -615,12 +621,18 @@ namespace Core
                 d.Fatal( "Two" );
             }
 
+            using( d.CatchCounter( e => Assert.Fail( "No Error occured." ) ) )
+            using( d.CatchCounter( ( f, e ) => Assert.Fail( "No Error occured." ) ) )
+            using( d.CatchCounter( ( f, e, w ) => Assert.That( f == 0 && e == 0 && w == 1 ) ) )
             using( d.Catch( e => Assert.Fail( "No Error occured." ) ) )
             {
                 d.Trace( "One" );
                 d.Warn( "Warn" );
             }
-            
+
+            using( d.CatchCounter( e => Assert.That( e == 1  ) ) )
+            using( d.CatchCounter( ( f, e ) => Assert.That( f == 0 && e == 1 ) ) )
+            using( d.CatchCounter( ( f, e, w ) => Assert.That( f == 0 && e == 1 && w == 1 ) ) )
             using( d.Catch( e => Assert.Fail( "No Fatal occured." ), LogLevelFilter.Fatal ) )
             {
                 d.Error( "One" );
