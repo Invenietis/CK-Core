@@ -8,7 +8,10 @@ using System.Diagnostics;
 
 namespace CK.Reflection
 {
-    public class EmitHelper
+    /// <summary>
+    /// Collection of helpers to emit dynamic code. 
+    /// </summary>
+    public static class EmitHelper
     {
         /// <summary>
         /// Implements a method as a no operation method. Method can be virtual, abstract or not.

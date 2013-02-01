@@ -199,7 +199,7 @@ namespace CK.Core
             foreach( FileInfo f in files )
             {
                 if( (withHiddenFiles || ((f.Attributes & FileAttributes.Hidden) != FileAttributes.Hidden))
-                    && (fileFilter == null && fileFilter( f )) )
+                    && (fileFilter == null || fileFilter( f )) )
                 {
                     f.CopyTo( Path.Combine( target.FullName, f.Name ) );
                 }
