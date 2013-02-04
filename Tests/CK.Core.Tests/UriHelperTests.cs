@@ -75,18 +75,6 @@ namespace CK.Core.Tests
             TestAssume( "test.com?a=z&kilo=1", "test.com?a=z&kilo", "kilo", "1" );
             TestAssume( "test.com?a=z&kilo=1", "test.com?a=z&kilo=", "kilo", "1" );
 
-            //Assert.That( UriHelper.RemoveUrlParameter( "test.com?a=z&kilo=1", "a" ) == "test.com?kilo=1" );
-            //Assert.That( UriHelper.RemoveUrlParameter( "test.com?a=z&kilo=1", "kilo" ) == "test.com?a=z" );
-            //Assert.That( UriHelper.RemoveUrlParameter( "test.com?a=z&toto=6&kilo=1", "toto" ) == "test.com?a=z&kilo=1" );
-
-            //Assert.That( UriHelper.RemoveUrlParameter( "test.com?&a=z&kilo=1", "a" ) == "test.com?&kilo=1" );
-            //Assert.That( UriHelper.RemoveUrlParameter( "test.com?&a=z&kilo=1", "kilo" ) == "test.com?&a=z" );
-            //Assert.That( UriHelper.RemoveUrlParameter( "test.com?&a=z&toto=6&kilo=1", "toto" ) == "test.com?&a=z&kilo=1" );
-
-            //Assert.That( UriHelper.RemoveUrlParameter( "test.com?&a=z&kilo=1", "edhoe" ) == "test.com?&a=z&kilo=1" );
-            //Assert.That( UriHelper.RemoveUrlParameter( "test.com?&a=z&kilo=1", "" ) == "test.com?&a=z&kilo=1" );
-            //Assert.That( UriHelper.RemoveUrlParameter( "test.com?&a=z&kilo=1", null ) == "test.com?&a=z&kilo=1" );
-
             TestRemove( "test.com?kilo=1", "test.com?a=z&kilo=1", "a" );
             TestRemove( "test.com?a=z", "test.com?a=z&kilo=1", "kilo" );
             TestRemove( "test.com?a=z&kilo=1", "test.com?a=z&toto=6&kilo=1", "toto" );
@@ -111,6 +99,5 @@ namespace CK.Core.Tests
             TestAppend( "test.com?kilo&z=2&kilo=1&kilo=34&kilo=1", "test.com?kilo&z=2&kilo=1&kilo=34", "kilo", "1" );
 
         }
-
     }
 }
