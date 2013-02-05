@@ -40,20 +40,6 @@ namespace CK.Core.Tests
             Assert.AreEqual( new Uri( prefix + expected ), new Uri( prefix + u ).AssumeUrlParameter( param, newValue ) );
         }
 
-        void TestRemove( string expected, string u, string param )
-        {
-            Assert.AreEqual( expected, UriHelper.RemoveUrlParameter( u, param ) );
-            string prefix = "http://";
-            Assert.AreEqual( new Uri( prefix + expected ), new Uri( prefix + u ).RemoveUrlParameter( param ) );
-        }
-
-        void TestAppend( string expected, string u, string param, string newValue )
-        {
-            Assert.AreEqual( expected, UriHelper.AppendUrlParameter( u, param, newValue ) );
-            string prefix = "http://";
-            Assert.AreEqual( new Uri( prefix + expected ), new Uri( prefix + u ).AppendUrlParameter( param, newValue ) );
-        }
-
         [Test]
         public void AssumeUrlParameter()
         {
@@ -74,7 +60,18 @@ namespace CK.Core.Tests
             TestAssume( "test.com?a=z&kilo=1", "test.com?a=z&kilo=j", "kilo", "1" );
             TestAssume( "test.com?a=z&kilo=1", "test.com?a=z&kilo", "kilo", "1" );
             TestAssume( "test.com?a=z&kilo=1", "test.com?a=z&kilo=", "kilo", "1" );
+        }
 
+        void TestRemove( string expected, string u, string param )
+        {
+            Assert.AreEqual( expected, UriHelper.RemoveUrlParameter( u, param ) );
+            string prefix = "http://";
+            Assert.AreEqual( new Uri( prefix + expected ), new Uri( prefix + u ).RemoveUrlParameter( param ) );
+        }
+
+        [Test]
+        public void RemoveUrlParameter()
+        {
             TestRemove( "test.com?kilo=1", "test.com?a=z&kilo=1", "a" );
             TestRemove( "test.com?a=z", "test.com?a=z&kilo=1", "kilo" );
             TestRemove( "test.com?a=z&kilo=1", "test.com?a=z&toto=6&kilo=1", "toto" );
@@ -86,7 +83,18 @@ namespace CK.Core.Tests
             TestRemove( "test.com?&a=z&kilo=1", "test.com?&a=z&kilo=1", "edhoe" );
             TestRemove( "test.com?&a=z&kilo=1", "test.com?&a=z&kilo=1", "" );
             TestRemove( "test.com?&a=z&kilo=1", "test.com?&a=z&kilo=1", null );
+        }
 
+        void TestAppend( string expected, string u, string param, string newValue )
+        {
+            Assert.AreEqual( expected, UriHelper.AppendUrlParameter( u, param, newValue ) );
+            string prefix = "http://";
+            Assert.AreEqual( new Uri( prefix + expected ), new Uri( prefix + u ).AppendUrlParameter( param, newValue ) );
+        }
+
+        [Test]
+        public void AppendUrlParameter()
+        {
             TestAppend( "test.com?kilo=", "test.com", "kilo", null );
             TestAppend( "test.com?kilo=1", "test.com", "kilo", "1" );
             TestAppend( "test.com?kilo=1", "test.com?", "kilo", "1" );
@@ -97,7 +105,6 @@ namespace CK.Core.Tests
             TestAppend( "test.com?kilo&z=2&kilo=1", "test.com?kilo&z=2", "kilo", "1" );
             TestAppend( "test.com?kilo&z=2&kilo=1&kilo=34", "test.com?kilo&z=2&kilo=1", "kilo", "34" );
             TestAppend( "test.com?kilo&z=2&kilo=1&kilo=34&kilo=1", "test.com?kilo&z=2&kilo=1&kilo=34", "kilo", "1" );
-
         }
     }
 }
