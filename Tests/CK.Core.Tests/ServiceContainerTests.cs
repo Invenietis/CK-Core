@@ -147,6 +147,34 @@ namespace Core
         }
 
         [Test]
+        public void SimpleServiceContainerThrowNullArgumentsExceptionTest()
+        {
+            SimpleServiceContainer container = new SimpleServiceContainer();
+            ArgumentNullException ex;
+
+            //SimpleServiceContainer.Add( Type serviceType, object serviceInstance, Action<Object> onRemove )
+            ex = Assert.Throws<ArgumentNullException>( () => container.Add( null, new ProvidedClass( 5 ), null ) );
+            Assert.That( ex.ParamName, Is.EqualTo( "serviceType" ) );
+            ex = Assert.Throws<ArgumentNullException>( () => container.Add( typeof( ProvidedClass ), (object)null, null ) );
+            Assert.That( ex.ParamName, Is.EqualTo( "serviceInstance" ) );
+
+            //SimpleServiceContainer.Add( Type serviceType, Func<Object> serviceInstance, Action<Object> onRemove )
+            ex = Assert.Throws<ArgumentNullException>( () => container.Add( null, () => { return new ProvidedClass( 5 ); }, null ) );
+            Assert.That( ex.ParamName, Is.EqualTo( "serviceType" ) );
+            ex = Assert.Throws<ArgumentNullException>( () => container.Add( typeof( ProvidedClass ), (Func<Object>)null, null ) );
+            Assert.That( ex.ParamName, Is.EqualTo( "serviceInstance" ) );
+
+            //SimpleServiceContainer.AddDisabled( Type serviceType )
+            ex = Assert.Throws<ArgumentNullException>( () => container.AddDisabled( null ) );
+            Assert.That( ex.ParamName, Is.EqualTo( "serviceType" ) );
+
+            //SimpleServiceContainer.GetService( Type serviceType )
+            ex = Assert.Throws<ArgumentNullException>( () => container.GetService( null ) );
+            Assert.That( ex.ParamName, Is.EqualTo( "serviceType" ) );
+
+        }
+
+        [Test]
         public void SimpleServiceContainerFallbackTest()
         {
             int removedServicesCount = 0;
@@ -413,7 +441,6 @@ namespace Core
         static void OnRemoveUnrelatedType( string unrelatedType )
         {
         }
-
     
     }
 }
