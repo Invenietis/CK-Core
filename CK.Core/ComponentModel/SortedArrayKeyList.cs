@@ -25,6 +25,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 
 namespace CK.Core
 {
@@ -37,6 +38,7 @@ namespace CK.Core
         Func<T,TKey> _keySelector;
         Comparison<TKey> _keyComparison;
 
+        [ExcludeFromCodeCoverage]
         class DebuggerView
         {
             SortedArrayKeyList<T, TKey> _c;

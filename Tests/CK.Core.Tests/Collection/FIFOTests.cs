@@ -108,9 +108,12 @@ namespace Core.Collection
             f.Capacity = 2;
             Assert.That( f.Capacity, Is.EqualTo( 2 ) );
 
+            Assert.That( f.ToString(), Is.EqualTo( String.Format( "Count = {0} (Capacity = {1})", 0, 2 ) ) );
+
             //ExceptionTest
             Assert.Throws<ArgumentException>( () => f.Capacity = -1 );
             Assert.Throws<ArgumentException>( () => new FIFOBuffer<int>( -1 ) );
+            Assert.Throws<ArgumentException>( () => f.CopyTo(new int[2], 0, -1) );
         }
 
         [Test]
