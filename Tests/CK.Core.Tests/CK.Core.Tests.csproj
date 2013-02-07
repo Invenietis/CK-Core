@@ -59,6 +59,7 @@
     <Compile Include="Collection\SortedArrayListTests.cs" />
     <Compile Include="FileUtilTests.cs" />
     <Compile Include="Animals.cs" />
+    <Compile Include="OSVersionInfoTests.cs" />
     <Compile Include="ServiceContainerTests.cs" />
     <Compile Include="CoreExtensionTests.cs" />
     <Compile Include="Collection\ReadOnlyTests.cs" />

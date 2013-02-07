@@ -54,6 +54,54 @@ namespace Core.Collection
         }
 
         [Test]
+        public void SortedArrayKeyListSimpleTest()
+        {
+            var a = new SortedArrayKeyList<int, string>( i => i.ToString() );
+
+            a.AddRangeArray( 1, 10, 100, 100, 1000, 10000, 2, 20, 3, 30, 100, 46, 56 );
+            CheckList( a, 1, 10, 100, 1000, 10000, 2, 20, 3, 30, 46, 56 );
+
+            Assert.That( a.IndexOf( 1 ), Is.EqualTo( 0 ) );
+            Assert.That( a.IndexOf( 2 ), Is.EqualTo( 5 ) );
+            Assert.That( a.IndexOf( 3 ), Is.EqualTo( 7 ) );
+
+            Assert.That( a.KeyCount( "100" ), Is.EqualTo( 1 ) );
+
+            object o;
+            o = "2";
+            Assert.That( a.IndexOf( o ), Is.EqualTo( 5 ) );
+            o = 2;
+            Assert.That( a.IndexOf( o ), Is.EqualTo( 5 ) );
+            o = null;
+            Assert.That( a.IndexOf( o ), Is.EqualTo( Int32.MinValue ) );
+            o = new ClassToTest( "A" );
+            Assert.That( a.IndexOf( o ), Is.EqualTo( Int32.MinValue ) );
+            o = "42";
+            Assert.That( a.Contains( o ), Is.False );
+
+            a.Remove( "10" );
+            Assert.That( a.KeyCount( "10" ), Is.EqualTo( 0 ) );
+            CheckList( a, 1, 100, 1000, 10000, 2, 20, 3, 30, 46, 56 );
+            a.Remove( "20" );
+            CheckList( a, 1, 100, 1000, 10000, 2, 3, 30, 46, 56 );
+            a.Remove( "100" );
+            Assert.That( a.KeyCount( "100" ), Is.EqualTo( 0 ) );
+            CheckList( a, 1, 1000, 10000, 2, 3, 30, 46, 56 );
+            Assert.That( a.Remove( "Nothing" ), Is.False );
+
+            //Exception Test
+            var b = new SortedArrayKeyList<ClassToTest, string>( i => i.ToString(), false );
+            ClassToTest classToTest = new ClassToTest( "A" );
+
+            b.Add( classToTest );
+            b.Add( new ClassToTest( "B" ) );
+
+            Assert.That( b.Contains( classToTest ), Is.True );
+            Assert.That( b.IndexOf( classToTest ), Is.EqualTo( 0 ) );
+            Assert.Throws<ArgumentNullException>( () => b.IndexOf( (ClassToTest)null ) );
+        }
+
+        [Test]
         public void NoDuplicateKeyedCollection()
         {
             // Uses an ObservableSortedArrayKeyList just for fun and
@@ -75,7 +123,13 @@ namespace Core.Collection
             o = "2";
             Assert.That( a.Contains( o ), "Using the key." );
             o = 2;
-            Assert.That( a.Contains( o ), "Using the value itself." );
+            Assert.That( a.Contains( o ), "Using the value itself." ); 
+            o = null;
+            Assert.That( a.Contains( o ), Is.False );
+            o = 42;
+            Assert.That( a.Contains( o ), Is.False );
+            o = "42";
+            Assert.That( a.Contains( o ), Is.False );
 
             Assert.That( !a.Add( 3 ) );
             Assert.That( !a.Add( 2 ) );
@@ -125,6 +179,21 @@ namespace Core.Collection
         private static void CheckList( IEnumerable<int> a, params int[] p )
         {
             Assert.That( a.SequenceEqual( p ) );
+        }
+
+        class ClassToTest
+        {
+            public ClassToTest( string name )
+            {
+                Name = name;
+            }
+
+            public string Name { get; set; }
+
+            public override string ToString()
+            {
+                return Name; 
+            }
         }
 
     }
