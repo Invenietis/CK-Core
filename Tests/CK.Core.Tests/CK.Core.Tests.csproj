@@ -53,6 +53,7 @@
     <Compile Include="..\..\SharedAssemblyInfo.cs">
       <Link>Properties\SharedAssemblyInfo.cs</Link>
     </Compile>
+    <Compile Include="Collection\ObservableSortedArrayListTests.cs" />
     <Compile Include="Collection\SortedArrayKeyListTests.cs" />
     <Compile Include="Collection\FIFOTests.cs" />
     <Compile Include="ActivityLoggerTests.cs" />

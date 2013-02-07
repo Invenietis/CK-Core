@@ -23,6 +23,7 @@
 
 using System;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
 
 namespace CK.Core
@@ -30,6 +31,7 @@ namespace CK.Core
     /// <summary>
     /// Provides detailed information about the host operating system.
     /// </summary>
+    [ExcludeFromCodeCoverage]
     public static class OSVersionInfo
     {
         /// <summary>
