@@ -347,7 +347,7 @@ namespace CK.Core
                 {
                     return AllowDuplicates ? index : ~index;
                 }
-                if( other > 0 ) other = Util.BinarySearch( _tab, 0, other, _tab[index], Comparator );
+                if( other >= 0 )  other = Util.BinarySearch( _tab, 0, other, _tab[index], Comparator );
                 if( other >= 0 )
                 {
                     if( !AllowDuplicates ) return ~other;
@@ -365,7 +365,7 @@ namespace CK.Core
                     {
                         return AllowDuplicates ? index : ~index;
                     }
-                    if( lenAfter > 1 ) other = Util.BinarySearch( _tab, other, lenAfter, _tab[index], Comparator );
+                    if( lenAfter >= 1 ) other = Util.BinarySearch( _tab, other, lenAfter, _tab[index], Comparator );
                     if( other >= 0 )
                     {
                         if( !AllowDuplicates ) return ~other;
