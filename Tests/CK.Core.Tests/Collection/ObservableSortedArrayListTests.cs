@@ -10,16 +10,6 @@ namespace CK.Core.Tests.Collection
     [TestFixture]
     public class ObservableSortedArrayListTests
     {
-        class TestMammals : ObservableSortedArrayList<Mammal>
-        {
-            public TestMammals( Comparison<Mammal> m, bool allowDuplicated = false )
-                : base( m, allowDuplicated )
-            {
-            }
-
-            public Mammal[] Tab { get { return Store; } }
-        }
-
         [Test]
         public void ObservableSortedArrayListDoMove()
         {
@@ -55,21 +45,12 @@ namespace CK.Core.Tests.Collection
             a.PropertyChanged += ( o, e ) => propertyChangedPass = true;
             a.CollectionChanged += ( o, e ) => collectionChangedPass = true;
             a.CheckList();
-            Assert.Throws<IndexOutOfRangeException>( () => a.RemoveAt( -1 ) );
-            Assert.Throws<IndexOutOfRangeException>( () => a.RemoveAt( 0 ) );
-            Assert.Throws<IndexOutOfRangeException>( () => a.RemoveAt( 1 ) );
-
-            Assert.That( a.Remove( -1 ), Is.False );
-            Assert.That( a.Remove( 0 ), Is.False );
-            Assert.That( a.Remove( 1 ), Is.False );
 
             Assert.That( collectionChangedPass, Is.False );
             Assert.That( propertyChangedPass, Is.False );
 
             a.Add( 204 );
             a.CheckList();
-            Assert.Throws<IndexOutOfRangeException>( () => a.RemoveAt( -1 ) );
-            Assert.Throws<IndexOutOfRangeException>( () => a.RemoveAt( 1 ) );
 
             Assert.That( collectionChangedPass, Is.True );
             Assert.That( propertyChangedPass, Is.True );
@@ -101,11 +82,6 @@ namespace CK.Core.Tests.Collection
             a.PropertyChanged += ( o, e ) => propertyChangedPass = true;
             a.CollectionChanged += ( o, e ) => collectionChangedPass = true;
 
-            Assert.That( listToTest[0], Is.EqualTo( -34 ) );
-            Assert.That( listToTest[1], Is.EqualTo( 7 ) );
-            Assert.That( listToTest[2], Is.EqualTo( 12 ) );
-            Assert.That( listToTest[3], Is.EqualTo( 545 ) );
-
             Assert.That( collectionChangedPass, Is.False );
             Assert.That( propertyChangedPass, Is.False );
 
@@ -124,6 +100,7 @@ namespace CK.Core.Tests.Collection
             a.Clear();
 
             Assert.That( collectionChangedPass, Is.True );
+            Assert.That( propertyChangedPass, Is.False );
             collectionChangedPass = false;
 
         }
@@ -146,7 +123,6 @@ namespace CK.Core.Tests.Collection
             Assert.That( String.Join( "", a.Select( m => m.Name ) ), Is.EqualTo( p ) );
         }
 
-
         class TestInt : ObservableSortedArrayList<int>
         {
             public TestInt()
@@ -167,11 +143,14 @@ namespace CK.Core.Tests.Collection
             }
         }
 
-        private static void CheckList( TestInt a, params int[] p )
+        class TestMammals : ObservableSortedArrayList<Mammal>
         {
-            a.CheckList();
-            Assert.That( a.SequenceEqual( p ) );
-        }
+            public TestMammals( Comparison<Mammal> m, bool allowDuplicated = false )
+                : base( m, allowDuplicated )
+            {
+            }
 
+            public Mammal[] Tab { get { return Store; } }
+        }
     }
 }
