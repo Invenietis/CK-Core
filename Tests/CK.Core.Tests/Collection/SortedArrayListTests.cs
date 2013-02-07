@@ -69,8 +69,8 @@ namespace Core.Collection
 
         class TestMammals : SortedArrayList<Mammal>
         {
-            public TestMammals( Comparison<Mammal> m )
-                : base( m )
+            public TestMammals( Comparison<Mammal> m, bool allowDuplicated = false )
+                : base( m, allowDuplicated )
             {
             }
 
@@ -130,10 +130,40 @@ namespace Core.Collection
             a[3].Name = "D";
             Assert.That( a.CheckPosition( 3 ), Is.LessThan( 0 ) );
             CheckList( a, "ACDDEF" );
-            
+
             a[3].Name = "B";
             Assert.That( a.CheckPosition( 3 ), Is.EqualTo( 1 ) );
             CheckList( a, "ABCDEF" );
+
+            var b = new TestMammals( ( a1, a2 ) => a1.Name.CompareTo( a2.Name ) );
+            b.Add( new Mammal( "B" ) );
+            b.Add( new Mammal( "A" ) );
+            Assert.That( String.Join( "", b.Select( m => m.Name ) ), Is.EqualTo( "AB" ) );
+
+            b[0].Name = "Z";
+            CheckList( b, "ZB" );
+            Assert.That( b.CheckPosition( 0 ), Is.EqualTo( 1 ) );
+            CheckList( b, "BZ" );
+
+            var c = new TestMammals( ( a1, a2 ) => a1.Name.CompareTo( a2.Name ), true );
+            c.Add( new Mammal( "B" ) );
+            c.Add( new Mammal( "A" ) );
+            Assert.That( String.Join( "", c.Select( m => m.Name ) ), Is.EqualTo( "AB" ) );
+
+            c[0].Name = "Z";
+            CheckList( c, "ZB" );
+            Assert.That( c.CheckPosition( 0 ), Is.EqualTo( 1 ) );
+            CheckList( c, "BZ" );
+
+            var d = new TestMammals( ( a1, a2 ) => a1.Name.CompareTo( a2.Name ) );
+            d.Add( new Mammal( "B" ) );
+            d.Add( new Mammal( "C" ) );
+            Assert.That( String.Join( "", d.Select( m => m.Name ) ), Is.EqualTo( "BC" ) );
+
+            d[1].Name = "A";
+            CheckList( d, "BA" );
+            Assert.That( d.CheckPosition( 1 ), Is.EqualTo( 0 ) );
+            CheckList( d, "AB" );
         }
 
         [Test]
