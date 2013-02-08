@@ -46,13 +46,13 @@ namespace Storage
         [TearDown]
         public void Setup()
         {
-            TestBase.CleanupTestDir();
+            TestHelper.CleanupTestDir();
         }
 
         [Test]
         public void EmptyFile()
         {
-            string test = TestBase.GetTestFilePath( "Storage", "EmptyFile" );
+            string test = TestHelper.GetTestXmlFilePath( "Storage", "EmptyFile" );
             using( Stream wrt = new FileStream( test, FileMode.Create ) )
             {
                 IStructuredWriter writer = SimpleStructuredWriter.CreateWriter( wrt, new SimpleServiceContainer() );
@@ -75,7 +75,7 @@ namespace Storage
         [Test]
         public void FirstTest()
         {
-            string test = TestBase.GetTestFilePath( "Storage", "FirstTest" );
+            string test = TestHelper.GetTestXmlFilePath( "Storage", "FirstTest" );
             using( Stream wrt = new FileStream( test, FileMode.Create ) )
             {
                 using( IStructuredWriter writer = SimpleStructuredWriter.CreateWriter( wrt, new SimpleServiceContainer() ) )
@@ -100,7 +100,7 @@ namespace Storage
         [ExpectedException( typeof( FileNotFoundException ) )]
         public void ReadUnexistingFileWithException()
         {
-            string path = TestBase.GetTestFilePath( "Storage", "UnexistingFileWithException" );
+            string path = TestHelper.GetTestXmlFilePath( "Storage", "UnexistingFileWithException" );
 
             Assert.That( !File.Exists( path ) );
             using( Stream str = new FileStream( path, FileMode.Open ) )
@@ -115,7 +115,7 @@ namespace Storage
         [Test]
         public void ReadUnexistingFileWithoutException()
         {
-            string path = TestBase.GetTestFilePath( "Storage", "UnexistingFileWithoutException" );
+            string path = TestHelper.GetTestXmlFilePath( "Storage", "UnexistingFileWithoutException" );
             Assert.That( !File.Exists( path ) );
             Assert.That( SimpleStructuredReader.CreateReader( null, new SimpleServiceContainer(), false ), Is.Null );
         }
@@ -123,7 +123,7 @@ namespace Storage
         [Test]
         public void TestIntegers()
         {
-            string test = TestBase.GetTestFilePath( "Storage", "TestIntegers" );
+            string test = TestHelper.GetTestXmlFilePath( "Storage", "TestIntegers" );
             using( Stream wrt = new FileStream( test, FileMode.Create ) )
             {
                 using( IStructuredWriter writer = SimpleStructuredWriter.CreateWriter( wrt, new SimpleServiceContainer() ) )
@@ -161,10 +161,10 @@ namespace Storage
         {
             string path;
             
-            path = TestBase.GetTestFilePath( "Storage", "XmlObjectCorrect.Structured" );
+            path = TestHelper.GetTestXmlFilePath( "Storage", "XmlObjectCorrect.Structured" );
             TestXmlSerializableObject( path, new XmlRawObjectStructured() { Name = "Normal Structured", Power = 23 } );
 
-            path = TestBase.GetTestFilePath( "Storage", "XmlObjectCorrect.XmlSerializable" );
+            path = TestHelper.GetTestXmlFilePath( "Storage", "XmlObjectCorrect.XmlSerializable" );
             TestXmlSerializableObject( path, new XmlRawObjectXmlSerialzable() { Name = "Normal IXmlSerializable", Power = 230 } );
         }
 
@@ -173,10 +173,10 @@ namespace Storage
         {
             string path;
 
-            path = TestBase.GetTestFilePath( "Storage", "XmlObjectSkiptTag.Structured" );
+            path = TestHelper.GetTestXmlFilePath( "Storage", "XmlObjectSkiptTag.Structured" );
             TestXmlSerializableObject( path, new XmlRawObjectStructured() { Name = "Buggy Structured", Power = 23, BugWhileReading = BugRead.SkipTag } );
 
-            path = TestBase.GetTestFilePath( "Storage", "XmlObjectSkiptTag.XmlSerializable" );
+            path = TestHelper.GetTestXmlFilePath( "Storage", "XmlObjectSkiptTag.XmlSerializable" );
             TestXmlSerializableObject( path, new XmlRawObjectXmlSerialzable() { Name = "Buggy IXmlSerializable", Power = 230, BugWhileReading = BugRead.SkipTag } );
         }
 
@@ -185,10 +185,10 @@ namespace Storage
         {
             string path;
 
-            path = TestBase.GetTestFilePath( "Storage", "XmlObjectMoveToEndTag.Structured" );
+            path = TestHelper.GetTestXmlFilePath( "Storage", "XmlObjectMoveToEndTag.Structured" );
             TestXmlSerializableObject( path, new XmlRawObjectStructured() { Name = "Buggy Structured", Power = 23, BugWhileReading = BugRead.MoveToEndTag } );
 
-            path = TestBase.GetTestFilePath( "Storage", "XmlObjectMoveToEndTag.XmlSerializable" );
+            path = TestHelper.GetTestXmlFilePath( "Storage", "XmlObjectMoveToEndTag.XmlSerializable" );
             TestXmlSerializableObject( path, new XmlRawObjectXmlSerialzable() { Name = "Buggy IXmlSerializable", Power = 230, BugWhileReading = BugRead.MoveToEndTag } );
         }
 
@@ -197,10 +197,10 @@ namespace Storage
         {
             string path;
 
-            path = TestBase.GetTestFilePath( "Storage", "XmlObjectThrows.Structured" );
+            path = TestHelper.GetTestXmlFilePath( "Storage", "XmlObjectThrows.Structured" );
             TestXmlSerializableObject( path, new XmlRawObjectStructured() { Name = "Buggy Structured", Power = 23, BugWhileReading = BugRead.ThrowApplicationException } );
 
-            path = TestBase.GetTestFilePath( "Storage", "XmlObjectThrows.XmlSerializable" );
+            path = TestHelper.GetTestXmlFilePath( "Storage", "XmlObjectThrows.XmlSerializable" );
             TestXmlSerializableObject( path, new XmlRawObjectXmlSerialzable() { Name = "Buggy IXmlSerializable", Power = 230, BugWhileReading = BugRead.ThrowApplicationException } );
         }
 
@@ -242,7 +242,7 @@ namespace Storage
         [Test]
         public void BinarySerializableObject()
         {
-            string xmlPath = TestBase.GetTestFilePath( "Storage", "TestBinarySerializableObject" );
+            string xmlPath = TestHelper.GetTestXmlFilePath( "Storage", "TestBinarySerializableObject" );
             SerializableObject o = new SerializableObject();
             o.Name = "TestName";
             o.Power = 20;
@@ -276,7 +276,7 @@ namespace Storage
         [Test]
         public void GenericListOfString()
         {
-            string xmlPath = TestBase.GetTestFilePath( "Storage", "TestGenericListOfString" );
+            string xmlPath = TestHelper.GetTestXmlFilePath( "Storage", "TestGenericListOfString" );
             List<string> list = new List<string>();
             list.Add( "content1" );
             list.Add( "content2" );
@@ -307,7 +307,7 @@ namespace Storage
         [Test]
         public void ColorStruct()
         {
-            string xmlPath = TestBase.GetTestFilePath( "Storage", "TestColor" );
+            string xmlPath = TestHelper.GetTestXmlFilePath( "Storage", "TestColor" );
             using( Stream wrt = new FileStream( xmlPath, FileMode.Create ) )
             {
                 using( IStructuredWriter writer = SimpleStructuredWriter.CreateWriter( wrt, new SimpleServiceContainer() ) )
@@ -333,7 +333,7 @@ namespace Storage
         [Test]
         public void ArrayListWithSerializableObjects()
         {
-            string xmlPath = TestBase.GetTestFilePath( "Storage", "TestGenericListOfString" );
+            string xmlPath = TestHelper.GetTestXmlFilePath( "Storage", "TestGenericListOfString" );
             ArrayList list = new ArrayList();
             SerializableObject firstObject = new SerializableObject() { Name = "Albert", Power = 34 };
             list.Add( firstObject );
@@ -373,7 +373,7 @@ namespace Storage
 
         private void DoTestEnum( Action<XDocument> docModifier )
         {
-            string test = TestBase.GetTestFilePath( "Storage", "TestEnum" );
+            string test = TestHelper.GetTestXmlFilePath( "Storage", "TestEnum" );
             using( Stream wrt = new FileStream( test, FileMode.Create ) )
             {
                 using( IStructuredWriter writer = SimpleStructuredWriter.CreateWriter( wrt, new SimpleServiceContainer() ) )
@@ -403,7 +403,7 @@ namespace Storage
         [ExpectedException( typeof( CKException ) )]
         public void BugBinaryBadContent()
         {
-            string xmlPath = TestBase.GetTestFilePath( "Storage", "BugBinaryBadContent" );
+            string xmlPath = TestHelper.GetTestXmlFilePath( "Storage", "BugBinaryBadContent" );
             SerializableObject original = new SerializableObject() { Name = "coucou", Power = 20 };
             using( Stream wrt = new FileStream( xmlPath, FileMode.Create ) )
             {
@@ -432,7 +432,7 @@ namespace Storage
         [ExpectedException( typeof( CKException ) )]
         public void BugBinaryTooBigContent()
         {
-            string xmlPath = TestBase.GetTestFilePath( "Storage", "BugBinaryTooBigContent" );
+            string xmlPath = TestHelper.GetTestXmlFilePath( "Storage", "BugBinaryTooBigContent" );
             SerializableObject original = new SerializableObject() { Name = "coucou", Power = 20 };
             using( Stream wrt = new FileStream( xmlPath, FileMode.Create ) )
             {
@@ -460,7 +460,7 @@ namespace Storage
         [Test]
         public void BugBinarySizeDiffer()
         {
-            string xmlPath = TestBase.GetTestFilePath( "Storage", "BugBinarySizeDiffer" );
+            string xmlPath = TestHelper.GetTestXmlFilePath( "Storage", "BugBinarySizeDiffer" );
             SerializableObject original = new SerializableObject() { Name = "coucou", Power = 20 };
             using( Stream wrt = new FileStream( xmlPath, FileMode.Create ) )
             {
@@ -485,7 +485,7 @@ namespace Storage
         [Test]
         public void StructuredSerializedObjectTest()
         {
-            string xmlPath = TestBase.GetTestFilePath( "Storage", "FakeStructuredSerializedObject" );
+            string xmlPath = TestHelper.GetTestXmlFilePath( "Storage", "FakeStructuredSerializedObject" );
             StructuredSerializableObject original = new StructuredSerializableObject() { OneInteger = 43, OneString = "Let's go..." };
             using( Stream wrt = new FileStream( xmlPath, FileMode.Create ) )
             {
@@ -505,7 +505,7 @@ namespace Storage
                     writer.WriteObjectElement( "After", 3712 * 2 );
                 }
             }
-            TestBase.DumpFileToConsole( xmlPath );
+            TestHelper.DumpFileToConsole( xmlPath );
             // Reads without reading ExtraData element.
             using( Stream str = new FileStream( xmlPath, FileMode.Open ) )
             {
@@ -610,7 +610,7 @@ namespace Storage
         [Test]
         public void BugUnexisting()
         {
-            string xmlPath = TestBase.GetTestFilePath( "Storage", "BugUnexistingEnum" );
+            string xmlPath = TestHelper.GetTestXmlFilePath( "Storage", "BugUnexistingEnum" );
             using( Stream wrt = new FileStream( xmlPath, FileMode.Create ) )
             {
                 using( IStructuredWriter writer = SimpleStructuredWriter.CreateWriter( wrt, new SimpleServiceContainer() ) )
@@ -621,7 +621,7 @@ namespace Storage
                     writer.WriteObjectElement( "After2", 3712 * 3 );
                 }
             }
-            TestBase.DumpFileToConsole( xmlPath );
+            TestHelper.DumpFileToConsole( xmlPath );
             using( Stream str = new FileStream( xmlPath, FileMode.Open ) )
             {
                 SimpleServiceContainer s = new SimpleServiceContainer();

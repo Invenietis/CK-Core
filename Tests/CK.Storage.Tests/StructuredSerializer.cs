@@ -145,13 +145,13 @@ namespace Storage
         [TearDown]
         public void Setup()
         {
-            TestBase.CleanupTestDir();
+            TestHelper.CleanupTestDir();
         }
 
         [Test]
         public void SimpleStructuredSerializerTest()
         {
-            string testPath = TestBase.GetTestFilePath( "CKTests.Storage", "StructuredSerializer" );
+            string testPath = TestHelper.GetTestXmlFilePath( "CKTests.Storage", "StructuredSerializer" );
             IStructuredSerializer<Dog> serializer = new SimpleStructuredDogSerializer();
             Dog dog = CreateDog();
 

@@ -119,7 +119,7 @@ namespace Storage
         [TearDown]
         public void Setup()
         {
-            TestBase.CleanupTestDir();
+            TestHelper.CleanupTestDir();
         }
 
         [Test]
@@ -131,7 +131,7 @@ namespace Storage
             object oIxml = new XmlObjectViaIXmlSerializable() { Name = "York", Power = 126 };
             object oAttr = new XmlObjectViaAttributes() { Name = "York n°2", Power = 47 };
 
-            string xmlPath = TestBase.GetTestFilePath( "Storage", "TestXmlSerializer" );
+            string xmlPath = TestHelper.GetTestXmlFilePath( "Storage", "TestXmlSerializer" );
             using( Stream wrt = new FileStream( xmlPath, FileMode.Create ) )
             {
                 using( IStructuredWriter writer = SimpleStructuredWriter.CreateWriter( wrt, new SimpleServiceContainer() ) )
@@ -151,7 +151,7 @@ namespace Storage
                     writer.WriteObjectElement( "After", 3712 * 3 );
                 }
             }
-            TestBase.DumpFileToConsole( xmlPath );
+            TestHelper.DumpFileToConsole( xmlPath );
             using( Stream str = new FileStream( xmlPath, FileMode.Open ) )
             {
                 SimpleServiceContainer s = new SimpleServiceContainer();
