@@ -65,7 +65,6 @@ namespace CK.Core.Tests
 
             createFiles( testFolderInfo.FullName, "azerty.png" );
             createHiddenFiles( testFolderInfo.FullName, "hiddenAzerty.gif" );
-            AssertContains( testFolderInfo.FullName, Directory.GetFiles( testFolderInfo.FullName ), "azerty.png", "hiddenAzerty.gif" );
 
             FileUtil.CopyDirectory( testFolderInfo, copyDir );
             AssertContains( testFolderInfo.FullName, Directory.GetFiles( testFolderInfo.FullName ), "azerty.png", "hiddenAzerty.gif" );
@@ -81,6 +80,7 @@ namespace CK.Core.Tests
 
             TestHelper.CleanupCopyDir();
 
+
             DirectoryInfo recursiveDir = Directory.CreateDirectory( testFolderInfo.FullName + "//recursiveDir" );
             createFiles( recursiveDir.FullName, "REC.png" );
             createHiddenFiles( recursiveDir.FullName, "hiddenREC.gif" );
@@ -89,41 +89,35 @@ namespace CK.Core.Tests
             AssertContains( testFolderInfo.FullName, Directory.GetFiles( testFolderInfo.FullName ), "azerty.png", "hiddenAzerty.gif" );
             AssertContains( recursiveDir.FullName, Directory.GetFiles( recursiveDir.FullName ), "REC.png", "hiddenREC.gif" );
             AssertContains( copyDir.FullName, Directory.GetFiles( copyDir.FullName ), "azerty.png", "hiddenAzerty.gif" );
-            AssertContains( copyDir.FullName + "\\" + recursiveDir.Name, Directory.GetFiles( copyDir.FullName + "\\" + recursiveDir.Name ), "REC.png", "hiddenREC.gif" );
+            AssertContains( Path.Combine( copyDir.FullName, recursiveDir.Name ), Directory.GetFiles( Path.Combine( copyDir.FullName, recursiveDir.Name ) ), "REC.png", "hiddenREC.gif" );
 
-            TestHelper.CleanupTestDir();
             TestHelper.CleanupCopyDir();
 
-            recursiveDir = Directory.CreateDirectory( testFolderInfo.FullName + "//recursiveDir" );
             recursiveDir.Attributes = FileAttributes.Directory | FileAttributes.Hidden;
-            createFiles( testFolderInfo.FullName, "azerty.png" );
-            createHiddenFiles( testFolderInfo.FullName, "hiddenAzerty.gif" );
-            createFiles( recursiveDir.FullName, "REC.png" );
-            createHiddenFiles( recursiveDir.FullName, "hiddenREC.gif" );
 
             FileUtil.CopyDirectory( testFolderInfo, copyDir, false, false );
             AssertContains( testFolderInfo.FullName, Directory.GetFiles( testFolderInfo.FullName ), "azerty.png", "hiddenAzerty.gif" );
             AssertContains( recursiveDir.FullName, Directory.GetFiles( recursiveDir.FullName ), "REC.png", "hiddenREC.gif" );
             AssertContains( copyDir.FullName, Directory.GetFiles( copyDir.FullName ), "azerty.png" );
-            Assert.That( Directory.Exists( copyDir.FullName + "\\" + recursiveDir.Name ), Is.False );
+            Assert.That( Directory.Exists( Path.Combine( copyDir.FullName, recursiveDir.Name ) ), Is.False );
 
-            TestHelper.CleanupTestDir();
             TestHelper.CleanupCopyDir();
 
-            recursiveDir = Directory.CreateDirectory( testFolderInfo.FullName + "//recursiveDir" );
             recursiveDir.Attributes = FileAttributes.Directory | FileAttributes.Hidden;
-            createFiles( testFolderInfo.FullName, "azerty.png" );
-            createHiddenFiles( testFolderInfo.FullName, "hiddenAzerty.gif" );
-            createFiles( recursiveDir.FullName, "REC.png" );
-            createHiddenFiles( recursiveDir.FullName, "hiddenREC.gif" );
 
             FileUtil.CopyDirectory( testFolderInfo, copyDir, false, true );
             AssertContains( testFolderInfo.FullName, Directory.GetFiles( testFolderInfo.FullName ), "azerty.png", "hiddenAzerty.gif" );
             AssertContains( recursiveDir.FullName, Directory.GetFiles( recursiveDir.FullName ), "REC.png", "hiddenREC.gif" );
-            AssertContains( copyDir.FullName, Directory.GetFiles( copyDir.FullName ), "azerty.png" ); 
-            AssertContains( copyDir.FullName + "\\" + recursiveDir.Name, Directory.GetFiles( copyDir.FullName + "\\" + recursiveDir.Name ), "REC.png" );
+            AssertContains( copyDir.FullName, Directory.GetFiles( copyDir.FullName ), "azerty.png" );
+            AssertContains( Path.Combine( copyDir.FullName, recursiveDir.Name ), Directory.GetFiles( Path.Combine( copyDir.FullName, recursiveDir.Name ) ), "REC.png" );
 
+            TestHelper.CleanupCopyDir();
 
+            FileUtil.CopyDirectory( testFolderInfo, copyDir, true, true, a => { return a.Name == "azerty.png"; }, a => { return a.Name != recursiveDir.Name; } );
+            AssertContains( testFolderInfo.FullName, Directory.GetFiles( testFolderInfo.FullName ), "azerty.png", "hiddenAzerty.gif" );
+            AssertContains( recursiveDir.FullName, Directory.GetFiles( recursiveDir.FullName ), "REC.png", "hiddenREC.gif" );
+            AssertContains( copyDir.FullName, Directory.GetFiles( copyDir.FullName ), "azerty.png" );
+            Assert.That( Directory.Exists( Path.Combine( copyDir.FullName, recursiveDir.Name ) ), Is.False );
 
             //Exception Test
             Assert.Throws<ArgumentNullException>( () => FileUtil.CopyDirectory( null, testFolderInfo ) );
