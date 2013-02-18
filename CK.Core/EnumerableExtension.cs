@@ -174,5 +174,49 @@ namespace CK.Core
                 return max;
             }
         }
+
+        /// <summary>
+        /// Gets the first index in the enumerable where the predicate evaluates to true.
+        /// Returns -1 when not found.
+        /// </summary>
+        /// <typeparam name="TSource">Type of source sequence.</typeparam>
+        /// <param name="this">Source sequence.</param>
+        /// <param name="predicate">Predicate function.</param>
+        /// <returns>Index where predicate is true. -1 if not found.</returns>
+        public static int IndexOf<TSource>( this IEnumerable<TSource> @this, Func<TSource, bool> predicate )
+        {
+            int i = 0;
+            using( var e = @this.GetEnumerator() )
+            {
+                while( e.MoveNext() )
+                {
+                    if( predicate( e.Current ) ) return i;
+                    ++i;
+                }
+            }
+            return -1;
+        }
+
+        /// <summary>
+        /// Gets the first index in the enumerable where the predicate evaluates to true, giving the prdicate the index of the element.
+        /// Returns -1 when not found.
+        /// </summary>
+        /// <typeparam name="TSource">Type of source sequence.</typeparam>
+        /// <param name="this">Source sequence.</param>
+        /// <param name="predicate">Predicate function that accepts the element and its index.</param>
+        /// <returns>Index where predicate is true, or -1 if not found.</returns>
+        public static int IndexOf<TSource>( this IEnumerable<TSource> @this, Func<TSource, int, bool> predicate )
+        {
+            int i = 0;
+            using( var e = @this.GetEnumerator() )
+            {
+                while( e.MoveNext() )
+                {
+                    if( predicate( e.Current, i ) ) return i;
+                    ++i;
+                }
+            }
+            return -1;
+        }
     }
 }
