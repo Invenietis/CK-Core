@@ -58,6 +58,7 @@
     <Compile Include="Collection\FIFOTests.cs" />
     <Compile Include="ActivityLoggerTests.cs" />
     <Compile Include="Collection\SortedArrayListTests.cs" />
+    <Compile Include="EnumerableExtensionTests.cs" />
     <Compile Include="FileUtilTests.cs" />
     <Compile Include="Animals.cs" />
     <Compile Include="OSVersionInfoTests.cs" />
