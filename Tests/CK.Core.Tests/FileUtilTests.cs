@@ -63,8 +63,8 @@ namespace CK.Core.Tests
             TestHelper.CleanupTestDir();
             TestHelper.CleanupCopyDir();
 
-            createFiles( testFolderInfo.FullName, "azerty.png" );
-            createHiddenFiles( testFolderInfo.FullName, "hiddenAzerty.gif" );
+            CreateFiles( testFolderInfo.FullName, "azerty.png" );
+            CreateHiddenFiles( testFolderInfo.FullName, "hiddenAzerty.gif" );
 
             FileUtil.CopyDirectory( testFolderInfo, copyDir );
             AssertContains( testFolderInfo.FullName, Directory.GetFiles( testFolderInfo.FullName ), "azerty.png", "hiddenAzerty.gif" );
@@ -82,8 +82,8 @@ namespace CK.Core.Tests
 
 
             DirectoryInfo recursiveDir = Directory.CreateDirectory( testFolderInfo.FullName + "//recursiveDir" );
-            createFiles( recursiveDir.FullName, "REC.png" );
-            createHiddenFiles( recursiveDir.FullName, "hiddenREC.gif" );
+            CreateFiles( recursiveDir.FullName, "REC.png" );
+            CreateHiddenFiles( recursiveDir.FullName, "hiddenREC.gif" );
 
             FileUtil.CopyDirectory( testFolderInfo, copyDir );
             AssertContains( testFolderInfo.FullName, Directory.GetFiles( testFolderInfo.FullName ), "azerty.png", "hiddenAzerty.gif" );
@@ -132,7 +132,7 @@ namespace CK.Core.Tests
         {
             TestHelper.CleanupTestDir();
 
-            createFiles( testFolderInfo.FullName, "azerty.gif", "azerty.jpg", "azerty.png" );
+            CreateFiles( testFolderInfo.FullName, "azerty.gif", "azerty.jpg", "azerty.png" );
             AssertContains( testFolderInfo.FullName, FileUtil.GetFiles( testFolderInfo.FullName, "*.png;*.jpg;*.gif" ), "azerty.gif", "azerty.jpg", "azerty.png" );
             AssertContains( testFolderInfo.FullName, FileUtil.GetFiles( testFolderInfo.FullName, "azerty.*" ), "azerty.gif", "azerty.jpg", "azerty.png" );
             AssertContains( testFolderInfo.FullName, FileUtil.GetFiles( testFolderInfo.FullName, "azer*.gif" ), "azerty.gif" );
@@ -159,7 +159,7 @@ namespace CK.Core.Tests
 
             TestHelper.CleanupTestDir();
 
-            createFiles( testFolderInfo.FullName, "az.gif", "rty.jpg", "arty.gif", "raz.png" );
+            CreateFiles( testFolderInfo.FullName, "az.gif", "rty.jpg", "arty.gif", "raz.png" );
             AssertContains( testFolderInfo.FullName, FileUtil.GetFiles( testFolderInfo.FullName, "*.jpg;*.gif" ), "az.gif", "rty.jpg", "arty.gif" );
             AssertContains( testFolderInfo.FullName, FileUtil.GetFiles( testFolderInfo.FullName, "a*.gif" ), "az.gif", "arty.gif" );
             AssertContains( testFolderInfo.FullName, FileUtil.GetFiles( testFolderInfo.FullName, "r*.*" ), "rty.jpg", "raz.png" );
@@ -227,7 +227,7 @@ namespace CK.Core.Tests
                 Assert.That( result.Contains<string>( Path.Combine( pathDir, s ) ), Is.True );
         }
 
-        private void createFiles( string path, params string[] values )
+        private void CreateFiles( string path, params string[] values )
         {
             foreach( string s in values )
             {
@@ -235,7 +235,7 @@ namespace CK.Core.Tests
             }
         }
 
-        private void createHiddenFiles( string path, params string[] values )
+        private void CreateHiddenFiles( string path, params string[] values )
         {
             
             foreach( string s in values )
