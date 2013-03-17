@@ -53,17 +53,21 @@
     <Compile Include="..\..\SharedAssemblyInfo.cs">
       <Link>Properties\SharedAssemblyInfo.cs</Link>
     </Compile>
+    <Compile Include="Collection\ObservableSortedArrayListTests.cs" />
     <Compile Include="Collection\SortedArrayKeyListTests.cs" />
     <Compile Include="Collection\FIFOTests.cs" />
     <Compile Include="ActivityLoggerTests.cs" />
     <Compile Include="Collection\SortedArrayListTests.cs" />
+    <Compile Include="EnumerableExtensionTests.cs" />
     <Compile Include="FileUtilTests.cs" />
     <Compile Include="Animals.cs" />
+    <Compile Include="OSVersionInfoTests.cs" />
     <Compile Include="ServiceContainerTests.cs" />
     <Compile Include="CoreExtensionTests.cs" />
     <Compile Include="Collection\ReadOnlyTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="ActionSequenceTests.cs" />
+    <Compile Include="TemporaryFileTests.cs" />
     <Compile Include="TestHelper.cs" />
     <Compile Include="UriHelperTests.cs" />
   </ItemGroup>

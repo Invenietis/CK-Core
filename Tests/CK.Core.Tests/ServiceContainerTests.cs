@@ -29,6 +29,7 @@ using System;
 using System.Collections.Generic;
 using Core;
 using System.ComponentModel.Design;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Core
 {
@@ -220,11 +221,72 @@ namespace Core
 
             Assert.Throws<CKException>( () => container.Add<ISimpleServiceContainer>( container ) );
             Assert.Throws<CKException>( () => container.Add<ISimpleServiceContainer>( new SimpleServiceContainer() ) );
-            Assert.Throws<CKException>( () => container.AddDisabled( typeof( ISimpleServiceContainer ) ) );
+            Assert.Throws<CKException>( () => container.Add<ISimpleServiceContainer>( JustAFunc<ISimpleServiceContainer> ) );
 
             Assert.Throws<CKException>( () => container.Add<IServiceProvider>( container ) );
             Assert.Throws<CKException>( () => container.Add<IServiceProvider>( new SimpleServiceContainer() ) );
+            Assert.Throws<CKException>( () => container.Add<IServiceProvider>( JustAFunc<IServiceProvider> ) );
             Assert.Throws<CKException>( () => container.AddDisabled( typeof( IServiceProvider ) ) );
+
+        }
+
+        [Test]
+        public void SimpleServiceContainerServiceImplTypeMismatchTest()
+        {
+            SimpleServiceContainer container = new SimpleServiceContainer();
+
+            Assert.Throws<CKException>( () => container.Add( typeof( int ), new ProvidedClass( 5 ), null ) );
+
+            container.Add( typeof( ProvidedClass ), () => { return new MockClass(); }, null );
+            Assert.Throws<CKException>( () => container.GetService<ProvidedClass>() );
+        }
+
+        [ExcludeFromCodeCoverage]
+        static object JustAFunc() { return null; }
+
+        [ExcludeFromCodeCoverage]
+        static T JustAFunc<T>() where T : class { return null; }
+
+        [Test]
+        public void SimpleServiceContainerThrowNullArgumentsExceptionTest()
+        {
+            ISimpleServiceContainer container = new SimpleServiceContainer();
+
+            //SimpleServiceContainer.Add( Type serviceType, object serviceInstance, Action<Object> onRemove )
+            Assert.Throws<ArgumentNullException>( () => container.Add( null, new ProvidedClass( 5 ) ) );
+            Assert.Throws<ArgumentNullException>( () => container.Add( typeof( ProvidedClass ), (object)null ) );
+
+            //SimpleServiceContainer.Add( Type serviceType, Func<Object> serviceInstance, Action<Object> onRemove )
+            Assert.Throws<ArgumentNullException>( () => container.Add( null, JustAFunc ) );
+            Assert.Throws<ArgumentNullException>( () => container.Add( typeof( ProvidedClass ), (Func<Object>)null ) );
+
+            Assert.Throws<ArgumentNullException>( () => container.AddDisabled( null ) );
+            Assert.Throws<ArgumentNullException>( () => container.GetService( null ) );
+            Assert.Throws<ArgumentNullException>( () => container.Add<ProvidedClass>( JustAFunc<ProvidedClass>, null ) );
+        }
+
+        [Test]
+        public void SimpleServiceContainerLoopbackBaseProviderTest()
+        {
+            SimpleServiceContainer firstContainer = new SimpleServiceContainer();
+            SimpleServiceContainer secondContainer = new SimpleServiceContainer();
+            SimpleServiceContainer thirdContainer = new SimpleServiceContainer();
+
+            Assert.Throws<CKException>( () => firstContainer.BaseProvider = firstContainer );
+
+            //firstContainer( secondContainer )
+            Assert.DoesNotThrow( () => firstContainer.BaseProvider = secondContainer );
+            Assert.Throws<CKException>( () => secondContainer.BaseProvider = firstContainer );
+
+            //firstContainer( secondContainer( thirdContainer ) )
+            Assert.DoesNotThrow( () => secondContainer.BaseProvider = thirdContainer );
+            Assert.Throws<CKException>( () => thirdContainer.BaseProvider = firstContainer );
+            Assert.Throws<CKException>( () => thirdContainer.BaseProvider = secondContainer );
+
+            //firstContainer( thirdContainer ) and secondContainer( thirdContainer ) 
+            Assert.DoesNotThrow( () => firstContainer.BaseProvider = thirdContainer );
+            Assert.Throws<CKException>( () => thirdContainer.BaseProvider = secondContainer );
+            Assert.Throws<CKException>( () => thirdContainer.BaseProvider = firstContainer );
 
         }
 
@@ -413,7 +475,6 @@ namespace Core
         static void OnRemoveUnrelatedType( string unrelatedType )
         {
         }
-
     
     }
 }

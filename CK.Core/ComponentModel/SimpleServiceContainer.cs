@@ -77,7 +77,16 @@ namespace CK.Core
         public IServiceProvider BaseProvider
         {
             get { return _baseProvider; }
-            set { _baseProvider = value; }
+            set 
+            {
+                SimpleServiceContainer v = value as SimpleServiceContainer;
+                while( v != null )
+                {
+                    if( v == this ) throw new CKException( "BaseProvider circle detected" );
+                    v = v.BaseProvider as SimpleServiceContainer;
+                }
+                _baseProvider = value; 
+            }
         }
 
         /// <summary>

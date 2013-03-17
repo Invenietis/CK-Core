@@ -1,6 +1,6 @@
 #region LGPL License
 /*----------------------------------------------------------------------------
-* This file (Tests\CK.Core.Tests\TestHelper.cs) is part of CiviKey. 
+* This file (Tests\CK.Storage.Tests\TestBase.cs) is part of CiviKey. 
 *  
 * CiviKey is free software: you can redistribute it and/or modify 
 * it under the terms of the GNU Lesser General Public License as published 
@@ -23,24 +23,22 @@
 
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Text;
-using CK.Core;
+using System.IO;
 using NUnit.Framework;
+using CK.Core;
 
-namespace Core
+namespace Storage
 {
-    static class TestHelper
+    public static class TestHelper
     {
         static string _testFolder;
-        static string _copyFolder;
         static string _appFolder;
 
         static DirectoryInfo _testFolderDir;
-        static DirectoryInfo _copyFolderDir;
         static DirectoryInfo _appFolderDir;
-        
+
         static IDefaultActivityLogger _logger;
         static ActivityLoggerConsoleSink _console;
 
@@ -64,7 +62,7 @@ namespace Core
                 else _logger.Unregister( _console );
             }
         }
-        
+
         public static string AppFolder
         {
             get
@@ -83,15 +81,6 @@ namespace Core
             }
         }
 
-        public static string CopyFolder
-        {
-            get
-            {
-                if( _copyFolder == null ) InitalizeCopyPaths();
-                return _copyFolder;
-            }
-        }
-
         public static DirectoryInfo AppFolderDir
         {
             get { return _appFolderDir ?? (_appFolderDir = new DirectoryInfo( AppFolder )); }
@@ -102,21 +91,10 @@ namespace Core
             get { return _testFolderDir ?? (_testFolderDir = new DirectoryInfo( TestFolder )); }
         }
 
-        public static DirectoryInfo CopyFolderDir
-        {
-            get { return _copyFolderDir ?? (_copyFolderDir = new DirectoryInfo( CopyFolder )); }
-        }
-
         public static void CleanupTestDir()
         {
             if( TestFolderDir.Exists ) TestFolderDir.Delete( true );
             TestFolderDir.Create();
-        }
-
-        public static void CleanupCopyDir()
-        {
-            if( CopyFolderDir.Exists ) CopyFolderDir.Delete( true );
-            CopyFolderDir.Create();
         }
 
         private static void InitalizePaths()
@@ -138,23 +116,14 @@ namespace Core
 
         }
 
-        private static void InitalizeCopyPaths()
+        static public string GetTestXmlFilePath( string prefix, string name )
         {
-            string p = System.Reflection.Assembly.GetExecutingAssembly().CodeBase;
-            // Code base is like "file:///C:/Documents and Settings/Olivier Spinelli/Mes documents/Dev/CK/Output/Debug/App/CVKTests.DLL"
-            StringAssert.StartsWith( "file:///", p, "Code base must start with file:/// protocol." );
+            return Path.Combine( TestFolder, prefix + "." + name + ".xml" );
+        }
 
-            p = p.Substring( 8 ).Replace( '/', System.IO.Path.DirectorySeparatorChar );
-
-            // => Debug/
-            p = Path.GetDirectoryName( p );
-            _appFolder = p;
-
-            // ==> Debug/SubTestDir
-            _copyFolder = Path.Combine( p, "SubCopyTestDir" );
-            if( Directory.Exists( _copyFolder ) ) Directory.Delete( _copyFolder, true );
-            Directory.CreateDirectory( _copyFolder );
-
+        static public void DumpFileToConsole( string path )
+        {
+            Console.WriteLine( File.ReadAllText( path ) );
         }
 
     }

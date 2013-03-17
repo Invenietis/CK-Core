@@ -145,6 +145,7 @@ namespace CK.Core
         /// </summary>
         /// <param name="path">Path to a file.</param>
         /// <returns>True if this path must be treated as case sensitive.</returns>
+        [Obsolete( "Useless", true )]
         public static bool IsVolumeCaseSensitive( string path )
         {
             if( path == null || path.Length == 0 ) throw new ArgumentException( "path" );
@@ -173,7 +174,8 @@ namespace CK.Core
         }
 
         /// <summary>
-        /// Recursively copy a directory.
+        /// Recursively copy a directory. 
+        /// Throws an IOException, if a same file exists in the target directory.
         /// </summary>
         /// <param name="src">The source directory.</param>
         /// <param name="target">The target directory.</param>

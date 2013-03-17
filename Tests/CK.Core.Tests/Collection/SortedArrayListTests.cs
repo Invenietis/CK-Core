@@ -34,10 +34,11 @@ namespace Core.Collection
     public class SortedArrayListTests
     {
         [Test]
-        public void Simple()
+        public void SortedArrayListSimpleTest()
         {
             var a = new SortedArrayList<int>();
             a.AddRangeArray( 12, -34, 7, 545, 12 );
+            Assert.That( a.AllowDuplicates, Is.False );
             Assert.That( a.Count, Is.EqualTo( 4 ) );
             Assert.That( a, Is.Ordered );
 
@@ -51,6 +52,29 @@ namespace Core.Collection
             o = 12;
             Assert.That( a.Contains( o ), Is.True );
             Assert.That( a.IndexOf( o ), Is.EqualTo( 2 ) );
+
+            o = null;
+            Assert.That( a.Contains( o ), Is.False );
+            Assert.That( a.IndexOf( o ), Is.EqualTo( Int32.MinValue ) );
+
+            int[] arrayToTest = new int[5];
+            a.CopyTo( arrayToTest, 1 );
+            Assert.That( arrayToTest[0], Is.EqualTo( 0 ) );
+            Assert.That( arrayToTest[1], Is.EqualTo( -34 ) );
+            Assert.That( arrayToTest[4], Is.EqualTo( 545 ) );
+        }
+
+        [Test]
+        public void SortedArrayListAllowDuplicatesTest()
+        {
+            var b = new SortedArrayList<int>(true);
+            b.AddRangeArray( 12, -34, 7, 545, 12 );
+            Assert.That( b.AllowDuplicates, Is.True );
+            Assert.That( b.Count, Is.EqualTo( 5 ) );
+            Assert.That( b, Is.Ordered );
+            Assert.That( b.IndexOf( 12 ), Is.EqualTo( 2 ) );
+            Assert.That( b.CheckPosition( 2 ), Is.EqualTo( 2 ) );
+            Assert.That( b.CheckPosition( 3 ), Is.EqualTo( 3 ) );
         }
 
         [Test]
@@ -257,6 +281,10 @@ namespace Core.Collection
             Assert.Throws<IndexOutOfRangeException>( () => a.RemoveAt( 0 ) );
             Assert.Throws<IndexOutOfRangeException>( () => a.RemoveAt( 1 ) );
 
+            Assert.That( a.Remove( -1 ), Is.False ); 
+            Assert.That( a.Remove( 0 ), Is.False );
+            Assert.That( a.Remove( 1 ), Is.False );
+
             a.Add( 204 );
             a.CheckList();
             Assert.Throws<IndexOutOfRangeException>( () => a.RemoveAt( -1 ) );
@@ -297,8 +325,149 @@ namespace Core.Collection
             a.RemoveAt( 0 );
             CheckList( a );
 
+            a.Add( 206 );
+            a.Add( 205 );
+            a.Add( 204 );
+            a.Add( 207 );
+            a.Add( 208 );
+            CheckList( a, 204, 205, 206, 207, 208 );
+            Assert.That( a.Remove( 203 ), Is.False );
+            CheckList( a, 204, 205, 206, 207, 208 );
+            Assert.That( a.Remove( 204 ), Is.True );
+            CheckList( a, 205, 206, 207, 208 );
+            Assert.That( a.Remove( 208 ), Is.True );
+            CheckList( a, 205, 206, 207 );
+            Assert.That( a.Remove( 208 ), Is.False );
+            CheckList( a, 205, 206, 207 );
+            Assert.That( a.Remove( 206 ), Is.True );
+            CheckList( a, 205, 207 );
+            Assert.That( a.Remove( 207 ), Is.True );
+            CheckList( a, 205 );
+            Assert.That( a.Remove( 205 ), Is.True );
+            CheckList( a );
+
         }
 
+        [Test]
+        public void SortedArrayListChangeCapacityTest()
+        {
+            var a = new SortedArrayList<Mammal>( ( a1, a2 ) => a1.Name.CompareTo( a2.Name ) );
+
+            Assert.That( a.Capacity, Is.EqualTo( 0 ) );
+            a.Capacity = 3;
+            Assert.That( a.Capacity, Is.EqualTo( 4 ) );
+            a.Capacity = 0;
+            Assert.That( a.Capacity, Is.EqualTo( 0 ) );
+
+            a.Add( new Mammal( "1" ) );
+
+            Assert.Throws<ArgumentException>( () => a.Capacity = 0 );
+
+            a.Add( new Mammal( "2" ) );
+            a.Add( new Mammal( "3" ) );
+            a.Add( new Mammal( "4" ) );
+            a.Add( new Mammal( "5" ) );
+
+            Assert.That( a.Capacity, Is.EqualTo( 8 ) );
+            a.Capacity = 5;
+            Assert.That( a.Capacity, Is.EqualTo( 5 ) );
+
+            a.Add( new Mammal( "6" ) );
+            a.Add( new Mammal( "7" ) );
+            a.Add( new Mammal( "8" ) );
+            a.Add( new Mammal( "9" ) );
+            a.Add( new Mammal( "10" ) );
+
+            Assert.That( a.Capacity, Is.EqualTo( 10 ) );
+
+            a.Clear();
+
+            Assert.That( a.Capacity, Is.EqualTo( 10 ) );
+
+        }
+
+        [Test]
+        public void SortedArrayListThrowExceptionTest()
+        {
+            var a = new SortedArrayList<Mammal>( ( a1, a2 ) => a1.Name.CompareTo( a2.Name ) );
+
+            Assert.Throws<ArgumentNullException>( () => a.IndexOf( null ) );
+            Assert.Throws<ArgumentNullException>( () => a.IndexOf<Mammal>( new Mammal( "Nothing" ), null ) );
+            Assert.Throws<ArgumentNullException>( () => a.Add( null ) );
+
+            a.Add( new Mammal( "A" ) );
+            a.Add( new Mammal( "B" ) );
+
+            Assert.Throws<IndexOutOfRangeException>( () => { Mammal test = a[2]; } );
+            Assert.Throws<IndexOutOfRangeException>( () => a.CheckPosition( 2 ) );
+            Assert.Throws<IndexOutOfRangeException>( () => { Mammal test = a[-1]; } );
+            Assert.Throws<IndexOutOfRangeException>( () => a.CheckPosition( -1 ) );
+
+            //Enumerator Exception
+            var enumerator = a.GetEnumerator();
+            Assert.Throws<InvalidOperationException>( () => { Mammal temp = enumerator.Current; } );
+            enumerator.MoveNext();
+            Assert.That( enumerator.Current, Is.EqualTo( a[0] ) );
+            enumerator.Reset();
+            Assert.Throws<InvalidOperationException>( () => { Mammal temp = enumerator.Current; } );
+            a.Clear(); //change _version
+            Assert.Throws<InvalidOperationException>( () => enumerator.Reset() );
+            Assert.Throws<InvalidOperationException>( () => enumerator.MoveNext() );
+            
+        }
+
+        [Test]
+        public void SortedArrayListCastTest()
+        {
+            var a = new SortedArrayList<int>();
+            a.AddRangeArray( 12, -34, 7, 545, 12 );
+
+            //Cast IList
+            IList<int> listToTest = (IList<int>)a;
+
+            Assert.That( listToTest[0], Is.EqualTo( -34 ) );
+            Assert.That( listToTest[1], Is.EqualTo( 7 ) );
+            Assert.That( listToTest[2], Is.EqualTo( 12 ) );
+            Assert.That( listToTest[3], Is.EqualTo( 545 ) );
+
+            listToTest.Add( 12345 );
+            listToTest.Add( 1234 );
+            Assert.That( listToTest[4], Is.EqualTo( 1234 ) );
+            Assert.That( listToTest[5], Is.EqualTo( 12345 ) );
+
+            listToTest[0] = -33;
+            Assert.That( listToTest[0], Is.EqualTo( -33 ) );
+            listToTest[0] = 123456;
+            Assert.That( listToTest[0], Is.EqualTo( 123456 ) );
+
+            listToTest.Insert( 0, -33 );
+            Assert.That( listToTest[0], Is.EqualTo( -33 ) );
+            listToTest.Insert( 0, 123456 );
+            Assert.That( listToTest[0], Is.EqualTo( 123456 ) );
+
+            //Cast ICollection
+            a.Clear();
+            a.AddRangeArray( 12, -34, 7, 545, 12 );
+            ICollection<int> collectionToTest = (ICollection<int>)a;
+
+            Assert.That( collectionToTest.IsReadOnly, Is.False );
+            
+            collectionToTest.Add( 123 );
+            Assert.That( collectionToTest.Contains( 123 ), Is.True );
+            Assert.That( collectionToTest.Contains( -34 ), Is.True );
+            Assert.That( collectionToTest.Contains( 7 ), Is.True );
+
+            //Exception
+            IList<Mammal> testException = new SortedArrayList<Mammal>();
+            testException.Add( new Mammal( "Nothing" ) );
+            Assert.Throws<IndexOutOfRangeException>( () => testException[-1] = new Mammal( "A" ) );
+            Assert.Throws<IndexOutOfRangeException>( () => testException[1] = new Mammal( "A" ) );
+            Assert.Throws<ArgumentNullException>( () => testException[0] = null );
+            Assert.Throws<IndexOutOfRangeException>( () => testException.Insert( -1, new Mammal( "A" ) ) );
+            Assert.Throws<IndexOutOfRangeException>( () => testException.Insert( 2, new Mammal( "A" ) ) );
+            Assert.Throws<ArgumentNullException>( () => testException.Insert( 0, null ) );
+
+        }
 
     }
 }

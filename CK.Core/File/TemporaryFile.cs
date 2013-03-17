@@ -70,13 +70,18 @@ namespace CK.Core
         /// </summary>
         /// <param name="shortLived">True to set the <see cref="FileAttributes.Temporary"/> on the file.</param>
         /// <param name="extension">The extension of the file (example : '.png' and 'png' would both work).</param>
+        /// <remarks>
+        /// When extension is ".", the final path will end with a ".".
+        /// </remarks>
         public TemporaryFile( bool shortLived, string extension )
         {
             _path = System.IO.Path.GetTempFileName();
             if( !String.IsNullOrWhiteSpace( extension ) )
             {
+                string origPath = _path;
                 if( extension[0] == '.' ) _path += extension;
                 else _path += '.' + extension;
+                File.Move( origPath, _path );
             }
             if( shortLived ) File.SetAttributes( _path, FileAttributes.Temporary );
         }

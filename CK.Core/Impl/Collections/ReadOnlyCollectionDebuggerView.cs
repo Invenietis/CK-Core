@@ -26,6 +26,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 
 namespace CK.Core.Impl
 {
@@ -33,6 +34,8 @@ namespace CK.Core.Impl
     /// Debugger object for <see cref="IReadOnlyCollection{T}"/>.
     /// </summary>
     /// <typeparam name="T">Type of elements in the collection.</typeparam>
+
+    [ExcludeFromCodeCoverage]
     sealed class ReadOnlyCollectionDebuggerView<T>
     {
         readonly IReadOnlyCollection<T> _collection;
@@ -68,6 +71,8 @@ namespace CK.Core.Impl
     /// </summary>
     /// <typeparam name="T">Type of the exposed element.</typeparam>
     /// <typeparam name="TInner">Type of the inner element.</typeparam>
+
+    [ExcludeFromCodeCoverage]
     sealed class ReadOnlyCollectionDebuggerView<T, TInner>
     {
         readonly IReadOnlyCollection<T> _collection;

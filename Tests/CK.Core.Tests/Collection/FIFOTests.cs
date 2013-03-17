@@ -103,6 +103,47 @@ namespace Core.Collection
             f.Capacity = 0;
             Assert.That( f.Capacity, Is.EqualTo( 0 ) );
             AssertEmpty( f );
+
+            f.Capacity = 2;
+            f.Capacity = 2;
+            Assert.That( f.Capacity, Is.EqualTo( 2 ) );
+
+            Assert.That( f.ToString(), Is.EqualTo( String.Format( "Count = {0} (Capacity = {1})", 0, 2 ) ) );
+
+            //ExceptionTest
+            Assert.Throws<ArgumentException>( () => f.Capacity = -1 );
+            Assert.Throws<ArgumentException>( () => new FIFOBuffer<int>( -1 ) );
+            Assert.Throws<ArgumentException>( () => f.CopyTo(new int[2], 0, -1) );
+        }
+
+        [Test]
+        public void FIFOPeek()
+        {
+            FIFOBuffer<int> f = new FIFOBuffer<int>( 0 );
+            Assert.Throws<InvalidOperationException>( () => f.Peek() );
+
+            f.Push( 5 );
+            Assert.Throws<InvalidOperationException>( () => f.Peek() );
+
+            f.Capacity = 1;
+            f.Push( 5 );
+            Assert.That( f.Peek(), Is.EqualTo( 5 ) );
+            f.Push( 6 );
+            Assert.That( f.Peek(), Is.EqualTo( 6 ) );
+
+            f.Clear();
+            Assert.Throws<InvalidOperationException>( () => f.Peek() );
+
+            f.Capacity = 2;
+            f.Push( 5 );
+            Assert.That( f.Peek(), Is.EqualTo( 5 ) );
+            f.Push( 6 );
+            Assert.That( f.Peek(), Is.EqualTo( 5 ) );
+            f.Pop();
+            Assert.That( f.Peek(), Is.EqualTo( 6 ) );
+            Assert.That( f.Peek(), Is.EqualTo( f[0] ) );
+            f.Pop();
+            Assert.Throws<InvalidOperationException>( () => f.Peek() );
         }
 
         [Test]

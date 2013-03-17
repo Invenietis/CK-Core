@@ -132,21 +132,24 @@ namespace Core
 
             Assert.That( logger.RegisteredSinks.Count, Is.EqualTo( 2 ) );
 
-            using( logger.OpenGroup( LogLevel.Trace, () => "EndMainGroup", "MainGroup" ) )
+            using( logger.OpenGroup( LogLevel.None, () => "EndMainGroup", "MainGroup" ) )
             {
-                logger.Trace( "First" );
-                logger.Trace( "Second" );
-                logger.Trace( "Third" );
-                logger.Info( "First" );
-
-                using( logger.OpenGroup( LogLevel.Info, () => "EndInfoGroup", "InfoGroup" ) )
+                using( logger.OpenGroup( LogLevel.Trace, () => "EndMainGroup", "MainGroup" ) )
                 {
-                    logger.Info( "Second" );
-                    logger.Trace( "Fourth" );
-                    
-                    using( logger.OpenGroup( LogLevel.Warn, () => "EndWarnGroup", "WarnGroup {0} - Now = {1}", 4, DateTime.UtcNow ) )
+                    logger.Trace( "First" );
+                    logger.Trace( "Second" );
+                    logger.Trace( "Third" );
+                    logger.Info( "First" );
+
+                    using( logger.OpenGroup( LogLevel.Info, () => "EndInfoGroup", "InfoGroup" ) )
                     {
-                        logger.Info( "Warn!" );
+                        logger.Info( "Second" );
+                        logger.Trace( "Fourth" );
+
+                        using( logger.OpenGroup( LogLevel.Warn, () => "EndWarnGroup", "WarnGroup {0} - Now = {1}", 4, DateTime.UtcNow ) )
+                        {
+                            logger.Info( "Warn!" );
+                        }
                     }
                 }
             }
@@ -639,7 +642,6 @@ namespace Core
                 d.Warn( "Warn" );
             }
         }
-
 
         [Test]
         public void Overloads()

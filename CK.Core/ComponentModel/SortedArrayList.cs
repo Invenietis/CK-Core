@@ -118,7 +118,7 @@ namespace CK.Core
         }
 
         /// <summary>
-        /// Locates an element in this list (logarithmic). 
+        /// Locates an element (the first occurence when duplicates are allowed) in this list (logarithmic). 
         /// </summary>
         /// <param name="value">The element.</param>
         /// <returns>The result of the <see cref="Util.BinarySearch{T}"/> in the internal array.</returns>
