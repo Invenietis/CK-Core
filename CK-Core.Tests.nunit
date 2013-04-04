@@ -1,15 +1,27 @@
 ﻿<NUnitProject>
   <Config name="Debug" binpathtype="Auto">
-    <assembly path="Output\Tests\Debug\CK.Core.Tests.dll" />
-    <assembly path="Output\Tests\Debug\CK.MultiTrait.Tests.dll" />
-    <assembly path="Output\Tests\Debug\CK.Reflection.Tests.dll" />
-    <assembly path="Output\Tests\Debug\CK.Storage.Tests.dll" />
+    <assembly path="Tests\CK.Core.Tests\bin\Debug\NET45\CK.Core.Tests.dll" />
+    <assembly path="Tests\CK.MultiTrait.Tests\bin\Debug\NET45\CK.MultiTrait.Tests.dll" />
+    <assembly path="Tests\CK.Reflection.Tests\bin\Debug\NET45\CK.Reflection.Tests.dll" />
+    <assembly path="Tests\CK.Storage.Tests\bin\Debug\NET45\CK.Storage.Tests.dll" />
+  </Config>
+  <Config name="Debug40" binpathtype="Auto">
+    <assembly path="Tests\CK.Core.Tests\bin\Debug\NET40\CK.Core.Tests.dll" />
+    <assembly path="Tests\CK.MultiTrait.Tests\bin\Debug\NET40\CK.MultiTrait.Tests.dll" />
+    <assembly path="Tests\CK.Reflection.Tests\bin\Debug\NET40\CK.Reflection.Tests.dll" />
+    <assembly path="Tests\CK.Storage.Tests\bin\Debug\NET40\CK.Storage.Tests.dll" />
   </Config>
   <Config name="Release" binpathtype="Auto">
-    <assembly path="Output\Tests\Release\CK.Core.Tests.dll" />
-    <assembly path="Output\Tests\Release\CK.MultiTrait.Tests.dll" />
-    <assembly path="Output\Tests\Release\CK.Reflection.Tests.dll" />
-    <assembly path="Output\Tests\Release\CK.Storage.Tests.dll" />
+    <assembly path="Tests\CK.Core.Tests\bin\Release\NET45\CK.Core.Tests.dll" />
+    <assembly path="Tests\CK.MultiTrait.Tests\bin\Release\NET45\CK.MultiTrait.Tests.dll" />
+    <assembly path="Tests\CK.Reflection.Tests\bin\Release\NET45\CK.Reflection.Tests.dll" />
+    <assembly path="Tests\CK.Storage.Tests\bin\Release\NET45\CK.Storage.Tests.dll" />
+  </Config>
+  <Config name="Release40" binpathtype="Auto">
+    <assembly path="Tests\CK.Core.Tests\bin\Release\NET40\CK.Core.Tests.dll" />
+    <assembly path="Tests\CK.MultiTrait.Tests\bin\Release\NET40\CK.MultiTrait.Tests.dll" />
+    <assembly path="Tests\CK.Reflection.Tests\bin\Release\NET40\CK.Reflection.Tests.dll" />
+    <assembly path="Tests\CK.Storage.Tests\bin\Release\NET40\CK.Storage.Tests.dll" />
   </Config>
 </NUnitProject>
 

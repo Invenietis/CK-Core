@@ -116,7 +116,7 @@ namespace CK.Core
         /// <param name="item">Object to find.</param>
         /// <returns>
         /// The index of the object or the bitwise complement of <see cref="Count"/> if not 
-        /// found (that is a negative value, see <see cref="IReadOnlyList{T}.IndexOf"/>).
+        /// found (that is a negative value, see <see cref="ICKReadOnlyList{T}.IndexOf"/>).
         /// </returns>
         public int IndexOf( T item )
         {

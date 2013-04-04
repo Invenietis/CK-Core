@@ -62,13 +62,5 @@ namespace CK.Core
         /// </remarks>
         int IndexOf( object item );
 
-        /// <summary>
-        /// Gets the element at the specified index.
-        /// </summary>
-        /// <param name="index">The zero-based index of the element to get or set.</param>
-        /// <returns>The element at the specified index.</returns>
-        /// <exception cref="ArgumentOutOfRangeException">The <paramref name="index"/> is not a valid index in the list.</exception>
-        T this[ int index ] { get; }
-
     }
 }

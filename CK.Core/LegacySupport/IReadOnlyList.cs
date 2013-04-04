@@ -21,6 +21,8 @@
 *-----------------------------------------------------------------------------*/
 #endregion
 
+#if NET40
+
 using System;
 
 namespace CK.Core
@@ -45,3 +47,5 @@ namespace CK.Core
 
     }
 }
+
+#endif

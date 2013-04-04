@@ -1,6 +1,8 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
+    <!-- This makes the .Net 4.5 the default -->
+    <TargetFrameworkVersion Condition=" '$(TargetFrameworkVersion)' == '' ">v4.0</TargetFrameworkVersion>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProductVersion>9.0.30729</ProductVersion>
@@ -10,29 +12,18 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>CK.Core</RootNamespace>
     <AssemblyName>CK.Core</AssemblyName>
-    <!-- This makes the .Net 4.5 the default -->
-    <TargetFrameworkVersion Condition=" '$(TargetFrameworkVersion)' == '' ">v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <FileUpgradeFlags>
     </FileUpgradeFlags>
     <OldToolsVersion>3.5</OldToolsVersion>
     <UpgradeBackupLocation />
-    <TargetFrameworkProfile />
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(TargetFrameworkVersion)' == 'v3.5' ">
-    <TargetSavor>NET35</TargetSavor>
-    <TargetFrameworkLevel>350</TargetFrameworkLevel>
     <TargetFrameworkProfile>Client</TargetFrameworkProfile>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(TargetFrameworkVersion)' == 'v4.0' ">
     <TargetSavor>NET40</TargetSavor>
-    <TargetFrameworkLevel>400</TargetFrameworkLevel>
-    <TargetFrameworkProfile>
-    </TargetFrameworkProfile>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(TargetFrameworkVersion)' == 'v4.5' ">
     <TargetSavor>NET45</TargetSavor>
-    <TargetFrameworkLevel>450</TargetFrameworkLevel>
   </PropertyGroup>
   <PropertyGroup>
     <OutputPath>bin\$(Configuration)\$(TargetSavor)\</OutputPath>
@@ -159,8 +150,8 @@
     <Compile Include="Util.cs" />
     <Compile Include="Impl\ReadOnlyExtension.cs" />
     <Compile Include="InvalidFileException.cs" />
-    <Compile Condition=" '$(TargetFrameworkLevel)' &lt; 450 " Include="LegacySupport\IReadOnlyCollection.cs" />
-    <Compile Condition=" '$(TargetFrameworkLevel)' &lt; 450 " Include="LegacySupport\IReadOnlyList.cs" />
+    <Compile Include="LegacySupport\IReadOnlyCollection.cs" />
+    <Compile Include="LegacySupport\IReadOnlyList.cs" />
     <Compile Include="ComponentModel\ISimpleTypeFinder.cs" />
     <Compile Include="OSVersionInfo.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -193,7 +184,7 @@
     </PostBuildEvent>
   </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
-       Other similar extension points exist, see Microsoft.Common.targets.
+       Other similar extension points exist, see Microsoft.Common.targets. 
   <Target Name="BeforeBuild">
   </Target>
   <Target Name="AfterBuild">

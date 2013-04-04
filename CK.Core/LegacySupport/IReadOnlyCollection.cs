@@ -21,6 +21,8 @@
 *-----------------------------------------------------------------------------*/
 #endregion
 
+#if NET40
+
 using System.Collections.Generic;
 
 namespace CK.Core
@@ -41,3 +43,4 @@ namespace CK.Core
         int Count { get; }
     }
 }
+#endif

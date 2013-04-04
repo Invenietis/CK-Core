@@ -157,7 +157,7 @@ namespace CK.Core
         /// Enables simple "using" syntax to easily detect <see cref="LogLevel.Fatal"/> and <see cref="LogLevel.Error"/>.
         /// </summary>
         /// <param name="this">This <see cref="IActivityLogger"/>.</param>
-        /// <param name="fatalErrorWarnCount">An action that accepts two counts for fatals and errors.</param>
+        /// <param name="fatalErrorCount">An action that accepts two counts for fatals and errors.</param>
         /// <param name="asMuxClient">Optionaly registers the handler to also catch entries emitted by other loggers that are bound to this one.</param>
         /// <returns>A <see cref="IDisposable"/> object used to manage the scope of this handler.</returns>
         public static IDisposable CatchCounter( this IActivityLogger @this, Action<int, int> fatalErrorCount, bool asMuxClient = false )
@@ -179,7 +179,7 @@ namespace CK.Core
         /// Enables simple "using" syntax to easily detect <see cref="LogLevel.Fatal"/> or <see cref="LogLevel.Error"/>.
         /// </summary>
         /// <param name="this">This <see cref="IActivityLogger"/>.</param>
-        /// <param name="fatalErrorWarnCount">An action that accepts one count that sums fatals and errors.</param>
+        /// <param name="fatalOrErrorCount">An action that accepts one count that sums fatals and errors.</param>
         /// <param name="asMuxClient">Optionaly registers the handler to also catch entries emitted by other loggers that are bound to this one.</param>
         /// <returns>A <see cref="IDisposable"/> object used to manage the scope of this handler.</returns>
         public static IDisposable CatchCounter( this IActivityLogger @this, Action<int> fatalOrErrorCount, bool asMuxClient = false )

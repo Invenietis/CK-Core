@@ -67,7 +67,7 @@ namespace CK.Core
 		/// Determines the index of a specific item in list.
 		/// </summary>
 		/// <param name="item">The item to locate in the list.</param>
-		/// <returns>The index of item if found in the list; otherwise a negative value (see <see cref="IReadOnlyList{T}.IndexOf"/>).</returns>
+		/// <returns>The index of item if found in the list; otherwise a negative value (see <see cref="ICKReadOnlyList{T}.IndexOf"/>).</returns>
 		public int IndexOf( object item )
         {
             return item is T ? _inner.IndexOf( (T)item ) : Int32.MinValue;
@@ -228,7 +228,7 @@ namespace CK.Core
 		/// Determines the index of a specific item in list.
 		/// </summary>
 		/// <param name="item">The item to locate in the list.</param>
-		/// <returns>The index of item if found in the list; otherwise a negative value (see <see cref="IReadOnlyList{T}.IndexOf"/>).</returns>
+		/// <returns>The index of item if found in the list; otherwise a negative value (see <see cref="ICKReadOnlyList{T}.IndexOf"/>).</returns>
 		public int IndexOf( object item )
         {
             return item is TInner ? _inner.IndexOf( (TInner)item ) : Int32.MinValue;
