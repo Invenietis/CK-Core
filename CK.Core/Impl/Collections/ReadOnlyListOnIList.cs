@@ -35,7 +35,7 @@ namespace CK.Core
     /// </summary>
     /// <typeparam name="T">Type of the element.</typeparam>
     [DebuggerTypeProxy( typeof( Impl.ReadOnlyCollectionDebuggerView<> ) ), DebuggerDisplay( "Count = {Count}" )]
-    public sealed class ReadOnlyListOnIList<T> : IReadOnlyList<T>, IList<T>
+    public sealed class ReadOnlyListOnIList<T> : ICKReadOnlyList<T>, IList<T>
     {
 		IList<T> _inner;
 

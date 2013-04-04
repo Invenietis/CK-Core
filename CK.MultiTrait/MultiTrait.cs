@@ -40,7 +40,7 @@ namespace CK.Core
         readonly MultiTraitContext _context;
         readonly string _trait;
         readonly IReadOnlyList<MultiTrait> _traits;
-        IReadOnlyList<MultiTrait> _fallbacks;
+        ICKReadOnlyList<MultiTrait> _fallbacks;
 
         /// <summary>
         /// Initializes the new empty trait of a Context.
@@ -364,7 +364,7 @@ namespace CK.Core
         /// <remarks>
         /// For atomic traits (and the empty trait itself), <see cref="Fallbacks"/> contains only the <see cref="MultiTraitContext.EmptyTrait"/>.
         /// </remarks>
-        public IReadOnlyList<MultiTrait> Fallbacks
+        public ICKReadOnlyList<MultiTrait> Fallbacks
         {
             get
             {

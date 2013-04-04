@@ -32,7 +32,7 @@ namespace CK.Core
     /// </summary>
     /// <typeparam name="T">The type of the elements in the collection.</typeparam>
     /// <typeparam name="TKey">The type of the key associated to the elements.</typeparam>
-    public interface IReadOnlyUniqueKeyedCollection<out T, in TKey> : IReadOnlyCollection<T>
+    public interface IReadOnlyUniqueKeyedCollection<out T, in TKey> : ICKReadOnlyCollection<T>
     {
         /// <summary>
         /// Checks whether any item in this keyed collection is associated to the

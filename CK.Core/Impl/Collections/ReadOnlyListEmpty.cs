@@ -34,7 +34,7 @@ namespace CK.Core
     /// </summary>
     /// <typeparam name="T">Contained elements type.</typeparam>
     [DebuggerTypeProxy( typeof( Impl.ReadOnlyCollectionDebuggerView<> ) ), DebuggerDisplay( "Count = 0" )]
-    public sealed class ReadOnlyListEmpty<T> : IReadOnlyList<T>, IList<T>
+    public sealed class ReadOnlyListEmpty<T> : ICKReadOnlyList<T>, IList<T>
     {
         /// <summary>
         /// Static empty <see cref="ReadOnlyListEmpty{T}"/>. Can also be used as an 

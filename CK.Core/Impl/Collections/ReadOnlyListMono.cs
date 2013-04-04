@@ -33,7 +33,7 @@ namespace CK.Core
     /// </summary>
     /// <typeparam name="T">The type of element in the read only list.</typeparam>
     [DebuggerTypeProxy( typeof( Impl.ReadOnlyCollectionDebuggerView<> ) ), DebuggerDisplay( "Count = 1" )]
-    public sealed class ReadOnlyListMono<T> : IReadOnlyList<T>
+    public sealed class ReadOnlyListMono<T> : ICKReadOnlyList<T>
     {
         T _val;
 

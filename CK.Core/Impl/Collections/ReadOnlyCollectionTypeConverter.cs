@@ -37,7 +37,7 @@ namespace CK.Core
 	/// <typeparam name="TOuter">Type of the object that must be exposed.</typeparam>
 	/// <typeparam name="TInner">Actual type of the objects contained in the <see cref="Inner"/> collection.</typeparam>
     [DebuggerTypeProxy( typeof( Impl.ReadOnlyCollectionDebuggerView<,> ) ), DebuggerDisplay( "Count = {Count}" )]
-    public class ReadOnlyCollectionTypeConverter<TOuter, TInner> : EnumerableConverter<TOuter, TInner>, IReadOnlyCollection<TOuter>
+    public class ReadOnlyCollectionTypeConverter<TOuter, TInner> : EnumerableConverter<TOuter, TInner>, ICKReadOnlyCollection<TOuter>
     {
         Converter<TOuter, TInner> _outerToInner;
 

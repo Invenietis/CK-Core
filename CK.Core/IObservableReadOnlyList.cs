@@ -31,10 +31,10 @@ using System.ComponentModel;
 namespace CK.Core
 {
     /// <summary>
-    /// Definition of an <see cref="IObservableReadOnlyCollection{T}"/> that is <see cref="IReadOnlyList{T}"/> (the index of the elements makes sense).
+    /// Definition of an <see cref="IObservableReadOnlyCollection{T}"/> that is <see cref="ICKReadOnlyList{T}"/> (the index of the elements makes sense).
     /// </summary>
     /// <typeparam name="T">The type of elements in the list.</typeparam>
-    public interface IObservableReadOnlyList<out T> : IObservableReadOnlyCollection<T>, IReadOnlyList<T>
+    public interface IObservableReadOnlyList<out T> : IObservableReadOnlyCollection<T>, ICKReadOnlyList<T>
     {
     }
 

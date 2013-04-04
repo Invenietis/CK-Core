@@ -25,6 +25,7 @@ using System;
 using System.Linq;
 using NUnit.Framework;
 using CK.Core;
+using System.Collections.Generic;
 
 namespace Keyboard
 {

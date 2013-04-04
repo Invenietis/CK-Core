@@ -10,35 +10,54 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>CK.Core</RootNamespace>
     <AssemblyName>CK.Core</AssemblyName>
-    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+    <!-- This makes the .Net 4.5 the default -->
+    <TargetFrameworkVersion Condition=" '$(TargetFrameworkVersion)' == '' ">v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <FileUpgradeFlags>
     </FileUpgradeFlags>
     <OldToolsVersion>3.5</OldToolsVersion>
     <UpgradeBackupLocation />
+    <TargetFrameworkProfile />
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(TargetFrameworkVersion)' == 'v3.5' ">
+    <TargetSavor>NET35</TargetSavor>
+    <TargetFrameworkLevel>350</TargetFrameworkLevel>
     <TargetFrameworkProfile>Client</TargetFrameworkProfile>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(TargetFrameworkVersion)' == 'v4.0' ">
+    <TargetSavor>NET40</TargetSavor>
+    <TargetFrameworkLevel>400</TargetFrameworkLevel>
+    <TargetFrameworkProfile>
+    </TargetFrameworkProfile>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(TargetFrameworkVersion)' == 'v4.5' ">
+    <TargetSavor>NET45</TargetSavor>
+    <TargetFrameworkLevel>450</TargetFrameworkLevel>
+  </PropertyGroup>
+  <PropertyGroup>
+    <OutputPath>bin\$(Configuration)\$(TargetSavor)\</OutputPath>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
-    <OutputPath>bin\Debug\</OutputPath>
-    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <DefineConstants>DEBUG;TRACE;$(TargetSavor)</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <DocumentationFile>
     </DocumentationFile>
+    <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
-    <OutputPath>bin\Release\</OutputPath>
-    <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
+    <DefineConstants>TRACE;$(TargetSavor)</DefineConstants>
     <WarningLevel>4</WarningLevel>
-    <DocumentationFile>bin\Release\CK.Core.xml</DocumentationFile>
+    <DocumentationFile>$(OutputPath)CK.Core.xml</DocumentationFile>
     <LangVersion>default</LangVersion>
     <UseVSHostingProcess>true</UseVSHostingProcess>
+    <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <PropertyGroup>
     <SignAssembly>true</SignAssembly>
@@ -89,6 +108,8 @@
     <Compile Include="ActivityLogger\LogLevel.cs" />
     <Compile Include="ActivityLogger\LogLevelFilter.cs" />
     <Compile Include="CKException.cs" />
+    <Compile Include="ICKReadOnlyCollection.cs" />
+    <Compile Include="ICKReadOnlyList.cs" />
     <Compile Include="IReadOnlyMultiKeyedCollection.cs" />
     <Compile Include="IReadOnlyUniqueKeyedCollection.cs" />
     <Compile Include="IWritableCollector.cs" />
@@ -138,8 +159,8 @@
     <Compile Include="Util.cs" />
     <Compile Include="Impl\ReadOnlyExtension.cs" />
     <Compile Include="InvalidFileException.cs" />
-    <Compile Include="IReadOnlyCollection.cs" />
-    <Compile Include="IReadOnlyList.cs" />
+    <Compile Condition=" '$(TargetFrameworkLevel)' &lt; 450 " Include="LegacySupport\IReadOnlyCollection.cs" />
+    <Compile Condition=" '$(TargetFrameworkLevel)' &lt; 450 " Include="LegacySupport\IReadOnlyList.cs" />
     <Compile Include="ComponentModel\ISimpleTypeFinder.cs" />
     <Compile Include="OSVersionInfo.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

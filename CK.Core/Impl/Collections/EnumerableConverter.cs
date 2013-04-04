@@ -46,6 +46,7 @@ namespace CK.Core
         public EnumerableConverter( IEnumerable<TInner> c, Converter<TInner,TOuter> converter )
             : base( c )
         {
+            Debug.Assert( c != null, "Check is done by Wrapper base class." );
             if( c == this ) throw new ArgumentException( "Adapter plugged on itself." );
             _converter = converter;
 		}
