@@ -34,8 +34,8 @@ namespace CK.Core
     /// Note that when <typeparamref name="T"/> is a reference type, null can be pushed and pop.
     /// </summary>
     /// <typeparam name="T">Type of the items.</typeparam>
-    [DebuggerTypeProxy( typeof( Impl.ReadOnlyCollectionDebuggerView<> ) )]
-    public class FIFOBuffer<T> : IReadOnlyList<T>, IWritableCollector<T>
+    [DebuggerTypeProxy( typeof( Impl.CKReadOnlyCollectionDebuggerView<> ) )]
+    public class FIFOBuffer<T> : IReadOnlyList<T>, ICKWritableCollector<T>
     {
         int _count;
         int _head;
@@ -200,7 +200,7 @@ namespace CK.Core
             return _buffer[_head];
         }
 
-        bool IWritableCollector<T>.Add( T e )
+        bool ICKWritableCollector<T>.Add( T e )
         {
             Push( e );
             return true;

@@ -61,15 +61,6 @@ namespace CK.Core {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to ActionSequence is read only: no action can be appended..
-        /// </summary>
-        internal static string ActionSequenceReadOnly {
-            get {
-                return ResourceManager.GetString("ActionSequenceReadOnly", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to The ActivityLogger client is in NonRemoveableClients list..
         /// </summary>
         internal static string ActivityLoggerNonRemoveableClient {

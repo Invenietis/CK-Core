@@ -70,7 +70,7 @@ namespace CK.Core.Tests.Collection
         [Test]
         public void ObservableSortedArrayListDoSetTest()
         {
-            var a = new ObservableSortedArrayList<int>();
+            var a = new CKObservableSortedArrayList<int>();
             a.AddRangeArray( 12, -34, 7, 545, 12 );
 
             //Cast IList
@@ -123,7 +123,7 @@ namespace CK.Core.Tests.Collection
             Assert.That( String.Join( "", a.Select( m => m.Name ) ), Is.EqualTo( p ) );
         }
 
-        class TestInt : ObservableSortedArrayList<int>
+        class TestInt : CKObservableSortedArrayList<int>
         {
             public TestInt()
             {
@@ -143,7 +143,7 @@ namespace CK.Core.Tests.Collection
             }
         }
 
-        class TestMammals : ObservableSortedArrayList<Mammal>
+        class TestMammals : CKObservableSortedArrayList<Mammal>
         {
             public TestMammals( Comparison<Mammal> m, bool allowDuplicated = false )
                 : base( m, allowDuplicated )

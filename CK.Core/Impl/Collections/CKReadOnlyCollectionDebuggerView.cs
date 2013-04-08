@@ -36,7 +36,7 @@ namespace CK.Core.Impl
     /// <typeparam name="T">Type of elements in the collection.</typeparam>
 
     [ExcludeFromCodeCoverage]
-    sealed class ReadOnlyCollectionDebuggerView<T>
+    sealed class CKReadOnlyCollectionDebuggerView<T>
     {
         readonly IReadOnlyCollection<T> _collection;
         
@@ -44,7 +44,7 @@ namespace CK.Core.Impl
         /// Called by the debugger when needed.
         /// </summary>
         /// <param name="collection">The collection to debug.</param>
-        public ReadOnlyCollectionDebuggerView( IReadOnlyCollection<T> collection )
+        public CKReadOnlyCollectionDebuggerView( IReadOnlyCollection<T> collection )
         {
             if( collection == null ) throw new ArgumentNullException( "collection" );
             _collection = collection;

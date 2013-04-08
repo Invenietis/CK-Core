@@ -94,7 +94,7 @@ namespace CK.Core
         /// </summary>
         /// <param name="group">The closed group.</param>
         /// <param name="conclusions">Text that conclude the group. Never null but can be empty.</param>
-        protected virtual void OnGroupClosed( IActivityLogGroup group, IReadOnlyList<ActivityLogGroupConclusion> conclusions )
+        protected virtual void OnGroupClosed( IActivityLogGroup group, ICKReadOnlyList<ActivityLogGroupConclusion> conclusions )
         {
         }
 
@@ -120,7 +120,7 @@ namespace CK.Core
             OnGroupClosing( group, conclusions );
         }
 
-        void IActivityLoggerClient.OnGroupClosed( IActivityLogGroup group, IReadOnlyList<ActivityLogGroupConclusion> conclusions )
+        void IActivityLoggerClient.OnGroupClosed( IActivityLogGroup group, ICKReadOnlyList<ActivityLogGroupConclusion> conclusions )
         {
             OnGroupClosed( group, conclusions );
         }
@@ -149,7 +149,7 @@ namespace CK.Core
             OnGroupClosing( group, conclusions );
         }
 
-        void IMuxActivityLoggerClient.OnGroupClosed( IActivityLogger sender, IActivityLogGroup group, IReadOnlyList<ActivityLogGroupConclusion> conclusions )
+        void IMuxActivityLoggerClient.OnGroupClosed( IActivityLogger sender, IActivityLogGroup group, ICKReadOnlyList<ActivityLogGroupConclusion> conclusions )
         {
             OnGroupClosed( group, conclusions );
         }

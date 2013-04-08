@@ -67,6 +67,6 @@ namespace CK.Core
         /// </summary>
         /// <param name="group">The closing group.</param>
         /// <param name="conclusions">Texts that concludes the group. Never null but can be empty.</param>
-        void OnGroupClose( IActivityLogGroup group, IReadOnlyList<ActivityLogGroupConclusion> conclusions );
+        void OnGroupClose( IActivityLogGroup group, ICKReadOnlyList<ActivityLogGroupConclusion> conclusions );
     }
 }

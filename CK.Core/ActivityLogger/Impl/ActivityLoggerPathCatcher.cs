@@ -88,7 +88,7 @@ namespace CK.Core
             {
             }
 
-            protected override void OnGroupClosed( IActivityLogGroup group, IReadOnlyList<ActivityLogGroupConclusion> conclusions )
+            protected override void OnGroupClosed( IActivityLogGroup group, ICKReadOnlyList<ActivityLogGroupConclusion> conclusions )
             {
             }
         }
@@ -113,11 +113,11 @@ namespace CK.Core
         public ActivityLoggerPathCatcher()
         {
             _path = new List<PathElement>();
-            _pathEx = new ReadOnlyListOnIList<PathElement>( _path );
+            _pathEx = new CKReadOnlyListOnIList<PathElement>( _path );
         }
 
         /// <summary>
-        /// Gets the current (mutable) path. You should use <see cref="ReadOnlyExtension.ToReadOnlyList{T}(IList{T})"/> or other ToArray 
+        /// Gets the current (mutable) path. You should use <see cref="CKReadOnlyExtension.ToReadOnlyList{T}(IList{T})"/> or other ToArray 
         /// or ToList methods to take a snapshot of this list.
         /// Use the extension method <see cref="ActivityLoggerExtension.ToStringPath"/> to easily format this path.
         /// </summary>
@@ -211,7 +211,7 @@ namespace CK.Core
         /// </summary>
         /// <param name="group">The closed group.</param>
         /// <param name="conclusions">Texts that conclude the group. Never null but can be empty.</param>
-        protected override void OnGroupClosed( IActivityLogGroup group, IReadOnlyList<ActivityLogGroupConclusion> conclusions )
+        protected override void OnGroupClosed( IActivityLogGroup group, ICKReadOnlyList<ActivityLogGroupConclusion> conclusions )
         {
             if( _currentIsGroupClosed ) HandleCurrentGroupIsClosed();
             if( _path.Count > 0 )

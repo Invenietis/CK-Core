@@ -68,9 +68,6 @@
     <Compile Include="..\SharedAssemblyInfo.cs">
       <Link>Properties\SharedAssemblyInfo.cs</Link>
     </Compile>
-    <Compile Include="ActionSequence\ActionSequence.cs" />
-    <Compile Include="ActionSequence\ActionSequenceExtension.cs" />
-    <Compile Include="ActionSequence\IActionSequence.cs" />
     <Compile Include="ActivityLogger\ActivityLoggerEmpty.cs" />
     <Compile Include="ActivityLogger\ActivityLogGroupConclusion.cs" />
     <Compile Include="ActivityLogger\IActivityLogger.cs" />
@@ -101,21 +98,21 @@
     <Compile Include="CKException.cs" />
     <Compile Include="ICKReadOnlyCollection.cs" />
     <Compile Include="ICKReadOnlyList.cs" />
-    <Compile Include="IReadOnlyMultiKeyedCollection.cs" />
-    <Compile Include="IReadOnlyUniqueKeyedCollection.cs" />
-    <Compile Include="IWritableCollector.cs" />
-    <Compile Include="IObservableReadOnlyCollection.cs" />
-    <Compile Include="IObservableReadOnlyList.cs" />
+    <Compile Include="ICKReadOnlyMultiKeyedCollection.cs" />
+    <Compile Include="ICKReadOnlyUniqueKeyedCollection.cs" />
+    <Compile Include="ICKWritableCollector.cs" />
+    <Compile Include="ICKObservableReadOnlyCollection.cs" />
+    <Compile Include="ICKObservableReadOnlyList.cs" />
     <Compile Include="ComponentModel\ComponentModelExtension.cs" />
     <Compile Include="CollectionExtension.cs" />
-    <Compile Include="ComponentModel\ObservableSortedArrayKeyList.cs" />
-    <Compile Include="ComponentModel\SortedArrayKeyList.cs" />
-    <Compile Include="ComponentModel\SortedArrayList.cs" />
-    <Compile Include="ComponentModel\ObservableSortedArrayList.cs" />
+    <Compile Include="ComponentModel\CKObservableSortedArrayKeyList.cs" />
+    <Compile Include="ComponentModel\CKSortedArrayKeyList.cs" />
+    <Compile Include="ComponentModel\CKSortedArrayList.cs" />
+    <Compile Include="ComponentModel\CKObservableSortedArrayList.cs" />
     <Compile Include="File\FileUtil.cs" />
     <Compile Include="FIFOBuffer.cs" />
-    <Compile Include="Impl\Collections\ReadOnlyCollectionDebuggerView.cs" />
-    <Compile Include="IWritableCollection.cs" />
+    <Compile Include="Impl\Collections\CKReadOnlyCollectionDebuggerView.cs" />
+    <Compile Include="ICKWritableCollection.cs" />
     <Compile Include="SimpleErrorMessage.cs" />
     <Compile Include="ISimpleErrorMessage.cs" />
     <Compile Include="IFluentInterface.cs" />
@@ -124,8 +121,8 @@
     <Compile Include="UniqueId\IVersionedUniqueId.cs" />
     <Compile Include="UniqueId\SimpleNamedVersionedUniqueId.cs" />
     <Compile Include="UniqueId\INamedVersionedUniqueId.cs" />
-    <Compile Include="Impl\Collections\ReadOnlyCollectionTypeConverter.cs" />
-    <Compile Include="Impl\Collections\ReadOnlyCollectionOnISet.cs" />
+    <Compile Include="Impl\Collections\CKReadOnlyCollectionTypeConverter.cs" />
+    <Compile Include="Impl\Collections\CKReadOnlyCollectionOnISet.cs" />
     <Compile Include="UniqueId\SimpleUniqueId.cs" />
     <Compile Include="IMergeable.cs" />
     <Compile Include="UniqueId\IUniqueId.cs" />
@@ -135,20 +132,19 @@
     <Compile Include="DictionaryExtension.cs" />
     <Compile Include="EnumerableExtension.cs" />
     <Compile Include="Impl\Collections\Adapter.cs" />
-    <Compile Include="Impl\Collections\EnumeratorEmpty.cs" />
-    <Compile Include="Impl\Collections\EnumerableConverter.cs" />
-    <Compile Include="Impl\Collections\EnumMono.cs" />
-    <Compile Include="Impl\Collections\ReadOnlyCollectionOnICollection.cs" />
-    <Compile Include="Impl\Collections\ReadOnlyListEmpty.cs" />
-    <Compile Include="Impl\Collections\ReadOnlyListMono.cs" />
-    <Compile Include="Impl\Collections\ReadOnlyListOnIList.cs" />
-    <Compile Include="Impl\Collections\Wrapper.cs" />
+    <Compile Include="Impl\Collections\CKEnumeratorEmpty.cs" />
+    <Compile Include="Impl\Collections\CKEnumerableConverter.cs" />
+    <Compile Include="Impl\Collections\CKEnumeratorMono.cs" />
+    <Compile Include="Impl\Collections\CKReadOnlyCollectionOnICollection.cs" />
+    <Compile Include="Impl\Collections\CKReadOnlyListEmpty.cs" />
+    <Compile Include="Impl\Collections\CKReadOnlyListMono.cs" />
+    <Compile Include="Impl\Collections\CKReadOnlyListOnIList.cs" />
     <Compile Include="UniqueId\SimpleVersionedUniqueId.cs" />
     <Compile Include="Uri\UriExtension.cs" />
     <Compile Include="Uri\UriHelper.cs" />
     <Compile Include="Util.Converter.cs" />
     <Compile Include="Util.cs" />
-    <Compile Include="Impl\ReadOnlyExtension.cs" />
+    <Compile Include="Impl\CKReadOnlyExtension.cs" />
     <Compile Include="InvalidFileException.cs" />
     <Compile Include="LegacySupport\IReadOnlyCollection.cs" />
     <Compile Include="LegacySupport\IReadOnlyList.cs" />
@@ -160,7 +156,7 @@
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
     </Compile>
-    <Compile Include="ChangeStatus.cs" />
+    <Compile Include="Obsolete\ChangeStatus.cs" />
     <Compile Include="Util.Hash.cs" />
     <Compile Include="Util.Math.cs" />
     <Compile Include="WeakReference.cs" />

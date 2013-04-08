@@ -32,7 +32,7 @@ namespace CK.Core
 {
     /// <summary>
     /// A trait is an immutable object (thread-safe), associated to a unique string inside a <see cref="Context"/>, that can be atomic ("Alt", "Home", "Ctrl") or 
-    /// combined ("Alt+Ctrl", "Alt+Ctrl+Home"). The only way to obtain a MultiTrait is to call <see cref="MultiTraitContext.FindOrCreate"/> (from 
+    /// combined ("Alt+Ctrl", "Alt+Ctrl+Home"). The only way to obtain a MultiTrait is to call <see cref="MultiTraitContext.FindOrCreate(string)"/> (from 
     /// a string) or to use one of the available combination methods (<see cref="Add"/>, <see cref="Remove"/>, <see cref="Toggle"/> or <see cref="Intersect"/> ).
     /// </summary>
     public sealed class MultiTrait : IComparable<MultiTrait>
@@ -50,8 +50,8 @@ namespace CK.Core
             Debug.Assert( ctx.EmptyTrait == null, "There is only one empty trait per context." );
             _context = ctx;
             _trait = String.Empty;
-            _traits = ReadOnlyListEmpty<MultiTrait>.Empty;
-            _fallbacks = new ReadOnlyListMono<MultiTrait>( this );
+            _traits = CKReadOnlyListEmpty<MultiTrait>.Empty;
+            _fallbacks = new CKReadOnlyListMono<MultiTrait>( this );
         }
 
         /// <summary>
@@ -62,7 +62,7 @@ namespace CK.Core
             Debug.Assert( atomicTrait.Contains( '+' ) == false );
             _context = ctx;
             _trait = atomicTrait;
-            _traits = new ReadOnlyListMono<MultiTrait>( this );
+            _traits = new CKReadOnlyListMono<MultiTrait>( this );
             _fallbacks = ctx.EmptyTrait.Fallbacks;
         }
 
@@ -214,7 +214,7 @@ namespace CK.Core
         /// <param name="trait">The trait(s) to find.</param>
         /// <returns>Returns true if one of the specified traits appears in this trait.</returns>
         /// <remarks>
-        /// When true, this ensures that <see cref="Intersect"/>( <paramref name="trait"/> ) != <see cref="IKeyboardContextTrait.EmptyTrait"/>. 
+        /// When true, this ensures that <see cref="Intersect"/>( <paramref name="trait"/> ) != <see cref="MultiTraitContext.EmptyTrait"/>. 
         /// The empty trait is not contained (in the sense of this ContainsOne method) in any trait (including itself). This is the opposite
         /// of the <see cref="ContainsAll"/> method.
         /// </remarks>
@@ -372,7 +372,7 @@ namespace CK.Core
                 {
                     MultiTrait[] f = new MultiTrait[(1 << _traits.Count) - 1];
                     ComputeFallbacks( f );
-                    Interlocked.Exchange( ref _fallbacks, new ReadOnlyListOnIList<MultiTrait>( f ) );
+                    Interlocked.Exchange( ref _fallbacks, new CKReadOnlyListOnIList<MultiTrait>( f ) );
                 }
                 return _fallbacks;
             }

@@ -85,7 +85,7 @@ namespace CK.Core
             w.WriteLine( start + g.GroupText.Replace( Environment.NewLine, Environment.NewLine + _prefixLevel ) );
         }
 
-        void IActivityLoggerSink.OnGroupClose( IActivityLogGroup g, IReadOnlyList<ActivityLogGroupConclusion> conclusions )
+        void IActivityLoggerSink.OnGroupClose( IActivityLogGroup g, ICKReadOnlyList<ActivityLogGroupConclusion> conclusions )
         {
             TextWriter w = _writer();
             if( g.Exception != null )

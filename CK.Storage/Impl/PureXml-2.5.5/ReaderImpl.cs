@@ -79,7 +79,7 @@ namespace CK.Storage
             _xmlReader = reader;
             _serviceContainer = new SimpleServiceContainer( baseServiceProvider );
             _path = new List<string>();
-            _pathEx = new ReadOnlyListOnIList<string>( _path );
+            _pathEx = new CKReadOnlyListOnIList<string>( _path );
             if( reader.IsStartElement( "CK-Structured" ) )
             {
                 _storageVersion = new Version( reader.GetAttribute( "version" ) );
@@ -97,7 +97,7 @@ namespace CK.Storage
             _xmlReader = reader;
             _serviceContainer = new SimpleServiceContainer( baseServiceProvider );
             _path = new List<string>();
-            _pathEx = new ReadOnlyListOnIList<string>( _path );
+            _pathEx = new CKReadOnlyListOnIList<string>( _path );
             _storageVersion = storageVersion;
             _mustCloseReader = autoCloseReader;
         }

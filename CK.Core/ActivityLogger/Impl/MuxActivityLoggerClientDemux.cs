@@ -122,7 +122,7 @@ namespace CK.Core
         /// <param name="sender">The sender logger.</param>
         /// <param name="group">The group that will be closed.</param>
         /// <param name="conclusions">Texts that conclude the closed group.</param>
-        void IMuxActivityLoggerClient.OnGroupClosed( IActivityLogger sender, IActivityLogGroup group, IReadOnlyList<ActivityLogGroupConclusion> conclusions )
+        void IMuxActivityLoggerClient.OnGroupClosed( IActivityLogger sender, IActivityLogGroup group, ICKReadOnlyList<ActivityLogGroupConclusion> conclusions )
         {
             FindOrCreate( sender ).OnGroupClosed( group, conclusions );
         }

@@ -71,7 +71,7 @@ namespace CK.Core
         /// <param name="sender">The sender logger.</param>
         /// <param name="group">The closed group.</param>
         /// <param name="conclusions">Texts that conclude the group. Never null but can be empty.</param>
-        void OnGroupClosed( IActivityLogger sender, IActivityLogGroup group, IReadOnlyList<ActivityLogGroupConclusion> conclusions );
+        void OnGroupClosed( IActivityLogger sender, IActivityLogGroup group, ICKReadOnlyList<ActivityLogGroupConclusion> conclusions );
     }
 
 }

@@ -1,0 +1,27 @@
+<?xml version="1.0"?>
+<package xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <metadata xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
+    <id>CK.Storage</id>
+    <version>2.8.2-alpha</version>
+    <authors>Invenietis</authors>
+    <owners>Invenietis</owners>
+    <licenseUrl>http://www.gnu.org/licenses/lgpl.html</licenseUrl>
+    <projectUrl>https://github.com/Invenietis/ck-core</projectUrl>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <description>A set of classes that handles XML serialization and deserialization of complex objects.</description>
+    <language>en-US</language>
+    <dependencies>
+	<dependency id="CK.Core" version="2.8.2-alpha" />
+    </dependencies> 
+  </metadata>
+  <files>
+	<file src="CK.Storage\bin\Debug\NET40\CK.Storage.dll" target="lib\net40" />	
+	<file src="CK.Storage\bin\Debug\NET40\CK.Storage.pdb" target="lib\net40" />
+	<file src="CK.Storage\bin\Release\NET40\CK.Storage.xml" target="lib\net40" />
+
+	<file src="CK.Storage\bin\Debug\NET40\CK.Storage.dll" target="lib\net45" />	
+	<file src="CK.Storage\bin\Debug\NET40\CK.Storage.pdb" target="lib\net45" />
+	<file src="CK.Storage\bin\Release\NET40\CK.Storage.xml" target="lib\net45" />
+
+  </files>
+</package>

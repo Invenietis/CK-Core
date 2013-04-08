@@ -36,7 +36,7 @@ namespace Core.Collection
         [Test]
         public void LexicographicIntegers()
         {
-            var a = new SortedArrayKeyList<int,string>( i => i.ToString() );
+            var a = new CKSortedArrayKeyList<int,string>( i => i.ToString() );
             a.AddRangeArray( 1, 2, 3 );
             CheckList( a, 1, 2, 3 );
 
@@ -56,7 +56,7 @@ namespace Core.Collection
         [Test]
         public void SortedArrayKeyListSimpleTest()
         {
-            var a = new SortedArrayKeyList<int, string>( i => i.ToString() );
+            var a = new CKSortedArrayKeyList<int, string>( i => i.ToString() );
 
             a.AddRangeArray( 1, 10, 100, 100, 1000, 10000, 2, 20, 3, 30, 100, 46, 56 );
             CheckList( a, 1, 10, 100, 1000, 10000, 2, 20, 3, 30, 46, 56 );
@@ -90,7 +90,7 @@ namespace Core.Collection
             Assert.That( a.Remove( "Nothing" ), Is.False );
 
             //Exception Test
-            var b = new SortedArrayKeyList<ClassToTest, string>( i => i.ToString(), false );
+            var b = new CKSortedArrayKeyList<ClassToTest, string>( i => i.ToString(), false );
             ClassToTest classToTest = new ClassToTest( "A" );
 
             b.Add( classToTest );
@@ -107,7 +107,7 @@ namespace Core.Collection
             // Uses an ObservableSortedArrayKeyList just for fun and
             // to challenge inheritance of DebuggerTypeProxy: the ObservableSortedArrayKeyList is not attributed
             // but it inherits the DebuggerTypeProxy of its SortedArrayKeyList base class.
-            var a = new ObservableSortedArrayKeyList<int, string>( i => i.ToString() );
+            var a = new CKObservableSortedArrayKeyList<int, string>( i => i.ToString() );
             a.AddRangeArray( 3, 2, 1 );
 
             bool exists;
@@ -142,7 +142,7 @@ namespace Core.Collection
         [Test]
         public void DuplicateKeyedCollection()
         {
-            var a = new SortedArrayKeyList<int, string>( i => (i%100).ToString(), true );
+            var a = new CKSortedArrayKeyList<int, string>( i => (i%100).ToString(), true );
             a.AddRangeArray( 2, 1 );
 
             bool exists;

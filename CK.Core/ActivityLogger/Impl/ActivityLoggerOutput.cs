@@ -56,7 +56,7 @@ namespace CK.Core
 
             public IReadOnlyList<IActivityLoggerClient> RegisteredClients
             {
-                get { return ReadOnlyListEmpty<IActivityLoggerClient>.Empty; }
+                get { return CKReadOnlyListEmpty<IActivityLoggerClient>.Empty; }
             }
 
             public IMuxActivityLoggerClientRegistrar RegisterMuxClient( IMuxActivityLoggerClient client )
@@ -71,12 +71,12 @@ namespace CK.Core
 
             public IReadOnlyList<IMuxActivityLoggerClient> RegisteredMuxClients
             {
-                get { return ReadOnlyListEmpty<IMuxActivityLoggerClient>.Empty; }
+                get { return CKReadOnlyListEmpty<IMuxActivityLoggerClient>.Empty; }
             }
 
             public IList<IActivityLoggerClientBase> NonRemoveableClients 
             {
-                get { return (IList<IActivityLoggerClientBase>)ReadOnlyListEmpty<IActivityLoggerClientBase>.Empty; } 
+                get { return (IList<IActivityLoggerClientBase>)CKReadOnlyListEmpty<IActivityLoggerClientBase>.Empty; } 
             }
         }
 
@@ -93,7 +93,7 @@ namespace CK.Core
         {
             Logger = logger;
             _clients = new List<IActivityLoggerClient>();
-            _clientsEx = new ReadOnlyListOnIList<IActivityLoggerClient>( _clients );
+            _clientsEx = new CKReadOnlyListOnIList<IActivityLoggerClient>( _clients );
             _nonRemoveableClients = new List<IActivityLoggerClientBase>();
         }
 
@@ -233,7 +233,7 @@ namespace CK.Core
             ((IMuxActivityLoggerClient)this).OnGroupClosing( Logger, group, conclusions );
         }
 
-        internal void OnGroupClosed( IActivityLogGroup group, IReadOnlyList<ActivityLogGroupConclusion> conclusions )
+        internal void OnGroupClosed( IActivityLogGroup group, ICKReadOnlyList<ActivityLogGroupConclusion> conclusions )
         {
             foreach( var l in _clients ) l.OnGroupClosed( group, conclusions );
             ((IMuxActivityLoggerClient)this).OnGroupClosed( Logger, group, conclusions );

@@ -61,6 +61,15 @@ namespace CK.Storage {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to ActionSequence is read only: no action can be appended..
+        /// </summary>
+        internal static string ActionSequenceReadOnly {
+            get {
+                return ResourceManager.GetString("ActionSequenceReadOnly", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The type and object parameter can not be both null..
         /// </summary>
         internal static string AtLeastTypeOrObjectMustBeSpecified {

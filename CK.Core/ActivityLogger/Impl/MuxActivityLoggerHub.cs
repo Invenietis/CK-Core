@@ -43,7 +43,7 @@ namespace CK.Core
         public MuxActivityLoggerHub()
         {
             _clients = new List<IMuxActivityLoggerClient>();
-            _clientsEx = new ReadOnlyListOnIList<IMuxActivityLoggerClient>( _clients );
+            _clientsEx = new CKReadOnlyListOnIList<IMuxActivityLoggerClient>( _clients );
         }
 
         /// <summary>
@@ -119,7 +119,7 @@ namespace CK.Core
             foreach( var l in RegisteredMuxClients ) l.OnGroupClosing( sender, group, conclusions );
         }
 
-        void IMuxActivityLoggerClient.OnGroupClosed( IActivityLogger sender, IActivityLogGroup group, IReadOnlyList<ActivityLogGroupConclusion> conclusions )
+        void IMuxActivityLoggerClient.OnGroupClosed( IActivityLogger sender, IActivityLogGroup group, ICKReadOnlyList<ActivityLogGroupConclusion> conclusions )
         {
             foreach( var l in RegisteredMuxClients ) l.OnGroupClosed( sender, group, conclusions );
         }

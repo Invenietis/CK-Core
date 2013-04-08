@@ -42,6 +42,9 @@ namespace CK.Core
         readonly ConcurrentDictionary<string, MultiTrait> _traits;
         readonly object _creationLock;
 
+        /// <summary>
+        /// Initializes a new context for traits.
+        /// </summary>
         public MultiTraitContext()
         {
             _empty = new MultiTrait( this );
@@ -163,7 +166,7 @@ namespace CK.Core
                         {
                             if( !_traits.TryGetValue( traits, out m ) )
                             {
-                                m = new MultiTrait( this, traits, new ReadOnlyListOnIList<MultiTrait>( atomics ) );
+                                m = new MultiTrait( this, traits, new CKReadOnlyListOnIList<MultiTrait>( atomics ) );
                                 _traits[traits] = m;
                             }
                         }
@@ -219,7 +222,7 @@ namespace CK.Core
                 {
                     if( !_traits.TryGetValue( traits, out m ) )
                     {
-                        m = new MultiTrait( this, traits, new ReadOnlyListOnIList<MultiTrait>( atomicTraits.ToArray() ) );
+                        m = new MultiTrait( this, traits, new CKReadOnlyListOnIList<MultiTrait>( atomicTraits.ToArray() ) );
                         _traits[traits] = m;
                     }
                 }
@@ -260,7 +263,7 @@ namespace CK.Core
                 {
                     if( !_traits.TryGetValue( traits, out m ) )
                     {
-                        m = new MultiTrait( this, traits, new ReadOnlyListOnIList<MultiTrait>( atomicTraits ) );
+                        m = new MultiTrait( this, traits, new CKReadOnlyListOnIList<MultiTrait>( atomicTraits ) );
                         _traits[traits] = m;
                     }
                 }

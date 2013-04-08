@@ -48,7 +48,7 @@ namespace CK.Core
         /// </param>
         /// <returns>The type or null if not found and <paramref name="throwOnError"/> is false.</returns>
         /// <exception cref="TypeLoadException">
-        /// When <paramref name="throwOnError"/> is true, always throws this kind of exception.
+        /// When <paramref name="throwOnError"/> is true, always throws a TypeLoadException whatever the actual exception is.
         /// The original error (not a <see cref="TypeLoadException"/>) is available in the <see cref="Exception.InnerException"/>.
         /// </exception>
         Type ResolveType( string externalName, bool throwOnError );

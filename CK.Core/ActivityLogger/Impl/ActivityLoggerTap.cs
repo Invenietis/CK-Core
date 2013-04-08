@@ -36,7 +36,7 @@ namespace CK.Core
     {
         int _curLevel;
         List<IActivityLoggerSink> _sinks;
-        IReadOnlyList<IActivityLoggerSink> _sinksEx;
+        ICKReadOnlyList<IActivityLoggerSink> _sinksEx;
 
         class EmptyTap : ActivityLoggerTap
         {
@@ -63,7 +63,7 @@ namespace CK.Core
             {
             }
 
-            protected override void OnGroupClosed( IActivityLogGroup group, IReadOnlyList<ActivityLogGroupConclusion> conclusions )
+            protected override void OnGroupClosed( IActivityLogGroup group, ICKReadOnlyList<ActivityLogGroupConclusion> conclusions )
             {
             }
         }
@@ -80,7 +80,7 @@ namespace CK.Core
         {
             _curLevel = -1;
             _sinks = new List<IActivityLoggerSink>();
-            _sinksEx = new ReadOnlyListOnIList<IActivityLoggerSink>( _sinks );
+            _sinksEx = new CKReadOnlyListOnIList<IActivityLoggerSink>( _sinks );
         }
 
         /// <summary>
@@ -110,7 +110,7 @@ namespace CK.Core
         /// <summary>
         /// Gets the list of registered <see cref="IActivityLoggerSink"/>.
         /// </summary>
-        public IReadOnlyList<IActivityLoggerSink> RegisteredSinks
+        public ICKReadOnlyList<IActivityLoggerSink> RegisteredSinks
         {
             get { return _sinksEx; }
         }
@@ -167,7 +167,7 @@ namespace CK.Core
         /// </summary>
         /// <param name="group">The closed group.</param>
         /// <param name="conclusions">Texts that conclude the group. Never null but can be empty.</param>
-        protected override void OnGroupClosed( IActivityLogGroup group, IReadOnlyList<ActivityLogGroupConclusion> conclusions )
+        protected override void OnGroupClosed( IActivityLogGroup group, ICKReadOnlyList<ActivityLogGroupConclusion> conclusions )
         {
             if( _curLevel != -1 )
             {

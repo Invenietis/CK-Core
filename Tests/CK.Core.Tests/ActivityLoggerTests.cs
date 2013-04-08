@@ -70,7 +70,7 @@ namespace Core
                 Writer.Write( "{1} ({0})", g.GroupLevel, g.GroupText );
             }
 
-            public void OnGroupClose( IActivityLogGroup g, IReadOnlyList<ActivityLogGroupConclusion> conclusions )
+            public void OnGroupClose( IActivityLogGroup g, ICKReadOnlyList<ActivityLogGroupConclusion> conclusions )
             {
                 Writer.WriteLine();
                 Writer.Write( new String( '-', g.Depth ) );
@@ -114,7 +114,7 @@ namespace Core
                 XmlWriter.WriteAttributeString( "Text", g.GroupText.ToString() );
             }
 
-            public void OnGroupClose( IActivityLogGroup g, IReadOnlyList<ActivityLogGroupConclusion> conclusions )
+            public void OnGroupClose( IActivityLogGroup g, ICKReadOnlyList<ActivityLogGroupConclusion> conclusions )
             {
                 XmlWriter.WriteEndElement();
                 XmlWriter.Flush();
@@ -128,9 +128,9 @@ namespace Core
             // Binds the TestHelper.Logger logger to this one.
             logger.Output.RegisterMuxClient( TestHelper.Logger.Output.ExternalInput );
 
-            logger.Register( new StringImpl() ).Register( new XmlImpl( new StringWriter() ) );
+            logger.Tap.Register( new StringImpl() ).Register( new XmlImpl( new StringWriter() ) );
 
-            Assert.That( logger.RegisteredSinks.Count, Is.EqualTo( 2 ) );
+            Assert.That( logger.Tap.RegisteredSinks.Count, Is.EqualTo( 2 ) );
 
             using( logger.OpenGroup( LogLevel.None, () => "EndMainGroup", "MainGroup" ) )
             {
@@ -154,10 +154,10 @@ namespace Core
                 }
             }
 
-            Console.WriteLine( logger.RegisteredSinks.OfType<StringImpl>().Single().Writer );
-            Console.WriteLine( logger.RegisteredSinks.OfType<XmlImpl>().Single().InnerWriter );
+            Console.WriteLine( logger.Tap.RegisteredSinks.OfType<StringImpl>().Single().Writer );
+            Console.WriteLine( logger.Tap.RegisteredSinks.OfType<XmlImpl>().Single().InnerWriter );
 
-            XPathDocument d = new XPathDocument( new StringReader( logger.RegisteredSinks.OfType<XmlImpl>().Single().InnerWriter.ToString() ) );
+            XPathDocument d = new XPathDocument( new StringReader( logger.Tap.RegisteredSinks.OfType<XmlImpl>().Single().InnerWriter.ToString() ) );
 
             Assert.That( d.CreateNavigator().SelectDescendants( "Info", String.Empty, false ), Is.Not.Empty.And.Count.EqualTo( 3 ) );
             Assert.That( d.CreateNavigator().SelectDescendants( "Trace", String.Empty, false ), Is.Not.Empty.And.Count.EqualTo( 2 ) );
@@ -172,9 +172,9 @@ namespace Core
             logger.Output.RegisterMuxClient( TestHelper.Logger.Output.ExternalInput );
 
             var log1 = new StringImpl();
-            logger.Register( log1 );
+            logger.Tap.Register( log1 );
 
-            Assert.That( logger.RegisteredSinks.Count, Is.EqualTo( 1 ) );
+            Assert.That( logger.Tap.RegisteredSinks.Count, Is.EqualTo( 1 ) );
 
             using( logger.OpenGroup( LogLevel.Trace, () => "End First", "First" ) )
             {
@@ -210,7 +210,7 @@ namespace Core
             l.Output.RegisterMuxClient( TestHelper.Logger.Output.ExternalInput );
             
             var log = new StringImpl();
-            l.Register( log );
+            l.Tap.Register( log );
             using( l.Filter( LogLevelFilter.Error ) )
             {
                 l.Trace( "NO SHOW" );
@@ -265,7 +265,7 @@ namespace Core
         {
             IDefaultActivityLogger l = DefaultActivityLogger.Create();
             var log = new StringImpl();
-            l.Register( log );
+            l.Tap.Register( log );
             {
                 IDisposable g0 = l.OpenGroup( LogLevel.Trace, "First" );
                 IDisposable g1 = l.OpenGroup( LogLevel.Trace, "Second" );
@@ -306,7 +306,7 @@ namespace Core
             l.Output.RegisterMuxClient( TestHelper.Logger.Output.ExternalInput );
             
             var log = new StringImpl();
-            l.Register( log );
+            l.Tap.Register( log );
 
             // No explicit close conclusion: Success!
             using( l.OpenGroup( LogLevel.Trace, () => "Success!", "First" ) )

@@ -49,21 +49,6 @@ namespace CK.Core
                 get { return ActivityLoggerTap.Empty; }
             }
 
-            public IDefaultActivityLogger Register( IActivityLoggerSink sink )
-            {
-                return this;
-            }
-
-            public IDefaultActivityLogger Unregister( IActivityLoggerSink sink )
-            {
-                return this;
-            }
-
-            public IReadOnlyList<IActivityLoggerSink> RegisteredSinks
-            {
-                get { return ReadOnlyListEmpty<IActivityLoggerSink>.Empty; }
-            }
-
             public ActivityLoggerErrorCounter ErrorCounter
             {
                 get { return ActivityLoggerErrorCounter.Empty; }
@@ -120,23 +105,6 @@ namespace CK.Core
         ActivityLoggerPathCatcher IDefaultActivityLogger.PathCatcher
         {
             get { return _pathCatcher; }
-        }
-
-        IDefaultActivityLogger IDefaultActivityLogger.Register( IActivityLoggerSink sink )
-        {
-            _tap.Register( sink );
-            return this;
-        }
-
-        IDefaultActivityLogger IDefaultActivityLogger.Unregister( IActivityLoggerSink sink )
-        {
-            _tap.Unregister( sink );
-            return this;
-        }
-
-        IReadOnlyList<IActivityLoggerSink> IDefaultActivityLogger.RegisteredSinks
-        {
-            get { return _tap.RegisteredSinks; }
         }
 
     }
