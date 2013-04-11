@@ -188,9 +188,9 @@ namespace CK.Core
         }
 
         /// <summary>
-        /// Covariant version of the contains predicate. If <paramref name="item"/> is of type <typeparamref name="T"/>
-        /// the <see cref="CKSortedArrayList{T}.Contains(CKSortedArrayList)"/> is used but if <paramref name="item"/> is of type <typeparamref name="TKey"/>,
-        /// the <see cref="Contains(TKey)"/> is used.
+        /// Covariant version of the contains predicate. 
+        /// If <paramref name="item"/> is of type <typeparamref name="T"/> the <see cref="CKSortedArrayList{T}.Contains(T)"/> is used 
+        /// but if <paramref name="item"/> is of type <typeparamref name="TKey"/>, the <see cref="Contains(TKey)"/> is used.
         /// </summary>
         /// <param name="item">Can be a <typeparamref name="T"/> or a <typeparamref name="TKey"/>.</param>
         /// <returns>True if a corresponding element in this list can be found.</returns>

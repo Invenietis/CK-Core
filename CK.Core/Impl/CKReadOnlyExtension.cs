@@ -34,7 +34,7 @@ namespace CK.Core
     public static class CKReadOnlyExtension
     {
         /// <summary>
-        /// Gets the item with the associated key, forgetting the exists out parameter in <see cref="ICKReadOnlyUniqueKeyedCollection{T,TKey}.GetByKey(ICKReadOnlyUniqueKeyedCollection,out bool)"/>.
+        /// Gets the item with the associated key, forgetting the exists out parameter in <see cref="ICKReadOnlyUniqueKeyedCollection{T,TKey}.GetByKey(TKey,out bool)"/>.
         /// </summary>
         /// <typeparam name="T">Type of the elements in the collection.</typeparam>
         /// <typeparam name="TKey">Type of the key.</typeparam>
@@ -100,7 +100,7 @@ namespace CK.Core
         }
 
         /// <summary>
-        /// Creates a <see cref="CKIReadOnlyList{T}"/> from a sub sequence of a <see cref="IList{T}"/>.
+        /// Creates a <see cref="ICKReadOnlyList{T}"/> from a sub sequence of a <see cref="IList{T}"/>.
         /// It is an independant storage (a copy).
         /// </summary>
         /// <typeparam name="T">The type of the elements of source.</typeparam>
