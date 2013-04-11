@@ -113,6 +113,8 @@
     <Compile Include="FIFOBuffer.cs" />
     <Compile Include="Impl\Collections\CKReadOnlyCollectionDebuggerView.cs" />
     <Compile Include="ICKWritableCollection.cs" />
+    <Compile Include="MultiTrait\MultiTrait.cs" />
+    <Compile Include="MultiTrait\MultiTraitContext.cs" />
     <Compile Include="SimpleErrorMessage.cs" />
     <Compile Include="ISimpleErrorMessage.cs" />
     <Compile Include="IFluentInterface.cs" />

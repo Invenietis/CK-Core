@@ -23,9 +23,7 @@
 
 #if NET40
 
-using System.Collections.Generic;
-
-namespace CK.Core
+namespace System.Collections.Generic
 {
     /// <summary>
     /// Represents a generic read only collections of objects.
