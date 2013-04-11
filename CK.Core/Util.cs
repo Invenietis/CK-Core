@@ -66,18 +66,12 @@ namespace CK.Core
         /// <summary>
         /// Centralized <see cref="IDisposable.Dispose"/> action call: it adapts an <see cref="IDisposable"/> interface to an <see cref="Action"/>.
         /// Can be safely called if <paramref name="obj"/> is null. 
-        /// See <see cref="DisposeAction"/> to wrap an action in a <see cref="IDisposable"/> interface.
+        /// See <see cref="CreateDisposableAction"/> to wrap an action in a <see cref="IDisposable"/> interface.
         /// </summary>
         /// <param name="obj">The disposable object to dispose (can be null).</param>
         public static void ActionDispose( IDisposable obj )
         {
             if( obj != null ) obj.Dispose();
-        }
-
-        [Obsolete( "Use CreateDisposableAction instead.", true )]
-        public static IDisposable DisposeAction( Action a )
-        {
-            return CreateDisposableAction( a );
         }
 
         /// <summary>
