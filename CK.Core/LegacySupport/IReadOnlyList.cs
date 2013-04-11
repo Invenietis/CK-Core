@@ -23,9 +23,7 @@
 
 #if NET40
 
-using System;
-
-namespace CK.Core
+namespace System.Collections.Generic
 {
     /// <summary>
     /// Represents a read only collection of objects that can be individually accessed by index.
