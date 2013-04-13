@@ -152,9 +152,9 @@ namespace CK.Core
             foreach( var l in _clients ) l.OnFilterChanged( current, newValue );
         }
 
-        void IActivityLoggerClient.OnUnfilteredLog( LogLevel level, string text )
+        void IActivityLoggerClient.OnUnfilteredLog( CKTrait tags, LogLevel level, string text )
         {
-            foreach( var l in _clients ) l.OnUnfilteredLog( level, text );
+            foreach( var l in _clients ) l.OnUnfilteredLog( tags, level, text );
         }
 
         void IActivityLoggerClient.OnOpenGroup( IActivityLogGroup group )

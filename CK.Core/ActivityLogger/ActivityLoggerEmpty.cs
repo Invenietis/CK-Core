@@ -39,18 +39,24 @@ namespace CK.Core
         /// </summary>
         static public readonly IActivityLogger Empty = new ActivityLoggerEmpty();
 
+        CKTrait IActivityLogger.Tags
+        {
+            get { return ActivityLogger.RegisteredTags.EmptyTrait; }
+            set { }
+        }
+
         LogLevelFilter IActivityLogger.Filter
         {
             get { return LogLevelFilter.Off; }
             set { }
         }
 
-        IActivityLogger IActivityLogger.UnfilteredLog( LogLevel level, string text, Exception ex )
+        IActivityLogger IActivityLogger.UnfilteredLog( CKTrait tags, LogLevel level, string text, Exception ex )
         {
             return this;
         }
 
-        IDisposable IActivityLogger.OpenGroup( LogLevel level, Func<string> getConclusionText, string text, Exception ex )
+        IDisposable IActivityLogger.OpenGroup( CKTrait tags, LogLevel level, Func<string> getConclusionText, string text, Exception ex )
         {
             return Util.EmptyDisposable;
         }

@@ -43,6 +43,10 @@ namespace CK.Core
         public class PathElement
         {
             /// <summary>
+            /// Gets the tags of the log entry.
+            /// </summary>
+            public CKTrait Tags { get; internal set; }
+            /// <summary>
             /// Gets the log level of the log entry.
             /// </summary>
             public LogLevel Level { get; internal set; }
@@ -75,7 +79,7 @@ namespace CK.Core
             {
             }
 
-            protected override void OnUnfilteredLog( LogLevel level, string text )
+            protected override void OnUnfilteredLog( CKTrait tags, LogLevel level, string text )
             {
             }
 
@@ -168,9 +172,10 @@ namespace CK.Core
         /// Appends or updates the last <see cref="PathElement"/> of <see cref="DynamicPath"/>
         /// and handles errors or warning.
         /// </summary>
+        /// <param name="tags">Tags (from <see cref="ActivityLogger.RegisteredTags"/>) associated to the log.</param>
         /// <param name="level">Log level.</param>
         /// <param name="text">Text (not null).</param>
-        protected override void OnUnfilteredLog( LogLevel level, string text )
+        protected override void OnUnfilteredLog( CKTrait tags, LogLevel level, string text )
         {
             if( text != ActivityLogger.ParkLevel )
             {
@@ -181,6 +186,7 @@ namespace CK.Core
                     _path.Add( _current );
                     _currentIsGroup = false;
                 }
+                _current.Tags = tags;
                 _current.Level = level;
                 _current.Text = text;
                 CheckSnapshot();
@@ -201,6 +207,7 @@ namespace CK.Core
                 _path.Add( _current );
             }
             _currentIsGroup = true;
+            _current.Tags = group.Tags;
             _current.Level = group.GroupLevel;
             _current.Text = group.GroupText;
             CheckSnapshot();
@@ -248,7 +255,7 @@ namespace CK.Core
             {
                 // Clone the last element if it is not a group: since it is updated
                 // with levels, it has to be snapshoted.
-                _warnSnaphot = _path.Select( ( e, idx ) => _currentIsGroup || idx < _path.Count-1 ? e : new PathElement() { Level = e.Level, Text = e.Text } ).ToReadOnlyList();
+                _warnSnaphot = _path.Select( ( e, idx ) => _currentIsGroup || idx < _path.Count-1 ? e : new PathElement() { Tags = e.Tags, Level = e.Level, Text = e.Text } ).ToReadOnlyList();
                 if( _current.Level >= LogLevel.Error )
                 {
                     _errorSnaphot = _warnSnaphot;

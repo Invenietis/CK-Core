@@ -50,7 +50,7 @@ namespace CK.Core
             {
             }
 
-            protected override void OnUnfilteredLog( LogLevel level, string text )
+            protected override void OnUnfilteredLog( CKTrait tags, LogLevel level, string text )
             {
             }
 
@@ -118,9 +118,10 @@ namespace CK.Core
         /// <summary>
         /// Sends log to sinks (handles level changes).
         /// </summary>
+        /// <param name="tags">Tags (from <see cref="ActivityLogger.RegisteredTags"/>) associated to the log.</param>
         /// <param name="level">Log level.</param>
         /// <param name="text">Text (not null).</param>
-        protected override void OnUnfilteredLog( LogLevel level, string text )
+        protected override void OnUnfilteredLog( CKTrait tags, LogLevel level, string text )
         {
             if( text == ActivityLogger.ParkLevel )
             {
@@ -134,7 +135,7 @@ namespace CK.Core
             {
                 if( _curLevel == (int)level )
                 {
-                    foreach( var s in RegisteredSinks ) s.OnContinueOnSameLevel( level, text );
+                    foreach( var s in RegisteredSinks ) s.OnContinueOnSameLevel( tags, level, text );
                 }
                 else
                 {
@@ -142,7 +143,7 @@ namespace CK.Core
                     {
                         foreach( var s in RegisteredSinks ) s.OnLeaveLevel( (LogLevel)_curLevel );
                     }
-                    foreach( var s in RegisteredSinks ) s.OnEnterLevel( level, text );
+                    foreach( var s in RegisteredSinks ) s.OnEnterLevel( tags, level, text );
                     _curLevel = (int)level;
                 }
             }

@@ -59,9 +59,10 @@ namespace CK.Core
         /// Called for each <see cref="IActivityLogger.UnfilteredLog"/>.
         /// Does nothing by default.
         /// </summary>
+        /// <param name="tags">Tags (from <see cref="ActivityLogger.RegisteredTags"/>) associated to the log.</param>
         /// <param name="level">Log level.</param>
         /// <param name="text">Text (not null).</param>
-        protected virtual void OnUnfilteredLog( LogLevel level, string text )
+        protected virtual void OnUnfilteredLog( CKTrait tags, LogLevel level, string text )
         {
         }
 
@@ -75,8 +76,8 @@ namespace CK.Core
         }
 
         /// <summary>
-        /// Called once the conclusion is known at the group level (if it exists, the <see cref="ActivityLogGroupConclusion.Emitter"/> is the <see cref="IActivityLogger"/> itself) 
-        /// but before the group is actually closed: clients can update the conclusions for the group.
+        /// Called once the user conclusions and the <see cref="ActivityLogger.Group.GetConclusionText"/> are known at the group level but before 
+        /// the group is actually closed: clients can update the conclusions for the group.
         /// Does nothing by default.
         /// </summary>
         /// <param name="group">The closing group.</param>
@@ -102,9 +103,9 @@ namespace CK.Core
             OnFilterChanged( current, newValue );
         }
 
-        void IActivityLoggerClient.OnUnfilteredLog( LogLevel level, string text )
+        void IActivityLoggerClient.OnUnfilteredLog( CKTrait tags, LogLevel level, string text )
         {
-            OnUnfilteredLog( level, text );
+            OnUnfilteredLog( tags, level, text );
         }
 
         void IActivityLoggerClient.OnOpenGroup( IActivityLogGroup group )

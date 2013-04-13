@@ -38,16 +38,18 @@ namespace CK.Core
         /// <summary>
         /// Called for the first text of a <see cref="LogLevel"/>.
         /// </summary>
+        /// <param name="tags">Tags (from <see cref="ActivityLogger.RegisteredTags"/>) associated to the log.</param>
         /// <param name="level">The new current log level.</param>
         /// <param name="text">Text to start.</param>
-        void OnEnterLevel( LogLevel level, string text );
+        void OnEnterLevel( CKTrait tags, LogLevel level, string text );
 
         /// <summary>
         /// Called for text with the same <see cref="LogLevel"/> as the previous ones.
         /// </summary>
+        /// <param name="tags">Tags (from <see cref="ActivityLogger.RegisteredTags"/>) associated to the log.</param>
         /// <param name="level">The current log level.</param>
         /// <param name="text">Text to append.</param>
-        void OnContinueOnSameLevel( LogLevel level, string text );
+        void OnContinueOnSameLevel( CKTrait tags, LogLevel level, string text );
 
         /// <summary>
         /// Called when current log level changes.

@@ -26,12 +26,17 @@ using System;
 namespace CK.Core
 {
     /// <summary>
-    /// Exposes all the relevant information fo a currently opened group.
+    /// Exposes all the relevant information for a currently opened group.
     /// Groups are linked together from the current one to the very first one 
     /// thanks to the <see cref="Parent"/> property.
     /// </summary>
     public interface IActivityLogGroup
     {
+        /// <summary>
+        /// Gets the tags for the log group.
+        /// </summary>
+        CKTrait Tags { get; }
+
         /// <summary>
         /// Gets the origin <see cref="IActivityLogger"/> for the log group.
         /// </summary>

@@ -84,6 +84,9 @@
     <Compile Include="ActivityLogger\Impl\ActivityLoggerTap.cs" />
     <Compile Include="ActivityLogger\Impl\ActivityLoggerSimpleCollector.cs" />
     <Compile Include="ActivityLogger\Impl\ActivityLoggerTextWriterSink.cs" />
+    <Compile Include="ActivityLogger\Impl\ActivityLogger.Group.cs" />
+    <Compile Include="ActivityLogger\Impl\ActivityLoggerExtension.WithoutTags.cs" />
+    <Compile Include="ActivityLogger\Impl\ActivityLoggerExtension.WithTags.cs" />
     <Compile Include="ActivityLogger\Impl\DefaultActivityLogger.cs" />
     <Compile Include="ActivityLogger\Impl\IDefaultActivityLogger.cs" />
     <Compile Include="ActivityLogger\Impl\IActivityLoggerSink.cs" />
@@ -109,6 +112,7 @@
     <Compile Include="Collection\FIFOBuffer.cs" />
     <Compile Include="Collection\CKReadOnlyCollectionDebuggerView.cs" />
     <Compile Include="ICKWritableCollection.cs" />
+    <Compile Include="SetOperation.cs" />
     <Compile Include="Trait\CKTrait.cs" />
     <Compile Include="Trait\CKTraitContext.cs" />
     <Compile Include="IFluentInterface.cs" />

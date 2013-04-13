@@ -41,7 +41,7 @@ namespace CK.Core
         static readonly string DefaultWarnsConclusionFormat = "{0} Warnings";
         static readonly string DefaultSeparator = ", ";
 
-        public static readonly CKTrait TagErrorCounter = ActivityLogger.Tags.FindOrCreate( "c:ErrorCounter" );
+        public static readonly CKTrait TagErrorCounter = ActivityLogger.RegisteredTags.FindOrCreate( "c:ErrorCounter" );
 
         /// <summary>
         /// Encapsulates error information.
@@ -207,7 +207,7 @@ namespace CK.Core
             {
             }
 
-            protected override void OnUnfilteredLog( LogLevel level, string text )
+            protected override void OnUnfilteredLog( CKTrait tags, LogLevel level, string text )
             {
             }
 
@@ -264,9 +264,10 @@ namespace CK.Core
         /// <summary>
         /// Updates error counters.
         /// </summary>
+        /// <param name="tags">Tags (from <see cref="ActivityLogger.RegisteredTags"/>) associated to the log.</param>
         /// <param name="level">Log level.</param>
         /// <param name="text">Text (not null).</param>
-        protected override void OnUnfilteredLog( LogLevel level, string text )
+        protected override void OnUnfilteredLog( CKTrait tags, LogLevel level, string text )
         {
             _current.CatchLevel( level );
         }

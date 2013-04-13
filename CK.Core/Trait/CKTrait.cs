@@ -33,7 +33,7 @@ namespace CK.Core
     /// <summary>
     /// A trait is an immutable object (thread-safe), associated to a unique string inside a <see cref="Context"/>, that can be atomic ("Alt", "Home", "Ctrl") or 
     /// combined ("Alt|Ctrl", "Alt|Ctrl|Home"). The only way to obtain a CKTrait is to call <see cref="CKTraitContext.FindOrCreate(string)"/> (from 
-    /// a string) or to use one of the available combination methods (<see cref="Add"/>, <see cref="Remove"/>, <see cref="Toggle"/> or <see cref="Intersect"/> ).
+    /// a string) or to use one of the available combination methods (<see cref="Union"/>, <see cref="Except"/>, <see cref="SymmetricExcept"/> or <see cref="Intersect"/> ).
     /// </summary>
     public sealed class CKTrait : IComparable<CKTrait>
     {
@@ -136,18 +136,19 @@ namespace CK.Core
         }
 
         /// <summary>
-        /// Checks if each and every atomic traits of <paramref name="trait" /> exists in this trait.
+        /// Checks if each and every atomic traits of <paramref name="other" /> exists in this trait.
         /// </summary>
-        /// <param name="trait">The trait(s) to find.</param>
+        /// <param name="other">The trait(s) to find.</param>
         /// <returns>True if all the specified traits appear in this trait.</returns>
         /// <remarks>
-        /// Note that <see cref="CKTraitContext.EmptyTrait"/> is contained (in the sense of this ContainsAll method) by definition in any trait 
-        /// (including itself): this is the opposite of the <see cref="ContainsOne"/> method.
+        /// Note that <see cref="CKTraitContext.EmptyTrait"/> is contained (in the sense of this IsSupersetOf method) by definition in any trait 
+        /// (including itself): this is the opposite of the <see cref="Overlaps"/> method.
         /// </remarks>
-        public bool ContainsAll( CKTrait trait )
+        public bool IsSupersetOf( CKTrait other )
         {
+            if( _traits.Count < other._traits.Count ) return false;
             bool foundAlien = false;
-            Process( this, trait,
+            Process( this, other,
                 null,
                 delegate( CKTrait m ) { foundAlien = true; return false; },
                 null );
@@ -155,19 +156,19 @@ namespace CK.Core
         }
 
         /// <summary>
-        /// Checks if one of the atomic traits of <paramref name="trait" /> exists in this trait.
+        /// Checks if one of the atomic traits of <paramref name="other" /> exists in this trait.
         /// </summary>
-        /// <param name="trait">The trait(s) to find.</param>
+        /// <param name="other">The trait(s) to find.</param>
         /// <returns>Returns true if one of the specified traits appears in this trait.</returns>
         /// <remarks>
-        /// When true, this ensures that <see cref="Intersect"/>( <paramref name="trait"/> ) != <see cref="CKTraitContext.EmptyTrait"/>. 
+        /// When true, this ensures that <see cref="Intersect"/>( <paramref name="other"/> ) != <see cref="CKTraitContext.EmptyTrait"/>. 
         /// The empty trait is not contained (in the sense of this ContainsOne method) in any trait (including itself). This is the opposite
-        /// of the <see cref="ContainsAll"/> method.
+        /// of the <see cref="IsSupersetOf"/> method.
         /// </remarks>
-        public bool ContainsOne( CKTrait trait )
+        public bool Overlaps( CKTrait other )
         {
             bool found = false;
-            Process( this, trait,
+            Process( this, other,
                 null,
                 null,
                 delegate( CKTrait m ) { found = true; return false; } );
@@ -175,14 +176,14 @@ namespace CK.Core
         }
 
         /// <summary>
-        /// Obtains a <see cref="CKTrait"/> that contains the atomic traits from boyh this trait and <paramref name="trait"/>.
+        /// Obtains a <see cref="CKTrait"/> that contains the atomic traits from both this trait and <paramref name="other"/>.
         /// </summary>
-        /// <param name="trait">Trait(s) that must be kept.</param>
+        /// <param name="other">Trait(s) that must be kept.</param>
         /// <returns>The resulting trait.</returns>
-        public CKTrait Intersect( CKTrait trait )
+        public CKTrait Intersect( CKTrait other )
         {
             List<CKTrait> m = new List<CKTrait>();
-            Process( this, trait, null, null, Util.AlwaysTrue<CKTrait>( m.Add ) );
+            Process( this, other, null, null, Util.AlwaysTrue<CKTrait>( m.Add ) );
             return _context.FindOrCreate( m );
         }
 
@@ -190,39 +191,39 @@ namespace CK.Core
         /// Obtains a <see cref="CKTrait"/> that combines this one and 
         /// the trait(s) specified by the parameter. 
         /// </summary>
-        /// <param name="trait">Trait(s) to add.</param>
+        /// <param name="other">Trait(s) to add.</param>
         /// <returns>The resulting trait.</returns>
-        public CKTrait Add( CKTrait trait )
+        public CKTrait Union( CKTrait other )
         {
             List<CKTrait> m = new List<CKTrait>();
             var add = Util.AlwaysTrue<CKTrait>( m.Add );
-            Process( this, trait, add, add, add );
+            Process( this, other, add, add, add );
             return _context.FindOrCreate( m );
         }
 
         /// <summary>
-        /// Obtains a <see cref="CKTrait"/> from which trait(s) specified by the parameter are removed. 
+        /// Obtains a <see cref="CKTrait"/> from which trait(s) specified by the parameter are removed. Same as <see cref="ISet.ExceptWith"/>.
         /// </summary>
-        /// <param name="trait">Trait(s) to remove.</param>
+        /// <param name="other">Trait(s) to remove.</param>
         /// <returns>The resulting trait.</returns>
-        public CKTrait Remove( CKTrait trait )
+        public CKTrait Except( CKTrait other )
         {
             List<CKTrait> m = new List<CKTrait>();
-            Process( this, trait, Util.AlwaysTrue<CKTrait>( m.Add ), null, null );
+            Process( this, other, Util.AlwaysTrue<CKTrait>( m.Add ), null, null );
             return _context.FindOrCreate( m );
         }
 
         /// <summary>
-        /// Obtains a <see cref="CKTrait"/> where the atomic traits of <paramref name="trait" /> are removed (resp. added) depending 
-        /// on whether they exist (resp. do not exist) in this trait. 
+        /// Obtains a <see cref="CKTrait"/> where the atomic traits of <paramref name="other" /> are removed (resp. added) depending 
+        /// on whether they exist (resp. do not exist) in this trait. This is like an Exclusive Or (XOR).
         /// </summary>
-        /// <param name="trait">Trait(s) to toggle.</param>
+        /// <param name="other">Trait(s) to toggle.</param>
         /// <returns>The resulting trait.</returns>
-        public CKTrait Toggle( CKTrait trait )
+        public CKTrait SymmetricExcept( CKTrait other )
         {
             List<CKTrait> m = new List<CKTrait>();
             var add = Util.AlwaysTrue<CKTrait>( m.Add );
-            Process( this, trait, add, add, null );
+            Process( this, other, add, add, null );
             return _context.FindOrCreate( m );
         }
 
@@ -235,14 +236,14 @@ namespace CK.Core
         /// When this predicate is 'adding the trait to a list', we can draw the following table where '1' means the predicate exists and '0' means
         /// no predicate (or the 'always true' one):
         /// 
-        /// 0, 0, 0 =  -- 'Empty'
-        /// 0, 0, 1 = Intersect (keep commons) => /Toggle
-        /// 0, 1, 0 =  -- 'Cleanup' (keep theirs only) => /Remove 
-        /// 0, 1, 1 =  -- 'Other' (keep theirs and commons, reject mine) => /This
-        /// 1, 0, 0 = Remove (keep mine only) => /Cleanup
-        /// 1, 0, 1 =  -- 'This' (keep mine and commons and reject theirs) => /Other
-        /// 1, 1, 0 = Toggle (keep mine, theirs, but reject commons) => /Intersect
-        /// 1, 1, 1 = Add
+        ///             0, 0, 0 =  -- 'Empty'
+        /// Intersect   0, 0, 1 = Intersect (keep commons) => /Toggle
+        ///             0, 1, 0 =  -- 'Cleanup' (keep theirs only) => /Remove 
+        ///             0, 1, 1 =  -- 'Other' (keep theirs and commons, reject mine) => /This
+        /// Except      1, 0, 0 = Remove (keep mine only) => /Cleanup
+        ///             1, 0, 1 =  -- 'This' (keep mine and commons and reject theirs) => /Other
+        /// Toggle      1, 1, 0 = Toggle (keep mine, theirs, but reject commons) => /Intersect
+        /// Union       1, 1, 1 = Add
         /// 
         /// This shows that our 4 methods Intersect, Remove, Toggle and Add cover the interesting cases - others are either symetric or useless.
         /// </remarks>

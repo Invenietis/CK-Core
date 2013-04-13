@@ -111,8 +111,8 @@ namespace Keyboard
             CKTrait m1 = Context.FindOrCreate( "Beta+Alpha+Fridge+Combo" );
             CKTrait m2 = Context.FindOrCreate( "Xtra+Combo+Another+Fridge+Alt" );
 
-            Assert.That( m1.Add( m2 ).ToString() == "Alpha+Alt+Another+Beta+Combo+Fridge+Xtra", "Works as expected :-)" );
-            Assert.That( m2.Add( m1 ) == m1.Add( m2 ), "Same in both calls." );
+            Assert.That( m1.Union( m2 ).ToString() == "Alpha+Alt+Another+Beta+Combo+Fridge+Xtra", "Works as expected :-)" );
+            Assert.That( m2.Union( m1 ) == m1.Union( m2 ), "Same in both calls." );
         }
 
         [Test]
@@ -121,10 +121,10 @@ namespace Keyboard
             CKTrait m1 = Context.FindOrCreate( "Beta+Alpha+Fridge+Combo" );
             CKTrait m2 = Context.FindOrCreate( "Xtra+Combo+Another+Fridge+Alt" );
 
-            Assert.That( m1.Remove( m2 ).ToString() == "Alpha+Beta", "Works as expected :-)" );
-            Assert.That( m2.Remove( m1 ).ToString() == "Alt+Another+Xtra", "Works as expected..." );
+            Assert.That( m1.Except( m2 ).ToString() == "Alpha+Beta", "Works as expected :-)" );
+            Assert.That( m2.Except( m1 ).ToString() == "Alt+Another+Xtra", "Works as expected..." );
 
-            Assert.That( m2.Remove( Context.EmptyTrait ) == m2 && m1.Remove( Context.EmptyTrait ) == m1, "Removing empty does nothing." );
+            Assert.That( m2.Except( Context.EmptyTrait ) == m2 && m1.Except( Context.EmptyTrait ) == m1, "Removing empty does nothing." );
         }
 
 
@@ -133,26 +133,26 @@ namespace Keyboard
         {
             CKTrait m = Context.FindOrCreate( "Beta+Alpha+Fridge+Combo" );
 
-            Assert.That( Context.EmptyTrait.ContainsAll( Context.EmptyTrait ), "Empty is contained by definition in itself." );
-            Assert.That( m.ContainsAll( Context.EmptyTrait ), "Empty is contained by definition." );
-            Assert.That( m.ContainsAll( Context.FindOrCreate( "Fridge+Alpha" ) ) );
-            Assert.That( m.ContainsAll( Context.FindOrCreate( "Fridge" ) ) );
-            Assert.That( m.ContainsAll( Context.FindOrCreate( "Fridge+Alpha+Combo" ) ) );
-            Assert.That( m.ContainsAll( Context.FindOrCreate( "Fridge+Alpha+Beta+Combo" ) ) );
-            Assert.That( !m.ContainsAll( Context.FindOrCreate( "Fridge+Lol" ) ) );
-            Assert.That( !m.ContainsAll( Context.FindOrCreate( "Murfn" ) ) );
-            Assert.That( !m.ContainsAll( Context.FindOrCreate( "Fridge+Alpha+Combo+Lol" ) ) );
-            Assert.That( !m.ContainsAll( Context.FindOrCreate( "Lol+Fridge+Alpha+Beta+Combo" ) ) );
+            Assert.That( Context.EmptyTrait.IsSupersetOf( Context.EmptyTrait ), "Empty is contained by definition in itself." );
+            Assert.That( m.IsSupersetOf( Context.EmptyTrait ), "Empty is contained by definition." );
+            Assert.That( m.IsSupersetOf( Context.FindOrCreate( "Fridge+Alpha" ) ) );
+            Assert.That( m.IsSupersetOf( Context.FindOrCreate( "Fridge" ) ) );
+            Assert.That( m.IsSupersetOf( Context.FindOrCreate( "Fridge+Alpha+Combo" ) ) );
+            Assert.That( m.IsSupersetOf( Context.FindOrCreate( "Fridge+Alpha+Beta+Combo" ) ) );
+            Assert.That( !m.IsSupersetOf( Context.FindOrCreate( "Fridge+Lol" ) ) );
+            Assert.That( !m.IsSupersetOf( Context.FindOrCreate( "Murfn" ) ) );
+            Assert.That( !m.IsSupersetOf( Context.FindOrCreate( "Fridge+Alpha+Combo+Lol" ) ) );
+            Assert.That( !m.IsSupersetOf( Context.FindOrCreate( "Lol+Fridge+Alpha+Beta+Combo" ) ) );
 
-            Assert.That( m.ContainsOne( Context.FindOrCreate( "Fridge+Alpha" ) ) );
-            Assert.That( m.ContainsOne( Context.FindOrCreate( "Nimp+Fridge+Mourfn" ) ) );
-            Assert.That( m.ContainsOne( Context.FindOrCreate( "Fridge+Alpha+Combo+Albert" ) ) );
-            Assert.That( m.ContainsOne( Context.FindOrCreate( "ZZF+AAlp+BBeBe+Combo" ) ) );
-            Assert.That( !m.ContainsOne( Context.FindOrCreate( "AFridge+ALol" ) ) );
-            Assert.That( !m.ContainsOne( Context.FindOrCreate( "Murfn" ) ) );
-            Assert.That( !m.ContainsOne( Context.FindOrCreate( "QF+QA+QC+QL" ) ) );
-            Assert.That( !m.ContainsOne( Context.EmptyTrait ), "Empty is NOT contained 'ONE' since EmptyTrait.AtomicTraits.Count == 0..." );
-            Assert.That( !Context.EmptyTrait.ContainsOne( Context.EmptyTrait ), "Empty is NOT contained 'ONE' in itself." );
+            Assert.That( m.Overlaps( Context.FindOrCreate( "Fridge+Alpha" ) ) );
+            Assert.That( m.Overlaps( Context.FindOrCreate( "Nimp+Fridge+Mourfn" ) ) );
+            Assert.That( m.Overlaps( Context.FindOrCreate( "Fridge+Alpha+Combo+Albert" ) ) );
+            Assert.That( m.Overlaps( Context.FindOrCreate( "ZZF+AAlp+BBeBe+Combo" ) ) );
+            Assert.That( !m.Overlaps( Context.FindOrCreate( "AFridge+ALol" ) ) );
+            Assert.That( !m.Overlaps( Context.FindOrCreate( "Murfn" ) ) );
+            Assert.That( !m.Overlaps( Context.FindOrCreate( "QF+QA+QC+QL" ) ) );
+            Assert.That( !m.Overlaps( Context.EmptyTrait ), "Empty is NOT contained 'ONE' since EmptyTrait.AtomicTraits.Count == 0..." );
+            Assert.That( !Context.EmptyTrait.Overlaps( Context.EmptyTrait ), "Empty is NOT contained 'ONE' in itself." );
 
         }
 
@@ -162,41 +162,41 @@ namespace Keyboard
             var c = new CKTraitContext();
             CKTrait m = c.FindOrCreate( "Beta|Alpha|Fridge|Combo" );
 
-            Assert.That( c.EmptyTrait.ContainsAll( c.EmptyTrait ), "Empty is contained by definition in itself." );
-            Assert.That( m.ContainsAll( c.EmptyTrait ), "Empty is contained by definition." );
-            Assert.That( m.ContainsAll( c.FindOrCreate( "Fridge|Alpha" ) ) );
-            Assert.That( m.ContainsAll( c.FindOrCreate( "Fridge" ) ) );
-            Assert.That( m.ContainsAll( c.FindOrCreate( "Fridge|Alpha|Combo" ) ) );
-            Assert.That( m.ContainsAll( c.FindOrCreate( "Fridge|Alpha|Beta|Combo" ) ) );
-            Assert.That( !m.ContainsAll( c.FindOrCreate( "Fridge|Lol" ) ) );
-            Assert.That( !m.ContainsAll( c.FindOrCreate( "Murfn" ) ) );
-            Assert.That( !m.ContainsAll( c.FindOrCreate( "Fridge|Alpha|Combo+Lol" ) ) );
-            Assert.That( !m.ContainsAll( c.FindOrCreate( "Lol|Fridge|Alpha|Beta|Combo" ) ) );
+            Assert.That( c.EmptyTrait.IsSupersetOf( c.EmptyTrait ), "Empty is contained by definition in itself." );
+            Assert.That( m.IsSupersetOf( c.EmptyTrait ), "Empty is contained by definition." );
+            Assert.That( m.IsSupersetOf( c.FindOrCreate( "Fridge|Alpha" ) ) );
+            Assert.That( m.IsSupersetOf( c.FindOrCreate( "Fridge" ) ) );
+            Assert.That( m.IsSupersetOf( c.FindOrCreate( "Fridge|Alpha|Combo" ) ) );
+            Assert.That( m.IsSupersetOf( c.FindOrCreate( "Fridge|Alpha|Beta|Combo" ) ) );
+            Assert.That( !m.IsSupersetOf( c.FindOrCreate( "Fridge|Lol" ) ) );
+            Assert.That( !m.IsSupersetOf( c.FindOrCreate( "Murfn" ) ) );
+            Assert.That( !m.IsSupersetOf( c.FindOrCreate( "Fridge|Alpha|Combo+Lol" ) ) );
+            Assert.That( !m.IsSupersetOf( c.FindOrCreate( "Lol|Fridge|Alpha|Beta|Combo" ) ) );
 
-            Assert.That( m.ContainsOne( c.FindOrCreate( "Fridge|Alpha" ) ) );
-            Assert.That( m.ContainsOne( c.FindOrCreate( "Nimp|Fridge|Mourfn" ) ) );
-            Assert.That( m.ContainsOne( c.FindOrCreate( "Fridge|Alpha|Combo|Albert" ) ) );
-            Assert.That( m.ContainsOne( c.FindOrCreate( "ZZF|AAlp|BBeBe|Combo" ) ) );
-            Assert.That( !m.ContainsOne( c.FindOrCreate( "AFridge|ALol" ) ) );
-            Assert.That( !m.ContainsOne( c.FindOrCreate( "Murfn" ) ) );
-            Assert.That( !m.ContainsOne( c.FindOrCreate( "QF|QA|QC|QL" ) ) );
-            Assert.That( !m.ContainsOne( c.EmptyTrait ), "Empty is NOT contained 'ONE' since EmptyTrait.AtomicTraits.Count == 0..." );
-            Assert.That( !c.EmptyTrait.ContainsOne( c.EmptyTrait ), "Empty is NOT contained 'ONE' in itself." );
+            Assert.That( m.Overlaps( c.FindOrCreate( "Fridge|Alpha" ) ) );
+            Assert.That( m.Overlaps( c.FindOrCreate( "Nimp|Fridge|Mourfn" ) ) );
+            Assert.That( m.Overlaps( c.FindOrCreate( "Fridge|Alpha|Combo|Albert" ) ) );
+            Assert.That( m.Overlaps( c.FindOrCreate( "ZZF|AAlp|BBeBe|Combo" ) ) );
+            Assert.That( !m.Overlaps( c.FindOrCreate( "AFridge|ALol" ) ) );
+            Assert.That( !m.Overlaps( c.FindOrCreate( "Murfn" ) ) );
+            Assert.That( !m.Overlaps( c.FindOrCreate( "QF|QA|QC|QL" ) ) );
+            Assert.That( !m.Overlaps( c.EmptyTrait ), "Empty is NOT contained 'ONE' since EmptyTrait.AtomicTraits.Count == 0..." );
+            Assert.That( !c.EmptyTrait.Overlaps( c.EmptyTrait ), "Empty is NOT contained 'ONE' in itself." );
         }
 
         [Test]
         public void ToggleTraits()
         {
             CKTrait m = Context.FindOrCreate( "Beta+Alpha+Fridge+Combo" );
-            Assert.That( m.Toggle( Context.FindOrCreate( "Beta" ) ).ToString() == "Alpha+Combo+Fridge" );
-            Assert.That( m.Toggle( Context.FindOrCreate( "Fridge+Combo" ) ).ToString() == "Alpha+Beta" );
-            Assert.That( m.Toggle( Context.FindOrCreate( "Beta+Fridge+Combo" ) ).ToString() == "Alpha" );
-            Assert.That( m.Toggle( Context.FindOrCreate( "Beta+Fridge+Combo+Alpha" ) ).ToString() == "" );
+            Assert.That( m.SymmetricExcept( Context.FindOrCreate( "Beta" ) ).ToString() == "Alpha+Combo+Fridge" );
+            Assert.That( m.SymmetricExcept( Context.FindOrCreate( "Fridge+Combo" ) ).ToString() == "Alpha+Beta" );
+            Assert.That( m.SymmetricExcept( Context.FindOrCreate( "Beta+Fridge+Combo" ) ).ToString() == "Alpha" );
+            Assert.That( m.SymmetricExcept( Context.FindOrCreate( "Beta+Fridge+Combo+Alpha" ) ).ToString() == "" );
 
-            Assert.That( m.Toggle( Context.FindOrCreate( "" ) ).ToString() == "Alpha+Beta+Combo+Fridge" );
-            Assert.That( m.Toggle( Context.FindOrCreate( "Xtra" ) ).ToString() == "Alpha+Beta+Combo+Fridge+Xtra" );
-            Assert.That( m.Toggle( Context.FindOrCreate( "Alpha+Xtra" ) ).ToString() == "Beta+Combo+Fridge+Xtra" );
-            Assert.That( m.Toggle( Context.FindOrCreate( "Zenon+Alpha+Xtra+Fridge" ) ).ToString() == "Beta+Combo+Xtra+Zenon" );
+            Assert.That( m.SymmetricExcept( Context.FindOrCreate( "" ) ).ToString() == "Alpha+Beta+Combo+Fridge" );
+            Assert.That( m.SymmetricExcept( Context.FindOrCreate( "Xtra" ) ).ToString() == "Alpha+Beta+Combo+Fridge+Xtra" );
+            Assert.That( m.SymmetricExcept( Context.FindOrCreate( "Alpha+Xtra" ) ).ToString() == "Beta+Combo+Fridge+Xtra" );
+            Assert.That( m.SymmetricExcept( Context.FindOrCreate( "Zenon+Alpha+Xtra+Fridge" ) ).ToString() == "Beta+Combo+Xtra+Zenon" );
         }
 
 

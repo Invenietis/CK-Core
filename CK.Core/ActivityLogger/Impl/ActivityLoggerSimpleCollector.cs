@@ -20,20 +20,34 @@ namespace CK.Core
         public class Entry
         {
             /// <summary>
-            /// Gets the log level of the log entry.
+            /// The tags of the log entry.
             /// </summary>
-            public LogLevel Level { get; internal set; }
+            public readonly CKTrait Tags;
 
             /// <summary>
-            /// Gets the text of the log entry.
+            /// The log level of the log entry.
             /// </summary>
-            public string Text { get; internal set; }
+            public readonly LogLevel Level;
 
             /// <summary>
-            /// Gets the exception of the log entry if any.
+            /// The text of the log entry.
             /// </summary>
-            public Exception Exception { get; internal set; }
+            public readonly string Text;
 
+            /// <summary>
+            /// The exception of the log entry if any.
+            /// </summary>
+            public readonly Exception Exception;
+
+
+            internal Entry( CKTrait tags, LogLevel level, string text, Exception ex )
+            {
+                Tags = tags;
+                Level = level;
+                Text = text;
+                Exception = ex;
+            }
+            
             /// <summary>
             /// Overriden to return the <see cref="Text"/> of this element.
             /// </summary>
@@ -108,11 +122,11 @@ namespace CK.Core
         /// </summary>
         /// <param name="level">Level of the log.</param>
         /// <param name="text">Text of the log.</param>
-        void IActivityLoggerClient.OnUnfilteredLog( LogLevel level, string text )
+        void IActivityLoggerClient.OnUnfilteredLog( CKTrait tags, LogLevel level, string text )
         {
             if( (int)level >= (int)_filter )
             {
-                _entries.Push( new Entry() { Level = level, Text = text } );
+                _entries.Push( new Entry( tags, level, text, null ) );
             }
         }
 
@@ -124,7 +138,7 @@ namespace CK.Core
         {
             if( (int)group.GroupLevel >= (int)_filter )
             {
-                _entries.Push( new Entry() { Level = group.GroupLevel, Text = group.GroupText, Exception = group.Exception } );
+                _entries.Push( new Entry( group.Tags, group.GroupLevel, group.GroupText, group.Exception ) );
             }
         }
 

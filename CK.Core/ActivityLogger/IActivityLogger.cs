@@ -33,6 +33,12 @@ namespace CK.Core
     public interface IActivityLogger
     {
         /// <summary>
+        /// Gets or sets the tags of this logger: any subsequent logs will be tagged by these tags.
+        /// The <see cref="CKTrait"/> must be registered in <see cref="ActivityLogger.RegisteredTags"/>.
+        /// </summary>
+        CKTrait Tags { get; set; }
+
+        /// <summary>
         /// Gets or sets a filter based on the log level.
         /// This filter applies to the currently opened group (it is automatically restored when <see cref="CloseGroup"/> is called).
         /// </summary>
@@ -45,35 +51,36 @@ namespace CK.Core
         /// the <paramref name="level"/> is the same as the previous one.
         /// See remarks.
         /// </summary>
+        /// <param name="tags">Tags (from <see cref="ActivityLogger.RegisteredTags"/>) to associate to the log, combined with current <see cref="Tags"/>.</param>
         /// <param name="level">Log level.</param>
         /// <param name="text">Text to log. Ignored if null or empty.</param>
         /// <param name="ex">Optional exception associated to the log. When not null, a Group is automatically created.</param>
         /// <returns>This logger to enable fluent syntax.</returns>
         /// <remarks>
         /// A null or empty <paramref name="text"/> is not logged.
-        /// The special text "PARK-LEVEL" breaks the current <see cref="LogLevel"/>
-        /// and resets it: the next log, even with the same LogLevel, will be treated as if
-        /// a different LogLevel is used.
+        /// If needed, the special text <see cref="ActivityLogger.ParkLevel"/> ("PARK-LEVEL") breaks the current <see cref="LogLevel"/>
+        /// and resets it: the next log, even with the same LogLevel, will be treated as if a different LogLevel is used.
         /// </remarks>
-        IActivityLogger UnfilteredLog( LogLevel level, string text, Exception ex = null );
+        IActivityLogger UnfilteredLog( CKTrait tags, LogLevel level, string text, Exception ex = null );
 
         /// <summary>
         /// Opens a log level. <see cref="CloseGroup"/> must be called in order to
         /// close the group, or the returned object must be disposed.
         /// </summary>
+        /// <param name="tags">Tags (from <see cref="ActivityLogger.RegisteredTags"/>) to associate to the log, combined with current <see cref="Tags"/>.</param>
         /// <param name="level">Log level. Since we are opening a group, the current <see cref="Filter"/> is ignored.</param>
         /// <param name="getConclusionText">Optional function that will be called on group closing.</param>
-        /// <param name="text">Text to log (the title of the group). Null text is valid and considered as <see cref="String.Empty"/>.</param>
+        /// <param name="text">Text to log (the title of the group). Null text is valid and considered as <see cref="String.Empty"/> or assigned to the <see cref="Exception.Message"/> if it exists.</param>
         /// <param name="ex">Optional exception associated to the group.</param>
         /// <returns>A disposable object that can be used to close the group.</returns>
         /// <remarks>
         /// A group opening is not filtered since any subordinated logs may occur with a much higher level.
         /// It is left to the implementation to handle (or not) filtering when <see cref="CloseGroup"/> is called.
         /// </remarks>
-        IDisposable OpenGroup( LogLevel level, Func<string> getConclusionText, string text, Exception ex = null );
+        IDisposable OpenGroup( CKTrait tags, LogLevel level, Func<string> getConclusionText, string text, Exception ex = null );
 
         /// <summary>
-        /// Closes the current <see cref="Group"/>. Optionl parameter is ploymorphic. It can be a string, an enumerable of <see cref="ActivityLogGroupConclusion"/>, 
+        /// Closes the current <see cref="Group"/>. Optional parameter is polymorphic. It can be a string, an enumerable of <see cref="ActivityLogGroupConclusion"/>, 
         /// or any object with an overriden <see cref="Object.ToString"/> method.
         /// </summary>
         /// <param name="userConclusion">Optional string, enumerable of <see cref="ActivityLogGroupConclusion"/>) or object to conclude the group. See remarks.</param>

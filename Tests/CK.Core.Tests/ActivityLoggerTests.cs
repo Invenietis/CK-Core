@@ -47,13 +47,13 @@ namespace Core
                 Writer = new StringWriter();
             }
 
-            public void OnEnterLevel( LogLevel level, string text )
+            public void OnEnterLevel( CKTrait tags, LogLevel level, string text )
             {
                 Writer.WriteLine();
                 Writer.Write( level.ToString() + ": " + text );
             }
 
-            public void OnContinueOnSameLevel( LogLevel level, string text )
+            public void OnContinueOnSameLevel( CKTrait tags, LogLevel level, string text )
             {
                 Writer.Write( text );
             }
@@ -90,13 +90,13 @@ namespace Core
                 InnerWriter = s;
             }
 
-            public void OnEnterLevel( LogLevel level, string text )
+            public void OnEnterLevel( CKTrait tags, LogLevel level, string text )
             {
                 XmlWriter.WriteStartElement( level.ToString() );
                 XmlWriter.WriteString( text );
             }
 
-            public void OnContinueOnSameLevel( LogLevel level, string text )
+            public void OnContinueOnSameLevel( CKTrait tags, LogLevel level, string text )
             {
                 XmlWriter.WriteString( text );
             }
@@ -122,34 +122,48 @@ namespace Core
         }
 
         [Test]
+        [Category( "ActivityLogger" )]
+        [Category( "Console" )]
         public void DefaultImpl()
         {
             IDefaultActivityLogger logger = DefaultActivityLogger.Create();
             // Binds the TestHelper.Logger logger to this one.
             logger.Output.RegisterClient( TestHelper.Logger.Output.ExternalInput );
-
             logger.Tap.Register( new StringImpl() ).Register( new XmlImpl( new StringWriter() ) );
-
             Assert.That( logger.Tap.RegisteredSinks.Count, Is.EqualTo( 2 ) );
+
+            var tag1 = ActivityLogger.RegisteredTags.FindOrCreate( "Product" );
+            var tag2 = ActivityLogger.RegisteredTags.FindOrCreate( "Sql" );
+            var tag3 = ActivityLogger.RegisteredTags.FindOrCreate( "Combined Tag|Sql|Engine V2|Product" );
 
             using( logger.OpenGroup( LogLevel.None, () => "EndMainGroup", "MainGroup" ) )
             {
                 using( logger.OpenGroup( LogLevel.Trace, () => "EndMainGroup", "MainGroup" ) )
                 {
-                    logger.Trace( "First" );
-                    logger.Trace( "Second" );
-                    logger.Trace( "Third" );
-                    logger.Info( "First" );
-
-                    using( logger.OpenGroup( LogLevel.Info, () => "EndInfoGroup", "InfoGroup" ) )
+                    logger.Trace( tag1, "First" );
+                    using( logger.Tags( tag1 ) )
+                    {
+                        logger.Trace( "Second" );
+                        logger.Trace( tag3, "Third" );
+                        using( logger.Tags( tag2 ) )
+                        {
+                            logger.Info( "First" );
+                        }
+                    }
+                    using( logger.OpenGroup( LogLevel.Info, () => "Conclusion of Info Group (no newline).", "InfoGroup" ) )
                     {
                         logger.Info( "Second" );
                         logger.Trace( "Fourth" );
 
-                        using( logger.OpenGroup( LogLevel.Warn, () => "EndWarnGroup", "WarnGroup {0} - Now = {1}", 4, DateTime.UtcNow ) )
+                        string warnConclusion = "Conclusion of Warn Group" + Environment.NewLine + "with more than one line int it.";
+                        using( logger.OpenGroup( LogLevel.Warn, () => warnConclusion, "WarnGroup {0} - Now = {1}", 4, DateTime.UtcNow ) )
                         {
                             logger.Info( "Warn!" );
+                            logger.CloseGroup( "User conclusion with multiple lines." 
+                                + Environment.NewLine + "It will be displayed on "
+                                + Environment.NewLine + "multiple lines." );
                         }
+                        logger.CloseGroup( "Conclusions on one line are displayed separated by dash." );
                     }
                 }
             }
@@ -165,6 +179,8 @@ namespace Core
         }
 
         [Test]
+        [Category( "ActivityLogger" )]
+        [Category( "Console" )]
         public void MultipleClose()
         {
             IDefaultActivityLogger logger = DefaultActivityLogger.Create();
@@ -191,6 +207,7 @@ namespace Core
         }
 
         [Test]
+        [Category( "ActivityLogger" )]
         public void DefaultActivityLoggerDefaults()
         {
             IDefaultActivityLogger l = DefaultActivityLogger.Create();
@@ -200,6 +217,8 @@ namespace Core
         }
 
         [Test]
+        [Category( "ActivityLogger" )]
+        [Category( "Console" )]
         public void FilterLevel()
         {
             IDefaultActivityLogger l = DefaultActivityLogger.Create();
@@ -258,6 +277,7 @@ namespace Core
         }
 
         [Test]
+        [Category( "ActivityLogger" )]
         public void CloseMismatch()
         {
             IDefaultActivityLogger l = DefaultActivityLogger.Create();
@@ -296,6 +316,8 @@ namespace Core
         }
 
         [Test]
+        [Category( "ActivityLogger" )]
+        [Category( "Console" )]
         public void MultipleConclusions()
         {
             IDefaultActivityLogger l = DefaultActivityLogger.Create();
@@ -315,6 +337,8 @@ namespace Core
         }
 
         [Test]
+        [Category( "ActivityLogger" )]
+        [Category( "Console" )]
         public void PathCatcherTests()
         {
             var logger = DefaultActivityLogger.Create();
@@ -460,11 +484,13 @@ namespace Core
         }
 
         [Test]
+        [Category( "ActivityLogger" )]
+        [Category( "Console" )]
         public void ErrorCounterTests()
         {
             var logger = new ActivityLogger();
             // Binds the TestHelper.Logger logger to this one.
-            //logger.Output.RegisterClient( TestHelper.Logger.Output.ExternalInput );
+            logger.Output.RegisterClient( TestHelper.Logger.Output.ExternalInput );
 
             // Registers the ErrorCounter first: it will be the last one to be called, but
             // this does not prevent the PathCatcher to work: the path elements reference the group
@@ -548,6 +574,7 @@ namespace Core
         }
 
         [Test]
+        [Category( "ActivityLogger" )]
         public void SimpleCollectorTest()
         {
             IDefaultActivityLogger d = DefaultActivityLogger.Create();
@@ -585,6 +612,7 @@ namespace Core
         }
 
         [Test]
+        [Category( "ActivityLogger" )]
         public void CatchTests()
         {
             IDefaultActivityLogger d = DefaultActivityLogger.Create();
@@ -632,6 +660,7 @@ namespace Core
         }
 
         [Test]
+        [Category( "ActivityLogger" )]
         public void Overloads()
         {
             Exception ex = new Exception( "EXCEPTION" );
