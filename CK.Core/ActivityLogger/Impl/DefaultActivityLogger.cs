@@ -72,19 +72,15 @@ namespace CK.Core
 
         DefaultActivityLogger()
         {
-            _tap = new ActivityLoggerTap();
-            _errorCounter = new ActivityLoggerErrorCounter();
-            _pathCatcher = new ActivityLoggerPathCatcher();
-            
             // Order does not really matter matters here thankd to Closing/Closed pattern, but
             // we order them in the "logical" sense.
+
             // Will be the last one as beeing called: it is the final sink.
-            Output.RegisterClient( _tap );
+            _tap = new ActivityLoggerTap( this );
             // Will be called AFTER the ErrorCounter.
-            Output.RegisterClient( _pathCatcher );
+            _pathCatcher = new ActivityLoggerPathCatcher( this );
             // Will be called first.
-            Output.RegisterClient( _errorCounter );
-            Output.NonRemoveableClients.AddRangeArray( _tap, _pathCatcher, _errorCounter );
+            _errorCounter = new ActivityLoggerErrorCounter( this );
         }
 
         ActivityLoggerTap IDefaultActivityLogger.Tap 

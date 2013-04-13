@@ -96,6 +96,41 @@ namespace CK.Core
         }
 
         /// <summary>
+        /// Finds or creates a bridge to another logger.
+        /// </summary>
+        /// <param name="this">This <see cref="IActivityLoggerOutput"/>.</param>
+        /// <param name="logger">The logger that will receive our logs.</param>
+        /// <returns>The <see cref="ActivityLoggerBridge"/> that has been created and registered or the one that already exists.</returns>
+        public static ActivityLoggerBridge BridgeTo( this IActivityLoggerOutput @this, IActivityLogger logger )
+        {
+            if( logger == null ) throw new ArgumentNullException( "logger" );
+            var bridge = @this.RegisteredClients.OfType<ActivityLoggerBridge>().Where( b => b.TargetLogger == logger ).FirstOrDefault();
+            if( bridge == null )
+            {
+                bridge = new ActivityLoggerBridge( logger.Output.ExternalInput );
+                @this.RegisterClient( bridge );
+            }
+            return bridge;
+        }
+
+        /// <summary>
+        /// Removes an existing <see cref="ActivityLoggerBridge"/> to another logger.
+        /// </summary>
+        /// <param name="this">This <see cref="IActivityLoggerOutput"/>.</param>
+        /// <param name="logger">The logger that will no more receive our logs.</param>
+        /// <returns>The unregistered <see cref="ActivityLoggerBridge"/> if found.</returns>
+        public static ActivityLoggerBridge UnbridgeTo( this IActivityLoggerOutput @this, IActivityLogger logger )
+        {
+            if( logger == null ) throw new ArgumentNullException( "logger" );
+            var bridge = @this.RegisteredClients.OfType<ActivityLoggerBridge>().Where( b => b.TargetLogger == logger ).FirstOrDefault();
+            if( bridge != null ) @this.UnregisterClient( bridge );
+            return bridge;
+        }
+
+
+
+        #region Catch & CatchCounter
+        /// <summary>
         /// Enables simple "using" syntax to easily catch any <see cref="LogLevel"/> (or above) entries (defaults to <see cref="LogLevel.Error"/>).
         /// </summary>
         /// <param name="this">This <see cref="IActivityLogger"/>.</param>
@@ -167,6 +202,9 @@ namespace CK.Core
                 if( errorCounter.Current.HasError ) fatalOrErrorCount( errorCounter.Current.FatalCount + errorCounter.Current.ErrorCount );
             } );
         }
+        
+        #endregion
+
 
         #region IActivityLogger.Filter( level )
 
@@ -192,6 +230,8 @@ namespace CK.Core
         /// <summary>
         /// Sets a filter level on this <see cref="IActivityLogger"/>. The current <see cref="IActivityLogger.Filter"/> will be automatically 
         /// restored when the returned <see cref="IDisposable"/> will be disposed.
+        /// This may not be useful since when a Group is closed, the IActivityLogger.Filter is automatically restored to its original value 
+        /// (captured when the Group was opened).
         /// </summary>
         /// <param name="this">This <see cref="IActivityLogger"/> object.</param>
         /// <param name="filterLevel">The new filter level.</param>
@@ -204,6 +244,7 @@ namespace CK.Core
         #endregion IActivityLogger.Filter( level )
 
 
+        #region IActivityLogger.Tags( Tags, SetOperation )
         class TagsSentinel : IDisposable
         {
             readonly IActivityLogger _logger;
@@ -226,6 +267,8 @@ namespace CK.Core
         /// <summary>
         /// Alter tags of this <see cref="IActivityLogger"/>. Current <see cref="IActivityLogger.Tags"/> will be automatically 
         /// restored when the returned <see cref="IDisposable"/> will be disposed.
+        /// This may not be useful since when a Group is closed, the IActivityLogger.Tags is automatically restored to its original value 
+        /// (captured when the Group was opened).
         /// </summary>
         /// <param name="this">This <see cref="IActivityLogger"/> object.</param>
         /// <param name="tags">Tags to combine with the current one.</param>
@@ -242,16 +285,19 @@ namespace CK.Core
             else if( operation == SetOperation.None ) return Util.EmptyDisposable;
             return new TagsSentinel( @this, tags );
         }
+        
+        #endregion
+
 
         #region Registrar
 
         /// <summary>
         /// Registers multiple <see cref="IActivityLoggerClient"/>.
         /// </summary>
-        /// <param name="this">This <see cref="IActivityLoggerClientRegistrar"/> object.</param>
+        /// <param name="this">This <see cref="IActivityLoggerOutput"/> object.</param>
         /// <param name="clients">Multiple clients to register.</param>
         /// <returns>This registrar to enable fluent syntax.</returns>
-        public static IActivityLoggerClientRegistrar Register( this IActivityLoggerClientRegistrar @this, IEnumerable<IActivityLoggerClient> clients )
+        public static IActivityLoggerOutput Register( this IActivityLoggerOutput @this, IEnumerable<IActivityLoggerClient> clients )
         {
             foreach( var c in clients ) @this.RegisterClient( c );
             return @this;
@@ -260,10 +306,10 @@ namespace CK.Core
         /// <summary>
         /// Registers multiple <see cref="IActivityLoggerClient"/>.
         /// </summary>
-        /// <param name="this">This <see cref="IActivityLoggerClientRegistrar"/> object.</param>
+        /// <param name="this">This <see cref="IActivityLoggerOutput"/> object.</param>
         /// <param name="clients">Multiple clients to register.</param>
         /// <returns>This registrar to enable fluent syntax.</returns>
-        public static IActivityLoggerClientRegistrar Register( this IActivityLoggerClientRegistrar @this, params IActivityLoggerClient[] clients )
+        public static IActivityLoggerOutput Register( this IActivityLoggerOutput @this, params IActivityLoggerClient[] clients )
         {
             return Register( @this, (IEnumerable<IActivityLoggerClient>)clients );
         }

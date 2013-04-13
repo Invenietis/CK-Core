@@ -117,11 +117,17 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
+  <data name="ActivityLoggerBoundClientMultipleRegister" xml:space="preserve">
+    <value>A '{0}' can be registered in only one IActivityLogger.Output at the same time. Unregister it before Registering it in another logger.</value>
+  </data>
   <data name="ActivityLoggerNonRemoveableClient" xml:space="preserve">
     <value>The ActivityLogger client is in NonRemoveableClients list.</value>
   </data>
   <data name="ArgumentCountNegative" xml:space="preserve">
     <value>Argument count can not be negative.</value>
+  </data>
+  <data name="CanNotUnregisterDefaultClient" xml:space="preserve">
+    <value>Can not Unregister the Tap, PathCatcher or ErrorCounter of a default logger.</value>
   </data>
   <data name="DirectServicesCanNotBeDisabled" xml:space="preserve">
     <value>Service {0} is direcly supported by the container. It can not be disabled.</value>

@@ -61,6 +61,15 @@ namespace CK.Core {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to A &apos;{0}&apos; can be registered in only one IActivityLogger.Output at the same time. Unregister it before Registering it in another logger..
+        /// </summary>
+        internal static string ActivityLoggerBoundClientMultipleRegister {
+            get {
+                return ResourceManager.GetString("ActivityLoggerBoundClientMultipleRegister", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The ActivityLogger client is in NonRemoveableClients list..
         /// </summary>
         internal static string ActivityLoggerNonRemoveableClient {
@@ -75,6 +84,15 @@ namespace CK.Core {
         internal static string ArgumentCountNegative {
             get {
                 return ResourceManager.GetString("ArgumentCountNegative", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Can not Unregister the Tap, PathCatcher or ErrorCounter of a default logger..
+        /// </summary>
+        internal static string CanNotUnregisterDefaultClient {
+            get {
+                return ResourceManager.GetString("CanNotUnregisterDefaultClient", resourceCulture);
             }
         }
         

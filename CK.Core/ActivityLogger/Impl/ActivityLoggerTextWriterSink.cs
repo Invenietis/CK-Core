@@ -101,9 +101,9 @@ namespace CK.Core
             _prefix += "▪\u00A0\u00A0";
             _prefixLevel = _prefix;
             string text = g.GroupText.Replace( Environment.NewLine, Environment.NewLine + _prefixLevel );
-            if( _currentTags != g.Tags )
+            if( _currentTags != g.GroupTags )
             {
-                _currentTags = g.Tags;
+                _currentTags = g.GroupTags;
                 w.WriteLine( "{0}{1} -[{2}]", start, text, _currentTags );
             }
             else

@@ -34,7 +34,7 @@ namespace CK.Core
     /// and two specific paths, the <see cref="LastErrorPath"/> and the <see cref="LastWarnOrErrorPath"/>.
     /// It is both a <see cref="IMuxActivityLoggerClient"/> and a <see cref="IActivityLoggerClient"/>.
     /// </summary>
-    public class ActivityLoggerPathCatcher : ActivityLoggerClient
+    public class ActivityLoggerPathCatcher : ActivityLoggerClient, IActivityLoggerBoundClient
     {
         /// <summary>
         /// Element of the <see cref="ActivityLoggerPathCatcher.DynamicPath">DynamicPath</see>, <see cref="ActivityLoggerPathCatcher.LastErrorPath">LastErrorPath</see>,
@@ -88,7 +88,7 @@ namespace CK.Core
             }
 
             // Security if OnGroupClosing is implemented one day on ActivityLoggerPathCatcher.
-            protected override void OnGroupClosing( IActivityLogGroup group, IList<ActivityLogGroupConclusion> conclusions )
+            protected override void OnGroupClosing( IActivityLogGroup group, ref List<ActivityLogGroupConclusion> conclusions )
             {
             }
 
@@ -108,6 +108,7 @@ namespace CK.Core
         List<PathElement> _path;
         IReadOnlyList<PathElement> _pathEx;
         PathElement _current;
+        readonly bool _locked;
         bool _currentIsGroup;
         bool _currentIsGroupClosed;
 
@@ -118,6 +119,22 @@ namespace CK.Core
         {
             _path = new List<PathElement>();
             _pathEx = new CKReadOnlyListOnIList<PathElement>( _path );
+        }
+
+        /// <summary>
+        /// Initialize a new <see cref="ActivityLoggerPathCatcher"/> as the default <see cref="IDefaultActivityLogger.PathCatcher"/>.
+        /// It can not be unregistered.
+        /// </summary>
+        public ActivityLoggerPathCatcher( IDefaultActivityLogger logger )
+            : this()
+        {
+            logger.Output.RegisterClient( this );
+            _locked = true;
+        }
+
+        void IActivityLoggerBoundClient.SetLogger( IActivityLogger source )
+        {
+            if( _locked ) throw new InvalidOperationException( R.CanNotUnregisterDefaultClient );
         }
 
         /// <summary>
@@ -207,7 +224,7 @@ namespace CK.Core
                 _path.Add( _current );
             }
             _currentIsGroup = true;
-            _current.Tags = group.Tags;
+            _current.Tags = group.GroupTags;
             _current.Level = group.GroupLevel;
             _current.Text = group.GroupText;
             CheckSnapshot();

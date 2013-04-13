@@ -29,27 +29,29 @@ using System.Text;
 namespace CK.Core
 {
     /// <summary>
-    /// Base implementation of <see cref="IActivityLoggerOutput"/> for <see cref="IActivityLogger.Output"/>.
+    /// Implementation of <see cref="IActivityLoggerOutput"/> for <see cref="IActivityLogger.Output"/>.
     /// </summary>
-    public class ActivityLoggerOutput : IActivityLoggerOutput, IActivityLoggerClient
+    public class ActivityLoggerOutput : IActivityLoggerOutput
     {
-        List<IActivityLoggerClient> _clients;
-        IReadOnlyList<IActivityLoggerClient> _clientsEx;
-        List<IActivityLoggerClient> _nonRemoveableClients;
+        readonly List<IActivityLoggerClient> _clients;
+        readonly IReadOnlyList<IActivityLoggerClient> _clientsEx;
+        readonly ActivityLoggerBridgeTarget _externalInput;
 
         internal class EmptyOutput : IActivityLoggerOutput
         {
+            ActivityLoggerBridgeTarget _empty = new ActivityLoggerBridgeTarget();
+
             public IActivityLoggerClient ExternalInput
             {
                 get { return ActivityLoggerClient.Empty; }
             }
 
-            public IActivityLoggerClientRegistrar RegisterClient( IActivityLoggerClient client )
+            public IActivityLoggerOutput RegisterClient( IActivityLoggerClient client )
             {
                 return this;
             }
 
-            public IActivityLoggerClientRegistrar UnregisterClient( IActivityLoggerClient client )
+            public IActivityLoggerOutput UnregisterClient( IActivityLoggerClient client )
             {
                 return this;
             }
@@ -59,9 +61,9 @@ namespace CK.Core
                 get { return CKReadOnlyListEmpty<IActivityLoggerClient>.Empty; }
             }
 
-            public IList<IActivityLoggerClient> NonRemoveableClients 
+            ActivityLoggerBridgeTarget IActivityLoggerOutput.ExternalInput
             {
-                get { return (IList<IActivityLoggerClient>)CKReadOnlyListEmpty<IActivityLoggerClient>.Empty; } 
+                get { throw new NotImplementedException(); }
             }
         }
 
@@ -76,38 +78,24 @@ namespace CK.Core
         /// <param name="logger"></param>
         public ActivityLoggerOutput( IActivityLogger logger )
         {
-            Logger = logger;
             _clients = new List<IActivityLoggerClient>();
             _clientsEx = new CKReadOnlyListOnIList<IActivityLoggerClient>( _clients );
-            _nonRemoveableClients = new List<IActivityLoggerClient>();
+            _externalInput = new ActivityLoggerBridgeTarget( logger, true );
         }
 
         /// <summary>
-        /// Gets an entry point for other loggers: by registering this <see cref="IActivityLoggerClient"/> in other <see cref="IActivityLogger.Output"/>,
-        /// log data easily be merged.
+        /// Gets an entry point for other loggers: by registering <see cref="ActivityLoggerBridge"/> in other <see cref="IActivityLogger.Output"/>
+        /// bound to this <see cref="ActivityLoggerBridgeTarget"/>, log streams can easily be merged.
         /// </summary>
-        public IActivityLoggerClient ExternalInput 
+        public ActivityLoggerBridgeTarget ExternalInput 
         {
-            get { return this; } 
-        }
-
-        /// <summary>
-        /// Gets a modifiable list of <see cref="IActivityLoggerClient"/> that can not be unregistered.
-        /// </summary>
-        /// <para>
-        /// This list simply guaranties that an <see cref="InvalidOperationException"/> will be thrown 
-        /// if a call to <see cref="IActivityLoggerClientRegistrar.UnregisterClient"/> is done on a non removeable client.
-        /// </para>
-        /// </remarks>
-        public IList<IActivityLoggerClient> NonRemoveableClients 
-        { 
-            get { return _nonRemoveableClients; } 
+            get { return _externalInput; } 
         }
 
         /// <summary>
         /// Gets the associated <see cref="IActivityLogger"/>.
         /// </summary>
-        protected IActivityLogger Logger { get; private set; }
+        protected IActivityLogger Logger { get { return _externalInput.FinalLogger; } }
 
         /// <summary>
         /// Registers an <see cref="IActivityLoggerClient"/> to the <see cref="RegisteredClients"/> list.
@@ -115,11 +103,13 @@ namespace CK.Core
         /// </summary>
         /// <param name="client">An <see cref="IActivityLoggerClient"/> implementation.</param>
         /// <returns>This object to enable fluent syntax.</returns>
-        public IActivityLoggerClientRegistrar RegisterClient( IActivityLoggerClient client )
+        public IActivityLoggerOutput RegisterClient( IActivityLoggerClient client )
         {
             if( client == null ) throw new ArgumentNullException( "client" );
             if( !_clients.Contains( client ) )
             {
+                IActivityLoggerBoundClient bound = client as IActivityLoggerBoundClient;
+                if( bound != null ) bound.SetLogger( Logger );
                 _clients.Insert( 0, client );
             }
             return this;
@@ -127,15 +117,18 @@ namespace CK.Core
 
         /// <summary>
         /// Unregisters the given <see cref="IActivityLoggerClient"/> from the <see cref="RegisteredClients"/> list.
-        /// Silently ignores unregistered client but throws an <see cref="InvalidOperationException"/> if it belongs to <see cref="NonRemoveableClients"/> list.
+        /// Silently ignores unregistered client.
         /// </summary>
         /// <param name="client">An <see cref="IActivityLoggerClient"/> implementation.</param>
         /// <returns>This object to enable fluent syntax.</returns>
-        public IActivityLoggerClientRegistrar UnregisterClient( IActivityLoggerClient client )
+        public IActivityLoggerOutput UnregisterClient( IActivityLoggerClient client )
         {
             if( client == null ) throw new ArgumentNullException( "client" );
-            if( _nonRemoveableClients.Contains( client ) ) throw new InvalidOperationException( R.ActivityLoggerNonRemoveableClient );
-            _clients.Remove( client );
+            if( _clients.Remove( client ) )
+            {
+                IActivityLoggerBoundClient bound = client as IActivityLoggerBoundClient;
+                if( bound != null ) bound.SetLogger( null );
+            }
             return this;
         }
 
@@ -145,31 +138,6 @@ namespace CK.Core
         public IReadOnlyList<IActivityLoggerClient> RegisteredClients
         {
             get { return _clientsEx; }
-        }
-
-        void IActivityLoggerClient.OnFilterChanged( LogLevelFilter current, LogLevelFilter newValue )
-        {
-            foreach( var l in _clients ) l.OnFilterChanged( current, newValue );
-        }
-
-        void IActivityLoggerClient.OnUnfilteredLog( CKTrait tags, LogLevel level, string text )
-        {
-            foreach( var l in _clients ) l.OnUnfilteredLog( tags, level, text );
-        }
-
-        void IActivityLoggerClient.OnOpenGroup( IActivityLogGroup group )
-        {
-            foreach( var l in _clients ) l.OnOpenGroup( group );
-        }
-
-        void IActivityLoggerClient.OnGroupClosing( IActivityLogGroup group, IList<ActivityLogGroupConclusion> conclusions )
-        {
-            foreach( var l in _clients ) l.OnGroupClosing( group, conclusions );
-        }
-
-        void IActivityLoggerClient.OnGroupClosed( IActivityLogGroup group, ICKReadOnlyList<ActivityLogGroupConclusion> conclusions )
-        {
-            foreach( var l in _clients ) l.OnGroupClosed( group, conclusions );
         }
     }
 }

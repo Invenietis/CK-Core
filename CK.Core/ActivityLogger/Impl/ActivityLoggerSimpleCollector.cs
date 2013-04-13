@@ -138,7 +138,7 @@ namespace CK.Core
         {
             if( (int)group.GroupLevel >= (int)_filter )
             {
-                _entries.Push( new Entry( group.Tags, group.GroupLevel, group.GroupText, group.Exception ) );
+                _entries.Push( new Entry( group.GroupTags, group.GroupLevel, group.GroupText, group.Exception ) );
             }
         }
 
@@ -146,7 +146,7 @@ namespace CK.Core
         {
         }
 
-        void IActivityLoggerClient.OnGroupClosing( IActivityLogGroup group, IList<ActivityLogGroupConclusion> conclusions )
+        void IActivityLoggerClient.OnGroupClosing( IActivityLogGroup group, ref List<ActivityLogGroupConclusion> conclusions )
         {
         }
 

@@ -35,7 +35,7 @@ namespace CK.Core
         /// <summary>
         /// Gets the tags for the log group.
         /// </summary>
-        CKTrait Tags { get; }
+        CKTrait GroupTags { get; }
 
         /// <summary>
         /// Gets the origin <see cref="IActivityLogger"/> for the log group.
@@ -53,10 +53,16 @@ namespace CK.Core
         int Depth { get; }
 
         /// <summary>
-        /// Gets the <see cref="LogLevelFilter"/> for this group. Initialized with 
-        /// the <see cref="IActivityLogger.Filter"/> at the time the group has been opened.
+        /// Gets the <see cref="IActivityLogger.Filter"/> that will be restored when group will be closed.
+        /// Initialized with the current value of IActivityLogger.Filter when the group has been opened.
         /// </summary>
-        LogLevelFilter Filter { get; }
+        LogLevelFilter SavedLoggerFilter { get; }
+
+        /// <summary>
+        /// Gets the <see cref="IActivityLogger.Tags"/> that will be restored when group will be closed.
+        /// Initialized with the current value of IActivityLogger.Tags when the group has been opened.
+        /// </summary>
+        CKTrait SavedLoggerTags { get; }
 
         /// <summary>
         /// Gets the level associated to this group.

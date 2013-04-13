@@ -80,9 +80,10 @@ namespace CK.Core
         /// <summary>
         /// Initializes a new <see cref="ActivityLogger"/> with a <see cref="ActivityLoggerOutput"/> as its <see cref="Output"/>.
         /// </summary>
-        public ActivityLogger( CKTrait tags = null )
+        /// <param name="initialTags">Initial <see cref="Tags"/>.</param>
+        public ActivityLogger( CKTrait initialTags = null )
         {
-            Build( new ActivityLoggerOutput( this ), tags );
+            Build( new ActivityLoggerOutput( this ), initialTags );
         }
 
         /// <summary>
@@ -125,6 +126,8 @@ namespace CK.Core
         /// <summary>
         /// Gets or sets the tags of this logger: any subsequent logs will be tagged by these tags.
         /// The <see cref="CKTrait"/> must be registered in <see cref="ActivityLogger.RegisteredTags"/>.
+        /// Modifications to this property are scoped to the current Group since when a Group is closed, this
+        /// property (like <see cref="Filter"/>) is automatically restored to its original value (captured when the Group was opened).
         /// </summary>
         public CKTrait Tags 
         {
@@ -134,7 +137,8 @@ namespace CK.Core
 
         /// <summary>
         /// Gets or sets a filter based on the log level.
-        /// This filter applies to the currently opened group (it is automatically restored when <see cref="CloseGroup"/> is called).
+        /// Modifications to this property are scoped to the current Group since when a Group is closed, this
+        /// property (like <see cref="Tags"/>) is automatically restored to its original value (captured when the Group was opened).
         /// </summary>
         public LogLevelFilter Filter
         {
@@ -143,7 +147,7 @@ namespace CK.Core
             {
                 if( _filter != value )
                 {
-                    ((IActivityLoggerClient)_output).OnFilterChanged( _filter, value );
+                    foreach( var l in _output.RegisteredClients ) l.OnFilterChanged( _filter, value );
                     _filter = value;
                 }
             }
@@ -180,7 +184,7 @@ namespace CK.Core
                 {
                     if( tags == null || tags.IsEmpty ) tags = _currentTag;
                     else tags = _currentTag.Union( tags );
-                    ((IActivityLoggerClient)_output).OnUnfilteredLog( tags, level, text );
+                    foreach( var l in _output.RegisteredClients ) l.OnUnfilteredLog( tags, level, text );
                 }
             }
             return this;
@@ -211,13 +215,13 @@ namespace CK.Core
             if( tags == null || tags.IsEmpty ) tags = _currentTag;
             else tags = _currentTag.Union( tags );
             _current.Initialize( tags, level, text ?? (ex != null ? ex.Message : String.Empty), defaultConclusionText, ex );
-            ((IActivityLoggerClient)_output).OnOpenGroup( _current );
+            foreach( var l in _output.RegisteredClients ) l.OnOpenGroup( _current );
             return _current;
         }
 
         /// <summary>
-        /// Closes the current <see cref="Group"/>. Optional parameter is polymorphic. It can be a string, an enumerable of <see cref="ActivityLogGroupConclusion"/>, 
-        /// or any object with an overriden <see cref="Object.ToString"/> method.
+        /// Closes the current <see cref="Group"/>. Optional parameter is polymorphic. It can be a string, a <see cref="List{T}"/> or an enumerable of <see cref="ActivityLogGroupConclusion"/>, 
+        /// or any object with an overriden <see cref="Object.ToString"/> method. See remarks (especially for List&lt;ActivityLogGroupConclusion&gt;).
         /// </summary>
         /// <param name="userConclusion">Optional string, enumerable of <see cref="ActivityLogGroupConclusion"/>) or object to conclude the group. See remarks.</param>
         /// <remarks>
@@ -228,9 +232,10 @@ namespace CK.Core
             Group g = _current;
             if( g != null )
             {
-                var conclusions = new List<ActivityLogGroupConclusion>();
-                if( userConclusion != null )
+                var conclusions = userConclusion as List<ActivityLogGroupConclusion>;
+                if( conclusions == null && userConclusion != null )
                 {
+                    conclusions = new List<ActivityLogGroupConclusion>();
                     string s = userConclusion as string;
                     if( s != null ) conclusions.Add( new ActivityLogGroupConclusion( TagUserConclusion, s ) );
                     else
@@ -240,11 +245,12 @@ namespace CK.Core
                         else conclusions.Add( new ActivityLogGroupConclusion( TagUserConclusion, userConclusion.ToString() ) );
                     }
                 }
-                g.GroupClose( conclusions );
-                ((IActivityLoggerClient)_output).OnGroupClosing( g, conclusions );
-                Filter = g.Filter;
+                g.GroupClose( ref conclusions );
+                foreach( var l in _output.RegisteredClients ) l.OnGroupClosing( g, ref conclusions );
+                Filter = g.SavedLoggerFilter;
+                _currentTag = g.SavedLoggerTags;
                 _current = (Group)g.Parent;
-                ((IActivityLoggerClient)_output).OnGroupClosed( g, conclusions.ToReadOnlyList() );
+                foreach( var l in _output.RegisteredClients ) l.OnGroupClosed( g, conclusions != null ? conclusions.ToReadOnlyList() : CKReadOnlyListEmpty<ActivityLogGroupConclusion>.Empty );
             }
         }
 

@@ -72,10 +72,11 @@
     <Compile Include="ActivityLogger\ActivityLoggerEmpty.cs" />
     <Compile Include="ActivityLogger\ActivityLogGroupConclusion.cs" />
     <Compile Include="ActivityLogger\IActivityLogger.cs" />
+    <Compile Include="ActivityLogger\IActivityLoggerBoundClient.cs" />
     <Compile Include="ActivityLogger\IActivityLoggerClient.cs" />
-    <Compile Include="ActivityLogger\IActivityLoggerClientRegistrar.cs" />
     <Compile Include="ActivityLogger\IActivityLoggerOutput.cs" />
     <Compile Include="ActivityLogger\IActivityLogGroup.cs" />
+    <Compile Include="ActivityLogger\Impl\ActivityLoggerBridgeTarget.cs" />
     <Compile Include="ActivityLogger\Impl\ActivityLoggerConsoleSink.cs" />
     <Compile Include="ActivityLogger\Impl\ActivityLoggerErrorCounter.cs" />
     <Compile Include="ActivityLogger\Impl\ActivityLoggerClient.cs" />
@@ -87,8 +88,9 @@
     <Compile Include="ActivityLogger\Impl\ActivityLogger.Group.cs" />
     <Compile Include="ActivityLogger\Impl\ActivityLoggerExtension.WithoutTags.cs" />
     <Compile Include="ActivityLogger\Impl\ActivityLoggerExtension.WithTags.cs" />
+    <Compile Include="ActivityLogger\Impl\ActivityLoggerBridge.cs" />
     <Compile Include="ActivityLogger\Impl\DefaultActivityLogger.cs" />
-    <Compile Include="ActivityLogger\Impl\IDefaultActivityLogger.cs" />
+    <Compile Include="ActivityLogger\IDefaultActivityLogger.cs" />
     <Compile Include="ActivityLogger\Impl\IActivityLoggerSink.cs" />
     <Compile Include="ActivityLogger\Impl\ActivityLoggerExtension.cs" />
     <Compile Include="ActivityLogger\Impl\ActivityLogger.cs" />

@@ -29,14 +29,15 @@ using System.Text;
 namespace CK.Core
 {
     /// <summary>
-    /// A tap is both a <see cref="IMuxActivityLoggerClient"/> and a <see cref="IActivityLoggerClient"/> that delivers log data 
+    /// A tap is a <see cref="IActivityLoggerClient"/> that delivers log data 
     /// to multiple <see cref="IActivityLoggerSink"/> implementations.
     /// </summary>
-    public class ActivityLoggerTap : ActivityLoggerClient
+    public class ActivityLoggerTap : ActivityLoggerClient, IActivityLoggerBoundClient
     {
         int _curLevel;
         List<IActivityLoggerSink> _sinks;
         ICKReadOnlyList<IActivityLoggerSink> _sinksEx;
+        readonly bool _locked;
 
         class EmptyTap : ActivityLoggerTap
         {
@@ -59,7 +60,7 @@ namespace CK.Core
             }
 
             // Security if OnGroupClosing is implemented once on ActivityLoggerTap.
-            protected override void OnGroupClosing( IActivityLogGroup group, IList<ActivityLogGroupConclusion> conclusions )
+            protected override void OnGroupClosing( IActivityLogGroup group, ref List<ActivityLogGroupConclusion> conclusions )
             {
             }
 
@@ -74,13 +75,29 @@ namespace CK.Core
         static public new readonly ActivityLoggerTap Empty = new EmptyTap();
 
         /// <summary>
-        /// Initialize a new <see cref="ActivityLoggerTap"/> bound to a <see cref="IMuxActivityLoggerClientRegistrar"/>.
+        /// Initialize a new <see cref="ActivityLoggerTap"/>.
         /// </summary>
-        public ActivityLoggerTap( )
+        public ActivityLoggerTap()
         {
             _curLevel = -1;
             _sinks = new List<IActivityLoggerSink>();
             _sinksEx = new CKReadOnlyListOnIList<IActivityLoggerSink>( _sinks );
+        }
+
+        /// <summary>
+        /// Initialize a new <see cref="ActivityLoggerTap"/> as the default <see cref="IDefaultActivityLogger.Tap"/>.
+        /// It can not be unregistered.
+        /// </summary>
+        public ActivityLoggerTap( IDefaultActivityLogger logger )
+            : this()
+        {
+            logger.Output.RegisterClient( this );
+            _locked = true;
+        }
+
+        void IActivityLoggerBoundClient.SetLogger( IActivityLogger source )
+        {
+            if( _locked ) throw new InvalidOperationException( R.CanNotUnregisterDefaultClient );
         }
 
         /// <summary>

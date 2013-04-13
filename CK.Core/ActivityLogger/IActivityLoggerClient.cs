@@ -60,8 +60,12 @@ namespace CK.Core
         /// Does nothing by default.
         /// </summary>
         /// <param name="group">The closing group.</param>
-        /// <param name="conclusions">Mutable conclusions associated to the closing group.</param>
-        void OnGroupClosing( IActivityLogGroup group, IList<ActivityLogGroupConclusion> conclusions );
+        /// <param name="conclusions">
+        /// Mutable conclusions associated to the closing group. 
+        /// This can be null if no conclusions have been added yet. 
+        /// It is up to the first client that wants to add a conclusion to instanciate a new List object to carry the conclusions.
+        /// </param>
+        void OnGroupClosing( IActivityLogGroup group, ref List<ActivityLogGroupConclusion> conclusions );
 
         /// <summary>
         /// Called when the group is actually closed.

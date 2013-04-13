@@ -29,28 +29,37 @@ using System.Text;
 namespace CK.Core
 {
     /// <summary>
-    /// An <see cref="IActivityLoggerClientRegistrar"/> exposes an <see cref="ExternalInput"/> 
-    /// (an <see cref="IActivityLoggerClient"/>) that can be registered as a client for any number of other loggers.
+    /// Offers <see cref="IActivityLoggerClient"/> registration/unregistration and exposes an <see cref="ExternalInput"/> 
+    /// (an <see cref="ActivityLoggerBridgeTarget"/>) that can be used to accept logs from other loggers.
     /// </summary>
-    public interface IActivityLoggerOutput : IActivityLoggerClientRegistrar
+    public interface IActivityLoggerOutput
     {
         /// <summary>
-        /// Gets an entry point for other loggers: by registering this <see cref="IActivityLoggerClient"/> in other <see cref="IActivityLogger.Output"/>,
-        /// log streams can easily be merged.
+        /// Registers an <see cref="IActivityLoggerClient"/> to the <see cref="RegisteredClients"/> list.
+        /// Duplicate IActivityLoggerClient are silently ignored.
         /// </summary>
-        IActivityLoggerClient ExternalInput { get; }
+        /// <param name="client">An <see cref="IActivityLoggerClient"/> implementation.</param>
+        /// <returns>This object to enable fluent syntax.</returns>
+        IActivityLoggerOutput RegisterClient( IActivityLoggerClient client );
 
         /// <summary>
-        /// Gets a modifiable list of <see cref="IActivityLoggerClient"/> that can not be removed.
+        /// Unregisters the given <see cref="IActivityLoggerClient"/> from the <see cref="RegisteredClients"/> list.
+        /// Silently ignored unregistered client.
         /// </summary>
-        /// <remarks>
-        /// <para>
-        /// This list simply guaranty that an <see cref="InvalidOperationException"/> will be thrown 
-        /// if a call to <see cref="IActivityLoggerClientRegistrar.UnregisterClient"/> is 
-        /// done on a non removeable client.
-        /// </para>
-        /// </remarks>
-        IList<IActivityLoggerClient> NonRemoveableClients { get; }
+        /// <param name="client">An <see cref="IActivityLoggerClient"/> implementation.</param>
+        /// <returns>This object to enable fluent syntax.</returns>
+        IActivityLoggerOutput UnregisterClient( IActivityLoggerClient client );
+
+        /// <summary>
+        /// Gets the list of registered <see cref="IActivityLoggerClient"/>.
+        /// </summary>
+        IReadOnlyList<IActivityLoggerClient> RegisteredClients { get; }
+
+        /// <summary>
+        /// Gets an entry point for other loggers: by registering <see cref="ActivityLoggerBridge"/> in other <see cref="IActivityLogger.Output"/>
+        /// bound to this <see cref="ActivityLoggerBridgeTarget"/>, log streams can easily be merged.
+        /// </summary>
+        ActivityLoggerBridgeTarget ExternalInput { get; }
     }
 
 }

@@ -70,7 +70,8 @@ namespace CK.Core
             /// <param name="ex">Optional exception associated to the group.</param>
             internal protected virtual void Initialize( CKTrait tags, LogLevel level, string text, Func<string> defaultConclusionText, Exception ex )
             {
-                Filter = _logger.Filter;
+                SavedLoggerFilter = _logger.Filter;
+                SavedLoggerTags = _logger.Tags;
                 // Logs everything when a Group is an error: we then have full details without
                 // logging all with Error or Fatal.
                 if( level >= LogLevel.Error ) _logger.Filter = LogLevelFilter.Trace;
@@ -89,19 +90,13 @@ namespace CK.Core
             /// <summary>
             /// Gets the tags for the log group.
             /// </summary>
-            public CKTrait Tags { get { return _tags; } }
+            public CKTrait GroupTags { get { return _tags; } }
 
             /// <summary>
             /// Get the previous group in its <see cref="OriginLogger"/>. Null if this is a top level group.
             /// </summary>
             public IActivityLogGroup Parent { get { return _index > 0 ? _logger._groups[_index - 1] : null; } }
             
-            /// <summary>
-            /// Gets or sets the <see cref="LogLevelFilter"/> for this group.
-            /// Initialized with the <see cref="IActivityLogger.Filter"/> when the group has been opened.
-            /// </summary>
-            public LogLevelFilter Filter { get; protected set; }
-
             /// <summary>
             /// Gets the depth of this group in its <see cref="OriginLogger"/> (1 for top level groups).
             /// </summary>
@@ -121,6 +116,18 @@ namespace CK.Core
             /// Gets the associated <see cref="Exception"/> if it exists.
             /// </summary>
             public Exception Exception { get { return _exception; } }
+
+            /// <summary>
+            /// Gets or sets the <see cref="IActivityLogger.Filter"/> that will be restored when group will be closed.
+            /// Initialized with the current value of IActivityLogger.Filter when the group has been opened.
+            /// </summary>
+            public LogLevelFilter SavedLoggerFilter { get; protected set; }
+
+            /// <summary>
+            /// Gets or sets the <see cref="IActivityLogger.Tags"/> that will be restored when group will be closed.
+            /// Initialized with the current value of IActivityLogger.Tags when the group has been opened.
+            /// </summary>
+            public CKTrait SavedLoggerTags { get; protected set; }
 
             /// <summary>
             /// Gets whether the <see cref="GroupText"/> is actually the <see cref="Exception"/> message.
@@ -151,10 +158,14 @@ namespace CK.Core
                 }
             }           
 
-            internal void GroupClose( List<ActivityLogGroupConclusion> conclusions )
+            internal void GroupClose( ref List<ActivityLogGroupConclusion> conclusions )
             {
                 string auto = ConsumeConclusionText();
-                if( auto != null ) conclusions.Add( new ActivityLogGroupConclusion( TagGetTextConclusion, auto ) );
+                if( auto != null )
+                {
+                    if( conclusions == null ) conclusions = new List<ActivityLogGroupConclusion>();
+                    conclusions.Add( new ActivityLogGroupConclusion( TagGetTextConclusion, auto ) );
+                }
                 _text = null;
                 _exception = null;
                 Debug.Assert( _getConclusion == null, "Has been consumed." );

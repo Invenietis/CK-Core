@@ -35,12 +35,15 @@ namespace CK.Core
         /// <summary>
         /// Gets or sets the tags of this logger: any subsequent logs will be tagged by these tags.
         /// The <see cref="CKTrait"/> must be registered in <see cref="ActivityLogger.RegisteredTags"/>.
+        /// Modifications to this property are scoped to the current Group since when a Group is closed, this
+        /// property (like <see cref="Filter"/>) is automatically restored to its original value (captured when the Group was opened).
         /// </summary>
         CKTrait Tags { get; set; }
 
         /// <summary>
         /// Gets or sets a filter based on the log level.
-        /// This filter applies to the currently opened group (it is automatically restored when <see cref="CloseGroup"/> is called).
+        /// Modifications to this property are scoped to the current Group since when a Group is closed, this
+        /// property (like <see cref="Tags"/>) is automatically restored to its original value (captured when the Group was opened).
         /// </summary>
         LogLevelFilter Filter { get; set; }
 

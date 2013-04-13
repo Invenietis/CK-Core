@@ -123,12 +123,34 @@ namespace Core
 
         [Test]
         [Category( "ActivityLogger" )]
+        public void TagsAndFilterRestored()
+        {
+            ActivityLogger logger = new ActivityLogger();
+            using( logger.OpenGroup( LogLevel.Trace, "G1" ) )
+            {
+                logger.Tags = ActivityLogger.RegisteredTags.FindOrCreate( "Tag" );
+                logger.Filter = LogLevelFilter.Info;
+                using( logger.OpenGroup( LogLevel.Warn, "G2" ) )
+                {
+                    logger.Tags = ActivityLogger.RegisteredTags.FindOrCreate( "A|B|C" );
+                    logger.Filter = LogLevelFilter.Error;
+                    Assert.That( logger.Tags.ToString(), Is.EqualTo( "A|B|C" ) );
+                    Assert.That( logger.Filter, Is.EqualTo( LogLevelFilter.Error ) );
+                }
+                Assert.That( logger.Tags.ToString(), Is.EqualTo( "Tag" ) );
+                Assert.That( logger.Filter, Is.EqualTo( LogLevelFilter.Info ) );
+            }
+            Assert.That( logger.Tags, Is.SameAs( ActivityLogger.EmptyTag ) );
+            Assert.That( logger.Filter, Is.EqualTo( LogLevelFilter.None ) );
+        }
+
+        [Test]
+        [Category( "ActivityLogger" )]
         [Category( "Console" )]
         public void DefaultImpl()
         {
             IDefaultActivityLogger logger = DefaultActivityLogger.Create();
-            // Binds the TestHelper.Logger logger to this one.
-            logger.Output.RegisterClient( TestHelper.Logger.Output.ExternalInput );
+            logger.Output.BridgeTo( TestHelper.Logger );
             logger.Tap.Register( new StringImpl() ).Register( new XmlImpl( new StringWriter() ) );
             Assert.That( logger.Tap.RegisteredSinks.Count, Is.EqualTo( 2 ) );
 
@@ -184,8 +206,7 @@ namespace Core
         public void MultipleClose()
         {
             IDefaultActivityLogger logger = DefaultActivityLogger.Create();
-            // Binds the TestHelper.Logger logger to this one.
-            logger.Output.RegisterClient( TestHelper.Logger.Output.ExternalInput );
+            logger.Output.BridgeTo( TestHelper.Logger );
 
             var log1 = new StringImpl();
             logger.Tap.Register( log1 );
@@ -222,8 +243,7 @@ namespace Core
         public void FilterLevel()
         {
             IDefaultActivityLogger l = DefaultActivityLogger.Create();
-            // Binds the TestHelper.Logger logger to this one.
-            l.Output.RegisterClient( TestHelper.Logger.Output.ExternalInput );
+            l.Output.BridgeTo( TestHelper.Logger );
             
             var log = new StringImpl();
             l.Tap.Register( log );
@@ -322,7 +342,7 @@ namespace Core
         {
             IDefaultActivityLogger l = DefaultActivityLogger.Create();
             // Binds the TestHelper.Logger logger to this one.
-            l.Output.RegisterClient( TestHelper.Logger.Output.ExternalInput );
+            l.Output.BridgeTo( TestHelper.Logger );
             
             var log = new StringImpl();
             l.Tap.Register( log );
@@ -343,7 +363,7 @@ namespace Core
         {
             var logger = DefaultActivityLogger.Create();
             // Binds the TestHelper.Logger logger to this one.
-            logger.Output.RegisterClient( TestHelper.Logger.Output.ExternalInput );
+            logger.Output.BridgeTo( TestHelper.Logger );
             
             ActivityLoggerPathCatcher p = new ActivityLoggerPathCatcher();
             logger.Output.RegisterClient( p );
@@ -489,8 +509,7 @@ namespace Core
         public void ErrorCounterTests()
         {
             var logger = new ActivityLogger();
-            // Binds the TestHelper.Logger logger to this one.
-            logger.Output.RegisterClient( TestHelper.Logger.Output.ExternalInput );
+            logger.Output.BridgeTo( TestHelper.Logger );
 
             // Registers the ErrorCounter first: it will be the last one to be called, but
             // this does not prevent the PathCatcher to work: the path elements reference the group

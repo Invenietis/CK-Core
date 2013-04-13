@@ -31,7 +31,7 @@ namespace CK.Core
     /// <summary>
     /// Count fatal, error or warn that occured and automatically sets the conclusion of groups.
     /// </summary>
-    public class ActivityLoggerErrorCounter : ActivityLoggerClient
+    public class ActivityLoggerErrorCounter : ActivityLoggerClient, IActivityLoggerBoundClient
     {
         static readonly string DefaultFatalConclusionFormat = "1 Fatal error";
         static readonly string DefaultFatalsConclusionFormat = "{0} Fatal errors";
@@ -196,6 +196,7 @@ namespace CK.Core
 
         State _root;
         State _current;
+        readonly bool _locked;
 
         /// <summary>
         /// Reuse the ActivityLoggerErrorCounter: since all hooks are empty, nothing happens.
@@ -215,7 +216,7 @@ namespace CK.Core
             {
             }
 
-            protected override void OnGroupClosing( IActivityLogGroup group, IList<ActivityLogGroupConclusion> conclusions )
+            protected override void OnGroupClosing( IActivityLogGroup group, ref List<ActivityLogGroupConclusion> conclusions )
             {
             }
 
@@ -237,6 +238,22 @@ namespace CK.Core
         {
             _current = _root = new State( null );
             GenerateConclusion = true;
+        }
+
+        /// <summary>
+        /// Initialize a new <see cref="ActivityLoggerPathCatcher"/> as the default <see cref="IDefaultActivityLogger.ErrorCounter"/>.
+        /// It can not be unregistered.
+        /// </summary>
+        public ActivityLoggerErrorCounter( IDefaultActivityLogger logger )
+            : this()
+        {
+            logger.Output.RegisterClient( this );
+            _locked = true;
+        }
+
+        void IActivityLoggerBoundClient.SetLogger( IActivityLogger source )
+        {
+            if( _locked ) throw new InvalidOperationException( R.CanNotUnregisterDefaultClient );
         }
 
         /// <summary>
@@ -286,14 +303,19 @@ namespace CK.Core
         /// Handles group conclusion.
         /// </summary>
         /// <param name="group">The closing group.</param>
-        /// <param name="conclusions">Mutable conclusions associated to the closing group.</param>
-        protected override void OnGroupClosing( IActivityLogGroup group, IList<ActivityLogGroupConclusion> conclusions )
+        /// <param name="conclusions">
+        /// Mutable conclusions associated to the closing group. 
+        /// This can be null if no conclusions have been added yet. 
+        /// It is up to the first client that wants to add a conclusion to instanciate a new List object to carry the conclusions.
+        /// </param>
+        protected override void OnGroupClosing( IActivityLogGroup group, ref List<ActivityLogGroupConclusion> conclusions )
         {
             if( GenerateConclusion 
                 && _current != _root 
                 && _current.HasWarnOrError 
-                && !conclusions.Any( c => c.Tag == TagErrorCounter ) )
+                && (conclusions == null || !conclusions.Any( c => c.Tag == TagErrorCounter )) )
             {
+                if( conclusions == null ) conclusions = new List<ActivityLogGroupConclusion>();
                 conclusions.Add( new ActivityLogGroupConclusion( TagErrorCounter, _current.ToString() ) );
             }
         }
