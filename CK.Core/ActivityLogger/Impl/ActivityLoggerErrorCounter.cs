@@ -41,6 +41,9 @@ namespace CK.Core
         static readonly string DefaultWarnsConclusionFormat = "{0} Warnings";
         static readonly string DefaultSeparator = ", ";
 
+        /// <summary>
+        /// Gets the tag used for generated conclusion ("c:ErrorCounter").
+        /// </summary>
         public static readonly CKTrait TagErrorCounter = ActivityLogger.RegisteredTags.FindOrCreate( "c:ErrorCounter" );
 
         /// <summary>

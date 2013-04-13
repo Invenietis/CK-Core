@@ -49,9 +49,10 @@ namespace CK.Core
             Func<string> _getConclusion;
 
             /// <summary>
-            /// Initializes a new <see cref="Group"/> object.
+            /// Initialized a new Group at a given index.
             /// </summary>
-            /// <param name="logger">The logger.</param>
+            /// <param name="logger">Logger.</param>
+            /// <param name="index">Index of the group.</param>
             internal protected Group( ActivityLogger logger, int index )
             {
                 _logger = logger;
@@ -61,6 +62,7 @@ namespace CK.Core
             /// <summary>
             /// Initializes or reinitializes this group. 
             /// </summary>
+            /// <param name="tags">Tags for the group.</param>
             /// <param name="level">The <see cref="GroupLevel"/>.</param>
             /// <param name="text">The <see cref="GroupText"/>.</param>
             /// <param name="defaultConclusionText">

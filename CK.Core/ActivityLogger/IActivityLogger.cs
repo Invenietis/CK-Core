@@ -83,14 +83,14 @@ namespace CK.Core
         IDisposable OpenGroup( CKTrait tags, LogLevel level, Func<string> getConclusionText, string text, Exception ex = null );
 
         /// <summary>
-        /// Closes the current <see cref="Group"/>. Optional parameter is polymorphic. It can be a string, an enumerable of <see cref="ActivityLogGroupConclusion"/>, 
+        /// Closes the current <see cref="ActivityLogger.Group"/>. Optional parameter is polymorphic. It can be a string, an enumerable of <see cref="ActivityLogGroupConclusion"/>, 
         /// or any object with an overriden <see cref="Object.ToString"/> method.
         /// </summary>
         /// <param name="userConclusion">Optional string, enumerable of <see cref="ActivityLogGroupConclusion"/>) or object to conclude the group. See remarks.</param>
         /// <remarks>
         /// An untyped object is used here to easily and efficiently accomodate both string and already existing IEnumerable&lt;ActivityLogGroupConclusion&gt; conclusions.
         /// </remarks>
-        void CloseGroup( object conclusion = null );
+        void CloseGroup( object userConclusion = null );
 
         /// <summary>
         /// Gets the <see cref="IActivityLoggerOutput"/> for this logger.

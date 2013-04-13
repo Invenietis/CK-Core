@@ -32,7 +32,6 @@ namespace CK.Core
     /// <summary>
     /// The "Path Catcher" captures the current path of the log (<see cref="DynamicPath"/>),
     /// and two specific paths, the <see cref="LastErrorPath"/> and the <see cref="LastWarnOrErrorPath"/>.
-    /// It is both a <see cref="IMuxActivityLoggerClient"/> and a <see cref="IActivityLoggerClient"/>.
     /// </summary>
     public class ActivityLoggerPathCatcher : ActivityLoggerClient, IActivityLoggerBoundClient
     {

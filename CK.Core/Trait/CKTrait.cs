@@ -202,7 +202,7 @@ namespace CK.Core
         }
 
         /// <summary>
-        /// Obtains a <see cref="CKTrait"/> from which trait(s) specified by the parameter are removed. Same as <see cref="ISet.ExceptWith"/>.
+        /// Obtains a <see cref="CKTrait"/> from which trait(s) specified by the parameter are removed.
         /// </summary>
         /// <param name="other">Trait(s) to remove.</param>
         /// <returns>The resulting trait.</returns>
@@ -305,7 +305,7 @@ namespace CK.Core
         }
 
         /// <summary>
-        /// Gets the number of <see cref="Fallbacks"/>. It is 2^<see cref="AtomicTraits"/>.<see cref="IReadOnlyList{T}.Count"/> - 1 since this
+        /// Gets the number of <see cref="Fallbacks"/>. It is 2^<see cref="AtomicTraits"/>.<see cref="IReadOnlyCollection{T}.Count"/> - 1 since this
         /// trait does not appear in the fallbacks.
         /// </summary>
         public int FallbacksCount

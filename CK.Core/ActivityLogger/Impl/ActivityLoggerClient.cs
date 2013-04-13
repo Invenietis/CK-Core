@@ -34,7 +34,7 @@ namespace CK.Core
     public class ActivityLoggerClient : IActivityLoggerClient
     {
         /// <summary>
-        /// Empty <see cref="IActivityLoggerClient"/> and <see cref="IMuxActivityLoggerClient"/> (null object design pattern).
+        /// Empty <see cref="IActivityLoggerClient"/> (null object design pattern).
         /// </summary>
         public static readonly ActivityLoggerClient Empty = new ActivityLoggerClient();
 

@@ -29,7 +29,7 @@ using System.Text;
 namespace CK.Core
 {
     /// <summary>
-    /// Listener for <see cref="IActivityLogger"/> registered in a <see cref="IActivityLoggerClientRegistrar"/>.
+    /// Listener for <see cref="IActivityLogger"/> registered in a <see cref="IActivityLoggerOutput"/>.
     /// </summary>
     public interface IActivityLoggerClient
     {

@@ -67,6 +67,11 @@ namespace CK.Core
             Text = conclusion;
         }
 
+        /// <summary>
+        /// Explicit test for <see cref="Text"/> and <see cref="Tag"/> equality.
+        /// </summary>
+        /// <param name="obj">Object to test.</param>
+        /// <returns>True when equal.</returns>
         public override bool Equals( object obj )
         {
             if( obj is ActivityLogGroupConclusion )
@@ -77,6 +82,10 @@ namespace CK.Core
             return false;
         }
 
+        /// <summary>
+        /// Computes the hash code.
+        /// </summary>
+        /// <returns>The hash code.</returns>
         public override int GetHashCode()
         {
             return Tag.GetHashCode() ^ Text.GetHashCode();

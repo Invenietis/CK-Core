@@ -120,6 +120,7 @@ namespace CK.Core
         /// <summary>
         /// Appends any log with level equal or above <see cref="LevelFilter"/> to <see cref="Entries"/>.
         /// </summary>
+        /// <param name="tags">Tags for the log entry.</param>
         /// <param name="level">Level of the log.</param>
         /// <param name="text">Text of the log.</param>
         void IActivityLoggerClient.OnUnfilteredLog( CKTrait tags, LogLevel level, string text )

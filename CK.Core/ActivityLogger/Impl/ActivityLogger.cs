@@ -91,6 +91,7 @@ namespace CK.Core
         /// to postpone the setting of Output by using <see cref="SetOutput"/>.
         /// </summary>
         /// <param name="output">The output to use. Can be null.</param>
+        /// <param name="tags">Initial tags.</param>
         protected ActivityLogger( ActivityLoggerOutput output, CKTrait tags = null  )
         {
             Build( output, tags );

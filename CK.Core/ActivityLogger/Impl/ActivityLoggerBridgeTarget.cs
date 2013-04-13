@@ -33,7 +33,7 @@ namespace CK.Core
     /// It can also be used to relay logs inside the same application domain.
     /// This ActivityLoggerBridgeTarget must be created in the original <see cref="AppDomain"/> and bound to the final activity logger (the target).
     /// The ActivityLoggerBridge (that is a <see cref="IActivityLoggerClient"/>) can be created in remote AppDomain (and registered 
-    /// in the <see cref="IActivityLogger.Output"/> of a logger in the remote AppDomain) bound to the ActivityLoggerBridgeTarget (one can use <see cref="AppDomain.SetData"/> to 
+    /// in the <see cref="IActivityLogger.Output"/> of a logger in the remote AppDomain) bound to the ActivityLoggerBridgeTarget (one can use <see cref="AppDomain.SetData(string,object)"/> to 
     /// transfer the ActivityLoggerBridgeTarget to the other AppDomain for instance).
     /// </summary>
     public class ActivityLoggerBridgeTarget : MarshalByRefObject
