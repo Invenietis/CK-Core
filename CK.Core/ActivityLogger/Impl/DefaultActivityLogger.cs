@@ -78,17 +78,12 @@ namespace CK.Core
             
             // Order does not really matter matters here thankd to Closing/Closed pattern, but
             // we order them in the "logical" sense.
-            //
-            // Registered as a Multiplexed client: will be the last one as beeing called: it is the final sink.
-            Output.RegisterMuxClient( _tap );
-
-            // Registered as a normal client: they will not receive
-            // external outputs.
+            // Will be the last one as beeing called: it is the final sink.
+            Output.RegisterClient( _tap );
             // Will be called AFTER the ErrorCounter.
             Output.RegisterClient( _pathCatcher );
             // Will be called first.
             Output.RegisterClient( _errorCounter );
-            
             Output.NonRemoveableClients.AddRangeArray( _tap, _pathCatcher, _errorCounter );
         }
 

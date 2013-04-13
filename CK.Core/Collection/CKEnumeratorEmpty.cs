@@ -1,6 +1,6 @@
 #region LGPL License
 /*----------------------------------------------------------------------------
-* This file (CK.Core\ActivityLogger\IActivityLoggerOutput.cs) is part of CiviKey. 
+* This file (CK.Core\Collection\CKEnumeratorEmpty.cs) is part of CiviKey. 
 *  
 * CiviKey is free software: you can redistribute it and/or modify 
 * it under the terms of the GNU Lesser General Public License as published 
@@ -21,36 +21,58 @@
 *-----------------------------------------------------------------------------*/
 #endregion
 
-using System;
+using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 
 namespace CK.Core
 {
     /// <summary>
-    /// An <see cref="IActivityLoggerClientRegistrar"/> exposes an <see cref="ExternalInput"/> 
-    /// (an <see cref="IActivityLoggerClient"/>) that can be registered as a client for any number of other loggers.
+    /// Defines a unique empty enumerator.
+    /// Use <see cref="CKReadOnlyListEmpty{T}.Empty"/> singleton for an empty <see cref="IEnumerable{T}"/>.
     /// </summary>
-    public interface IActivityLoggerOutput : IActivityLoggerClientRegistrar
-    {
+	public sealed class CKEnumeratorEmpty<T> : IEnumerator<T>
+	{
         /// <summary>
-        /// Gets an entry point for other loggers: by registering this <see cref="IActivityLoggerClient"/> in other <see cref="IActivityLogger.Output"/>,
-        /// log streams can easily be merged.
+        /// Gets the default <see cref="CKEnumeratorEmpty{T}"/>.
+        /// This field is static readonly and is thread safe by design.
         /// </summary>
-        IActivityLoggerClient ExternalInput { get; }
+        public static readonly IEnumerator<T> Empty = new CKEnumeratorEmpty<T>();
 
         /// <summary>
-        /// Gets a modifiable list of <see cref="IActivityLoggerClient"/> that can not be removed.
+        /// Gets the current element (the default value for the type of elements).
         /// </summary>
-        /// <remarks>
-        /// <para>
-        /// This list simply guaranty that an <see cref="InvalidOperationException"/> will be thrown 
-        /// if a call to <see cref="IActivityLoggerClientRegistrar.UnregisterClient"/> is 
-        /// done on a non removeable client.
-        /// </para>
-        /// </remarks>
-        IList<IActivityLoggerClient> NonRemoveableClients { get; }
-    }
+		public T Current
+		{
+			get { return default( T ); }
+		}
+
+        /// <summary>
+        /// Dispose the enumerator.
+        /// </summary>
+		public void Dispose()
+		{
+		}
+
+		object IEnumerator.Current
+		{
+			get { return Current; }
+		}
+
+        /// <summary>
+        /// Move to the next element of the enumerator.
+        /// </summary>
+        /// <returns></returns>
+		public bool MoveNext()
+		{
+			return false;
+		}
+
+        /// <summary>
+        /// Reset the enumerator.
+        /// </summary>
+		public void Reset()
+		{
+		}
+	}
 
 }

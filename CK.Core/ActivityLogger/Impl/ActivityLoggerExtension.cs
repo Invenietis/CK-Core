@@ -46,7 +46,7 @@ namespace CK.Core
             foreach( var e in @this )
             {
                 if( b.Length > 0 ) b.Append( conclusionSeparator );
-                b.Append( e.Conclusion );
+                b.Append( e.Text );
             }
             return b.ToString();
         }
@@ -96,36 +96,20 @@ namespace CK.Core
         }
 
         /// <summary>
-        /// Concatenation of <see cref="IActivityLoggerClientRegistrar.RegisteredClients">RegisteredClients</see> 
-        /// and <see cref="IMuxActivityLoggerClientRegistrar.RegisteredMuxClients">RegisteredMuxClients</see>
-        /// </summary>
-        /// <param name="this">This <see cref="IActivityLoggerOutput"/>.</param>
-        /// <returns>The enumeration of all output clients.</returns>
-        public static IEnumerable<IActivityLoggerClientBase> AllClients( this IActivityLoggerOutput @this )
-        {
-            return @this.RegisteredClients.Cast<IActivityLoggerClientBase>().Concat( @this.RegisteredMuxClients );
-        }
-
-        /// <summary>
         /// Enables simple "using" syntax to easily catch any <see cref="LogLevel"/> (or above) entries (defaults to <see cref="LogLevel.Error"/>).
         /// </summary>
         /// <param name="this">This <see cref="IActivityLogger"/>.</param>
         /// <param name="errorHandler">An action that accepts a list of fatal or error <see cref="ActivityLoggerSimpleCollector.Entry">entries</see>.</param>
         /// <param name="level">Defines the level of the entries caught (by default fatal or error entries).</param>
-        /// <param name="asMuxClient">Optionaly registers the handler to also catch entries emitted by other loggers that are bound to this one.</param>
         /// <returns>A <see cref="IDisposable"/> object used to manage the scope of this handler.</returns>
-        public static IDisposable Catch( this IActivityLogger @this, Action<IReadOnlyList<ActivityLoggerSimpleCollector.Entry>> errorHandler, LogLevelFilter level = LogLevelFilter.Error, bool asMuxClient = false )
+        public static IDisposable Catch( this IActivityLogger @this, Action<IReadOnlyList<ActivityLoggerSimpleCollector.Entry>> errorHandler, LogLevelFilter level = LogLevelFilter.Error )
         {
             if( errorHandler == null ) throw new ArgumentNullException( "errorHandler" );
             ActivityLoggerSimpleCollector errorTracker = new ActivityLoggerSimpleCollector() { LevelFilter = level };
-            if( asMuxClient )
-                @this.Output.RegisterMuxClient( errorTracker );
-            else @this.Output.RegisterClient( errorTracker );
+            @this.Output.RegisterClient( errorTracker );
             return Util.CreateDisposableAction( () =>
             {
-                if( asMuxClient )
-                    @this.Output.UnregisterMuxClient( errorTracker );
-                else @this.Output.UnregisterClient( errorTracker );
+                @this.Output.UnregisterClient( errorTracker );
                 if( errorTracker.Entries.Count > 0 ) errorHandler( errorTracker.Entries );
             } );
         }
@@ -135,20 +119,15 @@ namespace CK.Core
         /// </summary>
         /// <param name="this">This <see cref="IActivityLogger"/>.</param>
         /// <param name="fatalErrorWarnCount">An action that accepts three counts for fatals, errors and warnings.</param>
-        /// <param name="asMuxClient">Optionaly registers the handler to also catch entries emitted by other loggers that are bound to this one.</param>
         /// <returns>A <see cref="IDisposable"/> object used to manage the scope of this handler.</returns>
-        public static IDisposable CatchCounter( this IActivityLogger @this, Action<int, int, int> fatalErrorWarnCount, bool asMuxClient = false )
+        public static IDisposable CatchCounter( this IActivityLogger @this, Action<int, int, int> fatalErrorWarnCount )
         {
             if( fatalErrorWarnCount == null ) throw new ArgumentNullException( "fatalErrorWarnCount" );
             ActivityLoggerErrorCounter errorCounter = new ActivityLoggerErrorCounter() { GenerateConclusion = false };
-            if( asMuxClient )
-                @this.Output.RegisterMuxClient( errorCounter );
-            else @this.Output.RegisterClient( errorCounter );
+            @this.Output.RegisterClient( errorCounter );
             return Util.CreateDisposableAction( () =>
             {
-                if( asMuxClient )
-                    @this.Output.UnregisterMuxClient( errorCounter );
-                else @this.Output.UnregisterClient( errorCounter );
+                @this.Output.UnregisterClient( errorCounter );
                 if( errorCounter.Current.HasWarnOrError ) fatalErrorWarnCount( errorCounter.Current.FatalCount, errorCounter.Current.ErrorCount, errorCounter.Current.WarnCount );
             } );
         }
@@ -158,20 +137,15 @@ namespace CK.Core
         /// </summary>
         /// <param name="this">This <see cref="IActivityLogger"/>.</param>
         /// <param name="fatalErrorCount">An action that accepts two counts for fatals and errors.</param>
-        /// <param name="asMuxClient">Optionaly registers the handler to also catch entries emitted by other loggers that are bound to this one.</param>
         /// <returns>A <see cref="IDisposable"/> object used to manage the scope of this handler.</returns>
-        public static IDisposable CatchCounter( this IActivityLogger @this, Action<int, int> fatalErrorCount, bool asMuxClient = false )
+        public static IDisposable CatchCounter( this IActivityLogger @this, Action<int, int> fatalErrorCount )
         {
             if( fatalErrorCount == null ) throw new ArgumentNullException( "fatalErrorCount" );
             ActivityLoggerErrorCounter errorCounter = new ActivityLoggerErrorCounter() { GenerateConclusion = false };
-            if( asMuxClient )
-                @this.Output.RegisterMuxClient( errorCounter );
-            else @this.Output.RegisterClient( errorCounter );
+            @this.Output.RegisterClient( errorCounter );
             return Util.CreateDisposableAction( () =>
             {
-                if( asMuxClient )
-                    @this.Output.UnregisterMuxClient( errorCounter );
-                else @this.Output.UnregisterClient( errorCounter );
+                @this.Output.UnregisterClient( errorCounter );
                 if( errorCounter.Current.HasError ) fatalErrorCount( errorCounter.Current.FatalCount, errorCounter.Current.ErrorCount );
             } );
         }
@@ -180,20 +154,15 @@ namespace CK.Core
         /// </summary>
         /// <param name="this">This <see cref="IActivityLogger"/>.</param>
         /// <param name="fatalOrErrorCount">An action that accepts one count that sums fatals and errors.</param>
-        /// <param name="asMuxClient">Optionaly registers the handler to also catch entries emitted by other loggers that are bound to this one.</param>
         /// <returns>A <see cref="IDisposable"/> object used to manage the scope of this handler.</returns>
-        public static IDisposable CatchCounter( this IActivityLogger @this, Action<int> fatalOrErrorCount, bool asMuxClient = false )
+        public static IDisposable CatchCounter( this IActivityLogger @this, Action<int> fatalOrErrorCount )
         {
             if( fatalOrErrorCount == null ) throw new ArgumentNullException( "fatalErrorCount" );
             ActivityLoggerErrorCounter errorCounter = new ActivityLoggerErrorCounter() { GenerateConclusion = false };
-            if( asMuxClient )
-                @this.Output.RegisterMuxClient( errorCounter );
-            else @this.Output.RegisterClient( errorCounter );
+            @this.Output.RegisterClient( errorCounter );
             return Util.CreateDisposableAction( () =>
             {
-                if( asMuxClient )
-                    @this.Output.UnregisterMuxClient( errorCounter );
-                else @this.Output.UnregisterClient( errorCounter );
+                @this.Output.UnregisterClient( errorCounter );
                 if( errorCounter.Current.HasError ) fatalOrErrorCount( errorCounter.Current.FatalCount + errorCounter.Current.ErrorCount );
             } );
         }
@@ -223,28 +192,6 @@ namespace CK.Core
             return Register( @this, (IEnumerable<IActivityLoggerClient>)clients );
         }
 
-        /// <summary>
-        /// Registers multiple <see cref="IMuxActivityLoggerClientRegistrar"/>.
-        /// </summary>
-        /// <param name="this">This <see cref="IMuxActivityLoggerClientRegistrar"/> object.</param>
-        /// <param name="clients">Multiple clients to register.</param>
-        /// <returns>This registrar to enable fluent syntax.</returns>
-        public static IMuxActivityLoggerClientRegistrar Register( this IMuxActivityLoggerClientRegistrar @this, IEnumerable<IMuxActivityLoggerClient> clients )
-        {
-            foreach( var c in clients ) @this.RegisterMuxClient( c );
-            return @this;
-        }
-
-        /// <summary>
-        /// Registers multiple <see cref="IMuxActivityLoggerClientRegistrar"/>.
-        /// </summary>
-        /// <param name="this">This <see cref="IMuxActivityLoggerClientRegistrar"/> object.</param>
-        /// <param name="clients">Multiple clients to register.</param>
-        /// <returns>This registrar to enable fluent syntax.</returns>
-        public static IMuxActivityLoggerClientRegistrar Register( this IMuxActivityLoggerClientRegistrar @this, params IMuxActivityLoggerClient[] clients )
-        {
-            return Register( @this, (IEnumerable<IMuxActivityLoggerClient>)clients );
-        }
         #endregion
 
         #region IActivityLogger.Filter( level )

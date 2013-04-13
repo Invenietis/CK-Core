@@ -30,48 +30,65 @@ using System.Diagnostics;
 namespace CK.Core
 {
     /// <summary>
-    /// Describes a conclusion emitted by a <see cref="IActivityLoggerClientBase"/>.
+    /// Describes the conclusion of a group. Conclusions are simply <see cref="Text"/> <see cref="Tag"/>ged with a <see cref="CKTrait"/>.
     /// </summary>
     public struct ActivityLogGroupConclusion
     {
         /// <summary>
-        /// The log client that emitted the conclusion. Never null.
+        /// The tag (never null).
+        /// It may be combined but is often atomic like <see cref="ActivityLogger.TagUserConclusion"/>, 
+        /// <see cref="ActivityLogger.TagGetTextConclusion"/> or <see cref="ActivityLoggerErrorCounter.TagErrorCounter"/>.
         /// </summary>
-        public readonly IActivityLoggerClientBase Emitter;
+        public readonly CKTrait Tag;
 
         /// <summary>
-        /// The conclusion (never null). Its <see cref="Object.ToString"/>
-        /// method SHOULD provide a correct display of the conclusion (it
-        /// can be a string).
+        /// The conclusion (never null).
         /// </summary>
-        public readonly object Conclusion;
+        public readonly string Text;
 
         /// <summary>
-        /// Initializes a new conclusion.
+        /// Initializes a new conclusion for a group.
         /// </summary>
-        /// <param name="emitter">Must not be null.</param>
-        /// <param name="conclusion">Must not be null and its ToString should not be null, empty nor white space.</param>
-        public ActivityLogGroupConclusion( IActivityLoggerClientBase emitter, object conclusion )
-            : this( conclusion, emitter )
+        /// <param name="conclusion">Must not be null (may be empty).</param>
+        /// <param name="tag">Must not be null and be registered in <see cref="ActivityLogger.Tags"/>.</param>
+        public ActivityLogGroupConclusion( string conclusion, CKTrait tag )
         {
-            if( emitter == null ) throw new ArgumentNullException( "emitter" );
-            if( conclusion == null ) throw new ArgumentException( "conclusion" );
+            if( tag == null || tag.Context != ActivityLogger.Tags ) throw new ArgumentException("Must be not null and be registered in ActivityLogger.Tags.", "tag" );
+            if( conclusion == null ) throw new ArgumentNullException( "conclusion" );
+            Tag = tag;
+            Text = conclusion;
         }
 
-        internal ActivityLogGroupConclusion( object conclusion, IActivityLoggerClientBase emitter )
+        internal ActivityLogGroupConclusion( CKTrait t, string conclusion )
         {
-            Debug.Assert( conclusion != null && emitter != null );
-            Emitter = emitter;
-            Conclusion = conclusion;
+            Debug.Assert( t != null && t.Context == ActivityLogger.Tags );
+            Debug.Assert( conclusion != null );
+            Tag = t;
+            Text = conclusion;
+        }
+
+        public override bool Equals( object obj )
+        {
+            if( obj is ActivityLogGroupConclusion )
+            {
+                ActivityLogGroupConclusion c = (ActivityLogGroupConclusion)obj;
+                return c.Tag == Tag && c.Text == Text;
+            }
+            return false;
+        }
+
+        public override int GetHashCode()
+        {
+            return Tag.GetHashCode() ^ Text.GetHashCode();
         }
 
         /// <summary>
-        /// Overriden to return <see cref="Conclusion"/>.ToString().
+        /// Overriden to return <see cref="Text"/>.
         /// </summary>
-        /// <returns></returns>
+        /// <returns>Text field.</returns>
         public override string ToString()
         {
-            return Conclusion.ToString();
+            return Text;
         }
     }
 

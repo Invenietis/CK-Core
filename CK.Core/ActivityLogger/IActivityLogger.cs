@@ -40,8 +40,9 @@ namespace CK.Core
 
         /// <summary>
         /// Logs a text regardless of <see cref="Filter"/> level. 
-        /// Each call to log is considered as a line: a paragraph (or line separator) is appended
-        /// between each text if the <paramref name="level"/> is the same as the previous one.
+        /// Each call to log is considered as a unit of text: depending on the rendering engine, a line or a 
+        /// paragraph separator (or any appropriate separator) should be appended between each text if 
+        /// the <paramref name="level"/> is the same as the previous one.
         /// See remarks.
         /// </summary>
         /// <param name="level">Log level.</param>
@@ -72,12 +73,13 @@ namespace CK.Core
         IDisposable OpenGroup( LogLevel level, Func<string> getConclusionText, string text, Exception ex = null );
 
         /// <summary>
-        /// Closes the current group level, appending an optional conclusion to the opening logged information.
+        /// Closes the current <see cref="Group"/>. Optionl parameter is ploymorphic. It can be a string, an enumerable of <see cref="ActivityLogGroupConclusion"/>, 
+        /// or any object with an overriden <see cref="Object.ToString"/> method.
         /// </summary>
-        /// <param name="conclusion">
-        /// Optional object text (usually a string but can be any object with an 
-        /// overriden <see cref="Object.ToString"/> method) to conclude the group.
-        /// </param>
+        /// <param name="userConclusion">Optional string, enumerable of <see cref="ActivityLogGroupConclusion"/>) or object to conclude the group. See remarks.</param>
+        /// <remarks>
+        /// An untyped object is used here to easily and efficiently accomodate both string and already existing IEnumerable&lt;ActivityLogGroupConclusion&gt; conclusions.
+        /// </remarks>
         void CloseGroup( object conclusion = null );
 
         /// <summary>

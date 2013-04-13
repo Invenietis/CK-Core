@@ -74,7 +74,7 @@ namespace Core
             {
                 Writer.WriteLine();
                 Writer.Write( new String( '-', g.Depth ) );
-                Writer.Write( String.Join( ", ", conclusions.Select( c => c.Conclusion ) ) );
+                Writer.Write( String.Join( ", ", conclusions.Select( c => c.Text ) ) );
             }
         }
 
@@ -126,7 +126,7 @@ namespace Core
         {
             IDefaultActivityLogger logger = DefaultActivityLogger.Create();
             // Binds the TestHelper.Logger logger to this one.
-            logger.Output.RegisterMuxClient( TestHelper.Logger.Output.ExternalInput );
+            logger.Output.RegisterClient( TestHelper.Logger.Output.ExternalInput );
 
             logger.Tap.Register( new StringImpl() ).Register( new XmlImpl( new StringWriter() ) );
 
@@ -169,7 +169,7 @@ namespace Core
         {
             IDefaultActivityLogger logger = DefaultActivityLogger.Create();
             // Binds the TestHelper.Logger logger to this one.
-            logger.Output.RegisterMuxClient( TestHelper.Logger.Output.ExternalInput );
+            logger.Output.RegisterClient( TestHelper.Logger.Output.ExternalInput );
 
             var log1 = new StringImpl();
             logger.Tap.Register( log1 );
@@ -182,12 +182,12 @@ namespace Core
                 using( logger.OpenGroup( LogLevel.Warn, "A group at level 0!" ) )
                 {
                     logger.CloseGroup( "Close it." );
-                    logger.CloseGroup( "Close it again." );
+                    logger.CloseGroup( "Close it again. (not seen)" );
                 }
             }
-
-            Assert.That( log1.Writer.ToString(), Is.Not.StringContaining( "End First" ), "Close forgets other closes..." );
-            Assert.That( log1.Writer.ToString(), Is.Not.StringContaining( "Close it again" ), "Close forgets other closes..." );
+            string logged = log1.Writer.ToString();
+            Assert.That( logged, Is.StringContaining( "Pouf" ).And.StringContaining( "End First" ), "Multiple conclusions." );
+            Assert.That( logged, Is.Not.StringContaining( "Close it again" ), "Close forgets other closes..." );
         }
 
         [Test]
@@ -195,11 +195,8 @@ namespace Core
         {
             IDefaultActivityLogger l = DefaultActivityLogger.Create();
             Assert.Throws<InvalidOperationException>( () => l.Output.UnregisterClient( l.Tap ) );
-            Assert.Throws<InvalidOperationException>( () => l.Output.UnregisterMuxClient( l.Tap ) );
             Assert.Throws<InvalidOperationException>( () => l.Output.UnregisterClient( l.PathCatcher ) );
-            Assert.Throws<InvalidOperationException>( () => l.Output.UnregisterMuxClient( l.PathCatcher ) );
             Assert.Throws<InvalidOperationException>( () => l.Output.UnregisterClient( l.ErrorCounter ) );
-            Assert.Throws<InvalidOperationException>( () => l.Output.UnregisterMuxClient( l.ErrorCounter ) );
         }
 
         [Test]
@@ -207,7 +204,7 @@ namespace Core
         {
             IDefaultActivityLogger l = DefaultActivityLogger.Create();
             // Binds the TestHelper.Logger logger to this one.
-            l.Output.RegisterMuxClient( TestHelper.Logger.Output.ExternalInput );
+            l.Output.RegisterClient( TestHelper.Logger.Output.ExternalInput );
             
             var log = new StringImpl();
             l.Tap.Register( log );
@@ -299,38 +296,22 @@ namespace Core
         }
 
         [Test]
-        public void ExplicitCloseWins()
+        public void MultipleConclusions()
         {
             IDefaultActivityLogger l = DefaultActivityLogger.Create();
             // Binds the TestHelper.Logger logger to this one.
-            l.Output.RegisterMuxClient( TestHelper.Logger.Output.ExternalInput );
+            l.Output.RegisterClient( TestHelper.Logger.Output.ExternalInput );
             
             var log = new StringImpl();
             l.Tap.Register( log );
 
             // No explicit close conclusion: Success!
-            using( l.OpenGroup( LogLevel.Trace, () => "Success!", "First" ) )
+            using( l.OpenGroup( LogLevel.Trace, () => "From Opener", "G" ) )
             {
                 l.Error( "Pouf" );
+                l.CloseGroup( "Explicit User Conclusion" );
             }
-            Assert.That( log.Writer.ToString(), Is.StringContaining( "Pouf" ) );
-            Assert.That( log.Writer.ToString(), Is.Not.StringContaining( "Failed!" ), "Default conclusion wins." );
-            Assert.That( log.Writer.ToString(), Is.StringContaining( "Success!" ), "Default conclusion." );
-
-            log.Writer.GetStringBuilder().Clear();
-            Assert.That( log.Writer.ToString(), Is.Empty );
-
-            // Explicit conclusion: Failed!
-            using( l.OpenGroup( LogLevel.Trace, () => "Success!", "First" ) )
-            {
-                l.Error( "Pouf" );
-                l.CloseGroup( "Failed!" );
-            }
-            Console.WriteLine( log.Writer.ToString() );
-
-            Assert.That( log.Writer.ToString(), Is.StringContaining( "Pouf" ) );
-            Assert.That( log.Writer.ToString(), Is.StringContaining( "Failed!" ), "Explicit conclusion wins." );
-            Assert.That( log.Writer.ToString(), Is.Not.StringContaining( "Success!" ), "Explicit conclusion wins." );
+            Assert.That( log.Writer.ToString(), Is.StringContaining( "Explicit User Conclusion, From Opener, 1 Error" ) );
         }
 
         [Test]
@@ -338,10 +319,10 @@ namespace Core
         {
             var logger = DefaultActivityLogger.Create();
             // Binds the TestHelper.Logger logger to this one.
-            logger.Output.RegisterMuxClient( TestHelper.Logger.Output.ExternalInput );
+            logger.Output.RegisterClient( TestHelper.Logger.Output.ExternalInput );
             
             ActivityLoggerPathCatcher p = new ActivityLoggerPathCatcher();
-            logger.Output.RegisterMuxClient( p );
+            logger.Output.RegisterClient( p );
 
             logger.Trace( "Trace n°1" );
             Assert.That( p.DynamicPath.Select( e => e.Level.ToString() + '|' + e.Text ).Single(), Is.EqualTo( "Trace|Trace n°1" ) );
@@ -400,7 +381,7 @@ namespace Core
                                     {
                                         try
                                         {
-                                            throw new Exception( "Deepest excpetion." );
+                                            throw new Exception( "Deepest exception." );
                                         }
                                         catch( Exception ex )
                                         {
@@ -483,13 +464,13 @@ namespace Core
         {
             var logger = new ActivityLogger();
             // Binds the TestHelper.Logger logger to this one.
-            logger.Output.RegisterMuxClient( TestHelper.Logger.Output.ExternalInput );
+            //logger.Output.RegisterClient( TestHelper.Logger.Output.ExternalInput );
 
             // Registers the ErrorCounter first: it will be the last one to be called, but
             // this does not prevent the PathCatcher to work: the path elements reference the group
-            // so that aany conclusion arriving after PathCatcher.OnClosing are available.
+            // so that any conclusion arriving after PathCatcher.OnClosing are available.
             ActivityLoggerErrorCounter c = new ActivityLoggerErrorCounter();
-            logger.Output.RegisterMuxClient( c );
+            logger.Output.RegisterClient( c );
 
             // Registers the PathCatcher now: it will be called BEFORE the ErrorCounter.
             ActivityLoggerPathCatcher p = new ActivityLoggerPathCatcher();
@@ -527,6 +508,7 @@ namespace Core
 
             using( logger.OpenGroup( LogLevel.Trace, "G1" ) )
             {
+                string errorMessage;
                 using( logger.OpenGroup( LogLevel.Info, "G2" ) )
                 {
                     logger.Error( "E1" );
@@ -540,13 +522,19 @@ namespace Core
                         Assert.That( !c.Current.HasWarnOrError && !c.Current.HasError );
                         Assert.That( c.Current.ErrorCount == 0 && c.Current.FatalCount == 0 && c.Current.WarnCount == 0 );
                         
-                        logger.Error( "E2" );
-                        
+                        logger.Error( "An error..." );
+
                         Assert.That( c.Current.HasWarnOrError && c.Current.HasError );
                         Assert.That( c.Current.ErrorCount == 1 && c.Current.FatalCount == 0 && c.Current.WarnCount == 0 );
+
+                        errorMessage = String.Join( "|", p.LastErrorPath.Select( e => e.Text + '-' + e.GroupConclusion.ToStringGroupConclusion() ) );
+                        Assert.That( errorMessage, Is.EqualTo( "G1-|G2-|G3-|An error...-" ), "Groups are not closed: no conclusion exist yet." );
                     }
+                    errorMessage = String.Join( "|", p.LastErrorPath.Select( e => e.Text + '-' + e.GroupConclusion.ToStringGroupConclusion() ) );
+                    Assert.That( errorMessage, Is.EqualTo( "G1-|G2-|G3-1 Error|An error...-" ), "G3 is closed: its conclusion is available." );
                 }
-                Assert.That( String.Join( ">", p.LastErrorPath.Select( e => e.Text + '-' + e.GroupConclusion.ToStringGroupConclusion() ) ), Is.EqualTo( "G1->G2-1 Fatal error, 2 Errors>G3-1 Error>E2-" ) );
+                errorMessage = String.Join( "|", p.LastErrorPath.Select( e => e.Text + '-' + e.GroupConclusion.ToStringGroupConclusion() ) );
+                Assert.That( errorMessage, Is.EqualTo( "G1-|G2-1 Fatal error, 2 Errors|G3-1 Error|An error...-" ) );
                 logger.Error( "E3" );
                 logger.Fatal( "F2" );
                 logger.Warn( "W2" );

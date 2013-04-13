@@ -95,7 +95,7 @@ namespace CK.Core
             _prefixLevel = _prefix = _prefix.Remove( _prefix.Length - 3 );
             foreach( var c in conclusions )
             {
-                string text = "◄▪-" + c.Conclusion;
+                string text = "◄▪-" + c.Text;
                 w.WriteLine( _prefixLevel + text.Replace( _prefixLevel + Environment.NewLine, Environment.NewLine + _prefixLevel + "   " ) );
             }
         }

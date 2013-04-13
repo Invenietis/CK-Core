@@ -29,9 +29,9 @@ using System.Text;
 namespace CK.Core
 {
     /// <summary>
-    /// Listener for <see cref="IActivityLogger"/> registered in a <see cref="IMuxActivityLoggerClientRegistrar"/>.
+    /// Listener for <see cref="IActivityLogger"/> registered in a <see cref="IActivityLoggerClientRegistrar"/>.
     /// </summary>
-    public interface IActivityLoggerClient : IActivityLoggerClientBase
+    public interface IActivityLoggerClient
     {
         /// <summary>
         /// Called when <see cref="IActivityLogger.Filter"/> is about to change.

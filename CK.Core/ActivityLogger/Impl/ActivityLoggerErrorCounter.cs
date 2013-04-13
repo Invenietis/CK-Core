@@ -31,7 +31,7 @@ namespace CK.Core
     /// <summary>
     /// Count fatal, error or warn that occured and automatically sets the conclusion of groups.
     /// </summary>
-    public class ActivityLoggerErrorCounter : ActivityLoggerHybridClient
+    public class ActivityLoggerErrorCounter : ActivityLoggerClient
     {
         static readonly string DefaultFatalConclusionFormat = "1 Fatal error";
         static readonly string DefaultFatalsConclusionFormat = "{0} Fatal errors";
@@ -41,10 +41,11 @@ namespace CK.Core
         static readonly string DefaultWarnsConclusionFormat = "{0} Warnings";
         static readonly string DefaultSeparator = ", ";
 
+        public static readonly CKTrait TagErrorCounter = ActivityLogger.Tags.FindOrCreate( "c:ErrorCounter" );
+
         /// <summary>
         /// Encapsulates error information.
-        /// It is used as the <see cref="ActivityLogGroupConclusion.Conclusion"/> object: the <see cref="ToString"/> method
-        /// displays the conclusion in a default text format.
+        /// The <see cref="ToString"/> method displays the conclusion in a default text format.
         /// </summary>
         public class State
         {
@@ -287,9 +288,12 @@ namespace CK.Core
         /// <param name="conclusions">Mutable conclusions associated to the closing group.</param>
         protected override void OnGroupClosing( IActivityLogGroup group, IList<ActivityLogGroupConclusion> conclusions )
         {
-            if( GenerateConclusion && _current != _root && _current.HasWarnOrError )
+            if( GenerateConclusion 
+                && _current != _root 
+                && _current.HasWarnOrError 
+                && !conclusions.Any( c => c.Tag == TagErrorCounter ) )
             {
-                conclusions.Add( new ActivityLogGroupConclusion( _current, this ) );
+                conclusions.Add( new ActivityLogGroupConclusion( TagErrorCounter, _current.ToString() ) );
             }
         }
 

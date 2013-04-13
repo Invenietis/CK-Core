@@ -34,7 +34,7 @@ namespace CK.Core
     /// and two specific paths, the <see cref="LastErrorPath"/> and the <see cref="LastWarnOrErrorPath"/>.
     /// It is both a <see cref="IMuxActivityLoggerClient"/> and a <see cref="IActivityLoggerClient"/>.
     /// </summary>
-    public class ActivityLoggerPathCatcher : ActivityLoggerHybridClient
+    public class ActivityLoggerPathCatcher : ActivityLoggerClient
     {
         /// <summary>
         /// Element of the <see cref="ActivityLoggerPathCatcher.DynamicPath">DynamicPath</see>, <see cref="ActivityLoggerPathCatcher.LastErrorPath">LastErrorPath</see>,

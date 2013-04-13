@@ -32,12 +32,38 @@ namespace CK.Core
     /// <summary>
     /// Concrete implementation of <see cref="IActivityLogger"/>.
     /// </summary>
-    public class ActivityLogger : MarshalByRefObject, IActivityLogger, IActivityLoggerClientBase
+    public class ActivityLogger : IActivityLogger
     {
         /// <summary>
         /// String to use to break the current <see cref="LogLevel"/> (as if a different <see cref="LogLevel"/> was used).
         /// </summary>
         static public readonly string ParkLevel = "PARK-LEVEL";
+
+        /// <summary>
+        /// Thread-safe contexts for traits used to categorize log entries and group conclusions.
+        /// All traits used in logging must be registered here.
+        /// </summary>
+        /// <remarks>
+        /// Tags used for conclusions should start with "c:".
+        /// </remarks>
+        static public readonly CKTraitContext Tags;
+        
+        /// <summary>
+        /// Conlusions provided to IActivityLogger.Close(string) are marked with "c:User".
+        /// </summary>
+        static public readonly CKTrait TagUserConclusion;
+
+        /// <summary>
+        /// Conlusions returned by the optional function when a group is opened (see <see cref="IActivityLogger.OpenGroup"/>) are marked with "c:GetText".
+        /// </summary>
+        static public readonly CKTrait TagGetTextConclusion;
+
+        static ActivityLogger()
+        {
+            Tags = new CKTraitContext();
+            TagUserConclusion = Tags.FindOrCreate( "c:User" );
+            TagGetTextConclusion = Tags.FindOrCreate( "c:GetText" );
+        }
 
         LogLevelFilter _filter;
         Group _current;
@@ -49,6 +75,7 @@ namespace CK.Core
         /// </summary>
         public ActivityLogger()
         {
+            Debug.Assert( Tags.Separator == '|', "Separator must be the |." );
             _output = new ActivityLoggerOutput( this );
         }
 
@@ -91,7 +118,7 @@ namespace CK.Core
             {
                 if( _filter != value )
                 {
-                    _output.OnFilterChanged( _filter, value );
+                    ((IActivityLoggerClient)_output).OnFilterChanged( _filter, value );
                     _filter = value;
                 }
             }
@@ -99,8 +126,9 @@ namespace CK.Core
 
         /// <summary>
         /// Logs a text regardless of <see cref="Filter"/> level. 
-        /// Each call to log is considered as a line: a paragraph (or line separator) is appended
-        /// between each text if the <paramref name="level"/> is the same as the previous one.
+        /// Each call to log is considered as a unit of text: depending on the rendering engine, a line or a 
+        /// paragraph separator (or any appropriate separator) should be appended between each text if 
+        /// the <paramref name="level"/> is the same as the previous one.
         /// See remarks.
         /// </summary>
         /// <param name="level">Log level.</param>
@@ -124,7 +152,7 @@ namespace CK.Core
                 }
                 else if( !String.IsNullOrEmpty( text ) )
                 {
-                    _output.OnUnfilteredLog( level, text );
+                    ((IActivityLoggerClient)_output).OnUnfilteredLog( level, text );
                 }
             }
             return this;
@@ -224,34 +252,17 @@ namespace CK.Core
                 }
             }           
 
-            internal object GroupClose( object externalConclusion )
+            internal void GroupClose( List<ActivityLogGroupConclusion> conclusions )
             {
-                object conclusion = OnGroupClose( externalConclusion );
+                string auto = ConsumeConclusionText();
+                if( auto != null ) conclusions.Add( new ActivityLogGroupConclusion( TagGetTextConclusion, auto ) );
                 _logger = null;
-                return conclusion;
-            }
-
-            /// <summary>
-            /// Called whenever the group is closing.
-            /// Must return the actual conclusion that will be used for the group: if the <paramref name="externalConclusion"/> is 
-            /// not null, it takes precedence on the (optional) <see cref="GetConclusionText"/> functions.
-            /// </summary>
-            /// <param name="externalConclusion">Conclusion parameter: comes from <see cref="IActivityLogger.CloseGroup"/>. Can be null.</param>
-            /// <returns>The final conclusion to use.</returns>
-            protected virtual object OnGroupClose( object externalConclusion )
-            {
-                if( externalConclusion == null )
-                {
-                    externalConclusion = ConsumeConclusionText();
-                }
-                return externalConclusion;
             }
 
             /// <summary>
             /// Calls <see cref="GetConclusionText"/> and sets it to null.
             /// </summary>
-            /// <returns></returns>
-            protected virtual string ConsumeConclusionText()
+            string ConsumeConclusionText()
             {
                 string autoText = null;
                 if( GetConclusionText != null )
@@ -287,30 +298,41 @@ namespace CK.Core
             ++_depth;
             Group g = CreateGroup( level, text ?? (ex != null ? ex.Message : String.Empty), defaultConclusionText, ex );
             _current = g;
-            _output.OnOpenGroup( g );
+            ((IActivityLoggerClient)_output).OnOpenGroup( g );
             return g;
         }
 
         /// <summary>
-        /// Closes the current <see cref="Group"/>.
+        /// Closes the current <see cref="Group"/>. Optionl parameter is ploymorphic. It can be a string, an enumerable of <see cref="ActivityLogGroupConclusion"/>, 
+        /// or any object with an overriden <see cref="Object.ToString"/> method.
         /// </summary>
-        /// <param name="conclusion">
-        /// Optional object text (usually a string but can be any object with an 
-        /// overriden <see cref="Object.ToString"/> method) to conclude the group.
-        /// </param>
-        public virtual void CloseGroup( object conclusion = null )
+        /// <param name="userConclusion">Optional string, enumerable of <see cref="ActivityLogGroupConclusion"/>) or object to conclude the group. See remarks.</param>
+        /// <remarks>
+        /// An untyped object is used here to easily and efficiently accomodate both string and already existing IEnumerable&lt;ActivityLogGroupConclusion&gt; conclusions.
+        /// </remarks>
+        public virtual void CloseGroup( object userConclusion = null )
         {
             Group g = _current;
             if( g != null )
             {
-                conclusion = g.GroupClose( conclusion );
                 var conclusions = new List<ActivityLogGroupConclusion>();
-                if( conclusion != null ) conclusions.Add( new ActivityLogGroupConclusion( conclusion, this ) );                
-                _output.OnGroupClosing( g, conclusions );
+                if( userConclusion != null )
+                {
+                    string s = userConclusion as string;
+                    if( s != null ) conclusions.Add( new ActivityLogGroupConclusion( TagUserConclusion, s ) );
+                    else
+                    {
+                        IEnumerable<ActivityLogGroupConclusion> multi = userConclusion as IEnumerable<ActivityLogGroupConclusion>;
+                        if( multi != null ) conclusions.AddRange( multi );
+                        else conclusions.Add( new ActivityLogGroupConclusion( TagUserConclusion, userConclusion.ToString() ) );
+                    }
+                }
+                g.GroupClose( conclusions );
+                ((IActivityLoggerClient)_output).OnGroupClosing( g, conclusions );
                 --_depth;
                 Filter = g.Filter;
                 _current = (Group)g.Parent;
-                _output.OnGroupClosed( g, conclusions.ToReadOnlyList() );
+                ((IActivityLoggerClient)_output).OnGroupClosed( g, conclusions.ToReadOnlyList() );
             }
         }
 

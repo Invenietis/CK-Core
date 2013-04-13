@@ -9,7 +9,7 @@ namespace CK.Core
     /// Simple collector of log entries which level is greater or equal to <see cref="LevelFilter"/>.
     /// Its <see cref="Capacity"/> defaults to 50 (no more than Capacity entries are kept).
     /// </summary>
-    public class ActivityLoggerSimpleCollector : ActivityLoggerHybridClient
+    public class ActivityLoggerSimpleCollector : IActivityLoggerClient
     {
         FIFOBuffer<Entry> _entries;
         LogLevelFilter _filter;
@@ -108,7 +108,7 @@ namespace CK.Core
         /// </summary>
         /// <param name="level">Level of the log.</param>
         /// <param name="text">Text of the log.</param>
-        protected override void OnUnfilteredLog( LogLevel level, string text )
+        void IActivityLoggerClient.OnUnfilteredLog( LogLevel level, string text )
         {
             if( (int)level >= (int)_filter )
             {
@@ -120,12 +120,24 @@ namespace CK.Core
         /// Appends any group with level equal or above <see cref="LevelFilter"/> to <see cref="Entries"/>.
         /// </summary>
         /// <param name="group">Log group description.</param>
-        protected override void OnOpenGroup( IActivityLogGroup group )
+        void IActivityLoggerClient.OnOpenGroup( IActivityLogGroup group )
         {
             if( (int)group.GroupLevel >= (int)_filter )
             {
                 _entries.Push( new Entry() { Level = group.GroupLevel, Text = group.GroupText, Exception = group.Exception } );
             }
+        }
+
+        void IActivityLoggerClient.OnFilterChanged( LogLevelFilter current, LogLevelFilter newValue )
+        {
+        }
+
+        void IActivityLoggerClient.OnGroupClosing( IActivityLogGroup group, IList<ActivityLogGroupConclusion> conclusions )
+        {
+        }
+
+        void IActivityLoggerClient.OnGroupClosed( IActivityLogGroup group, ICKReadOnlyList<ActivityLogGroupConclusion> conclusions )
+        {
         }
     }
 }

@@ -150,6 +150,41 @@ namespace CK.Core
             return value;
         }
 
+
+        /// <summary>
+        /// Wraps an action in a predicate that returns always the provided result.
+        /// </summary>
+        /// <typeparam name="T">The type of the action's parameter.</typeparam>
+        /// <param name="a">The action (a method that accepts <typeparamref name="T"/> as its only argument).</param>
+        /// <param name="result">result that will be returned.</param>
+        /// <returns>A predicate that performs the action and returns true.</returns>
+        static public Predicate<T> ToPredicate<T>( this Action<T> a, bool result )
+        {
+            return delegate( T o ) { a( o ); return result; };
+        }
+
+        /// <summary>
+        /// Wraps an action in a predicate that returns always true.
+        /// </summary>
+        /// <typeparam name="T">The type of the action's parameter.</typeparam>
+        /// <param name="a">The action (a method that accepts <typeparamref name="T"/> as its only argument).</param>
+        /// <returns>A predicate that performs the action and returns true.</returns>
+        static public Predicate<T> AlwaysTrue<T>( Action<T> a )
+        {
+            return delegate( T o ) { a( o ); return true; };
+        }
+
+        /// <summary>
+        /// Wraps an action in a predicate that returns always false.
+        /// </summary>
+        /// <typeparam name="T">The type of the action's parameter.</typeparam>
+        /// <param name="a">The action (a method that accepts <typeparamref name="T"/> as its only argument).</param>
+        /// <returns>A predicate that performs the action and returns false.</returns>
+        static public Predicate<T> AlwaysFalse<T>( Action<T> a )
+        {
+            return delegate( T o ) { a( o ); return false; };
+        }
+        
         /// <summary>
         /// Binary search implementation that relies on a <see cref="Comparison{T}"/>.
         /// </summary>

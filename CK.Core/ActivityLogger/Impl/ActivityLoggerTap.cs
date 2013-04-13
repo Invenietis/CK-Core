@@ -32,7 +32,7 @@ namespace CK.Core
     /// A tap is both a <see cref="IMuxActivityLoggerClient"/> and a <see cref="IActivityLoggerClient"/> that delivers log data 
     /// to multiple <see cref="IActivityLoggerSink"/> implementations.
     /// </summary>
-    public class ActivityLoggerTap : ActivityLoggerHybridClient
+    public class ActivityLoggerTap : ActivityLoggerClient
     {
         int _curLevel;
         List<IActivityLoggerSink> _sinks;

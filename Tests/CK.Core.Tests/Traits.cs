@@ -1,6 +1,6 @@
 #region LGPL License
 /*----------------------------------------------------------------------------
-* This file (Tests\CK.MultiTrait.Tests\Traits.cs) is part of CiviKey. 
+* This file (Tests\CK.Core.Tests\Traits.cs) is part of CiviKey. 
 *  
 * CiviKey is free software: you can redistribute it and/or modify 
 * it under the terms of the GNU Lesser General Public License as published 
@@ -31,23 +31,23 @@ namespace Keyboard
 {
 
     /// <summary>
-    /// This class test operations on MultiTrait (FindOrCreate, Intersect, etc.).
+    /// This class test operations on CKTrait (FindOrCreate, Intersect, etc.).
     /// </summary>
     [TestFixture]
     public class Traits
     {
-        MultiTraitContext Context;
+        CKTraitContext Context;
 
         [SetUp]
         public void Setup()
         {
-            Context = new MultiTraitContext();
+            Context = new CKTraitContext( '+' );
         }
 
         [Test]
         public void EmptyOne()
         {
-            MultiTrait m = Context.EmptyTrait;
+            CKTrait m = Context.EmptyTrait;
             Assert.That( m.ToString() == String.Empty, "Empty trait is the empty string." );
             Assert.That( m.IsAtomic, "Empty trait is considered as atomic." );
             Assert.That( m.AtomicTraits.Count == 0, "Empty trait has no atomic traits inside." );
@@ -64,7 +64,7 @@ namespace Keyboard
         [Test]
         public void OneAtomicTrait()
         {
-            MultiTrait m = Context.FindOrCreate( "Alpha" );
+            CKTrait m = Context.FindOrCreate( "Alpha" );
             Assert.That( m.IsAtomic && m.AtomicTraits.Count == 1, "Not a combined one." );
             Assert.That( m.AtomicTraits[0] == m, "Atomic traits are self-contained." );
 
@@ -77,7 +77,7 @@ namespace Keyboard
         [Test]
         public void CombinedTraits()
         {
-            MultiTrait m = Context.FindOrCreate( "Beta+Alpha" );
+            CKTrait m = Context.FindOrCreate( "Beta+Alpha" );
             Assert.That( !m.IsAtomic && m.AtomicTraits.Count == 2, "Combined trait." );
             Assert.That( m.AtomicTraits[0] == Context.FindOrCreate( "Alpha" ), "Atomic Alpha is the first one." );
             Assert.That( m.AtomicTraits[1] == Context.FindOrCreate( "Beta" ), "Atomic Beta is the second one." );
@@ -96,8 +96,8 @@ namespace Keyboard
         [Test]
         public void IntersectTraits()
         {
-            MultiTrait m1 = Context.FindOrCreate( "Beta+Alpha+Fridge+Combo" );
-            MultiTrait m2 = Context.FindOrCreate( "Xtra+Combo+Another+Fridge+Alt" );
+            CKTrait m1 = Context.FindOrCreate( "Beta+Alpha+Fridge+Combo" );
+            CKTrait m2 = Context.FindOrCreate( "Xtra+Combo+Another+Fridge+Alt" );
 
             Assert.That( m1.Intersect( m2 ).ToString() == "Combo+Fridge", "Works as expected :-)" );
             Assert.That( m2.Intersect( m1 ) == m1.Intersect( m2 ), "Same object in both calls." );
@@ -108,8 +108,8 @@ namespace Keyboard
         [Test]
         public void AddTraits()
         {
-            MultiTrait m1 = Context.FindOrCreate( "Beta+Alpha+Fridge+Combo" );
-            MultiTrait m2 = Context.FindOrCreate( "Xtra+Combo+Another+Fridge+Alt" );
+            CKTrait m1 = Context.FindOrCreate( "Beta+Alpha+Fridge+Combo" );
+            CKTrait m2 = Context.FindOrCreate( "Xtra+Combo+Another+Fridge+Alt" );
 
             Assert.That( m1.Add( m2 ).ToString() == "Alpha+Alt+Another+Beta+Combo+Fridge+Xtra", "Works as expected :-)" );
             Assert.That( m2.Add( m1 ) == m1.Add( m2 ), "Same in both calls." );
@@ -118,8 +118,8 @@ namespace Keyboard
         [Test]
         public void RemoveTraits()
         {
-            MultiTrait m1 = Context.FindOrCreate( "Beta+Alpha+Fridge+Combo" );
-            MultiTrait m2 = Context.FindOrCreate( "Xtra+Combo+Another+Fridge+Alt" );
+            CKTrait m1 = Context.FindOrCreate( "Beta+Alpha+Fridge+Combo" );
+            CKTrait m2 = Context.FindOrCreate( "Xtra+Combo+Another+Fridge+Alt" );
 
             Assert.That( m1.Remove( m2 ).ToString() == "Alpha+Beta", "Works as expected :-)" );
             Assert.That( m2.Remove( m1 ).ToString() == "Alt+Another+Xtra", "Works as expected..." );
@@ -131,7 +131,7 @@ namespace Keyboard
         [Test]
         public void ContainsTraits()
         {
-            MultiTrait m = Context.FindOrCreate( "Beta+Alpha+Fridge+Combo" );
+            CKTrait m = Context.FindOrCreate( "Beta+Alpha+Fridge+Combo" );
 
             Assert.That( Context.EmptyTrait.ContainsAll( Context.EmptyTrait ), "Empty is contained by definition in itself." );
             Assert.That( m.ContainsAll( Context.EmptyTrait ), "Empty is contained by definition." );
@@ -157,9 +157,37 @@ namespace Keyboard
         }
 
         [Test]
+        public void PipeDefaultTrait()
+        {
+            var c = new CKTraitContext();
+            CKTrait m = c.FindOrCreate( "Beta|Alpha|Fridge|Combo" );
+
+            Assert.That( c.EmptyTrait.ContainsAll( c.EmptyTrait ), "Empty is contained by definition in itself." );
+            Assert.That( m.ContainsAll( c.EmptyTrait ), "Empty is contained by definition." );
+            Assert.That( m.ContainsAll( c.FindOrCreate( "Fridge|Alpha" ) ) );
+            Assert.That( m.ContainsAll( c.FindOrCreate( "Fridge" ) ) );
+            Assert.That( m.ContainsAll( c.FindOrCreate( "Fridge|Alpha|Combo" ) ) );
+            Assert.That( m.ContainsAll( c.FindOrCreate( "Fridge|Alpha|Beta|Combo" ) ) );
+            Assert.That( !m.ContainsAll( c.FindOrCreate( "Fridge|Lol" ) ) );
+            Assert.That( !m.ContainsAll( c.FindOrCreate( "Murfn" ) ) );
+            Assert.That( !m.ContainsAll( c.FindOrCreate( "Fridge|Alpha|Combo+Lol" ) ) );
+            Assert.That( !m.ContainsAll( c.FindOrCreate( "Lol|Fridge|Alpha|Beta|Combo" ) ) );
+
+            Assert.That( m.ContainsOne( c.FindOrCreate( "Fridge|Alpha" ) ) );
+            Assert.That( m.ContainsOne( c.FindOrCreate( "Nimp|Fridge|Mourfn" ) ) );
+            Assert.That( m.ContainsOne( c.FindOrCreate( "Fridge|Alpha|Combo|Albert" ) ) );
+            Assert.That( m.ContainsOne( c.FindOrCreate( "ZZF|AAlp|BBeBe|Combo" ) ) );
+            Assert.That( !m.ContainsOne( c.FindOrCreate( "AFridge|ALol" ) ) );
+            Assert.That( !m.ContainsOne( c.FindOrCreate( "Murfn" ) ) );
+            Assert.That( !m.ContainsOne( c.FindOrCreate( "QF|QA|QC|QL" ) ) );
+            Assert.That( !m.ContainsOne( c.EmptyTrait ), "Empty is NOT contained 'ONE' since EmptyTrait.AtomicTraits.Count == 0..." );
+            Assert.That( !c.EmptyTrait.ContainsOne( c.EmptyTrait ), "Empty is NOT contained 'ONE' in itself." );
+        }
+
+        [Test]
         public void ToggleTraits()
         {
-            MultiTrait m = Context.FindOrCreate( "Beta+Alpha+Fridge+Combo" );
+            CKTrait m = Context.FindOrCreate( "Beta+Alpha+Fridge+Combo" );
             Assert.That( m.Toggle( Context.FindOrCreate( "Beta" ) ).ToString() == "Alpha+Combo+Fridge" );
             Assert.That( m.Toggle( Context.FindOrCreate( "Fridge+Combo" ) ).ToString() == "Alpha+Beta" );
             Assert.That( m.Toggle( Context.FindOrCreate( "Beta+Fridge+Combo" ) ).ToString() == "Alpha" );
@@ -176,28 +204,28 @@ namespace Keyboard
         public void Fallbacks()
         {
             {
-                MultiTrait m = Context.FindOrCreate( "" );
-                IReadOnlyList<MultiTrait> f = m.Fallbacks.ToReadOnlyList();
+                CKTrait m = Context.FindOrCreate( "" );
+                IReadOnlyList<CKTrait> f = m.Fallbacks.ToReadOnlyList();
                 Assert.That( f.Count == 1 );
                 Assert.That( f[0].ToString() == "" );
             }
             {
-                MultiTrait m = Context.FindOrCreate( "Alpha" );
-                IReadOnlyList<MultiTrait> f = m.Fallbacks.ToReadOnlyList();
+                CKTrait m = Context.FindOrCreate( "Alpha" );
+                IReadOnlyList<CKTrait> f = m.Fallbacks.ToReadOnlyList();
                 Assert.That( f.Count == 1 );
                 Assert.That( f[0].ToString() == "" );
             }
             {
-                MultiTrait m = Context.FindOrCreate( "Alpha+Beta" );
-                IReadOnlyList<MultiTrait> f = m.Fallbacks.ToReadOnlyList();
+                CKTrait m = Context.FindOrCreate( "Alpha+Beta" );
+                IReadOnlyList<CKTrait> f = m.Fallbacks.ToReadOnlyList();
                 Assert.That( f.Count == 3 );
                 Assert.That( f[0].ToString() == "Alpha" );
                 Assert.That( f[1].ToString() == "Beta" );
                 Assert.That( f[2].ToString() == "" );
             }
             {
-                MultiTrait m = Context.FindOrCreate( "Alpha+Beta+Combo" );
-                IReadOnlyList<MultiTrait> f = m.Fallbacks.ToReadOnlyList();
+                CKTrait m = Context.FindOrCreate( "Alpha+Beta+Combo" );
+                IReadOnlyList<CKTrait> f = m.Fallbacks.ToReadOnlyList();
                 Assert.That( f.Count == 7 );
                 Assert.That( f[0].ToString() == "Alpha+Beta" );
                 Assert.That( f[1].ToString() == "Alpha+Combo" );
@@ -208,8 +236,8 @@ namespace Keyboard
                 Assert.That( f[6].ToString() == "" );
             }
             {
-                MultiTrait m = Context.FindOrCreate( "Alpha+Beta+Combo+Fridge" );
-                IReadOnlyList<MultiTrait> f = m.Fallbacks.ToReadOnlyList();
+                CKTrait m = Context.FindOrCreate( "Alpha+Beta+Combo+Fridge" );
+                IReadOnlyList<CKTrait> f = m.Fallbacks.ToReadOnlyList();
                 Assert.That( f.Count == 15 );
                 Assert.That( f[0].ToString() == "Alpha+Beta+Combo" );
                 Assert.That( f[1].ToString() == "Alpha+Beta+Fridge" );
@@ -233,22 +261,22 @@ namespace Keyboard
         public void FallbacksAndOrdering()
         {
             {
-                MultiTrait m = Context.FindOrCreate( "Alpha+Beta+Combo+Fridge" );
-                IReadOnlyList<MultiTrait> f = m.Fallbacks.ToReadOnlyList();
+                CKTrait m = Context.FindOrCreate( "Alpha+Beta+Combo+Fridge" );
+                IReadOnlyList<CKTrait> f = m.Fallbacks.ToReadOnlyList();
 
-                MultiTrait[] sorted = f.ToArray();
+                CKTrait[] sorted = f.ToArray();
                 Array.Sort( sorted );
                 Array.Reverse( sorted );
                 Assert.That( sorted.SequenceEqual( f ), "KeyboardTrait.CompareTo respects the fallbacks (fallbacks is in reverse order)." );
             }
             {
-                MultiTrait m = Context.FindOrCreate( "Alpha+Beta+Combo+Fridge+F+K+Ju+J+A+B" );
-                IReadOnlyList<MultiTrait> f = m.Fallbacks.ToReadOnlyList();
+                CKTrait m = Context.FindOrCreate( "Alpha+Beta+Combo+Fridge+F+K+Ju+J+A+B" );
+                IReadOnlyList<CKTrait> f = m.Fallbacks.ToReadOnlyList();
                 Assert.That( f.OrderBy( trait => trait ).Reverse().SequenceEqual( f ), "KeyboardTrait.CompareTo is ok, thanks to Linq ;-)." );
             }
             {
-                MultiTrait m = Context.FindOrCreate( "xz+lz+ded+az+zer+t+zer+ce+ret+ert+ml+a+nzn" );
-                IReadOnlyList<MultiTrait> f = m.Fallbacks.ToReadOnlyList();
+                CKTrait m = Context.FindOrCreate( "xz+lz+ded+az+zer+t+zer+ce+ret+ert+ml+a+nzn" );
+                IReadOnlyList<CKTrait> f = m.Fallbacks.ToReadOnlyList();
                 Assert.That( f.OrderBy( trait => trait ).Reverse().SequenceEqual( f ), "KeyboardTrait.CompareTo is ok, thanks to Linq ;-)." );
             }
         }
@@ -257,7 +285,7 @@ namespace Keyboard
         [Test]
         public void FindIfAllExist()
         {
-            MultiTrait m = Context.FindOrCreate( "Alpha+Beta+Combo+Fridge" );
+            CKTrait m = Context.FindOrCreate( "Alpha+Beta+Combo+Fridge" );
 
             Assert.That( Context.FindIfAllExist( "" ), Is.EqualTo( Context.EmptyTrait ) );
             Assert.That( Context.FindIfAllExist( "bo" ), Is.Null );
