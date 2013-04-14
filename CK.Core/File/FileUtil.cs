@@ -141,39 +141,6 @@ namespace CK.Core
         }
 
         /// <summary>
-        /// Detects whether the given path is on a case sensitive volume or not.
-        /// </summary>
-        /// <param name="path">Path to a file.</param>
-        /// <returns>True if this path must be treated as case sensitive.</returns>
-        [Obsolete( "Useless", true )]
-        public static bool IsVolumeCaseSensitive( string path )
-        {
-            if( path == null || path.Length == 0 ) throw new ArgumentException( "path" );
-
-            if( !OSVersionInfo.PInvokeSupported ) return OSVersionInfo.IsUnix;
-
-            path = Path.GetFullPath( path );
-            if( path[path.Length - 1] != Path.DirectorySeparatorChar ) path += Path.DirectorySeparatorChar;
-
-            StringBuilder volumeLabel = new StringBuilder( 256 );
-            UInt32 volumeFlags = new UInt32();
-            StringBuilder fileSystemName = new StringBuilder( 256 );
-            UInt32 serialNumber = 0;
-            UInt32 maxComponentLength = 0;
-
-            GetVolumeInformation( path,
-                volumeLabel,
-                (UInt32)volumeLabel.Capacity,
-                ref serialNumber,
-                ref maxComponentLength,
-                ref volumeFlags,
-                fileSystemName,
-                (UInt32)fileSystemName.Capacity );
-
-            return (volumeFlags & (UInt32)VolumeFlags.CaseSensitive) == (UInt32)VolumeFlags.CaseSensitive;
-        }
-
-        /// <summary>
         /// Recursively copy a directory. 
         /// Throws an IOException, if a same file exists in the target directory.
         /// </summary>
@@ -232,75 +199,6 @@ namespace CK.Core
                 }
             }
         }
-
-        /// <summary>
-        /// Supporting flags that may be set on a file system (descriptions are from Win32 api).
-        /// </summary>
-        [Flags]
-        enum VolumeFlags
-        {
-            /// <summary>
-            /// None.
-            /// </summary>
-            None = 0x0,
-            /// <summary>
-            /// The file system supports case-sensitive file names.
-            /// </summary>
-            CaseSensitive = 0x00000001,
-            /// <summary>
-            /// The file system preserves the case of file names when it places a name on disk.
-            /// </summary>
-            PreservesCase = 0x00000002,
-            /// <summary>
-            /// The file system supports Unicode in file names as they appear on disk.
-            /// </summary>
-            SupportsUnicodeOnVolume = 0x00000004,
-            /// <summary>
-            /// The file system preserves and enforces ACLs. For example, NTFS preserves and enforces ACLs, and FAT does not.
-            /// </summary>
-            PersistentAcls = 0x00000008,
-            /// <summary>
-            /// The specified volume is a compressed volume; for example, a DoubleSpace volume.
-            /// </summary>
-            Compressed = 0x00008000,
-            /// <summary>
-            /// The specified volume is read-only.
-            /// </summary>
-            ReadOnly = 0x00080000,
-            /// <summary>
-            /// The file system supports the Encrypted File System (EFS).
-            /// </summary>
-            SupportsEncryption = 0x00020000,
-            /// <summary>
-            /// The file system supports file-based compression.
-            /// </summary>
-            SupportsFileCompression = 0x00000010,
-            /// <summary>
-            /// The file system supports named streams.
-            /// </summary>
-            SupportsNamedStreams = 0x00040000,
-            /// <summary>
-            /// The file system supports object identifiers.
-            /// </summary>
-            SupportsObjectIds = 0x00010000,
-            /// <summary>
-            /// The file system supports disk quotas.
-            /// </summary>
-            SupportsQuotas = 0x00000020,
-            /// <summary>
-            /// The file system supports reparse points.
-            /// </summary>
-            SupportsReparsePoints = 0x00000080,
-            /// <summary>
-            /// The file system supports sparse files.
-            /// </summary>
-            SupportsSparseFiles = 0x00000040,
-        };
-
-        [DllImport( "kernel32.dll" )]
-        private static extern long GetVolumeInformation( string pathName, StringBuilder volumeNameBuffer, UInt32 volumeNameSize, ref UInt32 volumeSerialNumber, ref UInt32 maximumComponentLength, ref UInt32 fileSystemFlags, StringBuilder fileSystemNameBuffer, UInt32 fileSystemNameSize );
-
-
     }
 
 }

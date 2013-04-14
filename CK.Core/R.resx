@@ -129,6 +129,9 @@
   <data name="CanNotUnregisterDefaultClient" xml:space="preserve">
     <value>Can not Unregister the Tap, PathCatcher or ErrorCounter of a default logger.</value>
   </data>
+  <data name="ClosedByBridgeRemoved" xml:space="preserve">
+    <value>Prematurely closed by Bridge removed.</value>
+  </data>
   <data name="DirectServicesCanNotBeDisabled" xml:space="preserve">
     <value>Service {0} is direcly supported by the container. It can not be disabled.</value>
   </data>

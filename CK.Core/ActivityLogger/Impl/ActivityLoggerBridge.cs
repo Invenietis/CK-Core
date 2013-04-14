@@ -43,6 +43,11 @@ namespace CK.Core
         readonly List<bool> _openedGroups;
 
         /// <summary>
+        /// Tags group conclusions emitted because of premature (unbalanced) removing of a bridge from a source logger.
+        /// </summary>
+        public static readonly CKTrait TagBridgePrematureClose = ActivityLogger.RegisteredTags.FindOrCreate( "c:ClosedByBridgeRemoved" );
+
+        /// <summary>
         /// Initialize a new <see cref="ActivityLoggerBridge"/> bound to an existing <see cref="ActivityLoggerBridgeTarget"/>
         /// that can live in another AppDomain.
         /// This Client should be registered in the <see cref="IActivityLogger.Output"/> of a local logger.
@@ -64,8 +69,19 @@ namespace CK.Core
 
         void IActivityLoggerBoundClient.SetLogger( IActivityLogger source )
         {
-            if( source != null && _source != null ) throw new CKException( R.ActivityLoggerBoundClientMultipleRegister, GetType().FullName );
-            if( _source != null ) _openedGroups.Clear();
+            if( source != null && _source != null ) throw new InvalidOperationException( String.Format( R.ActivityLoggerBoundClientMultipleRegister, GetType().FullName ) );
+            if( _source != null )
+            {
+                for( int i = 0; i < _openedGroups.Count; ++i )
+                {
+                    if( _openedGroups[i] )
+                    {
+                        if( _finalLogger != null ) _finalLogger.CloseGroup( new ActivityLogGroupConclusion( R.ClosedByBridgeRemoved, TagBridgePrematureClose ) );
+                        else _bridge.CloseGroup( new string[] { TagBridgePrematureClose.ToString(), R.ClosedByBridgeRemoved } );
+                    }
+                }
+                _openedGroups.Clear();
+            }
             _source = source;
         }
 
@@ -92,7 +108,7 @@ namespace CK.Core
             // This handles the case where this ClientBridge has been added to the Logger.Output
             // after the opening of Groups: we must not trigger a Close on the final logger for them.
             int idx = group.Depth;
-            while( idx >= _openedGroups.Count ) _openedGroups.Add( false );
+            while( idx > _openedGroups.Count ) _openedGroups.Add( false );
             
             if( _bridge.TargetFilter <= (int)group.GroupLevel )
             {

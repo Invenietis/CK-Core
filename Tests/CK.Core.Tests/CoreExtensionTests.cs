@@ -27,7 +27,7 @@ using NUnit.Framework;
 using System.Linq;
 using System;
 
-namespace Core
+namespace CK.Core.Tests
 {
 
     [TestFixture]

@@ -23,6 +23,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text;
 
@@ -37,8 +38,10 @@ namespace CK.Core
         int _curLevel;
         List<IActivityLoggerSink> _sinks;
         ICKReadOnlyList<IActivityLoggerSink> _sinksEx;
+        IActivityLogger _source;
         readonly bool _locked;
 
+        [ExcludeFromCodeCoverage]
         class EmptyTap : ActivityLoggerTap
         {
             public override ActivityLoggerTap Register( IActivityLoggerSink l )
@@ -98,6 +101,8 @@ namespace CK.Core
         void IActivityLoggerBoundClient.SetLogger( IActivityLogger source )
         {
             if( _locked ) throw new InvalidOperationException( R.CanNotUnregisterDefaultClient );
+            if( source != null && _source != null ) throw new InvalidOperationException( String.Format( R.ActivityLoggerBoundClientMultipleRegister, GetType().FullName ) );
+            _source = source;
         }
 
         /// <summary>

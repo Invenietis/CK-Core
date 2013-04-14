@@ -26,6 +26,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 
 namespace CK.Core
 {
@@ -71,6 +72,7 @@ namespace CK.Core
         /// <summary>
         /// Reuse the ActivityLoggerPathCatcher: since all hooks are empty, no paths exist.
         /// </summary>
+        [ExcludeFromCodeCoverage]
         class EmptyPathCatcher : ActivityLoggerPathCatcher
         {
             // Security if OnFilterChanged is implemented one day on ActivityLoggerPathCatcher.
@@ -107,6 +109,7 @@ namespace CK.Core
         List<PathElement> _path;
         IReadOnlyList<PathElement> _pathEx;
         PathElement _current;
+        IActivityLogger _source;
         readonly bool _locked;
         bool _currentIsGroup;
         bool _currentIsGroupClosed;
@@ -134,6 +137,8 @@ namespace CK.Core
         void IActivityLoggerBoundClient.SetLogger( IActivityLogger source )
         {
             if( _locked ) throw new InvalidOperationException( R.CanNotUnregisterDefaultClient );
+            if( source != null && _source != null ) throw new InvalidOperationException( String.Format( R.ActivityLoggerBoundClientMultipleRegister, GetType().FullName ) );
+            _source = source;
         }
 
         /// <summary>

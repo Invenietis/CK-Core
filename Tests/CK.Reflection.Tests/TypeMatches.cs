@@ -23,6 +23,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text;
 using NUnit.Framework;
@@ -56,10 +57,16 @@ namespace CK.Reflection.Tests
         int Pouf2 { get; }
     }
 
+    [ExcludeFromCodeCoverage]
     public class A { }
+
+    [ExcludeFromCodeCoverage]
     public class B : A { }
+
+    [ExcludeFromCodeCoverage]
     public class C : B { }
 
+    [ExcludeFromCodeCoverage]
     public class CloseBase<T> : IBase<T>
     {
         public event EventHandler Event2;
@@ -68,6 +75,7 @@ namespace CK.Reflection.Tests
     }
 
     // This one has only one IBase<> : IBase<bool>
+    [ExcludeFromCodeCoverage]
     public class Close : CloseBase<bool>, IDerived<bool, B>
     {
 
@@ -81,6 +89,7 @@ namespace CK.Reflection.Tests
     }
 
     // This one has two IBase<> : IBase<bool> and IBase<B>.
+    [ExcludeFromCodeCoverage]
     public class Close2 : CloseBase<B>, IDerived<bool, B>
     {
 
@@ -95,6 +104,7 @@ namespace CK.Reflection.Tests
 
 
     [TestFixture]
+    [ExcludeFromCodeCoverage]
     public class TypeMatches
     {
 

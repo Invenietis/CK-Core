@@ -28,7 +28,7 @@ using System.Text;
 using NUnit.Framework;
 using CK.Core;
 
-namespace Core.Collection
+namespace CK.Core.Tests.Collection
 {
     [TestFixture]
     public class SortedArrayListTests

@@ -23,6 +23,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text;
 
@@ -199,11 +200,13 @@ namespace CK.Core
 
         State _root;
         State _current;
+        IActivityLogger _source;
         readonly bool _locked;
 
         /// <summary>
         /// Reuse the ActivityLoggerErrorCounter: since all hooks are empty, nothing happens.
         /// </summary>
+        [ExcludeFromCodeCoverage]
         class EmptyErrorCounter : ActivityLoggerErrorCounter
         {
             // Security if OnFilterChanged is implemented one day on ActivityLoggerErrorCounter.
@@ -257,6 +260,8 @@ namespace CK.Core
         void IActivityLoggerBoundClient.SetLogger( IActivityLogger source )
         {
             if( _locked ) throw new InvalidOperationException( R.CanNotUnregisterDefaultClient );
+            if( source != null && _source != null ) throw new InvalidOperationException( String.Format( R.ActivityLoggerBoundClientMultipleRegister, GetType().FullName ) );
+            _source = source;
         }
 
         /// <summary>

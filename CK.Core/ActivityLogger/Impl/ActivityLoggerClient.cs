@@ -23,6 +23,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text;
 
@@ -31,6 +32,7 @@ namespace CK.Core
     /// <summary>
     /// Base class that explicitely implements <see cref="IActivityLoggerClient"/> (to hide it from public interface).
     /// </summary>
+    [ExcludeFromCodeCoverage]
     public class ActivityLoggerClient : IActivityLoggerClient
     {
         /// <summary>

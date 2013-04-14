@@ -23,6 +23,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text;
 
@@ -32,6 +33,7 @@ namespace CK.Core
     /// An implementation of <see cref="IActivityLogger"/> that does nothing (null object design pattern).
     /// Can be specialized. 
     /// </summary>
+    [ExcludeFromCodeCoverage]
     public class ActivityLoggerEmpty : IActivityLogger
     {
         /// <summary>

@@ -28,7 +28,7 @@ using System.Linq;
 using System;
 using System.Globalization;
 
-namespace Core.Collection
+namespace CK.Core.Tests.Collection
 {
     [TestFixture]
     public class FIFOTests

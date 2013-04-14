@@ -8,10 +8,12 @@ using System.Reflection.Emit;
 using System.Threading;
 using System.Diagnostics;
 using System.IO;
+using System.Diagnostics.CodeAnalysis;
 
 namespace CK.Reflection.Tests
 {
     [TestFixture]
+    [ExcludeFromCodeCoverage]
     public class AutoImplementorTests
     {
         static ModuleBuilder _moduleBuilder;

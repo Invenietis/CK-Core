@@ -97,6 +97,15 @@ namespace CK.Core {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Prematurely closed by Bridge removed..
+        /// </summary>
+        internal static string ClosedByBridgeRemoved {
+            get {
+                return ResourceManager.GetString("ClosedByBridgeRemoved", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Service {0} is direcly supported by the container. It can not be disabled..
         /// </summary>
         internal static string DirectServicesCanNotBeDisabled {

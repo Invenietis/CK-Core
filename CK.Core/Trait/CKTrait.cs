@@ -306,11 +306,11 @@ namespace CK.Core
 
         /// <summary>
         /// Gets the number of <see cref="Fallbacks"/>. It is 2^<see cref="AtomicTraits"/>.<see cref="IReadOnlyCollection{T}.Count"/> - 1 since this
-        /// trait does not appear in the fallbacks.
+        /// trait itself does not appear in the fallbacks, but it is always 1 for atomic and the empty trait (the empty trait always ends the list).
         /// </summary>
         public int FallbacksCount
         {
-            get { return (1 << _traits.Count) - 1; }
+            get { return _traits.Count > 1 ? ( 1 << _traits.Count ) - 1 : 1; }
         }
 
         /// <summary>

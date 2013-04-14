@@ -84,7 +84,7 @@ namespace CK.Core
 
         internal int TargetFilter
         {
-            get { return _honorTargetFilter ? (int)LogLevelFilter.None : (int)_logger.Filter; }
+            get { return _honorTargetFilter ? (int)_logger.Filter : (int)LogLevelFilter.None; }
         }
 
         #region Cross AppDomain interface.
@@ -102,8 +102,19 @@ namespace CK.Core
 
         internal void CloseGroup( string[] taggedConclusions )
         {
-            Debug.Assert( taggedConclusions == null || taggedConclusions.Length % 2 == 0 );
-            _logger.CloseGroup( taggedConclusions );
+            Debug.Assert( taggedConclusions == null || (taggedConclusions.Length >= 2 && taggedConclusions.Length % 2 == 0) );
+            List<ActivityLogGroupConclusion> c = null;
+            if( taggedConclusions != null )
+            {
+                c = new List<ActivityLogGroupConclusion>();
+                int i = 0;
+                while( i < taggedConclusions.Length )
+                {
+                    CKTrait t = ActivityLogger.RegisteredTags.FindOrCreate( taggedConclusions[i++] );
+                    c.Add( new ActivityLogGroupConclusion( t, taggedConclusions[i++] ) );
+                }
+            }
+            _logger.CloseGroup( c );
         } 
         #endregion
     }

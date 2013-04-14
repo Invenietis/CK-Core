@@ -102,11 +102,11 @@ namespace CK.Core
         }
 
         /// <summary>
-        /// Finds a <see cref="CKTrait"/> with only already existing atomic traits.
+        /// Finds a <see cref="CKTrait"/> with only already existing atomic traits (null when not found).
         /// </summary>
         /// <param name="traits">Atomic trait or traits separated by +.</param>
         /// <param name="collector">Optional collector for unknown trait. As soon as the collector returns false, the process stops.</param>
-        /// <returns>A trait that contains only already existing traits or null if none already exists.</returns>
+        /// <returns>A trait that contains only already existing trait or null if none already exists.</returns>
         public CKTrait FindOnlyExisting( string traits, Func<string,bool> collector = null )
         {
             if( traits == null || traits.Length == 0 ) return null;
@@ -264,8 +264,7 @@ namespace CK.Core
         {
             Debug.Assert( count > 1, "Atomic traits are handled directly." );
 
-            Debug.Assert( !Array.Exists( atomicTraits, delegate( CKTrait mA ) { return mA.Context != this || mA.AtomicTraits.Count != 1; } ),
-                "Traits are from this Context and they are atomic and not empty." );
+            Debug.Assert( !Array.Exists( atomicTraits, mA => mA.Context != this || mA.AtomicTraits.Count != 1 ), "Traits are from this Context and they are atomic and not empty." );
 
             StringBuilder b = new StringBuilder( atomicTraits[0].ToString() );
             for( int i = 1; i < count; ++i )
@@ -301,7 +300,7 @@ namespace CK.Core
         {
             string[] traits = _canonize2.Split( s.Trim() );
             count = traits.Length;
-            if( count == 0 ) return Util.EmptyStringArray;
+            Debug.Assert( count != 0, "Split always create a cell." );
             int i = traits[0].Length == 0 ? 1 : 0;
             // Special handling for first and last slots if ther are empty.
             if( traits[count - 1].Length == 0 ) count = count - 1 - i;

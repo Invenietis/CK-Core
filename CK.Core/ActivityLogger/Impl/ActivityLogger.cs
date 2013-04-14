@@ -101,7 +101,7 @@ namespace CK.Core
         {
             Debug.Assert( RegisteredTags.Separator == '|', "Separator must be the |." );
             _output = output;
-            _groups = new Group[32];
+            _groups = new Group[16];
             for( int i = 0; i < _groups.Length; ++i ) _groups[i] = CreateGroup( i );
             _currentTag = tags ?? RegisteredTags.EmptyTrait;
         }
@@ -221,12 +221,14 @@ namespace CK.Core
         }
 
         /// <summary>
-        /// Closes the current <see cref="Group"/>. Optional parameter is polymorphic. It can be a string, a <see cref="List{T}"/> or an enumerable of <see cref="ActivityLogGroupConclusion"/>, 
-        /// or any object with an overriden <see cref="Object.ToString"/> method. See remarks (especially for List&lt;ActivityLogGroupConclusion&gt;).
+        /// Closes the current <see cref="Group"/>. Optional parameter is polymorphic. It can be a string, a <see cref="ActivityLogGroupConclusion"/>, 
+        /// a <see cref="List{T}"/> or an <see cref="IEnumerable{T}"/> of ActivityLogGroupConclusion, or any object with an overriden <see cref="Object.ToString"/> method. 
+        /// See remarks (especially for List&lt;ActivityLogGroupConclusion&gt;).
         /// </summary>
         /// <param name="userConclusion">Optional string, enumerable of <see cref="ActivityLogGroupConclusion"/>) or object to conclude the group. See remarks.</param>
         /// <remarks>
-        /// An untyped object is used here to easily and efficiently accomodate both string and already existing IEnumerable&lt;ActivityLogGroupConclusion&gt; conclusions.
+        /// An untyped object is used here to easily and efficiently accomodate both string and already existing ActivityLogGroupConclusion.
+        /// When a List&lt;ActivityLogGroupConclusion&gt; is used, it will be direclty used to collect conclusion objects (new conclusions will be added to it). This is an optimization.
         /// </remarks>
         public virtual void CloseGroup( object userConclusion = null )
         {
@@ -241,9 +243,16 @@ namespace CK.Core
                     if( s != null ) conclusions.Add( new ActivityLogGroupConclusion( TagUserConclusion, s ) );
                     else
                     {
-                        IEnumerable<ActivityLogGroupConclusion> multi = userConclusion as IEnumerable<ActivityLogGroupConclusion>;
-                        if( multi != null ) conclusions.AddRange( multi );
-                        else conclusions.Add( new ActivityLogGroupConclusion( TagUserConclusion, userConclusion.ToString() ) );
+                        if( userConclusion is ActivityLogGroupConclusion )
+                        {
+                            conclusions.Add( (ActivityLogGroupConclusion)userConclusion );
+                        }
+                        else
+                        {
+                            IEnumerable<ActivityLogGroupConclusion> multi = userConclusion as IEnumerable<ActivityLogGroupConclusion>;
+                            if( multi != null ) conclusions.AddRange( multi );
+                            else conclusions.Add( new ActivityLogGroupConclusion( TagUserConclusion, userConclusion.ToString() ) );
+                        }
                     }
                 }
                 g.GroupClose( ref conclusions );

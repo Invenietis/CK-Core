@@ -28,7 +28,7 @@ using System.Linq;
 using System;
 using System.Collections.Generic;
 
-namespace Core.Collection
+namespace CK.Core.Tests.Collection
 {
     public class TestCollection<T> : IReadOnlyCollection<T>
     {

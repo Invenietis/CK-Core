@@ -23,14 +23,16 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Text;
 using CK.Core;
 using NUnit.Framework;
 
-namespace Core
+namespace CK.Core.Tests
 {
+    [ExcludeFromCodeCoverage]
     static class TestHelper
     {
         static string _testFolder;

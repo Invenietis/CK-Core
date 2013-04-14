@@ -52,6 +52,7 @@ namespace Keyboard
             Assert.That( m.IsAtomic, "Empty trait is considered as atomic." );
             Assert.That( m.AtomicTraits.Count == 0, "Empty trait has no atomic traits inside." );
 
+            Assert.That( Context.FindOrCreate( (string)null ) == m, "Null gives the empty trait." );
             Assert.That( Context.FindOrCreate( "" ) == m, "Obtaining empty string gives the empty trait." );
             Assert.That( Context.FindOrCreate( "+" ) == m, "Obtaining '+' gives the empty trait." );
             Assert.That( Context.FindOrCreate( " \t \r\n  " ) == m, "Strings are trimmed." );
@@ -59,6 +60,13 @@ namespace Keyboard
             Assert.That( Context.FindOrCreate( "++++" ) == m, "Multiple + are ignored" );
             Assert.That( Context.FindOrCreate( "++  +++ \r\n  + \t +" ) == m, "Multiple empty strings leads to empty trait." );
 
+            Assert.That( Context.FindOnlyExisting( null ), Is.Null );
+            Assert.That( Context.FindOnlyExisting( "" ), Is.Null );
+            Assert.That( Context.FindOnlyExisting( " " ), Is.Null );
+            Assert.That( Context.FindOnlyExisting( " ++  + " ), Is.Null );
+            Assert.That( Context.FindOnlyExisting( "NONE" ), Is.Null );
+            Assert.That( Context.FindOnlyExisting( "NO+NE" ), Is.Null );
+            Assert.That( Context.FindOnlyExisting( "N+O+N+E" ), Is.Null );
         }
 
         [Test]
@@ -72,6 +80,11 @@ namespace Keyboard
             Assert.That( Context.FindOrCreate( "+ \t Alpha+" ) == m, "Leading and trailing '+' are ignored." );
             Assert.That( Context.FindOrCreate( "+Alpha+++" ) == m, "Multiple + are ignored" );
             Assert.That( Context.FindOrCreate( "++ Alpha +++ \r\n  + \t +" ) == m, "Multiple empty strings are ignored." );
+
+            Assert.That( Context.FindOnlyExisting( "Beta" ), Is.Null );
+            Assert.That( Context.FindOnlyExisting( "Beta+Gamma" ), Is.Null );
+            Assert.That( Context.FindOnlyExisting( "Alpha" ), Is.SameAs( m ) );
+            Assert.That( Context.FindOnlyExisting( "Beta+Gamma+Alpha" ), Is.SameAs( m ) );
         }
 
         [Test]
@@ -88,9 +101,27 @@ namespace Keyboard
             Assert.That( Context.FindOrCreate( "Alpha+Beta+Alpha" ) == m, "Multiple identical traits are removed." );
             Assert.That( Context.FindOrCreate( "Alpha+ +Beta\r++Beta+ + Alpha +    Beta   ++ " ) == m, "Multiple identical traits are removed." );
 
-            m = Context.FindOrCreate( "Beta+Alpha+Zeta+Tau+Pi+Omega+Epsilon" );
-            Assert.That( Context.FindOrCreate( "++Beta+Zeta+Omega+Epsilon+Alpha+Zeta+Epsilon+Zeta+Tau+Epsilon+Pi+Tau+Beta+Zeta+Omega+Beta+Pi+Alpha" ) == m,
-                "Unicity of Atomic trait is ensured." );
+            CKTrait m2 = Context.FindOrCreate( "Beta+Alpha+Zeta+Tau+Pi+Omega+Epsilon" );
+            Assert.That( Context.FindOrCreate( "++Beta+Zeta+Omega+Epsilon+Alpha+Zeta+Epsilon+Zeta+Tau+Epsilon+Pi+Tau+Beta+Zeta+Omega+Beta+Pi+Alpha" ), Is.SameAs( m2 ), "Unicity of Atomic trait is ensured." );
+
+            Assert.That( Context.FindOnlyExisting( "Beta" ).ToString(), Is.EqualTo( "Beta" ) );
+            Assert.That( Context.FindOnlyExisting( "Beta+Gamma" ).ToString(), Is.EqualTo( "Beta" ) );
+            Assert.That( Context.FindOnlyExisting( "Beta+Gamma+Nimp+Alpha+Other" ), Is.SameAs( m ) );
+            Assert.That( Context.FindOnlyExisting( "Beta+Gamma+Nimp+Alpha+Other+Tau+Pi" ).ToString(), Is.EqualTo( "Alpha+Beta+Pi+Tau" ) );
+        }
+
+        [Test]
+        public void FindOnlyExistingCollector()
+        {
+            List<string> collector = new List<string>();
+            Context.FindOrCreate( "Beta+Alpha+Tau+Pi" );
+
+            Assert.That( Context.FindOnlyExisting( "Beta+Gamma+Nimp+Alpha+Other+Tau+Pi+Zeta", t => { collector.Add( t ); return true; } ).ToString(), Is.EqualTo( "Alpha+Beta+Pi+Tau" ) );
+            Assert.That( String.Join( ",", collector ), Is.EqualTo( "Gamma,Nimp,Other,Zeta" ) );
+
+            collector.Clear();
+            Assert.That( Context.FindOnlyExisting( "Beta+Gamma+Nimp+Alpha+Other+Tau+Pi", t => { collector.Add( t ); return t != "Other"; } ).ToString(), Is.EqualTo( "Alpha+Beta" ) );
+            Assert.That( String.Join( ",", collector ), Is.EqualTo( "Gamma,Nimp,Other" ) );
         }
 
         [Test]
@@ -206,18 +237,21 @@ namespace Keyboard
             {
                 CKTrait m = Context.FindOrCreate( "" );
                 IReadOnlyList<CKTrait> f = m.Fallbacks.ToReadOnlyList();
+                Assert.That( m.FallbacksCount, Is.EqualTo( f.Count ) );
                 Assert.That( f.Count == 1 );
                 Assert.That( f[0].ToString() == "" );
             }
             {
                 CKTrait m = Context.FindOrCreate( "Alpha" );
                 IReadOnlyList<CKTrait> f = m.Fallbacks.ToReadOnlyList();
+                Assert.That( m.FallbacksCount, Is.EqualTo( f.Count ) );
                 Assert.That( f.Count == 1 );
                 Assert.That( f[0].ToString() == "" );
             }
             {
                 CKTrait m = Context.FindOrCreate( "Alpha+Beta" );
                 IReadOnlyList<CKTrait> f = m.Fallbacks.ToReadOnlyList();
+                Assert.That( m.FallbacksCount, Is.EqualTo( f.Count ) );
                 Assert.That( f.Count == 3 );
                 Assert.That( f[0].ToString() == "Alpha" );
                 Assert.That( f[1].ToString() == "Beta" );
@@ -226,6 +260,7 @@ namespace Keyboard
             {
                 CKTrait m = Context.FindOrCreate( "Alpha+Beta+Combo" );
                 IReadOnlyList<CKTrait> f = m.Fallbacks.ToReadOnlyList();
+                Assert.That( m.FallbacksCount, Is.EqualTo( f.Count ) );
                 Assert.That( f.Count == 7 );
                 Assert.That( f[0].ToString() == "Alpha+Beta" );
                 Assert.That( f[1].ToString() == "Alpha+Combo" );
@@ -238,6 +273,7 @@ namespace Keyboard
             {
                 CKTrait m = Context.FindOrCreate( "Alpha+Beta+Combo+Fridge" );
                 IReadOnlyList<CKTrait> f = m.Fallbacks.ToReadOnlyList();
+                Assert.That( m.FallbacksCount, Is.EqualTo( f.Count ) );
                 Assert.That( f.Count == 15 );
                 Assert.That( f[0].ToString() == "Alpha+Beta+Combo" );
                 Assert.That( f[1].ToString() == "Alpha+Beta+Fridge" );

@@ -23,6 +23,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text;
 
@@ -42,6 +43,7 @@ namespace CK.Core
             return new DefaultActivityLogger();
         }
 
+        [ExcludeFromCodeCoverage]
         class EmptyDefault : ActivityLoggerEmpty, IDefaultActivityLogger
         {
             public ActivityLoggerTap Tap
