@@ -129,7 +129,9 @@ namespace CK.Core
         /// <returns>A negative, zero or positive value.</returns>
         public int CompareTo( CKTrait other )
         {
+            if( other == null ) throw new ArgumentNullException( "other" );
             if( ReferenceEquals( this, other ) ) return 0;
+            if( _context != other._context ) return _context.CompareTo( other._context );
             int cmp = _traits.Count - other.AtomicTraits.Count;
             if( cmp == 0 ) cmp = StringComparer.Ordinal.Compare( other._trait, _trait );
             return cmp;
@@ -146,6 +148,8 @@ namespace CK.Core
         /// </remarks>
         public bool IsSupersetOf( CKTrait other )
         {
+            if( other == null ) throw new ArgumentNullException( "other" );
+            if( other.Context != _context ) throw new InvalidOperationException( R.TraitsMustBelongToTheSameContext );
             if( _traits.Count < other._traits.Count ) return false;
             bool foundAlien = false;
             Process( this, other,
@@ -158,7 +162,7 @@ namespace CK.Core
         /// <summary>
         /// Checks if one of the atomic traits of <paramref name="other" /> exists in this trait.
         /// </summary>
-        /// <param name="other">The trait(s) to find.</param>
+        /// <param name="other">The trait to find.</param>
         /// <returns>Returns true if one of the specified traits appears in this trait.</returns>
         /// <remarks>
         /// When true, this ensures that <see cref="Intersect"/>( <paramref name="other"/> ) != <see cref="CKTraitContext.EmptyTrait"/>. 
@@ -167,6 +171,8 @@ namespace CK.Core
         /// </remarks>
         public bool Overlaps( CKTrait other )
         {
+            if( other == null ) throw new ArgumentNullException( "other" );
+            if( other.Context != _context ) throw new InvalidOperationException( R.TraitsMustBelongToTheSameContext );
             bool found = false;
             Process( this, other,
                 null,
@@ -178,10 +184,12 @@ namespace CK.Core
         /// <summary>
         /// Obtains a <see cref="CKTrait"/> that contains the atomic traits from both this trait and <paramref name="other"/>.
         /// </summary>
-        /// <param name="other">Trait(s) that must be kept.</param>
+        /// <param name="other">Trait that must be kept.</param>
         /// <returns>The resulting trait.</returns>
         public CKTrait Intersect( CKTrait other )
         {
+            if( other == null ) throw new ArgumentNullException( "other" );
+            if( other.Context != _context ) throw new InvalidOperationException( R.TraitsMustBelongToTheSameContext );
             List<CKTrait> m = new List<CKTrait>();
             Process( this, other, null, null, Util.AlwaysTrue<CKTrait>( m.Add ) );
             return _context.FindOrCreate( m );
@@ -191,10 +199,12 @@ namespace CK.Core
         /// Obtains a <see cref="CKTrait"/> that combines this one and 
         /// the trait(s) specified by the parameter. 
         /// </summary>
-        /// <param name="other">Trait(s) to add.</param>
+        /// <param name="other">Trait to add.</param>
         /// <returns>The resulting trait.</returns>
         public CKTrait Union( CKTrait other )
         {
+            if( other == null ) throw new ArgumentNullException( "other" );
+            if( other.Context != _context ) throw new InvalidOperationException( R.TraitsMustBelongToTheSameContext );
             List<CKTrait> m = new List<CKTrait>();
             var add = Util.AlwaysTrue<CKTrait>( m.Add );
             Process( this, other, add, add, add );
@@ -204,10 +214,12 @@ namespace CK.Core
         /// <summary>
         /// Obtains a <see cref="CKTrait"/> from which trait(s) specified by the parameter are removed.
         /// </summary>
-        /// <param name="other">Trait(s) to remove.</param>
+        /// <param name="other">Trait to remove.</param>
         /// <returns>The resulting trait.</returns>
         public CKTrait Except( CKTrait other )
         {
+            if( other == null ) throw new ArgumentNullException( "other" );
+            if( other.Context != _context ) throw new InvalidOperationException( R.TraitsMustBelongToTheSameContext );
             List<CKTrait> m = new List<CKTrait>();
             Process( this, other, Util.AlwaysTrue<CKTrait>( m.Add ), null, null );
             return _context.FindOrCreate( m );
@@ -217,14 +229,34 @@ namespace CK.Core
         /// Obtains a <see cref="CKTrait"/> where the atomic traits of <paramref name="other" /> are removed (resp. added) depending 
         /// on whether they exist (resp. do not exist) in this trait. This is like an Exclusive Or (XOR).
         /// </summary>
-        /// <param name="other">Trait(s) to toggle.</param>
+        /// <param name="other">Trait to toggle.</param>
         /// <returns>The resulting trait.</returns>
         public CKTrait SymmetricExcept( CKTrait other )
         {
+            if( other == null ) throw new ArgumentNullException( "other" );
+            if( other.Context != _context ) throw new InvalidOperationException( R.TraitsMustBelongToTheSameContext );
             List<CKTrait> m = new List<CKTrait>();
             var add = Util.AlwaysTrue<CKTrait>( m.Add );
             Process( this, other, add, add, null );
             return _context.FindOrCreate( m );
+        }
+
+        /// <summary>
+        /// Applies the given <see cref="SetOperation"/>.
+        /// </summary>
+        /// <param name="other">Trait to combine.</param>
+        /// <param name="operation">Set operation.</param>
+        /// <returns>Resulting trait.</returns>
+        public CKTrait Apply( CKTrait other, SetOperation operation )
+        {
+            if( other == null ) throw new ArgumentNullException( "other" );
+            if( operation == SetOperation.Union ) return Union( other );
+            else if( operation == SetOperation.Except ) return Except( other );
+            else if( operation == SetOperation.Intersect ) return Intersect( other );
+            else if( operation == SetOperation.SymetricExcept ) return SymmetricExcept( other );
+            else if( operation == SetOperation.None ) return this;
+            Debug.Assert( operation == SetOperation.Replace, "All operations are covered." );
+            return other;
         }
 
         /// <summary>

@@ -88,6 +88,15 @@ namespace CK.Core {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Argument must not be null or whitespace..
+        /// </summary>
+        internal static string ArgumentMustNotBeNullOrWhiteSpace {
+            get {
+                return ResourceManager.GetString("ArgumentMustNotBeNullOrWhiteSpace", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Can not Unregister the Tap, PathCatcher or ErrorCounter of a default logger..
         /// </summary>
         internal static string CanNotUnregisterDefaultClient {
@@ -183,6 +192,15 @@ namespace CK.Core {
         internal static string ServiceImplTypeMismatch {
             get {
                 return ResourceManager.GetString("ServiceImplTypeMismatch", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Traits must belong to the same context..
+        /// </summary>
+        internal static string TraitsMustBelongToTheSameContext {
+            get {
+                return ResourceManager.GetString("TraitsMustBelongToTheSameContext", resourceCulture);
             }
         }
         

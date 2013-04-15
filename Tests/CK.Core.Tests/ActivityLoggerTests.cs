@@ -34,10 +34,10 @@ namespace CK.Core.Tests
 {
     [TestFixture]
     [ExcludeFromCodeCoverage]
+    [Category( "ActivityLogger" )]
     public class ActivityLoggerTests
     {
         [Test]
-        [Category( "ActivityLogger" )]
         public void NonRemovableOrLockedClients()
         {
             IDefaultActivityLogger logger = DefaultActivityLogger.Create();
@@ -67,7 +67,6 @@ namespace CK.Core.Tests
         }
 
         [Test]
-        [Category( "ActivityLogger" )]
         [Category( "Console" )]
         public void BridgeBalance()
         {
@@ -118,7 +117,6 @@ namespace CK.Core.Tests
         }
 
         [Test]
-        [Category( "ActivityLogger" )]
         public void TagsAndFilterRestored()
         {
             ActivityLogger logger = new ActivityLogger();
@@ -141,7 +139,6 @@ namespace CK.Core.Tests
         }
 
         [Test]
-        [Category( "ActivityLogger" )]
         [Category( "Console" )]
         public void DefaultImpl()
         {
@@ -197,7 +194,6 @@ namespace CK.Core.Tests
         }
 
         [Test]
-        [Category( "ActivityLogger" )]
         [Category( "Console" )]
         public void MultipleClose()
         {
@@ -224,7 +220,6 @@ namespace CK.Core.Tests
         }
 
         [Test]
-        [Category( "ActivityLogger" )]
         [Category( "Console" )]
         public void FilterLevel()
         {
@@ -283,7 +278,6 @@ namespace CK.Core.Tests
         }
 
         [Test]
-        [Category( "ActivityLogger" )]
         public void CloseMismatch()
         {
             IDefaultActivityLogger l = DefaultActivityLogger.Create();
@@ -322,7 +316,6 @@ namespace CK.Core.Tests
         }
 
         [Test]
-        [Category( "ActivityLogger" )]
         [Category( "Console" )]
         public void MultipleConclusions()
         {
@@ -342,7 +335,6 @@ namespace CK.Core.Tests
         }
 
         [Test]
-        [Category( "ActivityLogger" )]
         [Category( "Console" )]
         public void PathCatcherTests()
         {
@@ -488,7 +480,6 @@ namespace CK.Core.Tests
         }
 
         [Test]
-        [Category( "ActivityLogger" )]
         [Category( "Console" )]
         public void ErrorCounterTests()
         {
@@ -577,7 +568,6 @@ namespace CK.Core.Tests
         }
 
         [Test]
-        [Category( "ActivityLogger" )]
         public void SimpleCollectorTest()
         {
             IDefaultActivityLogger d = DefaultActivityLogger.Create();
@@ -615,7 +605,6 @@ namespace CK.Core.Tests
         }
 
         [Test]
-        [Category( "ActivityLogger" )]
         public void CatchTests()
         {
             IDefaultActivityLogger d = DefaultActivityLogger.Create();
@@ -663,7 +652,6 @@ namespace CK.Core.Tests
         }
 
         [Test]
-        [Category( "ActivityLogger" )]
         public void Overloads()
         {
             Exception ex = new Exception( "EXCEPTION" );
@@ -779,7 +767,6 @@ namespace CK.Core.Tests
         }
         
         [Test]
-        [Category( "ActivityLogger" )]
         public void OverloadsWithTraits()
         {
             Exception ex = new Exception( "EXCEPTION" );

@@ -34,6 +34,7 @@ namespace Keyboard
     /// This class test operations on CKTrait (FindOrCreate, Intersect, etc.).
     /// </summary>
     [TestFixture]
+    [Category( "CKTrait" )]
     public class Traits
     {
         CKTraitContext Context;
@@ -41,7 +42,59 @@ namespace Keyboard
         [SetUp]
         public void Setup()
         {
-            Context = new CKTraitContext( '+' );
+            Context = new CKTraitContext( "Test", '+' );
+        }
+
+        [Test]
+        public void ComparingTraits()
+        {
+            CKTraitContext c1 = new CKTraitContext( "C1" );
+            CKTraitContext c1Bis = new CKTraitContext( "C1" );
+            CKTraitContext c2 = new CKTraitContext( "C2" );
+
+            Assert.That( c1.CompareTo( c1 ), Is.EqualTo( 0 ) );
+            Assert.That( c1.CompareTo( c2 ), Is.LessThan( 0 ) );
+            Assert.That( c1Bis.CompareTo( c1 ), Is.GreaterThan( 0 ) );
+
+            var tAc1 = c1.FindOrCreate( "A" );
+            var tBc1 = c1.FindOrCreate( "B" );
+            var tAc2 = c2.FindOrCreate( "A" );
+
+            Assert.That( tAc1.CompareTo( tAc1 ), Is.EqualTo( 0 ) );
+            Assert.That( tAc1.CompareTo( tBc1 ), Is.GreaterThan( 0 ), "In the same context, A is stronger than B." );
+            Assert.That( tAc1.CompareTo( tAc2 ), Is.LessThan( 0 ), "Between different contexts, the context ordering drives." );
+        }
+
+        [Test]
+        public void ContextMismatchOrNull()
+        {
+            Assert.Throws<ArgumentException>( () => new CKTraitContext( null ) );
+            Assert.Throws<ArgumentException>( () => new CKTraitContext( "  " ) );
+
+            CKTraitContext c1 = new CKTraitContext( "C1" );
+            CKTraitContext c2 = new CKTraitContext( "C2" );
+
+            var t1 = c1.FindOrCreate( "T1" );
+            var t2 = c2.FindOrCreate( "T2" );
+            Assert.That( t1 != t2 );
+            Assert.Throws<InvalidOperationException>( () => t1.Union( t2 ) );
+            Assert.Throws<InvalidOperationException>( () => t1.Intersect( t2 ) );
+            Assert.Throws<InvalidOperationException>( () => t1.Except( t2 ) );
+            Assert.Throws<InvalidOperationException>( () => t1.SymmetricExcept( t2 ) );
+
+            Assert.Throws<InvalidOperationException>( () => t1.Overlaps( t2 ) );
+            Assert.Throws<InvalidOperationException>( () => t1.IsSupersetOf( t2 ) );
+
+            Assert.Throws<ArgumentNullException>( () => t1.Union( null ) );
+            Assert.Throws<ArgumentNullException>( () => t1.Intersect( null ) );
+            Assert.Throws<ArgumentNullException>( () => t1.Except( null ) );
+            Assert.Throws<ArgumentNullException>( () => t1.SymmetricExcept( null ) );
+
+            Assert.Throws<ArgumentNullException>( () => t1.Overlaps( null ) );
+            Assert.Throws<ArgumentNullException>( () => t1.IsSupersetOf( null ) );
+
+            Assert.Throws<ArgumentNullException>( () => t1.CompareTo( null ) );
+            Assert.Throws<ArgumentNullException>( () => c1.CompareTo( null ) );
         }
 
         [Test]
@@ -190,7 +243,7 @@ namespace Keyboard
         [Test]
         public void PipeDefaultTrait()
         {
-            var c = new CKTraitContext();
+            var c = new CKTraitContext( "PipeContext", '|' );
             CKTrait m = c.FindOrCreate( "Beta|Alpha|Fridge|Combo" );
 
             Assert.That( c.EmptyTrait.IsSupersetOf( c.EmptyTrait ), "Empty is contained by definition in itself." );

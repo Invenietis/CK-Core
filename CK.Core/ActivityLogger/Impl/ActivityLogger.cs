@@ -65,7 +65,7 @@ namespace CK.Core
 
         static ActivityLogger()
         {
-            RegisteredTags = new CKTraitContext();
+            RegisteredTags = new CKTraitContext( "ActivityLogger" );
             EmptyTag = ActivityLogger.RegisteredTags.EmptyTrait;
             TagUserConclusion = RegisteredTags.FindOrCreate( "c:User" );
             TagGetTextConclusion = RegisteredTags.FindOrCreate( "c:GetText" );

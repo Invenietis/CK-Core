@@ -276,14 +276,7 @@ namespace CK.Core
         /// <returns>A <see cref="IDisposable"/> object that will restore the current tag when disposed.</returns>
         public static IDisposable Tags( this IActivityLogger @this, CKTrait tags, SetOperation operation = SetOperation.Union )
         {
-            if( tags == null ) throw new ArgumentNullException( "tags" );
-            if( operation == SetOperation.Union ) tags = @this.Tags.Union( tags );
-            else if( operation == SetOperation.Except ) tags = @this.Tags.Except( tags );
-            else if( operation == SetOperation.Intersect ) tags = @this.Tags.Intersect( tags );
-            else if( operation == SetOperation.SymetricExcept ) tags = @this.Tags.SymmetricExcept( tags );
-            else if( operation == SetOperation.SymetricExcept ) tags = @this.Tags.SymmetricExcept( tags );
-            else if( operation == SetOperation.None ) return Util.EmptyDisposable;
-            return new TagsSentinel( @this, tags );
+            return new TagsSentinel( @this, @this.Tags.Apply( tags, operation ) );
         }
         
         #endregion

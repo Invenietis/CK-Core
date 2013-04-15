@@ -126,6 +126,9 @@
   <data name="ArgumentCountNegative" xml:space="preserve">
     <value>Argument count can not be negative.</value>
   </data>
+  <data name="ArgumentMustNotBeNullOrWhiteSpace" xml:space="preserve">
+    <value>Argument must not be null or whitespace.</value>
+  </data>
   <data name="CanNotUnregisterDefaultClient" xml:space="preserve">
     <value>Can not Unregister the Tap, PathCatcher or ErrorCounter of a default logger.</value>
   </data>
@@ -158,6 +161,9 @@
   </data>
   <data name="ServiceImplTypeMismatch" xml:space="preserve">
     <value>Service {0} is not implemented by object {1}.</value>
+  </data>
+  <data name="TraitsMustBelongToTheSameContext" xml:space="preserve">
+    <value>Traits must belong to the same context.</value>
   </data>
   <data name="UnregisteredServiceInServiceProvider" xml:space="preserve">
     <value>Unable to find service '{0}'.</value>

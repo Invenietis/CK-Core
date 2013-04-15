@@ -28,36 +28,47 @@ using System.Text;
 using System.Text.RegularExpressions;
 using CK.Core;
 using System.Collections.Concurrent;
+using System.Threading;
 
 namespace CK.Core
 {
     /// <summary>
     /// Thread-safe registration root for <see cref="CKTrait"/> objects.
     /// </summary>
-    public sealed class CKTraitContext
+    public sealed class CKTraitContext : IComparable<CKTraitContext>
     {
+        static int _index;
+
         readonly CKTrait _empty;
         readonly IEnumerable<CKTrait> _enumerableWithEmpty;
         readonly Regex _canonize2;
 
         readonly ConcurrentDictionary<string, CKTrait> _traits;
         readonly object _creationLock;
-        readonly char _separator;
+        readonly string _uniqueName;
+        readonly int _uniqueIndex;
         readonly string _separatorString;
+        readonly char _separator;
 
         /// <summary>
         /// Initializes a new context for traits with a '|' as the separator.
         /// </summary>
-        public CKTraitContext()
-            : this( '|' )
+        /// <param name="name">Name for the context. Must not be null nor whitespace.</param>
+        public CKTraitContext( string name )
+            : this( name, '|' )
         {
         }
 
         /// <summary>
-        /// Initializes a new context for traits with the providen separator.
+        /// Initializes a new context for traits with the given separator.
         /// </summary>
-        public CKTraitContext( char separator )
+        /// <param name="name">Name for the context. Must not be null nor whitespace.</param>
+        /// <param name="separator">Separator if it must differ from '|'.</param>
+        public CKTraitContext( string name, char separator )
         {
+            if( String.IsNullOrWhiteSpace( name ) ) throw new ArgumentException( R.ArgumentMustNotBeNullOrWhiteSpace, "uniqueName" );
+            _uniqueName = name.Normalize();
+            _uniqueIndex = Interlocked.Increment( ref _index );
             _separator = separator;
             _separatorString = new String( separator, 1 );
             string pattern = "(\\s*" + Regex.Escape( _separatorString ) + "\\s*)+";
@@ -73,6 +84,31 @@ namespace CK.Core
         /// Gets the separator to use to separate combined traits.
         /// </summary>
         public char Separator { get { return _separator; } }
+
+        /// <summary>
+        /// Gets the name of this context.
+        /// </summary>
+        public string Name { get { return _uniqueName; } }
+
+        /// <summary>
+        /// Compares this context to another one.
+        /// The key is <see cref="Separator"/>, then <see cref="Name"/> and if they are equal, a unique number is 
+        /// used to order the two contexts.
+        /// </summary>
+        /// <param name="other">Context to compare.</param>
+        /// <returns>0 for the exact same object (ReferenceEquals), greater/lower than 0 otherwise.</returns>
+        public int CompareTo( CKTraitContext other )
+        {
+            if( other == null ) throw new ArgumentNullException( "other" );
+            if( ReferenceEquals( this, other ) ) return 0;
+            int cmp = _separator - other._separator;
+            if( cmp == 0 )
+            {
+                cmp = StringComparer.Ordinal.Compare( _uniqueName, other._uniqueName );
+                if( cmp == 0 ) cmp = _uniqueIndex - other._uniqueIndex;
+            }
+            return cmp;
+        }
 
         /// <summary>
         /// Gets the empty trait for this context. It corresponds to the empty string.
@@ -338,5 +374,6 @@ namespace CK.Core
             }
             return traits;
         }
+
     }
 }
