@@ -24,8 +24,6 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
-using System.Text;
 
 namespace CK.Core
 {
@@ -150,7 +148,7 @@ namespace CK.Core
             {
                 if( _curLevel != -1 )
                 {
-                    foreach( var s in RegisteredSinks ) s.OnLeaveLevel( (LogLevel)_curLevel );
+                    SafeCall( s => s.OnLeaveLevel( (LogLevel)_curLevel ) );
                 }
                 _curLevel = -1;
             }
@@ -158,15 +156,15 @@ namespace CK.Core
             {
                 if( _curLevel == (int)level )
                 {
-                    foreach( var s in RegisteredSinks ) s.OnContinueOnSameLevel( tags, level, text, logTimeUtc );
+                    SafeCall( s => s.OnContinueOnSameLevel( tags, level, text, logTimeUtc ) );
                 }
                 else
                 {
                     if( _curLevel != -1 )
                     {
-                        foreach( var s in RegisteredSinks ) s.OnLeaveLevel( (LogLevel)_curLevel );
+                        SafeCall( s => s.OnLeaveLevel( (LogLevel)_curLevel ) );
                     }
-                    foreach( var s in RegisteredSinks ) s.OnEnterLevel( tags, level, text, logTimeUtc );
+                    SafeCall( s => s.OnEnterLevel( tags, level, text, logTimeUtc ) );
                     _curLevel = (int)level;
                 }
             }
@@ -180,10 +178,10 @@ namespace CK.Core
         {
             if( _curLevel != -1 )
             {
-                foreach( var s in RegisteredSinks ) s.OnLeaveLevel( (LogLevel)_curLevel );
+                SafeCall( s => s.OnLeaveLevel( (LogLevel)_curLevel ) );
                 _curLevel = -1;
             }
-            foreach( var s in RegisteredSinks ) s.OnGroupOpen( group );
+            SafeCall( s => s.OnGroupOpen( group ) );
         }
 
         /// <summary>
@@ -195,10 +193,29 @@ namespace CK.Core
         {
             if( _curLevel != -1 )
             {
-                foreach( var s in RegisteredSinks ) s.OnLeaveLevel( (LogLevel)_curLevel );
+                SafeCall( s => s.OnLeaveLevel( (LogLevel)_curLevel ) );
                 _curLevel = -1;
             }
-            foreach( var s in RegisteredSinks ) s.OnGroupClose( group, conclusions );
+            SafeCall( s => s.OnGroupClose( group, conclusions ) );
+        }
+
+        void SafeCall( Action<IActivityLoggerSink> a )
+        {
+            List<IActivityLoggerSink> buggySinks = null;
+            foreach( var s in _sinks )
+            {
+                try
+                {
+                    a( s );
+                }
+                catch( Exception exCall )
+                {
+                    ActivityLogger.LoggingError.Add( s.GetType().FullName, exCall );
+                    if( buggySinks == null ) buggySinks = new List<IActivityLoggerSink>();
+                    buggySinks.Add( s );
+                }
+            }
+            if( buggySinks != null ) foreach( var s in buggySinks ) _sinks.Remove( s );
         }
 
     }

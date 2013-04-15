@@ -89,6 +89,7 @@
     <Compile Include="ActivityLogger\Impl\ActivityLoggerExtension.WithoutTags.cs" />
     <Compile Include="ActivityLogger\Impl\ActivityLoggerExtension.WithTags.cs" />
     <Compile Include="ActivityLogger\Impl\ActivityLoggerBridge.cs" />
+    <Compile Include="ActivityLogger\Impl\ActivityLogger.LogErrorCollector.cs" />
     <Compile Include="ActivityLogger\Impl\DefaultActivityLogger.cs" />
     <Compile Include="ActivityLogger\IDefaultActivityLogger.cs" />
     <Compile Include="ActivityLogger\IActivityLoggerSink.cs" />

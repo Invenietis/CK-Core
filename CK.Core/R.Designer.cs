@@ -124,6 +124,15 @@ namespace CK.Core {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to An error handler raised the error. It has been removed from the LoggingError.OnError event..
+        /// </summary>
+        internal static string ErrorWhileRaisingLogError {
+            get {
+                return ResourceManager.GetString("ErrorWhileRaisingLogError", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to An exception occured while resolving type: {0}..
         /// </summary>
         internal static string ExceptionWhileResolvingType {

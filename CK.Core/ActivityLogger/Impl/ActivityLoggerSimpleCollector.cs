@@ -106,7 +106,7 @@ namespace CK.Core
         }
 
         /// <summary>
-        /// Gets a read only list of the <see cref="Capacity"/> entries that occured since last 
+        /// Gets a read only list of (at most) <see cref="Capacity"/> entries that occured since last 
         /// call to <see cref="Clear"/>.
         /// </summary>
         public IReadOnlyList<Entry> Entries

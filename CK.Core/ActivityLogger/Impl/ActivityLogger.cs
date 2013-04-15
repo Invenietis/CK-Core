@@ -69,6 +69,7 @@ namespace CK.Core
             EmptyTag = ActivityLogger.RegisteredTags.EmptyTrait;
             TagUserConclusion = RegisteredTags.FindOrCreate( "c:User" );
             TagGetTextConclusion = RegisteredTags.FindOrCreate( "c:GetText" );
+            LoggingError = new LogErrorCollector();
         }
 
         LogLevelFilter _filter;
@@ -187,7 +188,22 @@ namespace CK.Core
                 {
                     if( tags == null || tags.IsEmpty ) tags = _currentTag;
                     else tags = _currentTag.Union( tags );
-                    foreach( var l in _output.RegisteredClients ) l.OnUnfilteredLog( tags, level, text, logTimeUtc );
+
+                    List<IActivityLoggerClient> buggyClients = null;
+                    foreach( var l in _output.RegisteredClients )
+                    {
+                        try
+                        {
+                            l.OnUnfilteredLog( tags, level, text, logTimeUtc );
+                        }
+                        catch( Exception exCall )
+                        {
+                            LoggingError.Add( l.GetType().FullName, exCall );
+                            if( buggyClients == null ) buggyClients = new List<IActivityLoggerClient>();
+                            buggyClients.Add( l );
+                        }
+                    }
+                    if( buggyClients != null ) foreach( var l in buggyClients ) _output.UnregisterClient( l );
                 }
             }
             return this;
@@ -220,7 +236,21 @@ namespace CK.Core
             if( tags == null || tags.IsEmpty ) tags = _currentTag;
             else tags = _currentTag.Union( tags );
             _current.Initialize( tags, level, text ?? (ex != null ? ex.Message : String.Empty), getConclusionText, logTimeUtc, ex );
-            foreach( var l in _output.RegisteredClients ) l.OnOpenGroup( _current );
+            List<IActivityLoggerClient> buggyClients = null;
+            foreach( var l in _output.RegisteredClients )
+            {
+                try
+                {
+                    l.OnOpenGroup( _current );
+                }
+                catch( Exception exCall )
+                {
+                    LoggingError.Add( l.GetType().FullName, exCall );
+                    if( buggyClients == null ) buggyClients = new List<IActivityLoggerClient>();
+                    buggyClients.Add( l );
+                }
+            }
+            if( buggyClients != null ) foreach( var l in buggyClients ) _output.UnregisterClient( l );
             return _current;
         }
 
@@ -262,11 +292,46 @@ namespace CK.Core
                     }
                 }
                 g.GroupClose( ref conclusions );
-                foreach( var l in _output.RegisteredClients ) l.OnGroupClosing( g, ref conclusions );
+
+                List<IActivityLoggerClient> buggyClients = null;
+                foreach( var l in _output.RegisteredClients )
+                {
+                    try
+                    {
+                        l.OnGroupClosing( g, ref conclusions );
+                    }
+                    catch( Exception exCall )
+                    {
+                        LoggingError.Add( l.GetType().FullName, exCall );
+                        if( buggyClients == null ) buggyClients = new List<IActivityLoggerClient>();
+                        buggyClients.Add( l );
+                    }
+                }
+                if( buggyClients != null )
+                {
+                    foreach( var l in buggyClients ) _output.UnregisterClient( l );
+                    buggyClients.Clear();
+                }
+                
                 Filter = g.SavedLoggerFilter;
                 _currentTag = g.SavedLoggerTags;
                 _current = (Group)g.Parent;
-                foreach( var l in _output.RegisteredClients ) l.OnGroupClosed( g, conclusions != null ? conclusions.ToReadOnlyList() : CKReadOnlyListEmpty<ActivityLogGroupConclusion>.Empty );
+
+                var sentConclusions = conclusions != null ? conclusions.ToReadOnlyList() : CKReadOnlyListEmpty<ActivityLogGroupConclusion>.Empty;
+                foreach( var l in _output.RegisteredClients )
+                {
+                    try
+                    {
+                        l.OnGroupClosed( g, sentConclusions );
+                    }
+                    catch( Exception exCall )
+                    {
+                        LoggingError.Add( l.GetType().FullName, exCall );
+                        if( buggyClients == null ) buggyClients = new List<IActivityLoggerClient>();
+                        buggyClients.Add( l );
+                    }
+                }
+                if( buggyClients != null ) foreach( var l in buggyClients ) _output.UnregisterClient( l );
             }
         }
 

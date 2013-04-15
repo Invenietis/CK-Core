@@ -242,6 +242,7 @@ namespace CK.Core
         /// <returns>Number of items copied.</returns>
         public int CopyTo( T[] array, int arrayIndex, int count )
         {
+            if( array == null ) throw new ArgumentNullException( "array" );
             if( count < 0 ) throw new ArgumentException();
 
             // Number of item to copy: 

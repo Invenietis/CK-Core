@@ -25,6 +25,7 @@ using System;
 using System.Linq;
 using System.Collections.Generic;
 using System.Text;
+using System.Diagnostics;
 
 namespace CK.Core
 {
@@ -172,7 +173,8 @@ namespace CK.Core
         public static IDisposable CatchCounter( this IActivityLogger @this, Action<int, int, int> fatalErrorWarnCount )
         {
             if( fatalErrorWarnCount == null ) throw new ArgumentNullException( "fatalErrorWarnCount" );
-            ActivityLoggerErrorCounter errorCounter = new ActivityLoggerErrorCounter() { GenerateConclusion = false };
+            ActivityLoggerErrorCounter errorCounter = new ActivityLoggerErrorCounter();
+            Debug.Assert( errorCounter.GenerateConclusion == false, "It is false by default." );
             @this.Output.RegisterClient( errorCounter );
             return Util.CreateDisposableAction( () =>
             {
