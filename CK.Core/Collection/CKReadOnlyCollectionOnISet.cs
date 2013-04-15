@@ -42,7 +42,6 @@ namespace CK.Core
         /// Initializes a new <see cref="CKReadOnlyCollectionOnISet{T}"/> around a <see cref="ISet{T}"/>.
 		/// </summary>
 		/// <param name="inner">Hash set to wrap.</param>
-        [TargetedPatchingOptOut( "Performance critical to inline across NGen image boundaries" )]
         public CKReadOnlyCollectionOnISet( ISet<T> inner )
         {
 			_inner = inner;
@@ -53,7 +52,6 @@ namespace CK.Core
 		/// </summary>
 		/// <param name="item">Item to challenge.</param>
 		/// <returns>True if the item is contained in the collection.</returns>
-        [TargetedPatchingOptOut( "Performance critical to inline across NGen image boundaries" )]
         public bool Contains( object item )
         {
             return item is T ? _inner.Contains( (T)item ) : false;
@@ -84,13 +82,11 @@ namespace CK.Core
 		/// Returns an enumerator that iterates through the collection.
 		/// </summary>
 		/// <returns>A IEnumerator that can be used to iterate through the collection.</returns>
-        [TargetedPatchingOptOut( "Performance critical to inline across NGen image boundaries" )]
         public IEnumerator<T> GetEnumerator()
 		{
 			return _inner.GetEnumerator();
 		}
 
-        [TargetedPatchingOptOut( "Performance critical to inline across NGen image boundaries" )]
         IEnumerator IEnumerable.GetEnumerator()
 		{
 			return GetEnumerator();

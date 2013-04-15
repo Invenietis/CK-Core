@@ -58,11 +58,14 @@ namespace Keyboard
 
             var tAc1 = c1.FindOrCreate( "A" );
             var tBc1 = c1.FindOrCreate( "B" );
+            var tABc1 = c1.FindOrCreate( "A|B" );
             var tAc2 = c2.FindOrCreate( "A" );
 
             Assert.That( tAc1.CompareTo( tAc1 ), Is.EqualTo( 0 ) );
             Assert.That( tAc1.CompareTo( tBc1 ), Is.GreaterThan( 0 ), "In the same context, A is stronger than B." );
-            Assert.That( tAc1.CompareTo( tAc2 ), Is.LessThan( 0 ), "Between different contexts, the context ordering drives." );
+            Assert.That( tABc1.CompareTo( tBc1 ), Is.GreaterThan( 0 ), "In the same context, A|B is stronger than B." );
+            Assert.That( tAc1.CompareTo( tAc2 ), Is.LessThan( 0 ), "Between different contexts, the context ordering drives the ordering." );
+            Assert.That( tABc1.CompareTo( tAc2 ), Is.LessThan( 0 ), "Between different contexts, the context ordering drives the ordering." );
         }
 
         [Test]

@@ -41,7 +41,7 @@ namespace CK.Core
         /// </summary>
         static public readonly IActivityLogger Empty = new ActivityLoggerEmpty();
 
-        CKTrait IActivityLogger.Tags
+        CKTrait IActivityLogger.AutoTags
         {
             get { return ActivityLogger.RegisteredTags.EmptyTrait; }
             set { }
@@ -53,17 +53,17 @@ namespace CK.Core
             set { }
         }
 
-        IActivityLogger IActivityLogger.UnfilteredLog( CKTrait tags, LogLevel level, string text, Exception ex )
+        IActivityLogger IActivityLogger.UnfilteredLog( CKTrait tags, LogLevel level, string text, DateTime logTimeUtc, Exception ex )
         {
             return this;
         }
 
-        IDisposable IActivityLogger.OpenGroup( CKTrait tags, LogLevel level, Func<string> getConclusionText, string text, Exception ex )
+        IDisposable IActivityLogger.OpenGroup( CKTrait tags, LogLevel level, Func<string> getConclusionText, string text, DateTime logTimeUtc, Exception ex )
         {
             return Util.EmptyDisposable;
         }
 
-        void IActivityLogger.CloseGroup( object conclusion )
+        void IActivityLogger.CloseGroup( DateTime logTimeUtc, object conclusion )
         {
         }
 

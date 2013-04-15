@@ -80,7 +80,7 @@ namespace CK.Core
             {
             }
 
-            protected override void OnUnfilteredLog( CKTrait tags, LogLevel level, string text )
+            protected override void OnUnfilteredLog( CKTrait tags, LogLevel level, string text, DateTime logTimeUtc )
             {
             }
 
@@ -196,7 +196,8 @@ namespace CK.Core
         /// <param name="tags">Tags (from <see cref="ActivityLogger.RegisteredTags"/>) associated to the log.</param>
         /// <param name="level">Log level.</param>
         /// <param name="text">Text (not null).</param>
-        protected override void OnUnfilteredLog( CKTrait tags, LogLevel level, string text )
+        /// <param name="logTimeUtc">Timestamp of the log.</param>
+        protected override void OnUnfilteredLog( CKTrait tags, LogLevel level, string text, DateTime logTimeUtc )
         {
             if( text != ActivityLogger.ParkLevel )
             {

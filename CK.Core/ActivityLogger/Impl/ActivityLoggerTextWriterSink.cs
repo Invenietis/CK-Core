@@ -61,7 +61,7 @@ namespace CK.Core
             _currentTags = ActivityLogger.EmptyTag;
         }
 
-        void IActivityLoggerSink.OnEnterLevel( CKTrait tags, LogLevel level, string text )
+        void IActivityLoggerSink.OnEnterLevel( CKTrait tags, LogLevel level, string text, DateTime logTimeUtc )
         {
             TextWriter w = _writer();
             _prefixLevel = _prefix + new String( '\u00A0', level.ToString().Length + 4 );
@@ -77,7 +77,7 @@ namespace CK.Core
             }
         }
 
-        void IActivityLoggerSink.OnContinueOnSameLevel( CKTrait tags, LogLevel level, string text )
+        void IActivityLoggerSink.OnContinueOnSameLevel( CKTrait tags, LogLevel level, string text, DateTime logTimeUtc )
         {
             TextWriter w = _writer();
             text.Replace( Environment.NewLine, Environment.NewLine + _prefixLevel );

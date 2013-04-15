@@ -118,7 +118,7 @@ namespace CK.Core
         /// </summary>
         /// <param name="this">This <see cref="IActivityLoggerOutput"/>.</param>
         /// <param name="logger">The logger that will no more receive our logs.</param>
-        /// <returns>The unregistered <see cref="ActivityLoggerBridge"/> if found.</returns>
+        /// <returns>The unregistered <see cref="ActivityLoggerBridge"/> if found, null otherwise.</returns>
         public static ActivityLoggerBridge UnbridgeTo( this IActivityLoggerOutput @this, IActivityLogger logger )
         {
             if( logger == null ) throw new ArgumentNullException( "logger" );
@@ -127,9 +127,23 @@ namespace CK.Core
             return bridge;
         }
 
-
+        /// <summary>
+        /// Closes the current <see cref="Group"/>. Optional parameter is polymorphic. It can be a string, a <see cref="ActivityLogGroupConclusion"/>, 
+        /// a <see cref="List{T}"/> or an <see cref="IEnumerable{T}"/> of ActivityLogGroupConclusion, or any object with an overriden <see cref="Object.ToString"/> method. 
+        /// See remarks (especially for List&lt;ActivityLogGroupConclusion&gt;).
+        /// </summary>
+        /// <param name="userConclusion">Optional string, ActivityLogGroupConclusion object, enumerable of ActivityLogGroupConclusion or object to conclude the group. See remarks.</param>
+        /// <remarks>
+        /// An untyped object is used here to easily and efficiently accomodate both string and already existing ActivityLogGroupConclusion.
+        /// When a List&lt;ActivityLogGroupConclusion&gt; is used, it will be direclty used to collect conclusion objects (new conclusions will be added to it). This is an optimization.
+        /// </remarks>
+        public static void CloseGroup( this IActivityLogger @this, object userConclusion = null )
+        {
+            @this.CloseGroup( DateTime.UtcNow, userConclusion );
+        }
 
         #region Catch & CatchCounter
+
         /// <summary>
         /// Enables simple "using" syntax to easily catch any <see cref="LogLevel"/> (or above) entries (defaults to <see cref="LogLevel.Error"/>).
         /// </summary>
@@ -252,20 +266,20 @@ namespace CK.Core
 
             public TagsSentinel( IActivityLogger l, CKTrait t )
             {
-                _previous = l.Tags;
+                _previous = l.AutoTags;
                 _logger = l;
-                l.Tags = t;
+                l.AutoTags = t;
             }
 
             public void Dispose()
             {
-                _logger.Tags = _previous;
+                _logger.AutoTags = _previous;
             }
 
         }
 
         /// <summary>
-        /// Alter tags of this <see cref="IActivityLogger"/>. Current <see cref="IActivityLogger.Tags"/> will be automatically 
+        /// Alter tags of this <see cref="IActivityLogger"/>. Current <see cref="IActivityLogger.AutoTags"/> will be automatically 
         /// restored when the returned <see cref="IDisposable"/> will be disposed.
         /// This may not be useful since when a Group is closed, the IActivityLogger.Tags is automatically restored to its original value 
         /// (captured when the Group was opened).
@@ -276,7 +290,7 @@ namespace CK.Core
         /// <returns>A <see cref="IDisposable"/> object that will restore the current tag when disposed.</returns>
         public static IDisposable Tags( this IActivityLogger @this, CKTrait tags, SetOperation operation = SetOperation.Union )
         {
-            return new TagsSentinel( @this, @this.Tags.Apply( tags, operation ) );
+            return new TagsSentinel( @this, @this.AutoTags.Apply( tags, operation ) );
         }
         
         #endregion

@@ -43,6 +43,17 @@ namespace CK.Core
         IActivityLogger OriginLogger { get; }
 
         /// <summary>
+        /// Gets the log time for the log.
+        /// </summary>
+        DateTime LogTimeUtc { get; }
+
+        /// <summary>
+        /// Gets the log time of the group closing.
+        /// It is <see cref="DateTime.MinValue"/> when the group is not closed yet.
+        /// </summary>
+        DateTime CloseLogTimeUtc { get; }
+
+        /// <summary>
         /// Get the previous group in its <see cref="OriginLogger"/>. Null if this is a top level group.
         /// </summary>
         IActivityLogGroup Parent { get; }
@@ -59,7 +70,7 @@ namespace CK.Core
         LogLevelFilter SavedLoggerFilter { get; }
 
         /// <summary>
-        /// Gets the <see cref="IActivityLogger.Tags"/> that will be restored when group will be closed.
+        /// Gets the <see cref="IActivityLogger.AutoTags"/> that will be restored when group will be closed.
         /// Initialized with the current value of IActivityLogger.Tags when the group has been opened.
         /// </summary>
         CKTrait SavedLoggerTags { get; }

@@ -30,19 +30,11 @@ using System.Text;
 namespace CK.Core
 {
     /// <summary>
-    /// Gives access to concrete implementation of <see cref="IDefaultActivityLogger"/> thanks to <see cref="Create"/> factory method.
+    /// Simple implementation of <see cref="IDefaultActivityLogger"/> with a <see cref="Tap"/> to register <see cref="IActivityLoggerSink"/>, 
+    /// an <see cref="ErrorCounter"/> and a <see cref="PathCatcher"/>.
     /// </summary>
     public class DefaultActivityLogger : ActivityLogger, IDefaultActivityLogger
     {
-        /// <summary>
-        /// Factory method for <see cref="IDefaultActivityLogger"/> implementation.
-        /// </summary>
-        /// <returns>A new <see cref="IDefaultActivityLogger"/> implementation.</returns>
-        static public IDefaultActivityLogger Create()
-        {
-            return new DefaultActivityLogger();
-        }
-
         [ExcludeFromCodeCoverage]
         class EmptyDefault : ActivityLoggerEmpty, IDefaultActivityLogger
         {
@@ -68,13 +60,13 @@ namespace CK.Core
         /// </summary>
         static public readonly IDefaultActivityLogger Empty = new EmptyDefault();
 
-        ActivityLoggerTap _tap;
-        ActivityLoggerErrorCounter _errorCounter;
-        ActivityLoggerPathCatcher _pathCatcher;
+        readonly ActivityLoggerTap _tap;
+        readonly ActivityLoggerErrorCounter _errorCounter;
+        readonly ActivityLoggerPathCatcher _pathCatcher;
 
-        DefaultActivityLogger()
+        public DefaultActivityLogger( bool generateErrorCounterConlusion = true )
         {
-            // Order does not really matter matters here thankd to Closing/Closed pattern, but
+            // Order does not really matter matters here thanks to Closing/Closed pattern, but
             // we order them in the "logical" sense.
 
             // Will be the last one as beeing called: it is the final sink.
@@ -82,7 +74,7 @@ namespace CK.Core
             // Will be called AFTER the ErrorCounter.
             _pathCatcher = new ActivityLoggerPathCatcher( this );
             // Will be called first.
-            _errorCounter = new ActivityLoggerErrorCounter( this );
+            _errorCounter = new ActivityLoggerErrorCounter( this, generateErrorCounterConlusion );
         }
 
         ActivityLoggerTap IDefaultActivityLogger.Tap 

@@ -80,7 +80,7 @@ namespace CK.Core
         /// <summary>
         /// Initializes a new <see cref="ActivityLogger"/> with a <see cref="ActivityLoggerOutput"/> as its <see cref="Output"/>.
         /// </summary>
-        /// <param name="initialTags">Initial <see cref="Tags"/>.</param>
+        /// <param name="initialTags">Initial <see cref="AutoTags"/>.</param>
         public ActivityLogger( CKTrait initialTags = null )
         {
             Build( new ActivityLoggerOutput( this ), initialTags );
@@ -130,7 +130,7 @@ namespace CK.Core
         /// Modifications to this property are scoped to the current Group since when a Group is closed, this
         /// property (like <see cref="Filter"/>) is automatically restored to its original value (captured when the Group was opened).
         /// </summary>
-        public CKTrait Tags 
+        public CKTrait AutoTags 
         {
             get { return _currentTag; }
             set { _currentTag = value ?? RegisteredTags.EmptyTrait; } 
@@ -139,7 +139,7 @@ namespace CK.Core
         /// <summary>
         /// Gets or sets a filter based on the log level.
         /// Modifications to this property are scoped to the current Group since when a Group is closed, this
-        /// property (like <see cref="Tags"/>) is automatically restored to its original value (captured when the Group was opened).
+        /// property (like <see cref="AutoTags"/>) is automatically restored to its original value (captured when the Group was opened).
         /// </summary>
         public LogLevelFilter Filter
         {
@@ -161,9 +161,10 @@ namespace CK.Core
         /// the <paramref name="level"/> is the same as the previous one.
         /// See remarks.
         /// </summary>
-        /// <param name="tags">Tags (from <see cref="RegisteredTags"/>) to associate to the log, combined with current <see cref="Tags"/>.</param>
+        /// <param name="tags">Tags (from <see cref="RegisteredTags"/>) to associate to the log, combined with current <see cref="AutoTags"/>.</param>
         /// <param name="level">Log level.</param>
         /// <param name="text">Text to log. Ignored if null or empty.</param>
+        /// <param name="logTimeUtc">Timestamp of the log entry (must be Utc).</param>
         /// <param name="ex">Optional exception associated to the log. When not null, a Group is automatically created.</param>
         /// <returns>This logger to enable fluent syntax.</returns>
         /// <remarks>
@@ -172,20 +173,21 @@ namespace CK.Core
         /// and resets it: the next log, even with the same LogLevel, will be treated as if
         /// a different LogLevel is used.
         /// </remarks>
-        public IActivityLogger UnfilteredLog( CKTrait tags, LogLevel level, string text, Exception ex )
+        public IActivityLogger UnfilteredLog( CKTrait tags, LogLevel level, string text, DateTime logTimeUtc, Exception ex = null )
         {
+            if( logTimeUtc.Kind != DateTimeKind.Utc ) throw new ArgumentException( R.DateTimeMustBeUtc, "logTimeUtc" );
             if( level != LogLevel.None )
             {
                 if( ex != null )
                 {
-                    OpenGroup( tags, level, null, text, ex );
-                    CloseGroup();
+                    OpenGroup( tags, level, null, text, logTimeUtc, ex );
+                    CloseGroup( logTimeUtc );
                 }
                 else if( !String.IsNullOrEmpty( text ) )
                 {
                     if( tags == null || tags.IsEmpty ) tags = _currentTag;
                     else tags = _currentTag.Union( tags );
-                    foreach( var l in _output.RegisteredClients ) l.OnUnfilteredLog( tags, level, text );
+                    foreach( var l in _output.RegisteredClients ) l.OnUnfilteredLog( tags, level, text, logTimeUtc );
                 }
             }
             return this;
@@ -194,17 +196,19 @@ namespace CK.Core
         /// <summary>
         /// Opens a <see cref="Group"/> configured with the given parameters.
         /// </summary>
-        /// <param name="tags">Tags (from <see cref="RegisteredTags"/>) to associate to the log, combined with current <see cref="Tags"/>.</param>
+        /// <param name="tags">Tags (from <see cref="RegisteredTags"/>) to associate to the log, combined with current <see cref="AutoTags"/>.</param>
         /// <param name="level">The log level of the group.</param>
-        /// <param name="defaultConclusionText">
+        /// <param name="getConclusionText">
         /// Optional function that will be called on group closing to obtain a conclusion
         /// if no explicit conclusion is provided through <see cref="CloseGroup"/>.
         /// </param>
         /// <param name="text">Text to log (the title of the group). Null text is valid and considered as <see cref="String.Empty"/> or assigned to the <see cref="Exception.Message"/> if it exists.</param>
+        /// <param name="logTimeUtc">Timestamp of the log entry (must be UTC).</param>
         /// <param name="ex">Optional exception associated to the group.</param>
         /// <returns>The <see cref="Group"/> that can be disposed to close it.</returns>
-        public virtual IDisposable OpenGroup( CKTrait tags, LogLevel level, Func<string> defaultConclusionText, string text, Exception ex )
+        public virtual IDisposable OpenGroup( CKTrait tags, LogLevel level, Func<string> getConclusionText, string text, DateTime logTimeUtc, Exception ex = null )
         {
+            if( logTimeUtc.Kind != DateTimeKind.Utc ) throw new ArgumentException( R.DateTimeMustBeUtc, "logTimeUtc" );
             if( level == LogLevel.None ) return Util.EmptyDisposable;
             int idxNext = _current != null ? _current.Depth : 0;
             if( idxNext == _groups.Length )
@@ -215,7 +219,7 @@ namespace CK.Core
             _current = _groups[idxNext];
             if( tags == null || tags.IsEmpty ) tags = _currentTag;
             else tags = _currentTag.Union( tags );
-            _current.Initialize( tags, level, text ?? (ex != null ? ex.Message : String.Empty), defaultConclusionText, ex );
+            _current.Initialize( tags, level, text ?? (ex != null ? ex.Message : String.Empty), getConclusionText, logTimeUtc, ex );
             foreach( var l in _output.RegisteredClients ) l.OnOpenGroup( _current );
             return _current;
         }
@@ -226,11 +230,12 @@ namespace CK.Core
         /// See remarks (especially for List&lt;ActivityLogGroupConclusion&gt;).
         /// </summary>
         /// <param name="userConclusion">Optional string, enumerable of <see cref="ActivityLogGroupConclusion"/>) or object to conclude the group. See remarks.</param>
+        /// <param name="logTimeUtc">Timestamp of the group closing.</param>
         /// <remarks>
         /// An untyped object is used here to easily and efficiently accomodate both string and already existing ActivityLogGroupConclusion.
         /// When a List&lt;ActivityLogGroupConclusion&gt; is used, it will be direclty used to collect conclusion objects (new conclusions will be added to it). This is an optimization.
         /// </remarks>
-        public virtual void CloseGroup( object userConclusion = null )
+        public virtual void CloseGroup( DateTime logTimeUtc, object userConclusion = null )
         {
             Group g = _current;
             if( g != null )
@@ -238,6 +243,7 @@ namespace CK.Core
                 var conclusions = userConclusion as List<ActivityLogGroupConclusion>;
                 if( conclusions == null && userConclusion != null )
                 {
+                    g.CloseLogTimeUtc = logTimeUtc;
                     conclusions = new List<ActivityLogGroupConclusion>();
                     string s = userConclusion as string;
                     if( s != null ) conclusions.Add( new ActivityLogGroupConclusion( TagUserConclusion, s ) );

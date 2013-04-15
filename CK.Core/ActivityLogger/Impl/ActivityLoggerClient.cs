@@ -64,7 +64,8 @@ namespace CK.Core
         /// <param name="tags">Tags (from <see cref="ActivityLogger.RegisteredTags"/>) associated to the log.</param>
         /// <param name="level">Log level.</param>
         /// <param name="text">Text (not null).</param>
-        protected virtual void OnUnfilteredLog( CKTrait tags, LogLevel level, string text )
+        /// <param name="logTimeUtc">Timestamp of the log.</param>
+        protected virtual void OnUnfilteredLog( CKTrait tags, LogLevel level, string text, DateTime logTimeUtc )
         {
         }
 
@@ -109,9 +110,9 @@ namespace CK.Core
             OnFilterChanged( current, newValue );
         }
 
-        void IActivityLoggerClient.OnUnfilteredLog( CKTrait tags, LogLevel level, string text )
+        void IActivityLoggerClient.OnUnfilteredLog( CKTrait tags, LogLevel level, string text, DateTime logTimeUtc )
         {
-            OnUnfilteredLog( tags, level, text );
+            OnUnfilteredLog( tags, level, text, logTimeUtc );
         }
 
         void IActivityLoggerClient.OnOpenGroup( IActivityLogGroup group )

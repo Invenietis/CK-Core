@@ -39,12 +39,14 @@ namespace CK.Core
         /// Groups are bound to an <see cref="ActivityLogger"/> and are linked together from 
         /// the current one to the very first one (stack).
         /// </summary>
-        public class Group : IActivityLogGroup, IDisposable
+        protected class Group : IActivityLogGroup, IDisposable
         {
             readonly ActivityLogger _logger;
             readonly int _index;
             string _text;
             CKTrait _tags;
+            DateTime _logTime;
+            DateTime _closeLogTime;
             Exception _exception;
             Func<string> _getConclusion;
 
@@ -60,27 +62,30 @@ namespace CK.Core
             }
 
             /// <summary>
-            /// Initializes or reinitializes this group. 
+            /// Initializes or reinitializes this group (if it has been disposed). 
             /// </summary>
             /// <param name="tags">Tags for the group.</param>
             /// <param name="level">The <see cref="GroupLevel"/>.</param>
             /// <param name="text">The <see cref="GroupText"/>.</param>
-            /// <param name="defaultConclusionText">
+            /// <param name="getConclusionText">
             /// Optional delegate to call on close to obtain a conclusion text if no 
             /// explicit conclusion is provided through <see cref="IActivityLogger.CloseGroup"/>.
             /// </param>
+            /// <param name="logTimeUtc">Timestamp of the log (must be UTC).</param>
             /// <param name="ex">Optional exception associated to the group.</param>
-            internal protected virtual void Initialize( CKTrait tags, LogLevel level, string text, Func<string> defaultConclusionText, Exception ex )
+            internal protected virtual void Initialize( CKTrait tags, LogLevel level, string text, Func<string> getConclusionText, DateTime logTimeUtc, Exception ex )
             {
                 SavedLoggerFilter = _logger.Filter;
-                SavedLoggerTags = _logger.Tags;
+                SavedLoggerTags = _logger.AutoTags;
                 // Logs everything when a Group is an error: we then have full details without
                 // logging all with Error or Fatal.
                 if( level >= LogLevel.Error ) _logger.Filter = LogLevelFilter.Trace;
                 GroupLevel = level;
+                _logTime = logTimeUtc;
+                _closeLogTime = DateTime.MinValue;
                 _text = text ?? String.Empty;
                 _tags = tags ?? ActivityLogger.EmptyTag;
-                _getConclusion = defaultConclusionText;
+                _getConclusion = getConclusionText;
                 _exception = ex;
             }
 
@@ -93,6 +98,21 @@ namespace CK.Core
             /// Gets the tags for the log group.
             /// </summary>
             public CKTrait GroupTags { get { return _tags; } }
+
+            /// <summary>
+            /// Gets the log time for the log.
+            /// </summary>
+            public DateTime LogTimeUtc { get { return _logTime; } }
+
+            /// <summary>
+            /// Gets the log time of the group closing.
+            /// It is <see cref="DateTime.MinValue"/> when the group is not closed yet.
+            /// </summary>
+            public DateTime CloseLogTimeUtc 
+            { 
+                get { return _closeLogTime; } 
+                internal set { _closeLogTime = value; } 
+            }
 
             /// <summary>
             /// Get the previous group in its <see cref="OriginLogger"/>. Null if this is a top level group.
@@ -126,7 +146,7 @@ namespace CK.Core
             public LogLevelFilter SavedLoggerFilter { get; protected set; }
 
             /// <summary>
-            /// Gets or sets the <see cref="IActivityLogger.Tags"/> that will be restored when group will be closed.
+            /// Gets or sets the <see cref="IActivityLogger.AutoTags"/> that will be restored when group will be closed.
             /// Initialized with the current value of IActivityLogger.Tags when the group has been opened.
             /// </summary>
             public CKTrait SavedLoggerTags { get; protected set; }

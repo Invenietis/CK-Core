@@ -43,7 +43,6 @@ namespace CK.Core
 		/// Initializes a new <see cref="CKReadOnlyCollectionOnICollection{T}"/> around a <see cref="ICollection{T}"/>.
 		/// </summary>
 		/// <param name="inner">Collection to wrap.</param>
-        [TargetedPatchingOptOut( "Performance critical to inline across NGen image boundaries" )]
         public CKReadOnlyCollectionOnICollection( ICollection<T> inner )
         {
             if( inner == null ) throw new ArgumentNullException( "inner" );

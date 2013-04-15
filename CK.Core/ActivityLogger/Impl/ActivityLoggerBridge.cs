@@ -92,12 +92,12 @@ namespace CK.Core
             // must be honored or not (see honorFinalFilter parameter of the bridge).
         }
 
-        void IActivityLoggerClient.OnUnfilteredLog( CKTrait tags, LogLevel level, string text )
+        void IActivityLoggerClient.OnUnfilteredLog( CKTrait tags, LogLevel level, string text, DateTime logTimeUtc )
         {
             if( _bridge.TargetFilter <= (int)level )
             {
-                if( _finalLogger != null ) _finalLogger.UnfilteredLog( tags, level, text );
-                else _bridge.UnfilteredLog( tags.ToString(), level, text );
+                if( _finalLogger != null ) _finalLogger.UnfilteredLog( tags, level, text, logTimeUtc );
+                else _bridge.UnfilteredLog( tags.ToString(), level, text, logTimeUtc );
             }
         }
 
@@ -114,7 +114,7 @@ namespace CK.Core
             {
                 if( _finalLogger != null )
                     _finalLogger.OpenGroup( group.GroupTags, group.GroupLevel, group.Exception, group.GroupText );
-                else _bridge.OpenGroup( group.GroupTags.ToString(), group.GroupLevel, group.Exception, group.GroupText );
+                else _bridge.OpenGroup( group.GroupTags.ToString(), group.GroupLevel, group.Exception, group.GroupText, group.LogTimeUtc );
                 _openedGroups[idx - 1] = true;
             }
             else _openedGroups[idx - 1] = false;

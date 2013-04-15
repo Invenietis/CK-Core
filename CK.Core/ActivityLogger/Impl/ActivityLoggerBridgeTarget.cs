@@ -66,7 +66,6 @@ namespace CK.Core
             _logger = DefaultActivityLogger.Empty;
         }
 
-
         /// <summary>
         /// Gets or sets whether the <see cref="IActivityLogger.Filter"/> of the target logger should be honored or not.
         /// Defaults to true.
@@ -88,16 +87,16 @@ namespace CK.Core
         }
 
         #region Cross AppDomain interface.
-        internal void UnfilteredLog( string tags, LogLevel level, string text )
+        internal void UnfilteredLog( string tags, LogLevel level, string text, DateTime logTimeUtc )
         {
             Debug.Assert( (int)_logger.Filter <= (int)level );
-            _logger.UnfilteredLog( ActivityLogger.RegisteredTags.FindOrCreate( tags ), level, text );
+            _logger.UnfilteredLog( ActivityLogger.RegisteredTags.FindOrCreate( tags ), level, text, logTimeUtc );
         }
 
-        internal void OpenGroup( string tags, LogLevel level, Exception exception, string groupText )
+        internal void OpenGroup( string tags, LogLevel level, Exception exception, string groupText, DateTime logTimeUtc )
         {
             Debug.Assert( (int)_logger.Filter <= (int)level );
-            _logger.OpenGroup( ActivityLogger.RegisteredTags.FindOrCreate( tags ), level, exception, groupText );
+            _logger.OpenGroup( ActivityLogger.RegisteredTags.FindOrCreate( tags ), level, exception, groupText, logTimeUtc );
         }
 
         internal void CloseGroup( string[] taggedConclusions )

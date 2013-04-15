@@ -46,7 +46,7 @@ namespace CK.Core
         /// <returns>A disposable object that can be used to close the group.</returns>
         public static IDisposable OpenGroup( this IActivityLogger @this, CKTrait tags, LogLevel level, string text )
         {
-            return @this.OpenGroup( tags, level, null, text );
+            return @this.OpenGroup( tags, level, null, text, DateTime.UtcNow );
         }
 
         /// <summary>
@@ -66,7 +66,7 @@ namespace CK.Core
         /// </remarks>
         public static IDisposable OpenGroup( this IActivityLogger @this, CKTrait tags, LogLevel level, Func<string> getConclusionText, string format, params object[] arguments )
         {
-            return @this.OpenGroup( tags, level, getConclusionText, String.Format( format, arguments ) );
+            return @this.OpenGroup( tags, level, getConclusionText, String.Format( format, arguments ), DateTime.UtcNow );
         }
 
         /// <summary>
@@ -85,7 +85,7 @@ namespace CK.Core
         /// </remarks>
         public static IDisposable OpenGroup( this IActivityLogger @this, CKTrait tags, LogLevel level, string format, params object[] arguments )
         {
-            return @this.OpenGroup( tags, level, null, String.Format( format, arguments ) );
+            return @this.OpenGroup( tags, level, null, String.Format( format, arguments ), DateTime.UtcNow );
         }
 
         #endregion
@@ -103,7 +103,7 @@ namespace CK.Core
         /// <returns>This logger to enable fluent syntax.</returns>
         public static IActivityLogger Trace( this IActivityLogger @this, CKTrait tags, string text )
         {
-            if( (int)@this.Filter <= (int)LogLevel.Trace ) @this.UnfilteredLog( tags, LogLevel.Trace, text );
+            if( (int)@this.Filter <= (int)LogLevel.Trace ) @this.UnfilteredLog( tags, LogLevel.Trace, text, DateTime.UtcNow );
             return @this;
         }
 
@@ -119,8 +119,8 @@ namespace CK.Core
         {
             if( (int)@this.Filter <= (int)LogLevel.Trace )
             {
-                if( arg0 is Exception ) throw new ArgumentException( "Possible use of the wrong overload: Use the form that takes a first parameter of type Exception and then the string text instead of this ( string format, string arg0 ) overload to log the exception, or calls this overload explicitely with the Exception.Message string.", "arg0" );
-                @this.UnfilteredLog( tags, LogLevel.Trace, String.Format( format, arg0 ) );
+                if( arg0 is Exception ) throw new ArgumentException( R.PossibleWrongOverloadUseWithException, "arg0" );
+                @this.UnfilteredLog( tags, LogLevel.Trace, String.Format( format, arg0 ), DateTime.UtcNow );
             }
             return @this;
         }
@@ -136,7 +136,7 @@ namespace CK.Core
         /// <returns>This logger to enable fluent syntax.</returns>
         public static IActivityLogger Trace( this IActivityLogger @this, CKTrait tags, string format, object arg0, object arg1 )
         {
-            if( (int)@this.Filter <= (int)LogLevel.Trace ) @this.UnfilteredLog( tags, LogLevel.Trace, String.Format( format, arg0, arg1 ) );
+            if( (int)@this.Filter <= (int)LogLevel.Trace ) @this.UnfilteredLog( tags, LogLevel.Trace, String.Format( format, arg0, arg1 ), DateTime.UtcNow );
             return @this;
         }
 
@@ -152,7 +152,7 @@ namespace CK.Core
         /// <returns>This logger to enable fluent syntax.</returns>
         public static IActivityLogger Trace( this IActivityLogger @this, CKTrait tags, string format, object arg0, object arg1, object arg2 )
         {
-            if( (int)@this.Filter <= (int)LogLevel.Trace ) @this.UnfilteredLog( tags, LogLevel.Trace, String.Format( format, arg0, arg1, arg2 ) );
+            if( (int)@this.Filter <= (int)LogLevel.Trace ) @this.UnfilteredLog( tags, LogLevel.Trace, String.Format( format, arg0, arg1, arg2 ), DateTime.UtcNow );
             return @this;
         }
 
@@ -166,7 +166,7 @@ namespace CK.Core
         /// <returns>This logger to enable fluent syntax.</returns>
         public static IActivityLogger Trace( this IActivityLogger @this, CKTrait tags, string format, params object[] args )
         {
-            if( (int)@this.Filter <= (int)LogLevel.Trace ) @this.UnfilteredLog( tags, LogLevel.Trace, String.Format( format, args ) );
+            if( (int)@this.Filter <= (int)LogLevel.Trace ) @this.UnfilteredLog( tags, LogLevel.Trace, String.Format( format, args ), DateTime.UtcNow );
             return @this;
         }
 
@@ -179,7 +179,7 @@ namespace CK.Core
         /// <returns>This logger to enable fluent syntax.</returns>
         public static IActivityLogger Trace( this IActivityLogger @this, CKTrait tags, Func<string> text )
         {
-            if( (int)@this.Filter <= (int)LogLevel.Trace ) @this.UnfilteredLog( tags, LogLevel.Trace, text() );
+            if( (int)@this.Filter <= (int)LogLevel.Trace ) @this.UnfilteredLog( tags, LogLevel.Trace, text(), DateTime.UtcNow );
             return @this;
         }
 
@@ -194,7 +194,7 @@ namespace CK.Core
         /// <returns>This logger to enable fluent syntax.</returns>
         public static IActivityLogger Trace<T>( this IActivityLogger @this, CKTrait tags, T param, Func<T, string> text )
         {
-            if( (int)@this.Filter <= (int)LogLevel.Trace ) @this.UnfilteredLog( tags, LogLevel.Trace, text( param ) );
+            if( (int)@this.Filter <= (int)LogLevel.Trace ) @this.UnfilteredLog( tags, LogLevel.Trace, text( param ), DateTime.UtcNow );
             return @this;
         }
 
@@ -211,7 +211,7 @@ namespace CK.Core
         /// <returns>This logger to enable fluent syntax.</returns>
         public static IActivityLogger Trace<T1, T2>( this IActivityLogger @this, CKTrait tags, T1 param1, T2 param2, Func<T1, T2, string> text )
         {
-            if( (int)@this.Filter <= (int)LogLevel.Trace ) @this.UnfilteredLog( tags, LogLevel.Trace, text( param1, param2 ) );
+            if( (int)@this.Filter <= (int)LogLevel.Trace ) @this.UnfilteredLog( tags, LogLevel.Trace, text( param1, param2 ), DateTime.UtcNow );
             return @this;
         }
         #endregion
@@ -227,7 +227,7 @@ namespace CK.Core
         /// <returns>This logger to enable fluent syntax.</returns>
         public static IActivityLogger Info( this IActivityLogger @this, CKTrait tags, string text )
         {
-            if( (int)@this.Filter <= (int)LogLevel.Info ) @this.UnfilteredLog( tags, LogLevel.Info, text );
+            if( (int)@this.Filter <= (int)LogLevel.Info ) @this.UnfilteredLog( tags, LogLevel.Info, text, DateTime.UtcNow );
             return @this;
         }
 
@@ -243,8 +243,8 @@ namespace CK.Core
         {
             if( (int)@this.Filter <= (int)LogLevel.Info )
             {
-                if( arg0 is Exception ) throw new ArgumentException( "Possible use of the wrong overload: Use the form that takes a first parameter of type Exception and then the string text instead of this ( string format, string arg0 ) overload to log the exception, or calls this overload explicitely with the Exception.Message string.", "arg0" );
-                @this.UnfilteredLog( tags, LogLevel.Info, String.Format( format, arg0 ) );
+                if( arg0 is Exception ) throw new ArgumentException( R.PossibleWrongOverloadUseWithException, "arg0" );
+                @this.UnfilteredLog( tags, LogLevel.Info, String.Format( format, arg0 ), DateTime.UtcNow );
             }
             return @this;
         }
@@ -260,7 +260,7 @@ namespace CK.Core
         /// <returns>This logger to enable fluent syntax.</returns>
         public static IActivityLogger Info( this IActivityLogger @this, CKTrait tags, string format, object arg0, object arg1 )
         {
-            if( (int)@this.Filter <= (int)LogLevel.Info ) @this.UnfilteredLog( tags, LogLevel.Info, String.Format( format, arg0, arg1 ) );
+            if( (int)@this.Filter <= (int)LogLevel.Info ) @this.UnfilteredLog( tags, LogLevel.Info, String.Format( format, arg0, arg1 ), DateTime.UtcNow );
             return @this;
         }
 
@@ -276,7 +276,7 @@ namespace CK.Core
         /// <returns>This logger to enable fluent syntax.</returns>
         public static IActivityLogger Info( this IActivityLogger @this, CKTrait tags, string format, object arg0, object arg1, object arg2 )
         {
-            if( (int)@this.Filter <= (int)LogLevel.Info ) @this.UnfilteredLog( tags, LogLevel.Info, String.Format( format, arg0, arg1, arg2 ) );
+            if( (int)@this.Filter <= (int)LogLevel.Info ) @this.UnfilteredLog( tags, LogLevel.Info, String.Format( format, arg0, arg1, arg2 ), DateTime.UtcNow );
             return @this;
         }
 
@@ -290,7 +290,7 @@ namespace CK.Core
         /// <returns>This logger to enable fluent syntax.</returns>
         public static IActivityLogger Info( this IActivityLogger @this, CKTrait tags, string format, params object[] args )
         {
-            if( (int)@this.Filter <= (int)LogLevel.Info ) @this.UnfilteredLog( tags, LogLevel.Info, String.Format( format, args ) );
+            if( (int)@this.Filter <= (int)LogLevel.Info ) @this.UnfilteredLog( tags, LogLevel.Info, String.Format( format, args ), DateTime.UtcNow );
             return @this;
         }
 
@@ -303,7 +303,7 @@ namespace CK.Core
         /// <returns>This logger to enable fluent syntax.</returns>
         public static IActivityLogger Info( this IActivityLogger @this, CKTrait tags, Func<string> text )
         {
-            if( (int)@this.Filter <= (int)LogLevel.Info ) @this.UnfilteredLog( tags, LogLevel.Info, text() );
+            if( (int)@this.Filter <= (int)LogLevel.Info ) @this.UnfilteredLog( tags, LogLevel.Info, text(), DateTime.UtcNow );
             return @this;
         }
 
@@ -318,7 +318,7 @@ namespace CK.Core
         /// <returns>This logger to enable fluent syntax.</returns>
         public static IActivityLogger Info<T>( this IActivityLogger @this, CKTrait tags, T param, Func<T, string> text )
         {
-            if( (int)@this.Filter <= (int)LogLevel.Info ) @this.UnfilteredLog( tags, LogLevel.Info, text( param ) );
+            if( (int)@this.Filter <= (int)LogLevel.Info ) @this.UnfilteredLog( tags, LogLevel.Info, text( param ), DateTime.UtcNow );
             return @this;
         }
 
@@ -335,7 +335,7 @@ namespace CK.Core
         /// <returns>This logger to enable fluent syntax.</returns>
         public static IActivityLogger Info<T1, T2>( this IActivityLogger @this, CKTrait tags, T1 param1, T2 param2, Func<T1, T2, string> text )
         {
-            if( (int)@this.Filter <= (int)LogLevel.Info ) @this.UnfilteredLog( tags, LogLevel.Info, text( param1, param2 ) );
+            if( (int)@this.Filter <= (int)LogLevel.Info ) @this.UnfilteredLog( tags, LogLevel.Info, text( param1, param2 ), DateTime.UtcNow );
             return @this;
         }
         #endregion
@@ -351,7 +351,7 @@ namespace CK.Core
         /// <returns>This logger to enable fluent syntax.</returns>
         public static IActivityLogger Warn( this IActivityLogger @this, CKTrait tags, string text )
         {
-            if( (int)@this.Filter <= (int)LogLevel.Warn ) @this.UnfilteredLog( tags, LogLevel.Warn, text );
+            if( (int)@this.Filter <= (int)LogLevel.Warn ) @this.UnfilteredLog( tags, LogLevel.Warn, text, DateTime.UtcNow );
             return @this;
         }
 
@@ -367,8 +367,8 @@ namespace CK.Core
         {
             if( (int)@this.Filter <= (int)LogLevel.Warn )
             {
-                if( arg0 is Exception ) throw new ArgumentException( "Possible use of the wrong overload: Use the form that takes a first parameter of type Exception and then the string text instead of this ( string format, string arg0 ) overload to log the exception, or calls this overload explicitely with the Exception.Message string.", "arg0" );
-                @this.UnfilteredLog( tags, LogLevel.Warn, String.Format( format, arg0 ) );
+                if( arg0 is Exception ) throw new ArgumentException( R.PossibleWrongOverloadUseWithException, "arg0" );
+                @this.UnfilteredLog( tags, LogLevel.Warn, String.Format( format, arg0 ), DateTime.UtcNow );
             }
             return @this;
         }
@@ -384,7 +384,7 @@ namespace CK.Core
         /// <returns>This logger to enable fluent syntax.</returns>
         public static IActivityLogger Warn( this IActivityLogger @this, CKTrait tags, string format, object arg0, object arg1 )
         {
-            if( (int)@this.Filter <= (int)LogLevel.Warn ) @this.UnfilteredLog( tags, LogLevel.Warn, String.Format( format, arg0, arg1 ) );
+            if( (int)@this.Filter <= (int)LogLevel.Warn ) @this.UnfilteredLog( tags, LogLevel.Warn, String.Format( format, arg0, arg1 ), DateTime.UtcNow );
             return @this;
         }
 
@@ -400,7 +400,7 @@ namespace CK.Core
         /// <returns>This logger to enable fluent syntax.</returns>
         public static IActivityLogger Warn( this IActivityLogger @this, CKTrait tags, string format, object arg0, object arg1, object arg2 )
         {
-            if( (int)@this.Filter <= (int)LogLevel.Warn ) @this.UnfilteredLog( tags, LogLevel.Warn, String.Format( format, arg0, arg1, arg2 ) );
+            if( (int)@this.Filter <= (int)LogLevel.Warn ) @this.UnfilteredLog( tags, LogLevel.Warn, String.Format( format, arg0, arg1, arg2 ), DateTime.UtcNow );
             return @this;
         }
 
@@ -414,7 +414,7 @@ namespace CK.Core
         /// <returns>This logger to enable fluent syntax.</returns>
         public static IActivityLogger Warn( this IActivityLogger @this, CKTrait tags, string format, params object[] args )
         {
-            if( (int)@this.Filter <= (int)LogLevel.Warn ) @this.UnfilteredLog( tags, LogLevel.Warn, String.Format( format, args ) );
+            if( (int)@this.Filter <= (int)LogLevel.Warn ) @this.UnfilteredLog( tags, LogLevel.Warn, String.Format( format, args ), DateTime.UtcNow );
             return @this;
         }
 
@@ -427,7 +427,7 @@ namespace CK.Core
         /// <returns>This logger to enable fluent syntax.</returns>
         public static IActivityLogger Warn( this IActivityLogger @this, CKTrait tags, Func<string> text )
         {
-            if( (int)@this.Filter <= (int)LogLevel.Warn ) @this.UnfilteredLog( tags, LogLevel.Warn, text() );
+            if( (int)@this.Filter <= (int)LogLevel.Warn ) @this.UnfilteredLog( tags, LogLevel.Warn, text(), DateTime.UtcNow );
             return @this;
         }
 
@@ -441,7 +441,7 @@ namespace CK.Core
         /// <returns>This logger to enable fluent syntax.</returns>
         public static IActivityLogger Warn<T>( this IActivityLogger @this, CKTrait tags, T param, Func<T, string> text )
         {
-            if( (int)@this.Filter <= (int)LogLevel.Warn ) @this.UnfilteredLog( tags, LogLevel.Warn, text( param ) );
+            if( (int)@this.Filter <= (int)LogLevel.Warn ) @this.UnfilteredLog( tags, LogLevel.Warn, text( param ), DateTime.UtcNow );
             return @this;
         }
 
@@ -458,7 +458,7 @@ namespace CK.Core
         /// <returns>This logger to enable fluent syntax.</returns>
         public static IActivityLogger Warn<T1, T2>( this IActivityLogger @this, CKTrait tags, T1 param1, T2 param2, Func<T1, T2, string> text )
         {
-            if( (int)@this.Filter <= (int)LogLevel.Warn ) @this.UnfilteredLog( tags, LogLevel.Warn, text( param1, param2 ) );
+            if( (int)@this.Filter <= (int)LogLevel.Warn ) @this.UnfilteredLog( tags, LogLevel.Warn, text( param1, param2 ), DateTime.UtcNow );
             return @this;
         }
         #endregion
@@ -474,7 +474,7 @@ namespace CK.Core
         /// <returns>This logger to enable fluent syntax.</returns>
         public static IActivityLogger Error( this IActivityLogger @this, CKTrait tags, string text )
         {
-            if( (int)@this.Filter <= (int)LogLevel.Error ) @this.UnfilteredLog( tags, LogLevel.Error, text );
+            if( (int)@this.Filter <= (int)LogLevel.Error ) @this.UnfilteredLog( tags, LogLevel.Error, text, DateTime.UtcNow );
             return @this;
         }
 
@@ -490,8 +490,8 @@ namespace CK.Core
         {
             if( (int)@this.Filter <= (int)LogLevel.Error )
             {
-                if( arg0 is Exception ) throw new ArgumentException( "Possible use of the wrong overload: Use the form that takes a first parameter of type Exception and then the string text instead of this ( string format, string arg0 ) overload to log the exception, or calls this overload explicitely with the Exception.Message string.", "arg0" );
-                @this.UnfilteredLog( tags, LogLevel.Error, String.Format( format, arg0 ) );
+                if( arg0 is Exception ) throw new ArgumentException( R.PossibleWrongOverloadUseWithException, "arg0" );
+                @this.UnfilteredLog( tags, LogLevel.Error, String.Format( format, arg0 ), DateTime.UtcNow );
             }
             return @this;
         }
@@ -507,7 +507,7 @@ namespace CK.Core
         /// <returns>This logger to enable fluent syntax.</returns>
         public static IActivityLogger Error( this IActivityLogger @this, CKTrait tags, string format, object arg0, object arg1 )
         {
-            if( (int)@this.Filter <= (int)LogLevel.Error ) @this.UnfilteredLog( tags, LogLevel.Error, String.Format( format, arg0, arg1 ) );
+            if( (int)@this.Filter <= (int)LogLevel.Error ) @this.UnfilteredLog( tags, LogLevel.Error, String.Format( format, arg0, arg1 ), DateTime.UtcNow );
             return @this;
         }
 
@@ -523,7 +523,7 @@ namespace CK.Core
         /// <returns>This logger to enable fluent syntax.</returns>
         public static IActivityLogger Error( this IActivityLogger @this, CKTrait tags, string format, object arg0, object arg1, object arg2 )
         {
-            if( (int)@this.Filter <= (int)LogLevel.Error ) @this.UnfilteredLog( tags, LogLevel.Error, String.Format( format, arg0, arg1, arg2 ) );
+            if( (int)@this.Filter <= (int)LogLevel.Error ) @this.UnfilteredLog( tags, LogLevel.Error, String.Format( format, arg0, arg1, arg2 ), DateTime.UtcNow );
             return @this;
         }
 
@@ -537,7 +537,7 @@ namespace CK.Core
         /// <returns>This logger to enable fluent syntax.</returns>
         public static IActivityLogger Error( this IActivityLogger @this, CKTrait tags, string format, params object[] args )
         {
-            if( (int)@this.Filter <= (int)LogLevel.Error ) @this.UnfilteredLog( tags, LogLevel.Error, String.Format( format, args ) );
+            if( (int)@this.Filter <= (int)LogLevel.Error ) @this.UnfilteredLog( tags, LogLevel.Error, String.Format( format, args ), DateTime.UtcNow );
             return @this;
         }
 
@@ -550,7 +550,7 @@ namespace CK.Core
         /// <returns>This logger to enable fluent syntax.</returns>
         public static IActivityLogger Error( this IActivityLogger @this, CKTrait tags, Func<string> text )
         {
-            if( (int)@this.Filter <= (int)LogLevel.Error ) @this.UnfilteredLog( tags, LogLevel.Error, text() );
+            if( (int)@this.Filter <= (int)LogLevel.Error ) @this.UnfilteredLog( tags, LogLevel.Error, text(), DateTime.UtcNow );
             return @this;
         }
 
@@ -565,7 +565,7 @@ namespace CK.Core
         /// <returns>This logger to enable fluent syntax.</returns>
         public static IActivityLogger Error<T>( this IActivityLogger @this, CKTrait tags, T param, Func<T, string> text )
         {
-            if( (int)@this.Filter <= (int)LogLevel.Error ) @this.UnfilteredLog( tags, LogLevel.Error, text( param ) );
+            if( (int)@this.Filter <= (int)LogLevel.Error ) @this.UnfilteredLog( tags, LogLevel.Error, text( param ), DateTime.UtcNow );
             return @this;
         }
 
@@ -582,7 +582,7 @@ namespace CK.Core
         /// <returns>This logger to enable fluent syntax.</returns>
         public static IActivityLogger Error<T1, T2>( this IActivityLogger @this, CKTrait tags, T1 param1, T2 param2, Func<T1, T2, string> text )
         {
-            if( (int)@this.Filter <= (int)LogLevel.Error ) @this.UnfilteredLog( tags, LogLevel.Error, text( param1, param2 ) );
+            if( (int)@this.Filter <= (int)LogLevel.Error ) @this.UnfilteredLog( tags, LogLevel.Error, text( param1, param2 ), DateTime.UtcNow );
             return @this;
         }
         #endregion
@@ -598,7 +598,7 @@ namespace CK.Core
         /// <returns>This logger to enable fluent syntax.</returns>
         public static IActivityLogger Fatal( this IActivityLogger @this, CKTrait tags, string text )
         {
-            if( (int)@this.Filter <= (int)LogLevel.Fatal ) @this.UnfilteredLog( tags, LogLevel.Fatal, text );
+            if( (int)@this.Filter <= (int)LogLevel.Fatal ) @this.UnfilteredLog( tags, LogLevel.Fatal, text, DateTime.UtcNow );
             return @this;
         }
 
@@ -614,8 +614,8 @@ namespace CK.Core
         {
             if( (int)@this.Filter <= (int)LogLevel.Fatal )
             {
-                if( arg0 is Exception ) throw new ArgumentException( "Possible use of the wrong overload: Use the form that takes a first parameter of type Exception and then the string text instead of this ( string format, string arg0 ) overload to log the exception, or calls this overload explicitely with the Exception.Message string.", "arg0" );
-                @this.UnfilteredLog( tags, LogLevel.Fatal, String.Format( format, arg0 ) );
+                if( arg0 is Exception ) throw new ArgumentException( R.PossibleWrongOverloadUseWithException, "arg0" );
+                @this.UnfilteredLog( tags, LogLevel.Fatal, String.Format( format, arg0 ), DateTime.UtcNow );
             }
             return @this;
         }
@@ -631,7 +631,7 @@ namespace CK.Core
         /// <returns>This logger to enable fluent syntax.</returns>
         public static IActivityLogger Fatal( this IActivityLogger @this, CKTrait tags, string format, object arg0, object arg1 )
         {
-            if( (int)@this.Filter <= (int)LogLevel.Fatal ) @this.UnfilteredLog( tags, LogLevel.Fatal, String.Format( format, arg0, arg1 ) );
+            if( (int)@this.Filter <= (int)LogLevel.Fatal ) @this.UnfilteredLog( tags, LogLevel.Fatal, String.Format( format, arg0, arg1 ), DateTime.UtcNow );
             return @this;
         }
 
@@ -647,7 +647,7 @@ namespace CK.Core
         /// <returns>This logger to enable fluent syntax.</returns>
         public static IActivityLogger Fatal( this IActivityLogger @this, CKTrait tags, string format, object arg0, object arg1, object arg2 )
         {
-            if( (int)@this.Filter <= (int)LogLevel.Fatal ) @this.UnfilteredLog( tags, LogLevel.Fatal, String.Format( format, arg0, arg1, arg2 ) );
+            if( (int)@this.Filter <= (int)LogLevel.Fatal ) @this.UnfilteredLog( tags, LogLevel.Fatal, String.Format( format, arg0, arg1, arg2 ), DateTime.UtcNow );
             return @this;
         }
 
@@ -661,7 +661,7 @@ namespace CK.Core
         /// <returns>This logger to enable fluent syntax.</returns>
         public static IActivityLogger Fatal( this IActivityLogger @this, CKTrait tags, string format, params object[] args )
         {
-            if( (int)@this.Filter <= (int)LogLevel.Fatal ) @this.UnfilteredLog( tags, LogLevel.Fatal, String.Format( format, args ) );
+            if( (int)@this.Filter <= (int)LogLevel.Fatal ) @this.UnfilteredLog( tags, LogLevel.Fatal, String.Format( format, args ), DateTime.UtcNow );
             return @this;
         }
 
@@ -674,7 +674,7 @@ namespace CK.Core
         /// <returns>This logger to enable fluent syntax.</returns>
         public static IActivityLogger Fatal( this IActivityLogger @this, CKTrait tags, Func<string> text )
         {
-            if( (int)@this.Filter <= (int)LogLevel.Fatal ) @this.UnfilteredLog( tags, LogLevel.Fatal, text() );
+            if( (int)@this.Filter <= (int)LogLevel.Fatal ) @this.UnfilteredLog( tags, LogLevel.Fatal, text(), DateTime.UtcNow );
             return @this;
         }
 
@@ -689,7 +689,7 @@ namespace CK.Core
         /// <returns>This logger to enable fluent syntax.</returns>
         public static IActivityLogger Fatal<T>( this IActivityLogger @this, CKTrait tags, T param, Func<T, string> text )
         {
-            if( (int)@this.Filter <= (int)LogLevel.Fatal ) @this.UnfilteredLog( tags, LogLevel.Fatal, text( param ) );
+            if( (int)@this.Filter <= (int)LogLevel.Fatal ) @this.UnfilteredLog( tags, LogLevel.Fatal, text( param ), DateTime.UtcNow );
             return @this;
         }
 
@@ -706,7 +706,7 @@ namespace CK.Core
         /// <returns>This logger to enable fluent syntax.</returns>
         public static IActivityLogger Fatal<T1, T2>( this IActivityLogger @this, CKTrait tags, T1 param1, T2 param2, Func<T1, T2, string> text )
         {
-            if( (int)@this.Filter <= (int)LogLevel.Fatal ) @this.UnfilteredLog( tags, LogLevel.Fatal, text( param1, param2 ) );
+            if( (int)@this.Filter <= (int)LogLevel.Fatal ) @this.UnfilteredLog( tags, LogLevel.Fatal, text( param1, param2 ), DateTime.UtcNow );
             return @this;
         }
         #endregion
@@ -726,7 +726,7 @@ namespace CK.Core
         /// <returns>This logger to enable fluent syntax.</returns>
         public static IActivityLogger Trace( this IActivityLogger @this, CKTrait tags, Exception ex )
         {
-            if( (int)@this.Filter <= (int)LogLevel.Trace ) @this.UnfilteredLog( tags, LogLevel.Trace, null, ex );
+            if( (int)@this.Filter <= (int)LogLevel.Trace ) @this.UnfilteredLog( tags, LogLevel.Trace, null, DateTime.UtcNow, ex );
             return @this;
         }
 
@@ -740,7 +740,7 @@ namespace CK.Core
         /// <returns>This logger to enable fluent syntax.</returns>
         public static IActivityLogger Trace( this IActivityLogger @this, CKTrait tags, Exception ex, string text )
         {
-            if( (int)@this.Filter <= (int)LogLevel.Trace ) @this.UnfilteredLog( tags, LogLevel.Trace, text, ex );
+            if( (int)@this.Filter <= (int)LogLevel.Trace ) @this.UnfilteredLog( tags, LogLevel.Trace, text, DateTime.UtcNow, ex );
             return @this;
         }
 
@@ -755,7 +755,7 @@ namespace CK.Core
         /// <returns>This logger to enable fluent syntax.</returns>
         public static IActivityLogger Trace( this IActivityLogger @this, CKTrait tags, Exception ex, string format, object arg0 )
         {
-            if( (int)@this.Filter <= (int)LogLevel.Trace ) @this.UnfilteredLog( tags, LogLevel.Trace, String.Format( format, arg0 ), ex );
+            if( (int)@this.Filter <= (int)LogLevel.Trace ) @this.UnfilteredLog( tags, LogLevel.Trace, String.Format( format, arg0 ), DateTime.UtcNow, ex );
             return @this;
         }
 
@@ -771,7 +771,7 @@ namespace CK.Core
         /// <returns>This logger to enable fluent syntax.</returns>
         public static IActivityLogger Trace( this IActivityLogger @this, CKTrait tags, Exception ex, string format, object arg0, object arg1 )
         {
-            if( (int)@this.Filter <= (int)LogLevel.Trace ) @this.UnfilteredLog( tags, LogLevel.Trace, String.Format( format, arg0, arg1 ), ex );
+            if( (int)@this.Filter <= (int)LogLevel.Trace ) @this.UnfilteredLog( tags, LogLevel.Trace, String.Format( format, arg0, arg1 ), DateTime.UtcNow, ex );
             return @this;
         }
 
@@ -788,7 +788,7 @@ namespace CK.Core
         /// <returns>This logger to enable fluent syntax.</returns>
         public static IActivityLogger Trace( this IActivityLogger @this, CKTrait tags, Exception ex, string format, object arg0, object arg1, object arg2 )
         {
-            if( (int)@this.Filter <= (int)LogLevel.Trace ) @this.UnfilteredLog( tags, LogLevel.Trace, String.Format( format, arg0, arg1, arg2 ), ex );
+            if( (int)@this.Filter <= (int)LogLevel.Trace ) @this.UnfilteredLog( tags, LogLevel.Trace, String.Format( format, arg0, arg1, arg2 ), DateTime.UtcNow, ex );
             return @this;
         }
 
@@ -803,7 +803,7 @@ namespace CK.Core
         /// <returns>This logger to enable fluent syntax.</returns>
         public static IActivityLogger Trace( this IActivityLogger @this, CKTrait tags, Exception ex, string format, params object[] args )
         {
-            if( (int)@this.Filter <= (int)LogLevel.Trace ) @this.UnfilteredLog( tags, LogLevel.Trace, String.Format( format, args ), ex );
+            if( (int)@this.Filter <= (int)LogLevel.Trace ) @this.UnfilteredLog( tags, LogLevel.Trace, String.Format( format, args ), DateTime.UtcNow, ex );
             return @this;
         }
 
@@ -820,7 +820,7 @@ namespace CK.Core
         /// <returns>This logger to enable fluent syntax.</returns>
         public static IActivityLogger Info( this IActivityLogger @this, CKTrait tags, Exception ex )
         {
-            if( (int)@this.Filter <= (int)LogLevel.Info ) @this.UnfilteredLog( tags, LogLevel.Info, null, ex );
+            if( (int)@this.Filter <= (int)LogLevel.Info ) @this.UnfilteredLog( tags, LogLevel.Info, null, DateTime.UtcNow, ex );
             return @this;
         }
 
@@ -834,7 +834,7 @@ namespace CK.Core
         /// <returns>This logger to enable fluent syntax.</returns>
         public static IActivityLogger Info( this IActivityLogger @this, CKTrait tags, Exception ex, string text )
         {
-            if( (int)@this.Filter <= (int)LogLevel.Info ) @this.UnfilteredLog( tags, LogLevel.Info, text, ex );
+            if( (int)@this.Filter <= (int)LogLevel.Info ) @this.UnfilteredLog( tags, LogLevel.Info, text, DateTime.UtcNow, ex );
             return @this;
         }
 
@@ -849,7 +849,7 @@ namespace CK.Core
         /// <returns>This logger to enable fluent syntax.</returns>
         public static IActivityLogger Info( this IActivityLogger @this, CKTrait tags, Exception ex, string format, object arg0 )
         {
-            if( (int)@this.Filter <= (int)LogLevel.Info ) @this.UnfilteredLog( tags, LogLevel.Info, String.Format( format, arg0 ), ex );
+            if( (int)@this.Filter <= (int)LogLevel.Info ) @this.UnfilteredLog( tags, LogLevel.Info, String.Format( format, arg0 ), DateTime.UtcNow, ex );
             return @this;
         }
 
@@ -865,7 +865,7 @@ namespace CK.Core
         /// <returns>This logger to enable fluent syntax.</returns>
         public static IActivityLogger Info( this IActivityLogger @this, CKTrait tags, Exception ex, string format, object arg0, object arg1 )
         {
-            if( (int)@this.Filter <= (int)LogLevel.Info ) @this.UnfilteredLog( tags, LogLevel.Info, String.Format( format, arg0, arg1 ), ex );
+            if( (int)@this.Filter <= (int)LogLevel.Info ) @this.UnfilteredLog( tags, LogLevel.Info, String.Format( format, arg0, arg1 ), DateTime.UtcNow, ex );
             return @this;
         }
 
@@ -882,7 +882,7 @@ namespace CK.Core
         /// <returns>This logger to enable fluent syntax.</returns>
         public static IActivityLogger Info( this IActivityLogger @this, CKTrait tags, Exception ex, string format, object arg0, object arg1, object arg2 )
         {
-            if( (int)@this.Filter <= (int)LogLevel.Info ) @this.UnfilteredLog( tags, LogLevel.Info, String.Format( format, arg0, arg1, arg2 ), ex );
+            if( (int)@this.Filter <= (int)LogLevel.Info ) @this.UnfilteredLog( tags, LogLevel.Info, String.Format( format, arg0, arg1, arg2 ), DateTime.UtcNow, ex );
             return @this;
         }
 
@@ -897,7 +897,7 @@ namespace CK.Core
         /// <returns>This logger to enable fluent syntax.</returns>
         public static IActivityLogger Info( this IActivityLogger @this, CKTrait tags, Exception ex, string format, params object[] args )
         {
-            if( (int)@this.Filter <= (int)LogLevel.Info ) @this.UnfilteredLog( tags, LogLevel.Info, String.Format( format, args ), ex );
+            if( (int)@this.Filter <= (int)LogLevel.Info ) @this.UnfilteredLog( tags, LogLevel.Info, String.Format( format, args ), DateTime.UtcNow, ex );
             return @this;
         }
 
@@ -914,7 +914,7 @@ namespace CK.Core
         /// <returns>This logger to enable fluent syntax.</returns>
         public static IActivityLogger Warn( this IActivityLogger @this, CKTrait tags, Exception ex )
         {
-            if( (int)@this.Filter <= (int)LogLevel.Warn ) @this.UnfilteredLog( tags, LogLevel.Warn, null, ex );
+            if( (int)@this.Filter <= (int)LogLevel.Warn ) @this.UnfilteredLog( tags, LogLevel.Warn, null, DateTime.UtcNow, ex );
             return @this;
         }
 
@@ -928,7 +928,7 @@ namespace CK.Core
         /// <returns>This logger to enable fluent syntax.</returns>
         public static IActivityLogger Warn( this IActivityLogger @this, CKTrait tags, Exception ex, string text )
         {
-            if( (int)@this.Filter <= (int)LogLevel.Warn ) @this.UnfilteredLog( tags, LogLevel.Warn, text, ex );
+            if( (int)@this.Filter <= (int)LogLevel.Warn ) @this.UnfilteredLog( tags, LogLevel.Warn, text, DateTime.UtcNow, ex );
             return @this;
         }
 
@@ -943,7 +943,7 @@ namespace CK.Core
         /// <returns>This logger to enable fluent syntax.</returns>
         public static IActivityLogger Warn( this IActivityLogger @this, CKTrait tags, Exception ex, string format, object arg0 )
         {
-            if( (int)@this.Filter <= (int)LogLevel.Warn ) @this.UnfilteredLog( tags, LogLevel.Warn, String.Format( format, arg0 ), ex );
+            if( (int)@this.Filter <= (int)LogLevel.Warn ) @this.UnfilteredLog( tags, LogLevel.Warn, String.Format( format, arg0 ), DateTime.UtcNow, ex );
             return @this;
         }
 
@@ -959,7 +959,7 @@ namespace CK.Core
         /// <returns>This logger to enable fluent syntax.</returns>
         public static IActivityLogger Warn( this IActivityLogger @this, CKTrait tags, Exception ex, string format, object arg0, object arg1 )
         {
-            if( (int)@this.Filter <= (int)LogLevel.Warn ) @this.UnfilteredLog( tags, LogLevel.Warn, String.Format( format, arg0, arg1 ), ex );
+            if( (int)@this.Filter <= (int)LogLevel.Warn ) @this.UnfilteredLog( tags, LogLevel.Warn, String.Format( format, arg0, arg1 ), DateTime.UtcNow, ex );
             return @this;
         }
 
@@ -976,7 +976,7 @@ namespace CK.Core
         /// <returns>This logger to enable fluent syntax.</returns>
         public static IActivityLogger Warn( this IActivityLogger @this, CKTrait tags, Exception ex, string format, object arg0, object arg1, object arg2 )
         {
-            if( (int)@this.Filter <= (int)LogLevel.Warn ) @this.UnfilteredLog( tags, LogLevel.Warn, String.Format( format, arg0, arg1, arg2 ), ex );
+            if( (int)@this.Filter <= (int)LogLevel.Warn ) @this.UnfilteredLog( tags, LogLevel.Warn, String.Format( format, arg0, arg1, arg2 ), DateTime.UtcNow, ex );
             return @this;
         }
 
@@ -991,7 +991,7 @@ namespace CK.Core
         /// <returns>This logger to enable fluent syntax.</returns>
         public static IActivityLogger Warn( this IActivityLogger @this, CKTrait tags, Exception ex, string format, params object[] args )
         {
-            if( (int)@this.Filter <= (int)LogLevel.Warn ) @this.UnfilteredLog( tags, LogLevel.Warn, String.Format( format, args ), ex );
+            if( (int)@this.Filter <= (int)LogLevel.Warn ) @this.UnfilteredLog( tags, LogLevel.Warn, String.Format( format, args ), DateTime.UtcNow, ex );
             return @this;
         }
 
@@ -1008,7 +1008,7 @@ namespace CK.Core
         /// <returns>This logger to enable fluent syntax.</returns>
         public static IActivityLogger Error( this IActivityLogger @this, CKTrait tags, Exception ex )
         {
-            if( (int)@this.Filter <= (int)LogLevel.Error ) @this.UnfilteredLog( tags, LogLevel.Error, null, ex );
+            if( (int)@this.Filter <= (int)LogLevel.Error ) @this.UnfilteredLog( tags, LogLevel.Error, null, DateTime.UtcNow, ex );
             return @this;
         }
 
@@ -1022,7 +1022,7 @@ namespace CK.Core
         /// <returns>This logger to enable fluent syntax.</returns>
         public static IActivityLogger Error( this IActivityLogger @this, CKTrait tags, Exception ex, string text )
         {
-            if( (int)@this.Filter <= (int)LogLevel.Error ) @this.UnfilteredLog( tags, LogLevel.Error, text, ex );
+            if( (int)@this.Filter <= (int)LogLevel.Error ) @this.UnfilteredLog( tags, LogLevel.Error, text, DateTime.UtcNow, ex );
             return @this;
         }
 
@@ -1037,7 +1037,7 @@ namespace CK.Core
         /// <returns>This logger to enable fluent syntax.</returns>
         public static IActivityLogger Error( this IActivityLogger @this, CKTrait tags, Exception ex, string format, object arg0 )
         {
-            if( (int)@this.Filter <= (int)LogLevel.Error ) @this.UnfilteredLog( tags, LogLevel.Error, String.Format( format, arg0 ), ex );
+            if( (int)@this.Filter <= (int)LogLevel.Error ) @this.UnfilteredLog( tags, LogLevel.Error, String.Format( format, arg0 ), DateTime.UtcNow, ex );
             return @this;
         }
 
@@ -1053,7 +1053,7 @@ namespace CK.Core
         /// <returns>This logger to enable fluent syntax.</returns>
         public static IActivityLogger Error( this IActivityLogger @this, CKTrait tags, Exception ex, string format, object arg0, object arg1 )
         {
-            if( (int)@this.Filter <= (int)LogLevel.Error ) @this.UnfilteredLog( tags, LogLevel.Error, String.Format( format, arg0, arg1 ), ex );
+            if( (int)@this.Filter <= (int)LogLevel.Error ) @this.UnfilteredLog( tags, LogLevel.Error, String.Format( format, arg0, arg1 ), DateTime.UtcNow, ex );
             return @this;
         }
 
@@ -1070,7 +1070,7 @@ namespace CK.Core
         /// <returns>This logger to enable fluent syntax.</returns>
         public static IActivityLogger Error( this IActivityLogger @this, CKTrait tags, Exception ex, string format, object arg0, object arg1, object arg2 )
         {
-            if( (int)@this.Filter <= (int)LogLevel.Error ) @this.UnfilteredLog( tags, LogLevel.Error, String.Format( format, arg0, arg1, arg2 ), ex );
+            if( (int)@this.Filter <= (int)LogLevel.Error ) @this.UnfilteredLog( tags, LogLevel.Error, String.Format( format, arg0, arg1, arg2 ), DateTime.UtcNow, ex );
             return @this;
         }
 
@@ -1085,7 +1085,7 @@ namespace CK.Core
         /// <returns>This logger to enable fluent syntax.</returns>
         public static IActivityLogger Error( this IActivityLogger @this, CKTrait tags, Exception ex, string format, params object[] args )
         {
-            if( (int)@this.Filter <= (int)LogLevel.Error ) @this.UnfilteredLog( tags, LogLevel.Error, String.Format( format, args ), ex );
+            if( (int)@this.Filter <= (int)LogLevel.Error ) @this.UnfilteredLog( tags, LogLevel.Error, String.Format( format, args ), DateTime.UtcNow, ex );
             return @this;
         }
 
@@ -1102,7 +1102,7 @@ namespace CK.Core
         /// <returns>This logger to enable fluent syntax.</returns>
         public static IActivityLogger Fatal( this IActivityLogger @this, CKTrait tags, Exception ex )
         {
-            if( (int)@this.Filter <= (int)LogLevel.Fatal ) @this.UnfilteredLog( tags, LogLevel.Fatal, null, ex );
+            if( (int)@this.Filter <= (int)LogLevel.Fatal ) @this.UnfilteredLog( tags, LogLevel.Fatal, null, DateTime.UtcNow, ex );
             return @this;
         }
 
@@ -1116,7 +1116,7 @@ namespace CK.Core
         /// <returns>This logger to enable fluent syntax.</returns>
         public static IActivityLogger Fatal( this IActivityLogger @this, CKTrait tags, Exception ex, string text )
         {
-            if( (int)@this.Filter <= (int)LogLevel.Fatal ) @this.UnfilteredLog( tags, LogLevel.Fatal, text, ex );
+            if( (int)@this.Filter <= (int)LogLevel.Fatal ) @this.UnfilteredLog( tags, LogLevel.Fatal, text, DateTime.UtcNow, ex );
             return @this;
         }
 
@@ -1131,7 +1131,7 @@ namespace CK.Core
         /// <returns>This logger to enable fluent syntax.</returns>
         public static IActivityLogger Fatal( this IActivityLogger @this, CKTrait tags, Exception ex, string format, object arg0 )
         {
-            if( (int)@this.Filter <= (int)LogLevel.Fatal ) @this.UnfilteredLog( tags, LogLevel.Fatal, String.Format( format, arg0 ), ex );
+            if( (int)@this.Filter <= (int)LogLevel.Fatal ) @this.UnfilteredLog( tags, LogLevel.Fatal, String.Format( format, arg0 ), DateTime.UtcNow, ex );
             return @this;
         }
 
@@ -1147,7 +1147,7 @@ namespace CK.Core
         /// <returns>This logger to enable fluent syntax.</returns>
         public static IActivityLogger Fatal( this IActivityLogger @this, CKTrait tags, Exception ex, string format, object arg0, object arg1 )
         {
-            if( (int)@this.Filter <= (int)LogLevel.Fatal ) @this.UnfilteredLog( tags, LogLevel.Fatal, String.Format( format, arg0, arg1 ), ex );
+            if( (int)@this.Filter <= (int)LogLevel.Fatal ) @this.UnfilteredLog( tags, LogLevel.Fatal, String.Format( format, arg0, arg1 ), DateTime.UtcNow, ex );
             return @this;
         }
 
@@ -1164,7 +1164,7 @@ namespace CK.Core
         /// <returns>This logger to enable fluent syntax.</returns>
         public static IActivityLogger Fatal( this IActivityLogger @this, CKTrait tags, Exception ex, string format, object arg0, object arg1, object arg2 )
         {
-            if( (int)@this.Filter <= (int)LogLevel.Fatal ) @this.UnfilteredLog( tags, LogLevel.Fatal, String.Format( format, arg0, arg1, arg2 ), ex );
+            if( (int)@this.Filter <= (int)LogLevel.Fatal ) @this.UnfilteredLog( tags, LogLevel.Fatal, String.Format( format, arg0, arg1, arg2 ), DateTime.UtcNow, ex );
             return @this;
         }
 
@@ -1179,7 +1179,7 @@ namespace CK.Core
         /// <returns>This logger to enable fluent syntax.</returns>
         public static IActivityLogger Fatal( this IActivityLogger @this, CKTrait tags, Exception ex, string format, params object[] args )
         {
-            if( (int)@this.Filter <= (int)LogLevel.Fatal ) @this.UnfilteredLog( tags, LogLevel.Fatal, String.Format( format, args ), ex );
+            if( (int)@this.Filter <= (int)LogLevel.Fatal ) @this.UnfilteredLog( tags, LogLevel.Fatal, String.Format( format, args ), DateTime.UtcNow, ex );
             return @this;
         }
 
@@ -1202,7 +1202,7 @@ namespace CK.Core
         /// </remarks>
         public static IDisposable OpenGroup( this IActivityLogger @this, CKTrait tags, LogLevel level, Exception ex )
         {
-            return @this.OpenGroup( tags, level, null, null, ex );
+            return @this.OpenGroup( tags, level, null, null, DateTime.UtcNow, ex );
         }
 
         /// <summary>
@@ -1221,7 +1221,7 @@ namespace CK.Core
         /// </remarks>
         public static IDisposable OpenGroup( this IActivityLogger @this, CKTrait tags, LogLevel level, Exception ex, string text )
         {
-            return @this.OpenGroup( tags, level, null, text, ex );
+            return @this.OpenGroup( tags, level, null, text, DateTime.UtcNow, ex );
         }
 
         /// <summary>
@@ -1241,7 +1241,7 @@ namespace CK.Core
         /// </remarks>
         public static IDisposable OpenGroup( this IActivityLogger @this, CKTrait tags, LogLevel level, Exception ex, string format, object arg0 )
         {
-            return @this.OpenGroup( tags, level, null, String.Format( format, arg0 ), ex );
+            return @this.OpenGroup( tags, level, null, String.Format( format, arg0 ), DateTime.UtcNow, ex );
         }
 
         /// <summary>
@@ -1262,7 +1262,7 @@ namespace CK.Core
         /// </remarks>
         public static IDisposable OpenGroup( this IActivityLogger @this, CKTrait tags, LogLevel level, Exception ex, string format, object arg0, object arg1 )
         {
-            return @this.OpenGroup( tags, level, null, String.Format( format, arg0, arg1 ), ex );
+            return @this.OpenGroup( tags, level, null, String.Format( format, arg0, arg1 ), DateTime.UtcNow, ex );
         }
 
         /// <summary>
@@ -1284,7 +1284,7 @@ namespace CK.Core
         /// </remarks>
         public static IDisposable OpenGroup( this IActivityLogger @this, CKTrait tags, LogLevel level, Exception ex, string format, object arg0, object arg1, object arg2 )
         {
-            return @this.OpenGroup( tags, level, null, String.Format( format, arg0, arg1, arg2 ), ex );
+            return @this.OpenGroup( tags, level, null, String.Format( format, arg0, arg1, arg2 ), DateTime.UtcNow, ex );
         }
 
         /// <summary>
@@ -1304,7 +1304,7 @@ namespace CK.Core
         /// </remarks>
         public static IDisposable OpenGroup( this IActivityLogger @this, CKTrait tags, LogLevel level, Exception ex, string format, params object[] arguments )
         {
-            return @this.OpenGroup( tags, level, null, String.Format( format, arguments ), ex );
+            return @this.OpenGroup( tags, level, null, String.Format( format, arguments ), DateTime.UtcNow, ex );
         }
 
         #endregion

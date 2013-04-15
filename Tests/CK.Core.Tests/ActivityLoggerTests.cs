@@ -40,7 +40,7 @@ namespace CK.Core.Tests
         [Test]
         public void NonRemovableOrLockedClients()
         {
-            IDefaultActivityLogger logger = DefaultActivityLogger.Create();
+            IDefaultActivityLogger logger = new DefaultActivityLogger();
             Assert.Throws<InvalidOperationException>( () => logger.Output.UnregisterClient( logger.ErrorCounter ), "Default Counter can not be unregistered." );
             Assert.Throws<InvalidOperationException>( () => logger.Output.UnregisterClient( logger.PathCatcher ), "Default PathCatcher can not be unregistered." );
             Assert.Throws<InvalidOperationException>( () => logger.Output.UnregisterClient( logger.Tap ), "Default Tap can not be unregistered." );
@@ -72,13 +72,13 @@ namespace CK.Core.Tests
         {
             Assert.Throws<ArgumentNullException>( () => new ActivityLoggerBridge( null ), "Null guards." );
 
-            IDefaultActivityLogger logger = DefaultActivityLogger.Create();
+            IDefaultActivityLogger logger = new DefaultActivityLogger();
             var allDump = new StringImpl();
             logger.Tap.Register( allDump );
 
             // The consoleString is a string dump of the console.
             // Both the console and the string dump accepts at most Info level.
-            IDefaultActivityLogger consoleString = DefaultActivityLogger.Create();
+            IDefaultActivityLogger consoleString = new DefaultActivityLogger();
             var consoleDump = new StringImpl();
             consoleString.Tap.Register( consoleDump );
             consoleString.Filter = LogLevelFilter.Info;
@@ -122,19 +122,19 @@ namespace CK.Core.Tests
             ActivityLogger logger = new ActivityLogger();
             using( logger.OpenGroup( LogLevel.Trace, "G1" ) )
             {
-                logger.Tags = ActivityLogger.RegisteredTags.FindOrCreate( "Tag" );
+                logger.AutoTags = ActivityLogger.RegisteredTags.FindOrCreate( "Tag" );
                 logger.Filter = LogLevelFilter.Info;
                 using( logger.OpenGroup( LogLevel.Warn, "G2" ) )
                 {
-                    logger.Tags = ActivityLogger.RegisteredTags.FindOrCreate( "A|B|C" );
+                    logger.AutoTags = ActivityLogger.RegisteredTags.FindOrCreate( "A|B|C" );
                     logger.Filter = LogLevelFilter.Error;
-                    Assert.That( logger.Tags.ToString(), Is.EqualTo( "A|B|C" ) );
+                    Assert.That( logger.AutoTags.ToString(), Is.EqualTo( "A|B|C" ) );
                     Assert.That( logger.Filter, Is.EqualTo( LogLevelFilter.Error ) );
                 }
-                Assert.That( logger.Tags.ToString(), Is.EqualTo( "Tag" ) );
+                Assert.That( logger.AutoTags.ToString(), Is.EqualTo( "Tag" ) );
                 Assert.That( logger.Filter, Is.EqualTo( LogLevelFilter.Info ) );
             }
-            Assert.That( logger.Tags, Is.SameAs( ActivityLogger.EmptyTag ) );
+            Assert.That( logger.AutoTags, Is.SameAs( ActivityLogger.EmptyTag ) );
             Assert.That( logger.Filter, Is.EqualTo( LogLevelFilter.None ) );
         }
 
@@ -142,7 +142,7 @@ namespace CK.Core.Tests
         [Category( "Console" )]
         public void DefaultImpl()
         {
-            IDefaultActivityLogger logger = DefaultActivityLogger.Create();
+            IDefaultActivityLogger logger = new DefaultActivityLogger();
             logger.Output.BridgeTo( TestHelper.Logger );
             logger.Tap.Register( new StringImpl() ).Register( new XmlImpl( new StringWriter() ) );
             Assert.That( logger.Tap.RegisteredSinks.Count, Is.EqualTo( 2 ) );
@@ -197,7 +197,7 @@ namespace CK.Core.Tests
         [Category( "Console" )]
         public void MultipleClose()
         {
-            IDefaultActivityLogger logger = DefaultActivityLogger.Create();
+            IDefaultActivityLogger logger = new DefaultActivityLogger();
             logger.Output.BridgeTo( TestHelper.Logger );
 
             var log1 = new StringImpl();
@@ -223,7 +223,7 @@ namespace CK.Core.Tests
         [Category( "Console" )]
         public void FilterLevel()
         {
-            IDefaultActivityLogger l = DefaultActivityLogger.Create();
+            IDefaultActivityLogger l = new DefaultActivityLogger();
             l.Output.BridgeTo( TestHelper.Logger );
             
             var log = new StringImpl();
@@ -278,9 +278,10 @@ namespace CK.Core.Tests
         }
 
         [Test]
+        [Category( "Console" )]
         public void CloseMismatch()
         {
-            IDefaultActivityLogger l = DefaultActivityLogger.Create();
+            IDefaultActivityLogger l = new DefaultActivityLogger();
             var log = new StringImpl();
             l.Tap.Register( log );
             {
@@ -319,7 +320,7 @@ namespace CK.Core.Tests
         [Category( "Console" )]
         public void MultipleConclusions()
         {
-            IDefaultActivityLogger l = DefaultActivityLogger.Create();
+            IDefaultActivityLogger l = new DefaultActivityLogger();
             l.Output.BridgeTo( TestHelper.Logger );
             
             var log = new StringImpl();
@@ -338,7 +339,7 @@ namespace CK.Core.Tests
         [Category( "Console" )]
         public void PathCatcherTests()
         {
-            var logger = DefaultActivityLogger.Create();
+            var logger = new DefaultActivityLogger();
             logger.Output.BridgeTo( TestHelper.Logger );
             
             ActivityLoggerPathCatcher p = new ActivityLoggerPathCatcher();
@@ -496,7 +497,8 @@ namespace CK.Core.Tests
             ActivityLoggerPathCatcher p = new ActivityLoggerPathCatcher();
             logger.Output.RegisterClient( p );
             
-            Assert.That( c.GenerateConclusion, Is.True, "Must be the default." );
+            Assert.That( c.GenerateConclusion, Is.False, "False by default." );
+            c.GenerateConclusion = true;
             Assert.That( c.Root.MaxLogLevel == LogLevel.None );
 
             logger.Trace( "T1" );
@@ -570,7 +572,7 @@ namespace CK.Core.Tests
         [Test]
         public void SimpleCollectorTest()
         {
-            IDefaultActivityLogger d = DefaultActivityLogger.Create();
+            IDefaultActivityLogger d = new DefaultActivityLogger();
             var c = new ActivityLoggerSimpleCollector();
             d.Output.RegisterClient( c );
             d.Warn( "1" );
@@ -607,7 +609,7 @@ namespace CK.Core.Tests
         [Test]
         public void CatchTests()
         {
-            IDefaultActivityLogger d = DefaultActivityLogger.Create();
+            IDefaultActivityLogger d = new DefaultActivityLogger();
             
             Assert.Throws<ArgumentNullException>( () => d.Catch( null ) );
 
@@ -658,7 +660,7 @@ namespace CK.Core.Tests
             string fmt0 = "fmt", fmt1 = "fmt{0}", fmt2 = "fmt{0}{1}", fmt3 = "fmt{0}{1}{2}", fmt4 = "fmt{0}{1}{2}{3}", fmt5 = "fmt{0}{1}{2}{3}{4}", fmt6 = "fmt{0}{1}{2}{3}{4}{5}";
             string p1 = "p1", p2 = "p2", p3 = "p3", p4 = "p4", p5 = "p5", p6 = "p6";
 
-            IDefaultActivityLogger d = DefaultActivityLogger.Create();
+            IDefaultActivityLogger d = new DefaultActivityLogger();
             var collector = new ActivityLoggerSimpleCollector() { LevelFilter = LogLevelFilter.Trace, Capacity = 1 };
             d.Output.RegisterClient( collector );
 
@@ -773,7 +775,7 @@ namespace CK.Core.Tests
             string fmt0 = "fmt", fmt1 = "fmt{0}", fmt2 = "fmt{0}{1}", fmt3 = "fmt{0}{1}{2}", fmt4 = "fmt{0}{1}{2}{3}", fmt5 = "fmt{0}{1}{2}{3}{4}", fmt6 = "fmt{0}{1}{2}{3}{4}{5}";
             string p1 = "p1", p2 = "p2", p3 = "p3", p4 = "p4", p5 = "p5", p6 = "p6";
 
-            IDefaultActivityLogger d = DefaultActivityLogger.Create();
+            IDefaultActivityLogger d = new DefaultActivityLogger();
             var collector = new ActivityLoggerSimpleCollector() { LevelFilter = LogLevelFilter.Trace, Capacity = 1 };
             d.Output.RegisterClient( collector );
 

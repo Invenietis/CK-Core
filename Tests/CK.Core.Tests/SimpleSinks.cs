@@ -44,14 +44,14 @@ namespace CK.Core.Tests
             WriteConclusionTraits = writeConclusionTraits;
         }
 
-        public void OnEnterLevel( CKTrait tags, LogLevel level, string text )
+        public void OnEnterLevel( CKTrait tags, LogLevel level, string text, DateTime logTimeUtc )
         {
             Writer.WriteLine();
             Writer.Write( level.ToString() + ": " + text );
             if( WriteTags ) Writer.Write( "-[{0}]", tags.ToString() );
         }
 
-        public void OnContinueOnSameLevel( CKTrait tags, LogLevel level, string text )
+        public void OnContinueOnSameLevel( CKTrait tags, LogLevel level, string text, DateTime logTimeUtc )
         {
             Writer.Write( text );
             if( WriteTags ) Writer.Write( "-[{0}]", tags.ToString() );
@@ -104,13 +104,13 @@ namespace CK.Core.Tests
             InnerWriter = s;
         }
 
-        public void OnEnterLevel( CKTrait tags, LogLevel level, string text )
+        public void OnEnterLevel( CKTrait tags, LogLevel level, string text, DateTime logTimeUtc )
         {
             XmlWriter.WriteStartElement( level.ToString() );
             XmlWriter.WriteString( text );
         }
 
-        public void OnContinueOnSameLevel( CKTrait tags, LogLevel level, string text )
+        public void OnContinueOnSameLevel( CKTrait tags, LogLevel level, string text, DateTime logTimeUtc )
         {
             XmlWriter.WriteString( text );
         }

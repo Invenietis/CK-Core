@@ -70,15 +70,6 @@ namespace CK.Core {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The ActivityLogger client is in NonRemoveableClients list..
-        /// </summary>
-        internal static string ActivityLoggerNonRemoveableClient {
-            get {
-                return ResourceManager.GetString("ActivityLoggerNonRemoveableClient", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Argument count can not be negative..
         /// </summary>
         internal static string ArgumentCountNegative {
@@ -111,6 +102,15 @@ namespace CK.Core {
         internal static string ClosedByBridgeRemoved {
             get {
                 return ResourceManager.GetString("ClosedByBridgeRemoved", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to DateTime must be Utc. Use DateTime.UtcNow to obtain it for instance..
+        /// </summary>
+        internal static string DateTimeMustBeUtc {
+            get {
+                return ResourceManager.GetString("DateTimeMustBeUtc", resourceCulture);
             }
         }
         
@@ -160,6 +160,15 @@ namespace CK.Core {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Possible use of the wrong overload: Use the form that takes a first parameter of type Exception and then the string text instead of this ( string format, object arg0, ... ) method to log the exception, or calls this overload explicitely with the Exception.Message string..
+        /// </summary>
+        internal static string PossibleWrongOverloadUseWithException {
+            get {
+                return ResourceManager.GetString("PossibleWrongOverloadUseWithException", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Service {0} is directly supported by the container..
         /// </summary>
         internal static string ServiceAlreadyDirectlySupported {
@@ -192,6 +201,15 @@ namespace CK.Core {
         internal static string ServiceImplTypeMismatch {
             get {
                 return ResourceManager.GetString("ServiceImplTypeMismatch", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Must be not null and registered in ActivityLogger.RegisteredTags..
+        /// </summary>
+        internal static string TagMustBeRegisteredInActivityLogger {
+            get {
+                return ResourceManager.GetString("TagMustBeRegisteredInActivityLogger", resourceCulture);
             }
         }
         

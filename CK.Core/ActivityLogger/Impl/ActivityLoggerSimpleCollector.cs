@@ -11,7 +11,7 @@ namespace CK.Core
     /// </summary>
     public class ActivityLoggerSimpleCollector : IActivityLoggerClient
     {
-        FIFOBuffer<Entry> _entries;
+        readonly FIFOBuffer<Entry> _entries;
         LogLevelFilter _filter;
 
         /// <summary>
@@ -30,6 +30,11 @@ namespace CK.Core
             public readonly LogLevel Level;
 
             /// <summary>
+            /// Timestamp of the log entry.
+            /// </summary>
+            public readonly DateTime LogTimeUtc;
+
+            /// <summary>
             /// The text of the log entry.
             /// </summary>
             public readonly string Text;
@@ -39,11 +44,11 @@ namespace CK.Core
             /// </summary>
             public readonly Exception Exception;
 
-
-            internal Entry( CKTrait tags, LogLevel level, string text, Exception ex )
+            internal Entry( CKTrait tags, LogLevel level, string text, DateTime logTimeUtc, Exception ex )
             {
                 Tags = tags;
                 Level = level;
+                LogTimeUtc = logTimeUtc;
                 Text = text;
                 Exception = ex;
             }
@@ -123,11 +128,11 @@ namespace CK.Core
         /// <param name="tags">Tags for the log entry.</param>
         /// <param name="level">Level of the log.</param>
         /// <param name="text">Text of the log.</param>
-        void IActivityLoggerClient.OnUnfilteredLog( CKTrait tags, LogLevel level, string text )
+        void IActivityLoggerClient.OnUnfilteredLog( CKTrait tags, LogLevel level, string text, DateTime logTimeUtc )
         {
             if( (int)level >= (int)_filter )
             {
-                _entries.Push( new Entry( tags, level, text, null ) );
+                _entries.Push( new Entry( tags, level, text, logTimeUtc, null ) );
             }
         }
 
@@ -139,7 +144,7 @@ namespace CK.Core
         {
             if( (int)group.GroupLevel >= (int)_filter )
             {
-                _entries.Push( new Entry( group.GroupTags, group.GroupLevel, group.GroupText, group.Exception ) );
+                _entries.Push( new Entry( group.GroupTags, group.GroupLevel, group.GroupText, group.LogTimeUtc, group.Exception ) );
             }
         }
 

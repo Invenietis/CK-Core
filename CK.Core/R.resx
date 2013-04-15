@@ -120,9 +120,6 @@
   <data name="ActivityLoggerBoundClientMultipleRegister" xml:space="preserve">
     <value>A '{0}' can be registered in only one IActivityLogger.Output at the same time. Unregister it before Registering it in another logger.</value>
   </data>
-  <data name="ActivityLoggerNonRemoveableClient" xml:space="preserve">
-    <value>The ActivityLogger client is in NonRemoveableClients list.</value>
-  </data>
   <data name="ArgumentCountNegative" xml:space="preserve">
     <value>Argument count can not be negative.</value>
   </data>
@@ -134,6 +131,9 @@
   </data>
   <data name="ClosedByBridgeRemoved" xml:space="preserve">
     <value>Prematurely closed by Bridge removed.</value>
+  </data>
+  <data name="DateTimeMustBeUtc" xml:space="preserve">
+    <value>DateTime must be Utc. Use DateTime.UtcNow to obtain it for instance.</value>
   </data>
   <data name="DirectServicesCanNotBeDisabled" xml:space="preserve">
     <value>Service {0} is direcly supported by the container. It can not be disabled.</value>
@@ -150,6 +150,9 @@
   <data name="InvalidAssemblyQualifiedName" xml:space="preserve">
     <value>"{0}" is not a valid assembly qualified name.</value>
   </data>
+  <data name="PossibleWrongOverloadUseWithException" xml:space="preserve">
+    <value>Possible use of the wrong overload: Use the form that takes a first parameter of type Exception and then the string text instead of this ( string format, object arg0, ... ) method to log the exception, or calls this overload explicitely with the Exception.Message string.</value>
+  </data>
   <data name="ServiceAlreadyDirectlySupported" xml:space="preserve">
     <value>Service {0} is directly supported by the container.</value>
   </data>
@@ -161,6 +164,9 @@
   </data>
   <data name="ServiceImplTypeMismatch" xml:space="preserve">
     <value>Service {0} is not implemented by object {1}.</value>
+  </data>
+  <data name="TagMustBeRegisteredInActivityLogger" xml:space="preserve">
+    <value>Must be not null and registered in ActivityLogger.RegisteredTags.</value>
   </data>
   <data name="TraitsMustBelongToTheSameContext" xml:space="preserve">
     <value>Traits must belong to the same context.</value>

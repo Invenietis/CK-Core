@@ -46,7 +46,8 @@ namespace CK.Core
         /// <param name="tags">Tags (from <see cref="ActivityLogger.RegisteredTags"/>) associated to the log.</param>
         /// <param name="level">Log level.</param>
         /// <param name="text">Text (not null).</param>
-        void OnUnfilteredLog( CKTrait tags, LogLevel level, string text );
+        /// <param name="logTimeUtc">Timestamp of the log.</param>
+        void OnUnfilteredLog( CKTrait tags, LogLevel level, string text, DateTime logTimeUtc );
 
         /// <summary>
         /// Called for each <see cref="IActivityLogger.OpenGroup"/>.

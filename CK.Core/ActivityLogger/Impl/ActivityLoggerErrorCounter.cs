@@ -30,7 +30,9 @@ using System.Text;
 namespace CK.Core
 {
     /// <summary>
-    /// Count fatal, error or warn that occured and automatically sets the conclusion of groups.
+    /// Count fatal, error or warn that occured. 
+    /// Can automatically adds a conclusion of groups that summarizes
+    /// the number of fatals, errors and warnings.
     /// </summary>
     public class ActivityLoggerErrorCounter : ActivityLoggerClient, IActivityLoggerBoundClient
     {
@@ -43,7 +45,7 @@ namespace CK.Core
         static readonly string DefaultSeparator = ", ";
 
         /// <summary>
-        /// Gets the tag used for generated conclusion ("c:ErrorCounter").
+        /// Gets the tag used for generated error conclusions ("c:ErrorCounter") when <see cref="GenerateConclusion"/> is true.
         /// </summary>
         public static readonly CKTrait TagErrorCounter = ActivityLogger.RegisteredTags.FindOrCreate( "c:ErrorCounter" );
 
@@ -90,7 +92,7 @@ namespace CK.Core
             }
 
             /// <summary>
-            /// Gets whether an a fatal, an error or a warn occurred.
+            /// Gets whether a fatal, an error or a warn occurred.
             /// </summary>
             public bool HasWarnOrError
             {
@@ -214,7 +216,7 @@ namespace CK.Core
             {
             }
 
-            protected override void OnUnfilteredLog( CKTrait tags, LogLevel level, string text )
+            protected override void OnUnfilteredLog( CKTrait tags, LogLevel level, string text, DateTime logTimeUtc )
             {
             }
 
@@ -238,22 +240,22 @@ namespace CK.Core
         static public new readonly ActivityLoggerErrorCounter Empty = new EmptyErrorCounter();
 
         /// <summary>
-        /// Initializes a new error counter.
+        /// Initializes a new error counter with <see cref="GenerateConclusion"/> sets to false.
         /// </summary>
         public ActivityLoggerErrorCounter()
         {
             _current = _root = new State( null );
-            GenerateConclusion = true;
         }
 
         /// <summary>
         /// Initialize a new <see cref="ActivityLoggerPathCatcher"/> as the default <see cref="IDefaultActivityLogger.ErrorCounter"/>.
         /// It can not be unregistered.
         /// </summary>
-        public ActivityLoggerErrorCounter( IDefaultActivityLogger logger )
+        public ActivityLoggerErrorCounter( IDefaultActivityLogger logger, bool generateErrorConlusion )
             : this()
         {
             logger.Output.RegisterClient( this );
+            GenerateConclusion = generateErrorConlusion;
             _locked = true;
         }
 
@@ -282,7 +284,7 @@ namespace CK.Core
 
         /// <summary>
         /// Gets or sets whether the Group conclusion must be generated.
-        /// Defaults to true.
+        /// Defaults to false.
         /// </summary>
         public bool GenerateConclusion { get; set; }
 
@@ -292,7 +294,8 @@ namespace CK.Core
         /// <param name="tags">Tags (from <see cref="ActivityLogger.RegisteredTags"/>) associated to the log.</param>
         /// <param name="level">Log level.</param>
         /// <param name="text">Text (not null).</param>
-        protected override void OnUnfilteredLog( CKTrait tags, LogLevel level, string text )
+        /// <param name="logTimeUtc">Timestamp of the log.</param>
+        protected override void OnUnfilteredLog( CKTrait tags, LogLevel level, string text, DateTime logTimeUtc )
         {
             _current.CatchLevel( level );
         }

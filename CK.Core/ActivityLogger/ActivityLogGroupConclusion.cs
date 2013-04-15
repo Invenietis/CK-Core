@@ -37,7 +37,7 @@ namespace CK.Core
         /// <summary>
         /// The tag (never null).
         /// It may be combined but is often atomic like <see cref="ActivityLogger.TagUserConclusion"/>, 
-        /// <see cref="ActivityLogger.TagGetTextConclusion"/> or <see cref="ActivityLoggerErrorCounter.TagErrorCounter"/>.
+        /// or <see cref="ActivityLogger.TagGetTextConclusion"/>.
         /// </summary>
         public readonly CKTrait Tag;
 
@@ -53,7 +53,7 @@ namespace CK.Core
         /// <param name="tag">Must not be null and be registered in <see cref="ActivityLogger.RegisteredTags"/>.</param>
         public ActivityLogGroupConclusion( string conclusion, CKTrait tag )
         {
-            if( tag == null || tag.Context != ActivityLogger.RegisteredTags ) throw new ArgumentException("Must be not null and be registered in ActivityLogger.Tags.", "tag" );
+            if( tag == null || tag.Context != ActivityLogger.RegisteredTags ) throw new ArgumentException( R.TagMustBeRegisteredInActivityLogger, "tag" );
             if( conclusion == null ) throw new ArgumentNullException( "conclusion" );
             Tag = tag;
             Text = conclusion;

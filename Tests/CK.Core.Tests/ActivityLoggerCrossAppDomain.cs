@@ -52,7 +52,7 @@ namespace CK.Core.Tests
         [Category( "Console" )]
         public void TestCrossDomain()
         {
-            IDefaultActivityLogger logger = DefaultActivityLogger.Create();
+            IDefaultActivityLogger logger = new DefaultActivityLogger();
             logger.Filter = LogLevelFilter.Info;
             logger.Output.BridgeTo( TestHelper.Logger );
             StringImpl textDump = new StringImpl( true, true );
@@ -91,10 +91,11 @@ namespace CK.Core.Tests
         {
             AppDomainCommunication appDomainComm = (AppDomainCommunication)AppDomain.CurrentDomain.GetData( "external-appDomainComm" );
 
-            // Creates a DefaultActivityLogge in order to have automatic ErrorCounter conclusions on Closed groups.
-            IDefaultActivityLogger logger = DefaultActivityLogger.Create();
+            // Creates a DefaultActivityLogger in order to have automatic ErrorCounter conclusions on Closed groups.
+            IDefaultActivityLogger logger = new DefaultActivityLogger();
+            logger.ErrorCounter.GenerateConclusion = true;
             logger.Output.RegisterClient( new ActivityLoggerBridge( appDomainComm.LoggerBridge ) );
-            logger.Tags = ActivityLogger.RegisteredTags.FindOrCreate( "External App Domain|Test for fun" );
+            logger.AutoTags = ActivityLogger.RegisteredTags.FindOrCreate( "External App Domain|Test for fun" );
 
             try
             {

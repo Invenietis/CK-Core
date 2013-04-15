@@ -41,7 +41,8 @@ namespace CK.Core
         /// <param name="tags">Tags (from <see cref="ActivityLogger.RegisteredTags"/>) associated to the log.</param>
         /// <param name="level">The new current log level.</param>
         /// <param name="text">Text to start.</param>
-        void OnEnterLevel( CKTrait tags, LogLevel level, string text );
+        /// <param name="logTimeUtc">Timestamp of the log.</param>
+        void OnEnterLevel( CKTrait tags, LogLevel level, string text, DateTime logTimeUtc );
 
         /// <summary>
         /// Called for text with the same <see cref="LogLevel"/> as the previous ones.
@@ -49,7 +50,8 @@ namespace CK.Core
         /// <param name="tags">Tags (from <see cref="ActivityLogger.RegisteredTags"/>) associated to the log.</param>
         /// <param name="level">The current log level.</param>
         /// <param name="text">Text to append.</param>
-        void OnContinueOnSameLevel( CKTrait tags, LogLevel level, string text );
+        /// <param name="logTimeUtc">Timestamp of the log.</param>
+        void OnContinueOnSameLevel( CKTrait tags, LogLevel level, string text, DateTime logTimeUtc );
 
         /// <summary>
         /// Called when current log level changes.
