@@ -35,7 +35,7 @@ namespace CK.Core
     /// </summary>
     /// <typeparam name="T">Type of the items.</typeparam>
     [DebuggerTypeProxy( typeof( Impl.CKReadOnlyCollectionDebuggerView<> ) )]
-    public class FIFOBuffer<T> : IReadOnlyList<T>, ICKWritableCollector<T>
+    public class FIFOBuffer<T> : ICKReadOnlyList<T>, ICKWritableCollector<T>
     {
         int _count;
         int _head;
@@ -91,6 +91,23 @@ namespace CK.Core
         }
 
         /// <summary>
+        /// Truncates the queue: only the <paramref name="newCount"/> newest items are kept.
+        /// Pops as many old items (the ones that have been pushed first) in order for <see cref="Count"/> to be equal to newCount.
+        /// </summary>
+        /// <param name="newCount">The final number of items. If it is greater or equal to the current <see cref="Count"/>, nothing is done.</param>
+        public void Truncate( int newCount )
+        {
+            if( newCount < 0 ) throw new ArgumentOutOfRangeException( "newCount" );
+            if( newCount == 0 ) Clear();
+            else while( _count > newCount )
+                {
+                    _buffer[_head] = default( T );
+                    if( ++_head == _buffer.Length ) _head = 0;
+                    _count--;
+                }
+        }
+
+        /// <summary>
         /// Tests whether the buffer actually contains the given object.
         /// </summary>
         /// <param name="item">Object to test.</param>
@@ -131,7 +148,7 @@ namespace CK.Core
         }
 
         /// <summary>
-        /// Gets the element by index. Index 0 is the one returned by <see cref="Peek"/> (and the next one that will be returned by <see cref="Pop"/>).
+        /// Gets the element by index. Index 0 is the oldest item, the one returned by <see cref="Peek"/> and <see cref="Pop"/>.
         /// </summary>
         /// <param name="index">Index must be positive and less than <see cref="Count"/>.</param>
         /// <returns>The indexed element.</returns>
@@ -207,7 +224,7 @@ namespace CK.Core
         }
 
         /// <summary>
-        /// Copies as much possible items into the given array. 
+        /// Copies as much possible items into the given array. Order is from oldest to newest.
         /// If the target array is too small to contain <see cref="Count"/> items, the newest ones
         /// are copied (the oldest, the ones that will <see cref="Pop"/> first, are skipped).
         /// </summary>
@@ -219,7 +236,7 @@ namespace CK.Core
         }
 
         /// <summary>
-        /// Copies as much possible items into the given array. 
+        /// Copies as much possible items into the given array. Order is from oldest to newest. 
         /// If the target array is too small to contain <see cref="Count"/> items, the newest ones
         /// are copied (the oldest, the ones that will <see cref="Pop"/> first, are skipped).
         /// </summary>
@@ -232,7 +249,7 @@ namespace CK.Core
         }
 
         /// <summary>
-        /// Copies as much possible items into the given array. 
+        /// Copies as much possible items into the given array. Order is from oldest to newest.
         /// If <paramref name="count"/> is less than <see cref="Count"/>, the newest ones
         /// are copied (the oldest, the ones that will <see cref="Pop"/> first, are skipped).
         /// </summary>
@@ -283,9 +300,9 @@ namespace CK.Core
         }
 
         /// <summary>
-        /// Gets the enumerator.
+        /// Gets the enumerator (from oldest to newest item).
         /// </summary>
-        /// <returns>An enumerator (from oldest to newest item).</returns>
+        /// <returns>An enumerator.</returns>
         public IEnumerator<T> GetEnumerator()
         {
             int bufferIndex = _head;
