@@ -89,7 +89,6 @@
     <Compile Include="ActivityLogger\Impl\ActivityLoggerExtension.WithoutTags.cs" />
     <Compile Include="ActivityLogger\Impl\ActivityLoggerExtension.WithTags.cs" />
     <Compile Include="ActivityLogger\Impl\ActivityLoggerBridge.cs" />
-    <Compile Include="ActivityLogger\Impl\ActivityLogger.LogErrorCollector.cs" />
     <Compile Include="ActivityLogger\Impl\DefaultActivityLogger.cs" />
     <Compile Include="ActivityLogger\IDefaultActivityLogger.cs" />
     <Compile Include="ActivityLogger\IActivityLoggerSink.cs" />
@@ -98,6 +97,7 @@
     <Compile Include="ActivityLogger\LogLevel.cs" />
     <Compile Include="ActivityLogger\LogLevelFilter.cs" />
     <Compile Include="CKException.cs" />
+    <Compile Include="CriticalErrorCollector.cs" />
     <Compile Include="ICKReadOnlyCollection.cs" />
     <Compile Include="ICKReadOnlyList.cs" />
     <Compile Include="ICKReadOnlyMultiKeyedCollection.cs" />

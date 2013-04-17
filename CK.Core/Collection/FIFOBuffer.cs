@@ -232,7 +232,7 @@ namespace CK.Core
         /// <returns>Number of items copied.</returns>
         public int CopyTo( T[] array )
         {
-            return CopyTo( array, 0 );
+            return CopyTo( array, 0  );
         }
 
         /// <summary>
@@ -245,6 +245,7 @@ namespace CK.Core
         /// <returns>Number of items copied.</returns>
         public int CopyTo( T[] array, int arrayIndex )
         {
+            if( array == null ) throw new ArgumentNullException( "array" );
             return CopyTo( array, arrayIndex, array.Length - arrayIndex );
         }
 
@@ -260,7 +261,8 @@ namespace CK.Core
         public int CopyTo( T[] array, int arrayIndex, int count )
         {
             if( array == null ) throw new ArgumentNullException( "array" );
-            if( count < 0 ) throw new ArgumentException();
+            if( count < 0 || arrayIndex < 0 || arrayIndex + count > array.Length ) throw new IndexOutOfRangeException();
+            if( count == 0 ) return 0;
 
             // Number of item to copy: 
             // if there is enough available space, we copy the whole buffer (_count items) from head to tail.

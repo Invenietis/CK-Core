@@ -31,8 +31,75 @@ using System.Globalization;
 namespace CK.Core.Tests.Collection
 {
     [TestFixture]
+    [Category("FIFOBuffer")]
     public class FIFOTests
     {
+        [Test]
+        public void FIFOToArray()
+        {
+            int[] array = new int[7];
+            array[0] = array[6] = -1;
+            FIFOBuffer<int> f = new FIFOBuffer<int>( 5 );
+            CollectionAssert.AreEqual( f.ToArray(), new int[0] );
+
+            Assert.Throws<ArgumentNullException>( () => f.CopyTo( null ) );
+            Assert.Throws<ArgumentNullException>( () => f.CopyTo( null, 0 ) );
+            Assert.Throws<ArgumentNullException>( () => f.CopyTo( null, 0, 0 ) );
+
+            f.Push( 1 );
+            f.CopyTo( array, 3, 2 );
+            CollectionAssert.AreEqual( array, new int[]{ -1, 0, 0, 1, 0, 0, -1 } );
+
+            array[3] = 0;
+            f.Push( 2 );
+            f.CopyTo( array, 3, 2 );
+            CollectionAssert.AreEqual( array, new int[] { -1, 0, 0, 1, 2, 0, -1 } );
+
+            array[3] = 0; array[4] = 0;
+            f.Push( 3 );
+            f.CopyTo( array, 3, 3 );
+            CollectionAssert.AreEqual( array, new int[] { -1, 0, 0, 1, 2, 3, -1 } );
+
+            array[3] = 0; array[4] = 0; array[5] = 0;
+            f.Push( 4 );
+            f.CopyTo( array, 3, 3 );
+            CollectionAssert.AreEqual( array, new int[] { -1, 0, 0, 2, 3, 4, -1 } );
+
+            array[3] = 0; array[4] = 0; array[5] = 0;
+            f.CopyTo( array, 2, 4 );
+            CollectionAssert.AreEqual( array, new int[] { -1, 0, 1, 2, 3, 4, -1 } );
+
+            array[3] = 0; array[4] = 0; array[5] = 0;
+            Assert.That( f.CopyTo( array, 2, 5 ), Is.EqualTo( 4 ) );
+            CollectionAssert.AreEqual( array, new int[] { -1, 0, 1, 2, 3, 4, -1 }, "Sentinel is not changed: there is only 4 items to copy." );
+
+            Assert.Throws<IndexOutOfRangeException>( () => f.CopyTo( array, 2, 6 ), "Even if the items fit, there must be an exception." );
+
+            f.Truncate( 1 );
+            Assert.That( f.Peek(), Is.EqualTo( 4 ) );
+            f.Push( 60 );
+            f.Push( 61 );
+            f.Push( 62 );
+            f.Push( 63 );
+            f.Push( 7 ); // oldest
+            f.Push( 8 );
+            f.Push( 9 );
+            f.Push( 10 );
+            f.Push( 11 );
+            Assert.That( f[0], Is.EqualTo( 7 ) );
+
+            array[3] = 0; array[4] = 0; array[5] = 0;
+            Assert.That( f.CopyTo( array, 1 ), Is.EqualTo( 5 ) );
+            CollectionAssert.AreEqual( array, new int[] { -1, 7, 8, 9, 10, 11, -1 }, "Sentinel is not changed: there is only 5 items to copy." );
+
+            array[5] = 0;
+            Assert.That( f.CopyTo( array, 0 ), Is.EqualTo( 5 ) );
+            CollectionAssert.AreEqual( array, new int[] { 7, 8, 9, 10, 11, 0, -1 } );
+            
+            Assert.That( f.CopyTo( array, 5 ), Is.EqualTo( 2 ) );
+            CollectionAssert.AreEqual( array, new int[] { 7, 8, 9, 10, 11, 10, 11 } );
+        }
+
         [Test]
         public void FIFOChangeCapacity()
         {
@@ -113,7 +180,7 @@ namespace CK.Core.Tests.Collection
             //ExceptionTest
             Assert.Throws<ArgumentException>( () => f.Capacity = -1 );
             Assert.Throws<ArgumentException>( () => new FIFOBuffer<int>( -1 ) );
-            Assert.Throws<ArgumentException>( () => f.CopyTo(new int[2], 0, -1) );
+            Assert.Throws<IndexOutOfRangeException>( () => f.CopyTo(new int[2], 0, -1) );
         }
 
         [Test]
@@ -127,23 +194,38 @@ namespace CK.Core.Tests.Collection
 
             f.Capacity = 1;
             f.Push( 5 );
+            Assert.That( f[0], Is.EqualTo( 5 ) );
             Assert.That( f.Peek(), Is.EqualTo( 5 ) );
             f.Push( 6 );
+            Assert.That( f[0], Is.EqualTo( 6 ) );
             Assert.That( f.Peek(), Is.EqualTo( 6 ) );
 
             f.Clear();
+            Assert.Throws<IndexOutOfRangeException>( () => Console.Write( f[0] ) );
             Assert.Throws<InvalidOperationException>( () => f.Peek() );
 
             f.Capacity = 2;
             f.Push( 5 );
+            Assert.That( f[0], Is.EqualTo( 5 ) );
             Assert.That( f.Peek(), Is.EqualTo( 5 ) );
             f.Push( 6 );
+            Assert.That( f[0], Is.EqualTo( 5 ) );
+            Assert.That( f[1], Is.EqualTo( 6 ) );
             Assert.That( f.Peek(), Is.EqualTo( 5 ) );
             f.Pop();
             Assert.That( f.Peek(), Is.EqualTo( 6 ) );
             Assert.That( f.Peek(), Is.EqualTo( f[0] ) );
             f.Pop();
             Assert.Throws<InvalidOperationException>( () => f.Peek() );
+
+            f.Push( 7 );
+            f.Push( 8 );
+            f.Push( 9 );
+            Assert.That( f[0], Is.EqualTo( 8 ) );
+            Assert.That( f[1], Is.EqualTo( 9 ) );
+            CollectionAssert.AreEqual( f.ToArray(), new int[] { 8, 9 } );
+            Assert.That( f.Pop(), Is.EqualTo( 8 ) );
+            Assert.That( f.Pop(), Is.EqualTo( 9 ) );
         }
 
         [Test]

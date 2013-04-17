@@ -210,7 +210,7 @@ namespace CK.Core
                 }
                 catch( Exception exCall )
                 {
-                    ActivityLogger.LoggingError.Add( s.GetType().FullName, exCall );
+                    ActivityLogger.LoggingError.Add( exCall, s.GetType().FullName );
                     if( buggySinks == null ) buggySinks = new List<IActivityLoggerSink>();
                     buggySinks.Add( s );
                 }

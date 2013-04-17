@@ -290,7 +290,7 @@ namespace CK.Core
         /// <param name="tags">Tags to combine with the current one.</param>
         /// <param name="operation">Defines the way the new <paramref name="tags"/> must be combined with current ones.</param>
         /// <returns>A <see cref="IDisposable"/> object that will restore the current tag when disposed.</returns>
-        public static IDisposable Tags( this IActivityLogger @this, CKTrait tags, SetOperation operation = SetOperation.Union )
+        public static IDisposable AutoTags( this IActivityLogger @this, CKTrait tags, SetOperation operation = SetOperation.Union )
         {
             return new TagsSentinel( @this, @this.AutoTags.Apply( tags, operation ) );
         }

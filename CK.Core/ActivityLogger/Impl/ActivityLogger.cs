@@ -63,13 +63,21 @@ namespace CK.Core
         /// </summary>
         static public readonly CKTrait TagGetTextConclusion;
 
+        /// <summary>
+        /// The logging error collector. 
+        /// Any error that occurs while dispathing logs to <see cref="IActivityLoggerClient"/> or <see cref="IActivityLoggerSink"/> 
+        /// are collected and the culprit is removed from <see cref="Output"/> (resp. <see cref="ActivityLoggerTap"/> sinks).
+        /// See <see cref="CriticalErrorCollector"/>.
+        /// </summary>
+        public static readonly CriticalErrorCollector LoggingError;
+
         static ActivityLogger()
         {
             RegisteredTags = new CKTraitContext( "ActivityLogger" );
             EmptyTag = ActivityLogger.RegisteredTags.EmptyTrait;
             TagUserConclusion = RegisteredTags.FindOrCreate( "c:User" );
             TagGetTextConclusion = RegisteredTags.FindOrCreate( "c:GetText" );
-            LoggingError = new LogErrorCollector();
+            LoggingError = new CriticalErrorCollector();
         }
 
         LogLevelFilter _filter;
@@ -149,7 +157,22 @@ namespace CK.Core
             {
                 if( _filter != value )
                 {
-                    foreach( var l in _output.RegisteredClients ) l.OnFilterChanged( _filter, value );
+
+                    List<IActivityLoggerClient> buggyClients = null;
+                    foreach( var l in _output.RegisteredClients )
+                    {
+                        try
+                        {
+                            l.OnFilterChanged( _filter, value );
+                        }
+                        catch( Exception exCall )
+                        {
+                            LoggingError.Add( exCall, l.GetType().FullName );
+                            if( buggyClients == null ) buggyClients = new List<IActivityLoggerClient>();
+                            buggyClients.Add( l );
+                        }
+                    }
+                    if( buggyClients != null ) foreach( var l in buggyClients ) _output.UnregisterClient( l );
                     _filter = value;
                 }
             }
@@ -198,7 +221,7 @@ namespace CK.Core
                         }
                         catch( Exception exCall )
                         {
-                            LoggingError.Add( l.GetType().FullName, exCall );
+                            LoggingError.Add( exCall, l.GetType().FullName );
                             if( buggyClients == null ) buggyClients = new List<IActivityLoggerClient>();
                             buggyClients.Add( l );
                         }
@@ -245,7 +268,7 @@ namespace CK.Core
                 }
                 catch( Exception exCall )
                 {
-                    LoggingError.Add( l.GetType().FullName, exCall );
+                    LoggingError.Add( exCall, l.GetType().FullName );
                     if( buggyClients == null ) buggyClients = new List<IActivityLoggerClient>();
                     buggyClients.Add( l );
                 }
@@ -302,7 +325,7 @@ namespace CK.Core
                     }
                     catch( Exception exCall )
                     {
-                        LoggingError.Add( l.GetType().FullName, exCall );
+                        LoggingError.Add( exCall, l.GetType().FullName );
                         if( buggyClients == null ) buggyClients = new List<IActivityLoggerClient>();
                         buggyClients.Add( l );
                     }
@@ -326,7 +349,7 @@ namespace CK.Core
                     }
                     catch( Exception exCall )
                     {
-                        LoggingError.Add( l.GetType().FullName, exCall );
+                        LoggingError.Add( exCall, l.GetType().FullName );
                         if( buggyClients == null ) buggyClients = new List<IActivityLoggerClient>();
                         buggyClients.Add( l );
                     }

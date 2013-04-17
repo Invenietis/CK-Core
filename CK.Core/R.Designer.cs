@@ -124,11 +124,11 @@ namespace CK.Core {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to An error handler raised the error. It has been removed from the LoggingError.OnError event..
+        ///   Looks up a localized string similar to An error handler raised the error. It has been removed from the CriticalErrorCollector.OnErrorFromBackgroundThreads event..
         /// </summary>
-        internal static string ErrorWhileRaisingLogError {
+        internal static string ErrorWhileCollectorRaiseError {
             get {
-                return ResourceManager.GetString("ErrorWhileRaisingLogError", resourceCulture);
+                return ResourceManager.GetString("ErrorWhileCollectorRaiseError", resourceCulture);
             }
         }
         

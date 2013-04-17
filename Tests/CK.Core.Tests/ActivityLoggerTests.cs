@@ -156,11 +156,11 @@ namespace CK.Core.Tests
                 using( logger.OpenGroup( LogLevel.Trace, () => "EndMainGroup", "MainGroup" ) )
                 {
                     logger.Trace( tag1, "First" );
-                    using( logger.Tags( tag1 ) )
+                    using( logger.AutoTags( tag1 ) )
                     {
                         logger.Trace( "Second" );
                         logger.Trace( tag3, "Third" );
-                        using( logger.Tags( tag2 ) )
+                        using( logger.AutoTags( tag2 ) )
                         {
                             logger.Info( "First" );
                         }

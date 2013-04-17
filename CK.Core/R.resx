@@ -138,8 +138,8 @@
   <data name="DirectServicesCanNotBeDisabled" xml:space="preserve">
     <value>Service {0} is direcly supported by the container. It can not be disabled.</value>
   </data>
-  <data name="ErrorWhileRaisingLogError" xml:space="preserve">
-    <value>An error handler raised the error. It has been removed from the LoggingError.OnError event.</value>
+  <data name="ErrorWhileCollectorRaiseError" xml:space="preserve">
+    <value>An error handler raised the error. It has been removed from the CriticalErrorCollector.OnErrorFromBackgroundThreads event.</value>
   </data>
   <data name="ExceptionWhileResolvingType" xml:space="preserve">
     <value>An exception occured while resolving type: {0}.</value>
