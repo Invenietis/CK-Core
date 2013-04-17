@@ -32,3 +32,7 @@ _ReSharper*/
 [Tt]est[Rr]esult*
 /packages/
 CK-Core.Tests.VisualState.xml
+CK.Core.nuspec
+CK.Interop.nuspec
+CK.Reflection.nuspec
+CK.Storage.nuspec

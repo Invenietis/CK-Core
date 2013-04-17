@@ -303,14 +303,15 @@ namespace CK.Core.Tests
         [Test]
         public void LoggerErrorTrap()
         {
-            // Run this test for at least one second. 
+            // Run this test for at least X second.
+            int nbSecond = 2;
             Stopwatch w = new Stopwatch();
             w.Start();
             do
             {
                 OneRun( threadCount: 30, operationCount: 225 );
-            } 
-            while( w.ElapsedMilliseconds < 60*1000 );
+            }
+            while( w.ElapsedMilliseconds < nbSecond*1000 );
         }
 
 
