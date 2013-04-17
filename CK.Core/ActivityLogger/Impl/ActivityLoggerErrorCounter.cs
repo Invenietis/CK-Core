@@ -23,15 +23,18 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text;
 
 namespace CK.Core
 {
     /// <summary>
-    /// Count fatal, error or warn that occured and automatically sets the conclusion of groups.
+    /// Count fatal, error or warn that occured. 
+    /// Can automatically adds a conclusion of groups that summarizes
+    /// the number of fatals, errors and warnings.
     /// </summary>
-    public class ActivityLoggerErrorCounter : ActivityLoggerHybridClient
+    public class ActivityLoggerErrorCounter : ActivityLoggerClient, IActivityLoggerBoundClient
     {
         static readonly string DefaultFatalConclusionFormat = "1 Fatal error";
         static readonly string DefaultFatalsConclusionFormat = "{0} Fatal errors";
@@ -42,9 +45,13 @@ namespace CK.Core
         static readonly string DefaultSeparator = ", ";
 
         /// <summary>
+        /// Gets the tag used for generated error conclusions ("c:ErrorCounter") when <see cref="GenerateConclusion"/> is true.
+        /// </summary>
+        public static readonly CKTrait TagErrorCounter = ActivityLogger.RegisteredTags.FindOrCreate( "c:ErrorCounter" );
+
+        /// <summary>
         /// Encapsulates error information.
-        /// It is used as the <see cref="ActivityLogGroupConclusion.Conclusion"/> object: the <see cref="ToString"/> method
-        /// displays the conclusion in a default text format.
+        /// The <see cref="ToString"/> method displays the conclusion in a default text format.
         /// </summary>
         public class State
         {
@@ -85,7 +92,7 @@ namespace CK.Core
             }
 
             /// <summary>
-            /// Gets whether an a fatal, an error or a warn occurred.
+            /// Gets whether a fatal, an error or a warn occurred.
             /// </summary>
             public bool HasWarnOrError
             {
@@ -195,10 +202,13 @@ namespace CK.Core
 
         State _root;
         State _current;
+        IActivityLogger _source;
+        readonly bool _locked;
 
         /// <summary>
         /// Reuse the ActivityLoggerErrorCounter: since all hooks are empty, nothing happens.
         /// </summary>
+        [ExcludeFromCodeCoverage]
         class EmptyErrorCounter : ActivityLoggerErrorCounter
         {
             // Security if OnFilterChanged is implemented one day on ActivityLoggerErrorCounter.
@@ -206,7 +216,7 @@ namespace CK.Core
             {
             }
 
-            protected override void OnUnfilteredLog( LogLevel level, string text )
+            protected override void OnUnfilteredLog( CKTrait tags, LogLevel level, string text, DateTime logTimeUtc )
             {
             }
 
@@ -214,12 +224,12 @@ namespace CK.Core
             {
             }
 
-            protected override void OnGroupClosing( IActivityLogGroup group, IList<ActivityLogGroupConclusion> conclusions )
+            protected override void OnGroupClosing( IActivityLogGroup group, ref List<ActivityLogGroupConclusion> conclusions )
             {
             }
 
             // Security if OnGroupClosed is implemented one day on ActivityLoggerErrorCounter.
-            protected override void OnGroupClosed( IActivityLogGroup group, IReadOnlyList<ActivityLogGroupConclusion> conclusions )
+            protected override void OnGroupClosed( IActivityLogGroup group, ICKReadOnlyList<ActivityLogGroupConclusion> conclusions )
             {
             }
         }
@@ -230,12 +240,30 @@ namespace CK.Core
         static public new readonly ActivityLoggerErrorCounter Empty = new EmptyErrorCounter();
 
         /// <summary>
-        /// Initializes a new error counter.
+        /// Initializes a new error counter with <see cref="GenerateConclusion"/> sets to false.
         /// </summary>
         public ActivityLoggerErrorCounter()
         {
             _current = _root = new State( null );
-            GenerateConclusion = true;
+        }
+
+        /// <summary>
+        /// Initialize a new <see cref="ActivityLoggerPathCatcher"/> as the default <see cref="IDefaultActivityLogger.ErrorCounter"/>.
+        /// It can not be unregistered.
+        /// </summary>
+        public ActivityLoggerErrorCounter( IDefaultActivityLogger logger, bool generateErrorConlusion )
+            : this()
+        {
+            logger.Output.RegisterClient( this );
+            GenerateConclusion = generateErrorConlusion;
+            _locked = true;
+        }
+
+        void IActivityLoggerBoundClient.SetLogger( IActivityLogger source )
+        {
+            if( _locked ) throw new InvalidOperationException( R.CanNotUnregisterDefaultClient );
+            if( source != null && _source != null ) throw new InvalidOperationException( String.Format( R.ActivityLoggerBoundClientMultipleRegister, GetType().FullName ) );
+            _source = source;
         }
 
         /// <summary>
@@ -256,16 +284,18 @@ namespace CK.Core
 
         /// <summary>
         /// Gets or sets whether the Group conclusion must be generated.
-        /// Defaults to true.
+        /// Defaults to false.
         /// </summary>
         public bool GenerateConclusion { get; set; }
 
         /// <summary>
         /// Updates error counters.
         /// </summary>
+        /// <param name="tags">Tags (from <see cref="ActivityLogger.RegisteredTags"/>) associated to the log.</param>
         /// <param name="level">Log level.</param>
         /// <param name="text">Text (not null).</param>
-        protected override void OnUnfilteredLog( LogLevel level, string text )
+        /// <param name="logTimeUtc">Timestamp of the log.</param>
+        protected override void OnUnfilteredLog( CKTrait tags, LogLevel level, string text, DateTime logTimeUtc )
         {
             _current.CatchLevel( level );
         }
@@ -284,12 +314,20 @@ namespace CK.Core
         /// Handles group conclusion.
         /// </summary>
         /// <param name="group">The closing group.</param>
-        /// <param name="conclusions">Mutable conclusions associated to the closing group.</param>
-        protected override void OnGroupClosing( IActivityLogGroup group, IList<ActivityLogGroupConclusion> conclusions )
+        /// <param name="conclusions">
+        /// Mutable conclusions associated to the closing group. 
+        /// This can be null if no conclusions have been added yet. 
+        /// It is up to the first client that wants to add a conclusion to instanciate a new List object to carry the conclusions.
+        /// </param>
+        protected override void OnGroupClosing( IActivityLogGroup group, ref List<ActivityLogGroupConclusion> conclusions )
         {
-            if( GenerateConclusion && _current != _root && _current.HasWarnOrError )
+            if( GenerateConclusion 
+                && _current != _root 
+                && _current.HasWarnOrError 
+                && (conclusions == null || !conclusions.Any( c => c.Tag == TagErrorCounter )) )
             {
-                conclusions.Add( new ActivityLogGroupConclusion( _current, this ) );
+                if( conclusions == null ) conclusions = new List<ActivityLogGroupConclusion>();
+                conclusions.Add( new ActivityLogGroupConclusion( TagErrorCounter, _current.ToString() ) );
             }
         }
 
@@ -298,7 +336,7 @@ namespace CK.Core
         /// </summary>
         /// <param name="group">The log group.</param>
         /// <param name="conclusions">Texts that conclude the group.</param>
-        protected override void OnGroupClosed( IActivityLogGroup group, IReadOnlyList<ActivityLogGroupConclusion> conclusions )
+        protected override void OnGroupClosed( IActivityLogGroup group, ICKReadOnlyList<ActivityLogGroupConclusion> conclusions )
         {
             if( _current.Parent != null ) _current = _current.Parent;
         }

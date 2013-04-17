@@ -28,7 +28,7 @@ using System.Linq;
 using System;
 using System.Collections.Generic;
 
-namespace Core.Collection
+namespace CK.Core.Tests.Collection
 {
     public class TestCollection<T> : IReadOnlyCollection<T>
     {
@@ -225,8 +225,8 @@ namespace Core.Collection
         [Test]
         public void TestReferenceTypes()
         {
-            TestCollection<ActionSequence> c = new TestCollection<ActionSequence>();
-            ActionSequence oneElement = new ActionSequence();
+            TestCollection<Animal> c = new TestCollection<Animal>();
+            Animal oneElement = new Animal(null);
             c.Content.Add( oneElement );
 
             bool containsCalled = false;
@@ -322,7 +322,7 @@ namespace Core.Collection
         public void TestReadOnlyConverter()
         {
             Dictionary<Guid,IUniqueId> dic = new Dictionary<Guid, IUniqueId>();
-            ReadOnlyCollectionTypeConverter<IUniqueId,Guid> export = new ReadOnlyCollectionTypeConverter<IUniqueId, Guid>( dic.Keys, g => dic[g], uid => uid.UniqueId );
+            CKReadOnlyCollectionTypeConverter<IUniqueId,Guid> export = new CKReadOnlyCollectionTypeConverter<IUniqueId, Guid>( dic.Keys, g => dic[g], uid => uid.UniqueId );
 
             dic.Add( SimpleUniqueId.Empty.UniqueId, SimpleUniqueId.Empty );
             Assert.That( export.Count == 1 );

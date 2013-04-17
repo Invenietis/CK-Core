@@ -22,142 +22,171 @@
 #endregion
 
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using NUnit.Framework;
-using CK.Core;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
-using System.Diagnostics;
-using System.Xml;
+using System.Linq;
+using System.Text.RegularExpressions;
 using System.Xml.XPath;
+using CK.Core;
+using NUnit.Framework;
 
-namespace Core
+namespace CK.Core.Tests
 {
     [TestFixture]
+    [ExcludeFromCodeCoverage]
+    [Category( "ActivityLogger" )]
     public class ActivityLoggerTests
     {
-
-        public class StringImpl : IActivityLoggerSink
+        [Test]
+        public void NonRemovableOrLockedClients()
         {
-            public StringWriter Writer { get; private set; }
+            IDefaultActivityLogger logger = new DefaultActivityLogger();
+            Assert.Throws<InvalidOperationException>( () => logger.Output.UnregisterClient( logger.ErrorCounter ), "Default Counter can not be unregistered." );
+            Assert.Throws<InvalidOperationException>( () => logger.Output.UnregisterClient( logger.PathCatcher ), "Default PathCatcher can not be unregistered." );
+            Assert.Throws<InvalidOperationException>( () => logger.Output.UnregisterClient( logger.Tap ), "Default Tap can not be unregistered." );
 
-            public StringImpl()
-            {
-                Writer = new StringWriter();
-            }
+            var counter = new ActivityLoggerErrorCounter();
+            logger.Output.RegisterClient( counter );
+            Assert.Throws<InvalidOperationException>( () => TestHelper.Logger.Output.RegisterClient( counter ), "Counter can be registered in one source at a time." );
 
-            public void OnEnterLevel( LogLevel level, string text )
-            {
-                Writer.WriteLine();
-                Writer.Write( level.ToString() + ": " + text );
-            }
+            var tap = new ActivityLoggerTap();
+            logger.Output.RegisterClient( tap );
+            Assert.Throws<InvalidOperationException>( () => TestHelper.Logger.Output.RegisterClient( tap ), "Tap can be registered in one source at a time." );
 
-            public void OnContinueOnSameLevel( LogLevel level, string text )
-            {
-                Writer.Write( text );
-            }
+            var pathCatcher = new ActivityLoggerPathCatcher();
+            logger.Output.RegisterClient( pathCatcher );
+            Assert.Throws<InvalidOperationException>( () => TestHelper.Logger.Output.RegisterClient( pathCatcher ), "PathCatcher can be registered in one source at a time." );
 
-            public void OnLeaveLevel( LogLevel level )
-            {
-                Writer.Flush();
-            }
+            var bridgeToConsole = logger.Output.BridgeTo( TestHelper.Logger );
+            Assert.That( bridgeToConsole.TargetLogger, Is.SameAs( TestHelper.Logger ) );
 
-            public void OnGroupOpen( IActivityLogGroup g )
-            {
-                Writer.WriteLine();
-                Writer.Write( new String( '+', g.Depth ) ); 
-                Writer.Write( "{1} ({0})", g.GroupLevel, g.GroupText );
-            }
-
-            public void OnGroupClose( IActivityLogGroup g, IReadOnlyList<ActivityLogGroupConclusion> conclusions )
-            {
-                Writer.WriteLine();
-                Writer.Write( new String( '-', g.Depth ) );
-                Writer.Write( String.Join( ", ", conclusions.Select( c => c.Conclusion ) ) );
-            }
-        }
-
-        public class XmlImpl : IActivityLoggerSink
-        {
-            XmlWriter XmlWriter { get; set; }
-
-            public TextWriter InnerWriter { get; private set; }
-
-            public XmlImpl( StringWriter s )
-            {
-                XmlWriter = XmlWriter.Create( s, new XmlWriterSettings() { ConformanceLevel = ConformanceLevel.Fragment, Indent = true } );
-                InnerWriter = s;
-            }
-
-            public void OnEnterLevel( LogLevel level, string text )
-            {
-                XmlWriter.WriteStartElement( level.ToString() );
-                XmlWriter.WriteString( text );
-            }
-
-            public void OnContinueOnSameLevel( LogLevel level, string text )
-            {
-                XmlWriter.WriteString( text );
-            }
-
-            public void OnLeaveLevel( LogLevel level )
-            {
-                XmlWriter.WriteEndElement();
-            }
-
-            public void OnGroupOpen( IActivityLogGroup g )
-            {
-                XmlWriter.WriteStartElement( g.GroupLevel.ToString() + "s" );
-                XmlWriter.WriteAttributeString( "Depth", g.Depth.ToString() );
-                XmlWriter.WriteAttributeString( "Level", g.GroupLevel.ToString() );
-                XmlWriter.WriteAttributeString( "Text", g.GroupText.ToString() );
-            }
-
-            public void OnGroupClose( IActivityLogGroup g, IReadOnlyList<ActivityLogGroupConclusion> conclusions )
-            {
-                XmlWriter.WriteEndElement();
-                XmlWriter.Flush();
-            }
+            IActivityLogger other = new ActivityLogger();
+            Assert.Throws<InvalidOperationException>( () => other.Output.RegisterClient( bridgeToConsole ), "Bridge can be associated to only one source logger." );
+            logger.Output.UnregisterClient( bridgeToConsole );
+            Assert.DoesNotThrow( () => other.Output.RegisterClient( bridgeToConsole ), "Now we can." );
         }
 
         [Test]
+        [Category( "Console" )]
+        public void BridgeBalance()
+        {
+            Assert.Throws<ArgumentNullException>( () => new ActivityLoggerBridge( null ), "Null guards." );
+
+            IDefaultActivityLogger logger = new DefaultActivityLogger();
+            var allDump = new StringImpl();
+            logger.Tap.Register( allDump );
+
+            // The consoleString is a string dump of the console.
+            // Both the console and the string dump accepts at most Info level.
+            IDefaultActivityLogger consoleString = new DefaultActivityLogger();
+            var consoleDump = new StringImpl();
+            consoleString.Tap.Register( consoleDump );
+            consoleString.Filter = LogLevelFilter.Info;
+            TestHelper.Logger.Filter = LogLevelFilter.Info;
+
+            int i = 0;
+            for( ; i < 60; i++ ) logger.OpenGroup( LogLevel.Info, String.Format( "Not Bridged n°{0}", i ) );
+            logger.Output.BridgeTo( TestHelper.Logger );
+            logger.Output.BridgeTo( consoleString );
+            for( ; i < 62; i++ ) logger.OpenGroup( LogLevel.Info, String.Format( "Bridged n°{0} (appear in Console)", i ) );
+            for( ; i < 64; i++ ) logger.OpenGroup( LogLevel.Trace, String.Format( "Bridged n°{0} (#NOT appear# in Console since level is Trace)", i ) );
+            for( ; i < 66; i++ ) logger.OpenGroup( LogLevel.Warn, String.Format( "Bridged n°{0} (appear in Console)", i ) );
+            
+            // Now close the groups, but not completely.
+            int j = 0;
+            for( ; j < 2; j++ ) logger.CloseGroup( String.Format( "Close n°{0} (Close Warn appear in Console)", j ) );
+            logger.CloseGroup( String.Format( "Close n°{0} (Close Trace does #NOT appear# in Console)", j++ ) );
+            
+            // Removes the bridge to the console: the Trace is not closed (not opened because of Trace level), but the 2 Info are automatically closed.
+            logger.Output.UnbridgeTo( TestHelper.Logger );
+            logger.Output.UnbridgeTo( consoleString );
+            
+            string consoleText = consoleDump.ToString();
+            Assert.That( consoleText, Is.Not.StringContaining( "#NOT appear#" ) );
+            Assert.That( Regex.Matches( consoleText, "Close Warn appear" ).Count, Is.EqualTo( 2 ) );
+            Assert.That( Regex.Matches( consoleText, R.ClosedByBridgeRemoved ).Count, Is.EqualTo( 2 ), "The 2 Info groups have been automatically closed, but not the Warn nor the 60 first groups." );
+
+            for( ; j < 66; j++ ) logger.CloseGroup( String.Format( "CLOSE NOT BRIDGED - {0}", j ) );
+            logger.CloseGroup( "NEVER OPENED Group" );
+
+            string allText = allDump.ToString();
+            Assert.That( allText, Is.Not.StringContaining( R.ClosedByBridgeRemoved ) );
+            Assert.That( Regex.Matches( allText, "#NOT appear#" ).Count, Is.EqualTo( 3 ), "The 2 opened Warn + the only explicit close." );
+            Assert.That( Regex.Matches( allText, "CLOSE NOT BRIDGED" ).Count, Is.EqualTo( 63 ), "The 60 opened groups at the beginning + the last Trace and the 2 Info." );
+            Assert.That( allText, Is.Not.StringContaining( "NEVER OPENED" ) );
+        }
+
+        [Test]
+        public void TagsAndFilterRestored()
+        {
+            ActivityLogger logger = new ActivityLogger();
+            using( logger.OpenGroup( LogLevel.Trace, "G1" ) )
+            {
+                logger.AutoTags = ActivityLogger.RegisteredTags.FindOrCreate( "Tag" );
+                logger.Filter = LogLevelFilter.Info;
+                using( logger.OpenGroup( LogLevel.Warn, "G2" ) )
+                {
+                    logger.AutoTags = ActivityLogger.RegisteredTags.FindOrCreate( "A|B|C" );
+                    logger.Filter = LogLevelFilter.Error;
+                    Assert.That( logger.AutoTags.ToString(), Is.EqualTo( "A|B|C" ) );
+                    Assert.That( logger.Filter, Is.EqualTo( LogLevelFilter.Error ) );
+                }
+                Assert.That( logger.AutoTags.ToString(), Is.EqualTo( "Tag" ) );
+                Assert.That( logger.Filter, Is.EqualTo( LogLevelFilter.Info ) );
+            }
+            Assert.That( logger.AutoTags, Is.SameAs( ActivityLogger.EmptyTag ) );
+            Assert.That( logger.Filter, Is.EqualTo( LogLevelFilter.None ) );
+        }
+
+        [Test]
+        [Category( "Console" )]
         public void DefaultImpl()
         {
-            IDefaultActivityLogger logger = DefaultActivityLogger.Create();
-            // Binds the TestHelper.Logger logger to this one.
-            logger.Output.RegisterMuxClient( TestHelper.Logger.Output.ExternalInput );
+            IDefaultActivityLogger logger = new DefaultActivityLogger();
+            logger.Output.BridgeTo( TestHelper.Logger );
+            logger.Tap.Register( new StringImpl() ).Register( new XmlImpl( new StringWriter() ) );
+            Assert.That( logger.Tap.RegisteredSinks.Count, Is.EqualTo( 2 ) );
 
-            logger.Register( new StringImpl() ).Register( new XmlImpl( new StringWriter() ) );
-
-            Assert.That( logger.RegisteredSinks.Count, Is.EqualTo( 2 ) );
+            var tag1 = ActivityLogger.RegisteredTags.FindOrCreate( "Product" );
+            var tag2 = ActivityLogger.RegisteredTags.FindOrCreate( "Sql" );
+            var tag3 = ActivityLogger.RegisteredTags.FindOrCreate( "Combined Tag|Sql|Engine V2|Product" );
 
             using( logger.OpenGroup( LogLevel.None, () => "EndMainGroup", "MainGroup" ) )
             {
                 using( logger.OpenGroup( LogLevel.Trace, () => "EndMainGroup", "MainGroup" ) )
                 {
-                    logger.Trace( "First" );
-                    logger.Trace( "Second" );
-                    logger.Trace( "Third" );
-                    logger.Info( "First" );
-
-                    using( logger.OpenGroup( LogLevel.Info, () => "EndInfoGroup", "InfoGroup" ) )
+                    logger.Trace( tag1, "First" );
+                    using( logger.AutoTags( tag1 ) )
+                    {
+                        logger.Trace( "Second" );
+                        logger.Trace( tag3, "Third" );
+                        using( logger.AutoTags( tag2 ) )
+                        {
+                            logger.Info( "First" );
+                        }
+                    }
+                    using( logger.OpenGroup( LogLevel.Info, () => "Conclusion of Info Group (no newline).", "InfoGroup" ) )
                     {
                         logger.Info( "Second" );
                         logger.Trace( "Fourth" );
 
-                        using( logger.OpenGroup( LogLevel.Warn, () => "EndWarnGroup", "WarnGroup {0} - Now = {1}", 4, DateTime.UtcNow ) )
+                        string warnConclusion = "Conclusion of Warn Group" + Environment.NewLine + "with more than one line int it.";
+                        using( logger.OpenGroup( LogLevel.Warn, () => warnConclusion, "WarnGroup {0} - Now = {1}", 4, DateTime.UtcNow ) )
                         {
                             logger.Info( "Warn!" );
+                            logger.CloseGroup( "User conclusion with multiple lines." 
+                                + Environment.NewLine + "It will be displayed on "
+                                + Environment.NewLine + "multiple lines." );
                         }
+                        logger.CloseGroup( "Conclusions on one line are displayed separated by dash." );
                     }
                 }
             }
 
-            Console.WriteLine( logger.RegisteredSinks.OfType<StringImpl>().Single().Writer );
-            Console.WriteLine( logger.RegisteredSinks.OfType<XmlImpl>().Single().InnerWriter );
+            Console.WriteLine( logger.Tap.RegisteredSinks.OfType<StringImpl>().Single().Writer );
+            Console.WriteLine( logger.Tap.RegisteredSinks.OfType<XmlImpl>().Single().InnerWriter );
 
-            XPathDocument d = new XPathDocument( new StringReader( logger.RegisteredSinks.OfType<XmlImpl>().Single().InnerWriter.ToString() ) );
+            XPathDocument d = new XPathDocument( new StringReader( logger.Tap.RegisteredSinks.OfType<XmlImpl>().Single().InnerWriter.ToString() ) );
 
             Assert.That( d.CreateNavigator().SelectDescendants( "Info", String.Empty, false ), Is.Not.Empty.And.Count.EqualTo( 3 ) );
             Assert.That( d.CreateNavigator().SelectDescendants( "Trace", String.Empty, false ), Is.Not.Empty.And.Count.EqualTo( 2 ) );
@@ -165,16 +194,16 @@ namespace Core
         }
 
         [Test]
+        [Category( "Console" )]
         public void MultipleClose()
         {
-            IDefaultActivityLogger logger = DefaultActivityLogger.Create();
-            // Binds the TestHelper.Logger logger to this one.
-            logger.Output.RegisterMuxClient( TestHelper.Logger.Output.ExternalInput );
+            IDefaultActivityLogger logger = new DefaultActivityLogger();
+            logger.Output.BridgeTo( TestHelper.Logger );
 
             var log1 = new StringImpl();
-            logger.Register( log1 );
+            logger.Tap.Register( log1 );
 
-            Assert.That( logger.RegisteredSinks.Count, Is.EqualTo( 1 ) );
+            Assert.That( logger.Tap.RegisteredSinks.Count, Is.EqualTo( 1 ) );
 
             using( logger.OpenGroup( LogLevel.Trace, () => "End First", "First" ) )
             {
@@ -182,35 +211,23 @@ namespace Core
                 using( logger.OpenGroup( LogLevel.Warn, "A group at level 0!" ) )
                 {
                     logger.CloseGroup( "Close it." );
-                    logger.CloseGroup( "Close it again." );
+                    logger.CloseGroup( "Close it again. (not seen)" );
                 }
             }
-
-            Assert.That( log1.Writer.ToString(), Is.Not.StringContaining( "End First" ), "Close forgets other closes..." );
-            Assert.That( log1.Writer.ToString(), Is.Not.StringContaining( "Close it again" ), "Close forgets other closes..." );
+            string logged = log1.Writer.ToString();
+            Assert.That( logged, Is.StringContaining( "Pouf" ).And.StringContaining( "End First" ), "Multiple conclusions." );
+            Assert.That( logged, Is.Not.StringContaining( "Close it again" ), "Close forgets other closes..." );
         }
 
         [Test]
-        public void DefaultActivityLoggerDefaults()
-        {
-            IDefaultActivityLogger l = DefaultActivityLogger.Create();
-            Assert.Throws<InvalidOperationException>( () => l.Output.UnregisterClient( l.Tap ) );
-            Assert.Throws<InvalidOperationException>( () => l.Output.UnregisterMuxClient( l.Tap ) );
-            Assert.Throws<InvalidOperationException>( () => l.Output.UnregisterClient( l.PathCatcher ) );
-            Assert.Throws<InvalidOperationException>( () => l.Output.UnregisterMuxClient( l.PathCatcher ) );
-            Assert.Throws<InvalidOperationException>( () => l.Output.UnregisterClient( l.ErrorCounter ) );
-            Assert.Throws<InvalidOperationException>( () => l.Output.UnregisterMuxClient( l.ErrorCounter ) );
-        }
-
-        [Test]
+        [Category( "Console" )]
         public void FilterLevel()
         {
-            IDefaultActivityLogger l = DefaultActivityLogger.Create();
-            // Binds the TestHelper.Logger logger to this one.
-            l.Output.RegisterMuxClient( TestHelper.Logger.Output.ExternalInput );
+            IDefaultActivityLogger l = new DefaultActivityLogger();
+            l.Output.BridgeTo( TestHelper.Logger );
             
             var log = new StringImpl();
-            l.Register( log );
+            l.Tap.Register( log );
             using( l.Filter( LogLevelFilter.Error ) )
             {
                 l.Trace( "NO SHOW" );
@@ -261,11 +278,12 @@ namespace Core
         }
 
         [Test]
+        [Category( "Console" )]
         public void CloseMismatch()
         {
-            IDefaultActivityLogger l = DefaultActivityLogger.Create();
+            IDefaultActivityLogger l = new DefaultActivityLogger();
             var log = new StringImpl();
-            l.Register( log );
+            l.Tap.Register( log );
             {
                 IDisposable g0 = l.OpenGroup( LogLevel.Trace, "First" );
                 IDisposable g1 = l.OpenGroup( LogLevel.Trace, "Second" );
@@ -299,49 +317,33 @@ namespace Core
         }
 
         [Test]
-        public void ExplicitCloseWins()
+        [Category( "Console" )]
+        public void MultipleConclusions()
         {
-            IDefaultActivityLogger l = DefaultActivityLogger.Create();
-            // Binds the TestHelper.Logger logger to this one.
-            l.Output.RegisterMuxClient( TestHelper.Logger.Output.ExternalInput );
+            IDefaultActivityLogger l = new DefaultActivityLogger();
+            l.Output.BridgeTo( TestHelper.Logger );
             
             var log = new StringImpl();
-            l.Register( log );
+            l.Tap.Register( log );
 
             // No explicit close conclusion: Success!
-            using( l.OpenGroup( LogLevel.Trace, () => "Success!", "First" ) )
+            using( l.OpenGroup( LogLevel.Trace, () => "From Opener", "G" ) )
             {
                 l.Error( "Pouf" );
+                l.CloseGroup( "Explicit User Conclusion" );
             }
-            Assert.That( log.Writer.ToString(), Is.StringContaining( "Pouf" ) );
-            Assert.That( log.Writer.ToString(), Is.Not.StringContaining( "Failed!" ), "Default conclusion wins." );
-            Assert.That( log.Writer.ToString(), Is.StringContaining( "Success!" ), "Default conclusion." );
-
-            log.Writer.GetStringBuilder().Clear();
-            Assert.That( log.Writer.ToString(), Is.Empty );
-
-            // Explicit conclusion: Failed!
-            using( l.OpenGroup( LogLevel.Trace, () => "Success!", "First" ) )
-            {
-                l.Error( "Pouf" );
-                l.CloseGroup( "Failed!" );
-            }
-            Console.WriteLine( log.Writer.ToString() );
-
-            Assert.That( log.Writer.ToString(), Is.StringContaining( "Pouf" ) );
-            Assert.That( log.Writer.ToString(), Is.StringContaining( "Failed!" ), "Explicit conclusion wins." );
-            Assert.That( log.Writer.ToString(), Is.Not.StringContaining( "Success!" ), "Explicit conclusion wins." );
+            Assert.That( log.Writer.ToString(), Is.StringContaining( "Explicit User Conclusion, From Opener, 1 Error" ) );
         }
 
         [Test]
+        [Category( "Console" )]
         public void PathCatcherTests()
         {
-            var logger = DefaultActivityLogger.Create();
-            // Binds the TestHelper.Logger logger to this one.
-            logger.Output.RegisterMuxClient( TestHelper.Logger.Output.ExternalInput );
+            var logger = new DefaultActivityLogger();
+            logger.Output.BridgeTo( TestHelper.Logger );
             
             ActivityLoggerPathCatcher p = new ActivityLoggerPathCatcher();
-            logger.Output.RegisterMuxClient( p );
+            logger.Output.RegisterClient( p );
 
             logger.Trace( "Trace n°1" );
             Assert.That( p.DynamicPath.Select( e => e.Level.ToString() + '|' + e.Text ).Single(), Is.EqualTo( "Trace|Trace n°1" ) );
@@ -400,7 +402,7 @@ namespace Core
                                     {
                                         try
                                         {
-                                            throw new Exception( "Deepest excpetion." );
+                                            throw new Exception( "Deepest exception." );
                                         }
                                         catch( Exception ex )
                                         {
@@ -479,23 +481,24 @@ namespace Core
         }
 
         [Test]
+        [Category( "Console" )]
         public void ErrorCounterTests()
         {
             var logger = new ActivityLogger();
-            // Binds the TestHelper.Logger logger to this one.
-            logger.Output.RegisterMuxClient( TestHelper.Logger.Output.ExternalInput );
+            logger.Output.BridgeTo( TestHelper.Logger );
 
             // Registers the ErrorCounter first: it will be the last one to be called, but
             // this does not prevent the PathCatcher to work: the path elements reference the group
-            // so that aany conclusion arriving after PathCatcher.OnClosing are available.
+            // so that any conclusion arriving after PathCatcher.OnClosing are available.
             ActivityLoggerErrorCounter c = new ActivityLoggerErrorCounter();
-            logger.Output.RegisterMuxClient( c );
+            logger.Output.RegisterClient( c );
 
             // Registers the PathCatcher now: it will be called BEFORE the ErrorCounter.
             ActivityLoggerPathCatcher p = new ActivityLoggerPathCatcher();
             logger.Output.RegisterClient( p );
             
-            Assert.That( c.GenerateConclusion, Is.True, "Must be the default." );
+            Assert.That( c.GenerateConclusion, Is.False, "False by default." );
+            c.GenerateConclusion = true;
             Assert.That( c.Root.MaxLogLevel == LogLevel.None );
 
             logger.Trace( "T1" );
@@ -527,6 +530,7 @@ namespace Core
 
             using( logger.OpenGroup( LogLevel.Trace, "G1" ) )
             {
+                string errorMessage;
                 using( logger.OpenGroup( LogLevel.Info, "G2" ) )
                 {
                     logger.Error( "E1" );
@@ -540,13 +544,19 @@ namespace Core
                         Assert.That( !c.Current.HasWarnOrError && !c.Current.HasError );
                         Assert.That( c.Current.ErrorCount == 0 && c.Current.FatalCount == 0 && c.Current.WarnCount == 0 );
                         
-                        logger.Error( "E2" );
-                        
+                        logger.Error( "An error..." );
+
                         Assert.That( c.Current.HasWarnOrError && c.Current.HasError );
                         Assert.That( c.Current.ErrorCount == 1 && c.Current.FatalCount == 0 && c.Current.WarnCount == 0 );
+
+                        errorMessage = String.Join( "|", p.LastErrorPath.Select( e => e.Text + '-' + e.GroupConclusion.ToStringGroupConclusion() ) );
+                        Assert.That( errorMessage, Is.EqualTo( "G1-|G2-|G3-|An error...-" ), "Groups are not closed: no conclusion exist yet." );
                     }
+                    errorMessage = String.Join( "|", p.LastErrorPath.Select( e => e.Text + '-' + e.GroupConclusion.ToStringGroupConclusion() ) );
+                    Assert.That( errorMessage, Is.EqualTo( "G1-|G2-|G3-1 Error|An error...-" ), "G3 is closed: its conclusion is available." );
                 }
-                Assert.That( String.Join( ">", p.LastErrorPath.Select( e => e.Text + '-' + e.GroupConclusion.ToStringGroupConclusion() ) ), Is.EqualTo( "G1->G2-1 Fatal error, 2 Errors>G3-1 Error>E2-" ) );
+                errorMessage = String.Join( "|", p.LastErrorPath.Select( e => e.Text + '-' + e.GroupConclusion.ToStringGroupConclusion() ) );
+                Assert.That( errorMessage, Is.EqualTo( "G1-|G2-1 Fatal error, 2 Errors|G3-1 Error|An error...-" ) );
                 logger.Error( "E3" );
                 logger.Fatal( "F2" );
                 logger.Warn( "W2" );
@@ -562,7 +572,7 @@ namespace Core
         [Test]
         public void SimpleCollectorTest()
         {
-            IDefaultActivityLogger d = DefaultActivityLogger.Create();
+            IDefaultActivityLogger d = new DefaultActivityLogger();
             var c = new ActivityLoggerSimpleCollector();
             d.Output.RegisterClient( c );
             d.Warn( "1" );
@@ -599,7 +609,7 @@ namespace Core
         [Test]
         public void CatchTests()
         {
-            IDefaultActivityLogger d = DefaultActivityLogger.Create();
+            IDefaultActivityLogger d = new DefaultActivityLogger();
             
             Assert.Throws<ArgumentNullException>( () => d.Catch( null ) );
 
@@ -650,7 +660,7 @@ namespace Core
             string fmt0 = "fmt", fmt1 = "fmt{0}", fmt2 = "fmt{0}{1}", fmt3 = "fmt{0}{1}{2}", fmt4 = "fmt{0}{1}{2}{3}", fmt5 = "fmt{0}{1}{2}{3}{4}", fmt6 = "fmt{0}{1}{2}{3}{4}{5}";
             string p1 = "p1", p2 = "p2", p3 = "p3", p4 = "p4", p5 = "p5", p6 = "p6";
 
-            IDefaultActivityLogger d = DefaultActivityLogger.Create();
+            IDefaultActivityLogger d = new DefaultActivityLogger();
             var collector = new ActivityLoggerSimpleCollector() { LevelFilter = LogLevelFilter.Trace, Capacity = 1 };
             d.Output.RegisterClient( collector );
 
@@ -755,6 +765,123 @@ namespace Core
             d.OpenGroup( LogLevel.Trace, ex, fmt4, p1, p2, p3, p4 ); Assert.That( collector.Entries.Last().Text, Is.EqualTo( "fmtp1p2p3p4" ) ); Assert.That( collector.Entries.Last().Exception, Is.SameAs( ex ) );
             d.OpenGroup( LogLevel.Trace, ex, fmt5, p1, p2, p3, p4, p5 ); Assert.That( collector.Entries.Last().Text, Is.EqualTo( "fmtp1p2p3p4p5" ) ); Assert.That( collector.Entries.Last().Exception, Is.SameAs( ex ) );
             d.OpenGroup( LogLevel.Trace, ex, fmt6, p1, p2, p3, p4, p5, p6 ); Assert.That( collector.Entries.Last().Text, Is.EqualTo( "fmtp1p2p3p4p5p6" ) ); Assert.That( collector.Entries.Last().Exception, Is.SameAs( ex ) );
+
+        }
+        
+        [Test]
+        public void OverloadsWithTraits()
+        {
+            Exception ex = new Exception( "EXCEPTION" );
+            string fmt0 = "fmt", fmt1 = "fmt{0}", fmt2 = "fmt{0}{1}", fmt3 = "fmt{0}{1}{2}", fmt4 = "fmt{0}{1}{2}{3}", fmt5 = "fmt{0}{1}{2}{3}{4}", fmt6 = "fmt{0}{1}{2}{3}{4}{5}";
+            string p1 = "p1", p2 = "p2", p3 = "p3", p4 = "p4", p5 = "p5", p6 = "p6";
+
+            IDefaultActivityLogger d = new DefaultActivityLogger();
+            var collector = new ActivityLoggerSimpleCollector() { LevelFilter = LogLevelFilter.Trace, Capacity = 1 };
+            d.Output.RegisterClient( collector );
+
+            CKTrait tag = ActivityLogger.RegisteredTags.FindOrCreate( "TAG" );
+
+            d.Trace( tag, fmt0 ); Assert.That( collector.Entries.Last().Text, Is.EqualTo( "fmt" ) ); Assert.That( collector.Entries.Last().Tags, Is.SameAs( tag ) );
+            d.Trace( tag, fmt1, p1 ); Assert.That( collector.Entries.Last().Text, Is.EqualTo( "fmtp1" ) ); Assert.That( collector.Entries.Last().Tags, Is.SameAs( tag ) );
+            d.Trace( tag, fmt2, p1, p2 ); Assert.That( collector.Entries.Last().Text, Is.EqualTo( "fmtp1p2" ) ); Assert.That( collector.Entries.Last().Tags, Is.SameAs( tag ) );
+            d.Trace( tag, fmt3, p1, p2, p3 ); Assert.That( collector.Entries.Last().Text, Is.EqualTo( "fmtp1p2p3" ) ); Assert.That( collector.Entries.Last().Tags, Is.SameAs( tag ) );
+            d.Trace( tag, fmt4, p1, p2, p3, p4 ); Assert.That( collector.Entries.Last().Text, Is.EqualTo( "fmtp1p2p3p4" ) ); Assert.That( collector.Entries.Last().Tags, Is.SameAs( tag ) );
+            d.Trace( tag, fmt5, p1, p2, p3, p4, p5 ); Assert.That( collector.Entries.Last().Text, Is.EqualTo( "fmtp1p2p3p4p5" ) ); Assert.That( collector.Entries.Last().Tags, Is.SameAs( tag ) );
+            d.Trace( tag, fmt6, p1, p2, p3, p4, p5, p6 ); Assert.That( collector.Entries.Last().Text, Is.EqualTo( "fmtp1p2p3p4p5p6" ) ); Assert.That( collector.Entries.Last().Tags, Is.SameAs( tag ) );
+
+            d.Info( tag, fmt0 ); Assert.That( collector.Entries.Last().Text, Is.EqualTo( "fmt" ) ); Assert.That( collector.Entries.Last().Tags, Is.SameAs( tag ) );
+            d.Info( tag, fmt1, p1 ); Assert.That( collector.Entries.Last().Text, Is.EqualTo( "fmtp1" ) ); Assert.That( collector.Entries.Last().Tags, Is.SameAs( tag ) );
+            d.Info( tag, fmt2, p1, p2 ); Assert.That( collector.Entries.Last().Text, Is.EqualTo( "fmtp1p2" ) ); Assert.That( collector.Entries.Last().Tags, Is.SameAs( tag ) );
+            d.Info( tag, fmt3, p1, p2, p3 ); Assert.That( collector.Entries.Last().Text, Is.EqualTo( "fmtp1p2p3" ) ); Assert.That( collector.Entries.Last().Tags, Is.SameAs( tag ) );
+            d.Info( tag, fmt4, p1, p2, p3, p4 ); Assert.That( collector.Entries.Last().Text, Is.EqualTo( "fmtp1p2p3p4" ) ); Assert.That( collector.Entries.Last().Tags, Is.SameAs( tag ) );
+            d.Info( tag, fmt5, p1, p2, p3, p4, p5 ); Assert.That( collector.Entries.Last().Text, Is.EqualTo( "fmtp1p2p3p4p5" ) ); Assert.That( collector.Entries.Last().Tags, Is.SameAs( tag ) );
+            d.Info( tag, fmt6, p1, p2, p3, p4, p5, p6 ); Assert.That( collector.Entries.Last().Text, Is.EqualTo( "fmtp1p2p3p4p5p6" ) ); Assert.That( collector.Entries.Last().Tags, Is.SameAs( tag ) );
+
+            d.Warn( tag, fmt0 ); Assert.That( collector.Entries.Last().Text, Is.EqualTo( "fmt" ) ); Assert.That( collector.Entries.Last().Tags, Is.SameAs( tag ) );
+            d.Warn( tag, fmt1, p1 ); Assert.That( collector.Entries.Last().Text, Is.EqualTo( "fmtp1" ) ); Assert.That( collector.Entries.Last().Tags, Is.SameAs( tag ) );
+            d.Warn( tag, fmt2, p1, p2 ); Assert.That( collector.Entries.Last().Text, Is.EqualTo( "fmtp1p2" ) ); Assert.That( collector.Entries.Last().Tags, Is.SameAs( tag ) );
+            d.Warn( tag, fmt3, p1, p2, p3 ); Assert.That( collector.Entries.Last().Text, Is.EqualTo( "fmtp1p2p3" ) ); Assert.That( collector.Entries.Last().Tags, Is.SameAs( tag ) );
+            d.Warn( tag, fmt4, p1, p2, p3, p4 ); Assert.That( collector.Entries.Last().Text, Is.EqualTo( "fmtp1p2p3p4" ) ); Assert.That( collector.Entries.Last().Tags, Is.SameAs( tag ) );
+            d.Warn( tag, fmt5, p1, p2, p3, p4, p5 ); Assert.That( collector.Entries.Last().Text, Is.EqualTo( "fmtp1p2p3p4p5" ) ); Assert.That( collector.Entries.Last().Tags, Is.SameAs( tag ) );
+            d.Warn( tag, fmt6, p1, p2, p3, p4, p5, p6 ); Assert.That( collector.Entries.Last().Text, Is.EqualTo( "fmtp1p2p3p4p5p6" ) ); Assert.That( collector.Entries.Last().Tags, Is.SameAs( tag ) );
+
+            d.Error( tag, fmt0 ); Assert.That( collector.Entries.Last().Text, Is.EqualTo( "fmt" ) ); Assert.That( collector.Entries.Last().Tags, Is.SameAs( tag ) );
+            d.Error( tag, fmt1, p1 ); Assert.That( collector.Entries.Last().Text, Is.EqualTo( "fmtp1" ) ); Assert.That( collector.Entries.Last().Tags, Is.SameAs( tag ) );
+            d.Error( tag, fmt2, p1, p2 ); Assert.That( collector.Entries.Last().Text, Is.EqualTo( "fmtp1p2" ) ); Assert.That( collector.Entries.Last().Tags, Is.SameAs( tag ) );
+            d.Error( tag, fmt3, p1, p2, p3 ); Assert.That( collector.Entries.Last().Text, Is.EqualTo( "fmtp1p2p3" ) ); Assert.That( collector.Entries.Last().Tags, Is.SameAs( tag ) );
+            d.Error( tag, fmt4, p1, p2, p3, p4 ); Assert.That( collector.Entries.Last().Text, Is.EqualTo( "fmtp1p2p3p4" ) ); Assert.That( collector.Entries.Last().Tags, Is.SameAs( tag ) );
+            d.Error( tag, fmt5, p1, p2, p3, p4, p5 ); Assert.That( collector.Entries.Last().Text, Is.EqualTo( "fmtp1p2p3p4p5" ) ); Assert.That( collector.Entries.Last().Tags, Is.SameAs( tag ) );
+            d.Error( tag, fmt6, p1, p2, p3, p4, p5, p6 ); Assert.That( collector.Entries.Last().Text, Is.EqualTo( "fmtp1p2p3p4p5p6" ) ); Assert.That( collector.Entries.Last().Tags, Is.SameAs( tag ) );
+
+            d.Fatal( tag, fmt0 ); Assert.That( collector.Entries.Last().Text, Is.EqualTo( "fmt" ) ); Assert.That( collector.Entries.Last().Tags, Is.SameAs( tag ) );
+            d.Fatal( tag, fmt1, p1 ); Assert.That( collector.Entries.Last().Text, Is.EqualTo( "fmtp1" ) ); Assert.That( collector.Entries.Last().Tags, Is.SameAs( tag ) );
+            d.Fatal( tag, fmt2, p1, p2 ); Assert.That( collector.Entries.Last().Text, Is.EqualTo( "fmtp1p2" ) ); Assert.That( collector.Entries.Last().Tags, Is.SameAs( tag ) );
+            d.Fatal( tag, fmt3, p1, p2, p3 ); Assert.That( collector.Entries.Last().Text, Is.EqualTo( "fmtp1p2p3" ) ); Assert.That( collector.Entries.Last().Tags, Is.SameAs( tag ) );
+            d.Fatal( tag, fmt4, p1, p2, p3, p4 ); Assert.That( collector.Entries.Last().Text, Is.EqualTo( "fmtp1p2p3p4" ) ); Assert.That( collector.Entries.Last().Tags, Is.SameAs( tag ) );
+            d.Fatal( tag, fmt5, p1, p2, p3, p4, p5 ); Assert.That( collector.Entries.Last().Text, Is.EqualTo( "fmtp1p2p3p4p5" ) ); Assert.That( collector.Entries.Last().Tags, Is.SameAs( tag ) );
+            d.Fatal( tag, fmt6, p1, p2, p3, p4, p5, p6 ); Assert.That( collector.Entries.Last().Text, Is.EqualTo( "fmtp1p2p3p4p5p6" ) ); Assert.That( collector.Entries.Last().Tags, Is.SameAs( tag ) );
+
+            d.OpenGroup( tag, LogLevel.Trace, fmt0 ); Assert.That( collector.Entries.Last().Text, Is.EqualTo( "fmt" ) ); Assert.That( collector.Entries.Last().Tags, Is.SameAs( tag ) );
+            d.OpenGroup( tag, LogLevel.Trace, fmt1, p1 ); Assert.That( collector.Entries.Last().Text, Is.EqualTo( "fmtp1" ) ); Assert.That( collector.Entries.Last().Tags, Is.SameAs( tag ) );
+            d.OpenGroup( tag, LogLevel.Trace, fmt2, p1, p2 ); Assert.That( collector.Entries.Last().Text, Is.EqualTo( "fmtp1p2" ) ); Assert.That( collector.Entries.Last().Tags, Is.SameAs( tag ) );
+            d.OpenGroup( tag, LogLevel.Trace, fmt3, p1, p2, p3 ); Assert.That( collector.Entries.Last().Text, Is.EqualTo( "fmtp1p2p3" ) ); Assert.That( collector.Entries.Last().Tags, Is.SameAs( tag ) );
+            d.OpenGroup( tag, LogLevel.Trace, fmt4, p1, p2, p3, p4 ); Assert.That( collector.Entries.Last().Text, Is.EqualTo( "fmtp1p2p3p4" ) ); Assert.That( collector.Entries.Last().Tags, Is.SameAs( tag ) );
+            d.OpenGroup( tag, LogLevel.Trace, fmt5, p1, p2, p3, p4, p5 ); Assert.That( collector.Entries.Last().Text, Is.EqualTo( "fmtp1p2p3p4p5" ) ); Assert.That( collector.Entries.Last().Tags, Is.SameAs( tag ) );
+            d.OpenGroup( tag, LogLevel.Trace, fmt6, p1, p2, p3, p4, p5, p6 ); Assert.That( collector.Entries.Last().Text, Is.EqualTo( "fmtp1p2p3p4p5p6" ) ); Assert.That( collector.Entries.Last().Tags, Is.SameAs( tag ) );
+
+            d.Trace( tag, ex ); Assert.That( collector.Entries.Last().Text, Is.EqualTo( "EXCEPTION" ) ); Assert.That( collector.Entries.Last().Exception, Is.SameAs( ex ) ); Assert.That( collector.Entries.Last().Tags, Is.SameAs( tag ) );
+            d.Trace( tag, ex, fmt0 ); Assert.That( collector.Entries.Last().Text, Is.EqualTo( "fmt" ) ); Assert.That( collector.Entries.Last().Exception, Is.SameAs( ex ) ); Assert.That( collector.Entries.Last().Tags, Is.SameAs( tag ) );
+            d.Trace( tag, ex, fmt1, p1 ); Assert.That( collector.Entries.Last().Text, Is.EqualTo( "fmtp1" ) ); Assert.That( collector.Entries.Last().Exception, Is.SameAs( ex ) ); Assert.That( collector.Entries.Last().Tags, Is.SameAs( tag ) );
+            d.Trace( tag, ex, fmt2, p1, p2 ); Assert.That( collector.Entries.Last().Text, Is.EqualTo( "fmtp1p2" ) ); Assert.That( collector.Entries.Last().Exception, Is.SameAs( ex ) ); Assert.That( collector.Entries.Last().Tags, Is.SameAs( tag ) );
+            d.Trace( tag, ex, fmt3, p1, p2, p3 ); Assert.That( collector.Entries.Last().Text, Is.EqualTo( "fmtp1p2p3" ) ); Assert.That( collector.Entries.Last().Exception, Is.SameAs( ex ) ); Assert.That( collector.Entries.Last().Tags, Is.SameAs( tag ) );
+            d.Trace( tag, ex, fmt4, p1, p2, p3, p4 ); Assert.That( collector.Entries.Last().Text, Is.EqualTo( "fmtp1p2p3p4" ) ); Assert.That( collector.Entries.Last().Exception, Is.SameAs( ex ) ); Assert.That( collector.Entries.Last().Tags, Is.SameAs( tag ) );
+            d.Trace( tag, ex, fmt5, p1, p2, p3, p4, p5 ); Assert.That( collector.Entries.Last().Text, Is.EqualTo( "fmtp1p2p3p4p5" ) ); Assert.That( collector.Entries.Last().Exception, Is.SameAs( ex ) ); Assert.That( collector.Entries.Last().Tags, Is.SameAs( tag ) );
+            d.Trace( tag, ex, fmt6, p1, p2, p3, p4, p5, p6 ); Assert.That( collector.Entries.Last().Text, Is.EqualTo( "fmtp1p2p3p4p5p6" ) ); Assert.That( collector.Entries.Last().Exception, Is.SameAs( ex ) ); Assert.That( collector.Entries.Last().Tags, Is.SameAs( tag ) );
+
+            d.Info( tag, ex ); Assert.That( collector.Entries.Last().Text, Is.EqualTo( "EXCEPTION" ) ); Assert.That( collector.Entries.Last().Exception, Is.SameAs( ex ) ); Assert.That( collector.Entries.Last().Tags, Is.SameAs( tag ) );
+            d.Info( tag, ex, fmt0 ); Assert.That( collector.Entries.Last().Text, Is.EqualTo( "fmt" ) ); Assert.That( collector.Entries.Last().Exception, Is.SameAs( ex ) ); Assert.That( collector.Entries.Last().Tags, Is.SameAs( tag ) );
+            d.Info( tag, ex, fmt1, p1 ); Assert.That( collector.Entries.Last().Text, Is.EqualTo( "fmtp1" ) ); Assert.That( collector.Entries.Last().Exception, Is.SameAs( ex ) ); Assert.That( collector.Entries.Last().Tags, Is.SameAs( tag ) );
+            d.Info( tag, ex, fmt2, p1, p2 ); Assert.That( collector.Entries.Last().Text, Is.EqualTo( "fmtp1p2" ) ); Assert.That( collector.Entries.Last().Exception, Is.SameAs( ex ) ); Assert.That( collector.Entries.Last().Tags, Is.SameAs( tag ) );
+            d.Info( tag, ex, fmt3, p1, p2, p3 ); Assert.That( collector.Entries.Last().Text, Is.EqualTo( "fmtp1p2p3" ) ); Assert.That( collector.Entries.Last().Exception, Is.SameAs( ex ) ); Assert.That( collector.Entries.Last().Tags, Is.SameAs( tag ) );
+            d.Info( tag, ex, fmt4, p1, p2, p3, p4 ); Assert.That( collector.Entries.Last().Text, Is.EqualTo( "fmtp1p2p3p4" ) ); Assert.That( collector.Entries.Last().Exception, Is.SameAs( ex ) ); Assert.That( collector.Entries.Last().Tags, Is.SameAs( tag ) );
+            d.Info( tag, ex, fmt5, p1, p2, p3, p4, p5 ); Assert.That( collector.Entries.Last().Text, Is.EqualTo( "fmtp1p2p3p4p5" ) ); Assert.That( collector.Entries.Last().Exception, Is.SameAs( ex ) ); Assert.That( collector.Entries.Last().Tags, Is.SameAs( tag ) );
+            d.Info( tag, ex, fmt6, p1, p2, p3, p4, p5, p6 ); Assert.That( collector.Entries.Last().Text, Is.EqualTo( "fmtp1p2p3p4p5p6" ) ); Assert.That( collector.Entries.Last().Exception, Is.SameAs( ex ) ); Assert.That( collector.Entries.Last().Tags, Is.SameAs( tag ) );
+
+            d.Warn( tag, ex ); Assert.That( collector.Entries.Last().Text, Is.EqualTo( "EXCEPTION" ) ); Assert.That( collector.Entries.Last().Exception, Is.SameAs( ex ) ); Assert.That( collector.Entries.Last().Tags, Is.SameAs( tag ) );
+            d.Warn( tag, ex, fmt0 ); Assert.That( collector.Entries.Last().Text, Is.EqualTo( "fmt" ) ); Assert.That( collector.Entries.Last().Exception, Is.SameAs( ex ) );Assert.That( collector.Entries.Last().Tags, Is.SameAs( tag ) );
+            d.Warn( tag, ex, fmt1, p1 ); Assert.That( collector.Entries.Last().Text, Is.EqualTo( "fmtp1" ) ); Assert.That( collector.Entries.Last().Exception, Is.SameAs( ex ) );Assert.That( collector.Entries.Last().Tags, Is.SameAs( tag ) );
+            d.Warn( tag, ex, fmt2, p1, p2 ); Assert.That( collector.Entries.Last().Text, Is.EqualTo( "fmtp1p2" ) ); Assert.That( collector.Entries.Last().Exception, Is.SameAs( ex ) );Assert.That( collector.Entries.Last().Tags, Is.SameAs( tag ) );
+            d.Warn( tag, ex, fmt3, p1, p2, p3 ); Assert.That( collector.Entries.Last().Text, Is.EqualTo( "fmtp1p2p3" ) ); Assert.That( collector.Entries.Last().Exception, Is.SameAs( ex ) );Assert.That( collector.Entries.Last().Tags, Is.SameAs( tag ) );
+            d.Warn( tag, ex, fmt4, p1, p2, p3, p4 ); Assert.That( collector.Entries.Last().Text, Is.EqualTo( "fmtp1p2p3p4" ) ); Assert.That( collector.Entries.Last().Exception, Is.SameAs( ex ) );Assert.That( collector.Entries.Last().Tags, Is.SameAs( tag ) );
+            d.Warn( tag, ex, fmt5, p1, p2, p3, p4, p5 ); Assert.That( collector.Entries.Last().Text, Is.EqualTo( "fmtp1p2p3p4p5" ) ); Assert.That( collector.Entries.Last().Exception, Is.SameAs( ex ) );Assert.That( collector.Entries.Last().Tags, Is.SameAs( tag ) );
+            d.Warn( tag, ex, fmt6, p1, p2, p3, p4, p5, p6 ); Assert.That( collector.Entries.Last().Text, Is.EqualTo( "fmtp1p2p3p4p5p6" ) ); Assert.That( collector.Entries.Last().Exception, Is.SameAs( ex ) );Assert.That( collector.Entries.Last().Tags, Is.SameAs( tag ) );
+
+            d.Error( tag, ex ); Assert.That( collector.Entries.Last().Text, Is.EqualTo( "EXCEPTION" ) ); Assert.That( collector.Entries.Last().Exception, Is.SameAs( ex ) );Assert.That( collector.Entries.Last().Tags, Is.SameAs( tag ) );
+            d.Error( tag, ex, fmt0 ); Assert.That( collector.Entries.Last().Text, Is.EqualTo( "fmt" ) ); Assert.That( collector.Entries.Last().Exception, Is.SameAs( ex ) );Assert.That( collector.Entries.Last().Tags, Is.SameAs( tag ) );
+            d.Error( tag, ex, fmt1, p1 ); Assert.That( collector.Entries.Last().Text, Is.EqualTo( "fmtp1" ) ); Assert.That( collector.Entries.Last().Exception, Is.SameAs( ex ) );Assert.That( collector.Entries.Last().Tags, Is.SameAs( tag ) );
+            d.Error( tag, ex, fmt2, p1, p2 ); Assert.That( collector.Entries.Last().Text, Is.EqualTo( "fmtp1p2" ) ); Assert.That( collector.Entries.Last().Exception, Is.SameAs( ex ) );Assert.That( collector.Entries.Last().Tags, Is.SameAs( tag ) );
+            d.Error( tag, ex, fmt3, p1, p2, p3 ); Assert.That( collector.Entries.Last().Text, Is.EqualTo( "fmtp1p2p3" ) ); Assert.That( collector.Entries.Last().Exception, Is.SameAs( ex ) );Assert.That( collector.Entries.Last().Tags, Is.SameAs( tag ) );
+            d.Error( tag, ex, fmt4, p1, p2, p3, p4 ); Assert.That( collector.Entries.Last().Text, Is.EqualTo( "fmtp1p2p3p4" ) ); Assert.That( collector.Entries.Last().Exception, Is.SameAs( ex ) );Assert.That( collector.Entries.Last().Tags, Is.SameAs( tag ) );
+            d.Error( tag, ex, fmt5, p1, p2, p3, p4, p5 ); Assert.That( collector.Entries.Last().Text, Is.EqualTo( "fmtp1p2p3p4p5" ) ); Assert.That( collector.Entries.Last().Exception, Is.SameAs( ex ) );Assert.That( collector.Entries.Last().Tags, Is.SameAs( tag ) );
+            d.Error( tag, ex, fmt6, p1, p2, p3, p4, p5, p6 ); Assert.That( collector.Entries.Last().Text, Is.EqualTo( "fmtp1p2p3p4p5p6" ) ); Assert.That( collector.Entries.Last().Exception, Is.SameAs( ex ) );Assert.That( collector.Entries.Last().Tags, Is.SameAs( tag ) );
+
+            d.Fatal( tag, ex ); Assert.That( collector.Entries.Last().Text, Is.EqualTo( "EXCEPTION" ) ); Assert.That( collector.Entries.Last().Exception, Is.SameAs( ex ) );Assert.That( collector.Entries.Last().Tags, Is.SameAs( tag ) );
+            d.Fatal( tag, ex, fmt0 ); Assert.That( collector.Entries.Last().Text, Is.EqualTo( "fmt" ) ); Assert.That( collector.Entries.Last().Exception, Is.SameAs( ex ) );Assert.That( collector.Entries.Last().Tags, Is.SameAs( tag ) );
+            d.Fatal( tag, ex, fmt1, p1 ); Assert.That( collector.Entries.Last().Text, Is.EqualTo( "fmtp1" ) ); Assert.That( collector.Entries.Last().Exception, Is.SameAs( ex ) );Assert.That( collector.Entries.Last().Tags, Is.SameAs( tag ) );
+            d.Fatal( tag, ex, fmt2, p1, p2 ); Assert.That( collector.Entries.Last().Text, Is.EqualTo( "fmtp1p2" ) ); Assert.That( collector.Entries.Last().Exception, Is.SameAs( ex ) );Assert.That( collector.Entries.Last().Tags, Is.SameAs( tag ) );
+            d.Fatal( tag, ex, fmt3, p1, p2, p3 ); Assert.That( collector.Entries.Last().Text, Is.EqualTo( "fmtp1p2p3" ) ); Assert.That( collector.Entries.Last().Exception, Is.SameAs( ex ) );Assert.That( collector.Entries.Last().Tags, Is.SameAs( tag ) );
+            d.Fatal( tag, ex, fmt4, p1, p2, p3, p4 ); Assert.That( collector.Entries.Last().Text, Is.EqualTo( "fmtp1p2p3p4" ) ); Assert.That( collector.Entries.Last().Exception, Is.SameAs( ex ) );Assert.That( collector.Entries.Last().Tags, Is.SameAs( tag ) );
+            d.Fatal( tag, ex, fmt5, p1, p2, p3, p4, p5 ); Assert.That( collector.Entries.Last().Text, Is.EqualTo( "fmtp1p2p3p4p5" ) ); Assert.That( collector.Entries.Last().Exception, Is.SameAs( ex ) );Assert.That( collector.Entries.Last().Tags, Is.SameAs( tag ) );
+            d.Fatal( tag, ex, fmt6, p1, p2, p3, p4, p5, p6 ); Assert.That( collector.Entries.Last().Text, Is.EqualTo( "fmtp1p2p3p4p5p6" ) ); Assert.That( collector.Entries.Last().Exception, Is.SameAs( ex ) );Assert.That( collector.Entries.Last().Tags, Is.SameAs( tag ) );
+
+            d.OpenGroup( tag, LogLevel.Trace, ex ); Assert.That( collector.Entries.Last().Text, Is.EqualTo( "EXCEPTION" ) ); Assert.That( collector.Entries.Last().Exception, Is.SameAs( ex ) );Assert.That( collector.Entries.Last().Tags, Is.SameAs( tag ) );
+            d.OpenGroup( tag, LogLevel.Trace, ex, fmt0 ); Assert.That( collector.Entries.Last().Text, Is.EqualTo( "fmt" ) ); Assert.That( collector.Entries.Last().Exception, Is.SameAs( ex ) );Assert.That( collector.Entries.Last().Tags, Is.SameAs( tag ) );
+            d.OpenGroup( tag, LogLevel.Trace, ex, fmt1, p1 ); Assert.That( collector.Entries.Last().Text, Is.EqualTo( "fmtp1" ) ); Assert.That( collector.Entries.Last().Exception, Is.SameAs( ex ) );Assert.That( collector.Entries.Last().Tags, Is.SameAs( tag ) );
+            d.OpenGroup( tag, LogLevel.Trace, ex, fmt2, p1, p2 ); Assert.That( collector.Entries.Last().Text, Is.EqualTo( "fmtp1p2" ) ); Assert.That( collector.Entries.Last().Exception, Is.SameAs( ex ) );Assert.That( collector.Entries.Last().Tags, Is.SameAs( tag ) );
+            d.OpenGroup( tag, LogLevel.Trace, ex, fmt3, p1, p2, p3 ); Assert.That( collector.Entries.Last().Text, Is.EqualTo( "fmtp1p2p3" ) ); Assert.That( collector.Entries.Last().Exception, Is.SameAs( ex ) );Assert.That( collector.Entries.Last().Tags, Is.SameAs( tag ) );
+            d.OpenGroup( tag, LogLevel.Trace, ex, fmt4, p1, p2, p3, p4 ); Assert.That( collector.Entries.Last().Text, Is.EqualTo( "fmtp1p2p3p4" ) ); Assert.That( collector.Entries.Last().Exception, Is.SameAs( ex ) );Assert.That( collector.Entries.Last().Tags, Is.SameAs( tag ) );
+            d.OpenGroup( tag, LogLevel.Trace, ex, fmt5, p1, p2, p3, p4, p5 ); Assert.That( collector.Entries.Last().Text, Is.EqualTo( "fmtp1p2p3p4p5" ) ); Assert.That( collector.Entries.Last().Exception, Is.SameAs( ex ) );Assert.That( collector.Entries.Last().Tags, Is.SameAs( tag ) );
+            d.OpenGroup( tag, LogLevel.Trace, ex, fmt6, p1, p2, p3, p4, p5, p6 ); Assert.That( collector.Entries.Last().Text, Is.EqualTo( "fmtp1p2p3p4p5p6" ) ); Assert.That( collector.Entries.Last().Exception, Is.SameAs( ex ) );Assert.That( collector.Entries.Last().Tags, Is.SameAs( tag ) );
 
         }
     }

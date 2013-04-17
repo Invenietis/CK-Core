@@ -28,7 +28,7 @@ using System.Text;
 using NUnit.Framework;
 using CK.Core;
 
-namespace Core.Collection
+namespace CK.Core.Tests.Collection
 {
     [TestFixture]
     public class SortedArrayListTests
@@ -36,7 +36,7 @@ namespace Core.Collection
         [Test]
         public void SortedArrayListSimpleTest()
         {
-            var a = new SortedArrayList<int>();
+            var a = new CKSortedArrayList<int>();
             a.AddRangeArray( 12, -34, 7, 545, 12 );
             Assert.That( a.AllowDuplicates, Is.False );
             Assert.That( a.Count, Is.EqualTo( 4 ) );
@@ -67,7 +67,7 @@ namespace Core.Collection
         [Test]
         public void SortedArrayListAllowDuplicatesTest()
         {
-            var b = new SortedArrayList<int>(true);
+            var b = new CKSortedArrayList<int>(true);
             b.AddRangeArray( 12, -34, 7, 545, 12 );
             Assert.That( b.AllowDuplicates, Is.True );
             Assert.That( b.Count, Is.EqualTo( 5 ) );
@@ -80,18 +80,18 @@ namespace Core.Collection
         [Test]
         public void Covariance()
         {
-            var a = new SortedArrayList<Mammal>( ( a1, a2 ) => a1.Name.CompareTo( a2.Name ) );
+            var a = new CKSortedArrayList<Mammal>( ( a1, a2 ) => a1.Name.CompareTo( a2.Name ) );
             a.Add( new Mammal( "B", 12 ) );
             a.Add( new Canidae( "A", 12, true ) );
 
             IReadOnlyList<Animal> baseObjects = a;
             for( int i = 0; i < baseObjects.Count; ++i ) Console.Write( baseObjects[i].Name );
 
-            IWritableCollection<Canidae> dogs = a;
+            ICKWritableCollection<Canidae> dogs = a;
             dogs.Add( new Canidae( "C", 8, false ) );
         }
 
-        class TestMammals : SortedArrayList<Mammal>
+        class TestMammals : CKSortedArrayList<Mammal>
         {
             public TestMammals( Comparison<Mammal> m, bool allowDuplicated = false )
                 : base( m, allowDuplicated )
@@ -246,7 +246,7 @@ namespace Core.Collection
         }
 
 
-        class TestInt : SortedArrayList<int>
+        class TestInt : CKSortedArrayList<int>
         {
             public TestInt()
             {
@@ -351,7 +351,7 @@ namespace Core.Collection
         [Test]
         public void SortedArrayListChangeCapacityTest()
         {
-            var a = new SortedArrayList<Mammal>( ( a1, a2 ) => a1.Name.CompareTo( a2.Name ) );
+            var a = new CKSortedArrayList<Mammal>( ( a1, a2 ) => a1.Name.CompareTo( a2.Name ) );
 
             Assert.That( a.Capacity, Is.EqualTo( 0 ) );
             a.Capacity = 3;
@@ -389,7 +389,7 @@ namespace Core.Collection
         [Test]
         public void SortedArrayListThrowExceptionTest()
         {
-            var a = new SortedArrayList<Mammal>( ( a1, a2 ) => a1.Name.CompareTo( a2.Name ) );
+            var a = new CKSortedArrayList<Mammal>( ( a1, a2 ) => a1.Name.CompareTo( a2.Name ) );
 
             Assert.Throws<ArgumentNullException>( () => a.IndexOf( null ) );
             Assert.Throws<ArgumentNullException>( () => a.IndexOf<Mammal>( new Mammal( "Nothing" ), null ) );
@@ -419,7 +419,7 @@ namespace Core.Collection
         [Test]
         public void SortedArrayListCastTest()
         {
-            var a = new SortedArrayList<int>();
+            var a = new CKSortedArrayList<int>();
             a.AddRangeArray( 12, -34, 7, 545, 12 );
 
             //Cast IList
@@ -458,7 +458,7 @@ namespace Core.Collection
             Assert.That( collectionToTest.Contains( 7 ), Is.True );
 
             //Exception
-            IList<Mammal> testException = new SortedArrayList<Mammal>();
+            IList<Mammal> testException = new CKSortedArrayList<Mammal>();
             testException.Add( new Mammal( "Nothing" ) );
             Assert.Throws<IndexOutOfRangeException>( () => testException[-1] = new Mammal( "A" ) );
             Assert.Throws<IndexOutOfRangeException>( () => testException[1] = new Mammal( "A" ) );

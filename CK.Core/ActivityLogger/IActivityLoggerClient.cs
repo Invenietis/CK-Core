@@ -29,9 +29,9 @@ using System.Text;
 namespace CK.Core
 {
     /// <summary>
-    /// Listener for <see cref="IActivityLogger"/> registered in a <see cref="IMuxActivityLoggerClientRegistrar"/>.
+    /// Listener for <see cref="IActivityLogger"/> registered in a <see cref="IActivityLoggerOutput"/>.
     /// </summary>
-    public interface IActivityLoggerClient : IActivityLoggerClientBase
+    public interface IActivityLoggerClient
     {
         /// <summary>
         /// Called when <see cref="IActivityLogger.Filter"/> is about to change.
@@ -43,9 +43,11 @@ namespace CK.Core
         /// <summary>
         /// Called for each <see cref="IActivityLogger.UnfilteredLog"/>.
         /// </summary>
+        /// <param name="tags">Tags (from <see cref="ActivityLogger.RegisteredTags"/>) associated to the log.</param>
         /// <param name="level">Log level.</param>
         /// <param name="text">Text (not null).</param>
-        void OnUnfilteredLog( LogLevel level, string text );
+        /// <param name="logTimeUtc">Timestamp of the log.</param>
+        void OnUnfilteredLog( CKTrait tags, LogLevel level, string text, DateTime logTimeUtc );
 
         /// <summary>
         /// Called for each <see cref="IActivityLogger.OpenGroup"/>.
@@ -54,19 +56,24 @@ namespace CK.Core
         void OnOpenGroup( IActivityLogGroup group );
 
         /// <summary>
-        /// Called once the conclusion is known at the group level (if it exists, the <see cref="ActivityLogGroupConclusion.Emitter"/> is the <see cref="IActivityLogger"/> itself) 
-        /// but before the group is actually closed: clients can update the conclusions for the group.
+        /// Called once the user conclusions and the <see cref="ActivityLogger.Group.GetConclusionText"/> are known at the group level but before 
+        /// the group is actually closed: clients can update the conclusions for the group.
+        /// Does nothing by default.
         /// </summary>
         /// <param name="group">The closing group.</param>
-        /// <param name="conclusions">Mutable conclusions associated to the closing group.</param>
-        void OnGroupClosing( IActivityLogGroup group, IList<ActivityLogGroupConclusion> conclusions );
+        /// <param name="conclusions">
+        /// Mutable conclusions associated to the closing group. 
+        /// This can be null if no conclusions have been added yet. 
+        /// It is up to the first client that wants to add a conclusion to instanciate a new List object to carry the conclusions.
+        /// </param>
+        void OnGroupClosing( IActivityLogGroup group, ref List<ActivityLogGroupConclusion> conclusions );
 
         /// <summary>
         /// Called when the group is actually closed.
         /// </summary>
         /// <param name="group">The closed group.</param>
         /// <param name="conclusions">Texts that conclude the group. Never null but can be empty.</param>
-        void OnGroupClosed( IActivityLogGroup group, IReadOnlyList<ActivityLogGroupConclusion> conclusions );
+        void OnGroupClosed( IActivityLogGroup group, ICKReadOnlyList<ActivityLogGroupConclusion> conclusions );
 
     }
 

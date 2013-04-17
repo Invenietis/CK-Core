@@ -32,24 +32,67 @@ namespace CK.Core
     /// <summary>
     /// Concrete implementation of <see cref="IActivityLogger"/>.
     /// </summary>
-    public class ActivityLogger : MarshalByRefObject, IActivityLogger, IActivityLoggerClientBase
+    public partial class ActivityLogger : IActivityLogger
     {
         /// <summary>
         /// String to use to break the current <see cref="LogLevel"/> (as if a different <see cref="LogLevel"/> was used).
         /// </summary>
         static public readonly string ParkLevel = "PARK-LEVEL";
 
+        /// <summary>
+        /// Thread-safe contexts for traits used to categorize log entries and group conclusions.
+        /// All traits used in logging must be registered here.
+        /// </summary>
+        /// <remarks>
+        /// Tags used for conclusions should start with "c:".
+        /// </remarks>
+        static public readonly CKTraitContext RegisteredTags;
+        
+        /// <summary>
+        /// Shortcut to <see cref="CKTraitContext.EmptyTrait"/> of <see cref="RegisteredTags"/>.
+        /// </summary>
+        static public readonly CKTrait EmptyTag;
+
+        /// <summary>
+        /// Conlusions provided to IActivityLogger.Close(string) are marked with "c:User".
+        /// </summary>
+        static public readonly CKTrait TagUserConclusion;
+
+        /// <summary>
+        /// Conlusions returned by the optional function when a group is opened (see <see cref="IActivityLogger.OpenGroup"/>) are marked with "c:GetText".
+        /// </summary>
+        static public readonly CKTrait TagGetTextConclusion;
+
+        /// <summary>
+        /// The logging error collector. 
+        /// Any error that occurs while dispathing logs to <see cref="IActivityLoggerClient"/> or <see cref="IActivityLoggerSink"/> 
+        /// are collected and the culprit is removed from <see cref="Output"/> (resp. <see cref="ActivityLoggerTap"/> sinks).
+        /// See <see cref="CriticalErrorCollector"/>.
+        /// </summary>
+        public static readonly CriticalErrorCollector LoggingError;
+
+        static ActivityLogger()
+        {
+            RegisteredTags = new CKTraitContext( "ActivityLogger" );
+            EmptyTag = ActivityLogger.RegisteredTags.EmptyTrait;
+            TagUserConclusion = RegisteredTags.FindOrCreate( "c:User" );
+            TagGetTextConclusion = RegisteredTags.FindOrCreate( "c:GetText" );
+            LoggingError = new CriticalErrorCollector();
+        }
+
         LogLevelFilter _filter;
+        Group[] _groups;
         Group _current;
-        int _depth;
         ActivityLoggerOutput _output;
+        CKTrait _currentTag;
 
         /// <summary>
         /// Initializes a new <see cref="ActivityLogger"/> with a <see cref="ActivityLoggerOutput"/> as its <see cref="Output"/>.
         /// </summary>
-        public ActivityLogger()
+        /// <param name="initialTags">Initial <see cref="AutoTags"/>.</param>
+        public ActivityLogger( CKTrait initialTags = null )
         {
-            _output = new ActivityLoggerOutput( this );
+            Build( new ActivityLoggerOutput( this ), initialTags );
         }
 
         /// <summary>
@@ -57,9 +100,19 @@ namespace CK.Core
         /// to postpone the setting of Output by using <see cref="SetOutput"/>.
         /// </summary>
         /// <param name="output">The output to use. Can be null.</param>
-        protected ActivityLogger( ActivityLoggerOutput output )
+        /// <param name="tags">Initial tags.</param>
+        protected ActivityLogger( ActivityLoggerOutput output, CKTrait tags = null  )
         {
+            Build( output, tags );
+        }
+
+        void Build( ActivityLoggerOutput output, CKTrait tags )
+        {
+            Debug.Assert( RegisteredTags.Separator == '|', "Separator must be the |." );
             _output = output;
+            _groups = new Group[16];
+            for( int i = 0; i < _groups.Length; ++i ) _groups[i] = CreateGroup( i );
+            _currentTag = tags ?? RegisteredTags.EmptyTrait;
         }
 
         /// <summary>
@@ -81,8 +134,21 @@ namespace CK.Core
         }
 
         /// <summary>
+        /// Gets or sets the tags of this logger: any subsequent logs will be tagged by these tags.
+        /// The <see cref="CKTrait"/> must be registered in <see cref="ActivityLogger.RegisteredTags"/>.
+        /// Modifications to this property are scoped to the current Group since when a Group is closed, this
+        /// property (like <see cref="Filter"/>) is automatically restored to its original value (captured when the Group was opened).
+        /// </summary>
+        public CKTrait AutoTags 
+        {
+            get { return _currentTag; }
+            set { _currentTag = value ?? RegisteredTags.EmptyTrait; } 
+        }
+
+        /// <summary>
         /// Gets or sets a filter based on the log level.
-        /// This filter applies to the currently opened group (it is automatically restored when <see cref="CloseGroup"/> is called).
+        /// Modifications to this property are scoped to the current Group since when a Group is closed, this
+        /// property (like <see cref="AutoTags"/>) is automatically restored to its original value (captured when the Group was opened).
         /// </summary>
         public LogLevelFilter Filter
         {
@@ -91,7 +157,22 @@ namespace CK.Core
             {
                 if( _filter != value )
                 {
-                    _output.OnFilterChanged( _filter, value );
+
+                    List<IActivityLoggerClient> buggyClients = null;
+                    foreach( var l in _output.RegisteredClients )
+                    {
+                        try
+                        {
+                            l.OnFilterChanged( _filter, value );
+                        }
+                        catch( Exception exCall )
+                        {
+                            LoggingError.Add( exCall, l.GetType().FullName );
+                            if( buggyClients == null ) buggyClients = new List<IActivityLoggerClient>();
+                            buggyClients.Add( l );
+                        }
+                    }
+                    if( buggyClients != null ) foreach( var l in buggyClients ) _output.UnregisterClient( l );
                     _filter = value;
                 }
             }
@@ -99,237 +180,182 @@ namespace CK.Core
 
         /// <summary>
         /// Logs a text regardless of <see cref="Filter"/> level. 
-        /// Each call to log is considered as a line: a paragraph (or line separator) is appended
-        /// between each text if the <paramref name="level"/> is the same as the previous one.
+        /// Each call to log is considered as a unit of text: depending on the rendering engine, a line or a 
+        /// paragraph separator (or any appropriate separator) should be appended between each text if 
+        /// the <paramref name="level"/> is the same as the previous one.
         /// See remarks.
         /// </summary>
+        /// <param name="tags">Tags (from <see cref="RegisteredTags"/>) to associate to the log, combined with current <see cref="AutoTags"/>.</param>
         /// <param name="level">Log level.</param>
         /// <param name="text">Text to log. Ignored if null or empty.</param>
+        /// <param name="logTimeUtc">Timestamp of the log entry (must be Utc).</param>
         /// <param name="ex">Optional exception associated to the log. When not null, a Group is automatically created.</param>
         /// <returns>This logger to enable fluent syntax.</returns>
         /// <remarks>
         /// A null or empty <paramref name="text"/> is not logged.
-        /// The special text "PARK-LEVEL" breaks the current <see cref="LogLevel"/>
+        /// If needed, the special text <see cref="ActivityLogger.ParkLevel"/> ("PARK-LEVEL") breaks the current <see cref="LogLevel"/>
         /// and resets it: the next log, even with the same LogLevel, will be treated as if
         /// a different LogLevel is used.
         /// </remarks>
-        public IActivityLogger UnfilteredLog( LogLevel level, string text, Exception ex )
+        public IActivityLogger UnfilteredLog( CKTrait tags, LogLevel level, string text, DateTime logTimeUtc, Exception ex = null )
         {
+            if( logTimeUtc.Kind != DateTimeKind.Utc ) throw new ArgumentException( R.DateTimeMustBeUtc, "logTimeUtc" );
             if( level != LogLevel.None )
             {
                 if( ex != null )
                 {
-                    OpenGroup( level, null, text, ex );
-                    CloseGroup();
+                    OpenGroup( tags, level, null, text, logTimeUtc, ex );
+                    CloseGroup( logTimeUtc );
                 }
                 else if( !String.IsNullOrEmpty( text ) )
                 {
-                    _output.OnUnfilteredLog( level, text );
+                    if( tags == null || tags.IsEmpty ) tags = _currentTag;
+                    else tags = _currentTag.Union( tags );
+
+                    List<IActivityLoggerClient> buggyClients = null;
+                    foreach( var l in _output.RegisteredClients )
+                    {
+                        try
+                        {
+                            l.OnUnfilteredLog( tags, level, text, logTimeUtc );
+                        }
+                        catch( Exception exCall )
+                        {
+                            LoggingError.Add( exCall, l.GetType().FullName );
+                            if( buggyClients == null ) buggyClients = new List<IActivityLoggerClient>();
+                            buggyClients.Add( l );
+                        }
+                    }
+                    if( buggyClients != null ) foreach( var l in buggyClients ) _output.UnregisterClient( l );
                 }
             }
             return this;
         }
 
         /// <summary>
-        /// Groups are linked together from the current one to the very first one (stack).
-        /// </summary>
-        public class Group : IActivityLogGroup, IDisposable
-        {
-            ActivityLogger _logger;
-
-            /// <summary>
-            /// Initializes a new <see cref="Group"/> object.
-            /// </summary>
-            /// <param name="logger">The logger.</param>
-            /// <param name="level">The <see cref="GroupLevel"/>.</param>
-            /// <param name="text">The <see cref="GroupText"/>.</param>
-            /// <param name="defaultConclusionText">
-            /// Optional delegate to call on close to obtain a conclusion text if no 
-            /// explicit conclusion is provided through <see cref="IActivityLogger.CloseGroup"/>.
-            /// </param>
-            /// <param name="ex">Optional exception associated to the group.</param>
-            internal protected Group( ActivityLogger logger, LogLevel level, string text, Func<string> defaultConclusionText, Exception ex )
-            {
-                _logger = logger;
-                Parent = logger._current;
-                Depth = logger._depth;
-                Filter = logger.Filter;
-                // Logs everything when a Group is an error: we then have full details without
-                // logging all with Error or Fatal.
-                if( level >= LogLevel.Error ) logger.Filter = LogLevelFilter.Trace;
-                GroupLevel = level;
-                GroupText = text;
-                GetConclusionText = defaultConclusionText;
-                Exception = ex;
-            }
-
-            /// <summary>
-            /// Gets the origin <see cref="IActivityLogger"/> for the log group.
-            /// </summary>
-            public IActivityLogger OriginLogger { get { return _logger; } }
-
-            /// <summary>
-            /// Get the previous group in its <see cref="OriginLogger"/>. Null if this is a top level group.
-            /// </summary>
-            public IActivityLogGroup Parent { get; private set; }
-            
-            /// <summary>
-            /// Gets or sets the <see cref="LogLevelFilter"/> for this group.
-            /// Initialized with the <see cref="IActivityLogger.Filter"/> when the group has been opened.
-            /// </summary>
-            public LogLevelFilter Filter { get; protected set; }
-
-            /// <summary>
-            /// Gets the depth of this group in its <see cref="OriginLogger"/> (1 for top level groups).
-            /// </summary>
-            public int Depth { get; private set; }
-
-            /// <summary>
-            /// Gets the level of this group.
-            /// </summary>
-            public LogLevel GroupLevel { get; private set; }
-            
-            /// <summary>
-            /// Gets the text with which this group has been opened.
-            /// </summary>
-            public string GroupText { get; private set; }
-
-            /// <summary>
-            /// Gets the associated <see cref="Exception"/> if it exists.
-            /// </summary>
-            public Exception Exception { get; private set; }
-
-            /// <summary>
-            /// Gets whether the <see cref="GroupText"/> is actually the <see cref="Exception"/> message.
-            /// </summary>
-            public bool IsGroupTextTheExceptionMessage 
-            {
-                get { return Exception != null && ReferenceEquals( Exception.Message, GroupText ); } 
-            }
-
-            /// <summary>
-            /// Optional function that will be called on group closing. 
-            /// </summary>
-            protected Func<string> GetConclusionText { get; set; }
-      
-            /// <summary>
-            /// Ensures that any groups opened after this one are closed before closing this one.
-            /// </summary>
-            void IDisposable.Dispose()
-            {
-                if( _logger != null )
-                {
-                    while( _logger._current != this ) ((IDisposable)_logger._current).Dispose();
-                    _logger.CloseGroup( null );
-                }
-            }           
-
-            internal object GroupClose( object externalConclusion )
-            {
-                object conclusion = OnGroupClose( externalConclusion );
-                _logger = null;
-                return conclusion;
-            }
-
-            /// <summary>
-            /// Called whenever the group is closing.
-            /// Must return the actual conclusion that will be used for the group: if the <paramref name="externalConclusion"/> is 
-            /// not null, it takes precedence on the (optional) <see cref="GetConclusionText"/> functions.
-            /// </summary>
-            /// <param name="externalConclusion">Conclusion parameter: comes from <see cref="IActivityLogger.CloseGroup"/>. Can be null.</param>
-            /// <returns>The final conclusion to use.</returns>
-            protected virtual object OnGroupClose( object externalConclusion )
-            {
-                if( externalConclusion == null )
-                {
-                    externalConclusion = ConsumeConclusionText();
-                }
-                return externalConclusion;
-            }
-
-            /// <summary>
-            /// Calls <see cref="GetConclusionText"/> and sets it to null.
-            /// </summary>
-            /// <returns></returns>
-            protected virtual string ConsumeConclusionText()
-            {
-                string autoText = null;
-                if( GetConclusionText != null )
-                {
-                    try
-                    {
-                        autoText = GetConclusionText();
-                    }
-                    catch( Exception ex )
-                    {
-                        autoText = "Unexpected Error while getting conclusion text: " + ex.Message;
-                    }
-                    GetConclusionText = null;
-                }
-                return autoText;
-            }
-        }
-
-        /// <summary>
         /// Opens a <see cref="Group"/> configured with the given parameters.
         /// </summary>
+        /// <param name="tags">Tags (from <see cref="RegisteredTags"/>) to associate to the log, combined with current <see cref="AutoTags"/>.</param>
         /// <param name="level">The log level of the group.</param>
-        /// <param name="defaultConclusionText">
+        /// <param name="getConclusionText">
         /// Optional function that will be called on group closing to obtain a conclusion
         /// if no explicit conclusion is provided through <see cref="CloseGroup"/>.
         /// </param>
-        /// <param name="text">Text to log (the title of the group). Null text is valid and considered as <see cref="String.Empty"/>.</param>
+        /// <param name="text">Text to log (the title of the group). Null text is valid and considered as <see cref="String.Empty"/> or assigned to the <see cref="Exception.Message"/> if it exists.</param>
+        /// <param name="logTimeUtc">Timestamp of the log entry (must be UTC).</param>
         /// <param name="ex">Optional exception associated to the group.</param>
-        /// <returns>The <see cref="Group"/>.</returns>
-        public virtual IDisposable OpenGroup( LogLevel level, Func<string> defaultConclusionText, string text, Exception ex )
+        /// <returns>The <see cref="Group"/> that can be disposed to close it.</returns>
+        public virtual IDisposable OpenGroup( CKTrait tags, LogLevel level, Func<string> getConclusionText, string text, DateTime logTimeUtc, Exception ex = null )
         {
+            if( logTimeUtc.Kind != DateTimeKind.Utc ) throw new ArgumentException( R.DateTimeMustBeUtc, "logTimeUtc" );
             if( level == LogLevel.None ) return Util.EmptyDisposable;
-            ++_depth;
-            Group g = CreateGroup( level, text ?? (ex != null ? ex.Message : String.Empty), defaultConclusionText, ex );
-            _current = g;
-            _output.OnOpenGroup( g );
-            return g;
+            int idxNext = _current != null ? _current.Depth : 0;
+            if( idxNext == _groups.Length )
+            {
+                Array.Resize( ref _groups, _groups.Length*2 );
+                for( int i = idxNext; i < _groups.Length; ++i ) _groups[i] = CreateGroup( i );
+            }
+            _current = _groups[idxNext];
+            if( tags == null || tags.IsEmpty ) tags = _currentTag;
+            else tags = _currentTag.Union( tags );
+            _current.Initialize( tags, level, text ?? (ex != null ? ex.Message : String.Empty), getConclusionText, logTimeUtc, ex );
+            List<IActivityLoggerClient> buggyClients = null;
+            foreach( var l in _output.RegisteredClients )
+            {
+                try
+                {
+                    l.OnOpenGroup( _current );
+                }
+                catch( Exception exCall )
+                {
+                    LoggingError.Add( exCall, l.GetType().FullName );
+                    if( buggyClients == null ) buggyClients = new List<IActivityLoggerClient>();
+                    buggyClients.Add( l );
+                }
+            }
+            if( buggyClients != null ) foreach( var l in buggyClients ) _output.UnregisterClient( l );
+            return _current;
         }
 
         /// <summary>
-        /// Closes the current <see cref="Group"/>.
+        /// Closes the current <see cref="Group"/>. Optional parameter is polymorphic. It can be a string, a <see cref="ActivityLogGroupConclusion"/>, 
+        /// a <see cref="List{T}"/> or an <see cref="IEnumerable{T}"/> of ActivityLogGroupConclusion, or any object with an overriden <see cref="Object.ToString"/> method. 
+        /// See remarks (especially for List&lt;ActivityLogGroupConclusion&gt;).
         /// </summary>
-        /// <param name="conclusion">
-        /// Optional object text (usually a string but can be any object with an 
-        /// overriden <see cref="Object.ToString"/> method) to conclude the group.
-        /// </param>
-        public virtual void CloseGroup( object conclusion = null )
+        /// <param name="userConclusion">Optional string, enumerable of <see cref="ActivityLogGroupConclusion"/>) or object to conclude the group. See remarks.</param>
+        /// <param name="logTimeUtc">Timestamp of the group closing.</param>
+        /// <remarks>
+        /// An untyped object is used here to easily and efficiently accomodate both string and already existing ActivityLogGroupConclusion.
+        /// When a List&lt;ActivityLogGroupConclusion&gt; is used, it will be direclty used to collect conclusion objects (new conclusions will be added to it). This is an optimization.
+        /// </remarks>
+        public virtual void CloseGroup( DateTime logTimeUtc, object userConclusion = null )
         {
             Group g = _current;
             if( g != null )
             {
-                conclusion = g.GroupClose( conclusion );
-                var conclusions = new List<ActivityLogGroupConclusion>();
-                if( conclusion != null ) conclusions.Add( new ActivityLogGroupConclusion( conclusion, this ) );                
-                _output.OnGroupClosing( g, conclusions );
-                --_depth;
-                Filter = g.Filter;
-                _current = (Group)g.Parent;
-                _output.OnGroupClosed( g, conclusions.ToReadOnlyList() );
-            }
-        }
+                var conclusions = userConclusion as List<ActivityLogGroupConclusion>;
+                if( conclusions == null && userConclusion != null )
+                {
+                    g.CloseLogTimeUtc = logTimeUtc;
+                    conclusions = new List<ActivityLogGroupConclusion>();
+                    string s = userConclusion as string;
+                    if( s != null ) conclusions.Add( new ActivityLogGroupConclusion( TagUserConclusion, s ) );
+                    else
+                    {
+                        if( userConclusion is ActivityLogGroupConclusion )
+                        {
+                            conclusions.Add( (ActivityLogGroupConclusion)userConclusion );
+                        }
+                        else
+                        {
+                            IEnumerable<ActivityLogGroupConclusion> multi = userConclusion as IEnumerable<ActivityLogGroupConclusion>;
+                            if( multi != null ) conclusions.AddRange( multi );
+                            else conclusions.Add( new ActivityLogGroupConclusion( TagUserConclusion, userConclusion.ToString() ) );
+                        }
+                    }
+                }
+                g.GroupClose( ref conclusions );
 
-        /// <summary>
-        /// Factory method for <see cref="Group"/> (or any specialized class).
-        /// This is may be overriden in advanced scenario where groups may support more 
-        /// information than the default ones.
-        /// </summary>
-        /// <param name="level">The <see cref="Group.GroupLevel"/> of the group.</param>
-        /// <param name="text">The <see cref="Group.GroupText"/>.</param>
-        /// <param name="defaultConclusionText">
-        /// An optional delegate to call on close to obtain a conclusion text
-        /// if no explicit conclusion is provided through <see cref="CloseGroup"/>.
-        /// </param>
-        /// <param name="ex">Optional exception associated to the group.</param>
-        /// <returns>A new group.</returns>
-        protected virtual Group CreateGroup( LogLevel level, string text, Func<string> defaultConclusionText, Exception ex )
-        {
-            return new Group( this, level, text, defaultConclusionText, ex );
+                List<IActivityLoggerClient> buggyClients = null;
+                foreach( var l in _output.RegisteredClients )
+                {
+                    try
+                    {
+                        l.OnGroupClosing( g, ref conclusions );
+                    }
+                    catch( Exception exCall )
+                    {
+                        LoggingError.Add( exCall, l.GetType().FullName );
+                        if( buggyClients == null ) buggyClients = new List<IActivityLoggerClient>();
+                        buggyClients.Add( l );
+                    }
+                }
+                if( buggyClients != null )
+                {
+                    foreach( var l in buggyClients ) _output.UnregisterClient( l );
+                    buggyClients.Clear();
+                }
+                
+                Filter = g.SavedLoggerFilter;
+                _currentTag = g.SavedLoggerTags;
+                _current = (Group)g.Parent;
+
+                var sentConclusions = conclusions != null ? conclusions.ToReadOnlyList() : CKReadOnlyListEmpty<ActivityLogGroupConclusion>.Empty;
+                foreach( var l in _output.RegisteredClients )
+                {
+                    try
+                    {
+                        l.OnGroupClosed( g, sentConclusions );
+                    }
+                    catch( Exception exCall )
+                    {
+                        LoggingError.Add( exCall, l.GetType().FullName );
+                        if( buggyClients == null ) buggyClients = new List<IActivityLoggerClient>();
+                        buggyClients.Add( l );
+                    }
+                }
+                if( buggyClients != null ) foreach( var l in buggyClients ) _output.UnregisterClient( l );
+            }
         }
 
     }

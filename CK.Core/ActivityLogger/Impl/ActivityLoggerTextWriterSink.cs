@@ -37,6 +37,7 @@ namespace CK.Core
         Func<TextWriter> _writer;
         string _prefix;
         string _prefixLevel;
+        CKTrait _currentTags;
 
         /// <summary>
         /// Initializes a new <see cref="ActivityLoggerTextWriterSink"/> bound to a 
@@ -46,6 +47,7 @@ namespace CK.Core
         {
             _writer = writer;
             _prefixLevel = _prefix = String.Empty;
+            _currentTags = ActivityLogger.EmptyTag;
         }
 
         /// <summary>
@@ -56,19 +58,35 @@ namespace CK.Core
         {
             _writer = () => writer;
             _prefixLevel = _prefix = String.Empty;
+            _currentTags = ActivityLogger.EmptyTag;
         }
 
-        void IActivityLoggerSink.OnEnterLevel( LogLevel level, string text )
+        void IActivityLoggerSink.OnEnterLevel( CKTrait tags, LogLevel level, string text, DateTime logTimeUtc )
         {
             TextWriter w = _writer();
             _prefixLevel = _prefix + new String( '\u00A0', level.ToString().Length + 4 );
-            w.WriteLine( _prefix + "-\u00A0" + level.ToString() + ":\u00A0" + text.Replace( Environment.NewLine, Environment.NewLine + _prefixLevel ) );
+            text = text.Replace( Environment.NewLine, Environment.NewLine + _prefixLevel );
+            if( _currentTags != tags )
+            {
+                w.WriteLine( "{0}-\u00A0{1}:\u00A0{2} -[{3}]", _prefix, level.ToString(), text, tags );
+                _currentTags = tags;
+            }
+            else
+            {
+                w.WriteLine( "{0}-\u00A0{1}:\u00A0{2}", _prefix, level.ToString(), text );
+            }
         }
 
-        void IActivityLoggerSink.OnContinueOnSameLevel( LogLevel level, string text )
+        void IActivityLoggerSink.OnContinueOnSameLevel( CKTrait tags, LogLevel level, string text, DateTime logTimeUtc )
         {
             TextWriter w = _writer();
-            w.WriteLine( _prefixLevel + text.Replace( Environment.NewLine, Environment.NewLine + _prefixLevel ) );
+            text.Replace( Environment.NewLine, Environment.NewLine + _prefixLevel );
+            if( _currentTags != tags )
+            {
+                w.WriteLine( "{0}{1} -[{2}]", _prefixLevel, text, tags );
+                _currentTags = tags;
+            }
+            else w.WriteLine( _prefixLevel + text );
         }
 
         void IActivityLoggerSink.OnLeaveLevel( LogLevel level )
@@ -82,10 +100,19 @@ namespace CK.Core
             string start = String.Format( "{0}▪►-{1}:\u00A0", _prefix, g.GroupLevel.ToString() );
             _prefix += "▪\u00A0\u00A0";
             _prefixLevel = _prefix;
-            w.WriteLine( start + g.GroupText.Replace( Environment.NewLine, Environment.NewLine + _prefixLevel ) );
+            string text = g.GroupText.Replace( Environment.NewLine, Environment.NewLine + _prefixLevel );
+            if( _currentTags != g.GroupTags )
+            {
+                _currentTags = g.GroupTags;
+                w.WriteLine( "{0}{1} -[{2}]", start, text, _currentTags );
+            }
+            else
+            {
+                w.WriteLine( start + text );
+            }
         }
 
-        void IActivityLoggerSink.OnGroupClose( IActivityLogGroup g, IReadOnlyList<ActivityLogGroupConclusion> conclusions )
+        void IActivityLoggerSink.OnGroupClose( IActivityLogGroup g, ICKReadOnlyList<ActivityLogGroupConclusion> conclusions )
         {
             TextWriter w = _writer();
             if( g.Exception != null )
@@ -93,10 +120,13 @@ namespace CK.Core
                 DumpException( w, !g.IsGroupTextTheExceptionMessage, g.Exception );
             }
             _prefixLevel = _prefix = _prefix.Remove( _prefix.Length - 3 );
-            foreach( var c in conclusions )
+
+            w.WriteLine( "{0}◄▪-{1}", _prefixLevel, conclusions.Where( c => !c.Text.Contains( Environment.NewLine ) ).ToStringGroupConclusion() );
+
+            foreach( var c in conclusions.Where( c => c.Text.Contains( Environment.NewLine ) ) )
             {
-                string text = "◄▪-" + c.Conclusion;
-                w.WriteLine( _prefixLevel + text.Replace( _prefixLevel + Environment.NewLine, Environment.NewLine + _prefixLevel + "   " ) );
+                string text = "◄▪-" + c.Text;
+                w.WriteLine( _prefixLevel + "  -" + c.Text.Replace( Environment.NewLine, Environment.NewLine + _prefixLevel + "   " ) );
             }
         }
 

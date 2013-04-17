@@ -26,11 +26,11 @@ using System.Reflection;
 
 [assembly: AssemblyCompany( "Invenietis" )]
 [assembly: AssemblyProduct( "Civikey" )]
-[assembly: AssemblyCopyright( "Copyright © Invenietis - In’Tech INFO 2007-2012" )]
+[assembly: AssemblyCopyright( "Copyright © Invenietis - In’Tech INFO 2007-2013" )]
 [assembly: AssemblyTrademark( "" )]
 [assembly: CLSCompliant( true )]
-[assembly: AssemblyVersion( "2.7.43" )]
-[assembly: AssemblyFileVersion( "2.7.43" )]
+[assembly: AssemblyVersion( "2.8.3" )]
+[assembly: AssemblyFileVersion( "2.8.3" )]
 
 #if DEBUG
     [assembly: AssemblyConfiguration("Debug")]

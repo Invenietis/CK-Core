@@ -23,21 +23,23 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+using System.Diagnostics.CodeAnalysis;
 
 namespace CK.Core
 {
     /// <summary>
-    /// A tap is both a <see cref="IMuxActivityLoggerClient"/> and a <see cref="IActivityLoggerClient"/> that delivers log data 
+    /// A tap is a <see cref="IActivityLoggerClient"/> that delivers log data 
     /// to multiple <see cref="IActivityLoggerSink"/> implementations.
     /// </summary>
-    public class ActivityLoggerTap : ActivityLoggerHybridClient
+    public class ActivityLoggerTap : ActivityLoggerClient, IActivityLoggerBoundClient
     {
         int _curLevel;
         List<IActivityLoggerSink> _sinks;
-        IReadOnlyList<IActivityLoggerSink> _sinksEx;
+        ICKReadOnlyList<IActivityLoggerSink> _sinksEx;
+        IActivityLogger _source;
+        readonly bool _locked;
 
+        [ExcludeFromCodeCoverage]
         class EmptyTap : ActivityLoggerTap
         {
             public override ActivityLoggerTap Register( IActivityLoggerSink l )
@@ -50,7 +52,7 @@ namespace CK.Core
             {
             }
 
-            protected override void OnUnfilteredLog( LogLevel level, string text )
+            protected override void OnUnfilteredLog( CKTrait tags, LogLevel level, string text, DateTime logTimeUtc )
             {
             }
 
@@ -59,11 +61,11 @@ namespace CK.Core
             }
 
             // Security if OnGroupClosing is implemented once on ActivityLoggerTap.
-            protected override void OnGroupClosing( IActivityLogGroup group, IList<ActivityLogGroupConclusion> conclusions )
+            protected override void OnGroupClosing( IActivityLogGroup group, ref List<ActivityLogGroupConclusion> conclusions )
             {
             }
 
-            protected override void OnGroupClosed( IActivityLogGroup group, IReadOnlyList<ActivityLogGroupConclusion> conclusions )
+            protected override void OnGroupClosed( IActivityLogGroup group, ICKReadOnlyList<ActivityLogGroupConclusion> conclusions )
             {
             }
         }
@@ -74,13 +76,31 @@ namespace CK.Core
         static public new readonly ActivityLoggerTap Empty = new EmptyTap();
 
         /// <summary>
-        /// Initialize a new <see cref="ActivityLoggerTap"/> bound to a <see cref="IMuxActivityLoggerClientRegistrar"/>.
+        /// Initialize a new <see cref="ActivityLoggerTap"/>.
         /// </summary>
-        public ActivityLoggerTap( )
+        public ActivityLoggerTap()
         {
             _curLevel = -1;
             _sinks = new List<IActivityLoggerSink>();
-            _sinksEx = new ReadOnlyListOnIList<IActivityLoggerSink>( _sinks );
+            _sinksEx = new CKReadOnlyListOnIList<IActivityLoggerSink>( _sinks );
+        }
+
+        /// <summary>
+        /// Initialize a new <see cref="ActivityLoggerTap"/> as the default <see cref="IDefaultActivityLogger.Tap"/>.
+        /// It can not be unregistered.
+        /// </summary>
+        public ActivityLoggerTap( IDefaultActivityLogger logger )
+            : this()
+        {
+            logger.Output.RegisterClient( this );
+            _locked = true;
+        }
+
+        void IActivityLoggerBoundClient.SetLogger( IActivityLogger source )
+        {
+            if( _locked ) throw new InvalidOperationException( R.CanNotUnregisterDefaultClient );
+            if( source != null && _source != null ) throw new InvalidOperationException( String.Format( R.ActivityLoggerBoundClientMultipleRegister, GetType().FullName ) );
+            _source = source;
         }
 
         /// <summary>
@@ -110,7 +130,7 @@ namespace CK.Core
         /// <summary>
         /// Gets the list of registered <see cref="IActivityLoggerSink"/>.
         /// </summary>
-        public IReadOnlyList<IActivityLoggerSink> RegisteredSinks
+        public ICKReadOnlyList<IActivityLoggerSink> RegisteredSinks
         {
             get { return _sinksEx; }
         }
@@ -118,15 +138,17 @@ namespace CK.Core
         /// <summary>
         /// Sends log to sinks (handles level changes).
         /// </summary>
+        /// <param name="tags">Tags (from <see cref="ActivityLogger.RegisteredTags"/>) associated to the log.</param>
         /// <param name="level">Log level.</param>
         /// <param name="text">Text (not null).</param>
-        protected override void OnUnfilteredLog( LogLevel level, string text )
+        /// <param name="logTimeUtc">Timestamp of the log.</param>
+        protected override void OnUnfilteredLog( CKTrait tags, LogLevel level, string text, DateTime logTimeUtc )
         {
             if( text == ActivityLogger.ParkLevel )
             {
                 if( _curLevel != -1 )
                 {
-                    foreach( var s in RegisteredSinks ) s.OnLeaveLevel( (LogLevel)_curLevel );
+                    SafeCall( s => s.OnLeaveLevel( (LogLevel)_curLevel ) );
                 }
                 _curLevel = -1;
             }
@@ -134,15 +156,15 @@ namespace CK.Core
             {
                 if( _curLevel == (int)level )
                 {
-                    foreach( var s in RegisteredSinks ) s.OnContinueOnSameLevel( level, text );
+                    SafeCall( s => s.OnContinueOnSameLevel( tags, level, text, logTimeUtc ) );
                 }
                 else
                 {
                     if( _curLevel != -1 )
                     {
-                        foreach( var s in RegisteredSinks ) s.OnLeaveLevel( (LogLevel)_curLevel );
+                        SafeCall( s => s.OnLeaveLevel( (LogLevel)_curLevel ) );
                     }
-                    foreach( var s in RegisteredSinks ) s.OnEnterLevel( level, text );
+                    SafeCall( s => s.OnEnterLevel( tags, level, text, logTimeUtc ) );
                     _curLevel = (int)level;
                 }
             }
@@ -156,10 +178,10 @@ namespace CK.Core
         {
             if( _curLevel != -1 )
             {
-                foreach( var s in RegisteredSinks ) s.OnLeaveLevel( (LogLevel)_curLevel );
+                SafeCall( s => s.OnLeaveLevel( (LogLevel)_curLevel ) );
                 _curLevel = -1;
             }
-            foreach( var s in RegisteredSinks ) s.OnGroupOpen( group );
+            SafeCall( s => s.OnGroupOpen( group ) );
         }
 
         /// <summary>
@@ -167,14 +189,33 @@ namespace CK.Core
         /// </summary>
         /// <param name="group">The closed group.</param>
         /// <param name="conclusions">Texts that conclude the group. Never null but can be empty.</param>
-        protected override void OnGroupClosed( IActivityLogGroup group, IReadOnlyList<ActivityLogGroupConclusion> conclusions )
+        protected override void OnGroupClosed( IActivityLogGroup group, ICKReadOnlyList<ActivityLogGroupConclusion> conclusions )
         {
             if( _curLevel != -1 )
             {
-                foreach( var s in RegisteredSinks ) s.OnLeaveLevel( (LogLevel)_curLevel );
+                SafeCall( s => s.OnLeaveLevel( (LogLevel)_curLevel ) );
                 _curLevel = -1;
             }
-            foreach( var s in RegisteredSinks ) s.OnGroupClose( group, conclusions );
+            SafeCall( s => s.OnGroupClose( group, conclusions ) );
+        }
+
+        void SafeCall( Action<IActivityLoggerSink> a )
+        {
+            List<IActivityLoggerSink> buggySinks = null;
+            foreach( var s in _sinks )
+            {
+                try
+                {
+                    a( s );
+                }
+                catch( Exception exCall )
+                {
+                    ActivityLogger.LoggingError.Add( exCall, s.GetType().FullName );
+                    if( buggySinks == null ) buggySinks = new List<IActivityLoggerSink>();
+                    buggySinks.Add( s );
+                }
+            }
+            if( buggySinks != null ) foreach( var s in buggySinks ) _sinks.Remove( s );
         }
 
     }

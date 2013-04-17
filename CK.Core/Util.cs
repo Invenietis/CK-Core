@@ -66,18 +66,12 @@ namespace CK.Core
         /// <summary>
         /// Centralized <see cref="IDisposable.Dispose"/> action call: it adapts an <see cref="IDisposable"/> interface to an <see cref="Action"/>.
         /// Can be safely called if <paramref name="obj"/> is null. 
-        /// See <see cref="DisposeAction"/> to wrap an action in a <see cref="IDisposable"/> interface.
+        /// See <see cref="CreateDisposableAction"/> to wrap an action in a <see cref="IDisposable"/> interface.
         /// </summary>
         /// <param name="obj">The disposable object to dispose (can be null).</param>
         public static void ActionDispose( IDisposable obj )
         {
             if( obj != null ) obj.Dispose();
-        }
-
-        [Obsolete( "Use CreateDisposableAction instead.", true )]
-        public static IDisposable DisposeAction( Action a )
-        {
-            return CreateDisposableAction( a );
         }
 
         /// <summary>
@@ -156,6 +150,41 @@ namespace CK.Core
             return value;
         }
 
+
+        /// <summary>
+        /// Wraps an action in a predicate that returns always the provided result.
+        /// </summary>
+        /// <typeparam name="T">The type of the action's parameter.</typeparam>
+        /// <param name="a">The action (a method that accepts <typeparamref name="T"/> as its only argument).</param>
+        /// <param name="result">result that will be returned.</param>
+        /// <returns>A predicate that performs the action and returns true.</returns>
+        static public Predicate<T> ToPredicate<T>( this Action<T> a, bool result )
+        {
+            return delegate( T o ) { a( o ); return result; };
+        }
+
+        /// <summary>
+        /// Wraps an action in a predicate that returns always true.
+        /// </summary>
+        /// <typeparam name="T">The type of the action's parameter.</typeparam>
+        /// <param name="a">The action (a method that accepts <typeparamref name="T"/> as its only argument).</param>
+        /// <returns>A predicate that performs the action and returns true.</returns>
+        static public Predicate<T> AlwaysTrue<T>( Action<T> a )
+        {
+            return delegate( T o ) { a( o ); return true; };
+        }
+
+        /// <summary>
+        /// Wraps an action in a predicate that returns always false.
+        /// </summary>
+        /// <typeparam name="T">The type of the action's parameter.</typeparam>
+        /// <param name="a">The action (a method that accepts <typeparamref name="T"/> as its only argument).</param>
+        /// <returns>A predicate that performs the action and returns false.</returns>
+        static public Predicate<T> AlwaysFalse<T>( Action<T> a )
+        {
+            return delegate( T o ) { a( o ); return false; };
+        }
+        
         /// <summary>
         /// Binary search implementation that relies on a <see cref="Comparison{T}"/>.
         /// </summary>

@@ -29,54 +29,41 @@ using System.Text;
 namespace CK.Core
 {
     /// <summary>
-    /// Base implementation of <see cref="IActivityLoggerOutput"/> for <see cref="IActivityLogger.Output"/>.
+    /// Implementation of <see cref="IActivityLoggerOutput"/> for <see cref="IActivityLogger.Output"/>.
     /// </summary>
-    public class ActivityLoggerOutput : MuxActivityLoggerHub, IActivityLoggerOutput
+    public class ActivityLoggerOutput : IActivityLoggerOutput
     {
-        List<IActivityLoggerClient> _clients;
-        IReadOnlyList<IActivityLoggerClient> _clientsEx;
-        List<IActivityLoggerClientBase> _nonRemoveableClients;
+        readonly List<IActivityLoggerClient> _clients;
+        readonly IReadOnlyList<IActivityLoggerClient> _clientsEx;
+        readonly ActivityLoggerBridgeTarget _externalInput;
 
         internal class EmptyOutput : IActivityLoggerOutput
         {
-            public IMuxActivityLoggerClient ExternalInput
+            ActivityLoggerBridgeTarget _empty = new ActivityLoggerBridgeTarget();
+
+            public IActivityLoggerClient ExternalInput
             {
-                get { return ActivityLoggerHybridClient.Empty; }
+                get { return ActivityLoggerClient.Empty; }
             }
 
-            public IActivityLoggerClientRegistrar RegisterClient( IActivityLoggerClient client )
+            public IActivityLoggerOutput RegisterClient( IActivityLoggerClient client )
             {
                 return this;
             }
 
-            public IActivityLoggerClientRegistrar UnregisterClient( IActivityLoggerClient client )
+            public IActivityLoggerOutput UnregisterClient( IActivityLoggerClient client )
             {
                 return this;
             }
 
             public IReadOnlyList<IActivityLoggerClient> RegisteredClients
             {
-                get { return ReadOnlyListEmpty<IActivityLoggerClient>.Empty; }
+                get { return CKReadOnlyListEmpty<IActivityLoggerClient>.Empty; }
             }
 
-            public IMuxActivityLoggerClientRegistrar RegisterMuxClient( IMuxActivityLoggerClient client )
+            ActivityLoggerBridgeTarget IActivityLoggerOutput.ExternalInput
             {
-                return this;
-            }
-
-            public IMuxActivityLoggerClientRegistrar UnregisterMuxClient( IMuxActivityLoggerClient client )
-            {
-                return this;
-            }
-
-            public IReadOnlyList<IMuxActivityLoggerClient> RegisteredMuxClients
-            {
-                get { return ReadOnlyListEmpty<IMuxActivityLoggerClient>.Empty; }
-            }
-
-            public IList<IActivityLoggerClientBase> NonRemoveableClients 
-            {
-                get { return (IList<IActivityLoggerClientBase>)ReadOnlyListEmpty<IActivityLoggerClientBase>.Empty; } 
+                get { throw new NotImplementedException(); }
             }
         }
 
@@ -91,113 +78,57 @@ namespace CK.Core
         /// <param name="logger"></param>
         public ActivityLoggerOutput( IActivityLogger logger )
         {
-            Logger = logger;
             _clients = new List<IActivityLoggerClient>();
-            _clientsEx = new ReadOnlyListOnIList<IActivityLoggerClient>( _clients );
-            _nonRemoveableClients = new List<IActivityLoggerClientBase>();
+            _clientsEx = new CKReadOnlyListOnIList<IActivityLoggerClient>( _clients );
+            _externalInput = new ActivityLoggerBridgeTarget( logger, true );
         }
 
         /// <summary>
-        /// Gets an entry point for other loggers: by registering this <see cref="IMuxActivityLoggerClient"/> in other <see cref="IActivityLogger.Output"/>,
-        /// log data easily be merged.
+        /// Gets an entry point for other loggers: by registering <see cref="ActivityLoggerBridge"/> in other <see cref="IActivityLogger.Output"/>
+        /// bound to this <see cref="ActivityLoggerBridgeTarget"/>, log streams can easily be merged.
         /// </summary>
-        public IMuxActivityLoggerClient ExternalInput 
+        public ActivityLoggerBridgeTarget ExternalInput 
         {
-            get { return this; } 
-        }
-
-        /// <summary>
-        /// Gets a modifiable list of either <see cref="IMuxActivityLoggerClient"/> or <see cref="IActivityLoggerClient"/>
-        /// that can not be removed.
-        /// </summary>
-        /// <remarks>
-        /// <para>
-        /// Already registered hybrid clients (that support both <see cref="IMuxActivityLoggerClient"/> and <see cref="IActivityLoggerClient"/>)
-        /// can be added at any time in <see cref="IActivityLoggerClientRegistrar.RegisteredClients"/> or <see cref="IMuxActivityLoggerClientRegistrar.RegisteredMuxClients"/>:
-        /// they are automatically removed from the other registrar.
-        /// </para>
-        /// <para>
-        /// This behavior (that avoids stuterring: logs sent twice since the same client is registered in both registrar), also applies to clients that are 
-        /// registered in this NonRemoveableClients list. This list simply guraranty that an <see cref="InvalidOperationException"/> will be thrown 
-        /// if a call to <see cref="IActivityLoggerClientRegistrar.UnregisterClient"/> or <see cref="IMuxActivityLoggerClientRegistrar.UnregisterMuxClient"/> is 
-        /// done on a non removeable client.
-        /// </para>
-        /// </remarks>
-        public IList<IActivityLoggerClientBase> NonRemoveableClients 
-        { 
-            get { return _nonRemoveableClients; } 
+            get { return _externalInput; } 
         }
 
         /// <summary>
         /// Gets the associated <see cref="IActivityLogger"/>.
         /// </summary>
-        protected IActivityLogger Logger { get; private set; }
+        protected IActivityLogger Logger { get { return _externalInput.FinalLogger; } }
 
         /// <summary>
         /// Registers an <see cref="IActivityLoggerClient"/> to the <see cref="RegisteredClients"/> list.
-        /// Removes the <paramref name="client"/> from <see cref="IMuxActivityLoggerClientRegistrar.RegisteredMuxClients">RegisteredMuxClients</see> if
-        /// it is also a <see cref="IMuxActivityLoggerClient"/> to avoid stuttering.
         /// Duplicate IActivityLoggerClient are silently ignored.
         /// </summary>
         /// <param name="client">An <see cref="IActivityLoggerClient"/> implementation.</param>
         /// <returns>This object to enable fluent syntax.</returns>
-        public IActivityLoggerClientRegistrar RegisterClient( IActivityLoggerClient client )
+        public IActivityLoggerOutput RegisterClient( IActivityLoggerClient client )
         {
             if( client == null ) throw new ArgumentNullException( "client" );
             if( !_clients.Contains( client ) )
             {
-                IMuxActivityLoggerClient mux = client as IMuxActivityLoggerClient;
-                if( mux != null ) DoRemove( mux );
+                IActivityLoggerBoundClient bound = client as IActivityLoggerBoundClient;
+                if( bound != null ) bound.SetLogger( Logger );
                 _clients.Insert( 0, client );
             }
             return this;
         }
 
         /// <summary>
-        /// Registers an <see cref="IMuxActivityLoggerClient"/> to the <see cref="IMuxActivityLoggerClientRegistrar.RegisteredMuxClients">RegisteredMuxClients</see> list.
-        /// Removes the <paramref name="client"/> from <see cref="RegisteredClients"/> if
-        /// it is also a <see cref="IActivityLoggerClient"/> to avoid stuttering.
-        /// Duplicate IMuxActivityLoggerClient are silently ignored.
-        /// </summary>
-        /// <param name="client">An <see cref="IMuxActivityLoggerClient"/> implementation.</param>
-        /// <returns>This object to enable fluent syntax.</returns>
-        public override IMuxActivityLoggerClientRegistrar RegisterMuxClient( IMuxActivityLoggerClient client )
-        {
-            if( client == null ) throw new ArgumentNullException( "client" );
-            if( !RegisteredMuxClients.Contains( client ) )
-            {
-                IActivityLoggerClient c = client as IActivityLoggerClient;
-                if( c != null ) _clients.Remove( c );
-                DoAdd( client );
-            }
-            return this;
-        }
-
-        /// <summary>
         /// Unregisters the given <see cref="IActivityLoggerClient"/> from the <see cref="RegisteredClients"/> list.
-        /// Silently ignores unregistered client but throws an <see cref="InvalidOperationException"/> if it belongs to <see cref="NonRemoveableClients"/> list.
+        /// Silently ignores unregistered client.
         /// </summary>
         /// <param name="client">An <see cref="IActivityLoggerClient"/> implementation.</param>
         /// <returns>This object to enable fluent syntax.</returns>
-        public IActivityLoggerClientRegistrar UnregisterClient( IActivityLoggerClient client )
+        public IActivityLoggerOutput UnregisterClient( IActivityLoggerClient client )
         {
             if( client == null ) throw new ArgumentNullException( "client" );
-            if( _nonRemoveableClients.Contains( client ) ) throw new InvalidOperationException( R.ActivityLoggerNonRemoveableClient );
-            _clients.Remove( client );
-            return this;
-        }
-
-        /// <summary>
-        /// Unregisters the given <see cref="IMuxActivityLoggerClient"/> from the <see cref="IMuxActivityLoggerClientRegistrar.RegisteredMuxClients">RegisteredMuxClients</see> list.
-        /// Silently ignores unregistered client but throws an <see cref="InvalidOperationException"/> if it belongs to <see cref="NonRemoveableClients"/> list.
-        /// </summary>
-        /// <param name="client">An <see cref="IMuxActivityLoggerClient"/> implementation.</param>
-        /// <returns>This object to enable fluent syntax.</returns>
-        public override IMuxActivityLoggerClientRegistrar UnregisterMuxClient( IMuxActivityLoggerClient client )
-        {
-            if( client == null ) throw new ArgumentNullException( "client" );
-            if( _nonRemoveableClients.Contains( client ) ) throw new InvalidOperationException( R.ActivityLoggerNonRemoveableClient );
-            DoRemove( client );
+            if( _clients.Remove( client ) )
+            {
+                IActivityLoggerBoundClient bound = client as IActivityLoggerBoundClient;
+                if( bound != null ) bound.SetLogger( null );
+            }
             return this;
         }
 
@@ -207,36 +138,6 @@ namespace CK.Core
         public IReadOnlyList<IActivityLoggerClient> RegisteredClients
         {
             get { return _clientsEx; }
-        }
-
-        internal void OnFilterChanged( LogLevelFilter current, LogLevelFilter newValue )
-        {
-            foreach( var l in _clients ) l.OnFilterChanged( current, newValue );
-            ((IMuxActivityLoggerClient)this).OnFilterChanged( Logger, current, newValue );
-        }
-
-        internal void OnUnfilteredLog( LogLevel level, string text )
-        {
-            foreach( var l in _clients ) l.OnUnfilteredLog( level, text );
-            ((IMuxActivityLoggerClient)this).OnUnfilteredLog( Logger, level, text );
-        }
-
-        internal void OnOpenGroup( IActivityLogGroup group )
-        {
-            foreach( var l in _clients ) l.OnOpenGroup( group );
-            ((IMuxActivityLoggerClient)this).OnOpenGroup( Logger, group );
-        }
-
-        internal void OnGroupClosing( IActivityLogGroup group, IList<ActivityLogGroupConclusion> conclusions )
-        {
-            foreach( var l in _clients ) l.OnGroupClosing( group, conclusions );
-            ((IMuxActivityLoggerClient)this).OnGroupClosing( Logger, group, conclusions );
-        }
-
-        internal void OnGroupClosed( IActivityLogGroup group, IReadOnlyList<ActivityLogGroupConclusion> conclusions )
-        {
-            foreach( var l in _clients ) l.OnGroupClosed( group, conclusions );
-            ((IMuxActivityLoggerClient)this).OnGroupClosed( Logger, group, conclusions );
         }
     }
 }

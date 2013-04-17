@@ -91,8 +91,7 @@ namespace CK.Core.Tests
                 temporaryFile.Detach();
             }
             Assert.That( File.Exists( path ), Is.True );
-            try { File.Delete( path ); }
-            catch {}
+            File.Delete( path );
         }
     }
 }

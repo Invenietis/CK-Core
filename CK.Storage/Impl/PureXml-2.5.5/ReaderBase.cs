@@ -108,7 +108,7 @@ namespace CK.Storage
 
         Type GetType( string typeName )
         {
-            ISimpleTypeFinder f = ComponentModelExtension.GetService<ISimpleTypeFinder>( this );
+            ISimpleTypeFinder f = CKComponentModelExtension.GetService<ISimpleTypeFinder>( this );
             if( f == null )
             {
                 return Type.GetType( typeName, !_ignoreUnresolvedType );

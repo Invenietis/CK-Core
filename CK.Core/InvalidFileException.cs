@@ -29,7 +29,7 @@ using System.Runtime.Serialization;
 namespace CK.Core
 {
     /// <summary>
-    /// <see cref="CKException"/> raised when something in a file goes wrong.
+    /// A <see cref="CKException"/> raised when something in a file goes wrong.
     /// </summary>
     [Serializable]
     public class InvalidFileException : CKException
@@ -43,8 +43,8 @@ namespace CK.Core
         /// Protected constructor, that will intialize the <see cref="CKException"/> with
         /// a <see cref="SerializationInfo"/> and a <see cref="StreamingContext"/>.
         /// </summary>
-        /// <param name="info">Given to initialize the <see cref="CKException"/>.</param>
-        /// <param name="context">Given to initialize the <see cref="CKException"/>.</param>
+        /// <param name="info">Serialization information.</param>
+        /// <param name="context">Serialization context.</param>
         protected InvalidFileException( SerializationInfo info, StreamingContext context )
             : base( info, context )
         {

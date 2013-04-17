@@ -23,6 +23,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text;
 
@@ -32,6 +33,7 @@ namespace CK.Core
     /// An implementation of <see cref="IActivityLogger"/> that does nothing (null object design pattern).
     /// Can be specialized. 
     /// </summary>
+    [ExcludeFromCodeCoverage]
     public class ActivityLoggerEmpty : IActivityLogger
     {
         /// <summary>
@@ -39,23 +41,29 @@ namespace CK.Core
         /// </summary>
         static public readonly IActivityLogger Empty = new ActivityLoggerEmpty();
 
+        CKTrait IActivityLogger.AutoTags
+        {
+            get { return ActivityLogger.RegisteredTags.EmptyTrait; }
+            set { }
+        }
+
         LogLevelFilter IActivityLogger.Filter
         {
             get { return LogLevelFilter.Off; }
             set { }
         }
 
-        IActivityLogger IActivityLogger.UnfilteredLog( LogLevel level, string text, Exception ex )
+        IActivityLogger IActivityLogger.UnfilteredLog( CKTrait tags, LogLevel level, string text, DateTime logTimeUtc, Exception ex )
         {
             return this;
         }
 
-        IDisposable IActivityLogger.OpenGroup( LogLevel level, Func<string> getConclusionText, string text, Exception ex )
+        IDisposable IActivityLogger.OpenGroup( CKTrait tags, LogLevel level, Func<string> getConclusionText, string text, DateTime logTimeUtc, Exception ex )
         {
             return Util.EmptyDisposable;
         }
 
-        void IActivityLogger.CloseGroup( object conclusion )
+        void IActivityLogger.CloseGroup( DateTime logTimeUtc, object conclusion )
         {
         }
 

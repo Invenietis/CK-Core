@@ -27,10 +27,12 @@ using System.Linq;
 using System.Text;
 using NUnit.Framework;
 using System.Reflection;
+using System.Diagnostics.CodeAnalysis;
 
 namespace CK.Reflection.Tests
 {
     [TestFixture]
+    [ExcludeFromCodeCoverage]
     public class ObjectAndType
     {
         static string _lastCalledName;

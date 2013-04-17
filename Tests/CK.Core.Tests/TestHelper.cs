@@ -23,14 +23,16 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Text;
 using CK.Core;
 using NUnit.Framework;
 
-namespace Core
+namespace CK.Core.Tests
 {
+    [ExcludeFromCodeCoverage]
     static class TestHelper
     {
         static string _testFolder;
@@ -47,7 +49,8 @@ namespace Core
         static TestHelper()
         {
             _console = new ActivityLoggerConsoleSink();
-            _logger = DefaultActivityLogger.Create().Register( _console );
+            _logger = new DefaultActivityLogger();
+            _logger.Tap.Register( _console );
         }
 
         public static IActivityLogger Logger
@@ -57,11 +60,11 @@ namespace Core
 
         public static bool LogsToConsole
         {
-            get { return _logger.RegisteredSinks.Contains( _console ); }
+            get { return _logger.Tap.RegisteredSinks.Contains( _console ); }
             set
             {
-                if( value ) _logger.Register( _console );
-                else _logger.Unregister( _console );
+                if( value ) _logger.Tap.Register( _console );
+                else _logger.Tap.Unregister( _console );
             }
         }
         
@@ -135,7 +138,6 @@ namespace Core
             _testFolder = Path.Combine( p, "SubTestDir" );
             if( Directory.Exists( _testFolder ) ) Directory.Delete( _testFolder, true );
             Directory.CreateDirectory( _testFolder );
-
         }
 
         private static void InitalizeCopyPaths()

@@ -27,11 +27,11 @@ using NUnit.Framework;
 using System.Linq;
 using System;
 using System.Collections.Generic;
-using Core;
+using CK.Core.Tests;
 using System.ComponentModel.Design;
 using System.Diagnostics.CodeAnalysis;
 
-namespace Core
+namespace CK.Core.Tests
 {
 
     #region IAddService
@@ -58,6 +58,7 @@ namespace Core
     }
 
     #endregion
+
     #region ISubstractService
 
     public interface ISubstractService
@@ -73,12 +74,14 @@ namespace Core
     }
 
     #endregion
+    
     #region IMultService
 
     public interface IMultService
     {
         int Mult( int a, int b );
     }
+
     public class MultServiceImpl : IMultService
     {
         public int Mult( int a, int b )
@@ -114,6 +117,7 @@ namespace Core
     }
 
     [TestFixture]
+    [ExcludeFromCodeCoverage]
     public class ServiceContainerTests
     {
         [Test]
@@ -139,6 +143,7 @@ namespace Core
 
             ISimpleServiceContainer baseProvider = new SimpleServiceContainer();
             IMultService multService = new MultServiceImpl();
+            Assert.That( multService.Mult( 3, 7 ), Is.EqualTo( 21 ) );
             baseProvider.Add( typeof( IMultService ), multService, o => removedServicesCount++ );
             ISimpleServiceContainer container = new SimpleServiceContainer( baseProvider );
 
@@ -466,14 +471,6 @@ namespace Core
         static void OnRemoveBaseServiceType( IAddServiceBase baseType )
         {
             _onRemoveServiceCalled = true;
-        }
-
-        static void OnRemoveDerivedServiceType( IAddServiceDerived derivedType )
-        {
-        }
-
-        static void OnRemoveUnrelatedType( string unrelatedType )
-        {
         }
     
     }
