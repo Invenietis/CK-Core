@@ -77,17 +77,29 @@ namespace CK.Core
             _errorCounter = new ActivityLoggerErrorCounter( this, generateErrorCounterConlusion );
         }
 
-        ActivityLoggerTap IDefaultActivityLogger.Tap 
+        /// <summary>
+        /// Gets the <see cref="ActivityLoggerTap"/> that manages <see cref="IActivityLoggerSink"/>
+        /// for this <see cref="DefaultActivityLogger"/>.
+        /// </summary>
+        public ActivityLoggerTap Tap 
         { 
             get { return _tap; } 
         }
 
-        ActivityLoggerErrorCounter IDefaultActivityLogger.ErrorCounter
+        /// <summary>
+        /// Gets the <see cref="ActivityLoggerErrorCounter"/> that manages fatal errors, errors and warnings
+        /// and automatic conclusion of groups with such information.
+        /// </summary>
+        public ActivityLoggerErrorCounter ErrorCounter
         {
             get { return _errorCounter; }
         }
 
-        ActivityLoggerPathCatcher IDefaultActivityLogger.PathCatcher
+        /// <summary>
+        /// Gets the <see cref="ActivityLoggerPathCatcher"/> that exposes and maintains <see cref="ActivityLoggerPathCatcher.DynamicPath">DynamicPath</see>,
+        /// <see cref="ActivityLoggerPathCatcher.LastErrorPath">LastErrorPath</see> and <see cref="ActivityLoggerPathCatcher.LastWarnOrErrorPath">LastWarnOrErrorPath</see>.
+        /// </summary>
+        public ActivityLoggerPathCatcher PathCatcher
         {
             get { return _pathCatcher; }
         }

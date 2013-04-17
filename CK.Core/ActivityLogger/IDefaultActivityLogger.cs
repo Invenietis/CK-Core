@@ -46,7 +46,7 @@ namespace CK.Core
 
         /// <summary>
         /// Gets the <see cref="ActivityLoggerTap"/> that manages <see cref="IActivityLoggerSink"/>
-        /// for this <see cref="DefaultActivityLogger"/>.
+        /// for this <see cref="IDefaultActivityLogger"/>.
         /// </summary>
         ActivityLoggerTap Tap { get; }
 
