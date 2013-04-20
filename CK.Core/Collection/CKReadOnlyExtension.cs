@@ -81,21 +81,17 @@ namespace CK.Core
 
         /// <summary>
         /// Attempts to consider a <see cref="IList{T}"/> as a <see cref="IReadOnlyList{T}"/>.
-        /// In .Net 4.5, IList&lt;T&gt; extends IReadOnlyList&lt;T&gt; (this is a direct cast).
-        /// In .Net 4.0: if the actual object supports our IReadOnlyList&lt;T&gt; it is a direct cast 
-        /// otherwise <see cref="ToReadOnlyList"/> is called to obtain an independant storage (a copy).
+        /// If the actual object supports IReadOnlyList&lt;T&gt; it is a direct cast (in .Net 4.5, the 
+        /// standard List&lt;T&gt; extends IReadOnlyList&lt;T&gt;), otherwise <see cref="ToReadOnlyList(IList{T})"/> is 
+        /// called to obtain an independant storage (a copy).
         /// </summary>
         /// <typeparam name="T">The type of the elements of source.</typeparam>
         /// <param name="source">A <see cref="IList{T}"/> to consider as a read only list.</param>
         /// <returns>A read only list that is the original list or contains the elements from the original list.</returns>
         static public IReadOnlyList<T> AsReadOnlyList<T>( this IList<T> source )
         {
-#if NET40
             IReadOnlyList<T> rl = source as IReadOnlyList<T>;
             return rl ?? source.ToReadOnlyList<T>();
-#else
-            return (IReadOnlyList<T>)source;
-#endif
         }
 
         /// <summary>
