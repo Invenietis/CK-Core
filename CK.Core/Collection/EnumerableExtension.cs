@@ -198,7 +198,7 @@ namespace CK.Core
         }
 
         /// <summary>
-        /// Gets the first index in the enumerable where the predicate evaluates to true, giving the prdicate the index of the element.
+        /// Gets the first index in the enumerable where the predicate evaluates to true, the index of the element is available to the predicate.
         /// Returns -1 when not found.
         /// </summary>
         /// <typeparam name="TSource">Type of source sequence.</typeparam>

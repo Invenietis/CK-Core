@@ -11,7 +11,7 @@ namespace CK.Core
     /// This collector keeps <see cref="Capacity"/> <see cref="Error"/>s (and no more).
     /// It raises <see cref="OnErrorFromBackgroundThreads"/> event on each <see cref="Add"/>.
     /// It is totally thread-safe and guaranties (as long as its Capacity is big enough) that no error can be lost
-    /// (even errors raised while dispathing the event are themselves collected) and that errors are dispatched in
+    /// (even errors raised while dispatching the event are themselves collected) and that errors are dispatched in
     /// sequence.
     /// <para>
     /// This class is typically used as a static property or field by any object that must handle unexpected errors. (It can also be used
@@ -155,7 +155,7 @@ namespace CK.Core
                 again = false;
                 // This lock guaranties that no more than one event will fire at the same time.
                 // Since we capture the errors to raise from inside it, it also guaranties that
-                // listeners will receive errors is order.
+                // listeners will receive errors in order.
                 lock( _raiseLock )
                 {
                     Interlocked.Exchange( ref _dispatchWorkItemIsReady, 0 ); 
@@ -215,7 +215,7 @@ namespace CK.Core
             // Signals the _endOfWorkLock monitor if _waitingRaiseCount reached 0.
             if( _waitingRaiseCount == 0 )
             {
-                lock( _endOfWorkLock ) Monitor.Pulse( _endOfWorkLock );
+                lock( _endOfWorkLock ) Monitor.PulseAll( _endOfWorkLock );
             }
         }
 
@@ -257,7 +257,7 @@ namespace CK.Core
         /// Gets whether any event is waiting to be raised by <see cref="OnErrorFromBackgroundThreads"/> or is being processed.
         /// When this is false, it is guaranteed that any existing errors have been handled: if no more <see cref="Add"/> can be done
         /// it means that this collector has finished its job.
-        /// Instead of pooling this property - with an horrible Thread.Sleep( 1 ), you should use <see cref="WaitOnErrorFromBackgroundThreads"/> 
+        /// Instead of pooling this property - with an horrible Thread.Sleep( 1 ), you should use <see cref="WaitOnErrorFromBackgroundThreadsPending"/> 
         /// to more efficiently and securely wait for the end of this collector's job.
         /// </summary>
         public bool OnErrorFromBackgroundThreadsPending
@@ -266,10 +266,10 @@ namespace CK.Core
         }
 
         /// <summary>
-        /// Blocks the caller threads until no more event is waiting to be raised by <see cref="OnErrorFromBackgroundThreads"/> or is being processed.
-        /// This is the right function to call instead of pooling <see cref="OnErrorFromBackgroundThreadsPending"/>.
+        /// Blocks the caller thread until no more event is waiting to be raised by <see cref="OnErrorFromBackgroundThreads"/> or is being processed.
+        /// This is the right function to use instead of pooling <see cref="OnErrorFromBackgroundThreadsPending"/>.
         /// </summary>
-        public void WaitOnErrorFromBackgroundThreads()
+        public void WaitOnErrorFromBackgroundThreadsPending()
         {
             lock( _endOfWorkLock )
                 while( _waitingRaiseCount != 0 )

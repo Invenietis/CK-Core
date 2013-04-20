@@ -513,7 +513,7 @@ namespace CK.Core.Tests
             //
             // The right way to wait for something to happen is to block a thread until a signal unblocks it.
             // This is what the following function is doing.
-            ActivityLogger.LoggingError.WaitOnErrorFromBackgroundThreads();
+            ActivityLogger.LoggingError.WaitOnErrorFromBackgroundThreadsPending();
             Assert.That( ActivityLogger.LoggingError.OnErrorFromBackgroundThreadsPending, Is.False, "Since nobody calls ActivityLogger.Add. In real situations, this would not necessarily be true." );
         }
 

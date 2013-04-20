@@ -310,6 +310,42 @@ namespace CK.Core.Tests.Collection
             }
         }
 
+
+        [Test]
+        public void ToAndAsReadOnlyList()
+        {
+            List<int> netList = new List<int>();
+            CKSortedArrayList<int> ckList = new CKSortedArrayList<int>();
+
+#if NET40
+            IReadOnlyList<int> r;
+            r = netList.AsReadOnlyList();
+            Assert.That( r, Is.SameAs( CKReadOnlyListEmpty<int>.Empty ), "In Net40, the List<T> is not a IReadOnlyList." );
+            r = ckList.AsReadOnlyList();
+            Assert.That( r, Is.SameAs( ckList ), "Lists from CK.Core are already IReadOnlyList<T>." );
+            
+            netList.Add( 1 );
+            ckList.Add( 1 );
+            r = netList.AsReadOnlyList();
+            Assert.That( r, Is.Not.SameAs( netList ).And.Not.Empty );
+            r = ckList.AsReadOnlyList();
+            Assert.That( r, Is.SameAs( ckList ).And.Not.Empty );
+#else
+            IReadOnlyList<int> r;
+            r = netList.AsReadOnlyList();
+            Assert.That( r, Is.SameAs( netList ), "In Net45, IList<T> IS A IReadOnlyList<T>." );
+            r = ckList.AsReadOnlyList();
+            Assert.That( r, Is.SameAs( ckList ) );
+
+            netList.Add( 1 );
+            ckList.Add( 1 );
+            r = netList.AsReadOnlyList();
+            Assert.That( r, Is.SameAs( netList ).And.Not.Empty );
+            r = ckList.AsReadOnlyList();
+            Assert.That( r, Is.SameAs( ckList ).And.Not.Empty );
+#endif
+        }
+        
         [Test]
         public void TestToReadOnlyListAdapter()
         {
