@@ -31,6 +31,7 @@ using CK.Core;
 namespace CK.Core.Tests.Collection
 {
     [TestFixture]
+    [Category( "SortedArrayList" )]
     public class SortedArrayKeyListTests
     {
         [Test]

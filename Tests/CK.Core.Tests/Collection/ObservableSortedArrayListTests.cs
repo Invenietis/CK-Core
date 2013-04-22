@@ -8,6 +8,7 @@ using NUnit.Framework;
 namespace CK.Core.Tests.Collection
 {
     [TestFixture]
+    [Category("SortedArrayList")]
     public class ObservableSortedArrayListTests
     {
         [Test]

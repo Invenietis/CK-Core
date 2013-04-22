@@ -35,6 +35,7 @@ namespace Storage
     }
 
     [TestFixture]
+    [Category("StructuredStorage")]
     public class ActionSequenceTests
     {
         [Test]

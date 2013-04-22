@@ -8,6 +8,7 @@ using NUnit.Framework;
 namespace CK.Core.Tests
 {
     [TestFixture]
+    [Category("File")]
     public class TemporaryFileTests
     {
         [Test]

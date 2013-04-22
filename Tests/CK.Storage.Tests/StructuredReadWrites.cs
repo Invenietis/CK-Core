@@ -40,6 +40,7 @@ using System.Text.RegularExpressions;
 namespace Storage
 {
     [TestFixture]
+    [Category("StructuredStorage")]
     public class StructuredReadWrites
     {
         [SetUp]

@@ -33,6 +33,7 @@ namespace CK.Reflection.Tests
 {
     [TestFixture]
     [ExcludeFromCodeCoverage]
+    [Category("Reflection")]
     public class HelperTest
     {
         public int AnIntProperty { get { return 3; } }

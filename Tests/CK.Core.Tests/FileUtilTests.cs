@@ -35,6 +35,7 @@ namespace CK.Core.Tests
 {
     [TestFixture]
     [ExcludeFromCodeCoverage]
+    [Category("File")]
     public class FileUtilTests
     {
         readonly DirectoryInfo _testFolderInfo = TestHelper.TestFolderDir;

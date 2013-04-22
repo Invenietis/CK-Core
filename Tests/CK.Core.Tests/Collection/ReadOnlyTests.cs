@@ -316,11 +316,12 @@ namespace CK.Core.Tests.Collection
         {
             List<int> netList = new List<int>();
             CKSortedArrayList<int> ckList = new CKSortedArrayList<int>();
+            int[] array = new int[1];
 
 #if NET40
             IReadOnlyList<int> r;
             r = netList.AsReadOnlyList();
-            Assert.That( r, Is.SameAs( CKReadOnlyListEmpty<int>.Empty ), "In Net40, the List<T> is not a IReadOnlyList." );
+            Assert.That( r, Is.SameAs( CKReadOnlyListEmpty<int>.Empty ), "In Net40, the List<T> is NOT a IReadOnlyList." );
             r = ckList.AsReadOnlyList();
             Assert.That( r, Is.SameAs( ckList ), "Lists from CK.Core are already IReadOnlyList<T>." );
             
@@ -330,10 +331,12 @@ namespace CK.Core.Tests.Collection
             Assert.That( r, Is.Not.SameAs( netList ).And.Not.Empty );
             r = ckList.AsReadOnlyList();
             Assert.That( r, Is.SameAs( ckList ).And.Not.Empty );
+            r = array.AsReadOnlyList();
+            Assert.That( r, Is.Not.SameAs( array ).And.Not.Empty, "In 4.0, an array is NOT a IReadOnlyList." );
 #else
             IReadOnlyList<int> r;
             r = netList.AsReadOnlyList();
-            Assert.That( r, Is.SameAs( netList ), "In Net45, IList<T> IS A IReadOnlyList<T>." );
+            Assert.That( r, Is.SameAs( netList ), "In Net45, List<T> IS A IReadOnlyList<T>." );
             r = ckList.AsReadOnlyList();
             Assert.That( r, Is.SameAs( ckList ) );
 
@@ -343,6 +346,8 @@ namespace CK.Core.Tests.Collection
             Assert.That( r, Is.SameAs( netList ).And.Not.Empty );
             r = ckList.AsReadOnlyList();
             Assert.That( r, Is.SameAs( ckList ).And.Not.Empty );
+            r = array.AsReadOnlyList();
+            Assert.That( r, Is.SameAs( array ).And.Not.Empty, "In 4.5, an array IS a IReadOnlyList :-)." );
 #endif
         }
         

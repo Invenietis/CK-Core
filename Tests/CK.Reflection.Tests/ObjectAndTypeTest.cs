@@ -33,6 +33,7 @@ namespace CK.Reflection.Tests
 {
     [TestFixture]
     [ExcludeFromCodeCoverage]
+    [Category("Reflection")]
     public class ObjectAndType
     {
         static string _lastCalledName;
