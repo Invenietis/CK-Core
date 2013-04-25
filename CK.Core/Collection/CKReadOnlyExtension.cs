@@ -82,7 +82,7 @@ namespace CK.Core
         /// <summary>
         /// Attempts to consider a <see cref="IList{T}"/> as a <see cref="IReadOnlyList{T}"/>.
         /// If the actual object supports IReadOnlyList&lt;T&gt; it is a direct cast (in .Net 4.5, the 
-        /// standard List&lt;T&gt; extends IReadOnlyList&lt;T&gt;), otherwise <see cref="ToReadOnlyList(IList{T})"/> is 
+        /// standard List&lt;T&gt; extends IReadOnlyList&lt;T&gt;), otherwise <see cref="ToReadOnlyList{T}(IList{T})"/> is 
         /// called to obtain an independant storage (a copy).
         /// </summary>
         /// <typeparam name="T">The type of the elements of source.</typeparam>

@@ -64,6 +64,10 @@ namespace CK.Core
         readonly ActivityLoggerErrorCounter _errorCounter;
         readonly ActivityLoggerPathCatcher _pathCatcher;
 
+        /// <summary>
+        /// Initializes a new instance of <see cref="DefaultActivityLogger"/>, that will optionally generate error counter group conclusions ("2 erros, 1 warning").
+        /// </summary>
+        /// <param name="generateErrorCounterConlusion">False to not generate error counter group conclusions.</param>
         public DefaultActivityLogger( bool generateErrorCounterConlusion = true )
         {
             // Order does not really matter matters here thanks to Closing/Closed pattern, but

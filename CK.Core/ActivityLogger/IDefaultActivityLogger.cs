@@ -28,7 +28,7 @@ namespace CK.Core
 {
     /// <summary>
     /// Specialized <see cref="IActivityLogger"/> that contains a non removable <see cref="ActivityLoggerTap"/>.
-    /// Concrete implementation must be obtained through <see cref="DefaultActivityLogger.Create"/> factrory method.
+    /// A concrete implementation is <see cref="DefaultActivityLogger"/>.
     /// </summary>
     public interface IDefaultActivityLogger : IActivityLogger
     {

@@ -128,6 +128,7 @@ namespace CK.Core
         /// <param name="tags">Tags for the log entry.</param>
         /// <param name="level">Level of the log.</param>
         /// <param name="text">Text of the log.</param>
+        /// <param name="logTimeUtc">Timestamp of the log.</param>
         void IActivityLoggerClient.OnUnfilteredLog( CKTrait tags, LogLevel level, string text, DateTime logTimeUtc )
         {
             if( (int)level >= (int)_filter )

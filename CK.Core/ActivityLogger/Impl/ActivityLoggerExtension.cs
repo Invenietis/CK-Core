@@ -129,10 +129,11 @@ namespace CK.Core
         }
 
         /// <summary>
-        /// Closes the current <see cref="Group"/>. Optional parameter is polymorphic. It can be a string, a <see cref="ActivityLogGroupConclusion"/>, 
+        /// Closes the current Group. Optional parameter is polymorphic. It can be a string, a <see cref="ActivityLogGroupConclusion"/>, 
         /// a <see cref="List{T}"/> or an <see cref="IEnumerable{T}"/> of ActivityLogGroupConclusion, or any object with an overriden <see cref="Object.ToString"/> method. 
         /// See remarks (especially for List&lt;ActivityLogGroupConclusion&gt;).
         /// </summary>
+        /// <param name="this">This <see cref="IActivityLogger"/>.</param>
         /// <param name="userConclusion">Optional string, ActivityLogGroupConclusion object, enumerable of ActivityLogGroupConclusion or object to conclude the group. See remarks.</param>
         /// <remarks>
         /// An untyped object is used here to easily and efficiently accomodate both string and already existing ActivityLogGroupConclusion.
