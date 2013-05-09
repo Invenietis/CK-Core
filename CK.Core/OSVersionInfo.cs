@@ -441,6 +441,109 @@ namespace CK.Core
             }
         }
 
+        #region OSVERSIONINFOEX
+        [StructLayout( LayoutKind.Sequential )]
+        private struct OSVERSIONINFOEX
+        {
+            public int dwOSVersionInfoSize;
+            public int dwMajorVersion;
+            public int dwMinorVersion;
+            public int dwBuildNumber;
+            public int dwPlatformId;
+            [MarshalAs( UnmanagedType.ByValTStr, SizeConst = 128 )]
+            public string szCSDVersion;
+            public short wServicePackMajor;
+            public short wServicePackMinor;
+            public short wSuiteMask;
+            public byte wProductType;
+            public byte wReserved;
+        }
+
+        private static OSVERSIONINFOEX? GetVersionExIfPossible()
+        {
+            if( PInvokeSupported )
+            {
+                OSVERSIONINFOEX o = new OSVERSIONINFOEX();
+                o.dwOSVersionInfoSize = Marshal.SizeOf( typeof( OSVERSIONINFOEX ) );
+                if( GetVersionEx( ref o ) ) return o;
+            }
+            return null;
+        }
+
+        [DllImport( "kernel32.dll" )]
+        private static extern bool GetVersionEx( ref OSVERSIONINFOEX osVersionInfo );
+
+        #endregion OSVERSIONINFOEX
+
+        #region SYSTEM_INFO
+        [StructLayout( LayoutKind.Sequential )]
+        internal struct SYSTEM_INFO
+        {
+            internal PROCESSOR_INFO_UNION uProcessorInfo;
+            public uint dwPageSize;
+            public IntPtr lpMinimumApplicationAddress;
+            public IntPtr lpMaximumApplicationAddress;
+            public IntPtr dwActiveProcessorMask;
+            public uint dwNumberOfProcessors;
+            public uint dwProcessorType;
+            public uint dwAllocationGranularity;
+            public ushort dwProcessorLevel;
+            public ushort dwProcessorRevision;
+        }
+
+        [DllImport( "kernel32.dll" )]
+        internal static extern void GetNativeSystemInfo( [MarshalAs( UnmanagedType.Struct )] ref SYSTEM_INFO lpSystemInfo );
+        #endregion SYSTEMINFO
+
+        #region 64 bits detection
+        [StructLayout( LayoutKind.Explicit )]
+        internal struct PROCESSOR_INFO_UNION
+        {
+            [FieldOffset( 0 )]
+            internal uint dwOemId;
+            [FieldOffset( 0 )]
+            internal ushort wProcessorArchitecture;
+            [FieldOffset( 2 )]
+            internal ushort wReserved;
+        }
+
+        [DllImport( "kernel32", SetLastError = true, CallingConvention = CallingConvention.Winapi )]
+        internal extern static IntPtr LoadLibrary( string libraryName );
+
+        [DllImport( "kernel32", SetLastError = true, CallingConvention = CallingConvention.Winapi )]
+        internal extern static IntPtr GetProcAddress( IntPtr hwnd, string procedureName );
+        
+        delegate bool IsWow64ProcessDelegate( [In]IntPtr handle, [Out]out bool isWow64Process );
+
+        private static IsWow64ProcessDelegate GetIsWow64ProcessDelegate()
+        {
+            // Do not free it: we always need it anyway.
+            IntPtr handle = LoadLibrary( "kernel32" );
+            if( handle != IntPtr.Zero )
+            {
+                // This entry point may not exist.
+                IntPtr e = GetProcAddress( handle, "IsWow64Process" );
+                if( e != IntPtr.Zero )
+                {
+                    return (IsWow64ProcessDelegate)Marshal.GetDelegateForFunctionPointer( e, typeof( IsWow64ProcessDelegate ) );
+                }
+            }
+
+            return null;
+        }
+
+        private static bool Is32BitProcessOn64BitProcessor()
+        {
+            IsWow64ProcessDelegate f = GetIsWow64ProcessDelegate();
+            if( f == null ) return false;
+            bool isWow64;
+            bool retVal = f.Invoke( Process.GetCurrentProcess().Handle, out isWow64 );
+            return retVal && isWow64;
+        }
+
+        #endregion 64 BIT OS DETECTION
+
+        /* Removed "Edition". Seems useless.
         static private string _osEdition;
 
         /// <summary>
@@ -791,125 +894,13 @@ namespace CK.Core
             int spMajorVersion,
             int spMinorVersion,
             out int edition );
-
-        #region OSVERSIONINFOEX
-        [StructLayout( LayoutKind.Sequential )]
-        private struct OSVERSIONINFOEX
-        {
-            public int dwOSVersionInfoSize;
-            public int dwMajorVersion;
-            public int dwMinorVersion;
-            public int dwBuildNumber;
-            public int dwPlatformId;
-            [MarshalAs( UnmanagedType.ByValTStr, SizeConst = 128 )]
-            public string szCSDVersion;
-            public short wServicePackMajor;
-            public short wServicePackMinor;
-            public short wSuiteMask;
-            public byte wProductType;
-            public byte wReserved;
-        }
-
-        private static OSVERSIONINFOEX? GetVersionExIfPossible()
-        {
-            if( PInvokeSupported )
-            {
-                OSVERSIONINFOEX o = new OSVERSIONINFOEX();
-                o.dwOSVersionInfoSize = Marshal.SizeOf( typeof( OSVERSIONINFOEX ) );
-                if( GetVersionEx( ref o ) ) return o;
-            }
-            return null;
-        }
-
-        [DllImport( "kernel32.dll" )]
-        private static extern bool GetVersionEx( ref OSVERSIONINFOEX osVersionInfo );
-
-        #endregion OSVERSIONINFOEX
-
+         
         [DllImport( "user32" )]
         internal static extern int GetSystemMetrics( int nIndex );
         
-        #region SYSTEM_INFO
-        [StructLayout( LayoutKind.Sequential )]
-        internal struct SYSTEM_INFO
-        {
-            internal PROCESSOR_INFO_UNION uProcessorInfo;
-            public uint dwPageSize;
-            public IntPtr lpMinimumApplicationAddress;
-            public IntPtr lpMaximumApplicationAddress;
-            public IntPtr dwActiveProcessorMask;
-            public uint dwNumberOfProcessors;
-            public uint dwProcessorType;
-            public uint dwAllocationGranularity;
-            public ushort dwProcessorLevel;
-            public ushort dwProcessorRevision;
-        }
         [DllImport( "kernel32.dll" )]
         internal static extern void GetSystemInfo( [MarshalAs( UnmanagedType.Struct )] ref SYSTEM_INFO lpSystemInfo );
-
-        [DllImport( "kernel32.dll" )]
-        internal static extern void GetNativeSystemInfo( [MarshalAs( UnmanagedType.Struct )] ref SYSTEM_INFO lpSystemInfo );
-        #endregion SYSTEMINFO
-
-        #region 64 BIT OS DETECTION
-        [StructLayout( LayoutKind.Explicit )]
-        internal struct PROCESSOR_INFO_UNION
-        {
-            [FieldOffset( 0 )]
-            internal uint dwOemId;
-            [FieldOffset( 0 )]
-            internal ushort wProcessorArchitecture;
-            [FieldOffset( 2 )]
-            internal ushort wReserved;
-        }
-
-        [DllImport( "kernel32", SetLastError = true, CallingConvention = CallingConvention.Winapi )]
-        internal extern static IntPtr LoadLibrary( string libraryName );
-
-        [DllImport( "kernel32", SetLastError = true, CallingConvention = CallingConvention.Winapi )]
-        internal extern static IntPtr GetProcAddress( IntPtr hwnd, string procedureName );
-        
-        delegate bool IsWow64ProcessDelegate( [In]IntPtr handle, [Out]out bool isWow64Process );
-
-        private static IsWow64ProcessDelegate GetIsWow64ProcessDelegate()
-        {
-            IntPtr handle = LoadLibrary( "kernel32" );
-
-            if( handle != IntPtr.Zero )
-            {
-                IntPtr fnPtr = GetProcAddress( handle, "IsWow64Process" );
-
-                if( fnPtr != IntPtr.Zero )
-                {
-                    return (IsWow64ProcessDelegate)Marshal.GetDelegateForFunctionPointer( (IntPtr)fnPtr, typeof( IsWow64ProcessDelegate ) );
-                }
-            }
-
-            return null;
-        }
-
-        private static bool Is32BitProcessOn64BitProcessor()
-        {
-            IsWow64ProcessDelegate fnDelegate = GetIsWow64ProcessDelegate();
-
-            if( fnDelegate == null )
-            {
-                return false;
-            }
-
-            bool isWow64;
-            bool retVal = fnDelegate.Invoke( Process.GetCurrentProcess().Handle, out isWow64 );
-
-            if( retVal == false )
-            {
-                return false;
-            }
-
-            return isWow64;
-        }
-        #endregion 64 BIT OS DETECTION
-
-        #endregion SYSTEM_INFO
+         * 
         #region PRODUCT (updated on april 2013)
         private const uint PRODUCT_BUSINESS = 0x00000006;
         private const uint PRODUCT_BUSINESS_N = 0x00000010;
@@ -1013,5 +1004,7 @@ namespace CK.Core
         private const int VER_SUITE_BLADE = 1024;
         #endregion VERSIONS
         
+        */
+
     }
 }

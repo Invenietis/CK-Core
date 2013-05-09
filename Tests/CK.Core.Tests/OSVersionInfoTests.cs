@@ -19,7 +19,6 @@ namespace CK.Core.Tests
             Assert.DoesNotThrow( () => o = OSVersionInfo.ProcessBits );
             Assert.DoesNotThrow( () => o = OSVersionInfo.OSBits );
             Assert.DoesNotThrow( () => o = OSVersionInfo.ProcessorBits );
-            Assert.DoesNotThrow( () => o = OSVersionInfo.Edition );
             Assert.DoesNotThrow( () => o = OSVersionInfo.OSLevel );
             Assert.DoesNotThrow( () => o = OSVersionInfo.OSLevelDisplayName );
         }
