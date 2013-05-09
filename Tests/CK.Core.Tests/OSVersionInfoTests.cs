@@ -14,19 +14,14 @@ namespace CK.Core.Tests
         public void OSVersionInfoTest()
         {
             object o = null;
-            Assert.DoesNotThrow( () => o = OSVersionInfo.ProgramBits );
+            Assert.DoesNotThrow( () => o = OSVersionInfo.OSVersion.ToString() );
+            Assert.DoesNotThrow( () => o = OSVersionInfo.OSVersion.ServicePack );
+            Assert.DoesNotThrow( () => o = OSVersionInfo.ProcessBits );
             Assert.DoesNotThrow( () => o = OSVersionInfo.OSBits );
             Assert.DoesNotThrow( () => o = OSVersionInfo.ProcessorBits );
             Assert.DoesNotThrow( () => o = OSVersionInfo.Edition );
-            Assert.DoesNotThrow( () => o = OSVersionInfo.Name );
-            Assert.DoesNotThrow( () => o = OSVersionInfo.ServicePack );
-            Assert.DoesNotThrow( () => o = OSVersionInfo.IsWindowsVistaOrGreater );
-            Assert.DoesNotThrow( () => o = OSVersionInfo.BuildVersion );
-            Assert.DoesNotThrow( () => o = OSVersionInfo.VersionString );
-            Assert.DoesNotThrow( () => o = OSVersionInfo.Version );
-            Assert.DoesNotThrow( () => o = OSVersionInfo.MajorVersion );
-            Assert.DoesNotThrow( () => o = OSVersionInfo.MinorVersion );
-            Assert.DoesNotThrow( () => o = OSVersionInfo.RevisionVersion );
+            Assert.DoesNotThrow( () => o = OSVersionInfo.OSLevel );
+            Assert.DoesNotThrow( () => o = OSVersionInfo.OSLevelDisplayName );
         }
     }
 }
