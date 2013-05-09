@@ -96,14 +96,48 @@ namespace CK.Interop
         /// <summary>
         /// Indicates whether unmanaged methods that have HRESULT or retval return values
         /// are directly translated (true, the default) or whether HRESULT or retval return values are automatically
-        /// converted to exceptions (when false). Defaults to true.
+        /// converted to exceptions (when false). Defaults to true. See <see cref="SetLastError"/> remarks.
         /// </summary>
         public bool PreserveSig = true;
         
         /// <summary>
         /// Indicates whether the callee calls the SetLastError Win32 API function before
-        /// returning from the attributed method. Defaults to false.
+        /// returning from the attributed method. Defaults to false. See remarks.
         /// </summary>
+        /// <remarks>
+        /// <para>
+        /// Win32 functions almost never return a HRESULT. Instead they return a BOOL or use special values to indicate 
+        /// error (e.g. CreateFile returns INVALID_HANDLE_VALUE). They store the error code in a per-thread variable, which you 
+        /// can read with GetLastError(). SetLastError=true instructs the marshaler to read this variable after the native 
+        /// function returns, and stash the error code where you can later read it with <see cref="Marshal.GetLastWin32Error"/>. 
+        /// </para>
+        /// <para>
+        /// The idea is that the .NET runtime may call other Win32 functions behind the scenes which mess up the error code from your p/invoke 
+        /// call before you get a chance to inspect it.
+        /// </para>
+        /// <para>
+        /// Functions which return a HRESULT (or equivalent, e.g. NTSTATUS) belong to a different level of abstraction than Win32 functions. 
+        /// Generally these functions are COM-related (above Win32) or from ntdll (below Win32), so they don't use the Win32 last-error 
+        /// code (they might call Win32 functions internally, though).
+        /// </para>
+        /// <para>
+        /// PreserveSig=false instructs the marshaler to check the return HRESULT and if it's not a success code, to create and throw an 
+        /// exception containing the HRESULT. The managed declaration of your DllImported function then has void as its return type.
+        /// Remember, the C# or VB compiler cannot check the DllImported function's unmanaged signature, so it has to trust whatever you tell it. 
+        /// </para>
+        /// <para>
+        /// If you put PreserveSig=false on a function which returns something other than a HRESULT, you will get strange results (e.g. random 
+        /// exceptions). 
+        /// </para>
+        /// <para>
+        /// If you put SetLastError=true on a function which does not set the last Win32 error code, you will get garbage instead of a useful error code.
+        /// </para>
+        /// <para>
+        /// For any COM function that returns HRESULT, you have the choice to mark the method as returning void and set PreserveSig=false (this will throw an exception), 
+        /// or set PreserveSig=true and mark the method as returning UInt32 to manually examine the returned code. 
+        /// </para>
+        /// (From http://stackoverflow.com/questions/763724/dllimport-preserversig-and-setlasterror-attributes).
+        /// </remarks>
         public bool SetLastError;
 
         /// <summary>

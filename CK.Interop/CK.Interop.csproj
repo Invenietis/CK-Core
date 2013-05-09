@@ -62,16 +62,15 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\CK.Reflection\CK.Reflection.csproj">
-      <Project>{6C169A4A-969F-4952-9AD6-3D84BD0AD98B}</Project>
-      <Name>CK.Reflection</Name>
-      <Private>False</Private>
-    </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
     <None Include="..\SharedKey.snk">
       <Link>Properties\SharedKey.snk</Link>
     </None>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\CK.Reflection\CK.Reflection.csproj">
+      <Project>{6c169a4a-969f-4952-9ad6-3d84bd0ad98b}</Project>
+      <Name>CK.Reflection</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
