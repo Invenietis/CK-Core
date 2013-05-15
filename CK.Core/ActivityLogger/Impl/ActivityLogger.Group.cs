@@ -37,7 +37,7 @@ namespace CK.Core
 
         /// <summary>
         /// Groups are bound to an <see cref="ActivityLogger"/> and are linked together from 
-        /// the current one to the very first one (stack).
+        /// the current one to the very first one (a kind of stack).
         /// </summary>
         protected class Group : IActivityLogGroup, IDisposable
         {
@@ -176,11 +176,11 @@ namespace CK.Core
                 if( _text != null )
                 {
                     while( _logger._current != this ) ((IDisposable)_logger._current).Dispose();
-                    _logger.CloseGroup( null );
+                    _logger.CloseGroup( DateTime.UtcNow, null );
                 }
             }           
 
-            internal void GroupClose( ref List<ActivityLogGroupConclusion> conclusions )
+            internal void GroupClosing( ref List<ActivityLogGroupConclusion> conclusions )
             {
                 string auto = ConsumeConclusionText();
                 if( auto != null )
@@ -188,9 +188,13 @@ namespace CK.Core
                     if( conclusions == null ) conclusions = new List<ActivityLogGroupConclusion>();
                     conclusions.Add( new ActivityLogGroupConclusion( TagGetTextConclusion, auto ) );
                 }
+                Debug.Assert( _getConclusion == null, "Has been consumed." );
+            }
+
+            internal void GroupClosed()
+            {
                 _text = null;
                 _exception = null;
-                Debug.Assert( _getConclusion == null, "Has been consumed." );
             }
 
             /// <summary>

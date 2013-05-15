@@ -172,7 +172,7 @@ namespace CK.Core
                             buggyClients.Add( l );
                         }
                     }
-                    if( buggyClients != null ) foreach( var l in buggyClients ) _output.UnregisterClient( l );
+                    if( buggyClients != null ) foreach( var l in buggyClients ) _output.ForceRemoveBuggyClient( l );
                     _filter = value;
                 }
             }
@@ -226,7 +226,7 @@ namespace CK.Core
                             buggyClients.Add( l );
                         }
                     }
-                    if( buggyClients != null ) foreach( var l in buggyClients ) _output.UnregisterClient( l );
+                    if( buggyClients != null ) foreach( var l in buggyClients ) _output.ForceRemoveBuggyClient( l );
                 }
             }
             return this;
@@ -273,7 +273,7 @@ namespace CK.Core
                     buggyClients.Add( l );
                 }
             }
-            if( buggyClients != null ) foreach( var l in buggyClients ) _output.UnregisterClient( l );
+            if( buggyClients != null ) foreach( var l in buggyClients ) _output.ForceRemoveBuggyClient( l );
             return _current;
         }
 
@@ -293,10 +293,10 @@ namespace CK.Core
             Group g = _current;
             if( g != null )
             {
+                g.CloseLogTimeUtc = logTimeUtc;
                 var conclusions = userConclusion as List<ActivityLogGroupConclusion>;
                 if( conclusions == null && userConclusion != null )
                 {
-                    g.CloseLogTimeUtc = logTimeUtc;
                     conclusions = new List<ActivityLogGroupConclusion>();
                     string s = userConclusion as string;
                     if( s != null ) conclusions.Add( new ActivityLogGroupConclusion( TagUserConclusion, s ) );
@@ -314,7 +314,7 @@ namespace CK.Core
                         }
                     }
                 }
-                g.GroupClose( ref conclusions );
+                g.GroupClosing( ref conclusions );
 
                 List<IActivityLoggerClient> buggyClients = null;
                 foreach( var l in _output.RegisteredClients )
@@ -332,7 +332,7 @@ namespace CK.Core
                 }
                 if( buggyClients != null )
                 {
-                    foreach( var l in buggyClients ) _output.UnregisterClient( l );
+                    foreach( var l in buggyClients ) _output.ForceRemoveBuggyClient( l );
                     buggyClients.Clear();
                 }
                 
@@ -354,7 +354,8 @@ namespace CK.Core
                         buggyClients.Add( l );
                     }
                 }
-                if( buggyClients != null ) foreach( var l in buggyClients ) _output.UnregisterClient( l );
+                if( buggyClients != null ) foreach( var l in buggyClients ) _output.ForceRemoveBuggyClient( l );
+                g.GroupClosed();
             }
         }
 

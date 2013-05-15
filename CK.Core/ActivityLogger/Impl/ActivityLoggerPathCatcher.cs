@@ -134,10 +134,13 @@ namespace CK.Core
             _locked = true;
         }
 
-        void IActivityLoggerBoundClient.SetLogger( IActivityLogger source )
+        void IActivityLoggerBoundClient.SetLogger( IActivityLogger source, bool forceBuggyRemove )
         {
-            if( _locked ) throw new InvalidOperationException( R.CanNotUnregisterDefaultClient );
-            if( source != null && _source != null ) throw new InvalidOperationException( String.Format( R.ActivityLoggerBoundClientMultipleRegister, GetType().FullName ) );
+            if( !forceBuggyRemove )
+            {
+                if( _locked ) throw new InvalidOperationException( R.CanNotUnregisterDefaultClient );
+                if( source != null && _source != null ) throw new InvalidOperationException( String.Format( R.ActivityLoggerBoundClientMultipleRegister, GetType().FullName ) );
+            }
             _source = source;
         }
 

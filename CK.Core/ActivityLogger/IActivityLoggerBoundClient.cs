@@ -35,6 +35,8 @@ namespace CK.Core
         /// this client.
         /// </summary>
         /// <param name="source">The logger that will send log.</param>
-        void SetLogger( IActivityLogger source );
+        /// <param name="forceBuggyRemove">True if this method MUST allow the new source without any exceptions: this is used with a null <paramref name="source"/> to
+        /// remove this client because one of its method throwed an exception.</param>
+        void SetLogger( IActivityLogger source, bool forceBuggyRemove );
     }
 }

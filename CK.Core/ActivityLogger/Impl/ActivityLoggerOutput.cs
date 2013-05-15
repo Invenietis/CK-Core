@@ -23,6 +23,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 
@@ -109,7 +110,7 @@ namespace CK.Core
             if( !_clients.Contains( client ) )
             {
                 IActivityLoggerBoundClient bound = client as IActivityLoggerBoundClient;
-                if( bound != null ) bound.SetLogger( Logger );
+                if( bound != null ) bound.SetLogger( Logger, false );
                 _clients.Insert( 0, client );
             }
             return this;
@@ -124,13 +125,36 @@ namespace CK.Core
         public IActivityLoggerOutput UnregisterClient( IActivityLoggerClient client )
         {
             if( client == null ) throw new ArgumentNullException( "client" );
-            if( _clients.Remove( client ) )
+            int idx = _clients.IndexOf( client );
+            if( idx >= 0 )
             {
                 IActivityLoggerBoundClient bound = client as IActivityLoggerBoundClient;
-                if( bound != null ) bound.SetLogger( null );
+                if( bound != null ) bound.SetLogger( null, false );
+                _clients.RemoveAt( idx );
             }
             return this;
         }
+
+        internal void ForceRemoveBuggyClient( IActivityLoggerClient client )
+        {
+            Debug.Assert( client != null && _clients.Contains( client ) );
+            if( client == null ) throw new ArgumentNullException( "client" );
+            IActivityLoggerBoundClient bound = client as IActivityLoggerBoundClient;
+            if( bound != null )
+            {
+                try
+                {
+                    bound.SetLogger( null, true );
+                }
+                catch( Exception ex )
+                {
+                    ActivityLogger.LoggingError.Add( ex, "While removing the buggy client." );
+                }
+            }
+            _clients.Remove( client );
+        }
+
+
 
         /// <summary>
         /// Gets the list of registered <see cref="IActivityLoggerClient"/>.

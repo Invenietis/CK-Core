@@ -46,7 +46,7 @@ namespace CK.Reflection
                 vM.DefineParameter( i + 1, param.Attributes, param.Name );
                 if( param.IsOut )
                 {
-                    Debug.Assert( param.ParameterType.IsByRef );
+                    Debug.Assert( param.ParameterType.IsByRef, "'Out' is just an attribute on 'by ref' parameters (unfortunate for covariance support)." );
                     Type pType = param.ParameterType.GetElementType();
                     // Adds 1 to skip 'this' parameter.
                     gVM.LdArg( i + 1 );

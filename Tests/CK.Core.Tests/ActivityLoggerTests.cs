@@ -41,29 +41,41 @@ namespace CK.Core.Tests
         public void NonRemovableOrLockedClients()
         {
             IDefaultActivityLogger logger = new DefaultActivityLogger();
+            Assert.That( logger.Output.RegisteredClients.Count, Is.EqualTo( 3 ) );
             Assert.Throws<InvalidOperationException>( () => logger.Output.UnregisterClient( logger.ErrorCounter ), "Default Counter can not be unregistered." );
             Assert.Throws<InvalidOperationException>( () => logger.Output.UnregisterClient( logger.PathCatcher ), "Default PathCatcher can not be unregistered." );
             Assert.Throws<InvalidOperationException>( () => logger.Output.UnregisterClient( logger.Tap ), "Default Tap can not be unregistered." );
 
             var counter = new ActivityLoggerErrorCounter();
             logger.Output.RegisterClient( counter );
+            Assert.That( logger.Output.RegisteredClients.Count, Is.EqualTo( 4 ) );
             Assert.Throws<InvalidOperationException>( () => TestHelper.Logger.Output.RegisterClient( counter ), "Counter can be registered in one source at a time." );
 
             var tap = new ActivityLoggerTap();
             logger.Output.RegisterClient( tap );
+            Assert.That( logger.Output.RegisteredClients.Count, Is.EqualTo( 5 ) );
             Assert.Throws<InvalidOperationException>( () => TestHelper.Logger.Output.RegisterClient( tap ), "Tap can be registered in one source at a time." );
 
             var pathCatcher = new ActivityLoggerPathCatcher();
             logger.Output.RegisterClient( pathCatcher );
+            Assert.That( logger.Output.RegisteredClients.Count, Is.EqualTo( 6 ) );
             Assert.Throws<InvalidOperationException>( () => TestHelper.Logger.Output.RegisterClient( pathCatcher ), "PathCatcher can be registered in one source at a time." );
 
             var bridgeToConsole = logger.Output.BridgeTo( TestHelper.Logger );
+            Assert.That( logger.Output.RegisteredClients.Count, Is.EqualTo( 7 ) );
             Assert.That( bridgeToConsole.TargetLogger, Is.SameAs( TestHelper.Logger ) );
 
             IActivityLogger other = new ActivityLogger();
             Assert.Throws<InvalidOperationException>( () => other.Output.RegisterClient( bridgeToConsole ), "Bridge can be associated to only one source logger." );
             logger.Output.UnregisterClient( bridgeToConsole );
+            Assert.That( logger.Output.RegisteredClients.Count, Is.EqualTo( 6 ) );
             Assert.DoesNotThrow( () => other.Output.RegisterClient( bridgeToConsole ), "Now we can." );
+
+            Assert.DoesNotThrow( () => logger.Output.UnregisterClient( bridgeToConsole ), "Already removed." );
+            logger.Output.UnregisterClient( tap );
+            logger.Output.UnregisterClient( counter );
+            logger.Output.UnregisterClient( pathCatcher );
+            Assert.That( logger.Output.RegisteredClients.Count, Is.EqualTo( 3 ) );
         }
 
         [Test]
@@ -191,6 +203,42 @@ namespace CK.Core.Tests
             Assert.That( d.CreateNavigator().SelectDescendants( "Info", String.Empty, false ), Is.Not.Empty.And.Count.EqualTo( 3 ) );
             Assert.That( d.CreateNavigator().SelectDescendants( "Trace", String.Empty, false ), Is.Not.Empty.And.Count.EqualTo( 2 ) );
 
+        }
+
+        [Test]
+        [Category( "Console" )]
+        public void DumpException()
+        {
+            IDefaultActivityLogger l = new DefaultActivityLogger();
+            var rawLog = new StringImpl();
+            l.Tap.Register( rawLog );
+            l.Output.BridgeTo( TestHelper.Logger );
+
+            var wLogLovely = new StringWriter();
+            var logLovely = new ActivityLoggerTextWriterSink( wLogLovely );
+            l.Tap.Register( logLovely );
+
+            l.Error( new Exception( "EXERROR-1" ) );
+            using( l.OpenGroup( LogLevel.Fatal, new Exception( "EXERROR-2" ), "EXERROR-TEXT2" ) )
+            {
+                try
+                {
+                    throw new Exception( "EXERROR-3" );
+                }
+                catch( Exception ex )
+                {
+                    l.Trace( ex, "EXERROR-TEXT3" );
+                }
+            }
+            Assert.That( rawLog.ToString(), Is.StringContaining( "EXERROR-1" ) );
+            Assert.That( rawLog.ToString(), Is.StringContaining( "EXERROR-2" ).And.StringContaining( "EXERROR-TEXT2" ) );
+            Assert.That( rawLog.ToString(), Is.StringContaining( "EXERROR-3" ).And.StringContaining( "EXERROR-TEXT3" ) );
+
+            string text = wLogLovely.ToString();
+            Assert.That( text, Is.StringContaining( "EXERROR-1" ) );
+            Assert.That( text, Is.StringContaining( "EXERROR-2" ).And.StringContaining( "EXERROR-TEXT2" ) );
+            Assert.That( text, Is.StringContaining( "EXERROR-3" ).And.StringContaining( "EXERROR-TEXT3" ) );
+            Assert.That( text, Is.StringContaining( "Stack:" ) );
         }
 
         [Test]

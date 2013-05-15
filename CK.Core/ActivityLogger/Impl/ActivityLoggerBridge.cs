@@ -67,7 +67,10 @@ namespace CK.Core
         /// </summary>
         public IActivityLogger TargetLogger { get { return _finalLogger; } }
 
-        void IActivityLoggerBoundClient.SetLogger( IActivityLogger source )
+        /// <summary>
+        /// forceBuggyRemove is not used here since this client is not lockable.
+        /// </summary>
+        void IActivityLoggerBoundClient.SetLogger( IActivityLogger source, bool forceBuggyRemove )
         {
             if( source != null && _source != null ) throw new InvalidOperationException( String.Format( R.ActivityLoggerBoundClientMultipleRegister, GetType().FullName ) );
             if( _source != null )
