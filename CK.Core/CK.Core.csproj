@@ -114,6 +114,7 @@
     <Compile Include="Collection\FIFOBuffer.cs" />
     <Compile Include="Collection\CKReadOnlyCollectionDebuggerView.cs" />
     <Compile Include="ICKWritableCollection.cs" />
+    <Compile Include="LegacySupport\CallerMemberNameAttribute.cs" />
     <Compile Include="SetOperation.cs" />
     <Compile Include="Trait\CKTrait.cs" />
     <Compile Include="Trait\CKTraitContext.cs" />
