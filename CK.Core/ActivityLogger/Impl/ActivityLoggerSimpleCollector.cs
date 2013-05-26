@@ -9,9 +9,9 @@ namespace CK.Core
     /// Simple collector of log entries which level is greater or equal to <see cref="LevelFilter"/>.
     /// Its <see cref="Capacity"/> defaults to 50 (no more than Capacity entries are kept).
     /// </summary>
-    public class ActivityLoggerSimpleCollector : ActivityLoggerHybridClient
+    public class ActivityLoggerSimpleCollector : IActivityLoggerClient
     {
-        FIFOBuffer<Entry> _entries;
+        readonly FIFOBuffer<Entry> _entries;
         LogLevelFilter _filter;
 
         /// <summary>
@@ -20,20 +20,39 @@ namespace CK.Core
         public class Entry
         {
             /// <summary>
-            /// Gets the log level of the log entry.
+            /// The tags of the log entry.
             /// </summary>
-            public LogLevel Level { get; internal set; }
+            public readonly CKTrait Tags;
 
             /// <summary>
-            /// Gets the text of the log entry.
+            /// The log level of the log entry.
             /// </summary>
-            public string Text { get; internal set; }
+            public readonly LogLevel Level;
 
             /// <summary>
-            /// Gets the exception of the log entry if any.
+            /// Timestamp of the log entry.
             /// </summary>
-            public Exception Exception { get; internal set; }
+            public readonly DateTime LogTimeUtc;
 
+            /// <summary>
+            /// The text of the log entry.
+            /// </summary>
+            public readonly string Text;
+
+            /// <summary>
+            /// The exception of the log entry if any.
+            /// </summary>
+            public readonly Exception Exception;
+
+            internal Entry( CKTrait tags, LogLevel level, string text, DateTime logTimeUtc, Exception ex )
+            {
+                Tags = tags;
+                Level = level;
+                LogTimeUtc = logTimeUtc;
+                Text = text;
+                Exception = ex;
+            }
+            
             /// <summary>
             /// Overriden to return the <see cref="Text"/> of this element.
             /// </summary>
@@ -87,7 +106,7 @@ namespace CK.Core
         }
 
         /// <summary>
-        /// Gets a read only list of the <see cref="Capacity"/> entries that occured since last 
+        /// Gets a read only list of (at most) <see cref="Capacity"/> entries that occured since last 
         /// call to <see cref="Clear"/>.
         /// </summary>
         public IReadOnlyList<Entry> Entries
@@ -106,13 +125,15 @@ namespace CK.Core
         /// <summary>
         /// Appends any log with level equal or above <see cref="LevelFilter"/> to <see cref="Entries"/>.
         /// </summary>
+        /// <param name="tags">Tags for the log entry.</param>
         /// <param name="level">Level of the log.</param>
         /// <param name="text">Text of the log.</param>
-        protected override void OnUnfilteredLog( LogLevel level, string text )
+        /// <param name="logTimeUtc">Timestamp of the log.</param>
+        void IActivityLoggerClient.OnUnfilteredLog( CKTrait tags, LogLevel level, string text, DateTime logTimeUtc )
         {
             if( (int)level >= (int)_filter )
             {
-                _entries.Push( new Entry() { Level = level, Text = text } );
+                _entries.Push( new Entry( tags, level, text, logTimeUtc, null ) );
             }
         }
 
@@ -120,12 +141,24 @@ namespace CK.Core
         /// Appends any group with level equal or above <see cref="LevelFilter"/> to <see cref="Entries"/>.
         /// </summary>
         /// <param name="group">Log group description.</param>
-        protected override void OnOpenGroup( IActivityLogGroup group )
+        void IActivityLoggerClient.OnOpenGroup( IActivityLogGroup group )
         {
             if( (int)group.GroupLevel >= (int)_filter )
             {
-                _entries.Push( new Entry() { Level = group.GroupLevel, Text = group.GroupText, Exception = group.Exception } );
+                _entries.Push( new Entry( group.GroupTags, group.GroupLevel, group.GroupText, group.LogTimeUtc, group.Exception ) );
             }
+        }
+
+        void IActivityLoggerClient.OnFilterChanged( LogLevelFilter current, LogLevelFilter newValue )
+        {
+        }
+
+        void IActivityLoggerClient.OnGroupClosing( IActivityLogGroup group, ref List<ActivityLogGroupConclusion> conclusions )
+        {
+        }
+
+        void IActivityLoggerClient.OnGroupClosed( IActivityLogGroup group, ICKReadOnlyList<ActivityLogGroupConclusion> conclusions )
+        {
         }
     }
 }

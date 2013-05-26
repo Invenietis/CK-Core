@@ -28,7 +28,7 @@ using System.Linq;
 using System;
 using System.Collections.Generic;
 
-namespace Core.Collection
+namespace CK.Core.Tests.Collection
 {
     public class TestCollection<T> : IReadOnlyCollection<T>
     {
@@ -225,8 +225,8 @@ namespace Core.Collection
         [Test]
         public void TestReferenceTypes()
         {
-            TestCollection<ActionSequence> c = new TestCollection<ActionSequence>();
-            ActionSequence oneElement = new ActionSequence();
+            TestCollection<Animal> c = new TestCollection<Animal>();
+            Animal oneElement = new Animal(null);
             c.Content.Add( oneElement );
 
             bool containsCalled = false;
@@ -310,6 +310,47 @@ namespace Core.Collection
             }
         }
 
+
+        [Test]
+        public void ToAndAsReadOnlyList()
+        {
+            List<int> netList = new List<int>();
+            CKSortedArrayList<int> ckList = new CKSortedArrayList<int>();
+            int[] array = new int[1];
+
+#if NET40
+            IReadOnlyList<int> r;
+            r = netList.AsReadOnlyList();
+            Assert.That( r, Is.SameAs( CKReadOnlyListEmpty<int>.Empty ), "In Net40, the List<T> is NOT a IReadOnlyList." );
+            r = ckList.AsReadOnlyList();
+            Assert.That( r, Is.SameAs( ckList ), "Lists from CK.Core are already IReadOnlyList<T>." );
+            
+            netList.Add( 1 );
+            ckList.Add( 1 );
+            r = netList.AsReadOnlyList();
+            Assert.That( r, Is.Not.SameAs( netList ).And.Not.Empty );
+            r = ckList.AsReadOnlyList();
+            Assert.That( r, Is.SameAs( ckList ).And.Not.Empty );
+            r = array.AsReadOnlyList();
+            Assert.That( r, Is.Not.SameAs( array ).And.Not.Empty, "In 4.0, an array is NOT a IReadOnlyList." );
+#else
+            IReadOnlyList<int> r;
+            r = netList.AsReadOnlyList();
+            Assert.That( r, Is.SameAs( netList ), "In Net45, List<T> IS A IReadOnlyList<T>." );
+            r = ckList.AsReadOnlyList();
+            Assert.That( r, Is.SameAs( ckList ) );
+
+            netList.Add( 1 );
+            ckList.Add( 1 );
+            r = netList.AsReadOnlyList();
+            Assert.That( r, Is.SameAs( netList ).And.Not.Empty );
+            r = ckList.AsReadOnlyList();
+            Assert.That( r, Is.SameAs( ckList ).And.Not.Empty );
+            r = array.AsReadOnlyList();
+            Assert.That( r, Is.SameAs( array ).And.Not.Empty, "In 4.5, an array IS a IReadOnlyList :-)." );
+#endif
+        }
+        
         [Test]
         public void TestToReadOnlyListAdapter()
         {
@@ -322,7 +363,7 @@ namespace Core.Collection
         public void TestReadOnlyConverter()
         {
             Dictionary<Guid,IUniqueId> dic = new Dictionary<Guid, IUniqueId>();
-            ReadOnlyCollectionTypeConverter<IUniqueId,Guid> export = new ReadOnlyCollectionTypeConverter<IUniqueId, Guid>( dic.Keys, g => dic[g], uid => uid.UniqueId );
+            CKReadOnlyCollectionTypeConverter<IUniqueId,Guid> export = new CKReadOnlyCollectionTypeConverter<IUniqueId, Guid>( dic.Keys, g => dic[g], uid => uid.UniqueId );
 
             dic.Add( SimpleUniqueId.Empty.UniqueId, SimpleUniqueId.Empty );
             Assert.That( export.Count == 1 );

@@ -8,7 +8,10 @@ using System.Diagnostics;
 
 namespace CK.Reflection
 {
-    public class EmitHelper
+    /// <summary>
+    /// Collection of helpers to emit dynamic code. 
+    /// </summary>
+    public static class EmitHelper
     {
         /// <summary>
         /// Implements a method as a no operation method. Method can be virtual, abstract or not.
@@ -43,7 +46,7 @@ namespace CK.Reflection
                 vM.DefineParameter( i + 1, param.Attributes, param.Name );
                 if( param.IsOut )
                 {
-                    Debug.Assert( param.ParameterType.IsByRef );
+                    Debug.Assert( param.ParameterType.IsByRef, "'Out' is just an attribute on 'by ref' parameters (unfortunate for covariance support)." );
                     Type pType = param.ParameterType.GetElementType();
                     // Adds 1 to skip 'this' parameter.
                     gVM.LdArg( i + 1 );

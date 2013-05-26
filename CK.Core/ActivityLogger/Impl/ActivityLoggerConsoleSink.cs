@@ -44,9 +44,4 @@ namespace CK.Core
 
     }
 
-    [Obsolete( "Use ActivityLoggerConsoleSink (sorry for the typo...).", true )]
-    public class ActivityLoggerConsoleSync : ActivityLoggerConsoleSink
-    {
-    }
-
 }

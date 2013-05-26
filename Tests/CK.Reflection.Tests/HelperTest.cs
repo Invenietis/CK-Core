@@ -27,10 +27,13 @@ using System.Linq;
 using System.Text;
 using NUnit.Framework;
 using System.Reflection;
+using System.Diagnostics.CodeAnalysis;
 
 namespace CK.Reflection.Tests
 {
     [TestFixture]
+    [ExcludeFromCodeCoverage]
+    [Category("Reflection")]
     public class HelperTest
     {
         public int AnIntProperty { get { return 3; } }

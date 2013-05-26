@@ -33,16 +33,17 @@ namespace CK.Core.Tests
     public class UriHelperTests
     {
 
-        void TestAssume( string result, string u, string param, string newValue )
+        void TestAssume( string expected, string u, string param, string newValue )
         {
-            Assert.AreEqual( result, UriHelper.AssumeUrlParameter( u, param, newValue ) );
+            Assert.AreEqual( expected, UriHelper.AssumeUrlParameter( u, param, newValue ) );
             string prefix = "http://";
-            Assert.AreEqual( new Uri( prefix + result ), new Uri( prefix + u ).AssumeUrlParameter( param, newValue ) );
+            Assert.AreEqual( new Uri( prefix + expected ), new Uri( prefix + u ).AssumeUrlParameter( param, newValue ) );
         }
 
         [Test]
         public void AssumeUrlParameter()
         {
+            TestAssume( "test.com?kilo=", "test.com", "kilo", null );
             TestAssume( "test.com?kilo=1", "test.com", "kilo", "1" );
             TestAssume( "test.com?kilo=1", "test.com?", "kilo", "1" );
             TestAssume( "test.com?a=1&z=2&kilo=1", "test.com?a=1&z=2", "kilo", "1" );
@@ -59,19 +60,51 @@ namespace CK.Core.Tests
             TestAssume( "test.com?a=z&kilo=1", "test.com?a=z&kilo=j", "kilo", "1" );
             TestAssume( "test.com?a=z&kilo=1", "test.com?a=z&kilo", "kilo", "1" );
             TestAssume( "test.com?a=z&kilo=1", "test.com?a=z&kilo=", "kilo", "1" );
-
-            Assert.That( UriHelper.RemoveUrlParameter( "test.com?a=z&kilo=1", "a" ) == "test.com?kilo=1" );
-            Assert.That( UriHelper.RemoveUrlParameter( "test.com?a=z&kilo=1", "kilo" ) == "test.com?a=z" );
-            Assert.That( UriHelper.RemoveUrlParameter( "test.com?a=z&toto=6&kilo=1", "toto" ) == "test.com?a=z&kilo=1" );
-
-            Assert.That( UriHelper.RemoveUrlParameter( "test.com?&a=z&kilo=1", "a" ) == "test.com?&kilo=1" );
-            Assert.That( UriHelper.RemoveUrlParameter( "test.com?&a=z&kilo=1", "kilo" ) == "test.com?&a=z" );
-            Assert.That( UriHelper.RemoveUrlParameter( "test.com?&a=z&toto=6&kilo=1", "toto" ) == "test.com?&a=z&kilo=1" );
-
-            Assert.That( UriHelper.RemoveUrlParameter( "test.com?&a=z&kilo=1", "edhoe" ) == "test.com?&a=z&kilo=1" );
-            Assert.That( UriHelper.RemoveUrlParameter( "test.com?&a=z&kilo=1", "" ) == "test.com?&a=z&kilo=1" );
-            Assert.That( UriHelper.RemoveUrlParameter( "test.com?&a=z&kilo=1", null ) == "test.com?&a=z&kilo=1" );
         }
 
+        void TestRemove( string expected, string u, string param )
+        {
+            Assert.AreEqual( expected, UriHelper.RemoveUrlParameter( u, param ) );
+            string prefix = "http://";
+            Assert.AreEqual( new Uri( prefix + expected ), new Uri( prefix + u ).RemoveUrlParameter( param ) );
+        }
+
+        [Test]
+        public void RemoveUrlParameter()
+        {
+            TestRemove( "test.com?kilo=1", "test.com?a=z&kilo=1", "a" );
+            TestRemove( "test.com?a=z", "test.com?a=z&kilo=1", "kilo" );
+            TestRemove( "test.com?a=z&kilo=1", "test.com?a=z&toto=6&kilo=1", "toto" );
+
+            TestRemove( "test.com?&kilo=1", "test.com?&a=z&kilo=1", "a" );
+            TestRemove( "test.com?&a=z", "test.com?&a=z&kilo=1", "kilo" );
+            TestRemove( "test.com?&a=z&kilo=1", "test.com?&a=z&toto=6&kilo=1", "toto" );
+
+            TestRemove( "test.com?&a=z&kilo=1", "test.com?&a=z&kilo=1", "edhoe" );
+            TestRemove( "test.com?&a=z&kilo=1", "test.com?&a=z&kilo=1", "" );
+            TestRemove( "test.com?&a=z&kilo=1", "test.com?&a=z&kilo=1", null );
+        }
+
+        void TestAppend( string expected, string u, string param, string newValue )
+        {
+            Assert.AreEqual( expected, UriHelper.AppendUrlParameter( u, param, newValue ) );
+            string prefix = "http://";
+            Assert.AreEqual( new Uri( prefix + expected ), new Uri( prefix + u ).AppendUrlParameter( param, newValue ) );
+        }
+
+        [Test]
+        public void AppendUrlParameter()
+        {
+            TestAppend( "test.com?kilo=", "test.com", "kilo", null );
+            TestAppend( "test.com?kilo=1", "test.com", "kilo", "1" );
+            TestAppend( "test.com?kilo=1", "test.com?", "kilo", "1" );
+
+            TestAppend( "test.com?a=1&z=2&kilo=1", "test.com?a=1&z=2", "kilo", "1" );
+            TestAppend( "test.com?a=kilo&kilo=1", "test.com?a=kilo", "kilo", "1" );
+            TestAppend( "test.com?kilo=1&kilo=1", "test.com?kilo=1", "kilo", "1" );
+            TestAppend( "test.com?kilo&z=2&kilo=1", "test.com?kilo&z=2", "kilo", "1" );
+            TestAppend( "test.com?kilo&z=2&kilo=1&kilo=34", "test.com?kilo&z=2&kilo=1", "kilo", "34" );
+            TestAppend( "test.com?kilo&z=2&kilo=1&kilo=34&kilo=1", "test.com?kilo&z=2&kilo=1&kilo=34", "kilo", "1" );
+        }
     }
 }

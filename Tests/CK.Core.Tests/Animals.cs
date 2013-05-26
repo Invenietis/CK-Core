@@ -23,11 +23,13 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text;
 
-namespace Core
+namespace CK.Core.Tests
 {
+    [ExcludeFromCodeCoverage]
     public class Animal
     {
         public Animal( string name )
@@ -43,6 +45,7 @@ namespace Core
         }
     }
 
+    [ExcludeFromCodeCoverage]
     public class Mammal : Animal
     {
         public Mammal( string name, int gestationPeriod = 12 )
@@ -61,6 +64,7 @@ namespace Core
 
     }
 
+    [ExcludeFromCodeCoverage]
     public class Canidae : Mammal
     {
         public Canidae( string name, int gestationPeriod = 9, bool isRetriever = false )

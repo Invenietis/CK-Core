@@ -26,15 +26,15 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 
 namespace CK.Core
 {
     /// <summary>
     /// The "Path Catcher" captures the current path of the log (<see cref="DynamicPath"/>),
     /// and two specific paths, the <see cref="LastErrorPath"/> and the <see cref="LastWarnOrErrorPath"/>.
-    /// It is both a <see cref="IMuxActivityLoggerClient"/> and a <see cref="IActivityLoggerClient"/>.
     /// </summary>
-    public class ActivityLoggerPathCatcher : ActivityLoggerHybridClient
+    public class ActivityLoggerPathCatcher : ActivityLoggerClient, IActivityLoggerBoundClient
     {
         /// <summary>
         /// Element of the <see cref="ActivityLoggerPathCatcher.DynamicPath">DynamicPath</see>, <see cref="ActivityLoggerPathCatcher.LastErrorPath">LastErrorPath</see>,
@@ -42,6 +42,10 @@ namespace CK.Core
         /// </summary>
         public class PathElement
         {
+            /// <summary>
+            /// Gets the tags of the log entry.
+            /// </summary>
+            public CKTrait Tags { get; internal set; }
             /// <summary>
             /// Gets the log level of the log entry.
             /// </summary>
@@ -68,6 +72,7 @@ namespace CK.Core
         /// <summary>
         /// Reuse the ActivityLoggerPathCatcher: since all hooks are empty, no paths exist.
         /// </summary>
+        [ExcludeFromCodeCoverage]
         class EmptyPathCatcher : ActivityLoggerPathCatcher
         {
             // Security if OnFilterChanged is implemented one day on ActivityLoggerPathCatcher.
@@ -75,7 +80,7 @@ namespace CK.Core
             {
             }
 
-            protected override void OnUnfilteredLog( LogLevel level, string text )
+            protected override void OnUnfilteredLog( CKTrait tags, LogLevel level, string text, DateTime logTimeUtc )
             {
             }
 
@@ -84,11 +89,11 @@ namespace CK.Core
             }
 
             // Security if OnGroupClosing is implemented one day on ActivityLoggerPathCatcher.
-            protected override void OnGroupClosing( IActivityLogGroup group, IList<ActivityLogGroupConclusion> conclusions )
+            protected override void OnGroupClosing( IActivityLogGroup group, ref List<ActivityLogGroupConclusion> conclusions )
             {
             }
 
-            protected override void OnGroupClosed( IActivityLogGroup group, IReadOnlyList<ActivityLogGroupConclusion> conclusions )
+            protected override void OnGroupClosed( IActivityLogGroup group, ICKReadOnlyList<ActivityLogGroupConclusion> conclusions )
             {
             }
         }
@@ -104,6 +109,8 @@ namespace CK.Core
         List<PathElement> _path;
         IReadOnlyList<PathElement> _pathEx;
         PathElement _current;
+        IActivityLogger _source;
+        readonly bool _locked;
         bool _currentIsGroup;
         bool _currentIsGroupClosed;
 
@@ -113,11 +120,32 @@ namespace CK.Core
         public ActivityLoggerPathCatcher()
         {
             _path = new List<PathElement>();
-            _pathEx = new ReadOnlyListOnIList<PathElement>( _path );
+            _pathEx = new CKReadOnlyListOnIList<PathElement>( _path );
         }
 
         /// <summary>
-        /// Gets the current (mutable) path. You should use <see cref="ReadOnlyExtension.ToReadOnlyList{T}(IList{T})"/> or other ToArray 
+        /// Initialize a new <see cref="ActivityLoggerPathCatcher"/> as the default <see cref="IDefaultActivityLogger.PathCatcher"/>.
+        /// It can not be unregistered.
+        /// </summary>
+        public ActivityLoggerPathCatcher( IDefaultActivityLogger logger )
+            : this()
+        {
+            logger.Output.RegisterClient( this );
+            _locked = true;
+        }
+
+        void IActivityLoggerBoundClient.SetLogger( IActivityLogger source, bool forceBuggyRemove )
+        {
+            if( !forceBuggyRemove )
+            {
+                if( _locked ) throw new InvalidOperationException( R.CanNotUnregisterDefaultClient );
+                if( source != null && _source != null ) throw new InvalidOperationException( String.Format( R.ActivityLoggerBoundClientMultipleRegister, GetType().FullName ) );
+            }
+            _source = source;
+        }
+
+        /// <summary>
+        /// Gets the current (mutable) path. You should use <see cref="CKReadOnlyExtension.ToReadOnlyList{T}(IList{T})"/> or other ToArray 
         /// or ToList methods to take a snapshot of this list.
         /// Use the extension method <see cref="ActivityLoggerExtension.ToStringPath"/> to easily format this path.
         /// </summary>
@@ -168,9 +196,11 @@ namespace CK.Core
         /// Appends or updates the last <see cref="PathElement"/> of <see cref="DynamicPath"/>
         /// and handles errors or warning.
         /// </summary>
+        /// <param name="tags">Tags (from <see cref="ActivityLogger.RegisteredTags"/>) associated to the log.</param>
         /// <param name="level">Log level.</param>
         /// <param name="text">Text (not null).</param>
-        protected override void OnUnfilteredLog( LogLevel level, string text )
+        /// <param name="logTimeUtc">Timestamp of the log.</param>
+        protected override void OnUnfilteredLog( CKTrait tags, LogLevel level, string text, DateTime logTimeUtc )
         {
             if( text != ActivityLogger.ParkLevel )
             {
@@ -181,6 +211,7 @@ namespace CK.Core
                     _path.Add( _current );
                     _currentIsGroup = false;
                 }
+                _current.Tags = tags;
                 _current.Level = level;
                 _current.Text = text;
                 CheckSnapshot();
@@ -201,6 +232,7 @@ namespace CK.Core
                 _path.Add( _current );
             }
             _currentIsGroup = true;
+            _current.Tags = group.GroupTags;
             _current.Level = group.GroupLevel;
             _current.Text = group.GroupText;
             CheckSnapshot();
@@ -211,7 +243,7 @@ namespace CK.Core
         /// </summary>
         /// <param name="group">The closed group.</param>
         /// <param name="conclusions">Texts that conclude the group. Never null but can be empty.</param>
-        protected override void OnGroupClosed( IActivityLogGroup group, IReadOnlyList<ActivityLogGroupConclusion> conclusions )
+        protected override void OnGroupClosed( IActivityLogGroup group, ICKReadOnlyList<ActivityLogGroupConclusion> conclusions )
         {
             if( _currentIsGroupClosed ) HandleCurrentGroupIsClosed();
             if( _path.Count > 0 )
@@ -248,7 +280,7 @@ namespace CK.Core
             {
                 // Clone the last element if it is not a group: since it is updated
                 // with levels, it has to be snapshoted.
-                _warnSnaphot = _path.Select( ( e, idx ) => _currentIsGroup || idx < _path.Count-1 ? e : new PathElement() { Level = e.Level, Text = e.Text } ).ToReadOnlyList();
+                _warnSnaphot = _path.Select( ( e, idx ) => _currentIsGroup || idx < _path.Count-1 ? e : new PathElement() { Tags = e.Tags, Level = e.Level, Text = e.Text } ).ToReadOnlyList();
                 if( _current.Level >= LogLevel.Error )
                 {
                     _errorSnaphot = _warnSnaphot;

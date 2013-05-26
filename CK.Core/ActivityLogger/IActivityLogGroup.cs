@@ -26,16 +26,32 @@ using System;
 namespace CK.Core
 {
     /// <summary>
-    /// Exposes all the relevant information fo a currently opened group.
+    /// Exposes all the relevant information for a currently opened group.
     /// Groups are linked together from the current one to the very first one 
     /// thanks to the <see cref="Parent"/> property.
     /// </summary>
     public interface IActivityLogGroup
     {
         /// <summary>
+        /// Gets the tags for the log group.
+        /// </summary>
+        CKTrait GroupTags { get; }
+
+        /// <summary>
         /// Gets the origin <see cref="IActivityLogger"/> for the log group.
         /// </summary>
         IActivityLogger OriginLogger { get; }
+
+        /// <summary>
+        /// Gets the log time for the log.
+        /// </summary>
+        DateTime LogTimeUtc { get; }
+
+        /// <summary>
+        /// Gets the log time of the group closing.
+        /// It is <see cref="DateTime.MinValue"/> when the group is not closed yet.
+        /// </summary>
+        DateTime CloseLogTimeUtc { get; }
 
         /// <summary>
         /// Get the previous group in its <see cref="OriginLogger"/>. Null if this is a top level group.
@@ -48,10 +64,16 @@ namespace CK.Core
         int Depth { get; }
 
         /// <summary>
-        /// Gets the <see cref="LogLevelFilter"/> for this group. Initialized with 
-        /// the <see cref="IActivityLogger.Filter"/> at the time the group has been opened.
+        /// Gets the <see cref="IActivityLogger.Filter"/> that will be restored when group will be closed.
+        /// Initialized with the current value of IActivityLogger.Filter when the group has been opened.
         /// </summary>
-        LogLevelFilter Filter { get; }
+        LogLevelFilter SavedLoggerFilter { get; }
+
+        /// <summary>
+        /// Gets the <see cref="IActivityLogger.AutoTags"/> that will be restored when group will be closed.
+        /// Initialized with the current value of IActivityLogger.Tags when the group has been opened.
+        /// </summary>
+        CKTrait SavedLoggerTags { get; }
 
         /// <summary>
         /// Gets the level associated to this group.

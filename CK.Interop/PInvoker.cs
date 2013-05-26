@@ -14,7 +14,7 @@
 * You should have received a copy of the GNU Lesser General Public License 
 * along with CiviKey.  If not, see <http://www.gnu.org/licenses/>. 
 *  
-* Copyright © 2007-2012, 
+* Copyright © 2007-2013, 
 *     Invenietis <http://www.invenietis.com>,
 *     In’Tech INFO <http://www.intechinfo.fr>,
 * All rights reserved. 
@@ -69,6 +69,7 @@ namespace CK.Interop
 
         /// <summary>
         /// Gets an automatically generated implementation for an interface that must be marked with a <see cref="CK.Interop.NativeDllAttribute"/>.
+        /// Once built, the emitted implementation is cached. The cache is protected by a simple locking mechanism: this method is thread-safe.
         /// </summary>
         /// <typeparam name="T">Interface that must be obtained.</typeparam>
         /// <returns>Implementation that can be used to call the native functions.</returns>
@@ -87,6 +88,7 @@ namespace CK.Interop
                 }
                 else if( _cache.TryGetValue( typeof( T ), out result ) ) return (T)result;
                 result = DoCreate( _moduleBuilder, typeof( T ) );
+                if( !(result is T) ) FailedToImplement( typeof( T ) );
                 _cache.Add( typeof( T ), result );
                 return (T)result;
             }
@@ -125,8 +127,13 @@ namespace CK.Interop
                 }
             }
             Type finalType = type.CreateType();
+            if( finalType == null || !t.IsAssignableFrom( finalType ) ) FailedToImplement( t );
             return Activator.CreateInstance( finalType );
+        }
 
+        private static void FailedToImplement( Type t )
+        {
+            throw new Exception( String.Format( "Unable to create PInvoke implementation for '{0}'.", t.FullName ) );
         }
 
         private static MethodBuilder CreateNative( TypeBuilder tb, string dllName, MethodInfo m, DllImportAttribute a, Type[] parameterTypes )
