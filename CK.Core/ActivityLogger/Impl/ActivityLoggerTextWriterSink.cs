@@ -80,7 +80,7 @@ namespace CK.Core
         void IActivityLoggerSink.OnContinueOnSameLevel( CKTrait tags, LogLevel level, string text, DateTime logTimeUtc )
         {
             TextWriter w = _writer();
-            text.Replace( Environment.NewLine, Environment.NewLine + _prefixLevel );
+            text = text.Replace( Environment.NewLine, Environment.NewLine + _prefixLevel );
             if( _currentTags != tags )
             {
                 w.WriteLine( "{0}{1} -[{2}]", _prefixLevel, text, tags );

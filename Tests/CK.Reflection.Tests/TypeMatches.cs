@@ -69,7 +69,10 @@ namespace CK.Reflection.Tests
     [ExcludeFromCodeCoverage]
     public class CloseBase<T> : IBase<T>
     {
+        // Suppress: The event 'CK.Reflection.Tests.CloseBase<T>.Event2' is never used
+        #pragma warning disable 0067
         public event EventHandler Event2;
+        #pragma warning restore 0067
         public int Pouf { get; set; }
         public int Pouf0 { get; set; }
     }
@@ -79,8 +82,10 @@ namespace CK.Reflection.Tests
     public class Close : CloseBase<bool>, IDerived<bool, B>
     {
 
+        #pragma warning disable 0067
         public event EventHandler Event1;
         public new event EventHandler Event2;
+        #pragma warning restore 0067
         public int Pouf2 { get; set; }
         public new int Pouf { get; set; }
         public new int Pouf0 { get; set; }
@@ -92,9 +97,10 @@ namespace CK.Reflection.Tests
     [ExcludeFromCodeCoverage]
     public class Close2 : CloseBase<B>, IDerived<bool, B>
     {
-
+        #pragma warning disable 0067
         public event EventHandler Event1;
         public new event EventHandler Event2;
+        #pragma warning restore 0067
         public int Pouf2 { get; set; }
         public new int Pouf { get; set; }
         public new int Pouf0 { get; set; }
