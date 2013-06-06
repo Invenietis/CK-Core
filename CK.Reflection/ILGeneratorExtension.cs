@@ -27,6 +27,7 @@ using System.Linq;
 using System.Text;
 using System.Reflection.Emit;
 using System.Diagnostics;
+using System.Reflection;
 
 namespace CK.Reflection
 {
@@ -155,6 +156,31 @@ namespace CK.Reflection
         {
             if( i < 255 ) g.Emit( OpCodes.Starg_S, (byte)i );
             else g.Emit( OpCodes.Starg, (short)i );
+        }
+
+        /// <summary>
+        /// Emits code that sets the parameter (that must be a 'ref' or 'out' parameter) to the default of its type.
+        /// Handles static or instance methods and value or reference type.
+        /// </summary>
+        /// <param name="g">This <see cref="ILGenerator"/> object.</param>
+        /// <param name="byRefParameter">The 'by ref' parameter.</param>
+        public static void StoreDefaultValueForOutParameter( this ILGenerator g, ParameterInfo byRefParameter )
+        {
+            if( !byRefParameter.ParameterType.IsByRef ) throw new ArgumentException( "Parameter must be 'by ref'.", "byRefParameter" );
+            Type pType = byRefParameter.ParameterType.GetElementType();
+            // Adds 1 to skip 'this' parameter ?
+            MethodBase m = (MethodBase)byRefParameter.Member;
+            if( (m.CallingConvention & CallingConventions.HasThis) != 0 ) g.LdArg( byRefParameter.Position + 1 );
+            else g.LdArg( byRefParameter.Position );
+            if( pType.IsValueType )
+            {
+                g.Emit( OpCodes.Initobj, pType );
+            }
+            else
+            {
+                g.Emit( OpCodes.Ldnull );
+                g.Emit( OpCodes.Stind_Ref );
+            }
         }
 
         /// <summary>

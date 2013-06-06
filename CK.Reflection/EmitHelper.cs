@@ -47,18 +47,7 @@ namespace CK.Reflection
                 if( param.IsOut )
                 {
                     Debug.Assert( param.ParameterType.IsByRef, "'Out' is just an attribute on 'by ref' parameters (unfortunate for covariance support)." );
-                    Type pType = param.ParameterType.GetElementType();
-                    // Adds 1 to skip 'this' parameter.
-                    gVM.LdArg( i + 1 );
-                    if( pType.IsValueType )
-                    {
-                        gVM.Emit( OpCodes.Initobj, pType );
-                    }
-                    else
-                    {
-                        gVM.Emit( OpCodes.Ldnull );
-                        gVM.Emit( OpCodes.Stind_Ref );
-                    }
+                    gVM.StoreDefaultValueForOutParameter( param );
                 }
             }
             if( returnType != typeof( void ) )
