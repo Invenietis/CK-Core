@@ -31,7 +31,7 @@ namespace CK.Core
 {
     /// <summary>
     /// A <see cref="CKSortedArrayKeyList{T,TKey}"/> that implements <see cref="CollectionChanged"/> and <see cref="PropertyChanged"/> events
-    /// in order to be an observable collection.
+    /// in order to be an observable list.
     /// </summary>
     public class CKObservableSortedArrayKeyList<T, TKey> : CKSortedArrayKeyList<T, TKey>, ICKObservableReadOnlyList<T>
     {

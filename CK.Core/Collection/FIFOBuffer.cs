@@ -32,6 +32,7 @@ namespace CK.Core
     /// Simple implementation of a fixed size FIFO stack based on a circular buffer. 
     /// The .Net <see cref="Queue{T}"/>'s size increase as needed whereas this FIFO automatically loses the oldest items.
     /// Note that when <typeparamref name="T"/> is a reference type, null can be pushed and pop.
+    /// This can easily be used as a LIFO stack thanks to <see cref="PopLast"/> and <see cref="PeekLast"/> methods.
     /// </summary>
     /// <typeparam name="T">Type of the items.</typeparam>
     [DebuggerTypeProxy( typeof( Impl.CKReadOnlyCollectionDebuggerView<> ) )]
@@ -195,11 +196,12 @@ namespace CK.Core
 
         /// <summary>
         /// Gets and removes the first item (the one that has been <see cref="Push"/>ed first).
+        /// <see cref="Count"/> must be greater than 0 otherwise an exception is thrown.
         /// </summary>
         /// <returns>The first (oldest) item.</returns>
         public T Pop()
         {
-            if( _count == 0 ) throw new InvalidOperationException( "FIFOBuffer is empty." );
+            if( _count == 0 ) throw new InvalidOperationException( R.FIFOBufferEmpty );
             var item = _buffer[_head];
             _buffer[_head] = default( T );
             if( ++_head == _buffer.Length ) _head = 0;
@@ -208,13 +210,42 @@ namespace CK.Core
         }
 
         /// <summary>
+        /// Gets and removes the last item (the last one that has been <see cref="Push"/>ed).
+        /// <see cref="Count"/> must be greater than 0 otherwise an exception is thrown.
+        /// </summary>
+        /// <returns>The last (newest) item.</returns>
+        public T PopLast()
+        {
+            if( _count == 0 ) throw new InvalidOperationException( R.FIFOBufferEmpty );
+            if( --_tail < 0 ) _tail = _head + _count - 1;
+            var item = _buffer[_tail];
+            _buffer[_tail] = default( T );
+            _count--;
+            return item;
+        }
+
+        /// <summary>
         /// Gets the first item (the one that has been <see cref="Push"/>ed first).
+        /// <see cref="Count"/> must be greater than 0 otherwise an exception is thrown.
         /// </summary>
         /// <returns>The first (oldest) item.</returns>
         public T Peek()
         {
-            if( _count == 0 ) throw new InvalidOperationException( "FIFOBuffer is empty." );
+            if( _count == 0 ) throw new InvalidOperationException( R.FIFOBufferEmpty );
             return _buffer[_head];
+        }
+
+        /// <summary>
+        /// Gets the last item (the last one that has been <see cref="Push"/>).
+        /// <see cref="Count"/> must be greater than 0 otherwise an exception is thrown.
+        /// </summary>
+        /// <returns>The last (newest) item.</returns>
+        public T PeekLast()
+        {
+            if( _count == 0 ) throw new InvalidOperationException( R.FIFOBufferEmpty );
+            int t = _tail-1;
+            if( t < 0 ) t = _head + _count - 1;
+            return _buffer[t];
         }
 
         bool ICKWritableCollector<T>.Add( T e )

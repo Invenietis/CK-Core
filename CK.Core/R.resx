@@ -150,6 +150,9 @@
   <data name="ExpectedXmlEndElement" xml:space="preserve">
     <value>Expected EndElement token named {0}.</value>
   </data>
+  <data name="FIFOBufferEmpty" xml:space="preserve">
+    <value>FIFOBuffer is empty.</value>
+  </data>
   <data name="InvalidAssemblyQualifiedName" xml:space="preserve">
     <value>"{0}" is not a valid assembly qualified name.</value>
   </data>

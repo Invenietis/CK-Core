@@ -200,12 +200,24 @@ namespace CK.Reflection
             {
                 g.LdLoc( array );
                 g.LdInt32( i );
-                g.LdArg( i + 1 );
-                if( parameters[i].IsGenericParameter || parameters[i].IsValueType )
-                {
-                    g.Emit( OpCodes.Box, parameters[i] );
-                }
+                g.LdArgBox( i + 1, parameters[i] );
                 g.Emit( OpCodes.Stelem_Ref );
+            }
+        }
+
+        /// <summary>
+        /// Emits a <see cref="LdArg"/> with an optional <see cref="OpCodes.Box"/> if <paramref name="parameterType"/> is 
+        /// a value type or a generic parameter.
+        /// </summary>
+        /// <param name="g">This <see cref="ILGenerator"/> object.</param>
+        /// <param name="idxParameter">Index of the parameter to load on the stack.</param>
+        /// <param name="parameterType">Type of the parameter.</param>
+        public static void LdArgBox( this ILGenerator g, int idxParameter, Type parameterType )
+        {
+            g.LdArg( idxParameter );
+            if( parameterType.IsGenericParameter || parameterType.IsValueType )
+            {
+                g.Emit( OpCodes.Box, parameterType );
             }
         }
 
