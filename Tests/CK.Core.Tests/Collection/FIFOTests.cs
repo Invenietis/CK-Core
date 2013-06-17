@@ -188,35 +188,44 @@ namespace CK.Core.Tests.Collection
         {
             FIFOBuffer<int> f = new FIFOBuffer<int>( 0 );
             Assert.Throws<InvalidOperationException>( () => f.Peek() );
+            Assert.Throws<InvalidOperationException>( () => f.PeekLast() );
 
             f.Push( 5 );
             Assert.Throws<InvalidOperationException>( () => f.Peek() );
+            Assert.Throws<InvalidOperationException>( () => f.PeekLast() );
 
             f.Capacity = 1;
             f.Push( 5 );
             Assert.That( f[0], Is.EqualTo( 5 ) );
             Assert.That( f.Peek(), Is.EqualTo( 5 ) );
+            Assert.That( f.PeekLast(), Is.EqualTo( 5 ) );
             f.Push( 6 );
-            Assert.That( f[0], Is.EqualTo( 6 ) );
+            Assert.That( f[0], Is.EqualTo( 6 ), "Only one item in it." );
             Assert.That( f.Peek(), Is.EqualTo( 6 ) );
+            Assert.That( f.PeekLast(), Is.EqualTo( 6 ) );
 
             f.Clear();
             Assert.Throws<IndexOutOfRangeException>( () => Console.Write( f[0] ) );
             Assert.Throws<InvalidOperationException>( () => f.Peek() );
+            Assert.Throws<InvalidOperationException>( () => f.PeekLast() );
 
             f.Capacity = 2;
             f.Push( 5 );
             Assert.That( f[0], Is.EqualTo( 5 ) );
             Assert.That( f.Peek(), Is.EqualTo( 5 ) );
+            Assert.That( f.PeekLast(), Is.EqualTo( 5 ) );
             f.Push( 6 );
             Assert.That( f[0], Is.EqualTo( 5 ) );
             Assert.That( f[1], Is.EqualTo( 6 ) );
             Assert.That( f.Peek(), Is.EqualTo( 5 ) );
+            Assert.That( f.PeekLast(), Is.EqualTo( 6 ) );
             f.Pop();
             Assert.That( f.Peek(), Is.EqualTo( 6 ) );
+            Assert.That( f.PeekLast(), Is.EqualTo( 6 ) );
             Assert.That( f.Peek(), Is.EqualTo( f[0] ) );
             f.Pop();
             Assert.Throws<InvalidOperationException>( () => f.Peek() );
+            Assert.Throws<InvalidOperationException>( () => f.PeekLast() );
 
             f.Push( 7 );
             f.Push( 8 );
@@ -224,8 +233,22 @@ namespace CK.Core.Tests.Collection
             Assert.That( f[0], Is.EqualTo( 8 ) );
             Assert.That( f[1], Is.EqualTo( 9 ) );
             CollectionAssert.AreEqual( f.ToArray(), new int[] { 8, 9 } );
+            Assert.That( f.Peek(), Is.EqualTo( 8 ) );
+            Assert.That( f.PeekLast(), Is.EqualTo( 9 ) );
             Assert.That( f.Pop(), Is.EqualTo( 8 ) );
             Assert.That( f.Pop(), Is.EqualTo( 9 ) );
+            AssertEmpty( f );
+            
+            f.Push( 10 );
+            f.Push( 11 );
+            f.Push( 12 );
+            Assert.That( f.Peek(), Is.EqualTo( 11 ) );
+            Assert.That( f.PeekLast(), Is.EqualTo( 12 ) );
+            Assert.That( f.PopLast(), Is.EqualTo( 12 ) );
+            Assert.That( f.Peek(), Is.EqualTo( 11 ) );
+            Assert.That( f.PeekLast(), Is.EqualTo( 11 ) );
+            Assert.That( f.PopLast(), Is.EqualTo( 11 ) );
+            AssertEmpty( f );
         }
 
         [Test]
@@ -245,12 +268,14 @@ namespace CK.Core.Tests.Collection
             f.Push( c0 );
             Assert.That( f.Contains( null ), Is.False );
             Assert.That( f.IndexOf( null ), Is.LessThan( 0 ) );
+            Assert.That( f.PeekLast(), Is.SameAs( c0 ) );
             AssertContains( f, c0 );
             
             f.Push( null );
             Assert.That( f.Count, Is.EqualTo( 2 ) );
             Assert.That( f.IndexOf( null ), Is.EqualTo( 1 ) );
             Assert.That( f.IndexOf( c0 ), Is.EqualTo( 0 ) );
+            Assert.That( f.PeekLast(), Is.Null );
             AssertContains( f, c0, null );
 
             f.Push( c1 );
@@ -258,12 +283,16 @@ namespace CK.Core.Tests.Collection
             Assert.That( f.IndexOf( c1 ), Is.EqualTo( 1 ) );
             Assert.That( f.Contains( c0 ), Is.False );
             Assert.That( f.IndexOf( c0 ), Is.LessThan( 0 ) );
+            Assert.That( f.PeekLast(), Is.SameAs( c1 ) );
             AssertContains( f, null, c1 );
 
             f.Push( null );
             AssertContains( f, c1, null );
             f.Push( null );
             AssertContains( f, null, null );
+            Assert.That( f.PopLast(), Is.Null );
+            Assert.That( f.PopLast(), Is.Null );
+            Assert.Throws<InvalidOperationException>( () => f.PopLast() );
         }
 
         [Test]

@@ -14,6 +14,7 @@ namespace CK.Reflection.Tests
 {
     [TestFixture]
     [ExcludeFromCodeCoverage]
+    [Category( "EmitHelper" )]
     public class AutoImplementorTests
     {
         static ModuleBuilder _moduleBuilder;
@@ -86,6 +87,34 @@ namespace CK.Reflection.Tests
         public abstract class J
         {
             public abstract byte M( ref CultureAttribute i );
+        }
+
+
+        delegate void DynamicWithOutParameters( out Action a, out byte b, ref Guid g, int x );
+
+        [Test]
+        public void ImplementOutParameters()
+        {
+            {
+                var dyn = new DynamicMethod( "TestMethod", typeof( void ), new Type[] { typeof( Action ).MakeByRefType(), typeof( byte ).MakeByRefType(), typeof( Guid ).MakeByRefType(), typeof( int ) } );
+                var g = dyn.GetILGenerator();
+
+                var parameters = dyn.GetParameters();
+                g.StoreDefaultValueForOutParameter( parameters[0] );
+                g.StoreDefaultValueForOutParameter( parameters[1] );
+                g.StoreDefaultValueForOutParameter( parameters[2] );
+                g.Emit( OpCodes.Ret );
+
+                var d = (DynamicWithOutParameters)dyn.CreateDelegate( typeof( DynamicWithOutParameters ) );
+                Action a = () => { };
+                Byte b = 87;
+                Guid guid = Guid.NewGuid();
+                d( out a, out b, ref guid, 6554 );
+
+                Assert.That( a, Is.Null );
+                Assert.That( b, Is.EqualTo( 0 ) );
+                Assert.That( guid, Is.EqualTo( Guid.Empty ) );
+            }
         }
 
         [Test]

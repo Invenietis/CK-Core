@@ -35,7 +35,7 @@ namespace CK.Core
     /// It has no properties nor methods by itself: it is only here to federate its 3 base interfaces.
     /// </summary>
     /// <typeparam name="T">The type of elements in the collection.</typeparam>
-    public interface CKIObservableReadOnlyCollection<out T> : ICKReadOnlyCollection<T>, INotifyCollectionChanged, INotifyPropertyChanged
+    public interface ICKObservableReadOnlyCollection<out T> : ICKReadOnlyCollection<T>, INotifyCollectionChanged, INotifyPropertyChanged
     {
     }
 
