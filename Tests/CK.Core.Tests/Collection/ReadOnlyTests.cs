@@ -318,7 +318,7 @@ namespace CK.Core.Tests.Collection
             CKSortedArrayList<int> ckList = new CKSortedArrayList<int>();
             int[] array = new int[1];
 
-#if NET40
+#if net40
             IReadOnlyList<int> r;
             r = netList.AsReadOnlyList();
             Assert.That( r, Is.SameAs( CKReadOnlyListEmpty<int>.Empty ), "In Net40, the List<T> is NOT a IReadOnlyList." );

@@ -21,7 +21,7 @@
 *-----------------------------------------------------------------------------*/
 #endregion
 
-#if NET40
+#if net40
 
 namespace System.Collections.Generic
 {

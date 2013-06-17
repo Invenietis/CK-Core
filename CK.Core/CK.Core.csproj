@@ -21,10 +21,10 @@
     </TargetFrameworkProfile>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(TargetFrameworkVersion)' == 'v4.0' ">
-    <TargetSavor>NET40</TargetSavor>
+    <TargetSavor>net40</TargetSavor>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(TargetFrameworkVersion)' == 'v4.5' ">
-    <TargetSavor>NET45</TargetSavor>
+    <TargetSavor>net45</TargetSavor>
   </PropertyGroup>
   <PropertyGroup>
     <OutputPath>bin\$(Configuration)\$(TargetSavor)\</OutputPath>

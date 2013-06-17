@@ -59,6 +59,8 @@ namespace CK.Core
         /// <summary>
         /// Simple helper that removes elements in a <see cref="IList{T}"/> and returns them as an <see cref="IEnumerable{T}"/>.
         /// Makes the transfer of items from one list to another easy when combined with <see cref="AddRange"/>.
+        /// The returned enumerable MUST be consumed to actually remove the items from the list (this is what AddRange do).
+        /// Calling <see cref="System.Linq.Enumerable.Count{T}(IEnumerable{T})">IEnumerable&lt;T&gt;.Count()</see> for instance resolves the enumeration.
         /// </summary>
         /// <typeparam name="T">The type of the elements in the list.</typeparam>
         /// <param name="this">This list.</param>
@@ -66,7 +68,6 @@ namespace CK.Core
         /// <returns>Removed items (can be added into another one).</returns>
         public static IEnumerable<T> RemoveWhere<T>( this IList<T> @this, Predicate<T> removeCondition )
         {
-            @this.Select( x => x );
             for( int i = 0; i < @this.Count; ++i )
             {
                 T x = @this[i];

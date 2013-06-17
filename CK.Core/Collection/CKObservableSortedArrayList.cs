@@ -78,7 +78,7 @@ namespace CK.Core
         /// Raises the <see cref="CollectionChanged"/> event.
         /// </summary>
         /// <param name="e">Event argument.</param>
-        protected void OnCollectionChanged( NotifyCollectionChangedEventArgs e )
+        protected virtual void OnCollectionChanged( NotifyCollectionChangedEventArgs e )
         {
             var h = CollectionChanged;
             if( h != null ) h( this, e );
