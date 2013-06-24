@@ -27,6 +27,7 @@ using NUnit.Framework;
 using System.Linq;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 
 namespace CK.Core.Tests.Collection
 {
@@ -62,6 +63,7 @@ namespace CK.Core.Tests.Collection
             return Content.GetEnumerator();
         }
 
+        [ExcludeFromCodeCoverage]
         System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
         {
             return Content.GetEnumerator();
@@ -101,6 +103,7 @@ namespace CK.Core.Tests.Collection
             return Content.GetEnumerator();
         }
 
+        [ExcludeFromCodeCoverage]
         System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
         {
             return Content.GetEnumerator();
@@ -242,71 +245,102 @@ namespace CK.Core.Tests.Collection
         [Test]
         public void TestToReadOnly()
         {
+            Func<int,int> nullConvertor = null;
+            {
+                IList<int> source = new int[0];
+                Assert.That( source.ToReadOnlyCollection( Util.FuncIdentity ).SequenceEqual( source ) );
+                Assert.That( ((IEnumerable<int>)source).ToReadOnlyCollection().SequenceEqual( source ) );
+            }
+            {
+                IList<int> source = new int[]{ 1 }; 
+                Assert.That( source.ToReadOnlyCollection( Util.FuncIdentity ).SequenceEqual( source ) );
+            }
             {
                 IList<int> source = new int[] { 0, 1, 2, 3, 4, 5 };
-                Assert.That( source.ToReadOnlyList().SequenceEqual( source ) );
-                Assert.That( source.ToReadOnlyList( 0 ).SequenceEqual( source ) );
-                Assert.That( source.ToReadOnlyList( 1 ).SequenceEqual( new int[] { 1, 2, 3, 4, 5 } ) );
-                Assert.That( source.ToReadOnlyList( 2 ).SequenceEqual( new int[] { 2, 3, 4, 5 } ) );
-                Assert.That( source.ToReadOnlyList( 3 ).SequenceEqual( new int[] { 3, 4, 5 } ) );
-                Assert.That( source.ToReadOnlyList( 4 ).SequenceEqual( new int[] { 4, 5 } ) );
-                Assert.That( source.ToReadOnlyList( 5 ).SequenceEqual( new int[] { 5 } ) );
-                Assert.That( source.ToReadOnlyList( 6 ).SequenceEqual( new int[] { } ) );
-                Assert.Throws<ArgumentOutOfRangeException>( () => source.ToReadOnlyList( 7 ) );
+                Assert.That( source.ToReadOnlyCollection().SequenceEqual( source ) );
+                Assert.That( source.ToReadOnlyCollection( 0 ).SequenceEqual( source ) );
+                Assert.That( source.ToReadOnlyCollection( 1 ).SequenceEqual( new int[] { 1, 2, 3, 4, 5 } ) );
+                Assert.That( source.ToReadOnlyCollection( 2 ).SequenceEqual( new int[] { 2, 3, 4, 5 } ) );
+                Assert.That( source.ToReadOnlyCollection( 3 ).SequenceEqual( new int[] { 3, 4, 5 } ) );
+                Assert.That( source.ToReadOnlyCollection( 4 ).SequenceEqual( new int[] { 4, 5 } ) );
+                Assert.That( source.ToReadOnlyCollection( 5 ).SequenceEqual( new int[] { 5 } ) );
+                Assert.That( source.ToReadOnlyCollection( 6 ).SequenceEqual( new int[] { } ) );
+                Assert.Throws<ArgumentOutOfRangeException>( () => source.ToReadOnlyCollection( 7 ) );
 
-                Assert.That( source.ToReadOnlyList( 0, 5 ).SequenceEqual( new int[] { 0, 1, 2, 3, 4 } ) );
-                Assert.That( source.ToReadOnlyList( 1, 4 ).SequenceEqual( new int[] { 1, 2, 3, 4 } ) );
-                Assert.That( source.ToReadOnlyList( 2, 3 ).SequenceEqual( new int[] { 2, 3, 4 } ) );
-                Assert.That( source.ToReadOnlyList( 3, 2 ).SequenceEqual( new int[] { 3, 4 } ) );
-                Assert.That( source.ToReadOnlyList( 3, 1 ).SequenceEqual( new int[] { 3 } ) );
-                Assert.That( source.ToReadOnlyList( 3, 0 ).SequenceEqual( new int[] { } ) );
+                Assert.That( source.ToReadOnlyCollection( 0, 5 ).SequenceEqual( new int[] { 0, 1, 2, 3, 4 } ) );
+                Assert.That( source.ToReadOnlyCollection( 1, 4 ).SequenceEqual( new int[] { 1, 2, 3, 4 } ) );
+                Assert.That( source.ToReadOnlyCollection( 2, 3 ).SequenceEqual( new int[] { 2, 3, 4 } ) );
+                Assert.That( source.ToReadOnlyCollection( 3, 2 ).SequenceEqual( new int[] { 3, 4 } ) );
+                Assert.That( source.ToReadOnlyCollection( 3, 1 ).SequenceEqual( new int[] { 3 } ) );
+                Assert.That( source.ToReadOnlyCollection( 3, 0 ).SequenceEqual( new int[] { } ) );
 
-                Assert.Throws<ArgumentOutOfRangeException>( () => source.ToReadOnlyList( 3, 98 ) );
-                Assert.Throws<ArgumentOutOfRangeException>( () => source.ToReadOnlyList( 3, -1 ) );
-                Assert.Throws<ArgumentOutOfRangeException>( () => source.ToReadOnlyList( 77, 1 ) );
+                Assert.Throws<ArgumentOutOfRangeException>( () => source.ToReadOnlyCollection( 3, 98 ) );
+                Assert.Throws<ArgumentOutOfRangeException>( () => source.ToReadOnlyCollection( 3, -1 ) );
+                Assert.Throws<ArgumentOutOfRangeException>( () => source.ToReadOnlyCollection( 77, 1 ) );
+                Assert.Throws<ArgumentOutOfRangeException>( () => source.ToReadOnlyCollection( 1, -1 ) );
+                Assert.Throws<ArgumentOutOfRangeException>( () => source.ToReadOnlyCollection( -1, 1 ) );
+                Assert.Throws<ArgumentOutOfRangeException>( () => source.ToReadOnlyCollection( -1, 1, Util.FuncIdentity ) );
+                Assert.Throws<ArgumentOutOfRangeException>( () => source.ToReadOnlyCollection( 0, -1, Util.FuncIdentity ) );
 
                 int[] squareSource = new int[] { 0, 1, 2 * 2, 3 * 3, 4 * 4, 5 * 5 };
-                Assert.That( source.ToReadOnlyList( i => i * i ).SequenceEqual( squareSource ) );
-                Assert.That( source.ToReadOnlyList( 0, i => i * i ).SequenceEqual( squareSource ) );
-                Assert.That( source.ToReadOnlyList( 1, i => i * i ).SequenceEqual( squareSource.Skip( 1 ) ) );
-                Assert.That( source.ToReadOnlyList( 2, i => i * i ).SequenceEqual( squareSource.Skip( 2 ) ) );
-                Assert.That( source.ToReadOnlyList( 3, i => i * i ).SequenceEqual( squareSource.Skip( 3 ) ) );
-                Assert.That( source.ToReadOnlyList( 4, i => i * i ).SequenceEqual( squareSource.Skip( 4 ) ) );
-                Assert.That( source.ToReadOnlyList( 5, i => i * i ).SequenceEqual( squareSource.Skip( 5 ) ) );
-                Assert.That( source.ToReadOnlyList( 6, i => i * i ).SequenceEqual( squareSource.Skip( 6 ) ) );
+                Assert.That( source.ToReadOnlyCollection( i => i * i ).SequenceEqual( squareSource ) );
+                Assert.That( source.ToReadOnlyCollection( 0, i => i * i ).SequenceEqual( squareSource ) );
+                Assert.That( source.ToReadOnlyCollection( 1, i => i * i ).SequenceEqual( squareSource.Skip( 1 ) ) );
+                Assert.That( source.ToReadOnlyCollection( 2, i => i * i ).SequenceEqual( squareSource.Skip( 2 ) ) );
+                Assert.That( source.ToReadOnlyCollection( 3, i => i * i ).SequenceEqual( squareSource.Skip( 3 ) ) );
+                Assert.That( source.ToReadOnlyCollection( 4, i => i * i ).SequenceEqual( squareSource.Skip( 4 ) ) );
+                Assert.That( source.ToReadOnlyCollection( 5, i => i * i ).SequenceEqual( squareSource.Skip( 5 ) ) );
+                Assert.That( source.ToReadOnlyCollection( 6, i => i * i ).SequenceEqual( squareSource.Skip( 6 ) ) );
 
-                Assert.That( source.ToReadOnlyList( 0, 5, i => i * i ).SequenceEqual( squareSource.Take( 5 ) ) );
-                Assert.That( source.ToReadOnlyList( 1, 4, i => i * i ).SequenceEqual( squareSource.Skip( 1 ).Take( 4 ) ) );
-                Assert.That( source.ToReadOnlyList( 2, 3, i => i * i ).SequenceEqual( squareSource.Skip( 2 ).Take( 3 ) ) );
-                Assert.That( source.ToReadOnlyList( 3, 2, i => i * i ).SequenceEqual( squareSource.Skip( 3 ).Take( 2 ) ) );
-                Assert.That( source.ToReadOnlyList( 3, 1, i => i * i ).SequenceEqual( squareSource.Skip( 3 ).Take( 1 ) ) );
-                Assert.That( source.ToReadOnlyList( 3, 0, i => i * i ).SequenceEqual( squareSource.Skip( 3 ).Take( 0 ) ) );
+                Assert.That( source.ToReadOnlyCollection( 0, 5, i => i * i ).SequenceEqual( squareSource.Take( 5 ) ) );
+                Assert.That( source.ToReadOnlyCollection( 1, 4, i => i * i ).SequenceEqual( squareSource.Skip( 1 ).Take( 4 ) ) );
+                Assert.That( source.ToReadOnlyCollection( 2, 3, i => i * i ).SequenceEqual( squareSource.Skip( 2 ).Take( 3 ) ) );
+                Assert.That( source.ToReadOnlyCollection( 3, 2, i => i * i ).SequenceEqual( squareSource.Skip( 3 ).Take( 2 ) ) );
+                Assert.That( source.ToReadOnlyCollection( 3, 1, i => i * i ).SequenceEqual( squareSource.Skip( 3 ).Take( 1 ) ) );
+                Assert.That( source.ToReadOnlyCollection( 3, 0, i => i * i ).SequenceEqual( squareSource.Skip( 3 ).Take( 0 ) ) );
+
+                Assert.Throws<ArgumentNullException>( () => source.ToReadOnlyCollection( nullConvertor ) );
+                Assert.Throws<ArgumentNullException>( () => source.ToReadOnlyCollection( 1, nullConvertor ) );
+                Assert.Throws<ArgumentNullException>( () => source.ToReadOnlyCollection( 1, 2, nullConvertor ) );
 
                 source = null;
-                Assert.Throws<NullReferenceException>( () => source.ToReadOnlyList() );
+                Assert.Throws<NullReferenceException>( () => source.ToReadOnlyCollection() );
+                Assert.Throws<NullReferenceException>( () => source.ToReadOnlyCollection( Util.FuncIdentity ) );
+                Assert.Throws<NullReferenceException>( () => source.ToReadOnlyCollection( 0, Util.FuncIdentity ) );
+                Assert.Throws<NullReferenceException>( () => source.ToReadOnlyCollection( 0, 1, Util.FuncIdentity ) );
             }
             {
                 ICollection<int> source = new int[] { 0, 1, 2, 3, 4, 5 };
-                Assert.That( source.ToReadOnlyList().SequenceEqual( source ) );
+                Assert.That( source.ToReadOnlyCollection().SequenceEqual( source ) );
 
                 int[] squareSource = new int[] { 0, 1, 2 * 2, 3 * 3, 4 * 4, 5 * 5 };
-                Assert.That( source.ToReadOnlyList( i => i * i ).SequenceEqual( squareSource ) );
+                Assert.That( source.ToReadOnlyCollection( i => i * i ).SequenceEqual( squareSource ) );
+
+                source = new int[0];
+                Assert.That( source.ToReadOnlyCollection().SequenceEqual( source ) );
+                Assert.That( source.ToReadOnlyCollection( i => i * i ).SequenceEqual( source ) );
+
+                source = new int[]{ 1 };
+                Assert.That( source.ToReadOnlyCollection().SequenceEqual( source ) );
+                Assert.That( source.ToReadOnlyCollection( i => i * i ).SequenceEqual( source ) );
+                Assert.Throws<ArgumentNullException>( () => source.ToReadOnlyCollection( nullConvertor ) );
 
                 source = null;
-                Assert.Throws<NullReferenceException>( () => source.ToReadOnlyList() );
+                Assert.Throws<NullReferenceException>( () => source.ToReadOnlyCollection() );
+                Assert.Throws<NullReferenceException>( () => source.ToReadOnlyCollection( Util.FuncIdentity ) );
             }
             {
                 IEnumerable<int> source = new int[] { 0, 1, 2, 3, 4, 5 };
-                Assert.That( source.ToReadOnlyList().SequenceEqual( source ) );
-                Assert.That( source.Skip( 1 ).ToReadOnlyList().SequenceEqual( source.Skip( 1 ) ) );
-                Assert.That( source.Skip( 2 ).ToReadOnlyList().SequenceEqual( source.Skip( 2 ) ) );
-                Assert.That( source.Skip( 3 ).ToReadOnlyList().SequenceEqual( source.Skip( 3 ) ) );
-                Assert.That( source.Skip( 4 ).ToReadOnlyList().SequenceEqual( source.Skip( 4 ) ) );
-                Assert.That( source.Skip( 5 ).ToReadOnlyList().SequenceEqual( source.Skip( 5 ) ) );
-                Assert.That( source.Skip( 6 ).ToReadOnlyList().SequenceEqual( source.Skip( 6 ) ) );
+                Assert.That( source.ToReadOnlyCollection().SequenceEqual( source ) );
+                Assert.That( source.Skip( 1 ).ToReadOnlyCollection().SequenceEqual( source.Skip( 1 ) ) );
+                Assert.That( source.Skip( 2 ).ToReadOnlyCollection().SequenceEqual( source.Skip( 2 ) ) );
+                Assert.That( source.Skip( 3 ).ToReadOnlyCollection().SequenceEqual( source.Skip( 3 ) ) );
+                Assert.That( source.Skip( 4 ).ToReadOnlyCollection().SequenceEqual( source.Skip( 4 ) ) );
+                Assert.That( source.Skip( 5 ).ToReadOnlyCollection().SequenceEqual( source.Skip( 5 ) ) );
+                Assert.That( source.Skip( 6 ).ToReadOnlyCollection().SequenceEqual( source.Skip( 6 ) ) );
 
                 source = null;
-                Assert.Throws<NullReferenceException>( () => source.ToReadOnlyList() );
+                Assert.Throws<NullReferenceException>( () => source.ToReadOnlyCollection() );
             }
         }
 
@@ -318,8 +352,16 @@ namespace CK.Core.Tests.Collection
             CKSortedArrayList<int> ckList = new CKSortedArrayList<int>();
             int[] array = new int[1];
 
-#if net40
             IReadOnlyList<int> r;
+            {
+                r = netList.ToReadOnlyList();
+                Assert.That( r, Is.Not.SameAs( netList ), "ToReadOnlyList always duplicates the content." );
+                r = ckList.ToReadOnlyList();
+                Assert.That( r, Is.Not.SameAs( ckList ), "ToReadOnlyList always duplicates the content." );
+                r = array.ToReadOnlyList();
+                Assert.That( r, Is.Not.SameAs( array ), "ToReadOnlyList always duplicates the content." );
+            }
+#if net40
             r = netList.AsReadOnlyList();
             Assert.That( r, Is.SameAs( CKReadOnlyListEmpty<int>.Empty ), "In Net40, the List<T> is NOT a IReadOnlyList." );
             r = ckList.AsReadOnlyList();
@@ -334,7 +376,6 @@ namespace CK.Core.Tests.Collection
             r = array.AsReadOnlyList();
             Assert.That( r, Is.Not.SameAs( array ).And.Not.Empty, "In 4.0, an array is NOT a IReadOnlyList." );
 #else
-            IReadOnlyList<int> r;
             r = netList.AsReadOnlyList();
             Assert.That( r, Is.SameAs( netList ), "In Net45, List<T> IS A IReadOnlyList<T>." );
             r = ckList.AsReadOnlyList();
@@ -348,6 +389,17 @@ namespace CK.Core.Tests.Collection
             Assert.That( r, Is.SameAs( ckList ).And.Not.Empty );
             r = array.AsReadOnlyList();
             Assert.That( r, Is.SameAs( array ).And.Not.Empty, "In 4.5, an array IS a IReadOnlyList :-)." );
+
+            {
+                IReadOnlyList<int> roNetList = netList, roCkList = ckList, roArray = array;
+                r = roNetList.ToReadOnlyList();
+                Assert.That( r, Is.Not.SameAs( roNetList ), "ToReadOnlyList always duplicates the content." );
+                r = roCkList.ToReadOnlyList();
+                Assert.That( r, Is.Not.SameAs( roCkList ), "ToReadOnlyList always duplicates the content." );
+                r = roArray.ToReadOnlyList();
+                Assert.That( r, Is.Not.SameAs( roArray ), "ToReadOnlyList always duplicates the content." );
+            }
+
 #endif
         }
         

@@ -153,9 +153,9 @@ namespace CK.Core.Tests.Collection
             Assert.That( a.Add( 102 ) );
             Assert.That( a.Add( 101 ) );
             
-            int v1 = a.GetByKey( "1", out exists );
+            int v1 = a.GetByKey( "1" );
             Assert.That( v1, Is.EqualTo( 1 ).Or.EqualTo( 101 ), "It is one or the other that is returned." );
-            int v2 = a.GetByKey( "2", out exists );
+            int v2 = a.GetByKey( "2" );
             Assert.That( v2, Is.EqualTo( 2 ).Or.EqualTo( 102 ), "It is one or the other that is returned." );
 
             Assert.That( a.KeyCount( "2" ) == 2 );

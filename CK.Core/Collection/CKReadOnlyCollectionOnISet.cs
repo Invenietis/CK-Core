@@ -30,7 +30,7 @@ using System.Runtime;
 namespace CK.Core
 {
 	/// <summary>
-	/// Adapts a <see cref="HashSet{T}"/> object to the <see cref="IReadOnlyCollection{T}"/> interface.
+	/// Adapts a <see cref="HashSet{T}"/> (or any <see cref="ISet{T}"/>) object to the <see cref="IReadOnlyCollection{T}"/> interface.
 	/// </summary>
 	/// <typeparam name="T">Type of the element.</typeparam>
     [DebuggerTypeProxy( typeof( Impl.CKReadOnlyCollectionDebuggerView<> ) ), DebuggerDisplay( "Count = {Count}" )]
