@@ -185,8 +185,8 @@ namespace CK.Reflection
 
         /// <summary>
         /// Emits the IL to create a new array (<see cref="OpCodes.Newarr"/>) of objects and fills 
-        /// it with the actual arguments of the method skipping the very first one: this must be used
-        /// only inside a method with <see cref="System.Reflection.CallingConventions.HasThis"/> set.
+        /// it with the actual arguments of the method (parameters are boxed if needed) skipping the very 
+        /// first one: this must be used only inside a method with <see cref="System.Reflection.CallingConventions.HasThis"/> set.
         /// </summary>
         /// <param name="g">This <see cref="ILGenerator"/> object.</param>
         /// <param name="array">The local variable.</param>
@@ -206,8 +206,8 @@ namespace CK.Reflection
         }
 
         /// <summary>
-        /// Emits a <see cref="LdArg"/> with an optional <see cref="OpCodes.Box"/> if <paramref name="parameterType"/> is 
-        /// a value type or a generic parameter.
+        /// Emits a <see cref="LdArg"/> with a <see cref="OpCodes.Box"/> if <paramref name="parameterType"/> is 
+        /// a value type or a generic parameter (after a <see cref="OpCodes.Ldobj"/> if the parameter is by ref).
         /// </summary>
         /// <param name="g">This <see cref="ILGenerator"/> object.</param>
         /// <param name="idxParameter">Index of the parameter to load on the stack.</param>
@@ -219,7 +219,32 @@ namespace CK.Reflection
             {
                 g.Emit( OpCodes.Box, parameterType );
             }
+            else if( parameterType.IsByRef )
+            {
+                parameterType = parameterType.GetElementType();
+                if( parameterType.IsValueType )
+                {
+                    g.Emit( OpCodes.Ldobj, parameterType );
+                    g.Emit( OpCodes.Box, parameterType );
+                }
+            }
         }
+
+        /// <summary>
+        /// Emits a <see cref="LdArg"/> with an optional <see cref="OpCodes.Box"/> if <paramref name="parameter"/>'s type is 
+        /// a value type or a generic parameter (after a <see cref="OpCodes.Ldobj"/> if the parameter is by ref).
+        /// Handles static or instance methods (takes care of <see cref="System.Reflection.CallingConventions.HasThis"/>
+        /// bit of the method's CallingConvention).
+        /// </summary>
+        /// <param name="g">This <see cref="ILGenerator"/> object.</param>
+        /// <param name="parameter">Parameter of the current method.</param>
+        public static void LdArgBox( this ILGenerator g, ParameterInfo p )
+        {
+            int iP = p.Position;
+            if( (((MethodBase)p.Member).CallingConvention & CallingConventions.HasThis) != 0 ) ++iP;
+            g.LdArgBox( iP, p.ParameterType );
+        }
+
 
     }
 }

@@ -49,7 +49,7 @@ namespace CK.Reflection.Tests
                 Assert.That( i.Name, Is.EqualTo( "Length" ) );
                 Assert.That( i.PropertyType, Is.SameAs( typeof( int ) ) );
 
-                Assert.Throws<ArgumentException>( () => ReflectionHelper.GetPropertyInfo( oneInstance, s => s.IndexOf( 'e' ) ) );
+                Assert.Throws<ArgumentException>(    () => ReflectionHelper.GetPropertyInfo( oneInstance, s => s.IndexOf( 'e' ) ) );
             }
             {
                 // Same as before, but default() is used to "obtain" an instance of the holder type.
