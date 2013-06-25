@@ -38,13 +38,13 @@ namespace CK.Core
         /// </summary>
         /// <typeparam name="T">Type of the elements in the collection.</typeparam>
         /// <typeparam name="TKey">Type of the key.</typeparam>
-        /// <param name="coll">Keyed collection of elements.</param>
+        /// <param name="this">Keyed collection of elements.</param>
         /// <param name="key">The item key.</param>
         /// <returns>The item that matches the key, default(T) if the key can not be found.</returns>
-        static public T GetByKey<T, TKey>( this ICKReadOnlyUniqueKeyedCollection<T, TKey> coll, TKey key )
+        static public T GetByKey<T, TKey>( this ICKReadOnlyUniqueKeyedCollection<T, TKey> @this, TKey key )
         {
             bool exists;
-            return coll.GetByKey( key, out exists );
+            return @this.GetByKey( key, out exists );
         }
 
         /// <summary>
@@ -53,13 +53,13 @@ namespace CK.Core
         /// since this implementation allocates one and only one array. 
         /// </summary>
         /// <typeparam name="T">Type of the array and lists elements.</typeparam>
-        /// <param name="list">Read only collection of elements.</param>
+        /// <param name="this">Read only collection of elements.</param>
         /// <returns>A new array that contains the same element as the collection.</returns>
-        static public T[] ToArray<T>( this IReadOnlyCollection<T> list )
+        static public T[] ToArray<T>( this IReadOnlyCollection<T> @this )
         {
-            T[] r = new T[list.Count];
+            T[] r = new T[@this.Count];
             int i = 0;
-            foreach( T item in list ) r[i++] = item;
+            foreach( T item in @this ) r[i++] = item;
             return r;
         }
 
@@ -68,14 +68,14 @@ namespace CK.Core
         /// It is an independant storage (a copy).
         /// </summary>
         /// <typeparam name="T">The type of the elements of source.</typeparam>
-        /// <param name="source">A <see cref="IList{T}"/> to create a read only list from.</param>
+        /// <param name="this">A <see cref="IList{T}"/> to create a read only list from.</param>
         /// <returns>A read only list that contains the elements from the input sequence.</returns>
-        static public ICKReadOnlyList<T> ToReadOnlyList<T>( this IList<T> source )
+        static public ICKReadOnlyList<T> ToReadOnlyList<T>( this IList<T> @this )
         {
-            if( source.Count == 0 ) return CKReadOnlyListEmpty<T>.Empty;
-            if( source.Count == 1 ) return new CKReadOnlyListMono<T>( source[0] );
-            T[] t = new T[source.Count];
-            source.CopyTo( t, 0 );
+            if( @this.Count == 0 ) return CKReadOnlyListEmpty<T>.Empty;
+            if( @this.Count == 1 ) return new CKReadOnlyListMono<T>( @this[0] );
+            T[] t = new T[@this.Count];
+            @this.CopyTo( t, 0 );
             return new CKReadOnlyListOnIList<T>( t );
         }
 
@@ -86,12 +86,12 @@ namespace CK.Core
         /// called to obtain an independant storage (a copy).
         /// </summary>
         /// <typeparam name="T">The type of the elements of source.</typeparam>
-        /// <param name="source">A <see cref="IList{T}"/> to consider as a read only list.</param>
+        /// <param name="this">A <see cref="IList{T}"/> to consider as a read only list.</param>
         /// <returns>A read only list that is the original list or contains the elements from the original list.</returns>
-        static public IReadOnlyList<T> AsReadOnlyList<T>( this IList<T> source )
+        static public IReadOnlyList<T> AsReadOnlyList<T>( this IList<T> @this )
         {
-            IReadOnlyList<T> rl = source as IReadOnlyList<T>;
-            return rl ?? source.ToReadOnlyList<T>();
+            IReadOnlyList<T> rl = @this as IReadOnlyList<T>;
+            return rl ?? @this.ToReadOnlyList<T>();
         }
 
         /// <summary>
@@ -100,17 +100,17 @@ namespace CK.Core
         /// </summary>
         /// <typeparam name="T">The type of the elements of the resulting read only list.</typeparam>
         /// <typeparam name="U">The type of the elements of source.</typeparam>
-        /// <param name="source">A <see cref="IList{U}"/> to create a read only list from.</param>
+        /// <param name="this">A <see cref="IList{U}"/> to create a read only list from.</param>
         /// <param name="convertor">A function that transforms <typeparamref name="U"/> into <typeparamref name="T"/> elements.</param>
         /// <returns>A read only list that contains the conversion of elements from the input sequence.</returns>
-        static public ICKReadOnlyList<T> ToReadOnlyList<T, U>( IList<U> source, Func<U, T> convertor )
+        static public ICKReadOnlyList<T> ToReadOnlyList<T, U>( IList<U> @this, Func<U, T> convertor )
         {
             if( convertor == null ) throw new ArgumentNullException( "convertor" );
 
-            if( source == null || source.Count == 0 ) return CKReadOnlyListEmpty<T>.Empty;
-            if( source.Count == 1 ) return new CKReadOnlyListMono<T>( convertor( source[0] ) );
-            T[] t = new T[source.Count];
-            for( int i = 0; i < t.Length; ++i ) t[i] = convertor( source[i] );
+            if( @this.Count == 0 ) return CKReadOnlyListEmpty<T>.Empty;
+            if( @this.Count == 1 ) return new CKReadOnlyListMono<T>( convertor( @this[0] ) );
+            T[] t = new T[@this.Count];
+            for( int i = 0; i < t.Length; ++i ) t[i] = convertor( @this[i] );
             return new CKReadOnlyListOnIList<T>( t );
         }
 
@@ -119,18 +119,18 @@ namespace CK.Core
         /// It is an independant storage (a copy).
         /// </summary>
         /// <typeparam name="T">The type of the elements of source.</typeparam>
-        /// <param name="source">A <see cref="IList{T}"/> to create a read only list from.</param>
+        /// <param name="this">A <see cref="IList{T}"/> to create a read only list from.</param>
         /// <param name="startIndex">Starting index in source where copy must start.</param>
         /// <param name="count">Number of elements to take into account.</param>
         /// <returns>A read only list that contains the elements from the input sequence.</returns>
-        static public ICKReadOnlyList<T> ToReadOnlyList<T>( this IList<T> source, int startIndex, int count )
+        static public ICKReadOnlyList<T> ToReadOnlyList<T>( this IList<T> @this, int startIndex, int count )
         {
             if( count == 0 ) return CKReadOnlyListEmpty<T>.Empty;
             if( count < 0 ) throw new ArgumentOutOfRangeException( "count", count, R.ArgumentCountNegative );
-            if( count == 1 ) return new CKReadOnlyListMono<T>( source[startIndex] );
+            if( count == 1 ) return new CKReadOnlyListMono<T>( @this[startIndex] );
             T[] t = new T[count];
             int i = 0;
-            while( count-- > 0 ) t[i++] = source[startIndex++];
+            while( count-- > 0 ) t[i++] = @this[startIndex++];
             return new CKReadOnlyListOnIList<T>( t );
         }
 
@@ -140,20 +140,21 @@ namespace CK.Core
         /// </summary>
         /// <typeparam name="T">The type of the elements of the resulting read only list.</typeparam>
         /// <typeparam name="U">The type of the elements of source.</typeparam>
-        /// <param name="source">A <see cref="IList{U}"/> to create a read only list from.</param>
+        /// <param name="this">A <see cref="IList{U}"/> to create a read only list from.</param>
         /// <param name="startIndex">Starting index in source where copy must start.</param>
         /// <param name="count">Number of elements to take into account.</param>
         /// <param name="convertor">A function that transforms <typeparamref name="U"/> into <typeparamref name="T"/> elements.</param>
         /// <returns>A read only list that contains the converted elements from the input sequence.</returns>
-        static public ICKReadOnlyList<T> ToReadOnlyList<T, U>( this IList<U> source, int startIndex, int count, Func<U, T> convertor )
+        static public ICKReadOnlyList<T> ToReadOnlyList<T, U>( this IList<U> @this, int startIndex, int count, Func<U, T> convertor )
         {
             if( convertor == null ) throw new ArgumentNullException( "convertor" );
+            if( @this == null ) throw new NullReferenceException( "@this" );
             if( count == 0 ) return CKReadOnlyListEmpty<T>.Empty;
             if( count < 0 ) throw new ArgumentOutOfRangeException( "count", count, R.ArgumentCountNegative );
-            if( count == 1 ) return new CKReadOnlyListMono<T>( convertor( source[startIndex] ) );
+            if( count == 1 ) return new CKReadOnlyListMono<T>( convertor( @this[startIndex] ) );
             T[] t = new T[count];
             int i = 0;
-            while( count-- > 0 ) t[i++] = convertor( source[startIndex++] );
+            while( count-- > 0 ) t[i++] = convertor( @this[startIndex++] );
             return new CKReadOnlyListOnIList<T>( t );
         }
 
@@ -162,12 +163,12 @@ namespace CK.Core
         /// It is an independant storage (a copy).
         /// </summary>
         /// <typeparam name="T">The type of the elements of source.</typeparam>
-        /// <param name="source">A <see cref="IList{T}"/> to create a read only list from.</param>
+        /// <param name="this">A <see cref="IList{T}"/> to create a read only list from.</param>
         /// <param name="startIndex">Starting index in source where copy must start.</param>
         /// <returns>A read only list that contains the elements from the input sequence.</returns>
-        static public ICKReadOnlyList<T> ToReadOnlyList<T>( this IList<T> source, int startIndex )
+        static public ICKReadOnlyList<T> ToReadOnlyList<T>( this IList<T> @this, int startIndex )
         {
-            return ToReadOnlyList( source, startIndex, source.Count - startIndex );
+            return ToReadOnlyList( @this, startIndex, @this.Count - startIndex );
         }
 
         /// <summary>
@@ -176,33 +177,33 @@ namespace CK.Core
         /// </summary>
         /// <typeparam name="T">The type of the elements of out.</typeparam>
         /// <typeparam name="U">The type of the elements of source.</typeparam>
-        /// <param name="source">A <see cref="IList{U}"/> to create a read only list from.</param>
+        /// <param name="this">A <see cref="IList{U}"/> to create a read only list from.</param>
         /// <param name="startIndex">Starting index in source where copy must start.</param>
         /// <param name="convertor">A function that transforms <typeparamref name="U"/> into <typeparamref name="T"/> elements.</param>
         /// <returns>A read only list that contains converted elements from the input sequence.</returns>
-        static public ICKReadOnlyList<T> ToReadOnlyList<T,U>( this IList<U> source, int startIndex, Func<U, T> convertor )
+        static public ICKReadOnlyList<T> ToReadOnlyList<T,U>( this IList<U> @this, int startIndex, Func<U, T> convertor )
         {
-            return ToReadOnlyList( source, startIndex, source.Count - startIndex, convertor );
+            return ToReadOnlyList( @this, startIndex, @this.Count - startIndex, convertor );
         }
 
         /// <summary>
         /// Creates a <see cref="ICKReadOnlyList{T}"/> that is a copy of the <see cref="ICollection{T}"/> content.
         /// </summary>
         /// <typeparam name="T">The type of the elements of source.</typeparam>
-        /// <param name="source">A <see cref="ICollection{T}"/> to create a read only list from.</param>
+        /// <param name="this">A <see cref="ICollection{T}"/> to create a read only list from.</param>
         /// <returns>A read only list that contains the elements from the input collection following the enumeration order.</returns>
-        static public ICKReadOnlyList<T> ToReadOnlyList<T>( this ICollection<T> source )
+        static public ICKReadOnlyList<T> ToReadOnlyList<T>( this ICollection<T> @this )
         {
-            if( source.Count == 0 ) return CKReadOnlyListEmpty<T>.Empty;
-            if( source.Count == 1 )
+            if( @this.Count == 0 ) return CKReadOnlyListEmpty<T>.Empty;
+            if( @this.Count == 1 )
             {
-                using( IEnumerator<T> e = source.GetEnumerator() )
+                using( IEnumerator<T> e = @this.GetEnumerator() )
                 {
                     return e.MoveNext() ? new CKReadOnlyListMono<T>( e.Current ) : CKReadOnlyListEmpty<T>.Empty;
                 }
             }
-            T[] t = new T[source.Count];
-            source.CopyTo( t, 0 );
+            T[] t = new T[@this.Count];
+            @this.CopyTo( t, 0 );
             return new CKReadOnlyListOnIList<T>( t );
         }
 
@@ -213,22 +214,23 @@ namespace CK.Core
         /// <typeparam name="T">The type of the elements of the resulting read only list.</typeparam>
         /// <typeparam name="U">The type of the elements of source.</typeparam>
         /// <param name="convertor">A function that transforms <typeparamref name="U"/> into <typeparamref name="T"/> elements.</param>
-        /// <param name="source">A <see cref="ICollection{T}"/> to create a read only list from.</param>
+        /// <param name="this">A <see cref="ICollection{T}"/> to create a read only list from. Can not be null.</param>
         /// <returns>A read only list that contains the elements from the input collection following the enumeration order.</returns>
-        static public ICKReadOnlyList<T> ToReadOnlyList<T, U>( this ICollection<U> source, Func<U, T> convertor )
+        static public ICKReadOnlyList<T> ToReadOnlyList<T, U>( this ICollection<U> @this, Func<U, T> convertor )
         {
+            if( @this == null ) throw new NullReferenceException( "@this" );
             if( convertor == null ) throw new ArgumentNullException( "convertor" );
-            if( source == null || source.Count == 0 ) return CKReadOnlyListEmpty<T>.Empty;
-            if( source.Count == 1 )
+            if( @this.Count == 0 ) return CKReadOnlyListEmpty<T>.Empty;
+            if( @this.Count == 1 )
             {
-                using( IEnumerator<U> e = source.GetEnumerator() )
+                using( IEnumerator<U> e = @this.GetEnumerator() )
                 {
                     return e.MoveNext() ? new CKReadOnlyListMono<T>( convertor( e.Current ) ) : CKReadOnlyListEmpty<T>.Empty;
                 }
             }
             int i = 0;
-            T[] t = new T[source.Count];
-            foreach( U e in source ) t[i++] = convertor( e );
+            T[] t = new T[@this.Count];
+            foreach( U e in @this ) t[i++] = convertor( e );
             return new CKReadOnlyListOnIList<T>( t );
         }
 
@@ -237,11 +239,11 @@ namespace CK.Core
         /// It is an independant storage (a copy).
         /// </summary>
         /// <typeparam name="T">The type of the elements of source.</typeparam>
-        /// <param name="source">A <see cref="IEnumerable{T}"/> to create a read only list from.</param>
+        /// <param name="this">A <see cref="IEnumerable{T}"/> to create a read only list from.</param>
         /// <returns>A read only list that contains the elements from the input sequence following the enumeration order.</returns>
-        static public ICKReadOnlyList<T> ToReadOnlyList<T>( this IEnumerable<T> source )
+        static public ICKReadOnlyList<T> ToReadOnlyList<T>( this IEnumerable<T> @this )
         {
-            using( IEnumerator<T> e = source.GetEnumerator() )
+            using( IEnumerator<T> e = @this.GetEnumerator() )
             {
                 if( !e.MoveNext() ) return CKReadOnlyListEmpty<T>.Empty;
                 T one = e.Current;
@@ -276,11 +278,11 @@ namespace CK.Core
         /// It is an independant storage (a copy).
         /// </summary>
         /// <typeparam name="T">The type of the elements of source.</typeparam>
-        /// <param name="source">A <see cref="IList{T}"/> to create a read only collection from.</param>
+        /// <param name="this">A <see cref="IList{T}"/> to create a read only collection from.</param>
         /// <returns>A read only collection that contains the elements from the input sequence.</returns>
-        static public ICKReadOnlyCollection<T> ToReadOnlyCollection<T>( this IList<T> source )
+        static public ICKReadOnlyCollection<T> ToReadOnlyCollection<T>( this IList<T> @this )
         {
-            return ToReadOnlyList( source );
+            return ToReadOnlyList( @this );
         }
 
         /// <summary>
@@ -302,13 +304,13 @@ namespace CK.Core
         /// It is an independant storage (a copy).
         /// </summary>
         /// <typeparam name="T">The type of the elements of source.</typeparam>
-        /// <param name="source">A <see cref="IList{T}"/> to create a read only list from.</param>
+        /// <param name="this">A <see cref="IList{T}"/> to create a read only list from.</param>
         /// <param name="startIndex">Starting index in source where copy must start.</param>
         /// <param name="count">Number of elements to take into account.</param>
         /// <returns>A read only collection that contains the elements from the input sequence.</returns>
-        static public ICKReadOnlyCollection<T> ToReadOnlyCollection<T>( this IList<T> source, int startIndex, int count )
+        static public ICKReadOnlyCollection<T> ToReadOnlyCollection<T>( this IList<T> @this, int startIndex, int count )
         {
-            return ToReadOnlyList( source, startIndex, count );
+            return ToReadOnlyList( @this, startIndex, count );
         }
 
         /// <summary>
@@ -317,14 +319,14 @@ namespace CK.Core
         /// </summary>
         /// <typeparam name="T">The type of the elements of the resulting read only list.</typeparam>
         /// <typeparam name="U">The type of the elements of source.</typeparam>
-        /// <param name="source">A <see cref="IList{U}"/> to create a read only list from.</param>
+        /// <param name="this">A <see cref="IList{U}"/> to create a read only list from.</param>
         /// <param name="startIndex">Starting index in source where copy must start.</param>
         /// <param name="count">Number of elements to take into account.</param>
         /// <param name="convertor">A function that transforms <typeparamref name="U"/> into <typeparamref name="T"/> elements.</param>
         /// <returns>A read only collection that contains the converted elements from the input sequence.</returns>
-        static public ICKReadOnlyCollection<T> ToReadOnlyCollection<T, U>( this IList<U> source, int startIndex, int count, Func<U, T> convertor )
+        static public ICKReadOnlyCollection<T> ToReadOnlyCollection<T, U>( this IList<U> @this, int startIndex, int count, Func<U, T> convertor )
         {
-            return ToReadOnlyList( source, startIndex, count, convertor );
+            return ToReadOnlyList( @this, startIndex, count, convertor );
         }
 
         /// <summary>
@@ -332,12 +334,12 @@ namespace CK.Core
         /// It is an independant storage (a copy).
         /// </summary>
         /// <typeparam name="T">The type of the elements of source.</typeparam>
-        /// <param name="source">A <see cref="IList{T}"/> to create a read only collection from.</param>
+        /// <param name="this">A <see cref="IList{T}"/> to create a read only collection from.</param>
         /// <param name="startIndex">Starting index in source where copy must start.</param>
         /// <returns>A read only collection that contains the elements from the input sequence.</returns>
-        static public ICKReadOnlyCollection<T> ToReadOnlyCollection<T>( this IList<T> source, int startIndex )
+        static public ICKReadOnlyCollection<T> ToReadOnlyCollection<T>( this IList<T> @this, int startIndex )
         {
-            return ToReadOnlyList( source, startIndex );
+            return ToReadOnlyList( @this, startIndex );
         }
 
         /// <summary>
@@ -346,13 +348,13 @@ namespace CK.Core
         /// </summary>
         /// <typeparam name="T">The type of the elements of the resulting read only list.</typeparam>
         /// <typeparam name="U">The type of the elements of source.</typeparam>
-        /// <param name="source">A <see cref="IList{U}"/> to create a read only list from.</param>
+        /// <param name="this">A <see cref="IList{U}"/> to create a read only list from.</param>
         /// <param name="startIndex">Starting index in source where copy must start.</param>
         /// <param name="convertor">A function that transforms <typeparamref name="U"/> into <typeparamref name="T"/> elements.</param>
         /// <returns>A read only collection that contains converted elements from the input sequence.</returns>
-        static public ICKReadOnlyCollection<T> ToReadOnlyCollection<T, U>( this IList<U> source, int startIndex, Func<U, T> convertor )
+        static public ICKReadOnlyCollection<T> ToReadOnlyCollection<T, U>( this IList<U> @this, int startIndex, Func<U, T> convertor )
         {
-            return ToReadOnlyList( source, startIndex, convertor );
+            return ToReadOnlyList( @this, startIndex, convertor );
         }
 
         /// <summary>
@@ -360,11 +362,11 @@ namespace CK.Core
         /// It is an independant storage (a copy).
         /// </summary>
         /// <typeparam name="T">The type of the elements of source.</typeparam>
-        /// <param name="source">A <see cref="ICollection{T}"/> to create a read only list from.</param>
+        /// <param name="this">A <see cref="ICollection{T}"/> to create a read only list from.</param>
         /// <returns>A read only collection that contains the elements from the input collection.</returns>
-        static public ICKReadOnlyCollection<T> ToReadOnlyCollection<T>( this ICollection<T> source )
+        static public ICKReadOnlyCollection<T> ToReadOnlyCollection<T>( this ICollection<T> @this )
         {
-            return ToReadOnlyList( source );
+            return ToReadOnlyList( @this );
         }
 
         /// <summary>
@@ -386,11 +388,11 @@ namespace CK.Core
         /// It is an independant storage (a copy).
         /// </summary>
         /// <typeparam name="T">The type of the elements of source.</typeparam>
-        /// <param name="source">A <see cref="IEnumerable{T}"/> to create a read only list from.</param>
+        /// <param name="this">A <see cref="IEnumerable{T}"/> to create a read only list from.</param>
         /// <returns>A read only collection that contains the elements from the input sequence following the enumeration order.</returns>
-        static public ICKReadOnlyCollection<T> ToReadOnlyCollection<T>( this IEnumerable<T> source )
+        static public ICKReadOnlyCollection<T> ToReadOnlyCollection<T>( this IEnumerable<T> @this )
         {
-            return ToReadOnlyList( source );
+            return ToReadOnlyList( @this );
         }
 
         #endregion

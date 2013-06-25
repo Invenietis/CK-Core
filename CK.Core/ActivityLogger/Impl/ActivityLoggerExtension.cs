@@ -37,7 +37,7 @@ namespace CK.Core
         /// <summary>
         /// Gets this Group conclusions as a readeable string.
         /// </summary>
-        /// <param name="this">This group conclusion.</param>
+        /// <param name="this">This group conclusion. Can be null.</param>
         /// <param name="conclusionSeparator">Conclusion separator.</param>
         /// <returns>A lovely concatened string of conclusions.</returns>
         public static string ToStringGroupConclusion( this IEnumerable<ActivityLogGroupConclusion> @this, string conclusionSeparator = " - " )
@@ -55,7 +55,7 @@ namespace CK.Core
         /// <summary>
         /// Gets the path as a readable string.
         /// </summary>
-        /// <param name="this">This path.</param>
+        /// <param name="this">This path. Can be null.</param>
         /// <param name="elementSeparator">Between elements.</param>
         /// <param name="withoutConclusionFormat">There must be 3 placeholders {0} for the level, {1} for the text and {2} for the conclusion.</param>
         /// <param name="withConclusionFormat">There must be 2 placeholders {0} for the level and {1} for the text.</param>
@@ -104,6 +104,7 @@ namespace CK.Core
         /// <returns>The <see cref="ActivityLoggerBridge"/> that has been created and registered or the one that already exists.</returns>
         public static ActivityLoggerBridge BridgeTo( this IActivityLoggerOutput @this, IActivityLogger logger )
         {
+            if( @this == null ) throw new NullReferenceException( "@this" );
             if( logger == null ) throw new ArgumentNullException( "logger" );
             var bridge = @this.RegisteredClients.OfType<ActivityLoggerBridge>().Where( b => b.TargetLogger == logger ).FirstOrDefault();
             if( bridge == null )
@@ -122,6 +123,7 @@ namespace CK.Core
         /// <returns>The unregistered <see cref="ActivityLoggerBridge"/> if found, null otherwise.</returns>
         public static ActivityLoggerBridge UnbridgeTo( this IActivityLoggerOutput @this, IActivityLogger logger )
         {
+            if( @this == null ) throw new NullReferenceException( "@this" );
             if( logger == null ) throw new ArgumentNullException( "logger" );
             var bridge = @this.RegisteredClients.OfType<ActivityLoggerBridge>().Where( b => b.TargetLogger == logger ).FirstOrDefault();
             if( bridge != null ) @this.UnregisterClient( bridge );
@@ -141,6 +143,7 @@ namespace CK.Core
         /// </remarks>
         public static void CloseGroup( this IActivityLogger @this, object userConclusion = null )
         {
+            if( @this == null ) throw new NullReferenceException( "@this" );
             @this.CloseGroup( DateTime.UtcNow, userConclusion );
         }
 
@@ -155,6 +158,7 @@ namespace CK.Core
         /// <returns>A <see cref="IDisposable"/> object used to manage the scope of this handler.</returns>
         public static IDisposable Catch( this IActivityLogger @this, Action<IReadOnlyList<ActivityLoggerSimpleCollector.Entry>> errorHandler, LogLevelFilter level = LogLevelFilter.Error )
         {
+            if( @this == null ) throw new NullReferenceException( "@this" );
             if( errorHandler == null ) throw new ArgumentNullException( "errorHandler" );
             ActivityLoggerSimpleCollector errorTracker = new ActivityLoggerSimpleCollector() { LevelFilter = level };
             @this.Output.RegisterClient( errorTracker );
@@ -173,6 +177,7 @@ namespace CK.Core
         /// <returns>A <see cref="IDisposable"/> object used to manage the scope of this handler.</returns>
         public static IDisposable CatchCounter( this IActivityLogger @this, Action<int, int, int> fatalErrorWarnCount )
         {
+            if( @this == null ) throw new NullReferenceException( "@this" );
             if( fatalErrorWarnCount == null ) throw new ArgumentNullException( "fatalErrorWarnCount" );
             ActivityLoggerErrorCounter errorCounter = new ActivityLoggerErrorCounter();
             Debug.Assert( errorCounter.GenerateConclusion == false, "It is false by default." );
@@ -192,6 +197,7 @@ namespace CK.Core
         /// <returns>A <see cref="IDisposable"/> object used to manage the scope of this handler.</returns>
         public static IDisposable CatchCounter( this IActivityLogger @this, Action<int, int> fatalErrorCount )
         {
+            if( @this == null ) throw new NullReferenceException( "@this" );
             if( fatalErrorCount == null ) throw new ArgumentNullException( "fatalErrorCount" );
             ActivityLoggerErrorCounter errorCounter = new ActivityLoggerErrorCounter() { GenerateConclusion = false };
             @this.Output.RegisterClient( errorCounter );
@@ -210,6 +216,7 @@ namespace CK.Core
         /// <returns>A <see cref="IDisposable"/> object used to manage the scope of this handler.</returns>
         public static IDisposable CatchCounter( this IActivityLogger @this, Action<int> fatalOrErrorCount )
         {
+            if( @this == null ) throw new NullReferenceException( "@this" );
             if( fatalOrErrorCount == null ) throw new ArgumentNullException( "fatalErrorCount" );
             ActivityLoggerErrorCounter errorCounter = new ActivityLoggerErrorCounter() { GenerateConclusion = false };
             @this.Output.RegisterClient( errorCounter );
@@ -255,6 +262,7 @@ namespace CK.Core
         /// <returns>A <see cref="IDisposable"/> object that will restore the current level.</returns>
         public static IDisposable Filter( this IActivityLogger @this, LogLevelFilter filterLevel )
         {
+            if( @this == null ) throw new NullReferenceException( "@this" );
             return new LogFilterSentinel( @this, filterLevel );
         }
 
@@ -293,6 +301,7 @@ namespace CK.Core
         /// <returns>A <see cref="IDisposable"/> object that will restore the current tag when disposed.</returns>
         public static IDisposable AutoTags( this IActivityLogger @this, CKTrait tags, SetOperation operation = SetOperation.Union )
         {
+            if( @this == null ) throw new NullReferenceException( "@this" );
             return new TagsSentinel( @this, @this.AutoTags.Apply( tags, operation ) );
         }
         
@@ -309,6 +318,7 @@ namespace CK.Core
         /// <returns>This registrar to enable fluent syntax.</returns>
         public static IActivityLoggerOutput Register( this IActivityLoggerOutput @this, IEnumerable<IActivityLoggerClient> clients )
         {
+            if( @this == null ) throw new NullReferenceException( "@this" );
             foreach( var c in clients ) @this.RegisterClient( c );
             return @this;
         }
@@ -321,6 +331,7 @@ namespace CK.Core
         /// <returns>This registrar to enable fluent syntax.</returns>
         public static IActivityLoggerOutput Register( this IActivityLoggerOutput @this, params IActivityLoggerClient[] clients )
         {
+            if( @this == null ) throw new NullReferenceException( "@this" );
             return Register( @this, (IEnumerable<IActivityLoggerClient>)clients );
         }
 

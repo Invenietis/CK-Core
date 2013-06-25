@@ -200,9 +200,9 @@ namespace CK.Core
             {
                 // After a lot of readings of msdn and internet, I use the SpinWait struct...
                 // This is the recommended way, so...
-                // Note that tests under heavy loads show that this code is never solicited
+                // Note that tests under heavy loads show that this code is rarely solicited
                 // which means that the first Interlocked.CompareExchange always work.
-                // Unfortunate consequence: this code is not covered by any tests. To test it, modify the 
+                // Unfortunate consequence: this code is not often covered by any tests. To test it, modify the 
                 // line above to be: int w = _waitingRaiseCount + 1;
                 SpinWait sw = new SpinWait();
                 do
