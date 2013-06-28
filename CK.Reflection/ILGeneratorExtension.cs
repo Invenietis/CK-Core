@@ -231,13 +231,13 @@ namespace CK.Reflection
         }
 
         /// <summary>
-        /// Emits a <see cref="LdArg"/> with an optional <see cref="OpCodes.Box"/> if <paramref name="parameter"/>'s type is 
+        /// Emits a <see cref="LdArg"/> with an optional <see cref="OpCodes.Box"/> if <paramref name="p"/>'s type is 
         /// a value type or a generic parameter (after a <see cref="OpCodes.Ldobj"/> if the parameter is by ref).
         /// Handles static or instance methods (takes care of <see cref="System.Reflection.CallingConventions.HasThis"/>
         /// bit of the method's CallingConvention).
         /// </summary>
         /// <param name="g">This <see cref="ILGenerator"/> object.</param>
-        /// <param name="parameter">Parameter of the current method.</param>
+        /// <param name="p">Parameter of the current method.</param>
         public static void LdArgBox( this ILGenerator g, ParameterInfo p )
         {
             int iP = p.Position;
