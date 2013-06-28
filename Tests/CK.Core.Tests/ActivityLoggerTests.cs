@@ -255,6 +255,44 @@ namespace CK.Core.Tests
 
         [Test]
         [Category( "Console" )]
+        public void DumpAggregetedException()
+        {
+            IDefaultActivityLogger l = new DefaultActivityLogger();
+            l.Output.BridgeTo( TestHelper.Logger );
+
+            var wLogLovely = new StringWriter();
+            var logLovely = new ActivityLoggerTextWriterSink( wLogLovely );
+            l.Tap.Register( logLovely );
+
+
+            l.Error( new Exception( "EXERROR-1" ) );
+            using( l.OpenGroup( LogLevel.Fatal, new Exception( "EXERROR-2" ), "EXERROR-TEXT2" ) )
+            {
+                try
+                {
+                    throw new AggregateException( 
+                        new Exception( "EXERROR-Aggreg-1" ), 
+                        new AggregateException( 
+                            new Exception( "EXERROR-Aggreg-2-1" ), 
+                            new Exception( "EXERROR-Aggreg-2-2" )
+                        ),
+                        new Exception( "EXERROR-Aggreg-3" ) );
+                }
+                catch( Exception ex )
+                {
+                    l.Error( ex, "EXERROR-TEXT3" );
+                }
+            }
+
+            string text = wLogLovely.ToString();
+            Assert.That( text, Is.StringContaining( "EXERROR-Aggreg-1" ) );
+            Assert.That( text, Is.StringContaining( "EXERROR-Aggreg-2-1" ) );
+            Assert.That( text, Is.StringContaining( "EXERROR-Aggreg-2-2" ) );
+            Assert.That( text, Is.StringContaining( "EXERROR-Aggreg-3" ) );
+        }
+
+        [Test]
+        [Category( "Console" )]
         public void MultipleClose()
         {
             IDefaultActivityLogger logger = new DefaultActivityLogger();
