@@ -134,7 +134,7 @@ namespace CK.Core
         {
             string p;
 
-            w.WriteLine( _prefix + "\u00A0┌──────────────────────────■ Exception ■──────────────────────────" );
+            w.WriteLine( _prefix + "\u00A0┌──────────────────────────■ Exception : {0} ■──────────────────────────", ex.GetType().Name );
             _prefix += "\u00A0|\u00A0";
             string start;
             if( displayMessage && ex.Message != null )
@@ -149,7 +149,22 @@ namespace CK.Core
                 p = _prefix + "\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0";
                 w.WriteLine( start + ex.StackTrace.Replace( Environment.NewLine, Environment.NewLine + p ) );
             }
-            if( ex.InnerException != null )
+            // The InnerException of an aggregated exception is the same as the first of it InnerExceptionS.
+            // (The InnerExceptionS are the contained/aggregated exceptions of the AggregatedException object.)
+            // This is why, if we are on an AggregatedException we do not follow its InnerException.
+            var aggrex = (ex as AggregateException);
+            if( aggrex != null && aggrex.InnerExceptions.Count > 0 )
+            {
+                w.WriteLine( _prefix + "\u00A0┌──────────────────────────▪ [Aggregated Exceptions] ▪──────────────────────────" );
+                _prefix += "\u00A0|\u00A0";
+                foreach( var item in aggrex.InnerExceptions )
+                {
+                    DumpException( w, true, item );
+                }
+                _prefix = _prefix.Remove( _prefix.Length - 3 );
+                w.WriteLine( _prefix + "\u00A0└─────────────────────────────────────────────────────────────────────────" );
+            }
+            else if( ex.InnerException != null )
             {
                 w.WriteLine( _prefix + "\u00A0┌──────────────────────────▪ [Inner Exception] ▪──────────────────────────" );
                 _prefix += "\u00A0|\u00A0";

@@ -227,7 +227,7 @@ namespace CK.Core
         /// <summary>
         /// Internal implementation of Append extension method.
         /// </summary>
-        /// <typeparam name="TSource">Type of source sequence.</typeparam>
+        /// <typeparam name="T">Type of source sequence.</typeparam>
         class EAppend<T> : IEnumerable<T>
         {
             readonly IEnumerable<T> _source;
