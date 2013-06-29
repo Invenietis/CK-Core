@@ -112,5 +112,27 @@ namespace CK.Core.Tests
             Assert.That( Util.Math.BitCount( 1 | 2 | 32 | 64 | 128 ) == 5 );
             Assert.That( Util.Math.BitCount( 1 | 2 | 4 | 8 | 16 | 32 | 64 | 128 ) == 8 );
         }
+
+        [Test]
+        public void TestPredicatesAndOtherStupidStuff()
+        {
+            int x = 0;
+            Assert.That( Util.ToPredicate<int>( i => x = i+1, true )( 5 ), Is.True );
+            Assert.That( x, Is.EqualTo( 6 ) );
+
+            Assert.That( Util.AlwaysTrue<int>( i => x = i + 1 )( 10 ), Is.True );
+            Assert.That( x, Is.EqualTo( 11 ) );
+
+            Assert.That( Util.AlwaysFalse<int>( i => x = i + 1 )( 15 ), Is.False );
+            Assert.That( x, Is.EqualTo( 16 ) );
+        }
+
+        [Test]
+        public void TestHash()
+        {
+            Assert.That( Util.Hash.Combine( Util.Hash.StartValue, 0 ), Is.Not.EqualTo( Util.Hash.StartValue ) );
+            Assert.That( Util.Hash.Combine( Util.Hash.StartValue, this ), Is.Not.EqualTo( Util.Hash.StartValue ) );
+            Assert.That( Util.Hash.Combine( Util.Hash.StartValue, this, string.Empty, Util.SqlServerEpoch ), Is.Not.EqualTo( Util.Hash.StartValue ) );
+        }
     }
 }

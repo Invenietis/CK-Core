@@ -406,9 +406,35 @@ namespace CK.Core.Tests.Collection
         [Test]
         public void TestToReadOnlyListAdapter()
         {
-            List<Mammal> m = new List<Mammal>() { new Mammal( "John" ), new Mammal( "Paul" ) };
+            var john = new Mammal( "John" );
+            List<Mammal> m = new List<Mammal>() { john, new Mammal( "Paul" ) };
             var a = new ReadOnlyListOnIList<Animal, Mammal>( m );
+            Assert.That( a.Count, Is.EqualTo( 2 ) );
             Assert.That( a[0].Name, Is.EqualTo( "John" ) );
+            Assert.That( a.IndexOf( john ), Is.EqualTo( 0 ) );
+            Assert.That( a.IndexOf( this ), Is.EqualTo( Int32.MinValue ) );
+            CollectionAssert.AreEqual( a, m );
+            Assert.That( a.Inner, Is.SameAs( m ) );
+
+            Assert.That( a.Contains( john ) );
+            Assert.That( a.Contains( this ), Is.False );
+
+            Assert.That( ((IList<Animal>)a).IndexOf( john ), Is.EqualTo( 0 ) );
+            Assert.That( ((IList<Animal>)a).Contains( john ), Is.True );
+            Assert.That( ((IList<Animal>)a)[1].Name, Is.EqualTo( "Paul" ) );
+            Assert.That( ((IList<Animal>)a).IsReadOnly );
+            var copy = new Animal[2];
+            ((IList<Animal>)a).CopyTo( copy, 0 );
+            Assert.That( copy[0], Is.SameAs( john ) );
+            Assert.That( copy[1].Name, Is.EqualTo( "Paul" ) );
+            
+            Assert.Throws<ArgumentNullException>( () => a.Inner = null );
+            Assert.Throws<NotSupportedException>( () => a.AddRange( m ) );
+            Assert.Throws<NotSupportedException>( () => ((IList<Animal>)a).Clear() );
+            Assert.Throws<NotSupportedException>( () => ((IList<Animal>)a).Remove( john ) );
+            Assert.Throws<NotSupportedException>( () => ((IList<Animal>)a).RemoveAt( 5 ) );
+            Assert.Throws<NotSupportedException>( () => ((IList<Animal>)a).Insert( 1, john ) );
+            Assert.Throws<NotSupportedException>( () => ((IList<Animal>)a)[0] = john );
         }
 
         [Test]
