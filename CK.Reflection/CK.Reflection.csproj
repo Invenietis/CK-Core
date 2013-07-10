@@ -68,6 +68,7 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>R.resx</DependentUpon>
     </Compile>
+    <Compile Include="TypeBuilderExtension.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="R.resx">

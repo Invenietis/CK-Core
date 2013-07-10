@@ -223,6 +223,28 @@ namespace CK.Reflection
         }
 
         /// <summary>
+        /// Generates <see cref="CustomAttributeBuilder"/> from an enumerable of <see cref="CustomAttributeData"/>.
+        /// </summary>
+        /// <param name="customAttributes">Existing custom attribute data (can be obtained through <see cref="MemberInfo.GetCustomAttributesData"/>).</param>
+        /// <param name="collector">Action that receives builders that reproduce the original custom attributes.</param>
+        /// <param name="filter">Optional filter for attributes. When null, all attributes are collected.</param>
+        public static void GenerateCustomAttributeBuilder( IEnumerable<CustomAttributeData> customAttributes, Action<CustomAttributeBuilder> collector, Predicate<CustomAttributeData> filter = null )
+        {
+            if( customAttributes == null ) throw new ArgumentNullException( "customAttributes" );
+            if( collector == null ) throw new ArgumentNullException( "collector" );
+            foreach( var attr in customAttributes )
+            {
+                if( filter != null && !filter( attr ) ) continue;
+                var ctorArgs = attr.ConstructorArguments.Select( a => a.Value ).ToArray();
+                var namedPropertyInfos = attr.NamedArguments.Select( a => a.MemberInfo ).OfType<PropertyInfo>().ToArray();
+                var namedPropertyValues = attr.NamedArguments.Where( a => a.MemberInfo is PropertyInfo ).Select( a => a.TypedValue.Value ).ToArray();
+                var namedFieldInfos = attr.NamedArguments.Select( a => a.MemberInfo ).OfType<FieldInfo>().ToArray();
+                var namedFieldValues = attr.NamedArguments.Where( a => a.MemberInfo is FieldInfo ).Select( a => a.TypedValue.Value ).ToArray();
+                collector( new CustomAttributeBuilder( attr.Constructor, ctorArgs, namedPropertyInfos, namedPropertyValues, namedFieldInfos, namedFieldValues ) );
+            }
+        }
+
+        /// <summary>
         /// Gets all methods (including inherited methods and methods with special names like get_XXX 
         /// and others add_XXX) of the given interface type.
         /// </summary>
