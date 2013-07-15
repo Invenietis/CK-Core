@@ -58,6 +58,7 @@
       <Link>Properties\SharedAssemblyInfo.cs</Link>
     </Compile>
     <Compile Include="EmitHelper.cs" />
+    <Compile Include="LegacySupport\CustomAttributeExtensions.cs" />
     <Compile Include="MethodInfoEqualityComparer.cs" />
     <Compile Include="ReflectionHelper.cs" />
     <Compile Include="ILGeneratorExtension.cs" />
