@@ -64,10 +64,9 @@ namespace CK.Core
         {
             get { return _list as List<IActivityLoggerClient>; }
         }
-        private IList<T> CreateNewList<T>( List<T> list = null )
+        private IList<T> CreateNewList<T>( List<T> list )
         {
-            if( list == null ) return new List<T>();
-            else return new List<T>( list );
+            return new List<T>( list );
         }
 #endif
 
