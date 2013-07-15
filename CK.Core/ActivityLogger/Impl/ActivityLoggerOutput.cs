@@ -26,6 +26,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Text;
+using System.Threading;
 
 namespace CK.Core
 {
@@ -34,8 +35,45 @@ namespace CK.Core
     /// </summary>
     public class ActivityLoggerOutput : IActivityLoggerOutput
     {
-        readonly List<IActivityLoggerClient> _clients;
-        readonly IReadOnlyList<IActivityLoggerClient> _clientsEx;
+#if net40
+        internal class OutList<T> : List<T>, IReadOnlyList<T>
+        {
+            internal OutList()
+                : base()
+            {
+            }
+
+            internal OutList(IEnumerable<T> basedOn)
+                : base( basedOn )
+            {
+            }
+        }
+        OutList<IActivityLoggerClient> Clients
+        {
+            get { return _list as OutList<IActivityLoggerClient>; }
+        }
+
+        private IList<T> CreateNewList<T>( List<T> list = null )
+        {
+            if( list == null ) return new OutList<T>();
+            else return new OutList<T>( list );
+        }
+#endif
+#if net45
+        List<IActivityLoggerClient> Clients
+        {
+            get { return _list as List<IActivityLoggerClient>; }
+        }
+        private IList<T> CreateNewList<T>( List<T> list = null )
+        {
+            if( list == null ) return new List<T>();
+            else return new List<T>( list );
+        }
+#endif
+
+
+        object _list;
+
         readonly ActivityLoggerBridgeTarget _externalInput;
 
         internal class EmptyOutput : IActivityLoggerOutput
@@ -79,8 +117,12 @@ namespace CK.Core
         /// <param name="logger"></param>
         public ActivityLoggerOutput( IActivityLogger logger )
         {
-            _clients = new List<IActivityLoggerClient>();
-            _clientsEx = new CKReadOnlyListOnIList<IActivityLoggerClient>( _clients );
+#if net40
+            _list = new OutList<IActivityLoggerClient>();
+#endif
+#if net45
+            _list = new List<IActivityLoggerClient>();
+#endif
             _externalInput = new ActivityLoggerBridgeTarget( logger, true );
         }
 
@@ -107,12 +149,26 @@ namespace CK.Core
         public IActivityLoggerOutput RegisterClient( IActivityLoggerClient client )
         {
             if( client == null ) throw new ArgumentNullException( "client" );
-            if( !_clients.Contains( client ) )
+
+            var localClients = Clients;
+
+            if( !localClients.Contains( client ) )
             {
                 IActivityLoggerBoundClient bound = client as IActivityLoggerBoundClient;
                 if( bound != null ) bound.SetLogger( Logger, false );
-                _clients.Insert( 0, client );
+
+                IList<IActivityLoggerClient> loggers = null;
+
+                do
+                {
+                    localClients = Clients;
+                    loggers = CreateNewList<IActivityLoggerClient>( localClients.ToList() );
+                    if( !loggers.Contains( client ) ) { loggers.Insert( 0, client ); }
+                    else break;
+                }
+                while( Interlocked.CompareExchange( ref _list, loggers, localClients ) != localClients );
             }
+
             return this;
         }
 
@@ -125,19 +181,34 @@ namespace CK.Core
         public IActivityLoggerOutput UnregisterClient( IActivityLoggerClient client )
         {
             if( client == null ) throw new ArgumentNullException( "client" );
-            int idx = _clients.IndexOf( client );
-            if( idx >= 0 )
+
+            IList<IActivityLoggerClient> localClients = Clients;
+
+            if( localClients.Contains( client ) )
             {
+
                 IActivityLoggerBoundClient bound = client as IActivityLoggerBoundClient;
                 if( bound != null ) bound.SetLogger( null, false );
-                _clients.RemoveAt( idx );
+
+                IList<IActivityLoggerClient> loggers = null;
+
+                do
+                {
+                    localClients = Clients;
+                    loggers = CreateNewList<IActivityLoggerClient>( localClients.ToList() );
+                    var idx = loggers.IndexOf( client );
+                    if( idx >= 0 ) loggers.RemoveAt( idx );
+                    else break;
+                }
+                while( Interlocked.CompareExchange( ref _list, loggers, localClients ) != localClients );
             }
+
             return this;
         }
 
         internal void ForceRemoveBuggyClient( IActivityLoggerClient client )
         {
-            Debug.Assert( client != null && _clients.Contains( client ) );
+            Debug.Assert( client != null && Clients.Contains( client ) );
             if( client == null ) throw new ArgumentNullException( "client" );
             IActivityLoggerBoundClient bound = client as IActivityLoggerBoundClient;
             if( bound != null )
@@ -151,17 +222,27 @@ namespace CK.Core
                     ActivityLogger.LoggingError.Add( ex, "While removing the buggy client." );
                 }
             }
-            _clients.Remove( client );
+
+
+            IList<IActivityLoggerClient> localClients = Clients;
+            IList<IActivityLoggerClient> loggers = null;
+            do
+            {
+                localClients = Clients;
+                loggers = CreateNewList<IActivityLoggerClient>( localClients.ToList() );
+                var idx = loggers.IndexOf( client );
+                if( idx >= 0 ) loggers.RemoveAt( idx );
+                else break;
+            }
+            while( Interlocked.CompareExchange( ref _list, loggers, localClients ) != localClients );
         }
-
-
 
         /// <summary>
         /// Gets the list of registered <see cref="IActivityLoggerClient"/>.
         /// </summary>
         public IReadOnlyList<IActivityLoggerClient> RegisteredClients
         {
-            get { return _clientsEx; }
+            get { return Clients; }
         }
     }
 }
