@@ -26,6 +26,7 @@ using System.Collections.Generic;
 using System.Text;
 using System.Collections;
 using System.Threading.Tasks;
+using System.Diagnostics.CodeAnalysis;
 
 namespace CK.Core
 {
@@ -112,6 +113,7 @@ namespace CK.Core
         /// It does absolutely nothing.
         /// </summary>
         /// <param name="obj">Any object.</param>
+        [ExcludeFromCodeCoverage]
         public static void ActionVoid<T>( T obj ) 
         { 
         }
@@ -123,6 +125,7 @@ namespace CK.Core
         /// </summary>
         /// <param name="o1">Any object.</param>
         /// <param name="o2">Any object.</param>
+        [ExcludeFromCodeCoverage]
         public static void ActionVoid<T1, T2>( T1 o1, T2 o2 )
         {
         }
@@ -135,6 +138,7 @@ namespace CK.Core
         /// <param name="o1">Any object.</param>
         /// <param name="o2">Any object.</param>
         /// <param name="o3">Any object.</param>
+        [ExcludeFromCodeCoverage]
         public static void ActionVoid<T1, T2, T3>( T1 o1, T2 o2, T3 o3 )
         {
         }
@@ -184,7 +188,8 @@ namespace CK.Core
         {
             return delegate( T o ) { a( o ); return false; };
         }
-        
+
+#if net40
         /// <summary>
         /// Binary search implementation that relies on a <see cref="Comparison{T}"/>.
         /// </summary>
@@ -230,6 +235,59 @@ namespace CK.Core
             {
                 int mid = low + ((high - low) >> 1);
                 int cmp = comparison( array[mid], key );
+                if( cmp == 0 ) return mid;
+                if( cmp < 0 ) low = mid + 1;
+                else high = mid - 1;
+            }
+            return ~low;
+        }
+#endif
+
+        /// <summary>
+        /// Binary search implementation that relies on a <see cref="Comparison{T}"/>.
+        /// </summary>
+        /// <typeparam name="T">Type of the elements.</typeparam>
+        /// <param name="sortedList">Read only list of elements.</param>
+        /// <param name="startIndex">The starting index in the list.</param>
+        /// <param name="length">The number of elements to consider in the list.</param>
+        /// <param name="value">The value to locate.</param>
+        /// <param name="comparison">The comparison function.</param>
+        /// <returns>Same as <see cref="Array.BinarySearch(Array,object)"/>: negative index if not found which is the bitwise complement of (the index of the next element plus 1).</returns>
+        public static int BinarySearch<T>( IReadOnlyList<T> sortedList, int startIndex, int length, T value, Comparison<T> comparison )
+        {
+            int low = startIndex;
+            int high = (startIndex + length) - 1;
+            while( low <= high )
+            {
+                int mid = low + ((high - low) >> 1);
+                int cmp = comparison( sortedList[mid], value );
+                if( cmp == 0 ) return mid;
+                if( cmp < 0 ) low = mid + 1;
+                else high = mid - 1;
+            }
+            return ~low;
+        }
+
+        /// <summary>
+        /// Binary search implementation that relies on an extended comparer: a function that knows how to 
+        /// compare the elements of the list to a key of another type.
+        /// </summary>
+        /// <typeparam name="T">Type of the elements.</typeparam>
+        /// <typeparam name="TKey">Type of the key.</typeparam>
+        /// <param name="sortedList">Read only list of elements.</param>
+        /// <param name="startIndex">The starting index in the list.</param>
+        /// <param name="length">The number of elements to consider in the list.</param>
+        /// <param name="key">The value of the key.</param>
+        /// <param name="comparison">The comparison function.</param>
+        /// <returns>Same as <see cref="Array.BinarySearch(Array,object)"/>: negative index if not found which is the bitwise complement of (the index of the next element plus 1).</returns>
+        public static int BinarySearch<T, TKey>( IReadOnlyList<T> sortedList, int startIndex, int length, TKey key, Func<T, TKey, int> comparison )
+        {
+            int low = startIndex;
+            int high = (startIndex + length) - 1;
+            while( low <= high )
+            {
+                int mid = low + ((high - low) >> 1);
+                int cmp = comparison( sortedList[mid], key );
                 if( cmp == 0 ) return mid;
                 if( cmp < 0 ) low = mid + 1;
                 else high = mid - 1;

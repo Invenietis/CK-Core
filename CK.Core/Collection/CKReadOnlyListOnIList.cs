@@ -221,7 +221,11 @@ namespace CK.Core
         public IList<TInner> Inner
         {
             get { return _inner; }
-            set { _inner = value; }
+            set
+            {
+                if( value == null ) throw new ArgumentNullException( "value" );
+                _inner = value;
+            }
         }
 
 		/// <summary>

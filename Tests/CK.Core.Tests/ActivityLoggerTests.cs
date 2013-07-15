@@ -255,7 +255,7 @@ namespace CK.Core.Tests
 
         [Test]
         [Category( "Console" )]
-        public void DumpAggregetedException()
+        public void DumpAggregatedException()
         {
             IDefaultActivityLogger l = new DefaultActivityLogger();
             l.Output.BridgeTo( TestHelper.Logger );
@@ -414,6 +414,14 @@ namespace CK.Core.Tests
             }
         }
 
+        class ObjectAsConclusion
+        {
+            public override string ToString()
+            {
+                return "Explicit User Conclusion";
+            }
+        }
+
         [Test]
         [Category( "Console" )]
         public void MultipleConclusions()
@@ -428,9 +436,38 @@ namespace CK.Core.Tests
             using( l.OpenGroup( LogLevel.Trace, () => "From Opener", "G" ) )
             {
                 l.Error( "Pouf" );
-                l.CloseGroup( "Explicit User Conclusion" );
+                l.CloseGroup( new ObjectAsConclusion() );
             }
             Assert.That( log.Writer.ToString(), Is.StringContaining( "Explicit User Conclusion, From Opener, 1 Error" ) );
+        }
+        
+        [Test]
+        public void ErrorAgurments()
+        {
+            IDefaultActivityLogger l = new DefaultActivityLogger();
+            l.Output.BridgeTo( TestHelper.Logger );
+            Assert.Throws<ArgumentException>( () => l.UnfilteredLog( ActivityLogger.EmptyTag, LogLevel.Error, "Text may be null", DateTime.Now, null ), "DateTime must be Utc." );
+            Assert.Throws<ArgumentException>( () => l.OpenGroup( ActivityLogger.EmptyTag, LogLevel.Error, null, "Text may be null", DateTime.Now, null ), "DateTime must be Utc." );
+        }
+
+        [Test]
+        public void EmptyPattern()
+        {
+            IDefaultActivityLogger l = DefaultActivityLogger.Empty;
+            l.Output.BridgeTo( TestHelper.Logger );
+            var c = new ActivityLoggerSimpleCollector();
+            l.Output.RegisterClient( c );
+            var log = new StringImpl();
+            l.Tap.Register( log );
+
+            using( l.OpenGroup( LogLevel.Trace, () => "From Opener", "G" ) )
+            {
+                l.Error( "Pouf" );
+                l.Error( new Exception(), "Pouf" );
+                l.CloseGroup( "Explicit User Conclusion" );
+            }
+            l.Output.UnregisterClient( c );
+            l.Tap.Unregister( log );
         }
 
         [Test]
