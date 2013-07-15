@@ -26,6 +26,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Diagnostics;
+using System.Threading;
 
 namespace CK.Core
 {
@@ -178,6 +179,7 @@ namespace CK.Core
             }
         }
 
+        private int _unfilteredLogCounter = 0;
         /// <summary>
         /// Logs a text regardless of <see cref="Filter"/> level. 
         /// Each call to log is considered as a unit of text: depending on the rendering engine, a line or a 
@@ -199,6 +201,8 @@ namespace CK.Core
         /// </remarks>
         public IActivityLogger UnfilteredLog( CKTrait tags, LogLevel level, string text, DateTime logTimeUtc, Exception ex = null )
         {
+            if( _unfilteredLogCounter != 0 ) { throw new InvalidOperationException( "Multiple simultaneous operation or reentrant call" ); }
+            Interlocked.Increment( ref _unfilteredLogCounter );
             if( logTimeUtc.Kind != DateTimeKind.Utc ) throw new ArgumentException( R.DateTimeMustBeUtc, "logTimeUtc" );
             if( level != LogLevel.None )
             {
@@ -229,9 +233,11 @@ namespace CK.Core
                     if( buggyClients != null ) foreach( var l in buggyClients ) _output.ForceRemoveBuggyClient( l );
                 }
             }
+            Interlocked.Decrement( ref _unfilteredLogCounter );
             return this;
         }
 
+        private  int _openGroupCounter = 0;
         /// <summary>
         /// Opens a <see cref="Group"/> configured with the given parameters.
         /// </summary>
@@ -247,36 +253,47 @@ namespace CK.Core
         /// <returns>The <see cref="Group"/> that can be disposed to close it.</returns>
         public virtual IDisposable OpenGroup( CKTrait tags, LogLevel level, Func<string> getConclusionText, string text, DateTime logTimeUtc, Exception ex = null )
         {
-            if( logTimeUtc.Kind != DateTimeKind.Utc ) throw new ArgumentException( R.DateTimeMustBeUtc, "logTimeUtc" );
-            if( level == LogLevel.None ) return Util.EmptyDisposable;
-            int idxNext = _current != null ? _current.Depth : 0;
-            if( idxNext == _groups.Length )
+            try
             {
-                Array.Resize( ref _groups, _groups.Length*2 );
-                for( int i = idxNext; i < _groups.Length; ++i ) _groups[i] = CreateGroup( i );
+                if( _openGroupCounter != 0 ) { throw new InvalidOperationException( "Multiple simultaneous operation or reentrant call" ); }
+                Interlocked.Increment( ref _openGroupCounter );
+
+                if( logTimeUtc.Kind != DateTimeKind.Utc ) throw new ArgumentException( R.DateTimeMustBeUtc, "logTimeUtc" );
+                if( level == LogLevel.None ) return Util.EmptyDisposable;
+                int idxNext = _current != null ? _current.Depth : 0;
+                if( idxNext == _groups.Length )
+                {
+                    Array.Resize( ref _groups, _groups.Length * 2 );
+                    for( int i = idxNext; i < _groups.Length; ++i ) _groups[i] = CreateGroup( i );
+                }
+                _current = _groups[idxNext];
+                if( tags == null || tags.IsEmpty ) tags = _currentTag;
+                else tags = _currentTag.Union( tags );
+                _current.Initialize( tags, level, text ?? (ex != null ? ex.Message : String.Empty), getConclusionText, logTimeUtc, ex );
+                List<IActivityLoggerClient> buggyClients = null;
+                foreach( var l in _output.RegisteredClients )
+                {
+                    try
+                    {
+                        l.OnOpenGroup( _current );
+                    }
+                    catch( Exception exCall )
+                    {
+                        LoggingError.Add( exCall, l.GetType().FullName );
+                        if( buggyClients == null ) buggyClients = new List<IActivityLoggerClient>();
+                        buggyClients.Add( l );
+                    }
+                }
+                if( buggyClients != null ) foreach( var l in buggyClients ) _output.ForceRemoveBuggyClient( l );
+                return _current;
             }
-            _current = _groups[idxNext];
-            if( tags == null || tags.IsEmpty ) tags = _currentTag;
-            else tags = _currentTag.Union( tags );
-            _current.Initialize( tags, level, text ?? (ex != null ? ex.Message : String.Empty), getConclusionText, logTimeUtc, ex );
-            List<IActivityLoggerClient> buggyClients = null;
-            foreach( var l in _output.RegisteredClients )
+            finally
             {
-                try
-                {
-                    l.OnOpenGroup( _current );
-                }
-                catch( Exception exCall )
-                {
-                    LoggingError.Add( exCall, l.GetType().FullName );
-                    if( buggyClients == null ) buggyClients = new List<IActivityLoggerClient>();
-                    buggyClients.Add( l );
-                }
+                Interlocked.Decrement( ref _openGroupCounter );
             }
-            if( buggyClients != null ) foreach( var l in buggyClients ) _output.ForceRemoveBuggyClient( l );
-            return _current;
         }
 
+        private  int _closeGroupCounter = 0;
         /// <summary>
         /// Closes the current <see cref="Group"/>. Optional parameter is polymorphic. It can be a string, a <see cref="ActivityLogGroupConclusion"/>, 
         /// a <see cref="List{T}"/> or an <see cref="IEnumerable{T}"/> of ActivityLogGroupConclusion, or any object with an overriden <see cref="Object.ToString"/> method. 
@@ -290,6 +307,9 @@ namespace CK.Core
         /// </remarks>
         public virtual void CloseGroup( DateTime logTimeUtc, object userConclusion = null )
         {
+            if( _closeGroupCounter != 0 ) { throw new InvalidOperationException( "Multiple simultaneous operation or reentrant call" ); }
+            Interlocked.Increment( ref _closeGroupCounter );
+
             Group g = _current;
             if( g != null )
             {
@@ -357,6 +377,7 @@ namespace CK.Core
                 if( buggyClients != null ) foreach( var l in buggyClients ) _output.ForceRemoveBuggyClient( l );
                 g.GroupClosed();
             }
+            Interlocked.Decrement( ref _closeGroupCounter );
         }
 
     }
