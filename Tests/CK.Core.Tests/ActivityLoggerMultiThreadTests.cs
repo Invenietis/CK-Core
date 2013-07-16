@@ -32,7 +32,7 @@ namespace CK.Core.Tests
         internal class NotBuggyActivityLoggerClient : ActivityLoggerClient
         {
             private  int _number;
-            internal NotBuggyActivityLoggerClient(int number)
+            internal NotBuggyActivityLoggerClient( int number )
             {
                 _number = number;
             }
@@ -44,7 +44,33 @@ namespace CK.Core.Tests
         }
 
         [Test]
-        public void Reentrancy()
+        public void ReentrancyMultiThread()
+        {
+            IDefaultActivityLogger logger = new DefaultActivityLogger();
+            logger.Tap.Register( new ActivityLoggerConsoleSink() );
+
+            Task[] tasks = new Task[] 
+            {            
+                new Task( () => { logger.Info( "Test T1" ); } ),
+                new Task( () => { logger.Info( "Test T2" ); } ),
+                new Task( () => { logger.Info( "Test T3" ); } ),
+                new Task( () => { logger.Info( "Test T4" ); } ),
+                new Task( () => { logger.Info( "Test T5" ); } ),
+                new Task( () => { logger.Info( "Test T6" ); } )
+            };
+
+            Parallel.ForEach( tasks, t => t.Start() );
+            Assert.Throws<AggregateException>( () => Task.WaitAll( tasks ) );
+
+            CollectionAssert.AllItemsAreInstancesOfType( tasks.Where( x => x.IsFaulted ).
+                                                                SelectMany( x => x.Exception.Flatten().InnerExceptions ),
+                                                                typeof( InvalidOperationException ), "Multiple simultaneous operation or reentrant call" );
+
+            logger.Info( "Test" ); // Expected no exceptions
+        }
+
+        [Test]
+        public void ReentrancyMonoThread()
         {
             IDefaultActivityLogger logger = new DefaultActivityLogger();
             int clientCount = logger.Output.RegisteredClients.Count;
@@ -55,6 +81,8 @@ namespace CK.Core.Tests
             Assert.That( logger.Output.RegisteredClients.Count, Is.EqualTo( clientCount + 1 ) );
             logger.Info( "Test" );
             Assert.That( logger.Output.RegisteredClients.Count, Is.EqualTo( clientCount ) );
+
+            logger.Info( "Test" ); // Expected no exceptions
         }
 
         [Test]
@@ -104,12 +132,13 @@ namespace CK.Core.Tests
 
                     Random r = new Random();
 
-                    Parallel.For( 0, 20, i => {
+                    Parallel.For( 0, 20, i =>
+                    {
                         Console.WriteLine( "Add : {0}", i );
                         logger.Output.RegisterClient( clients[i] );
                         Thread.Sleep( (int)Math.Round( r.NextDouble() * 50, 0 ) );
                         Console.WriteLine( "Remove : {0}", i );
-                        logger.Output.UnregisterClient( clients[i] ); 
+                        logger.Output.UnregisterClient( clients[i] );
                     } );
 
                     Assert.That( logger.Output.RegisteredClients.Count, Is.EqualTo( initCount ) );
