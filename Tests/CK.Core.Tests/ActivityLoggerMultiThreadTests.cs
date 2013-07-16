@@ -39,7 +39,7 @@ namespace CK.Core.Tests
 
             protected override void OnUnfilteredLog( CKTrait tags, LogLevel level, string text, DateTime logTimeUtc )
             {
-                Console.WriteLine( "NotBuggyActivityLoggerClient echo : ", _number );
+                Console.WriteLine( "NotBuggyActivityLoggerClient echo : {0}", _number );
             }
         }
 
@@ -116,34 +116,35 @@ namespace CK.Core.Tests
             };
 
             Task t = new Task( () =>
+            {
+                Console.WriteLine( "Internal tast Started" );
+
+                Parallel.For( 0, 20, i => { logger.Output.RegisterClient( clients[i] ); } );
+
+                Assert.That( logger.Output.RegisteredClients.Count, Is.EqualTo( 20 + initCount ) );
+
+                Thread.Sleep( 100 );
+
+                Parallel.For( 0, 20, i => { logger.Output.UnregisterClient( clients[i] ); } );
+
+                Assert.That( logger.Output.RegisteredClients.Count, Is.EqualTo( initCount ) );
+
+                Thread.Sleep( 100 );
+
+                Random r = new Random();
+
+                Parallel.For( 0, 20, i =>
                 {
-
-                    Parallel.For( 0, 20, i => { logger.Output.RegisterClient( clients[i] ); } );
-
-                    Assert.That( logger.Output.RegisteredClients.Count, Is.EqualTo( 20 + initCount ) );
-
-                    Thread.Sleep( 100 );
-
-                    Parallel.For( 0, 20, i => { logger.Output.UnregisterClient( clients[i] ); } );
-
-                    Assert.That( logger.Output.RegisteredClients.Count, Is.EqualTo( initCount ) );
-
-                    Thread.Sleep( 100 );
-
-                    Random r = new Random();
-
-                    Parallel.For( 0, 20, i =>
-                    {
-                        Console.WriteLine( "Add : {0}", i );
-                        logger.Output.RegisterClient( clients[i] );
-                        Thread.Sleep( (int)Math.Round( r.NextDouble() * 50, 0 ) );
-                        Console.WriteLine( "Remove : {0}", i );
-                        logger.Output.UnregisterClient( clients[i] );
-                    } );
-
-                    Assert.That( logger.Output.RegisteredClients.Count, Is.EqualTo( initCount ) );
-
+                    Console.WriteLine( "Add : {0}", i );
+                    logger.Output.RegisterClient( clients[i] );
+                    Thread.Sleep( (int)Math.Round( r.NextDouble() * 50, 0 ) );
+                    Console.WriteLine( "Remove : {0}", i );
+                    logger.Output.UnregisterClient( clients[i] );
                 } );
+
+                Assert.That( logger.Output.RegisteredClients.Count, Is.EqualTo( initCount ) );
+
+            } );
 
             t.Start();
             for( int i = 0; i < 50; i++ )

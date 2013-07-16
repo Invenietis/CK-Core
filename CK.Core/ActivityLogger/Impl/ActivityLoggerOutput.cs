@@ -53,25 +53,26 @@ namespace CK.Core
             get { return _list as OutList<IActivityLoggerClient>; }
         }
 
-        private IList<T> CreateNewList<T>( List<T> list = null )
+        private OutList<T> CreateNewList<T>( List<T> list = null )
         {
             if( list == null ) return new OutList<T>();
             else return new OutList<T>( list );
         }
+        OutList<IActivityLoggerClient> _list;
 #endif
 #if net45
         List<IActivityLoggerClient> Clients
         {
             get { return _list as List<IActivityLoggerClient>; }
         }
-        private IList<T> CreateNewList<T>( List<T> list )
+        private List<T> CreateNewList<T>( List<T> list )
         {
             return new List<T>( list );
         }
+        List<IActivityLoggerClient> _list;
 #endif
 
 
-        object _list;
 
         readonly ActivityLoggerBridgeTarget _externalInput;
 
@@ -129,9 +130,9 @@ namespace CK.Core
         /// Gets an entry point for other loggers: by registering <see cref="ActivityLoggerBridge"/> in other <see cref="IActivityLogger.Output"/>
         /// bound to this <see cref="ActivityLoggerBridgeTarget"/>, log streams can easily be merged.
         /// </summary>
-        public ActivityLoggerBridgeTarget ExternalInput 
+        public ActivityLoggerBridgeTarget ExternalInput
         {
-            get { return _externalInput; } 
+            get { return _externalInput; }
         }
 
         /// <summary>
@@ -156,16 +157,13 @@ namespace CK.Core
                 IActivityLoggerBoundClient bound = client as IActivityLoggerBoundClient;
                 if( bound != null ) bound.SetLogger( Logger, false );
 
-                IList<IActivityLoggerClient> loggers = null;
-
-                do
+                Morph( ref _list, client, ( current, arg ) =>
                 {
-                    localClients = Clients;
-                    loggers = CreateNewList<IActivityLoggerClient>( localClients.ToList() );
-                    if( !loggers.Contains( client ) ) { loggers.Insert( 0, client ); }
-                    else break;
-                }
-                while( Interlocked.CompareExchange( ref _list, loggers, localClients ) != localClients );
+                    var loggers = CreateNewList<IActivityLoggerClient>( current.ToList() );
+                    if( !loggers.Contains( arg ) ) { loggers.Insert( 0, arg ); }
+                    else return null;
+                    return loggers;
+                } );
             }
 
             return this;
@@ -189,17 +187,14 @@ namespace CK.Core
                 IActivityLoggerBoundClient bound = client as IActivityLoggerBoundClient;
                 if( bound != null ) bound.SetLogger( null, false );
 
-                IList<IActivityLoggerClient> loggers = null;
-
-                do
+                Morph( ref _list, client, ( current, arg ) =>
                 {
-                    localClients = Clients;
-                    loggers = CreateNewList<IActivityLoggerClient>( localClients.ToList() );
-                    var idx = loggers.IndexOf( client );
+                    var loggers = CreateNewList<IActivityLoggerClient>( current.ToList() );
+                    var idx = loggers.IndexOf( arg );
                     if( idx >= 0 ) loggers.RemoveAt( idx );
-                    else break;
-                }
-                while( Interlocked.CompareExchange( ref _list, loggers, localClients ) != localClients );
+                    else return null;
+                    return loggers;
+                } );
             }
 
             return this;
@@ -222,18 +217,14 @@ namespace CK.Core
                 }
             }
 
-
-            IList<IActivityLoggerClient> localClients = Clients;
-            IList<IActivityLoggerClient> loggers = null;
-            do
+            Morph( ref _list, client, (current, arg) =>
             {
-                localClients = Clients;
-                loggers = CreateNewList<IActivityLoggerClient>( localClients.ToList() );
-                var idx = loggers.IndexOf( client );
+                var loggers = CreateNewList<IActivityLoggerClient>( current.ToList() );
+                var idx = loggers.IndexOf( arg );
                 if( idx >= 0 ) loggers.RemoveAt( idx );
-                else break;
-            }
-            while( Interlocked.CompareExchange( ref _list, loggers, localClients ) != localClients );
+                else return null;
+                return loggers;
+            } );
         }
 
         /// <summary>
@@ -241,7 +232,21 @@ namespace CK.Core
         /// </summary>
         public IReadOnlyList<IActivityLoggerClient> RegisteredClients
         {
-            get { return Clients; }
+            get { return _list; }
+        }
+
+        static void Morph<T, TArg>( ref T target, TArg arg, Func<T, TArg, T> morpher )
+            where T : class
+        {
+            T desiredVal;
+            T startVal = target;
+            do
+            {
+                startVal = target;
+                desiredVal = morpher( startVal, arg );  
+                if( desiredVal == null ) break;
+            }
+            while( Interlocked.CompareExchange( ref target, desiredVal, startVal ) != startVal );
         }
     }
 }
