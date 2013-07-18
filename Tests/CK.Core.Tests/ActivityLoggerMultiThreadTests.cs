@@ -43,6 +43,100 @@ namespace CK.Core.Tests
             }
         }
 
+        internal class ActionActivityLoggerClient : ActivityLoggerClient
+        {
+            Action _log;
+            internal ActionActivityLoggerClient( Action log )
+            {
+                _log = log;
+            }
+
+            protected override void OnUnfilteredLog( CKTrait tags, LogLevel level, string text, DateTime logTimeUtc )
+            {
+                _log();
+            }
+        }
+
+        internal class WaitActivityLoggerClient : ActivityLoggerClient
+        {
+            readonly object _locker = new object();
+            bool _done = false;
+
+            readonly object _outLocker = new object();
+            bool _outDone = false;
+
+            protected override void OnUnfilteredLog( CKTrait tags, LogLevel level, string text, DateTime logTimeUtc )
+            {
+                lock( _locker )
+                {
+                    lock( _outLocker )
+                    {
+                        _outDone = true;
+                        Monitor.PulseAll( _outLocker );
+                    }
+                    while( !_done )
+                        Monitor.Wait( _locker );
+                }
+            }
+
+            internal void WaitForWait()
+            {
+                lock( _outLocker )
+                    while( !_outDone )
+                        Monitor.Wait( _outLocker );
+            }
+
+            internal void Free()
+            {
+                lock( _locker )
+                {
+                    _done = true;
+                    Monitor.PulseAll( _locker );
+                }
+            }
+        }
+
+        [Test]
+        public void ExhibeReentrancyAndMultiThreadErrors()
+        {
+            DefaultActivityLogger logger = new DefaultActivityLogger();
+            logger.Tap.Register( new ActivityLoggerConsoleSink() );
+            WaitActivityLoggerClient client = new WaitActivityLoggerClient();
+            logger.Output.RegisterClient( client );
+
+            try
+            {
+                Task.Factory.StartNew( () =>
+                {
+                    logger.Info( "Test must work in task" );
+                } );
+
+                client.WaitForWait();
+
+                Assert.That( () => logger.Info( "Test must fail" ),
+                    Throws.TypeOf( typeof( InvalidOperationException ) ).
+                        And.Message.EqualTo( "Simultaneous multiple thread concurrency error, at least 2 thread has access to the same ActivityLogger." ) );
+            }
+            finally
+            {
+                client.Free();
+            }
+
+            Thread.Sleep( 50 );
+            logger.Info( "Test must work after task" );
+
+            logger.Output.RegisterClient( new ActionActivityLoggerClient( () =>
+            {
+                Assert.That( () => logger.Info( "Test must fail reentrant client" ),
+                    Throws.TypeOf( typeof( InvalidOperationException ) ).
+                        And.Message.EqualTo( "Same thread reentrancy error, a thread is in multiple method at the same time." ) );
+            } ) );
+
+
+            logger.Info( "Test must work with reentrant client" );
+            logger.Info( "Test must work after reentrant client" );
+        }
+
         [Test]
         public void ReentrancyMultiThread()
         {
@@ -64,7 +158,7 @@ namespace CK.Core.Tests
 
             CollectionAssert.AllItemsAreInstancesOfType( tasks.Where( x => x.IsFaulted ).
                                                                 SelectMany( x => x.Exception.Flatten().InnerExceptions ),
-                                                                typeof( InvalidOperationException ), "Multiple simultaneous operation or reentrant call" );
+                                                                typeof( InvalidOperationException ) );
 
             logger.Info( "Test" ); // Expected no exceptions
         }

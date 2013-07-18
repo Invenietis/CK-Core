@@ -146,6 +146,8 @@ namespace CK.Core
             set { _currentTag = value ?? RegisteredTags.EmptyTrait; } 
         }
 
+        private int _threadCounter = 0;
+
         /// <summary>
         /// Gets or sets a filter based on the log level.
         /// Modifications to this property are scoped to the current Group since when a Group is closed, this
@@ -158,28 +160,39 @@ namespace CK.Core
             {
                 if( _filter != value )
                 {
-
-                    List<IActivityLoggerClient> buggyClients = null;
-                    foreach( var l in _output.RegisteredClients )
+                    ReentrancyCheck( ref _threadCounter );
+                    try
                     {
-                        try
-                        {
-                            l.OnFilterChanged( _filter, value );
-                        }
-                        catch( Exception exCall )
-                        {
-                            LoggingError.Add( exCall, l.GetType().FullName );
-                            if( buggyClients == null ) buggyClients = new List<IActivityLoggerClient>();
-                            buggyClients.Add( l );
-                        }
+                        SetFilter( value );
                     }
-                    if( buggyClients != null ) foreach( var l in buggyClients ) _output.ForceRemoveBuggyClient( l );
-                    _filter = value;
+                    finally
+                    {
+                        ReentrancyRelease( ref _threadCounter );
+                    }
                 }
             }
         }
 
-        private int _unfilteredLogCounter = 0;
+        internal void SetFilter( LogLevelFilter value )
+        {
+            List<IActivityLoggerClient> buggyClients = null;
+            foreach( var l in _output.RegisteredClients )
+            {
+                try
+                {
+                    l.OnFilterChanged( _filter, value );
+                }
+                catch( Exception exCall )
+                {
+                    LoggingError.Add( exCall, l.GetType().FullName );
+                    if( buggyClients == null ) buggyClients = new List<IActivityLoggerClient>();
+                    buggyClients.Add( l );
+                }
+            }
+            if( buggyClients != null ) foreach( var l in buggyClients ) _output.ForceRemoveBuggyClient( l );
+            _filter = value;
+        }
+
         /// <summary>
         /// Logs a text regardless of <see cref="Filter"/> level. 
         /// Each call to log is considered as a unit of text: depending on the rendering engine, a line or a 
@@ -201,49 +214,54 @@ namespace CK.Core
         /// </remarks>
         public IActivityLogger UnfilteredLog( CKTrait tags, LogLevel level, string text, DateTime logTimeUtc, Exception ex = null )
         {
-            ReentrancyCheck( ref _unfilteredLogCounter );
+            ReentrancyCheck( ref _threadCounter );
             try
             {
-                if( logTimeUtc.Kind != DateTimeKind.Utc ) throw new ArgumentException( R.DateTimeMustBeUtc, "logTimeUtc" );
-                if( level != LogLevel.None )
-                {
-                    if( ex != null )
-                    {
-                        OpenGroup( tags, level, null, text, logTimeUtc, ex );
-                        CloseGroup( logTimeUtc );
-                    }
-                    else if( !String.IsNullOrEmpty( text ) )
-                    {
-                        if( tags == null || tags.IsEmpty ) tags = _currentTag;
-                        else tags = _currentTag.Union( tags );
-
-                        List<IActivityLoggerClient> buggyClients = null;
-                        foreach( var l in _output.RegisteredClients )
-                        {
-                            try
-                            {
-                                l.OnUnfilteredLog( tags, level, text, logTimeUtc );
-                            }
-                            catch( Exception exCall )
-                            {
-                                LoggingError.Add( exCall, l.GetType().FullName );
-                                if( buggyClients == null ) buggyClients = new List<IActivityLoggerClient>();
-                                buggyClients.Add( l );
-                            }
-                        }
-                        if( buggyClients != null ) foreach( var l in buggyClients ) _output.ForceRemoveBuggyClient( l );
-                    }
-                }
-
-                return this;
+                return DoUnfiltredLog( tags, level, text, logTimeUtc, ex );
             }
             finally
             {
-                ReentrancyRelease( ref _unfilteredLogCounter );
+                ReentrancyRelease( ref _threadCounter );
             }
         }
 
-        private  int _openGroupCounter = 0;
+        private IActivityLogger DoUnfiltredLog( CKTrait tags, LogLevel level, string text, DateTime logTimeUtc, Exception ex = null )
+        {
+            if( logTimeUtc.Kind != DateTimeKind.Utc ) throw new ArgumentException( R.DateTimeMustBeUtc, "logTimeUtc" );
+            if( level != LogLevel.None )
+            {
+                if( ex != null )
+                {
+                    DoOpenGroup( tags, level, null, text, logTimeUtc, ex );
+                    DoCloseGroup( logTimeUtc );
+                }
+                else if( !String.IsNullOrEmpty( text ) )
+                {
+                    if( tags == null || tags.IsEmpty ) tags = _currentTag;
+                    else tags = _currentTag.Union( tags );
+
+                    List<IActivityLoggerClient> buggyClients = null;
+                    foreach( var l in _output.RegisteredClients )
+                    {
+                        try
+                        {
+                            l.OnUnfilteredLog( tags, level, text, logTimeUtc );
+                        }
+                        catch( Exception exCall )
+                        {
+                            LoggingError.Add( exCall, l.GetType().FullName );
+                            if( buggyClients == null ) buggyClients = new List<IActivityLoggerClient>();
+                            buggyClients.Add( l );
+                        }
+                    }
+                    if( buggyClients != null ) foreach( var l in buggyClients ) _output.ForceRemoveBuggyClient( l );
+                }
+            }
+
+            return this;
+        }
+
+
         /// <summary>
         /// Opens a <see cref="Group"/> configured with the given parameters.
         /// </summary>
@@ -259,45 +277,49 @@ namespace CK.Core
         /// <returns>The <see cref="Group"/> that can be disposed to close it.</returns>
         public virtual IDisposable OpenGroup( CKTrait tags, LogLevel level, Func<string> getConclusionText, string text, DateTime logTimeUtc, Exception ex = null )
         {
-            ReentrancyCheck( ref _openGroupCounter );
+            ReentrancyCheck( ref _threadCounter );
             try
             {
-                if( logTimeUtc.Kind != DateTimeKind.Utc ) throw new ArgumentException( R.DateTimeMustBeUtc, "logTimeUtc" );
-                if( level == LogLevel.None ) return Util.EmptyDisposable;
-                int idxNext = _current != null ? _current.Depth : 0;
-                if( idxNext == _groups.Length )
-                {
-                    Array.Resize( ref _groups, _groups.Length * 2 );
-                    for( int i = idxNext; i < _groups.Length; ++i ) _groups[i] = CreateGroup( i );
-                }
-                _current = _groups[idxNext];
-                if( tags == null || tags.IsEmpty ) tags = _currentTag;
-                else tags = _currentTag.Union( tags );
-                _current.Initialize( tags, level, text ?? (ex != null ? ex.Message : String.Empty), getConclusionText, logTimeUtc, ex );
-                List<IActivityLoggerClient> buggyClients = null;
-                foreach( var l in _output.RegisteredClients )
-                {
-                    try
-                    {
-                        l.OnOpenGroup( _current );
-                    }
-                    catch( Exception exCall )
-                    {
-                        LoggingError.Add( exCall, l.GetType().FullName );
-                        if( buggyClients == null ) buggyClients = new List<IActivityLoggerClient>();
-                        buggyClients.Add( l );
-                    }
-                }
-                if( buggyClients != null ) foreach( var l in buggyClients ) _output.ForceRemoveBuggyClient( l );
-                return _current;
+                return DoOpenGroup( tags, level, getConclusionText, text, logTimeUtc, ex );
             }
             finally
             {
-                ReentrancyRelease( ref _openGroupCounter );
+                ReentrancyRelease( ref _threadCounter );
             }
         }
 
-        private  int _closeGroupCounter = 0;
+        private IDisposable DoOpenGroup( CKTrait tags, LogLevel level, Func<string> getConclusionText, string text, DateTime logTimeUtc, Exception ex = null )
+        {
+            if( logTimeUtc.Kind != DateTimeKind.Utc ) throw new ArgumentException( R.DateTimeMustBeUtc, "logTimeUtc" );
+            if( level == LogLevel.None ) return Util.EmptyDisposable;
+            int idxNext = _current != null ? _current.Depth : 0;
+            if( idxNext == _groups.Length )
+            {
+                Array.Resize( ref _groups, _groups.Length * 2 );
+                for( int i = idxNext; i < _groups.Length; ++i ) _groups[i] = CreateGroup( i );
+            }
+            _current = _groups[idxNext];
+            if( tags == null || tags.IsEmpty ) tags = _currentTag;
+            else tags = _currentTag.Union( tags );
+            _current.Initialize( tags, level, text ?? (ex != null ? ex.Message : String.Empty), getConclusionText, logTimeUtc, ex );
+            List<IActivityLoggerClient> buggyClients = null;
+            foreach( var l in _output.RegisteredClients )
+            {
+                try
+                {
+                    l.OnOpenGroup( _current );
+                }
+                catch( Exception exCall )
+                {
+                    LoggingError.Add( exCall, l.GetType().FullName );
+                    if( buggyClients == null ) buggyClients = new List<IActivityLoggerClient>();
+                    buggyClients.Add( l );
+                }
+            }
+            if( buggyClients != null ) foreach( var l in buggyClients ) _output.ForceRemoveBuggyClient( l );
+            return _current;
+        }
+
         /// <summary>
         /// Closes the current <see cref="Group"/>. Optional parameter is polymorphic. It can be a string, a <see cref="ActivityLogGroupConclusion"/>, 
         /// a <see cref="List{T}"/> or an <see cref="IEnumerable{T}"/> of ActivityLogGroupConclusion, or any object with an overriden <see cref="Object.ToString"/> method. 
@@ -311,91 +333,102 @@ namespace CK.Core
         /// </remarks>
         public virtual void CloseGroup( DateTime logTimeUtc, object userConclusion = null )
         {
-            ReentrancyCheck( ref _closeGroupCounter );
+            ReentrancyCheck( ref _threadCounter );
             try
             {
-                Group g = _current;
-                if( g != null )
-                {
-                    g.CloseLogTimeUtc = logTimeUtc;
-                    var conclusions = userConclusion as List<ActivityLogGroupConclusion>;
-                    if( conclusions == null && userConclusion != null )
-                    {
-                        conclusions = new List<ActivityLogGroupConclusion>();
-                        string s = userConclusion as string;
-                        if( s != null ) conclusions.Add( new ActivityLogGroupConclusion( TagUserConclusion, s ) );
-                        else
-                        {
-                            if( userConclusion is ActivityLogGroupConclusion )
-                            {
-                                conclusions.Add( (ActivityLogGroupConclusion)userConclusion );
-                            }
-                            else
-                            {
-                                IEnumerable<ActivityLogGroupConclusion> multi = userConclusion as IEnumerable<ActivityLogGroupConclusion>;
-                                if( multi != null ) conclusions.AddRange( multi );
-                                else conclusions.Add( new ActivityLogGroupConclusion( TagUserConclusion, userConclusion.ToString() ) );
-                            }
-                        }
-                    }
-                    g.GroupClosing( ref conclusions );
-
-                    List<IActivityLoggerClient> buggyClients = null;
-                    foreach( var l in _output.RegisteredClients )
-                    {
-                        try
-                        {
-                            l.OnGroupClosing( g, ref conclusions );
-                        }
-                        catch( Exception exCall )
-                        {
-                            LoggingError.Add( exCall, l.GetType().FullName );
-                            if( buggyClients == null ) buggyClients = new List<IActivityLoggerClient>();
-                            buggyClients.Add( l );
-                        }
-                    }
-                    if( buggyClients != null )
-                    {
-                        foreach( var l in buggyClients ) _output.ForceRemoveBuggyClient( l );
-                        buggyClients.Clear();
-                    }
-
-                    Filter = g.SavedLoggerFilter;
-                    _currentTag = g.SavedLoggerTags;
-                    _current = (Group)g.Parent;
-
-                    var sentConclusions = conclusions != null ? conclusions.ToReadOnlyList() : CKReadOnlyListEmpty<ActivityLogGroupConclusion>.Empty;
-                    foreach( var l in _output.RegisteredClients )
-                    {
-                        try
-                        {
-                            l.OnGroupClosed( g, sentConclusions );
-                        }
-                        catch( Exception exCall )
-                        {
-                            LoggingError.Add( exCall, l.GetType().FullName );
-                            if( buggyClients == null ) buggyClients = new List<IActivityLoggerClient>();
-                            buggyClients.Add( l );
-                        }
-                    }
-                    if( buggyClients != null ) foreach( var l in buggyClients ) _output.ForceRemoveBuggyClient( l );
-                    g.GroupClosed();
-                }
+                DoCloseGroup( logTimeUtc, userConclusion );
             }
             finally
             {
-                ReentrancyRelease( ref _closeGroupCounter );
+                ReentrancyRelease( ref _threadCounter );
+            }
+        }
+
+        private void DoCloseGroup( DateTime logTimeUtc, object userConclusion = null )
+        {
+            Group g = _current;
+            if( g != null )
+            {
+                g.CloseLogTimeUtc = logTimeUtc;
+                var conclusions = userConclusion as List<ActivityLogGroupConclusion>;
+                if( conclusions == null && userConclusion != null )
+                {
+                    conclusions = new List<ActivityLogGroupConclusion>();
+                    string s = userConclusion as string;
+                    if( s != null ) conclusions.Add( new ActivityLogGroupConclusion( TagUserConclusion, s ) );
+                    else
+                    {
+                        if( userConclusion is ActivityLogGroupConclusion )
+                        {
+                            conclusions.Add( (ActivityLogGroupConclusion)userConclusion );
+                        }
+                        else
+                        {
+                            IEnumerable<ActivityLogGroupConclusion> multi = userConclusion as IEnumerable<ActivityLogGroupConclusion>;
+                            if( multi != null ) conclusions.AddRange( multi );
+                            else conclusions.Add( new ActivityLogGroupConclusion( TagUserConclusion, userConclusion.ToString() ) );
+                        }
+                    }
+                }
+                g.GroupClosing( ref conclusions );
+
+                List<IActivityLoggerClient> buggyClients = null;
+                foreach( var l in _output.RegisteredClients )
+                {
+                    try
+                    {
+                        l.OnGroupClosing( g, ref conclusions );
+                    }
+                    catch( Exception exCall )
+                    {
+                        LoggingError.Add( exCall, l.GetType().FullName );
+                        if( buggyClients == null ) buggyClients = new List<IActivityLoggerClient>();
+                        buggyClients.Add( l );
+                    }
+                }
+                if( buggyClients != null )
+                {
+                    foreach( var l in buggyClients ) _output.ForceRemoveBuggyClient( l );
+                    buggyClients.Clear();
+                }
+
+                SetFilter( g.SavedLoggerFilter );
+                _currentTag = g.SavedLoggerTags;
+                _current = (Group)g.Parent;
+
+                var sentConclusions = conclusions != null ? conclusions.ToReadOnlyList() : CKReadOnlyListEmpty<ActivityLogGroupConclusion>.Empty;
+                foreach( var l in _output.RegisteredClients )
+                {
+                    try
+                    {
+                        l.OnGroupClosed( g, sentConclusions );
+                    }
+                    catch( Exception exCall )
+                    {
+                        LoggingError.Add( exCall, l.GetType().FullName );
+                        if( buggyClients == null ) buggyClients = new List<IActivityLoggerClient>();
+                        buggyClients.Add( l );
+                    }
+                }
+                if( buggyClients != null ) foreach( var l in buggyClients ) _output.ForceRemoveBuggyClient( l );
+                g.GroupClosed();
             }
         }
 
         private void ReentrancyCheck( ref int counter )
         {
-            if( Interlocked.CompareExchange( ref counter, 1, 0 ) != 0 )
-                throw new InvalidOperationException( "Multiple simultaneous operation or reentrant call" );
+            int threadInCounter;
+            if( (threadInCounter = Interlocked.CompareExchange( ref counter, Thread.CurrentThread.ManagedThreadId, 0 ) ) != 0 )
+            {
+                if( threadInCounter == Thread.CurrentThread.ManagedThreadId )
+                    throw new InvalidOperationException( "Same thread reentrancy error, a thread is in multiple method at the same time." );
+                else
+                    throw new InvalidOperationException( "Simultaneous multiple thread concurrency error, at least 2 thread has access to the same ActivityLogger." );
+            }
         }
         private void ReentrancyRelease( ref int counter )
         {
-            if( Interlocked.CompareExchange( ref counter, 0, 1 ) != 1 )
+            if( Interlocked.CompareExchange( ref counter, 0, Thread.CurrentThread.ManagedThreadId ) != Thread.CurrentThread.ManagedThreadId )
                 throw new InvalidOperationException( "Error during release reentrancy operation. Not possible !" );
         }
 

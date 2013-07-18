@@ -161,7 +161,7 @@ namespace CK.Core
                 {
                     var loggers = CreateNewList<IActivityLoggerClient>( current.ToList() );
                     if( !loggers.Contains( arg ) ) { loggers.Insert( 0, arg ); }
-                    else return null;
+                    else return current;
                     return loggers;
                 } );
             }
@@ -192,7 +192,7 @@ namespace CK.Core
                     var loggers = CreateNewList<IActivityLoggerClient>( current.ToList() );
                     var idx = loggers.IndexOf( arg );
                     if( idx >= 0 ) loggers.RemoveAt( idx );
-                    else return null;
+                    else return current;
                     return loggers;
                 } );
             }
@@ -222,7 +222,7 @@ namespace CK.Core
                 var loggers = CreateNewList<IActivityLoggerClient>( current.ToList() );
                 var idx = loggers.IndexOf( arg );
                 if( idx >= 0 ) loggers.RemoveAt( idx );
-                else return null;
+                else return current;
                 return loggers;
             } );
         }
@@ -243,8 +243,7 @@ namespace CK.Core
             do
             {
                 startVal = target;
-                desiredVal = morpher( startVal, arg );  
-                if( desiredVal == null ) break;
+                desiredVal = morpher( startVal, arg );
             }
             while( Interlocked.CompareExchange( ref target, desiredVal, startVal ) != startVal );
         }

@@ -79,7 +79,7 @@ namespace CK.Core
                 SavedLoggerTags = _logger.AutoTags;
                 // Logs everything when a Group is an error: we then have full details without
                 // logging all with Error or Fatal.
-                if( level >= LogLevel.Error ) _logger.Filter = LogLevelFilter.Trace;
+                if( level >= LogLevel.Error ) _logger.SetFilter( LogLevelFilter.Trace );
                 GroupLevel = level;
                 _logTime = logTimeUtc;
                 _closeLogTime = DateTime.MinValue;
