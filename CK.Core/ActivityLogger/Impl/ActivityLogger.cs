@@ -86,6 +86,7 @@ namespace CK.Core
         Group _current;
         ActivityLoggerOutput _output;
         CKTrait _currentTag;
+        int _enteredThreadId;
 
         /// <summary>
         /// Initializes a new <see cref="ActivityLogger"/> with a <see cref="ActivityLoggerOutput"/> as its <see cref="Output"/>.
@@ -146,7 +147,6 @@ namespace CK.Core
             set { _currentTag = value ?? RegisteredTags.EmptyTrait; } 
         }
 
-        private int _threadCounter = 0;
 
         /// <summary>
         /// Gets or sets a filter based on the log level.
@@ -160,14 +160,14 @@ namespace CK.Core
             {
                 if( _filter != value )
                 {
-                    ReentrancyCheck( ref _threadCounter );
+                    ReentrancyCheck();
                     try
                     {
                         SetFilter( value );
                     }
                     finally
                     {
-                        ReentrancyRelease( ref _threadCounter );
+                        ReentrancyRelease();
                     }
                 }
             }
@@ -175,6 +175,7 @@ namespace CK.Core
 
         internal void SetFilter( LogLevelFilter value )
         {
+            Debug.Assert( _enteredThreadId == Thread.CurrentThread.ManagedThreadId );
             List<IActivityLoggerClient> buggyClients = null;
             foreach( var l in _output.RegisteredClients )
             {
@@ -214,50 +215,50 @@ namespace CK.Core
         /// </remarks>
         public IActivityLogger UnfilteredLog( CKTrait tags, LogLevel level, string text, DateTime logTimeUtc, Exception ex = null )
         {
-            ReentrancyCheck( ref _threadCounter );
+            if( logTimeUtc.Kind != DateTimeKind.Utc ) throw new ArgumentException( R.DateTimeMustBeUtc, "logTimeUtc" );
+            if( level == LogLevel.None ) return this;
+            ReentrancyCheck();
             try
             {
-                return DoUnfiltredLog( tags, level, text, logTimeUtc, ex );
+                return DoUnfilteredLog( tags, level, text, logTimeUtc, ex );
             }
             finally
             {
-                ReentrancyRelease( ref _threadCounter );
+                ReentrancyRelease();
             }
         }
 
-        private IActivityLogger DoUnfiltredLog( CKTrait tags, LogLevel level, string text, DateTime logTimeUtc, Exception ex = null )
+        IActivityLogger DoUnfilteredLog( CKTrait tags, LogLevel level, string text, DateTime logTimeUtc, Exception ex = null )
         {
-            if( logTimeUtc.Kind != DateTimeKind.Utc ) throw new ArgumentException( R.DateTimeMustBeUtc, "logTimeUtc" );
-            if( level != LogLevel.None )
+            Debug.Assert( _enteredThreadId == Thread.CurrentThread.ManagedThreadId );
+            Debug.Assert( level != LogLevel.None );
+
+            if( ex != null )
             {
-                if( ex != null )
-                {
-                    DoOpenGroup( tags, level, null, text, logTimeUtc, ex );
-                    DoCloseGroup( logTimeUtc );
-                }
-                else if( !String.IsNullOrEmpty( text ) )
-                {
-                    if( tags == null || tags.IsEmpty ) tags = _currentTag;
-                    else tags = _currentTag.Union( tags );
-
-                    List<IActivityLoggerClient> buggyClients = null;
-                    foreach( var l in _output.RegisteredClients )
-                    {
-                        try
-                        {
-                            l.OnUnfilteredLog( tags, level, text, logTimeUtc );
-                        }
-                        catch( Exception exCall )
-                        {
-                            LoggingError.Add( exCall, l.GetType().FullName );
-                            if( buggyClients == null ) buggyClients = new List<IActivityLoggerClient>();
-                            buggyClients.Add( l );
-                        }
-                    }
-                    if( buggyClients != null ) foreach( var l in buggyClients ) _output.ForceRemoveBuggyClient( l );
-                }
+                DoOpenGroup( tags, level, null, text, logTimeUtc, ex );
+                DoCloseGroup( logTimeUtc );
             }
+            else if( !String.IsNullOrEmpty( text ) )
+            {
+                if( tags == null || tags.IsEmpty ) tags = _currentTag;
+                else tags = _currentTag.Union( tags );
 
+                List<IActivityLoggerClient> buggyClients = null;
+                foreach( var l in _output.RegisteredClients )
+                {
+                    try
+                    {
+                        l.OnUnfilteredLog( tags, level, text, logTimeUtc );
+                    }
+                    catch( Exception exCall )
+                    {
+                        LoggingError.Add( exCall, l.GetType().FullName );
+                        if( buggyClients == null ) buggyClients = new List<IActivityLoggerClient>();
+                        buggyClients.Add( l );
+                    }
+                }
+                if( buggyClients != null ) foreach( var l in buggyClients ) _output.ForceRemoveBuggyClient( l );
+            }
             return this;
         }
 
@@ -277,21 +278,26 @@ namespace CK.Core
         /// <returns>The <see cref="Group"/> that can be disposed to close it.</returns>
         public virtual IDisposable OpenGroup( CKTrait tags, LogLevel level, Func<string> getConclusionText, string text, DateTime logTimeUtc, Exception ex = null )
         {
-            ReentrancyCheck( ref _threadCounter );
+            if( logTimeUtc.Kind != DateTimeKind.Utc ) throw new ArgumentException( R.DateTimeMustBeUtc, "logTimeUtc" );
+            if( level == LogLevel.None ) return Util.EmptyDisposable;
+
+            ReentrancyCheck();
             try
             {
                 return DoOpenGroup( tags, level, getConclusionText, text, logTimeUtc, ex );
             }
             finally
             {
-                ReentrancyRelease( ref _threadCounter );
+                ReentrancyRelease();
             }
         }
 
-        private IDisposable DoOpenGroup( CKTrait tags, LogLevel level, Func<string> getConclusionText, string text, DateTime logTimeUtc, Exception ex = null )
+        IDisposable DoOpenGroup( CKTrait tags, LogLevel level, Func<string> getConclusionText, string text, DateTime logTimeUtc, Exception ex = null )
         {
-            if( logTimeUtc.Kind != DateTimeKind.Utc ) throw new ArgumentException( R.DateTimeMustBeUtc, "logTimeUtc" );
-            if( level == LogLevel.None ) return Util.EmptyDisposable;
+            Debug.Assert( _enteredThreadId == Thread.CurrentThread.ManagedThreadId );
+            Debug.Assert( logTimeUtc.Kind == DateTimeKind.Utc );
+            Debug.Assert( level != LogLevel.None );
+            
             int idxNext = _current != null ? _current.Depth : 0;
             if( idxNext == _groups.Length )
             {
@@ -333,19 +339,22 @@ namespace CK.Core
         /// </remarks>
         public virtual void CloseGroup( DateTime logTimeUtc, object userConclusion = null )
         {
-            ReentrancyCheck( ref _threadCounter );
+            if( logTimeUtc.Kind != DateTimeKind.Utc ) throw new ArgumentException( R.DateTimeMustBeUtc, "logTimeUtc" );
+            ReentrancyCheck();
             try
             {
                 DoCloseGroup( logTimeUtc, userConclusion );
             }
             finally
             {
-                ReentrancyRelease( ref _threadCounter );
+                ReentrancyRelease();
             }
         }
 
-        private void DoCloseGroup( DateTime logTimeUtc, object userConclusion = null )
+        void DoCloseGroup( DateTime logTimeUtc, object userConclusion = null )
         {
+            Debug.Assert( _enteredThreadId == Thread.CurrentThread.ManagedThreadId );
+            Debug.Assert( logTimeUtc.Kind == DateTimeKind.Utc );
             Group g = _current;
             if( g != null )
             {
@@ -415,21 +424,30 @@ namespace CK.Core
             }
         }
 
-        private void ReentrancyCheck( ref int counter )
+        void ReentrancyCheck()
         {
-            int threadInCounter;
-            if( (threadInCounter = Interlocked.CompareExchange( ref counter, Thread.CurrentThread.ManagedThreadId, 0 ) ) != 0 )
+            int currentThreadId = Thread.CurrentThread.ManagedThreadId;
+            int alreadyEnteredId;
+            if( (alreadyEnteredId = Interlocked.CompareExchange( ref _enteredThreadId, currentThreadId, 0 )) != 0 )
             {
-                if( threadInCounter == Thread.CurrentThread.ManagedThreadId )
-                    throw new InvalidOperationException( "Same thread reentrancy error, a thread is in multiple method at the same time." );
+                if( alreadyEnteredId == currentThreadId )
+                {
+                    throw new InvalidOperationException( R.ActivityLoggerReentrancyError );
+                }
                 else
-                    throw new InvalidOperationException( "Simultaneous multiple thread concurrency error, at least 2 thread has access to the same ActivityLogger." );
+                {
+                    throw new InvalidOperationException( R.ActivityLoggerConcurrentThreadAccess );
+                }
             }
         }
-        private void ReentrancyRelease( ref int counter )
+        
+        void ReentrancyRelease()
         {
-            if( Interlocked.CompareExchange( ref counter, 0, Thread.CurrentThread.ManagedThreadId ) != Thread.CurrentThread.ManagedThreadId )
-                throw new InvalidOperationException( "Error during release reentrancy operation. Not possible !" );
+            int currentThreadId = Thread.CurrentThread.ManagedThreadId;
+            if( Interlocked.CompareExchange( ref _enteredThreadId, 0, currentThreadId ) != currentThreadId )
+            {
+                throw new CKException( R.ActivityLoggerReentrancyReleaseError, _enteredThreadId, Thread.CurrentThread.Name, currentThreadId );
+            }
         }
 
     }

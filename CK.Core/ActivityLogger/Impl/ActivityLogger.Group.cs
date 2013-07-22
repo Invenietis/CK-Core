@@ -211,7 +211,7 @@ namespace CK.Core
                     }
                     catch( Exception ex )
                     {
-                        autoText = "Unexpected Error while getting conclusion text: " + ex.Message;
+                        autoText = String.Format( R.ActivityLoggerErrorWhileGetConclusionText, ex.Message );
                     }
                     _getConclusion = null;
                 }

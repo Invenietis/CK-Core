@@ -115,7 +115,7 @@ namespace CK.Core.Tests
 
                 Assert.That( () => logger.Info( "Test must fail" ),
                     Throws.TypeOf( typeof( InvalidOperationException ) ).
-                        And.Message.EqualTo( "Simultaneous multiple thread concurrency error, at least 2 thread has access to the same ActivityLogger." ) );
+                        And.Message.EqualTo( R.ActivityLoggerConcurrentThreadAccess ) );
             }
             finally
             {
@@ -129,9 +129,8 @@ namespace CK.Core.Tests
             {
                 Assert.That( () => logger.Info( "Test must fail reentrant client" ),
                     Throws.TypeOf( typeof( InvalidOperationException ) ).
-                        And.Message.EqualTo( "Same thread reentrancy error, a thread is in multiple method at the same time." ) );
+                        And.Message.EqualTo( R.ActivityLoggerReentrancyError ) );
             } ) );
-
 
             logger.Info( "Test must work with reentrant client" );
             logger.Info( "Test must work after reentrant client" );
@@ -150,7 +149,9 @@ namespace CK.Core.Tests
                 new Task( () => { logger.Info( "Test T3" ); } ),
                 new Task( () => { logger.Info( "Test T4" ); } ),
                 new Task( () => { logger.Info( "Test T5" ); } ),
-                new Task( () => { logger.Info( "Test T6" ); } )
+                new Task( () => { logger.Info( "Test T6" ); } ),
+                new Task( () => { logger.Info( "Test T7" ); } ),
+                new Task( () => { logger.Info( "Test T8" ); } )
             };
 
             Parallel.ForEach( tasks, t => t.Start() );
@@ -160,7 +161,7 @@ namespace CK.Core.Tests
                                                                 SelectMany( x => x.Exception.Flatten().InnerExceptions ),
                                                                 typeof( InvalidOperationException ) );
 
-            logger.Info( "Test" ); // Expected no exceptions
+            Assert.DoesNotThrow( () => logger.Info( "Test" ) );
         }
 
         [Test]
