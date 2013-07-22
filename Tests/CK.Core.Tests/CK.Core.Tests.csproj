@@ -66,6 +66,7 @@
       <Link>Properties\SharedAssemblyInfo.cs</Link>
     </Compile>
     <Compile Include="ActivityLoggerCrossAppDomain.cs" />
+    <Compile Include="ActivityLoggerMultiThreadTests.cs" />
     <Compile Include="Collection\ObservableSortedArrayListTests.cs" />
     <Compile Include="Collection\SortedArrayKeyListTests.cs" />
     <Compile Include="Collection\FIFOTests.cs" />
