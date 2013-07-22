@@ -142,19 +142,42 @@ namespace CK.Core.Tests
             IDefaultActivityLogger logger = new DefaultActivityLogger();
             logger.Tap.Register( new ActivityLoggerConsoleSink() );
 
+            object lockTasks = new object();
+            object lockRunner = new object();
+            int enteredThread = 0;
+
+            Action getLock = () =>
+            {
+                lock( lockTasks )
+                {
+                    Interlocked.Increment( ref enteredThread );
+                    lock( lockRunner )
+                        Monitor.Pulse( lockRunner );
+                    Monitor.Wait( lockTasks );
+                }
+            };
+
             Task[] tasks = new Task[] 
             {            
-                new Task( () => { logger.Info( "Test T1" ); } ),
-                new Task( () => { logger.Info( "Test T2" ); } ),
-                new Task( () => { logger.Info( "Test T3" ); } ),
-                new Task( () => { logger.Info( "Test T4" ); } ),
-                new Task( () => { logger.Info( "Test T5" ); } ),
-                new Task( () => { logger.Info( "Test T6" ); } ),
-                new Task( () => { logger.Info( "Test T7" ); } ),
-                new Task( () => { logger.Info( "Test T8" ); } )
+                new Task( () => { getLock(); logger.Info( "Test T1" ); } ),
+                new Task( () => { getLock(); logger.Info( new Exception(), "Test T2" ); } ),
+                new Task( () => { getLock(); logger.Info( "Test T3" ); } ),
+                new Task( () => { getLock(); logger.Info( new Exception(), "Test T4" ); } ),
+                new Task( () => { getLock(); logger.Info( "Test T5" ); } ),
+                new Task( () => { getLock(); logger.Info( new Exception(), "Test T6" ); } ),
+                new Task( () => { getLock(); logger.Info( "Test T7" ); } ),
+                new Task( () => { getLock(); logger.Info( new Exception(), "Test T8" ); } )
             };
 
             Parallel.ForEach( tasks, t => t.Start() );
+
+            lock( lockRunner )
+                while( enteredThread < 8 )
+                    Monitor.Wait( lockRunner );
+
+            lock( lockTasks )
+                Monitor.PulseAll( lockTasks );
+
             Assert.Throws<AggregateException>( () => Task.WaitAll( tasks ) );
 
             CollectionAssert.AllItemsAreInstancesOfType( tasks.Where( x => x.IsFaulted ).
