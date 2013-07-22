@@ -120,6 +120,18 @@
   <data name="ActivityLoggerBoundClientMultipleRegister" xml:space="preserve">
     <value>A '{0}' can be registered in only one IActivityLogger.Output at the same time. Unregister it before Registering it in another logger.</value>
   </data>
+  <data name="ActivityLoggerConcurrentThreadAccess" xml:space="preserve">
+    <value>Concurrent accesses from 2 threads to the same ActivityLogger has been detected. Only one thread at a time can interact with an ActivityLogger.</value>
+  </data>
+  <data name="ActivityLoggerErrorWhileGetConclusionText" xml:space="preserve">
+    <value>Unexpected error while getting conclusion text: '{0}'.</value>
+  </data>
+  <data name="ActivityLoggerReentrancyError" xml:space="preserve">
+    <value>A reentrant call in an ActivityLogger has been detected. A logger usage must not trigger another operation on the same logger.</value>
+  </data>
+  <data name="ActivityLoggerReentrancyReleaseError" xml:space="preserve">
+    <value>Internal error: Error during release reentrancy operation. Thread id={0} entered whereas release is called from thread '{1}', id={2}.</value>
+  </data>
   <data name="ArgumentCountNegative" xml:space="preserve">
     <value>Argument count can not be negative.</value>
   </data>

@@ -77,7 +77,18 @@ namespace CK.Core.Tests
             logger.Output.UnregisterClient( pathCatcher );
             Assert.That( logger.Output.RegisteredClients.Count, Is.EqualTo( 3 ) );
         }
-        
+
+        [Test]
+        [Category( "ActivityLogger" )]
+        public void OutputArguments()
+        {
+            IDefaultActivityLogger logger = new DefaultActivityLogger();
+            Assert.Throws<ArgumentNullException>( () => logger.Output.RegisterClient( null ) );
+            Assert.Throws<ArgumentNullException>( () => logger.Output.UnregisterClient( null ) );
+            Assert.Throws<NotImplementedException>( () => { ActivityLoggerBridgeTarget b = ActivityLoggerOutput.Empty.ExternalInput; } );
+
+        }
+
         [Test]
         [Category( "Console" )]
         public void BridgeArguments()

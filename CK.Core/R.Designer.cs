@@ -70,6 +70,42 @@ namespace CK.Core {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Concurrent accesses from 2 threads to the same ActivityLogger has been detected. Only one thread at a time can interact with an ActivityLogger..
+        /// </summary>
+        internal static string ActivityLoggerConcurrentThreadAccess {
+            get {
+                return ResourceManager.GetString("ActivityLoggerConcurrentThreadAccess", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unexpected error while getting conclusion text: &apos;{0}&apos;..
+        /// </summary>
+        internal static string ActivityLoggerErrorWhileGetConclusionText {
+            get {
+                return ResourceManager.GetString("ActivityLoggerErrorWhileGetConclusionText", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to A reentrant call in an ActivityLogger has been detected. A logger usage must not trigger another operation on the same logger..
+        /// </summary>
+        internal static string ActivityLoggerReentrancyError {
+            get {
+                return ResourceManager.GetString("ActivityLoggerReentrancyError", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Internal error: Error during release reentrancy operation. Thread id={0} entered whereas release is called from thread &apos;{1}&apos;, id={2}..
+        /// </summary>
+        internal static string ActivityLoggerReentrancyReleaseError {
+            get {
+                return ResourceManager.GetString("ActivityLoggerReentrancyReleaseError", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Argument count can not be negative..
         /// </summary>
         internal static string ArgumentCountNegative {
