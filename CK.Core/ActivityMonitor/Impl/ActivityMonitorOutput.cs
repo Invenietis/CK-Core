@@ -38,7 +38,7 @@ namespace CK.Core.Impl
         readonly ActivityMonitorBridgeTarget _externalInput;
         IActivityMonitorClient[] _clients;
 
-        static object _clientLockTemp = new object();
+        //static object _clientLockTemp = new object();
 
         /// <summary>
         /// Initializes a new <see cref="ActivityMonitorOutput"/> bound to a <see cref="IActivityMonitor"/>.
@@ -75,29 +75,29 @@ namespace CK.Core.Impl
         public IActivityMonitorClient RegisterClient( IActivityMonitorClient client )
         {
             if( client == null ) throw new ArgumentNullException( "client" );
-            lock( _clientLockTemp )
-            {
-                Console.WriteLine( "Thread={2}, RegisterClient client '{0}'. idx={1}.", client, Array.IndexOf( _clients, client ), Thread.CurrentThread.ManagedThreadId );
-                if( Array.IndexOf( _clients, client ) < 0 )
-                {
-                    IActivityMonitorBoundClient bound = client as IActivityMonitorBoundClient;
-                    if( bound != null ) bound.SetMonitor( _monitor, false );
-                }
-                _clients = new CKReadOnlyListMono<IActivityMonitorClient>( client ).Concat( _clients ).ToArray();
-            }
-
-            //if( Array.IndexOf( _clients, client ) < 0 )
+            //lock( _clientLockTemp )
             //{
-            //    // Has the same Client instance a chance to be registered at the same time by two threads?
-            //    //
-            //    // For non-bound client may be... But here we are talking of a bound client that is "associated" 
-            //    // to one monitor. Since multithreading in this context is quite impossible, we consider that
-            //    // protecting SetMonitor call here is useless.
-            //    // (Other option: create a _setMonitorLock and serialize all calls to all SetMonitor in the AppDomain.)
-            //    IActivityMonitorBoundClient bound = client as IActivityMonitorBoundClient;
-            //    if( bound != null ) bound.SetMonitor( _monitor, false );
-            //    Util.InterlockedPrepend( ref _clients, client );
+            //    Console.WriteLine( "Thread={2}, RegisterClient client '{0}'. idx={1}.", client, Array.IndexOf( _clients, client ), Thread.CurrentThread.ManagedThreadId );
+            //    if( Array.IndexOf( _clients, client ) < 0 )
+            //    {
+            //        IActivityMonitorBoundClient bound = client as IActivityMonitorBoundClient;
+            //        if( bound != null ) bound.SetMonitor( _monitor, false );
+            //    }
+            //    _clients = new CKReadOnlyListMono<IActivityMonitorClient>( client ).Concat( _clients ).ToArray();
             //}
+
+            if( Array.IndexOf( _clients, client ) < 0 )
+            {
+                // Has the same Client instance a chance to be registered at the same time by two threads?
+                //
+                // For non-bound client may be... But here we are talking of a bound client that is "associated" 
+                // to one monitor. Since multithreading in this context is quite impossible, we consider that
+                // protecting SetMonitor call here is useless.
+                // (Other option: create a _setMonitorLock and serialize all calls to all SetMonitor in the AppDomain.)
+                IActivityMonitorBoundClient bound = client as IActivityMonitorBoundClient;
+                if( bound != null ) bound.SetMonitor( _monitor, false );
+                Util.InterlockedPrepend( ref _clients, client );
+            }
             return client;
         }
 
@@ -132,18 +132,19 @@ namespace CK.Core.Impl
                 return c; 
             };
 
-            lock( _clientLockTemp )
-            {
-                T e = _clients.OfType<T>().FirstOrDefault( tester );
-                if( e == null )
-                {
-                    e = reg();
-                    Console.WriteLine( "Thread={2}, AtomicRegisterClient client '{0}'. idx={1}.", e, Array.IndexOf( _clients, e ), Thread.CurrentThread.ManagedThreadId );
-                    _clients = new CKReadOnlyListMono<IActivityMonitorClient>( e ).Concat( _clients ).ToArray();
-                }
-                return e;
-            }
-            //return (T)Util.InterlockedAdd( ref _clients, tester,  reg, true )[0];
+            //lock( _clientLockTemp )
+            //{
+            //    T e = _clients.OfType<T>().FirstOrDefault( tester );
+            //    if( e == null )
+            //    {
+            //        e = reg();
+            //        Console.WriteLine( "Thread={2}, AtomicRegisterClient client '{0}'. idx={1}.", e, Array.IndexOf( _clients, e ), Thread.CurrentThread.ManagedThreadId );
+            //        _clients = new CKReadOnlyListMono<IActivityMonitorClient>( e ).Concat( _clients ).ToArray();
+            //    }
+            //    return e;
+            //}
+            
+            return (T)Util.InterlockedAdd( ref _clients, tester,  reg, true )[0];
         }
 
         /// <summary>
@@ -155,53 +156,49 @@ namespace CK.Core.Impl
         public IActivityMonitorClient UnregisterClient( IActivityMonitorClient client )
         {
             if( client == null ) throw new ArgumentNullException( "client" );
-            lock( _clientLockTemp )
-            {
-                Console.WriteLine( "Thread={2}, Unregistering client '{0}'. idx={1}.", client, Array.IndexOf( _clients, client ), Thread.CurrentThread.ManagedThreadId );
-                if( Array.IndexOf( _clients, client ) >= 0 )
-                {
-                    IActivityMonitorBoundClient bound = client as IActivityMonitorBoundClient;
-                    if( bound != null ) bound.SetMonitor( null, false );
-
-                    var cc = _clients.ToList();
-                    cc.Remove( client );
-                    _clients = cc.ToArray();
-                    return client;
-                }
-                return null;
-            }
-
-            //if( Array.IndexOf( _clients, client ) >= 0 )
+            //lock( _clientLockTemp )
             //{
-            //    IActivityMonitorBoundClient bound = client as IActivityMonitorBoundClient;
-            //    if( bound != null ) bound.SetMonitor( null, false );
+            //    Console.WriteLine( "Thread={2}, Unregistering client '{0}'. idx={1}.", client, Array.IndexOf( _clients, client ), Thread.CurrentThread.ManagedThreadId );
+            //    if( Array.IndexOf( _clients, client ) >= 0 )
+            //    {
+            //        IActivityMonitorBoundClient bound = client as IActivityMonitorBoundClient;
+            //        if( bound != null ) bound.SetMonitor( null, false );
 
-            //    Util.InterlockedRemove( ref _clients, client );
-            //    return client;
+            //        var cc = _clients.ToList();
+            //        cc.Remove( client );
+            //        _clients = cc.ToArray();
+            //        return client;
+            //    }
+            //    return null;
             //}
-            //return null;
+
+            if( Array.IndexOf( _clients, client ) >= 0 )
+            {
+                IActivityMonitorBoundClient bound = client as IActivityMonitorBoundClient;
+                if( bound != null ) bound.SetMonitor( null, false );
+
+                Util.InterlockedRemove( ref _clients, client );
+                return client;
+            }
+            return null;
         }
 
         internal void ForceRemoveBuggyClient( IActivityMonitorClient client )
         {
-            lock( _clientLockTemp )
+            Debug.Assert( client != null && _clients.Contains( client ) );
+            IActivityMonitorBoundClient bound = client as IActivityMonitorBoundClient;
+            if( bound != null )
             {
-                Console.WriteLine( "Thread={2}, ForceRemoveBuggyClient client '{0}'. idx={1}.", client, Array.IndexOf( _clients, client ), Thread.CurrentThread.ManagedThreadId );
-                Debug.Assert( client != null && _clients.Contains( client ) );
-                IActivityMonitorBoundClient bound = client as IActivityMonitorBoundClient;
-                if( bound != null )
+                try
                 {
-                    try
-                    {
-                        bound.SetMonitor( null, true );
-                    }
-                    catch( Exception ex )
-                    {
-                        ActivityMonitor.LoggingError.Add( ex, "While removing the buggy client." );
-                    }
+                    bound.SetMonitor( null, true );
                 }
-                Util.InterlockedRemove( ref _clients, client );
+                catch( Exception ex )
+                {
+                    ActivityMonitor.LoggingError.Add( ex, "While removing the buggy client." );
+                }
             }
+            Util.InterlockedRemove( ref _clients, client );
         }
 
         /// <summary>

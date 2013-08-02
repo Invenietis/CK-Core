@@ -264,6 +264,9 @@ namespace CK.Core.Tests
             int nextSeq = ActivityMonitor.LoggingError.NextSequenceNumber;
             RunAllAndWaitForTermination();
 
+            ActivityMonitor.LoggingError.OnErrorFromBackgroundThreads -= SafeOnErrorHandler;
+            ActivityMonitor.LoggingError.OnErrorFromBackgroundThreads -= BuggyOnErrorHandler;
+
             Console.WriteLine( @"ActivityMonitor.LoggingError Test:
             ThreadCount: {0}
             DispatchQueuedWorkItemCount: {1}
@@ -278,8 +281,6 @@ namespace CK.Core.Tests
                 _buggyOnErrorHandlerReceivedCount,
                 _nbNotCleared );
 
-            Assert.That( _nbNotCleared, Is.GreaterThan( 0 ), "Clear is called from SafeOnErrorHandler each 10 errors." );
-            Assert.That( ActivityMonitor.LoggingError.Capacity, Is.EqualTo( 500 ), "Changed in SafeOnErrorHandler." );
             CollectionAssert.IsEmpty( _errorsFromBackground );
             var buggyClientMismatch = _buggyClients.Where( c => c.Failed != c.FailureHasBeenReceivedThroughEvent ).ToArray();
             CollectionAssert.IsEmpty( buggyClientMismatch );
@@ -288,12 +289,10 @@ namespace CK.Core.Tests
             Assert.That( _buggyOnErrorHandlerReceivedCount, Is.GreaterThan( 0 ), "There must be at least one error from the buggy handler." );
             Assert.That( _buggyOnErrorHandlerReceivedCount, Is.EqualTo( _buggyOnErrorHandlerFailCount ) );
 
-            ActivityMonitor.LoggingError.OnErrorFromBackgroundThreads -= SafeOnErrorHandler;
-            ActivityMonitor.LoggingError.OnErrorFromBackgroundThreads -= BuggyOnErrorHandler;
-
             Assert.That( ActivityMonitor.LoggingError.DispatchQueuedWorkItemCount, Is.GreaterThan( 0 ), "Of course, events have been raised..." );
             Assert.That( ActivityMonitor.LoggingError.OptimizedDispatchQueuedWorkItemCount, Is.GreaterThan( 0 ), "Optimizations must have saved us some works." );
             Assert.That( _nbNotCleared, Is.GreaterThan( 0 ), "Clear is called from SafeOnErrorHandler each 20 errors." );
+            Assert.That( ActivityMonitor.LoggingError.Capacity, Is.EqualTo( 500 ), "Changed in SafeOnErrorHandler." );
 
         }
 
@@ -314,7 +313,7 @@ namespace CK.Core.Tests
                 return;
             }
             
-            // Ass soon as the first error, we increase the capacity to avoid losing any error.
+            // As soon as the first error, we increase the capacity to avoid losing any error.
             // This tests the tread-safety of the operation and shows that no deadlock occur (we are 
             // receiving an error event and can safely change the internal buffer capacity).
             ActivityMonitor.LoggingError.Capacity = 500;

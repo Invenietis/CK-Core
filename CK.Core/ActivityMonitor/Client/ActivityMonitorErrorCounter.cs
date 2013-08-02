@@ -215,13 +215,14 @@ namespace CK.Core
             GenerateConclusion = generateConclusion;
         }
 
-        void IActivityMonitorBoundClient.SetMonitor( IActivityMonitorImpl source, bool forceBuggyRemove )
+        LogLevelFilter IActivityMonitorBoundClient.SetMonitor( IActivityMonitorImpl source, bool forceBuggyRemove )
         {
             if( !forceBuggyRemove )
             {
                 if( source != null && _source != null ) throw NewMultipleRegisterOnBoundClientException( this );
             }
             _source = source;
+            return LogLevelFilter.None;
         }
 
         /// <summary>

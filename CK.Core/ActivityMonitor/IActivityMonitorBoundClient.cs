@@ -38,6 +38,7 @@ namespace CK.Core
         /// <param name="source">The monitor that will send log.</param>
         /// <param name="forceBuggyRemove">True if this method MUST allow the new source without any exceptions: this is used with a null <paramref name="source"/> to
         /// remove this client because one of its method throwed an exception.</param>
-        void SetMonitor( IActivityMonitorImpl source, bool forceBuggyRemove );
+        /// <returns>Minimal required level for the client. <see cref="LogLevelFilter.None"/> if no specific level exists.</returns>
+        LogLevelFilter SetMonitor( IActivityMonitorImpl source, bool forceBuggyRemove );
     }
 }

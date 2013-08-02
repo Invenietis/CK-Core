@@ -70,7 +70,7 @@ namespace CK.Core
         /// <summary>
         /// forceBuggyRemove is not used here since this client is not lockable.
         /// </summary>
-        void IActivityMonitorBoundClient.SetMonitor( Impl.IActivityMonitorImpl source, bool forceBuggyRemove )
+        LogLevelFilter IActivityMonitorBoundClient.SetMonitor( Impl.IActivityMonitorImpl source, bool forceBuggyRemove )
         {
             if( source != null && _source != null ) throw ActivityMonitorClient.NewMultipleRegisterOnBoundClientException( this );
             if( _source != null )
@@ -86,6 +86,7 @@ namespace CK.Core
                 _openedGroups.Clear();
             }
             _source = source;
+            return LogLevelFilter.None;
         }
 
         void IActivityMonitorClient.OnFilterChanged( LogLevelFilter current, LogLevelFilter newValue )

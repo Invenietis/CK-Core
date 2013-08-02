@@ -18,6 +18,7 @@ namespace CK.Monitoring
 
         GrandOutputSource _source;
         GrandOutputChannel _channel;
+        LogLevelFilter _currentMinimalFilter;
         int _relativeDepth;
         int _curVersion;
         int _version;
@@ -31,27 +32,31 @@ namespace CK.Monitoring
         /// <summary>
         /// forceBuggyRemove is not used here since this client is not lockable.
         /// </summary>
-        void IActivityMonitorBoundClient.SetMonitor( IActivityMonitorImpl source, bool forceBuggyRemove )
+        LogLevelFilter IActivityMonitorBoundClient.SetMonitor( IActivityMonitorImpl source, bool forceBuggyRemove )
         {
             if( source != null && _monitorSource != null ) throw ActivityMonitorClient.NewMultipleRegisterOnBoundClientException( this );
             // Silently ignore null => null or monitor => same monitor.
-            if( source == _monitorSource ) return;
-            Debug.Assert( (source == null) != (_monitorSource == null) );
-            if( (_monitorSource = source) == null )
+            if( source != _monitorSource )
             {
-                Thread.MemoryBarrier();
-                // Releases the channel.
-                if( _channel != null )
+                _currentMinimalFilter = LogLevelFilter.None;
+                Debug.Assert( (source == null) != (_monitorSource == null) );
+                if( (_monitorSource = source) == null )
                 {
-                    _channel.ReleaseInput( _source );
-                    _source = null;
-                    _channel = null;
+                    Thread.MemoryBarrier();
+                    // Releases the channel if any.
+                    if( _channel != null )
+                    {
+                        _channel.ReleaseInput( _source );
+                        _source = null;
+                        _channel = null;
+                    }
+                }
+                else
+                {
+                    Interlocked.Increment( ref _version );
                 }
             }
-            else
-            {
-                Interlocked.Increment( ref _version );
-            }
+            return _currentMinimalFilter;
         }
 
         public GrandOutput Central
@@ -80,14 +85,24 @@ namespace CK.Monitoring
 
         GrandOutputChannel EnsureChannel( IActivityMonitorImpl monitorSource )
         {
-            while( _version != _curVersion )
+            if( _version != _curVersion )
             {
-                _curVersion = _version;
-                if( _channel != null ) _channel.ReleaseInput( _source );
-                _channel = _central.ObtainChannel( _channelName );
-                _source = _channel.CreateInput( monitorSource, _channelName );
-                _relativeDepth = 0;
+                do
+                {
+                    _curVersion = _version;
+                    if( _channel != null && _source != null )
+                    {
+                        _channel.ReleaseInput( _source );
+                        _source = null;
+                    }
+                    _channel = _central.ObtainChannel( _channelName );
+                }
+                while( _version != _curVersion );
+
             }
+            _source = _channel.CreateInput( monitorSource, _channelName );
+            _relativeDepth = 0;
+            //_currentMinimalFilter = _channel.MinimalFilter;
             return _channel;
         }
 
