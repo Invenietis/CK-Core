@@ -39,28 +39,27 @@ namespace Storage
         static DirectoryInfo _testFolderDir;
         static DirectoryInfo _appFolderDir;
 
-        static IDefaultActivityLogger _logger;
-        static ActivityLoggerConsoleSink _console;
+        static IActivityMonitor _monitor;
+        static ActivityMonitorConsoleClient _console;
 
         static TestHelper()
         {
-            _console = new ActivityLoggerConsoleSink();
-            _logger = new DefaultActivityLogger();
-            _logger.Tap.Register( _console );
+            _monitor = new ActivityMonitor();
+            _console = _monitor.Output.RegisterClient( new ActivityMonitorConsoleClient() );
         }
 
-        public static IActivityLogger Logger
+        public static IActivityMonitor Monitor
         {
-            get { return _logger; }
+            get { return _monitor; }
         }
 
         public static bool LogsToConsole
         {
-            get { return _logger.Tap.RegisteredSinks.Contains( _console ); }
+            get { return _monitor.Output.Clients.Contains( _console ); }
             set
             {
-                if( value ) _logger.Tap.Register( _console );
-                else _logger.Tap.Unregister( _console );
+                if( value ) _monitor.Output.AtomicRegisterClient( c => c ==_console, () => _console );
+                else _monitor.Output.UnregisterClient( _console );
             }
         }
 

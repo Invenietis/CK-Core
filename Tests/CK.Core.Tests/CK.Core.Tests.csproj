@@ -65,15 +65,16 @@
     <Compile Include="..\..\SharedAssemblyInfo.cs">
       <Link>Properties\SharedAssemblyInfo.cs</Link>
     </Compile>
-    <Compile Include="ActivityLoggerCrossAppDomain.cs" />
+    <Compile Include="ActivityMonitorCrossAppDomain.cs" />
     <Compile Include="ActivityLoggerMultiThreadTests.cs" />
     <Compile Include="Collection\ObservableSortedArrayListTests.cs" />
     <Compile Include="Collection\SortedArrayKeyListTests.cs" />
     <Compile Include="Collection\FIFOTests.cs" />
-    <Compile Include="ActivityLoggerTests.cs" />
+    <Compile Include="ActivityMonitorTests.cs" />
     <Compile Include="Collection\SortedArrayListTests.cs" />
-    <Compile Include="ActivityLoggerErrorLogs.cs" />
+    <Compile Include="ActivityMonitorErrorLogs.cs" />
     <Compile Include="CollectionExtensionTests.cs" />
+    <Compile Include="StupidXmlClient.cs" />
     <Compile Include="CriticalErrorCollectorTests.cs" />
     <Compile Include="EnumerableExtensionTests.cs" />
     <Compile Include="FileUtilTests.cs" />
@@ -83,7 +84,7 @@
     <Compile Include="CoreExtensionTests.cs" />
     <Compile Include="Collection\ReadOnlyTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="SimpleSinks.cs" />
+    <Compile Include="StupidStringClient.cs" />
     <Compile Include="TemporaryFileTests.cs" />
     <Compile Include="TestHelper.cs" />
     <Compile Include="Traits.cs" />

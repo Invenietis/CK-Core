@@ -61,47 +61,65 @@ namespace CK.Core {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to A &apos;{0}&apos; can be registered in only one IActivityLogger.Output at the same time. Unregister it before Registering it in another logger..
+        ///   Looks up a localized string similar to A &apos;{0}&apos; can be registered in only one IActivityMonitor.Output at the same time. Unregister it before Registering it in another monitor..
         /// </summary>
-        internal static string ActivityLoggerBoundClientMultipleRegister {
+        internal static string ActivityMonitorBoundClientMultipleRegister {
             get {
-                return ResourceManager.GetString("ActivityLoggerBoundClientMultipleRegister", resourceCulture);
+                return ResourceManager.GetString("ActivityMonitorBoundClientMultipleRegister", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Concurrent accesses from 2 threads to the same ActivityLogger has been detected. Only one thread at a time can interact with an ActivityLogger..
+        ///   Looks up a localized string similar to Concurrent accesses from 2 threads to the same ActivityMonitor has been detected. Only one thread at a time can interact with an ActivityMonitor..
         /// </summary>
-        internal static string ActivityLoggerConcurrentThreadAccess {
+        internal static string ActivityMonitorConcurrentThreadAccess {
             get {
-                return ResourceManager.GetString("ActivityLoggerConcurrentThreadAccess", resourceCulture);
+                return ResourceManager.GetString("ActivityMonitorConcurrentThreadAccess", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Unexpected error while getting conclusion text: &apos;{0}&apos;..
         /// </summary>
-        internal static string ActivityLoggerErrorWhileGetConclusionText {
+        internal static string ActivityMonitorErrorWhileGetConclusionText {
             get {
-                return ResourceManager.GetString("ActivityLoggerErrorWhileGetConclusionText", resourceCulture);
+                return ResourceManager.GetString("ActivityMonitorErrorWhileGetConclusionText", resourceCulture);
             }
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to A reentrant call in an ActivityLogger has been detected. A logger usage must not trigger another operation on the same logger..
+        ///   Looks up a localized string similar to An auto configuration action is null..
         /// </summary>
-        internal static string ActivityLoggerReentrancyError {
+        internal static string ActivityMonitorNullAutoConfiguration {
             get {
-                return ResourceManager.GetString("ActivityLoggerReentrancyError", resourceCulture);
+                return ResourceManager.GetString("ActivityMonitorNullAutoConfiguration", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to A reentrant call in an ActivityMonitor has been detected. A monitor usage must not trigger another operation on the same monitor..
+        /// </summary>
+        internal static string ActivityMonitorReentrancyError {
+            get {
+                return ResourceManager.GetString("ActivityMonitorReentrancyError", resourceCulture);
             }
         }
         
         /// <summary>
         ///   Looks up a localized string similar to Internal error: Error during release reentrancy operation. Thread id={0} entered whereas release is called from thread &apos;{1}&apos;, id={2}..
         /// </summary>
-        internal static string ActivityLoggerReentrancyReleaseError {
+        internal static string ActivityMonitorReentrancyReleaseError {
             get {
-                return ResourceManager.GetString("ActivityLoggerReentrancyReleaseError", resourceCulture);
+                return ResourceManager.GetString("ActivityMonitorReentrancyReleaseError", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Monitor must not be null nor be the Empty one..
+        /// </summary>
+        internal static string ActivityMustNotBeNullNorEmpty {
+            get {
+                return ResourceManager.GetString("ActivityMustNotBeNullNorEmpty", resourceCulture);
             }
         }
         
@@ -124,7 +142,7 @@ namespace CK.Core {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Can not Unregister the Tap, PathCatcher or ErrorCounter of a default logger..
+        ///   Looks up a localized string similar to Can not Unregister the Tap, PathCatcher or ErrorCounter of a default monitor..
         /// </summary>
         internal static string CanNotUnregisterDefaultClient {
             get {
@@ -259,11 +277,11 @@ namespace CK.Core {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Must be not null and registered in ActivityLogger.RegisteredTags..
+        ///   Looks up a localized string similar to Must be not null and registered in ActivityMonitor.RegisteredTags..
         /// </summary>
-        internal static string TagMustBeRegisteredInActivityLogger {
+        internal static string TagMustBeRegisteredInActivityMonitor {
             get {
-                return ResourceManager.GetString("TagMustBeRegisteredInActivityLogger", resourceCulture);
+                return ResourceManager.GetString("TagMustBeRegisteredInActivityMonitor", resourceCulture);
             }
         }
         
@@ -282,6 +300,15 @@ namespace CK.Core {
         internal static string UnregisteredServiceInServiceProvider {
             get {
                 return ResourceManager.GetString("UnregisteredServiceInServiceProvider", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The &apos;factory&apos; function must create an item that satisfies the &apos;tester&apos; function..
+        /// </summary>
+        internal static string UtilInterlockedSetFactoryTesterMismatch {
+            get {
+                return ResourceManager.GetString("UtilInterlockedSetFactoryTesterMismatch", resourceCulture);
             }
         }
     }

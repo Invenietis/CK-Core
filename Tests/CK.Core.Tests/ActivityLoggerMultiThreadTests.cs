@@ -11,42 +11,42 @@ namespace CK.Core.Tests
 {
     [TestFixture]
     [ExcludeFromCodeCoverage]
-    [Category( "ActivityLogger" )]
-    public class ActivityLoggerMultiThreadTests
+    [Category( "ActivityMonitor" )]
+    public class ActivityMonitorMultiThreadTests
     {
-        internal class BuggyActivityLoggerClient : ActivityLoggerClient
+        internal class BuggyActivityMonitorClient : ActivityMonitorClient
         {
-            private  IActivityLogger _logger;
-            internal BuggyActivityLoggerClient( IActivityLogger logger )
+            private  IActivityMonitor _monitor;
+            internal BuggyActivityMonitorClient( IActivityMonitor monitor )
             {
-                _logger = logger;
+                _monitor = monitor;
             }
 
             protected override void OnUnfilteredLog( CKTrait tags, LogLevel level, string text, DateTime logTimeUtc )
             {
-                _logger.Info( "Je suis buggé et je log dans le logger dont je suis client" );
+                _monitor.Info( "I'm buggy: I'm logging back in my monitor!" );
                 base.OnUnfilteredLog( tags, level, text, logTimeUtc );
             }
         }
 
-        internal class NotBuggyActivityLoggerClient : ActivityLoggerClient
+        internal class NotBuggyActivityMonitorClient : ActivityMonitorClient
         {
             private  int _number;
-            internal NotBuggyActivityLoggerClient( int number )
+            internal NotBuggyActivityMonitorClient( int number )
             {
                 _number = number;
             }
 
             protected override void OnUnfilteredLog( CKTrait tags, LogLevel level, string text, DateTime logTimeUtc )
             {
-                Console.WriteLine( "NotBuggyActivityLoggerClient echo : {0}", _number );
+                Console.WriteLine( "NotBuggyActivityMonitorClient echo : {0}", _number );
             }
         }
 
-        internal class ActionActivityLoggerClient : ActivityLoggerClient
+        internal class ActionActivityMonitorClient : ActivityMonitorClient
         {
             Action _log;
-            internal ActionActivityLoggerClient( Action log )
+            internal ActionActivityMonitorClient( Action log )
             {
                 _log = log;
             }
@@ -57,7 +57,7 @@ namespace CK.Core.Tests
             }
         }
 
-        internal class WaitActivityLoggerClient : ActivityLoggerClient
+        internal class WaitActivityMonitorClient : ActivityMonitorClient
         {
             readonly object _locker = new object();
             bool _done = false;
@@ -79,7 +79,7 @@ namespace CK.Core.Tests
                 }
             }
 
-            internal void WaitForWait()
+            internal void WaitForOnUnfilteredLog()
             {
                 lock( _outLocker )
                     while( !_outDone )
@@ -99,23 +99,27 @@ namespace CK.Core.Tests
         [Test]
         public void ExhibeReentrancyAndMultiThreadErrors()
         {
-            DefaultActivityLogger logger = new DefaultActivityLogger();
-            logger.Tap.Register( new ActivityLoggerConsoleSink() );
-            WaitActivityLoggerClient client = new WaitActivityLoggerClient();
-            logger.Output.RegisterClient( client );
+            ActivityMonitor.AutoConfiguration.Clear();
+            ActivityMonitor monitor = new ActivityMonitor();
+            monitor.Output.RegisterClient( new ActivityMonitorConsoleClient() );
+            WaitActivityMonitorClient client = monitor.Output.RegisterClient( new WaitActivityMonitorClient() );
+
+            Assert.That( monitor.Output.Clients.Count, Is.EqualTo( 2 ) );
 
             try
             {
                 Task.Factory.StartNew( () =>
                 {
-                    logger.Info( "Test must work in task" );
+                    monitor.Info( "Test must work in task" );
                 } );
 
-                client.WaitForWait();
+                client.WaitForOnUnfilteredLog();
 
-                Assert.That( () => logger.Info( "Test must fail" ),
+                Assert.That( () => monitor.Info( "Test must fail" ),
                     Throws.TypeOf( typeof( InvalidOperationException ) ).
-                        And.Message.EqualTo( R.ActivityLoggerConcurrentThreadAccess ) );
+                        And.Message.EqualTo( R.ActivityMonitorConcurrentThreadAccess ) );
+                
+                Assert.That( monitor.Output.Clients.Count, Is.EqualTo( 2 ), "Still 2: Concurrent call: not the fault of the Client." );
             }
             finally
             {
@@ -123,24 +127,33 @@ namespace CK.Core.Tests
             }
 
             Thread.Sleep( 50 );
-            logger.Info( "Test must work after task" );
+            monitor.Info( "Test must work after task" );
 
-            logger.Output.RegisterClient( new ActionActivityLoggerClient( () =>
+            monitor.Output.RegisterClient( new ActionActivityMonitorClient( () =>
             {
-                Assert.That( () => logger.Info( "Test must fail reentrant client" ),
+                Assert.That( () => monitor.Info( "Test must fail reentrant client" ),
                     Throws.TypeOf( typeof( InvalidOperationException ) ).
-                        And.Message.EqualTo( R.ActivityLoggerReentrancyError ) );
+                        And.Message.EqualTo( R.ActivityMonitorReentrancyError ) );
             } ) );
 
-            logger.Info( "Test must work with reentrant client" );
-            logger.Info( "Test must work after reentrant client" );
+            monitor.Info( "Test must work after reentrant client" );
+            Assert.That( monitor.Output.Clients.Count, Is.EqualTo( 3 ), "The RegisterClient action above is ok: it checks that it triggered a reentrant call." );
+
+            monitor.Output.RegisterClient( new ActionActivityMonitorClient( () =>
+            {
+                monitor.Info( "Test must fail reentrant client" );
+            } ) );
+
+            monitor.Info( "Test must work after reentrant client" );
+            Assert.That( monitor.Output.Clients.Count, Is.EqualTo( 3 ), "The BUGGY RegisterClient action above is NOT ok: it let the a reentrant call exception => We have removed it." );
+
         }
 
         [Test]
         public void ReentrancyMultiThread()
         {
-            IDefaultActivityLogger logger = new DefaultActivityLogger();
-            logger.Tap.Register( new ActivityLoggerConsoleSink() );
+            IActivityMonitor monitor = new ActivityMonitor();
+            monitor.Output.RegisterClient( new ActivityMonitorConsoleClient() );
 
             object lockTasks = new object();
             object lockRunner = new object();
@@ -159,14 +172,14 @@ namespace CK.Core.Tests
 
             Task[] tasks = new Task[] 
             {            
-                new Task( () => { getLock(); logger.Info( "Test T1" ); } ),
-                new Task( () => { getLock(); logger.Info( new Exception(), "Test T2" ); } ),
-                new Task( () => { getLock(); logger.Info( "Test T3" ); } ),
-                new Task( () => { getLock(); logger.Info( new Exception(), "Test T4" ); } ),
-                new Task( () => { getLock(); logger.Info( "Test T5" ); } ),
-                new Task( () => { getLock(); logger.Info( new Exception(), "Test T6" ); } ),
-                new Task( () => { getLock(); logger.Info( "Test T7" ); } ),
-                new Task( () => { getLock(); logger.Info( new Exception(), "Test T8" ); } )
+                new Task( () => { getLock(); monitor.Info( "Test T1" ); } ),
+                new Task( () => { getLock(); monitor.Info( new Exception(), "Test T2" ); } ),
+                new Task( () => { getLock(); monitor.Info( "Test T3" ); } ),
+                new Task( () => { getLock(); monitor.Info( new Exception(), "Test T4" ); } ),
+                new Task( () => { getLock(); monitor.Info( "Test T5" ); } ),
+                new Task( () => { getLock(); monitor.Info( new Exception(), "Test T6" ); } ),
+                new Task( () => { getLock(); monitor.Info( "Test T7" ); } ),
+                new Task( () => { getLock(); monitor.Info( new Exception(), "Test T8" ); } )
             };
 
             Parallel.ForEach( tasks, t => t.Start() );
@@ -184,68 +197,69 @@ namespace CK.Core.Tests
                                                                 SelectMany( x => x.Exception.Flatten().InnerExceptions ),
                                                                 typeof( InvalidOperationException ) );
 
-            Assert.DoesNotThrow( () => logger.Info( "Test" ) );
+            Assert.DoesNotThrow( () => monitor.Info( "Test" ) );
         }
 
         [Test]
         public void ReentrancyMonoThread()
         {
-            IDefaultActivityLogger logger = new DefaultActivityLogger();
-            int clientCount = logger.Output.RegisteredClients.Count;
-            Assert.That( logger.Output.RegisteredClients.Count, Is.EqualTo( clientCount ) );
-            logger.Tap.Register( new ActivityLoggerConsoleSink() );
-            BuggyActivityLoggerClient client = new BuggyActivityLoggerClient( logger );
-            logger.Output.RegisterClient( client );
-            Assert.That( logger.Output.RegisteredClients.Count, Is.EqualTo( clientCount + 1 ) );
-            logger.Info( "Test" );
-            Assert.That( logger.Output.RegisteredClients.Count, Is.EqualTo( clientCount ) );
+            IActivityMonitor monitor = new ActivityMonitor();
+            monitor.Output.BridgeTo( TestHelper.ConsoleMonitor );
+            int clientCount = monitor.Output.Clients.Count;
+            Assert.That( monitor.Output.Clients.Count, Is.EqualTo( clientCount ) );
 
-            logger.Info( "Test" ); // Expected no exceptions
+            BuggyActivityMonitorClient client = new BuggyActivityMonitorClient( monitor );
+            monitor.Output.RegisterClient( client );
+            Assert.That( monitor.Output.Clients.Count, Is.EqualTo( clientCount + 1 ) );
+            monitor.Info( "Test" );
+            Assert.That( monitor.Output.Clients.Count, Is.EqualTo( clientCount ) );
+
+            Assert.DoesNotThrow( () => monitor.Info( "Test" ) ); 
         }
 
         [Test]
         public void MultiThread()
         {
-            IDefaultActivityLogger logger = new DefaultActivityLogger();
-            logger.Tap.Register( new ActivityLoggerConsoleSink() );
-            var initCount = logger.Output.RegisteredClients.Count;
-            NotBuggyActivityLoggerClient[] clients = new NotBuggyActivityLoggerClient[]
+            IActivityMonitor monitor = new ActivityMonitor();
+            monitor.Output.BridgeTo( TestHelper.ConsoleMonitor );
+            var initCount = monitor.Output.Clients.Count;
+            NotBuggyActivityMonitorClient[] clients = new NotBuggyActivityMonitorClient[]
             {
-                new NotBuggyActivityLoggerClient(0),
-                new NotBuggyActivityLoggerClient(1),
-                new NotBuggyActivityLoggerClient(2),
-                new NotBuggyActivityLoggerClient(3),
-                new NotBuggyActivityLoggerClient(4),
-                new NotBuggyActivityLoggerClient(5),
-                new NotBuggyActivityLoggerClient(6),
-                new NotBuggyActivityLoggerClient(7),
-                new NotBuggyActivityLoggerClient(8),
-                new NotBuggyActivityLoggerClient(9),
-                new NotBuggyActivityLoggerClient(10),
-                new NotBuggyActivityLoggerClient(11),
-                new NotBuggyActivityLoggerClient(12),
-                new NotBuggyActivityLoggerClient(13),
-                new NotBuggyActivityLoggerClient(14),
-                new NotBuggyActivityLoggerClient(15),
-                new NotBuggyActivityLoggerClient(16),
-                new NotBuggyActivityLoggerClient(17),
-                new NotBuggyActivityLoggerClient(18),
-                new NotBuggyActivityLoggerClient(19)
+                new NotBuggyActivityMonitorClient(0),
+                new NotBuggyActivityMonitorClient(1),
+                new NotBuggyActivityMonitorClient(2),
+                new NotBuggyActivityMonitorClient(3),
+                new NotBuggyActivityMonitorClient(4),
+                new NotBuggyActivityMonitorClient(5),
+                new NotBuggyActivityMonitorClient(6),
+                new NotBuggyActivityMonitorClient(7),
+                new NotBuggyActivityMonitorClient(8),
+                new NotBuggyActivityMonitorClient(9),
+                new NotBuggyActivityMonitorClient(10),
+                new NotBuggyActivityMonitorClient(11),
+                new NotBuggyActivityMonitorClient(12),
+                new NotBuggyActivityMonitorClient(13),
+                new NotBuggyActivityMonitorClient(14),
+                new NotBuggyActivityMonitorClient(15),
+                new NotBuggyActivityMonitorClient(16),
+                new NotBuggyActivityMonitorClient(17),
+                new NotBuggyActivityMonitorClient(18),
+                new NotBuggyActivityMonitorClient(19)
             };
 
             Task t = new Task( () =>
             {
                 Console.WriteLine( "Internal tast Started" );
 
-                Parallel.For( 0, 20, i => { logger.Output.RegisterClient( clients[i] ); } );
+                Parallel.For( 0, 20, i => { monitor.Output.RegisterClient( clients[i] ); } );
 
-                Assert.That( logger.Output.RegisteredClients.Count, Is.EqualTo( 20 + initCount ) );
+                Assert.That( monitor.Output.Clients.Count, Is.EqualTo( 20 + initCount ) );
 
                 Thread.Sleep( 100 );
 
-                Parallel.For( 0, 20, i => { logger.Output.UnregisterClient( clients[i] ); } );
+                Parallel.For( 0, 20, i => { monitor.Output.UnregisterClient( clients[i] ); } );
 
-                Assert.That( logger.Output.RegisteredClients.Count, Is.EqualTo( initCount ) );
+                Assert.That( monitor.Output.Clients.Count, Is.EqualTo( initCount ) );
 
                 Thread.Sleep( 100 );
 
@@ -254,20 +268,20 @@ namespace CK.Core.Tests
                 Parallel.For( 0, 20, i =>
                 {
                     Console.WriteLine( "Add : {0}", i );
-                    logger.Output.RegisterClient( clients[i] );
+                    monitor.Output.RegisterClient( clients[i] );
                     Thread.Sleep( (int)Math.Round( r.NextDouble() * 50, 0 ) );
                     Console.WriteLine( "Remove : {0}", i );
-                    logger.Output.UnregisterClient( clients[i] );
+                    monitor.Output.UnregisterClient( clients[i] );
                 } );
 
-                Assert.That( logger.Output.RegisteredClients.Count, Is.EqualTo( initCount ) );
+                Assert.That( monitor.Output.Clients.Count, Is.EqualTo( initCount ) );
 
             } );
 
             t.Start();
             for( int i = 0; i < 50; i++ )
             {
-                logger.Info( "Ok go : " + i );
+                monitor.Info( "Ok go : " + i );
                 Thread.Sleep( 10 );
             }
             t.Wait();

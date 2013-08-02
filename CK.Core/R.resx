@@ -117,20 +117,26 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="ActivityLoggerBoundClientMultipleRegister" xml:space="preserve">
-    <value>A '{0}' can be registered in only one IActivityLogger.Output at the same time. Unregister it before Registering it in another logger.</value>
+  <data name="ActivityMonitorBoundClientMultipleRegister" xml:space="preserve">
+    <value>A '{0}' can be registered in only one IActivityMonitor.Output at the same time. Unregister it before Registering it in another monitor.</value>
   </data>
-  <data name="ActivityLoggerConcurrentThreadAccess" xml:space="preserve">
-    <value>Concurrent accesses from 2 threads to the same ActivityLogger has been detected. Only one thread at a time can interact with an ActivityLogger.</value>
+  <data name="ActivityMonitorConcurrentThreadAccess" xml:space="preserve">
+    <value>Concurrent accesses from 2 threads to the same ActivityMonitor has been detected. Only one thread at a time can interact with an ActivityMonitor.</value>
   </data>
-  <data name="ActivityLoggerErrorWhileGetConclusionText" xml:space="preserve">
+  <data name="ActivityMonitorErrorWhileGetConclusionText" xml:space="preserve">
     <value>Unexpected error while getting conclusion text: '{0}'.</value>
   </data>
-  <data name="ActivityLoggerReentrancyError" xml:space="preserve">
-    <value>A reentrant call in an ActivityLogger has been detected. A logger usage must not trigger another operation on the same logger.</value>
+  <data name="ActivityMonitorNullAutoConfiguration" xml:space="preserve">
+    <value>An auto configuration action is null.</value>
   </data>
-  <data name="ActivityLoggerReentrancyReleaseError" xml:space="preserve">
+  <data name="ActivityMonitorReentrancyError" xml:space="preserve">
+    <value>A reentrant call in an ActivityMonitor has been detected. A monitor usage must not trigger another operation on the same monitor.</value>
+  </data>
+  <data name="ActivityMonitorReentrancyReleaseError" xml:space="preserve">
     <value>Internal error: Error during release reentrancy operation. Thread id={0} entered whereas release is called from thread '{1}', id={2}.</value>
+  </data>
+  <data name="ActivityMustNotBeNullNorEmpty" xml:space="preserve">
+    <value>Monitor must not be null nor be the Empty one.</value>
   </data>
   <data name="ArgumentCountNegative" xml:space="preserve">
     <value>Argument count can not be negative.</value>
@@ -139,7 +145,7 @@
     <value>Argument must not be null or whitespace.</value>
   </data>
   <data name="CanNotUnregisterDefaultClient" xml:space="preserve">
-    <value>Can not Unregister the Tap, PathCatcher or ErrorCounter of a default logger.</value>
+    <value>Can not Unregister the Tap, PathCatcher or ErrorCounter of a default monitor.</value>
   </data>
   <data name="ClosedByBridgeRemoved" xml:space="preserve">
     <value>Prematurely closed by Bridge removed.</value>
@@ -183,13 +189,16 @@
   <data name="ServiceImplTypeMismatch" xml:space="preserve">
     <value>Service {0} is not implemented by object {1}.</value>
   </data>
-  <data name="TagMustBeRegisteredInActivityLogger" xml:space="preserve">
-    <value>Must be not null and registered in ActivityLogger.RegisteredTags.</value>
+  <data name="TagMustBeRegisteredInActivityMonitor" xml:space="preserve">
+    <value>Must be not null and registered in ActivityMonitor.RegisteredTags.</value>
   </data>
   <data name="TraitsMustBelongToTheSameContext" xml:space="preserve">
     <value>Traits must belong to the same context.</value>
   </data>
   <data name="UnregisteredServiceInServiceProvider" xml:space="preserve">
     <value>Unable to find service '{0}'.</value>
+  </data>
+  <data name="UtilInterlockedSetFactoryTesterMismatch" xml:space="preserve">
+    <value>The 'factory' function must create an item that satisfies the 'tester' function.</value>
   </data>
 </root>

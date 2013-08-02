@@ -40,7 +40,7 @@ namespace CK.Reflection
         /// <param name="constructorAttributesFilter">Optional predicate used to filter constructors' attributes. When null, all attributes are redefined.</param>
         /// <param name="parameterAttributesFilter">Optional predicate used to filter constructors' arguments' attributes. When null, all attributes are redefined.</param>
         public static void DefinePassThroughConstructors( this TypeBuilder @this,
-                                                            Predicate<ConstructorInfo> baseConstructorfilter = null,
+                                                            Func<ConstructorInfo,bool> baseConstructorfilter = null,
                                                             Func<ConstructorInfo, CustomAttributeData, bool> constructorAttributesFilter = null,
                                                             Func<ParameterInfo, CustomAttributeData, bool> parameterAttributesFilter = null )
         {

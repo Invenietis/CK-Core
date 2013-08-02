@@ -45,7 +45,7 @@ namespace CK.Core
             /// <param name="zeroxPrefix">False to not prefix the result with 0x.</param>
             /// <param name="lowerCase">True to use upper case A...F (instead of a...f).</param>
             /// <returns>The bytes expressed as a an hexadecimal string.</returns>
-            public static string BytesToString( byte[] bytes, bool zeroxPrefix = true, bool lowerCase = false )
+            public static string BytesToHexaString( byte[] bytes, bool zeroxPrefix = true, bool lowerCase = false )
             {
                 if( bytes == null ) throw new ArgumentNullException();
                 int len = bytes.Length;

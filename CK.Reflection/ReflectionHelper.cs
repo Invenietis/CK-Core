@@ -228,7 +228,7 @@ namespace CK.Reflection
         /// <param name="customAttributes">Existing custom attribute data (can be obtained through <see cref="MemberInfo.GetCustomAttributesData"/>).</param>
         /// <param name="collector">Action that receives builders that reproduce the original custom attributes.</param>
         /// <param name="filter">Optional filter for attributes. When null, all attributes are collected.</param>
-        public static void GenerateCustomAttributeBuilder( IEnumerable<CustomAttributeData> customAttributes, Action<CustomAttributeBuilder> collector, Predicate<CustomAttributeData> filter = null )
+        public static void GenerateCustomAttributeBuilder( IEnumerable<CustomAttributeData> customAttributes, Action<CustomAttributeBuilder> collector, Func<CustomAttributeData,bool> filter = null )
         {
             if( customAttributes == null ) throw new ArgumentNullException( "customAttributes" );
             if( collector == null ) throw new ArgumentNullException( "collector" );

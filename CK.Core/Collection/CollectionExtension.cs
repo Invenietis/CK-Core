@@ -66,7 +66,7 @@ namespace CK.Core
         /// <param name="this">This list.</param>
         /// <param name="removeCondition">Predicate that must return true for items that must be removed from this list.</param>
         /// <returns>Removed items (can be added into another one).</returns>
-        public static IEnumerable<T> RemoveWhere<T>( this IList<T> @this, Predicate<T> removeCondition )
+        public static IEnumerable<T> RemoveWhereAndReturnsRemoved<T>( this IList<T> @this, Func<T, bool> removeCondition )
         {
             for( int i = 0; i < @this.Count; ++i )
             {

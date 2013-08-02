@@ -279,7 +279,7 @@ namespace CK.Core
         /// 
         /// This shows that our 4 methods Intersect, Remove, Toggle and Add cover the interesting cases - others are either symetric or useless.
         /// </remarks>
-        static void Process( CKTrait left, CKTrait right, Predicate<CKTrait> onLeft, Predicate<CKTrait> onRight, Predicate<CKTrait> onBoth )
+        static void Process( CKTrait left, CKTrait right, Func<CKTrait,bool> onLeft, Func<CKTrait,bool> onRight, Func<CKTrait,bool> onBoth )
         {
             ICKReadOnlyList<CKTrait> l = left.AtomicTraits;
             int cL = l.Count;

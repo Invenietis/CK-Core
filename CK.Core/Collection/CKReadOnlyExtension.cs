@@ -82,8 +82,8 @@ namespace CK.Core
         /// <summary>
         /// Attempts to consider a <see cref="IList{T}"/> as a <see cref="IReadOnlyList{T}"/>.
         /// If the actual object supports IReadOnlyList&lt;T&gt; it is a direct cast (in .Net 4.5, the 
-        /// standard List&lt;T&gt; extends IReadOnlyList&lt;T&gt;), otherwise <see cref="ToReadOnlyList{T}(IList{T})"/> is 
-        /// called to obtain an independant storage (a copy).
+        /// standard List&lt;T&gt; extends IReadOnlyList&lt;T&gt;), otherwise a <see cref="CKReadOnlyListOnIList{T}(IList{T})"/> 
+        /// wrapper is created around the original list.
         /// </summary>
         /// <typeparam name="T">The type of the elements of source.</typeparam>
         /// <param name="this">A <see cref="IList{T}"/> to consider as a read only list.</param>
@@ -91,7 +91,7 @@ namespace CK.Core
         static public IReadOnlyList<T> AsReadOnlyList<T>( this IList<T> @this )
         {
             IReadOnlyList<T> rl = @this as IReadOnlyList<T>;
-            return rl ?? @this.ToReadOnlyList<T>();
+            return rl ?? new CKReadOnlyListOnIList<T>( @this );
         }
 
         /// <summary>

@@ -69,34 +69,32 @@
     <Compile Include="..\SharedAssemblyInfo.cs">
       <Link>Properties\SharedAssemblyInfo.cs</Link>
     </Compile>
-    <Compile Include="ActivityLogger\ActivityLoggerEmpty.cs" />
-    <Compile Include="ActivityLogger\ActivityLogGroupConclusion.cs" />
-    <Compile Include="ActivityLogger\IActivityLogger.cs" />
-    <Compile Include="ActivityLogger\IActivityLoggerBoundClient.cs" />
-    <Compile Include="ActivityLogger\IActivityLoggerClient.cs" />
-    <Compile Include="ActivityLogger\IActivityLoggerOutput.cs" />
-    <Compile Include="ActivityLogger\IActivityLogGroup.cs" />
-    <Compile Include="ActivityLogger\Impl\ActivityLoggerBridgeTarget.cs" />
-    <Compile Include="ActivityLogger\Impl\ActivityLoggerConsoleSink.cs" />
-    <Compile Include="ActivityLogger\Impl\ActivityLoggerErrorCounter.cs" />
-    <Compile Include="ActivityLogger\Impl\ActivityLoggerClient.cs" />
-    <Compile Include="ActivityLogger\Impl\ActivityLoggerOutput.cs" />
-    <Compile Include="ActivityLogger\Impl\ActivityLoggerPathCatcher.cs" />
-    <Compile Include="ActivityLogger\Impl\ActivityLoggerSimpleCollector.cs" />
-    <Compile Include="ActivityLogger\Impl\ActivityLoggerTap.cs" />
-    <Compile Include="ActivityLogger\Impl\ActivityLoggerTextWriterSink.cs" />
-    <Compile Include="ActivityLogger\Impl\ActivityLogger.Group.cs" />
-    <Compile Include="ActivityLogger\Impl\ActivityLoggerExtension.WithoutTags.cs" />
-    <Compile Include="ActivityLogger\Impl\ActivityLoggerExtension.WithTags.cs" />
-    <Compile Include="ActivityLogger\Impl\ActivityLoggerBridge.cs" />
-    <Compile Include="ActivityLogger\Impl\DefaultActivityLogger.cs" />
-    <Compile Include="ActivityLogger\IDefaultActivityLogger.cs" />
-    <Compile Include="ActivityLogger\IActivityLoggerSink.cs" />
-    <Compile Include="ActivityLogger\Impl\ActivityLoggerExtension.cs" />
-    <Compile Include="ActivityLogger\Impl\ActivityLogger.cs" />
-    <Compile Include="ActivityLogger\LogLevel.cs" />
-    <Compile Include="ActivityLogger\LogLevelFilter.cs" />
+    <Compile Include="ActivityMonitor\ActivityLogGroupConclusion.cs" />
+    <Compile Include="ActivityMonitor\IActivityMonitor.cs" />
+    <Compile Include="ActivityMonitor\IActivityMonitorBoundClient.cs" />
+    <Compile Include="ActivityMonitor\IActivityMonitorClient.cs" />
+    <Compile Include="ActivityMonitor\IActivityMonitorOutput.cs" />
+    <Compile Include="ActivityMonitor\IActivityLogGroup.cs" />
+    <Compile Include="ActivityMonitor\Impl\ActivityMonitorBridgeTarget.cs" />
+    <Compile Include="ActivityMonitor\Client\ActivityMonitorConsoleClient.cs" />
+    <Compile Include="ActivityMonitor\Client\ActivityMonitorErrorCounter.cs" />
+    <Compile Include="ActivityMonitor\Client\ActivityMonitorClient.cs" />
+    <Compile Include="ActivityMonitor\Impl\ActivityMonitorOutput.cs" />
+    <Compile Include="ActivityMonitor\Client\ActivityMonitorPathCatcher.cs" />
+    <Compile Include="ActivityMonitor\Client\ActivityMonitorSimpleCollector.cs" />
+    <Compile Include="ActivityMonitor\Client\ActivityMonitorTextHelperClient.cs" />
+    <Compile Include="ActivityMonitor\Client\ActivityMonitorTextWriterSink.cs" />
+    <Compile Include="ActivityMonitor\Impl\ActivityMonitor.Group.cs" />
+    <Compile Include="ActivityMonitor\Impl\ActivityMonitorExtension.WithoutTags.cs" />
+    <Compile Include="ActivityMonitor\Impl\ActivityMonitorExtension.WithTags.cs" />
+    <Compile Include="ActivityMonitor\Impl\ActivityMonitorBridge.cs" />
+    <Compile Include="ActivityMonitor\Impl\ActivityMonitorExtension.cs" />
+    <Compile Include="ActivityMonitor\Impl\ActivityMonitor.cs" />
+    <Compile Include="ActivityMonitor\Impl\IActivityMonitorImpl.cs" />
+    <Compile Include="ActivityMonitor\LogLevel.cs" />
+    <Compile Include="ActivityMonitor\LogLevelFilter.cs" />
     <Compile Include="CKException.cs" />
+    <Compile Include="Util.Empty.cs" />
     <Compile Include="CriticalErrorCollector.cs" />
     <Compile Include="ICKReadOnlyCollection.cs" />
     <Compile Include="ICKReadOnlyList.cs" />
@@ -117,6 +115,7 @@
     <Compile Include="ICKWritableCollection.cs" />
     <Compile Include="LegacySupport\CallerMemberNameAttribute.cs" />
     <Compile Include="SetOperation.cs" />
+    <Compile Include="SimpleMultiAction.cs" />
     <Compile Include="Trait\CKTrait.cs" />
     <Compile Include="Trait\CKTraitContext.cs" />
     <Compile Include="IFluentInterface.cs" />
@@ -162,7 +161,7 @@
     <Compile Include="Obsolete\ChangeStatus.cs" />
     <Compile Include="Util.Hash.cs" />
     <Compile Include="Util.Math.cs" />
-    <Compile Include="WeakReference.cs" />
+    <Compile Include="WeakRef.cs" />
     <Compile Include="XmlExtension.cs" />
   </ItemGroup>
   <ItemGroup>

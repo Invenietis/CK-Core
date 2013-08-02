@@ -150,7 +150,7 @@ namespace CK.Core
         /// <param name="withHiddenFolders">False to skip hidden folders.</param>
         /// <param name="fileFilter">Optional predicate for directories.</param>
         /// <param name="dirFilter">Optional predicate for files.</param>
-        public static void CopyDirectory( DirectoryInfo src, DirectoryInfo target, bool withHiddenFiles = true, bool withHiddenFolders = true, Predicate<FileInfo> fileFilter = null, Predicate<DirectoryInfo> dirFilter = null )
+        public static void CopyDirectory( DirectoryInfo src, DirectoryInfo target, bool withHiddenFiles = true, bool withHiddenFolders = true, Func<FileInfo,bool> fileFilter = null, Func<DirectoryInfo,bool> dirFilter = null )
         {
             if( src == null ) throw new ArgumentNullException( "src" );
             if( target == null ) throw new ArgumentNullException( "target" );
