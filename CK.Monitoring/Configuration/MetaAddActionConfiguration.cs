@@ -34,7 +34,7 @@ namespace CK.RouteConfig
         protected internal override bool CheckValidity( string routeName, IActivityMonitor monitor )
         {
             bool result = true;
-            foreach( var a in Actions ) result &= CheckNameValidity( routeName, monitor, a.Name ) && a.CheckValidity( routeName, monitor );
+            foreach( var a in Actions ) result &= CheckActionNameValidity( routeName, monitor, a.Name ) && a.CheckValidity( routeName, monitor );
             return result;
         }
 

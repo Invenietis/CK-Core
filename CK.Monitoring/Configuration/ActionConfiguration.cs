@@ -13,21 +13,36 @@ namespace CK.RouteConfig
     /// </summary>
     public abstract class ActionConfiguration
     {
-        readonly string _name;
+        string _name;
 
         /// <summary>
         /// Initializes a new <see cref="ActionConfiguration"/>.
         /// </summary>
-        /// <param name="name">Required non empty name that identifies this configuration.</param>
+        /// <param name="name">Required non empty name that identifies this configuration. Can not be null.</param>
         protected ActionConfiguration( string name )
         {
-            _name = name ?? String.Empty;
+            if( name == null ) throw new ArgumentNullException( "name" );
+            _name = name;
         }
 
         /// <summary>
-        /// Gets the name of this configuration. Can not be null.
+        /// Gets or sets the name of this configuration. Can not be null.
         /// </summary>
-        public string Name { get { return _name; } }
+        /// <remarks>
+        /// Whether this name is a valid one or not is not checked by the configuration itself
+        /// but by the <see cref="MetaConfiguration"/> that "covers" it: different rules may be 
+        /// implemented for the name of a configuration depending of the way it is used, this is 
+        /// the role of the meta configuration.
+        /// </remarks>
+        public string Name 
+        {
+            get { return _name; }
+            set 
+            {
+                if( value == null ) throw new ArgumentNullException( "name" );
+                _name = value; 
+            } 
+        }
 
         /// <summary>
         /// Checks the configuration validity. By default returns true.

@@ -214,7 +214,7 @@ namespace CK.Core
             }
         }
 
-        IActivityLogGroup IActivityMonitorImpl.Current
+        IActivityLogGroup IActivityMonitorImpl.CurrentGroup
         {
             get { return _current; }
         }

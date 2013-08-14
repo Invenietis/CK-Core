@@ -29,7 +29,7 @@ namespace CK.RouteConfig
             // If we support insertion in a composite we will allow name with / inside/
             // If we allow / in DeclaredName, it means that an action inside a Composite can be inserted
             // somewhere else... This is possible technically, but does it make sense?
-            return CheckNameValidity( routeName, monitor, _name ) && CheckNameValidity( routeName, monitor, _declaredName );
+            return CheckActionNameValidity( routeName, monitor, _name ) && CheckActionNameValidity( routeName, monitor, _declaredName );
         }
 
         protected internal override void Apply( Impl.IRouteConfigurationContext context )

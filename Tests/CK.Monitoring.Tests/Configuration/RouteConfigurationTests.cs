@@ -86,8 +86,39 @@ namespace CK.Monitoring.Tests.Configuration
             }
             {
                 c = new RouteConfiguration()
-                        .DeclareRoute( new SubRouteConfiguration( "Name", x => true ) 
+                        .DeclareRoute( new SubRouteConfiguration( "Name", x => true )
                             .DeclareRoute( new SubRouteConfiguration( "Name", x => true ) ) );
+                Assert.That( c.Resolve( TestHelper.Monitor ), Is.Null );
+            }
+        }
+
+        [Test]
+        public void InvalidNames()
+        {
+            {
+                Assert.Throws<ArgumentNullException>( () => new RouteConfiguration().DeclareRoute( new SubRouteConfiguration( null, x => true ) ) );
+                Assert.Throws<ArgumentNullException>( () => new RouteConfiguration().AddAction( new TestActionConfiguration( null ) ) );
+            }
+            RouteConfiguration c;
+            {
+                c = new RouteConfiguration()
+                        .DeclareRoute( new SubRouteConfiguration( "", x => true )
+                            .DeclareRoute( new SubRouteConfiguration( "", x => true ) ) );
+                Assert.That( c.Resolve( TestHelper.Monitor ), Is.Null, "A route name can be empty but not 2 can be empty at the same time. The name of the root RouteConfiguration is always the empty string." );
+            }
+            {
+                c = new RouteConfiguration()
+                        .AddAction( new TestActionConfiguration( "" ) );
+                Assert.That( c.Resolve( TestHelper.Monitor ), Is.Null );
+            }
+            {
+                c = new RouteConfiguration()
+                        .AddAction( new TestActionConfiguration( "/" ) );
+                Assert.That( c.Resolve( TestHelper.Monitor ), Is.Null );
+            }
+            {
+                c = new RouteConfiguration()
+                        .AddAction( new TestActionConfiguration( "A/B" ) );
                 Assert.That( c.Resolve( TestHelper.Monitor ), Is.Null );
             }
         }

@@ -37,7 +37,7 @@ namespace CK.RouteConfig.Impl
         /// <param name="context">Enables context lookup and manipulation, exposes a <see cref="IActivityMonitor"/> to use.</param>
         protected internal abstract void Apply( IRouteConfigurationContext context );
 
-        static public bool CheckNameValidity( string routeName, IActivityMonitor monitor, string nameToCheck )
+        static public bool CheckActionNameValidity( string routeName, IActivityMonitor monitor, string nameToCheck )
         {
             if( String.IsNullOrWhiteSpace( nameToCheck ) ) monitor.Error( "Invalid name '{0}' in route '{1}'. Name must not be empty or contains only white space.", nameToCheck, routeName );
             else if( nameToCheck.Contains( '/' ) ) monitor.Error( "Invalid name '{0}' in route '{1}'. Name must not contain '/'.", nameToCheck, routeName );

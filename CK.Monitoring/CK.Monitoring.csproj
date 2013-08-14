@@ -64,6 +64,7 @@
     <Compile Include="Configuration\Impl\IProtoRouteConfigurationContext.cs" />
     <Compile Include="Configuration\Impl\ProtoResolver.cs" />
     <Compile Include="Configuration\MetaAddActionConfiguration.cs" />
+    <Compile Include="Configuration\RouteActionFactory.cs" />
     <Compile Include="Configuration\SubRouteConfigurationResolved.cs" />
     <Compile Include="Configuration\RouteConfigurationResolved.cs" />
     <Compile Include="Configuration\ActionSequenceConfiguration.cs" />
@@ -74,10 +75,12 @@
     <Compile Include="GrandOutputClient.cs" />
     <Compile Include="GrandOutputEventInfo.cs" />
     <Compile Include="GrandOutputSource.cs" />
+    <Compile Include="Impl\BufferingChannel.cs" />
+    <Compile Include="Impl\IChannel.cs" />
     <Compile Include="Persistence\ILogEntry.cs" />
     <Compile Include="Persistence\Impl\LogEntry.cs" />
     <Compile Include="Persistence\Impl\StreamLogType.cs" />
-    <Compile Include="Impl\GrandOutputChannel.cs" />
+    <Compile Include="Impl\StandardChannel.cs" />
     <Compile Include="IGrandOutputSink.cs" />
     <Compile Include="Impl\GrandOutputCompositeSink.cs" />
     <Compile Include="Persistence\Impl\LECloseGroup.cs" />
@@ -99,6 +102,11 @@
     <Compile Include="Configuration\SubRouteConfiguration.cs" />
     <Compile Include="Configuration\MetaRemoveActionConfiguration.cs" />
     <Compile Include="Configuration\ActionConfiguration.cs" />
+    <Compile Include="Sinks\ConfiguredSink.cs" />
+    <Compile Include="Impl\ChannelFactory.cs" />
+    <Compile Include="Sinks\ConfiguredSinkTypeAttribute.cs" />
+    <Compile Include="Sinks\Impl\ConfiguredSinkSequence.cs" />
+    <Compile Include="Sinks\Impl\ConfiguredSinkParallel.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\SharedKey.snk">

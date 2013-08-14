@@ -27,13 +27,13 @@ using System.Runtime.Serialization;
 namespace CK.Core
 {
     /// <summary>
-    /// Basic <see cref="Exception"/>.
+    /// Basic <see cref="Exception"/> that eases message formatting thanks to its contructors.
     /// </summary>
     [Serializable]
     public class CKException : Exception
     {
         /// <summary>
-        /// Constructor
+        /// Serialization constructor.
         /// </summary>
         /// <param name="info"></param>
         /// <param name="context"></param>
@@ -41,38 +41,42 @@ namespace CK.Core
             : base( info, context )
         {
         }
+
         /// <summary>
-        /// Constructor
+        /// Initializes a new <see cref="CKException"/>.
         /// </summary>
-        /// <param name="message"></param>
+        /// <param name="message">Simple message.</param>
         public CKException( string message )
             : base( message )
         {
         }
+        
         /// <summary>
-        /// Constructor
+        /// Initializes a new <see cref="CKException"/>.
         /// </summary>
-        /// <param name="messageFormat"></param>
-        /// <param name="args"></param>
+        /// <param name="messageFormat">Format string with optional placeholders.</param>
+        /// <param name="args">Varying number of arguments to format.</param>
         public CKException( string messageFormat, params object[] args )
             : base( String.Format( messageFormat, args ) )
         {
         }
+
         /// <summary>
-        /// Constructor
+        /// Initializes a new <see cref="CKException"/>.
         /// </summary>
-        /// <param name="message"></param>
-        /// <param name="innerException"></param>
+        /// <param name="message">Simple message.</param>
+        /// <param name="innerException">Exception that caused this one.</param>
         public CKException( string message, Exception innerException )
             : base( message, innerException )
         {
         }
+
         /// <summary>
-        /// Constructor
+        /// Initializes a new <see cref="CKException"/>.
         /// </summary>
-        /// <param name="innerException"></param>
-        /// <param name="messageFormat"></param>
-        /// <param name="args"></param>
+        /// <param name="innerException">Exception that caused this one.</param>
+        /// <param name="messageFormat">Format string with optional placeholders.</param>
+        /// <param name="args">Varying number of arguments to format.</param>
         public CKException( Exception innerException, string messageFormat, params object[] args )
             : base( String.Format( messageFormat, args ), innerException )
         {

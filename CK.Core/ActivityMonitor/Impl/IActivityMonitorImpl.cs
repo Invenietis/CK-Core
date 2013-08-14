@@ -15,7 +15,7 @@ namespace CK.Core.Impl
         /// Gets the currently opened group.
         /// Null when no group is currently opened.
         /// </summary>
-        IActivityLogGroup Current { get; }
+        IActivityLogGroup CurrentGroup { get; }
 
     }
 }

@@ -12,38 +12,40 @@ namespace CK.RouteConfig
     /// <summary>
     /// Thread-safe management of hierarchical routes configured (and reconfigured) by a <see cref="RouteConfiguration"/>.
     /// </summary>
-    /// <typeparam name="T">Any reference type.</typeparam>
-    public class ConfiguredRouteHost<T> : IDisposable
-        where T : class
+    /// <typeparam name="TAction">Actual type of the actions. Can be any reference type.</typeparam>
+    /// <typeparam name="TRoute">Route class that encapsulates actions.</typeparam>
+    public class ConfiguredRouteHost<TAction,TRoute> : IDisposable
+        where TAction : class
+        where TRoute : class
     {
-        readonly Func<IActivityMonitor,ActionConfiguration,T> _actionFactory;
-        readonly Action<IActivityMonitor,T> _starter;
-        readonly Action<IActivityMonitor,T> _closer;
+        readonly RouteActionFactory<TAction,TRoute> _actionFactory;
+        readonly Action<IActivityMonitor,TAction> _starter;
+        readonly Action<IActivityMonitor,TAction> _closer;
         readonly object _initializeLock = new Object();
         readonly object _waitLock = new Object();
 
         class RouteHost
         {
-            public readonly T[] Actions;
+            public readonly TRoute FinalRoute;
+            public readonly TAction[] Actions;
             public readonly SubRouteHost[] Routes;
 
-            public static readonly RouteHost Empty = new RouteHost();
-
-            RouteHost()
+            internal RouteHost( RouteActionFactory<TAction, TRoute> factory )
             {
-                Actions = Util.EmptyArray<T>.Empty;
+                Actions = Util.EmptyArray<TAction>.Empty;
                 Routes = Util.EmptyArray<SubRouteHost>.Empty;
+                FinalRoute = factory.DoCreateEmptyFinalRoute();
             }
 
-            internal RouteHost( IActivityMonitor monitor, Dictionary<ActionConfiguration, T> created, Func<IActivityMonitor, ActionConfiguration, T> actionFactory, RouteConfigurationResolved c )
+            internal RouteHost( IActivityMonitor monitor, RouteActionFactory<TAction,TRoute> factory, RouteConfigurationResolved c )
             {
-
                 using( monitor.OpenGroup( LogLevel.Info, "Initializing compiled route '{0}'.", c.Name ) )
                 {
                     try
                     {
-                        Actions = c.ActionsResolved.Select( r => created.GetOrSet( r.ActionConfiguration, a => actionFactory( monitor, a ) ) ).ToArray();
-                        Routes = c.SubRoutes.Where( r => r.ActionsResolved.Any() ).Select( r => new SubRouteHost( monitor, created, actionFactory, r ) ).ToArray();
+                        Actions = c.ActionsResolved.Select( r => factory.Create( monitor, r.ActionConfiguration ) ).ToArray();
+                        FinalRoute = factory.DoCreateFinalRoute( monitor, Actions, c.Name );
+                        Routes = c.SubRoutes.Where( r => r.ActionsResolved.Any() ).Select( r => new SubRouteHost( monitor, factory, r ) ).ToArray();
                     }
                     catch( Exception ex )
                     {
@@ -64,57 +66,54 @@ namespace CK.RouteConfig
 
         class SubRouteHost : RouteHost
         {
-            public readonly string Name;
             public readonly Func<string,bool> Filter;
 
-            internal SubRouteHost( IActivityMonitor monitor, Dictionary<ActionConfiguration, T> created, Func<IActivityMonitor, ActionConfiguration, T> actionFactory, SubRouteConfigurationResolved c )
-                : base( monitor, created, actionFactory, c )
+            internal SubRouteHost( IActivityMonitor monitor, RouteActionFactory<TAction,TRoute> factory, SubRouteConfigurationResolved c )
+                : base( monitor, factory, c )
             {
-                Name = c.Name;
                 Filter = c.RoutePredicate;
             }
-
         }
 
+        readonly RouteHost _emptyHost;
+
         RouteHost _root;
-        T[] _allActions;
-        T[] _allActionsDying;
+        TAction[] _allActions;
+        TAction[] _allActionsDying;
 
         RouteHost _futureRoot;
-        T[] _futureAllActions;
+        TAction[] _futureAllActions;
         int _configurationAttemptCount;
         int _succesfulConfigurationCount;
 
         /// <summary>
-        /// Initializes a new <see cref="ConfiguredRouteHost"/>.
+        /// Initializes a new <see cref="ConfiguredRouteHost"/> initially <see cref="IsClosed">closed</see>.
         /// </summary>
-        /// <param name="actionFactory">
-        /// Factory function for <typeparamref name="T"/> based on an <see cref="ActionConfiguration"/>.
-        /// This factory may return null if, for any reason, the action can not be created.
-        /// </param>
-        /// <param name="starter">Optional starter function for a <typeparamref name="T"/>.</param>
+        /// <param name="actionFactory">Factory for <typeparamref name="TAction"/> based on an <see cref="ActionConfiguration"/>.</param>
+        /// <param name="starter">Optional starter function for a <typeparamref name="TAction"/>.</param>
         /// <param name="closer">Optional closer function.</param>
-        public ConfiguredRouteHost( Func<IActivityMonitor, ActionConfiguration, T> actionFactory, Action<IActivityMonitor, T> starter = null, Action<IActivityMonitor, T> closer = null )
+        public ConfiguredRouteHost( RouteActionFactory<TAction,TRoute> actionFactory, Action<IActivityMonitor, TAction> starter = null, Action<IActivityMonitor, TAction> closer = null )
         {
             _actionFactory = actionFactory;
             _starter = starter;
             _closer = closer;
-            _root = RouteHost.Empty;
-            _allActions = Util.EmptyArray<T>.Empty;
+            _emptyHost = new RouteHost( actionFactory );
+            _root = _emptyHost;
+            _allActions = Util.EmptyArray<TAction>.Empty;
         }
 
         /// <summary>
-        /// Returns the <typeparamref name="T"/> to apply to the route.
+        /// Returns the <typeparamref name="TAction"/> to apply to the route.
         /// When null, it means that <see cref="ApplyPendingConfiguration"/> must be called
         /// to close the previous actions and start the new ones.
         /// </summary>
         /// <param name="route">The full route that will be matched.</param>
-        /// <returns>The actions to apply.</returns>
-        public IEnumerable<T> FindRoute( string route )
+        /// <returns>The final route to apply.</returns>
+        public TRoute FindRoute( string route )
         {
             var r = _root;
             if( _futureRoot != null ) return null;
-            return r.FindRoute( route ?? String.Empty ).Actions;
+            return r.FindRoute( route ?? String.Empty ).FinalRoute;
         }
 
         /// <summary>
@@ -126,11 +125,20 @@ namespace CK.RouteConfig
         }
 
         /// <summary>
-        /// Gets the total number of succesful <see cref="ApplyPendingConfiguration"/>.
+        /// Gets the total number of succesful calls to <see cref="ApplyPendingConfiguration"/>.
         /// </summary>
         public int SuccessfulConfigurationCount
         {
             get { return _succesfulConfigurationCount; }
+        }
+
+        /// <summary>
+        /// Gets whether this host is closed.
+        /// When closed, all routes are empty.
+        /// </summary>
+        public bool IsClosed
+        {
+            get { return _root == _emptyHost; }
         }
 
         /// <summary>
@@ -151,17 +159,21 @@ namespace CK.RouteConfig
                     Interlocked.Increment( ref _configurationAttemptCount );
                     RouteConfigurationResult result = configuration.Resolve( monitor );
                     if( result == null ) return false;
-                    Dictionary<ActionConfiguration,T> created = new Dictionary<ActionConfiguration, T>();
-                    RouteHost newRoot = new RouteHost( monitor, created, _actionFactory, result.Root );
-                    if( newRoot.Actions == null ) return false;
+                    _actionFactory.Initialize();
+                    RouteHost newRoot = new RouteHost( monitor, _actionFactory, result.Root );
+                    if( newRoot.Actions == null )
+                    {
+                        _actionFactory.GetAllActionsAndUnitialize( false );
+                        return false;
+                    }
                     if( newRoot.Actions.Length == 0 && newRoot.Routes.Length == 0 )
                     {
-                        newRoot = RouteHost.Empty;
+                        newRoot = _emptyHost;
                         monitor.Info( "New route configuration is empty." );
                     }
                     _futureRoot = newRoot;
                     _allActionsDying = _allActions;
-                    _futureAllActions = created.Values.ToArray();
+                    _futureAllActions = _actionFactory.GetAllActionsAndUnitialize( true );
                 }
             }
             return true;
@@ -188,7 +200,7 @@ namespace CK.RouteConfig
         /// previously configured actions before calling this method.
         /// </summary>
         /// <param name="monitor">Monitor that will be used. Must not be null.</param>
-        /// <returns>True on success. False if an error occured during the start of any new action: the previous configuration still applies.</returns>
+        /// <returns>True on success. False if an error occured during the start of any new action: this host is <see cref="Close"/>d.</returns>
         public bool ApplyPendingConfiguration( IActivityMonitor monitor )
         {
             if( monitor == null ) throw new ArgumentNullException();
@@ -219,14 +231,18 @@ namespace CK.RouteConfig
                         }
                     }
                 }
-                if( !newConfigIsValid ) return false;
+                if( newConfigIsValid ) Interlocked.Increment( ref _succesfulConfigurationCount );
+                else 
+                {
+                    _futureRoot = _emptyHost;
+                    _futureAllActions = Util.EmptyArray<TAction>.Empty;
+                }
                 _allActions = _futureAllActions;
                 _root = _futureRoot;
                 _futureAllActions = null;
                 _futureRoot = null;
-                Interlocked.Increment( ref _succesfulConfigurationCount );
                 lock( _waitLock ) Monitor.PulseAll( _waitLock );
-                return true;
+                return newConfigIsValid;
             }
         }
 
@@ -240,12 +256,12 @@ namespace CK.RouteConfig
             if( monitor == null ) throw new ArgumentNullException();
             lock( _initializeLock )
             {
-                if( _root != RouteHost.Empty )
+                if( _root != _emptyHost )
                 {
                     Debug.Assert( _allActions != null );
                     CloseActions( monitor, _allActions );
-                    _root = RouteHost.Empty;
-                    _allActions = Util.EmptyArray<T>.Empty;
+                    _root = _emptyHost;
+                    _allActions = Util.EmptyArray<TAction>.Empty;
                     _futureAllActions = null;
                     _futureRoot = null;
                     lock( _waitLock ) Monitor.PulseAll( _waitLock );
@@ -261,7 +277,7 @@ namespace CK.RouteConfig
             Close( new ActivityMonitor( false ) );
         }
 
-        void CloseActions( IActivityMonitor monitor, T[] toClose )
+        void CloseActions( IActivityMonitor monitor, TAction[] toClose )
         {
             Debug.Assert( toClose != null );
             if( _closer != null )

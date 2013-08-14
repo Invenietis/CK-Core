@@ -17,7 +17,7 @@ namespace CK.Monitoring
         string _channelName;
 
         GrandOutputSource _source;
-        GrandOutputChannel _channel;
+        IChannel _channel;
         LogLevelFilter _currentMinimalFilter;
         int _relativeDepth;
         int _curVersion;
@@ -83,7 +83,7 @@ namespace CK.Monitoring
             Interlocked.Increment( ref _version );
         }
 
-        GrandOutputChannel EnsureChannel( IActivityMonitorImpl monitorSource )
+        IChannel EnsureChannel( IActivityMonitorImpl monitorSource )
         {
             if( _version != _curVersion )
             {
@@ -95,7 +95,7 @@ namespace CK.Monitoring
                         _channel.ReleaseInput( _source );
                         _source = null;
                     }
-                    _channel = _central.ObtainChannel( _channelName );
+                    _channel = _central.ObtainChannel( monitorSource.UniqueId, _channelName );
                 }
                 while( _version != _curVersion );
 

@@ -9,6 +9,7 @@ namespace CK.Monitoring
 {
     /// <summary>
     /// Defines the source of log events for a <see cref="GrandOutput"/> as seen by <see cref="IGrandOutputSink"/> in a <see cref="IGrandOutputEventInfo"/>.
+    /// It is an immutable snapshot of data related to the <see cref="GrandOutputClient"/> at the time of the channel creation.
     /// </summary>
     public class GrandOutputSource
     {
@@ -18,7 +19,7 @@ namespace CK.Monitoring
 
         internal GrandOutputSource( IActivityMonitorImpl monitor, string channelName )
         {
-            var g = monitor.Current;
+            var g = monitor.CurrentGroup;
             _depth = g != null ? g.Depth : 0;
             _monitorId = monitor.UniqueId;
             _channelName = channelName;
@@ -42,6 +43,8 @@ namespace CK.Monitoring
 
         /// <summary>
         /// Gets the initial number of opened groups in the origin monitor when this source has been created.
+        /// The source is created when the <see cref="GrandOutputClient.ChannelName"/> changes or the channel
+        /// itself changes (reconfiguration).
         /// </summary>
         public int InitialDepth
         {

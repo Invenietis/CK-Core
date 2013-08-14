@@ -28,18 +28,22 @@ namespace CK.Monitoring
         /// <summary>
         /// Gets the source of the event: the source is defined by a monitor identifier and the channel name.
         /// </summary>
-        GrandOutputSource Source { get { return _source; } }
+        public GrandOutputSource Source { get { return _source; } }
 
-        /// <summary>
         /// Gets a unified, immutable, view of the log event as a <see cref="ILogEntry"/>.
         /// </summary>
-        ILogEntry LogEntry { get { return _entry; } }
+        public ILogEntry LogEntry { get { return _entry; } }
 
         /// <summary>
         /// Gets the depth of this entry relatively to the source: a negative depth indicates an entry that is emmitted in a group "above", a group that has not
         /// been previously seen by this <see cref="Source"/>.
         /// </summary>
-        int SourceRelativeDepth { get { return _depth; } }
+        public int SourceRelativeDepth { get { return _depth; } }
+
+        /// <summary>
+        /// Gets the depth of this entry from the root of the activities.
+        /// </summary>
+        public int EntryDepth { get { return _depth + _source.InitialDepth; } }
 
     }
 }

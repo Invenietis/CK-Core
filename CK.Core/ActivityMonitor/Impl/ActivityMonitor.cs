@@ -97,7 +97,7 @@ namespace CK.Core
         Guid _uniqueId;
 
         /// <summary>
-        /// Initializes a new <see cref="ActivityMonitor"/> with a <see cref="ActivityMonitorOutput"/> as its <see cref="Output"/>.
+        /// Initializes a new <see cref="ActivityMonitor"/>.
         /// </summary>
         /// <param name="initialTags">Initial <see cref="AutoTags"/>.</param>
         /// <param name="applyAutoConfigurations">Whether <see cref="AutoConfiguration"/> should be applied.</param>
@@ -136,6 +136,8 @@ namespace CK.Core
 
         /// <summary>
         /// Sets the unique identifier of this activity monitor.
+        /// This must be used only during monitor construction or initialization, before the 
+        /// monitor is actually used.
         /// </summary>
         /// <param name="uniqueId">New unique identifier.</param>
         protected void SetUniqueId( Guid uniqueId )

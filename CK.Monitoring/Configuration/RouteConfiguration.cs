@@ -28,9 +28,10 @@ namespace CK.RouteConfig
         /// <summary>
         /// Initializes a specialized <see cref="RouteConfiguration"/>.
         /// </summary>
+        /// <param name="name">Name of the route. Can not be null.</param>
         protected RouteConfiguration( string name )
         {
-            if( name == null ) throw new ArgumentNullException( "channelName" );
+            if( name == null ) throw new ArgumentNullException( "name" );
             _name = name;
             _configurations = new List<MetaConfiguration>();
             _namespace = String.Empty;
