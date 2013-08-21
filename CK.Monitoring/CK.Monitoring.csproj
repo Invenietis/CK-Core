@@ -55,7 +55,9 @@
     <Compile Include="Configuration\Impl\IProtoRoute.cs" />
     <Compile Include="Configuration\Impl\IProtoSubRoute.cs" />
     <Compile Include="Configuration\Impl\ProtoDeclaredAction.cs" />
+    <Compile Include="Configuration\Impl\RouteConfigurationLockShell.cs" />
     <Compile Include="Configuration\Impl\RouteResolver.cs" />
+    <Compile Include="Configuration\IRouteConfigurationLock.cs" />
     <Compile Include="Configuration\MetaOverrideActionConfiguration.cs" />
     <Compile Include="Configuration\Impl\MetaMultiConfiguration.cs" />
     <Compile Include="Configuration\MetaDeclareActionConfiguration.cs" />

@@ -126,9 +126,6 @@
   <data name="ActivityMonitorErrorWhileGetConclusionText" xml:space="preserve">
     <value>Unexpected error while getting conclusion text: '{0}'.</value>
   </data>
-  <data name="ActivityMonitorNullAutoConfiguration" xml:space="preserve">
-    <value>An auto configuration action is null.</value>
-  </data>
   <data name="ActivityMonitorReentrancyError" xml:space="preserve">
     <value>A reentrant call in an ActivityMonitor has been detected. A monitor usage must not trigger another operation on the same monitor.</value>
   </data>
@@ -188,6 +185,9 @@
   </data>
   <data name="ServiceImplTypeMismatch" xml:space="preserve">
     <value>Service {0} is not implemented by object {1}.</value>
+  </data>
+  <data name="SimpleMultiActionNullAction" xml:space="preserve">
+    <value>One of the action is null.</value>
   </data>
   <data name="TagMustBeRegisteredInActivityMonitor" xml:space="preserve">
     <value>Must be not null and registered in ActivityMonitor.RegisteredTags.</value>

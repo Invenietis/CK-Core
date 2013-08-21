@@ -188,13 +188,13 @@ namespace CK.Monitoring.Tests
 
         class FinalRoute
         {
-            readonly CountdownEvent _useLock;
+            readonly IRouteConfigurationLock _useLock;
             public readonly ITestIt[] Actions;
             readonly string _name;
 
             public static readonly FinalRoute Empty = new FinalRoute( null, Util.EmptyArray<ITestIt>.Empty, String.Empty );
 
-            internal FinalRoute( CountdownEvent useLock, ITestIt[] actions, string name )
+            internal FinalRoute( IRouteConfigurationLock useLock, ITestIt[] actions, string name )
             {
                 _useLock = useLock;
                 Actions = actions;
@@ -209,38 +209,25 @@ namespace CK.Monitoring.Tests
                 return FinalRoute.Empty;
             }
 
-            CountdownEvent _useLock;
-
-            protected override void DoInitialize()
-            {
-                _useLock = new CountdownEvent( 1 );
-            }
-
-            protected override ITestIt DoCreate( IActivityMonitor monitor, ActionConfiguration c )
+            protected override ITestIt DoCreate( IActivityMonitor monitor, IRouteConfigurationLock configLock, ActionConfiguration c )
             {
                 ActionTypeAttribute a = (ActionTypeAttribute)c.GetType().GetCustomAttributes( typeof( ActionTypeAttribute ), true ).Single();
                 return (ITestIt)Activator.CreateInstance( a.ActionType, monitor, c );
             }
 
-            protected override ITestIt DoCreateParallel( IActivityMonitor monitor, ActionParallelConfiguration c, ITestIt[] children )
+            protected override ITestIt DoCreateParallel( IActivityMonitor monitor, IRouteConfigurationLock configLock, ActionParallelConfiguration c, ITestIt[] children )
             {
                 return new TestParallel( monitor, c, children );
             }
 
-            protected override ITestIt DoCreateSequence( IActivityMonitor monitor, ActionSequenceConfiguration c, ITestIt[] children )
+            protected override ITestIt DoCreateSequence( IActivityMonitor monitor, IRouteConfigurationLock configLock, ActionSequenceConfiguration c, ITestIt[] children )
             {
                 return new TestSequence( monitor, c, children );
             }
 
-            protected internal override FinalRoute DoCreateFinalRoute( IActivityMonitor monitor, ITestIt[] actions, string configurationName )
+            protected internal override FinalRoute DoCreateFinalRoute( IActivityMonitor monitor, IRouteConfigurationLock configLock, ITestIt[] actions, string configurationName )
             {
-                return new FinalRoute( _useLock, actions, configurationName );
-            }
-
-            protected override void DoUninitialize( bool success )
-            {
-                if( !success ) _useLock.Dispose();
-                _useLock = null;
+                return new FinalRoute( configLock, actions, configurationName );
             }
         }
 
@@ -252,18 +239,22 @@ namespace CK.Monitoring.Tests
                             .AddAction( new WriteActionConfiguration( "n°1" ) { FileName = @"C:\Test.tst" } )
                             .AddAction( new WriteActionConfiguration( "n°2" ) { FileName = @"C:\Test\" } ) );
             FileManager manager = new FileManager();
-            var host = new ConfiguredRouteHost<ITestIt,FinalRoute>( new TestFactory(), ( m, t ) => t.Initialize( m, manager ), ( m, t ) => t.Close( m, manager ) );
+            var host = new ConfiguredRouteHost<ITestIt,FinalRoute>( new TestFactory(), OnConfigurationReady, ( m, t ) => t.Initialize( m, manager ), ( m, t ) => t.Close( m, manager ) );
 
-            Assert.That( host.FindRoute( "" ), Is.SameAs( FinalRoute.Empty ) );
+            Assert.That( host.ObtainRoute( "" ), Is.SameAs( FinalRoute.Empty ) );
             
             Assert.That( host.ConfigurationAttemptCount, Is.EqualTo( 0 ) );
             Assert.That( host.SetConfiguration( TestHelper.Monitor, c ) );
-            host.ApplyPendingConfiguration( TestHelper.Monitor );
             Assert.That( host.SuccessfulConfigurationCount, Is.EqualTo( 1 ) );
 
-            var r = host.FindRoute( "" );
+            var r = host.ObtainRoute( "" );
             Assert.That( r.Actions.Length, Is.EqualTo( 1 ) );
 
+
+        }
+
+        void OnConfigurationReady( ConfiguredRouteHost<ITestIt, FinalRoute>.ConfigurationReady ready )
+        {
 
         }
     }

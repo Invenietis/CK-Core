@@ -88,15 +88,6 @@ namespace CK.Core {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to An auto configuration action is null..
-        /// </summary>
-        internal static string ActivityMonitorNullAutoConfiguration {
-            get {
-                return ResourceManager.GetString("ActivityMonitorNullAutoConfiguration", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to A reentrant call in an ActivityMonitor has been detected. A monitor usage must not trigger another operation on the same monitor..
         /// </summary>
         internal static string ActivityMonitorReentrancyError {
@@ -273,6 +264,15 @@ namespace CK.Core {
         internal static string ServiceImplTypeMismatch {
             get {
                 return ResourceManager.GetString("ServiceImplTypeMismatch", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to One of the action is null..
+        /// </summary>
+        internal static string SimpleMultiActionNullAction {
+            get {
+                return ResourceManager.GetString("SimpleMultiActionNullAction", resourceCulture);
             }
         }
         

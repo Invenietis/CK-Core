@@ -14,7 +14,7 @@ namespace CK.Monitoring
     /// Abstraction of a Channel: it is a sink that knows how to <see cref="IGrandOutputSink.Handle"/> log events
     /// and creates a <see cref="GrandOutputSource"/> for each monitor bound to it.
     /// </summary>
-    internal interface IChannel : IGrandOutputSink
+    internal interface IChannel
     {
         /// <summary>
         /// Creates a source for a monitor.
@@ -35,5 +35,30 @@ namespace CK.Monitoring
         /// Should default to <see cref="LogLevelFilter.None"/>.
         /// </summary>
         LogLevelFilter MinimalFilter { get; }
+
+        /// <summary>
+        /// Locks the channel: a call to <see cref="IGrandOutputSink.Handle"/> is pending.
+        /// This is required to avoid a race condition between obtention of the Channel by a GrandOutputClient 
+        /// and the call to Handle.
+        /// </summary>
+        void PreHandleLock();
+
+        /// <summary>
+        /// Cancels a previous call to <see cref="PreHandleLock"/>.
+        /// This is used when the Channel to use must be changed during its obtention by a GrandOutputClient. 
+        /// </summary>
+        void CancelPreHandleLock();
+
+        /// <summary>
+        /// Handles one event.
+        /// </summary>
+        /// <param name="e">Event to handle.</param>
+        void Handle( GrandOutputEventInfo e );
+
+        /// <summary>
+        /// Handles multiple events that have been buffered.
+        /// </summary>
+        /// <param name="list">Buffered events.</param>
+        void HandleBuffer( List<GrandOutputEventInfo> list );
     }
 }

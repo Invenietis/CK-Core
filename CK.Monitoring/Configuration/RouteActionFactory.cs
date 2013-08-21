@@ -2,6 +2,7 @@
 using System.Linq;
 using System.Collections.Generic;
 using CK.Core;
+using CK.RouteConfig.Impl;
 
 namespace CK.RouteConfig
 {
@@ -16,6 +17,7 @@ namespace CK.RouteConfig
         where TRoute : class
     {
         readonly Dictionary<ActionConfiguration, TAction> _cache;
+        RouteConfigurationLockShell _configLock;
 
         /// <summary>
         /// Initializes a new factory.
@@ -25,9 +27,10 @@ namespace CK.RouteConfig
             _cache = new Dictionary<ActionConfiguration, TAction>();
         }
 
-        internal void Initialize()
+        internal void Initialize( RouteConfigurationLockShell configLock )
         {
             _cache.Clear();
+            _configLock = configLock;
             DoInitialize();
         }
 
@@ -49,19 +52,19 @@ namespace CK.RouteConfig
                     var seq = c as ActionSequenceConfiguration;
                     if( seq != null )
                     {
-                        a = DoCreateSequence( monitor, seq, Create( monitor, seq.Children ) );
+                        a = DoCreateSequence( monitor, _configLock, seq, Create( monitor, seq.Children ) );
                     }
                     else
                     {
                         var par = c as ActionParallelConfiguration;
                         if( par != null )
                         {
-                            a = DoCreateParallel( monitor, par, Create( monitor, seq.Children ) );
+                            a = DoCreateParallel( monitor, _configLock, par, Create( monitor, seq.Children ) );
                         }
                         else throw new InvalidOperationException( "Only Sequence or Parallel composites are supported." );
                     }
                 }
-                else a = DoCreate( monitor, c );
+                else a = DoCreate( monitor, _configLock, c );
                 _cache.Add( c, a );
             }
             return a;
@@ -85,51 +88,73 @@ namespace CK.RouteConfig
         /// <summary>
         /// Must be implemented to initialize any required shared objects for building new actions and routes.
         /// This is called once prior to any call to other methods of this factory.
+        /// Default implementation does nothing.
         /// </summary>
-        protected abstract void DoInitialize();
+        protected virtual void DoInitialize()
+        {
+        }
 
         /// <summary>
         /// Must be implemented to create a <typeparamref name="TAction"/> from a <see cref="ActionConfiguration"/> object
         /// that is guaranteed to not be a composite (a parallel or a sequence).
         /// </summary>
         /// <param name="monitor">Monitor to use if needed.</param>
+        /// <param name="configLock">
+        /// Configuration lock. It must not be sollicited during the creation of the action: an action that delay
+        /// its work can keep a reference to it and use it when needed.
+        /// </param>
         /// <param name="c">Configuration of the action.</param>
         /// <returns>The created action.</returns>
-        protected abstract TAction DoCreate( IActivityMonitor monitor, ActionConfiguration c );
+        protected abstract TAction DoCreate( IActivityMonitor monitor, IRouteConfigurationLock configLock, ActionConfiguration c );
 
         /// <summary>
         /// Must me implemented to create a parallel action.
         /// </summary>
         /// <param name="monitor">Monitor to use if needed.</param>
+        /// <param name="configLock">
+        /// Configuration lock. It must not be sollicited during the creation of the parallel: if the parallel delays
+        /// its work, it can keep a reference to it and use it as needed.
+        /// </param>
         /// <param name="c">Configuration of the parallel action.</param>
         /// <param name="children">Array of already created children action.</param>
         /// <returns>A parallel action.</returns>
-        protected abstract TAction DoCreateParallel( IActivityMonitor monitor, ActionParallelConfiguration c, TAction[] children );
+        protected abstract TAction DoCreateParallel( IActivityMonitor monitor, IRouteConfigurationLock configLock, ActionParallelConfiguration c, TAction[] children );
 
         /// <summary>
         /// Must me implemented to create a sequence action.
         /// </summary>
         /// <param name="monitor">Monitor to use if needed.</param>
+        /// <param name="configLock">
+        /// Configuration lock. It must not be sollicited during the creation of the sequence: a sequence that delays
+        /// its work can keep a reference to it and use it as needed.
+        /// </param>
         /// <param name="c">Configuration of the sequence action.</param>
         /// <param name="children">Array of already created children action.</param>
         /// <returns>A sequence action.</returns>
-        protected abstract TAction DoCreateSequence( IActivityMonitor monitor, ActionSequenceConfiguration c, TAction[] children );
+        protected abstract TAction DoCreateSequence( IActivityMonitor monitor, IRouteConfigurationLock configLock, ActionSequenceConfiguration c, TAction[] children );
 
         /// <summary>
         /// Must be implemented to create the final route class that encapsulates the array of actions of a route. 
         /// </summary>
-        /// <param name="monitor">Monitor to use if needed.</param>
+        /// <param name="monitor">Monitor to use if needed to comment route creation.</param>
+        /// <param name="configLock">
+        /// Configuration lock. It must not be sollicited during the creation of the route: a route that delays
+        /// its work can keep a reference to it and use it as needed.
+        /// </param>
         /// <param name="actions">Array of actions for the route.</param>
         /// <param name="configurationName"><see cref="RouteConfiguration"/> name.</param>
         /// <returns>Final route actions encapsulation.</returns>
-        internal protected abstract TRoute DoCreateFinalRoute( IActivityMonitor monitor, TAction[] actions, string configurationName );
+        internal protected abstract TRoute DoCreateFinalRoute( IActivityMonitor monitor, IRouteConfigurationLock configLock, TAction[] actions, string configurationName );
 
         /// <summary>
         /// Must be implemented to cleanup any resources (if any) once new actions and routes have been created.
         /// This is always called (even if an error occcured). 
+        /// Default implementation does nothing.
         /// </summary>
         /// <param name="success">True on success, false if creation of routes failed.</param>
-        protected abstract void DoUninitialize( bool success );
+        protected virtual void DoUninitialize( bool success )
+        {
+        }
 
     }
 

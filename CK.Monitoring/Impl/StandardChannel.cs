@@ -7,21 +7,22 @@ using System.Threading.Tasks;
 using CK.Core;
 using CK.Core.Impl;
 using CK.Monitoring.Impl;
+using CK.RouteConfig;
 
 namespace CK.Monitoring
 {
-    internal class StandardChannel : IChannel
+    internal sealed class StandardChannel : IChannel
     {
         readonly IGrandOutputSink _common;
         readonly IReadOnlyList<ConfiguredSink> _sinks;
-        readonly CountdownEvent _locker;
+        readonly IRouteConfigurationLock _configLock;
         readonly string _configurationName;
         int _inputCount;
 
-        internal StandardChannel( IGrandOutputSink common, CountdownEvent locker, IReadOnlyList<ConfiguredSink> sinks, string configurationName )
+        internal StandardChannel( IGrandOutputSink common, IRouteConfigurationLock configLock, IReadOnlyList<ConfiguredSink> sinks, string configurationName )
         {
             _common = common;
-            _locker = locker;
+            _configLock = configLock;
             _sinks = sinks;
             _configurationName = configurationName;
         }
@@ -40,7 +41,43 @@ namespace CK.Monitoring
         public void Handle( GrandOutputEventInfo logEvent )
         {
             _common.Handle( logEvent );
-            DoHandle( logEvent );
+            ThreadPool.QueueUserWorkItem( o =>
+            {
+                try
+                {
+                    foreach( var s in _sinks ) s.Handle( logEvent );
+                }
+                catch( Exception ex )
+                {
+                    ActivityMonitor.LoggingError.Add( ex, "While logging event." );
+                }
+                finally
+                {
+                    _configLock.Unlock();
+                }
+            } );
+        }
+
+        public void HandleBuffer( List<GrandOutputEventInfo> list )
+        {
+            ThreadPool.QueueUserWorkItem( o =>
+            {
+                try
+                {
+                    foreach( var e in list )
+                    {
+                        foreach( var s in _sinks ) s.Handle( e );
+                    }
+                }
+                catch( Exception ex )
+                {
+                    ActivityMonitor.LoggingError.Add( ex, "While logging event." );
+                }
+                finally
+                {
+                    _configLock.Unlock();
+                }
+            } );
         }
 
         public LogLevelFilter MinimalFilter 
@@ -48,35 +85,15 @@ namespace CK.Monitoring
             get { return LogLevelFilter.None; } 
         }
 
-        protected virtual void DoHandle( GrandOutputEventInfo logEvent )
+        public void PreHandleLock()
         {
-            try
-            {
-                // Here, an exception may be thrown if the countdown is already set to 0.
-                // This may occur if and only if a GrandOutputClient has obtained the Channel
-                // 
-                _locker.AddCount();
-                ThreadPool.QueueUserWorkItem( o =>
-                    {
-                        try
-                        {
-                            foreach( var s in _sinks ) s.Handle( logEvent );
-                        }
-                        catch( Exception ex )
-                        {
-                            ActivityMonitor.LoggingError.Add( ex, "While logging event." );
-                        }
-                        finally
-                        {
-                            _locker.Signal();
-                        }
-                    }
-                );
-            }
-            catch( Exception ex )
-            {
-                ActivityMonitor.LoggingError.Add( ex, "While handling log event." );
-            }
+            _configLock.Lock();
         }
+
+        public void CancelPreHandleLock()
+        {
+            _configLock.Unlock();
+        }
+
     }
 }

@@ -40,42 +40,36 @@ namespace CK.Core
 
         /// <summary>
         /// Appends one or more actions.
-        /// These new actions will be executed only to subsequent calls to <see cref="Apply"/> (not to any previously configured objects).
+        /// These new actions will be executed only to subsequent calls to <see cref="Apply"/> (not to any previously seen objects).
         /// </summary>
         /// <param name="actions">One or more actions (all of them must be not null).</param>
         public void Append( params Action<T>[] actions )
         {
-            if( actions == null || actions.Length == 0 ) return;
-            if( actions.Any( c => c == null ) ) throw new ArgumentException( R.ActivityMonitorNullAutoConfiguration );
-            Action<T>[] cfg;
-            Action<T>[] newCfg;
-            do
-            {
-                cfg = _actions;
-                if( cfg != null )
+            if( actions.Length == 0 ) return;
+            if( actions.Any( c => c == null ) ) throw new ArgumentException( R.SimpleMultiActionNullAction );
+            Util.InterlockedSet( ref _actions, existing =>
                 {
-                    var l = cfg.ToList();
-                    l.AddRange( actions );
-                    newCfg = l.ToArray();
-                }
-                else newCfg = actions;
-            }
-            while( Interlocked.CompareExchange( ref _actions, newCfg, cfg ) != cfg );
+                    if( existing == null || existing.Length == 0 ) return actions;
+                    Action<T>[] newOne = new Action<T>[existing.Length + actions.Length];
+                    Array.Copy( existing, newOne, existing.Length );
+                    Array.Copy( actions, 0, newOne, existing.Length, actions.Length );
+                    return newOne;
+                } ); 
         }
 
         /// <summary>
         /// Resets the actions.
-        /// These new actions will be executed only to subsequent calls to <see cref="Apply"/> (not to any previously configured objects).
+        /// These new actions will be executed only to subsequent calls to <see cref="Apply"/> (not to any previously seen objects).
         /// </summary>
-        /// <param name="actions">one or more actions.</param>
+        /// <param name="actions">Zero, one or more actions.</param>
         public void Set( params Action<T>[] actions )
         {
-            if( actions.Any( c => c == null ) ) throw new ArgumentException( R.ActivityMonitorNullAutoConfiguration );
+            if( actions.Any( c => c == null ) ) throw new ArgumentException( R.SimpleMultiActionNullAction );
             Interlocked.Exchange( ref _actions, actions );
         }
 
         /// <summary>
-        /// Clears the actions.
+        /// Clears the current actions.
         /// </summary>
         public void Clear()
         {
@@ -83,9 +77,9 @@ namespace CK.Core
         }
 
         /// <summary>
-        /// Applies current automatic configuration actions to the given object.
+        /// Applies current actions to the given object.
         /// </summary>
-        /// <param name="obj">An object to configure. Must not be null (when <typeparamref name="T"/> is a reference type).</param>
+        /// <param name="obj">The object onto which current actions must be applied. Must not be null (when <typeparamref name="T"/> is a reference type).</param>
         public void Apply( T obj )
         {
             if( obj == null ) throw new ArgumentNullException( "obj" );

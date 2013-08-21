@@ -11,11 +11,11 @@ using CK.RouteConfig;
 
 namespace CK.Monitoring.Impl
 {
-    internal class ChannelFactory : RouteActionFactory<ConfiguredSink,IChannel>
+    internal sealed class ChannelFactory : RouteActionFactory<ConfiguredSink,IChannel>
     {
         readonly IGrandOutputSink _commonSink;
         
-        class EmptyChannel : IChannel
+        sealed class EmptyChannel : IChannel
         {
             readonly IGrandOutputSink _commonSink;
 
@@ -38,9 +38,22 @@ namespace CK.Monitoring.Impl
                 _commonSink.Handle( logEvent );
             }
 
+            public void HandleBuffer( List<GrandOutputEventInfo> events )
+            {
+                // Common sink has already handled the events.
+            }
+
             public LogLevelFilter MinimalFilter
             {
                 get { return LogLevelFilter.None; }
+            }
+
+            public void PreHandleLock()
+            {
+            }
+
+            public void CancelPreHandleLock()
+            {
             }
         }
 
@@ -54,40 +67,25 @@ namespace CK.Monitoring.Impl
             return new EmptyChannel( _commonSink );
         }
 
-        CountdownEvent _useLock;
-
-        protected override void DoInitialize()
-        {
-            Debug.Assert( _useLock == null );
-            _useLock = new CountdownEvent( 1 );
-        }
-
-        protected override ConfiguredSink DoCreate( IActivityMonitor monitor, ActionConfiguration c )
+        protected override ConfiguredSink DoCreate( IActivityMonitor monitor, IRouteConfigurationLock configLock, ActionConfiguration c )
         {
             ConfiguredSinkTypeAttribute a = (ConfiguredSinkTypeAttribute)c.GetType().GetCustomAttributes( typeof( ConfiguredSinkTypeAttribute ), true ).Single();
             return (ConfiguredSink)Activator.CreateInstance( a.SinkType, c );
         }
 
-        protected override ConfiguredSink DoCreateParallel( IActivityMonitor monitor, ActionParallelConfiguration c, ConfiguredSink[] children )
+        protected override ConfiguredSink DoCreateParallel( IActivityMonitor monitor, IRouteConfigurationLock configLock, ActionParallelConfiguration c, ConfiguredSink[] children )
         {
             return new ConfiguredSinkParallel( c, children );  
         }
 
-        protected override ConfiguredSink DoCreateSequence( IActivityMonitor monitor, ActionSequenceConfiguration c, ConfiguredSink[] children )
+        protected override ConfiguredSink DoCreateSequence( IActivityMonitor monitor, IRouteConfigurationLock configLock, ActionSequenceConfiguration c, ConfiguredSink[] children )
         {
             return new ConfiguredSinkSequence( c, children );
         }
 
-        protected internal override IChannel DoCreateFinalRoute( IActivityMonitor monitor, ConfiguredSink[] actions, string configurationName )
+        protected internal override IChannel DoCreateFinalRoute( IActivityMonitor monitor, IRouteConfigurationLock configLock, ConfiguredSink[] actions, string configurationName )
         {
-            return new StandardChannel( _commonSink, _useLock, actions, configurationName );
-        }
-
-        protected override void DoUninitialize( bool success )
-        {
-            Debug.Assert( _useLock != null );
-            if( !success ) _useLock.Dispose();
-            _useLock = null;
+            return new StandardChannel( _commonSink, configLock, actions, configurationName );
         }
     }
 }

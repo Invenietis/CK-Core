@@ -85,15 +85,20 @@ namespace CK.Monitoring
 
         IChannel EnsureChannel( IActivityMonitorImpl monitorSource )
         {
+            if( _channel != null ) _channel.PreHandleLock();
             if( _version != _curVersion )
             {
                 do
                 {
                     _curVersion = _version;
-                    if( _channel != null && _source != null )
+                    if( _channel != null )
                     {
-                        _channel.ReleaseInput( _source );
-                        _source = null;
+                        _channel.CancelPreHandleLock();
+                        if( _source != null )
+                        {
+                            _channel.ReleaseInput( _source );
+                            _source = null;
+                        }
                     }
                     _channel = _central.ObtainChannel( monitorSource.UniqueId, _channelName );
                 }

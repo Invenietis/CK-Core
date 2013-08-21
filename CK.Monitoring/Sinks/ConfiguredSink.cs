@@ -2,7 +2,7 @@
 
 namespace CK.Monitoring
 {
-    public abstract class ConfiguredSink : IGrandOutputSink
+    public abstract class ConfiguredSink
     {
         readonly string _name;
 
@@ -36,6 +36,7 @@ namespace CK.Monitoring
         /// Closes this sink.
         /// This is called when a reconfiguration occurs after all
         /// events have been <see cref="Handle"/>d.
+        /// Default implementation does nothing.
         /// </summary>
         public void Close()
         {
