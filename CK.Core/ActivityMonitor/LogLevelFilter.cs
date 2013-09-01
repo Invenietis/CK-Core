@@ -29,8 +29,9 @@ namespace CK.Core
     public enum LogLevelFilter
     {
         /// <summary>
-        /// No filter (same effect as <see cref="LogLevelFilter.Trace"/> but may indicate
-        /// an unknown or undefined filter.
+        /// No filter: can have the same effect as Trace but SHOULD indicate
+        /// an unknown or undefined filter that, when combined with other level filters to 
+        /// compute the final (minimal) filter level to take into account, must be ignored.
         /// </summary>
         None = 0,
         /// <summary>
