@@ -41,43 +41,51 @@ namespace CK.Monitoring
         public void Handle( GrandOutputEventInfo logEvent )
         {
             _common.Handle( logEvent );
-            ThreadPool.QueueUserWorkItem( o =>
+            // HandleWaitCallback avoids a closure.
+            ThreadPool.QueueUserWorkItem( HandleWaitCallback, logEvent );
+        }
+
+        void HandleWaitCallback( object logEventObject )
+        {
+            GrandOutputEventInfo logEvent = (GrandOutputEventInfo)logEventObject;
+            try
             {
-                try
-                {
-                    foreach( var s in _sinks ) s.Handle( logEvent );
-                }
-                catch( Exception ex )
-                {
-                    ActivityMonitor.LoggingError.Add( ex, "While logging event." );
-                }
-                finally
-                {
-                    _configLock.Unlock();
-                }
-            } );
+                foreach( var s in _sinks ) s.Handle( logEvent );
+            }
+            catch( Exception ex )
+            {
+                ActivityMonitor.LoggingError.Add( ex, "While logging event." );
+            }
+            finally
+            {
+                _configLock.Unlock();
+            }
         }
 
         public void HandleBuffer( List<GrandOutputEventInfo> list )
         {
-            ThreadPool.QueueUserWorkItem( o =>
+            // HandleWaitCallbackBuffer avoids a closure.
+            ThreadPool.QueueUserWorkItem( HandleWaitCallbackBuffer, list );
+        }
+
+        void HandleWaitCallbackBuffer( object listObject )
+        {
+            List<GrandOutputEventInfo> list = (List<GrandOutputEventInfo>)listObject;
+            try
             {
-                try
+                foreach( var e in list )
                 {
-                    foreach( var e in list )
-                    {
-                        foreach( var s in _sinks ) s.Handle( e );
-                    }
+                    foreach( var s in _sinks ) s.Handle( e );
                 }
-                catch( Exception ex )
-                {
-                    ActivityMonitor.LoggingError.Add( ex, "While logging event." );
-                }
-                finally
-                {
-                    _configLock.Unlock();
-                }
-            } );
+            }
+            catch( Exception ex )
+            {
+                ActivityMonitor.LoggingError.Add( ex, "While logging event." );
+            }
+            finally
+            {
+                _configLock.Unlock();
+            }
         }
 
         public LogLevelFilter MinimalFilter 
