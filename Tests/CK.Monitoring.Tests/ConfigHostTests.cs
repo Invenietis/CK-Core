@@ -290,7 +290,7 @@ namespace CK.Monitoring.Tests
         }
 
         ConfiguredRouteHost<ITestIt,FinalRoute> _host;
-        FinalRoute _route;
+        FinalRoute _defaultRoute;
 
         [SetUp]
         public void SetupContext()
@@ -306,10 +306,10 @@ namespace CK.Monitoring.Tests
         void _host_ConfigurationClosing( object sender, ConfiguredRouteHost<ConfigHostTests.ITestIt, ConfigHostTests.FinalRoute>.ConfigurationClosingEventArgs e )
         {
             e.Monitor.Info( "Configuration closing." );
-            if( _route != null )
+            if( _defaultRoute != null )
             {
                 e.Monitor.Info( "Releasing current default route." );
-                _route.UnlockObtainedRoute();
+                _defaultRoute.UnlockObtainedRoute();
             }
         }
 
@@ -340,19 +340,19 @@ namespace CK.Monitoring.Tests
             Assert.That( _host.SetConfiguration( TestHelper.Monitor, c ) );
             Assert.That( _host.SuccessfulConfigurationCount, Is.EqualTo( 1 ) );
 
-            _route = _host.ObtainRoute( null );
-            Assert.That( _route.Actions.Length, Is.EqualTo( 1 ) );
-            Assert.That( _route.Actions[0], Is.InstanceOf<TestSequence>() );
+            _defaultRoute = _host.ObtainRoute( null );
+            Assert.That( _defaultRoute.Actions.Length, Is.EqualTo( 1 ) );
+            Assert.That( _defaultRoute.Actions[0], Is.InstanceOf<TestSequence>() );
 
             var f1 = File.AllFiles["File n°1"];
             var f2 = File.AllFiles["File n°2"];
 
             Assert.That( f1.IsOpened && f2.IsOpened );
-            _route.Run( 0 );
+            _defaultRoute.Run( 0 );
             CheckContent( f1, "0" );
             CheckContent( f2, "0" );
-            _route.Run( 1 );
-            _route.Run( 2 );
+            _defaultRoute.Run( 1 );
+            _defaultRoute.Run( 2 );
             CheckContent( f1, "0", "1", "2" );
             CheckContent( f2, "0", "1", "2" );
 
@@ -364,10 +364,10 @@ namespace CK.Monitoring.Tests
             Assert.That( _host.SuccessfulConfigurationCount, Is.EqualTo( 2 ) );
 
             var r2 = _host.ObtainRoute( null );
-            Assert.That( r2, Is.Not.SameAs( _route ) );
-            _route = r2;
-            _route.Run( 3 );
-            _route.Run( 4 );
+            Assert.That( r2, Is.Not.SameAs( _defaultRoute ) );
+            _defaultRoute = r2;
+            _defaultRoute.Run( 3 );
+            _defaultRoute.Run( 4 );
             CheckContent( f1, "0", "1", "2", "3", "4" );
             CheckContent( f2, "0", "1", "2" );
 

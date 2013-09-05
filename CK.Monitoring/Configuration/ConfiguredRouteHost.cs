@@ -64,6 +64,15 @@ namespace CK.RouteConfig
                     if( sub.Filter( route ) ) return sub.FindRoute( route );
                 return this;
             }
+
+            public void WalkFinalRoutes( Action<TRoute> walker )
+            {
+                foreach( var r in Routes )
+                {
+                    walker( r.FinalRoute );
+                    r.WalkFinalRoutes( walker );
+                }
+            }
         }
 
         internal class SubRouteHost : RouteHost
@@ -216,7 +225,22 @@ namespace CK.RouteConfig
             }
 
             /// <summary>
-            /// Applies pending configuration: new routes are sets on the host, <see cref="ConfiguredRouteHost{TAction,TRoute}.ObtainRoute"/> now returns the new ones.
+            /// Gets all future routes. This must be used before calling <see cref="ApplyConfiguration"/> otherwise 
+            /// an <see cref="InvalidOperationException"/> is thrown.
+            /// Ordering corresponds to a depth-first traversal.
+            /// </summary>
+            public List<TRoute> GetAllRoutes()
+            {
+                if( _host._futureRoot == null ) throw new InvalidOperationException();
+                List<TRoute> allRoutes = new List<TRoute>();
+                allRoutes.Add( _host._futureRoot.FinalRoute );
+                _host._futureRoot.WalkFinalRoutes( allRoutes.Add );
+                return allRoutes;
+            }
+
+            /// <summary>
+            /// Applies pending configuration: new routes are set on the host, <see cref="ConfiguredRouteHost{TAction,TRoute}.ObtainRoute"/> now returns the new ones.
+            /// If this method is not called during the call back, it is automaticcaly called before leaving <see cref="ConfiguredRouteHost{TAction,TRoute}.SetConfiguration">SetConfiguration</see>.
             /// </summary>
             public void ApplyConfiguration()
             {

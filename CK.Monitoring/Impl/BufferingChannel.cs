@@ -31,6 +31,10 @@ namespace CK.Monitoring.Impl
             _flushLock = new Object();
         }
 
+        public void Initialize()
+        {
+        }
+
         public GrandOutputSource CreateInput( IActivityMonitorImpl monitor, string channelName )
         {
             return new GrandOutputSource( monitor, channelName );
@@ -78,6 +82,11 @@ namespace CK.Monitoring.Impl
             get { return _flushLock; }
         }
 
+        /// <summary>
+        /// Flushes all buffered GrandOutputEventInfo into appropriate channels.
+        /// This is the only step during wich a lock blocks GrandOutput.ObtainChannel calls.
+        /// </summary>
+        /// <param name="newChannels">Function that knows how to return the channel to uses based on its name.</param>
         internal void FlushBuffer( Func<string,IChannel> newChannels )
         {
             Debug.Assert( Monitor.IsEntered( _flushLock ) );

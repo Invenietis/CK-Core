@@ -8,6 +8,7 @@ namespace CK.RouteConfig
 {
     /// <summary>
     /// Enables routes configuration locking.
+    /// Route obtained by <see cref="ConfiguredRouteHost{TAction,TRoute}.ObtainRoute"/> are initally locked: they must be unlocked before a new configuration can be applied. 
     /// </summary>
     public interface IRouteConfigurationLock
     {

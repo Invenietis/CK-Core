@@ -46,12 +46,8 @@ namespace CK.Core
         /// Registers a typed <see cref="IActivityMonitorClient"/>.
         /// </summary>
         /// <typeparam name="T">Any type that specializes <see cref="IActivityMonitorClient"/>.</typeparam>
-        /// <param name="this">This <see cref="IActivityMonitorOutput"/> object.</param>
-        /// <param name="client">Multiple clients to register.</param>
+        /// <param name="client">Client to register.</param>
         /// <returns>The registered client.</returns>
-        /// <remarks>
-        /// This 
-        /// </remarks>
         T RegisterClient<T>( T client ) where T : IActivityMonitorClient;
 
         /// <summary>

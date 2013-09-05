@@ -17,6 +17,11 @@ namespace CK.Monitoring
     internal interface IChannel
     {
         /// <summary>
+        /// Called once the channel is ready to <see cref="Handle"/> events (but before the new configuration is actally applied).
+        /// </summary>
+        void Initialize();
+
+        /// <summary>
         /// Creates a source for a monitor.
         /// </summary>
         /// <param name="monitor">Monitor that uses this channel.</param>
@@ -60,5 +65,6 @@ namespace CK.Monitoring
         /// </summary>
         /// <param name="list">Buffered events.</param>
         void HandleBuffer( List<GrandOutputEventInfo> list );
+
     }
 }

@@ -93,6 +93,10 @@ namespace CK.Monitoring
 
         void OnConfigurationReady( ConfiguredRouteHost<ConfiguredSink, IChannel>.ConfigurationReady e )
         {
+            foreach( var channel in e.GetAllRoutes() )
+            {
+                channel.Initialize(); 
+            }
             lock( _bufferingChannel.FlushLock )
             {
                 _bufferingChannel.FlushBuffer( e.IsClosed ? (Func<string,IChannel>)null : e.ObtainRoute );

@@ -27,6 +27,15 @@ namespace CK.Monitoring
         }
 
         /// <summary>
+        /// Enables this sink to interact with any channel to which it belongs. 
+        /// This is called after <see cref="Initialize"/> and for each channel where this sink appears, before the first call to <see cref="Handle"/>.
+        /// Default implementation does nothing.
+        /// </summary>
+        public virtual void CollectChannelOption( ChannelOption option )
+        {
+        }
+
+        /// <summary>
         /// Handles a <see cref="GrandOutputEventInfo"/>.
         /// </summary>
         /// <param name="logEvent">Event to handle.</param>
@@ -41,5 +50,6 @@ namespace CK.Monitoring
         public void Close()
         {
         }
+
     }
 }

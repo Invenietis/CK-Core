@@ -17,6 +17,7 @@ namespace CK.Monitoring
         readonly IReadOnlyList<ConfiguredSink> _sinks;
         readonly IRouteConfigurationLock _configLock;
         readonly string _configurationName;
+        LogLevelFilter _minimalFilter;
         int _inputCount;
 
         internal StandardChannel( IGrandOutputSink common, IRouteConfigurationLock configLock, IReadOnlyList<ConfiguredSink> sinks, string configurationName )
@@ -25,6 +26,13 @@ namespace CK.Monitoring
             _configLock = configLock;
             _sinks = sinks;
             _configurationName = configurationName;
+        }
+
+        public void Initialize()
+        {
+            ChannelOption option = new ChannelOption();
+            foreach( var s in _sinks ) s.CollectChannelOption( option );
+            _minimalFilter = option.CurrentMinimalFilter;
         }
 
         public GrandOutputSource CreateInput( IActivityMonitorImpl monitor, string channelName )

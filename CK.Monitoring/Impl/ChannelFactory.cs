@@ -24,6 +24,10 @@ namespace CK.Monitoring.Impl
                 _commonSink = common;
             }
 
+            public void Initialize()
+            {
+            }
+
             public GrandOutputSource CreateInput( IActivityMonitorImpl monitor, string channelName )
             {
                 return new GrandOutputSource( monitor, channelName );

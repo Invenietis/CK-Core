@@ -106,6 +106,7 @@
     <Compile Include="Configuration\ActionConfiguration.cs" />
     <Compile Include="Sinks\ConfiguredSink.cs" />
     <Compile Include="Impl\ChannelFactory.cs" />
+    <Compile Include="Sinks\ChannelOption.cs" />
     <Compile Include="Sinks\ConfiguredSinkTypeAttribute.cs" />
     <Compile Include="Sinks\Impl\ConfiguredSinkSequence.cs" />
     <Compile Include="Sinks\Impl\ConfiguredSinkParallel.cs" />
