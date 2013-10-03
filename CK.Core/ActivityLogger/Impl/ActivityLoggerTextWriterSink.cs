@@ -64,16 +64,16 @@ namespace CK.Core
         void IActivityLoggerSink.OnEnterLevel( CKTrait tags, LogLevel level, string text, DateTime logTimeUtc )
         {
             TextWriter w = _writer();
-            _prefixLevel = _prefix + new String( '\u00A0', level.ToString().Length + 4 );
+            _prefixLevel = _prefix + new String( ' ', level.ToString().Length + 4 );
             text = text.Replace( Environment.NewLine, Environment.NewLine + _prefixLevel );
             if( _currentTags != tags )
             {
-                w.WriteLine( "{0}-\u00A0{1}:\u00A0{2} -[{3}]", _prefix, level.ToString(), text, tags );
+                w.WriteLine( "{0} {1}: {2} -[{3}]", _prefix, level.ToString(), text, tags );
                 _currentTags = tags;
             }
             else
             {
-                w.WriteLine( "{0}-\u00A0{1}:\u00A0{2}", _prefix, level.ToString(), text );
+                w.WriteLine( "{0} {1}: {2}", _prefix, level.ToString(), text );
             }
         }
 
@@ -83,7 +83,7 @@ namespace CK.Core
             text = text.Replace( Environment.NewLine, Environment.NewLine + _prefixLevel );
             if( _currentTags != tags )
             {
-                w.WriteLine( "{0}{1} -[{2}]", _prefixLevel, text, tags );
+                w.WriteLine( "{0}{1} [{2}]", _prefixLevel, text, tags );
                 _currentTags = tags;
             }
             else w.WriteLine( _prefixLevel + text );
@@ -97,8 +97,8 @@ namespace CK.Core
         void IActivityLoggerSink.OnGroupOpen( IActivityLogGroup g )
         {
             TextWriter w = _writer();
-            string start = String.Format( "{0}▪►-{1}:\u00A0", _prefix, g.GroupLevel.ToString() );
-            _prefix += "▪\u00A0\u00A0";
+            string start = String.Format( "{0}> {1}: ", _prefix, g.GroupLevel.ToString() );
+            _prefix += "|  ";
             _prefixLevel = _prefix;
             string text = g.GroupText.Replace( Environment.NewLine, Environment.NewLine + _prefixLevel );
             if( _currentTags != g.GroupTags )
@@ -121,32 +121,33 @@ namespace CK.Core
             }
             _prefixLevel = _prefix = _prefix.Remove( _prefix.Length - 3 );
 
-            w.WriteLine( "{0}◄▪-{1}", _prefixLevel, conclusions.Where( c => !c.Text.Contains( Environment.NewLine ) ).ToStringGroupConclusion() );
+            w.WriteLine( "{0}< {1}", _prefixLevel, conclusions.Where( c => !c.Text.Contains( Environment.NewLine ) ).ToStringGroupConclusion() );
 
             foreach( var c in conclusions.Where( c => c.Text.Contains( Environment.NewLine ) ) )
             {
-                string text = "◄▪-" + c.Text;
-                w.WriteLine( _prefixLevel + "  -" + c.Text.Replace( Environment.NewLine, Environment.NewLine + _prefixLevel + "   " ) );
+                string text = "< " + c.Text;
+                w.WriteLine( _prefixLevel + "  " + c.Text.Replace( Environment.NewLine, Environment.NewLine + _prefixLevel + "   " ) );
             }
         }
 
         void DumpException( TextWriter w, bool displayMessage, Exception ex )
         {
             string p;
+            string format = string.Format( " ┌──────────────────────────■ Exception : {0} ■──────────────────────────", ex.GetType().Name );
 
-            w.WriteLine( _prefix + "\u00A0┌──────────────────────────■ Exception : {0} ■──────────────────────────", ex.GetType().Name );
-            _prefix += "\u00A0|\u00A0";
+            w.WriteLine( _prefix + format );
+            _prefix += " | ";
             string start;
             if( displayMessage && ex.Message != null )
             {
-                start = _prefix + "Message:\u00A0";
-                p = _prefix + "\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0";
+                start = _prefix + "Message: ";
+                p = _prefix + "         ";
                 w.WriteLine( start + ex.Message.Replace( Environment.NewLine, Environment.NewLine + p ) );
             }
             if( ex.StackTrace != null )
             {
-                start = _prefix + "Stack:\u00A0";
-                p = _prefix + "\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0";
+                start = _prefix + "Stack: ";
+                p = _prefix + "       ";
                 w.WriteLine( start + ex.StackTrace.Replace( Environment.NewLine, Environment.NewLine + p ) );
             }
             // The InnerException of an aggregated exception is the same as the first of it InnerExceptionS.
@@ -155,25 +156,25 @@ namespace CK.Core
             var aggrex = (ex as AggregateException);
             if( aggrex != null && aggrex.InnerExceptions.Count > 0 )
             {
-                w.WriteLine( _prefix + "\u00A0┌──────────────────────────▪ [Aggregated Exceptions] ▪──────────────────────────" );
-                _prefix += "\u00A0|\u00A0";
+                w.WriteLine( _prefix + " ┌──────────────────────────■ [Aggregated Exceptions] ■──────────────────────────" );
+                _prefix += " | ";
                 foreach( var item in aggrex.InnerExceptions )
                 {
                     DumpException( w, true, item );
                 }
                 _prefix = _prefix.Remove( _prefix.Length - 3 );
-                w.WriteLine( _prefix + "\u00A0└─────────────────────────────────────────────────────────────────────────" );
+                w.WriteLine( _prefix + " └─────────────────────────────────────────────────────────────────────────" );
             }
             else if( ex.InnerException != null )
             {
-                w.WriteLine( _prefix + "\u00A0┌──────────────────────────▪ [Inner Exception] ▪──────────────────────────" );
-                _prefix += "\u00A0|\u00A0";
+                w.WriteLine( _prefix + " ┌──────────────────────────■ [Inner Exception] ■──────────────────────────" );
+                _prefix += " | ";
                 DumpException( w, true, ex.InnerException );
                 _prefix = _prefix.Remove( _prefix.Length - 3 );
-                w.WriteLine( _prefix + "\u00A0└─────────────────────────────────────────────────────────────────────────" );
+                w.WriteLine( _prefix + " └─────────────────────────────────────────────────────────────────────────" );
             }
             _prefix = _prefix.Remove( _prefix.Length - 3 );
-            w.WriteLine( _prefix + "\u00A0└─────────────────────────────────────────────────────────────────────────" );
+            w.WriteLine( _prefix + " └" + new string( '─', format.Length - 2 ) );
         }
 
     }
