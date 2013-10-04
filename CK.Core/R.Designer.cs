@@ -115,6 +115,15 @@ namespace CK.Core {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to AggregatedExceptions must contain at least one exception..
+        /// </summary>
+        internal static string AggregatedExceptionsMustContainAtLeastOne {
+            get {
+                return ResourceManager.GetString("AggregatedExceptionsMustContainAtLeastOne", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Argument count can not be negative..
         /// </summary>
         internal static string ArgumentCountNegative {
@@ -205,6 +214,15 @@ namespace CK.Core {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The &apos;factory&apos; function must create an item that satisfies the &apos;tester&apos; function..
+        /// </summary>
+        internal static string FactoryTesterMismatch {
+            get {
+                return ResourceManager.GetString("FactoryTesterMismatch", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to FIFOBuffer is empty..
         /// </summary>
         internal static string FIFOBufferEmpty {
@@ -214,11 +232,29 @@ namespace CK.Core {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The InnerException must be the first AggregatedExceptions..
+        /// </summary>
+        internal static string InnerExceptionMustBeTheFirstAggregatedException {
+            get {
+                return ResourceManager.GetString("InnerExceptionMustBeTheFirstAggregatedException", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to &quot;{0}&quot; is not a valid assembly qualified name..
         /// </summary>
         internal static string InvalidAssemblyQualifiedName {
             get {
                 return ResourceManager.GetString("InvalidAssemblyQualifiedName", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to refObject Must be a MarshalByRefObject..
+        /// </summary>
+        internal static string MustBeAMarshalByRefObject {
+            get {
+                return ResourceManager.GetString("MustBeAMarshalByRefObject", resourceCulture);
             }
         }
         
@@ -300,15 +336,6 @@ namespace CK.Core {
         internal static string UnregisteredServiceInServiceProvider {
             get {
                 return ResourceManager.GetString("UnregisteredServiceInServiceProvider", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to The &apos;factory&apos; function must create an item that satisfies the &apos;tester&apos; function..
-        /// </summary>
-        internal static string UtilInterlockedSetFactoryTesterMismatch {
-            get {
-                return ResourceManager.GetString("UtilInterlockedSetFactoryTesterMismatch", resourceCulture);
             }
         }
     }

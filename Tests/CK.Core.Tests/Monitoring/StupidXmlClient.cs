@@ -1,6 +1,6 @@
 ﻿#region LGPL License
 /*----------------------------------------------------------------------------
-* This file (Tests\CK.Core.Tests\SimpleSinks.cs) is part of CiviKey. 
+* This file (Tests\CK.Core.Tests\Monitoring\StupidXmlClient.cs) is part of CiviKey. 
 *  
 * CiviKey is free software: you can redistribute it and/or modify 
 * it under the terms of the GNU Lesser General Public License as published 
@@ -29,66 +29,49 @@ using System.Linq;
 using System.Xml;
 using CK.Core;
 
-namespace CK.Core.Tests
+namespace CK.Core.Tests.Monitoring
 {
     [ExcludeFromCodeCoverage]
-    public class StupidStringClient : ActivityMonitorTextHelperClient
+    public class StupidXmlClient : ActivityMonitorTextHelperClient
     {
-        public StringWriter Writer { get; private set; }
-        public bool WriteTags { get; private set; }
-        public bool WriteConclusionTraits { get; private set; }
+        XmlWriter XmlWriter { get; set; }
 
-        public StupidStringClient( bool writeTags = false, bool writeConclusionTraits = false )
+        public TextWriter InnerWriter { get; private set; }
+
+        public StupidXmlClient( StringWriter s )
         {
-            Writer = new StringWriter();
-            WriteTags = writeTags;
-            WriteConclusionTraits = writeConclusionTraits;
+            XmlWriter = XmlWriter.Create( s, new XmlWriterSettings() { ConformanceLevel = ConformanceLevel.Fragment, Indent = true } );
+            InnerWriter = s;
         }
 
         protected override void OnEnterLevel( CKTrait tags, LogLevel level, string text, DateTime logTimeUtc )
         {
-            Writer.WriteLine();
-            Writer.Write( level.ToString() + ": " + text );
-            if( WriteTags ) Writer.Write( "-[{0}]", tags.ToString() );
+            XmlWriter.WriteStartElement( level.ToString() );
+            XmlWriter.WriteString( text );
         }
 
         protected override void OnContinueOnSameLevel( CKTrait tags, LogLevel level, string text, DateTime logTimeUtc )
         {
-            Writer.Write( text );
-            if( WriteTags ) Writer.Write( "-[{0}]", tags.ToString() );
+            XmlWriter.WriteString( text );
         }
 
         protected override void OnLeaveLevel( LogLevel level )
         {
-            Writer.Flush();
+            XmlWriter.WriteEndElement();
         }
 
         protected override void OnGroupOpen( IActivityLogGroup g )
         {
-            Writer.WriteLine();
-            Writer.Write( new String( '+', g.Depth ) );
-            Writer.Write( "{1} ({0})", g.GroupLevel, g.GroupText );
-            if( g.Exception != null ) Writer.Write( "Exception: " + g.Exception.Message );
-            if( WriteTags ) Writer.Write( "-[{0}]", g.GroupTags.ToString() );
+            XmlWriter.WriteStartElement( g.GroupLevel.ToString() + "s" );
+            XmlWriter.WriteAttributeString( "Depth", g.Depth.ToString() );
+            XmlWriter.WriteAttributeString( "Level", g.GroupLevel.ToString() );
+            XmlWriter.WriteAttributeString( "Text", g.GroupText.ToString() );
         }
 
         protected override void OnGroupClose( IActivityLogGroup g, IReadOnlyList<ActivityLogGroupConclusion> conclusions )
         {
-            Writer.WriteLine();
-            Writer.Write( new String( '-', g.Depth ) );
-            if( WriteConclusionTraits )
-            {
-                Writer.Write( String.Join( ", ", conclusions.Select( c => c.Text + "-/[/"+ c.Tag.ToString() +"/]/" ) ) );
-            }
-            else
-            {
-                Writer.Write( String.Join( ", ", conclusions.Select( c => c.Text ) ) );
-            }
-        }
-
-        public override string ToString()
-        {
-            return Writer.ToString();
+            XmlWriter.WriteEndElement();
+            XmlWriter.Flush();
         }
     }
 

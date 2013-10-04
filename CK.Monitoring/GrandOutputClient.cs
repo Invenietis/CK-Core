@@ -10,6 +10,11 @@ using CK.Core.Impl;
 
 namespace CK.Monitoring
 {
+
+    /// <summary>
+    /// A GrandOutputClient is a <see cref="IActivityMonitorClient"/> that can only be obtained and registered
+    /// through <see cref="GrandOutput.Register"/>.
+    /// </summary>
     public class GrandOutputClient : IActivityMonitorBoundClient
     {
         readonly GrandOutput _central;
@@ -32,9 +37,9 @@ namespace CK.Monitoring
         /// <summary>
         /// forceBuggyRemove is not used here since this client is not lockable.
         /// </summary>
-        LogLevelFilter IActivityMonitorBoundClient.SetMonitor( IActivityMonitorImpl source, bool forceBuggyRemove )
+        void IActivityMonitorBoundClient.SetMonitor( IActivityMonitorImpl source, bool forceBuggyRemove )
         {
-            if( source != null && _monitorSource != null ) throw ActivityMonitorClient.NewMultipleRegisterOnBoundClientException( this );
+            if( source != null && _monitorSource != null ) throw ActivityMonitorClient.CreateMultipleRegisterOnBoundClientException( this );
             // Silently ignore null => null or monitor => same monitor.
             if( source != _monitorSource )
             {
@@ -42,7 +47,6 @@ namespace CK.Monitoring
                 Debug.Assert( (source == null) != (_monitorSource == null) );
                 if( (_monitorSource = source) == null )
                 {
-                    Thread.MemoryBarrier();
                     // Releases the channel if any.
                     if( _channel != null )
                     {
@@ -56,7 +60,6 @@ namespace CK.Monitoring
                     Interlocked.Increment( ref _version );
                 }
             }
-            return _currentMinimalFilter;
         }
 
         public GrandOutput Central
@@ -78,12 +81,14 @@ namespace CK.Monitoring
             }
         }
 
+        public LogLevelFilter MinimalFilter { get { return _currentMinimalFilter; } }
+
         internal void OnChannelConfigurationChanged()
         {
             Interlocked.Increment( ref _version );
         }
 
-        IChannel EnsureChannel( IActivityMonitorImpl monitorSource )
+        IChannel EnsureChannel()
         {
             if( _channel != null ) _channel.PreHandleLock();
             if( _version != _curVersion )
@@ -100,42 +105,32 @@ namespace CK.Monitoring
                             _source = null;
                         }
                     }
-                    _channel = _central.ObtainChannel( monitorSource.UniqueId, _channelName );
+                    _channel = _central.ObtainChannel( _channelName );
                 }
                 while( _version != _curVersion );
-
             }
-            _source = _channel.CreateInput( monitorSource, _channelName );
+            _source = _channel.CreateInput( _monitorSource, _channelName );
             _relativeDepth = 0;
-            //_currentMinimalFilter = _channel.MinimalFilter;
+            if( _currentMinimalFilter != _channel.MinimalFilter )
+            {
+                var prev = _currentMinimalFilter;
+                _currentMinimalFilter = _channel.MinimalFilter;
+                _monitorSource.OnClientMinimalFilterChanged( prev, _channel.MinimalFilter );
+            }
             return _channel;
-        }
-
-        void IActivityMonitorClient.OnFilterChanged( LogLevelFilter current, LogLevelFilter newValue )
-        {
         }
 
         void IActivityMonitorClient.OnUnfilteredLog( CKTrait tags, LogLevel level, string text, DateTime logTimeUtc )
         {
-            Thread.MemoryBarrier();
-            var monitorSource = _monitorSource;
-            if( monitorSource != null )
-            {
-                ILogEntry e = Impl.LogEntry.CreateLog( text, logTimeUtc, level, tags );
-                EnsureChannel( monitorSource ).Handle( new GrandOutputEventInfo( _source, e, _relativeDepth )  );
-            }
+            ILogEntry e = Impl.LogEntry.CreateLog( text, logTimeUtc, level, tags );
+            EnsureChannel().Handle( new GrandOutputEventInfo( _source, e, _relativeDepth )  );
         }
 
         public void OnOpenGroup( IActivityLogGroup group )
         {
-            Thread.MemoryBarrier();
-            var monitorSource = _monitorSource;
-            if( monitorSource != null )
-            {
-                ++_relativeDepth;
-                ILogEntry e = Impl.LogEntry.CreateOpenGroup( group.GroupText, group.LogTimeUtc, group.GroupLevel, group.GroupTags, group.Exception );
-                EnsureChannel( monitorSource ).Handle( new GrandOutputEventInfo( _source, e, _relativeDepth ) );
-            }
+            ++_relativeDepth;
+            ILogEntry e = Impl.LogEntry.CreateOpenGroup( group.GroupText, group.LogTimeUtc, group.GroupLevel, group.GroupTags, group.EnsureExceptionData() );
+            EnsureChannel().Handle( new GrandOutputEventInfo( _source, e, _relativeDepth ) );
         }
 
         public void OnGroupClosing( IActivityLogGroup group, ref List<ActivityLogGroupConclusion> conclusions )
@@ -144,14 +139,9 @@ namespace CK.Monitoring
 
         public void OnGroupClosed( IActivityLogGroup group, IReadOnlyList<ActivityLogGroupConclusion> conclusions )
         {
-            Thread.MemoryBarrier();
-            var monitorSource = _monitorSource;
-            if( monitorSource != null )
-            {
-                ILogEntry e = Impl.LogEntry.CreateCloseGroup( group.CloseLogTimeUtc, group.GroupLevel, conclusions );
-                EnsureChannel( monitorSource ).Handle( new GrandOutputEventInfo( _source, e, _relativeDepth ) );
-                --_relativeDepth;
-            }
+            ILogEntry e = Impl.LogEntry.CreateCloseGroup( group.CloseLogTimeUtc, group.GroupLevel, conclusions );
+            EnsureChannel().Handle( new GrandOutputEventInfo( _source, e, _relativeDepth ) );
+            --_relativeDepth;
         }
     }
 }

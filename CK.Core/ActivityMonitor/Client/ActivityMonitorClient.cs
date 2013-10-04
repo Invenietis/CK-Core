@@ -30,7 +30,7 @@ using System.Text;
 namespace CK.Core
 {
     /// <summary>
-    /// Base class that explicitely implements <see cref="IActivityMonitorClient"/> (to hide it from public interface).
+    /// Base class that explicitely implements <see cref="IActivityMonitorClient"/> (to hide it from public interface, except its <see cref="MinimalFilter"/>).
     /// </summary>
     [ExcludeFromCodeCoverage]
     public class ActivityMonitorClient : IActivityMonitorClient
@@ -48,14 +48,9 @@ namespace CK.Core
         }
 
         /// <summary>
-        /// Called when <see cref="IActivityMonitor.Filter"/> is about to change.
-        /// Does nothing by default.
+        /// Gets the minimal log level that this Client expects: defaults to <see cref="LogLevelFilter.None"/>.
         /// </summary>
-        /// <param name="current">Current level filter.</param>
-        /// <param name="newValue">The new level filter.</param>
-        protected virtual void OnFilterChanged( LogLevelFilter current, LogLevelFilter newValue )
-        {
-        }
+        public virtual LogLevelFilter MinimalFilter { get { return LogLevelFilter.None; } }
 
         /// <summary>
         /// Called for each <see cref="IActivityMonitor.UnfilteredLog"/>.
@@ -108,17 +103,12 @@ namespace CK.Core
         /// </summary>
         /// <param name="boundClient">The bound client.</param>
         /// <returns>An exception with an explicit message.</returns>
-        static public InvalidOperationException NewMultipleRegisterOnBoundClientException( IActivityMonitorBoundClient boundClient )
+        static public InvalidOperationException CreateMultipleRegisterOnBoundClientException( IActivityMonitorBoundClient boundClient )
         {
             return new InvalidOperationException( String.Format( R.ActivityMonitorBoundClientMultipleRegister, boundClient != null ? boundClient.GetType().FullName : String.Empty ) );
         }
 
         #region IActivityMonitorClient Members
-
-        void IActivityMonitorClient.OnFilterChanged( LogLevelFilter current, LogLevelFilter newValue )
-        {
-            OnFilterChanged( current, newValue );
-        }
 
         void IActivityMonitorClient.OnUnfilteredLog( CKTrait tags, LogLevel level, string text, DateTime logTimeUtc )
         {

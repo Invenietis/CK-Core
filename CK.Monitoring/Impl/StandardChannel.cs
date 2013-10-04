@@ -6,6 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using CK.Core;
 using CK.Core.Impl;
+using CK.Monitoring.GrandOutputHandlers;
 using CK.Monitoring.Impl;
 using CK.RouteConfig;
 
@@ -14,24 +15,24 @@ namespace CK.Monitoring
     internal sealed class StandardChannel : IChannel
     {
         readonly IGrandOutputSink _common;
-        readonly IReadOnlyList<ConfiguredSink> _sinks;
+        readonly IReadOnlyList<HandlerBase> _handlers;
         readonly IRouteConfigurationLock _configLock;
         readonly string _configurationName;
         LogLevelFilter _minimalFilter;
         int _inputCount;
 
-        internal StandardChannel( IGrandOutputSink common, IRouteConfigurationLock configLock, IReadOnlyList<ConfiguredSink> sinks, string configurationName )
+        internal StandardChannel( IGrandOutputSink common, IRouteConfigurationLock configLock, IReadOnlyList<HandlerBase> handlers, string configurationName )
         {
             _common = common;
             _configLock = configLock;
-            _sinks = sinks;
+            _handlers = handlers;
             _configurationName = configurationName;
         }
 
         public void Initialize()
         {
             ChannelOption option = new ChannelOption();
-            foreach( var s in _sinks ) s.CollectChannelOption( option );
+            foreach( var s in _handlers ) s.CollectChannelOption( option );
             _minimalFilter = option.CurrentMinimalFilter;
         }
 
@@ -58,7 +59,7 @@ namespace CK.Monitoring
             GrandOutputEventInfo logEvent = (GrandOutputEventInfo)logEventObject;
             try
             {
-                foreach( var s in _sinks ) s.Handle( logEvent );
+                foreach( var s in _handlers ) s.Handle( logEvent );
             }
             catch( Exception ex )
             {
@@ -83,7 +84,7 @@ namespace CK.Monitoring
             {
                 foreach( var e in list )
                 {
-                    foreach( var s in _sinks ) s.Handle( e );
+                    foreach( var s in _handlers ) s.Handle( e );
                 }
             }
             catch( Exception ex )

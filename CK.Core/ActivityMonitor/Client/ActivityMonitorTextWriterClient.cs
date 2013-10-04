@@ -1,6 +1,6 @@
 #region LGPL License
 /*----------------------------------------------------------------------------
-* This file (CK.Core\ActivityMonitor\Impl\ActivityMonitorTextWriterSink.cs) is part of CiviKey. 
+* This file (CK.Core\ActivityMonitor\Client\ActivityMonitorTextWriterClient.cs) is part of CiviKey. 
 *  
 * CiviKey is free software: you can redistribute it and/or modify 
 * it under the terms of the GNU Lesser General Public License as published 
@@ -65,16 +65,16 @@ namespace CK.Core
         protected override void OnEnterLevel( CKTrait tags, LogLevel level, string text, DateTime logTimeUtc )
         {
             TextWriter w = _writer();
-            _prefixLevel = _prefix + new String( '\u00A0', level.ToString().Length + 4 );
+            _prefixLevel = _prefix + new String( ' ', level.ToString().Length + 4 );
             text = text.Replace( Environment.NewLine, Environment.NewLine + _prefixLevel );
             if( _currentTags != tags )
             {
-                w.WriteLine( "{0}-\u00A0{1}:\u00A0{2} -[{3}]", _prefix, level.ToString(), text, tags );
+                w.WriteLine( "{0}- {1}: {2} -[{3}]", _prefix, level.ToString(), text, tags );
                 _currentTags = tags;
             }
             else
             {
-                w.WriteLine( "{0}-\u00A0{1}:\u00A0{2}", _prefix, level.ToString(), text );
+                w.WriteLine( "{0}- {1}: {2}", _prefix, level.ToString(), text );
             }
         }
 
@@ -98,8 +98,8 @@ namespace CK.Core
         protected override void OnGroupOpen( IActivityLogGroup g )
         {
             TextWriter w = _writer();
-            string start = String.Format( "{0}▪►-{1}:\u00A0", _prefix, g.GroupLevel.ToString() );
-            _prefix += "▪\u00A0\u00A0";
+            string start = String.Format( "{0}> {1}: ", _prefix, g.GroupLevel.ToString() );
+            _prefix += "|  ";
             _prefixLevel = _prefix;
             string text = g.GroupText.Replace( Environment.NewLine, Environment.NewLine + _prefixLevel );
             if( _currentTags != g.GroupTags )
@@ -122,52 +122,89 @@ namespace CK.Core
             }
             _prefixLevel = _prefix = _prefix.Remove( _prefix.Length - 3 );
 
-            w.WriteLine( "{0}◄▪-{1}", _prefixLevel, conclusions.Where( c => !c.Text.Contains( Environment.NewLine ) ).ToStringGroupConclusion() );
+            w.WriteLine( "{0}< {1}", _prefixLevel, conclusions.Where( c => !c.Text.Contains( Environment.NewLine ) ).ToStringGroupConclusion() );
 
             foreach( var c in conclusions.Where( c => c.Text.Contains( Environment.NewLine ) ) )
             {
-                string text = "◄▪-" + c.Text;
-                w.WriteLine( _prefixLevel + "  -" + c.Text.Replace( Environment.NewLine, Environment.NewLine + _prefixLevel + "   " ) );
+                string text = "< " + c.Text;
+                w.WriteLine( _prefixLevel + "  " + c.Text.Replace( Environment.NewLine, Environment.NewLine + _prefixLevel + "   " ) );
             }
         }
 
         void DumpException( TextWriter w, bool displayMessage, Exception ex )
         {
-            string p;
+            CKException ckEx = ex as CKException;
+            if( ckEx != null && ckEx.ExceptionData != null )
+            {
+                ckEx.ExceptionData.ToTextWriter( w, _prefix );
+                return;
+            }
 
-            w.WriteLine( _prefix + "\u00A0┌──────────────────────────■ Exception : {0} ■──────────────────────────", ex.GetType().Name );
-            _prefix += "\u00A0|\u00A0";
+            string header = String.Format( " ┌──────────────────────────■ Exception : {0} ■──────────────────────────", ex.GetType().Name );
+
+            string p;
+            w.WriteLine( _prefix + header );
+            _prefix += " | ";
             string start;
             if( displayMessage && ex.Message != null )
             {
-                start = _prefix + "Message:\u00A0";
-                p = _prefix + "\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0";
+                start = _prefix + "Message: ";
+                p = _prefix + "         ";
                 w.WriteLine( start + ex.Message.Replace( Environment.NewLine, Environment.NewLine + p ) );
             }
             if( ex.StackTrace != null )
             {
-                start = _prefix + "Stack:\u00A0";
-                p = _prefix + "\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0";
+                start = _prefix + "Stack: ";
+                p = _prefix + "       ";
                 w.WriteLine( start + ex.StackTrace.Replace( Environment.NewLine, Environment.NewLine + p ) );
             }
-            var loadFileEx = ex as System.IO.FileNotFoundException;
-            if( loadFileEx != null && loadFileEx.FusionLog != null )
+            var fileNFEx = ex as System.IO.FileNotFoundException;
+            if( fileNFEx != null )
             {
-                start = _prefix + "FusionLog:\u00A0";
-                p = _prefix + "\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0";
-                w.WriteLine( start + loadFileEx.FusionLog.Replace( Environment.NewLine, Environment.NewLine + p ) );
-            }
-            var typeLoadEx = ex as ReflectionTypeLoadException;
-            if( typeLoadEx != null )
-            {
-                w.WriteLine( _prefix + "\u00A0┌──────────────────────────▪ [Loader Exceptions] ▪──────────────────────────" );
-                _prefix += "\u00A0|\u00A0";
-                foreach( var item in typeLoadEx.LoaderExceptions )
+                if( !String.IsNullOrEmpty( fileNFEx.FileName ) ) w.WriteLine( _prefix + "FileName: " + fileNFEx.FileName );
+                if( fileNFEx.FusionLog != null )
                 {
-                    DumpException( w, true, item );
+                    start = _prefix + "FusionLog: ";
+                    p = _prefix + "         ";
+                    w.WriteLine( start + fileNFEx.FusionLog.Replace( Environment.NewLine, Environment.NewLine + p ) );
                 }
-                _prefix = _prefix.Remove( _prefix.Length - 3 );
-                w.WriteLine( _prefix + "\u00A0└─────────────────────────────────────────────────────────────────────────" );
+            }
+            else
+            {
+                var loadFileEx = ex as System.IO.FileLoadException;
+                if( loadFileEx != null )
+                {
+                    if( !String.IsNullOrEmpty( loadFileEx.FileName ) ) w.WriteLine( _prefix + "FileName: " + loadFileEx.FileName );
+                    if( loadFileEx.FusionLog != null )
+                    {
+                        start = _prefix + "FusionLog: ";
+                        p = _prefix + "         ";
+                        w.WriteLine( start + loadFileEx.FusionLog.Replace( Environment.NewLine, Environment.NewLine + p ) );
+                    }
+                    else
+                    {
+                        var typeLoadEx = ex as ReflectionTypeLoadException;
+                        if( typeLoadEx != null )
+                        {
+                            w.WriteLine( _prefix + " ┌──────────────────────────■ [Loader Exceptions] ■──────────────────────────" );
+                            _prefix += " | ";
+                            foreach( var item in typeLoadEx.LoaderExceptions )
+                            {
+                                DumpException( w, true, item );
+                            }
+                            _prefix = _prefix.Remove( _prefix.Length - 3 );
+                            w.WriteLine( _prefix + " └─────────────────────────────────────────────────────────────────────────" );
+                        }
+                        else
+                        {
+                            var configEx = ex as System.Configuration.ConfigurationException;
+                            if( configEx != null )
+                            {
+                                if( !String.IsNullOrEmpty( configEx.Filename ) ) w.WriteLine( _prefix + "FileName: " + configEx.Filename );
+                            }
+                        }
+                    }
+                }
             }
             // The InnerException of an aggregated exception is the same as the first of it InnerExceptionS.
             // (The InnerExceptionS are the contained/aggregated exceptions of the AggregatedException object.)
@@ -175,25 +212,25 @@ namespace CK.Core
             var aggrex = ex as AggregateException;
             if( aggrex != null && aggrex.InnerExceptions.Count > 0 )
             {
-                w.WriteLine( _prefix + "\u00A0┌──────────────────────────▪ [Aggregated Exceptions] ▪──────────────────────────" );
-                _prefix += "\u00A0|\u00A0";
+                w.WriteLine( _prefix + " ┌──────────────────────────■ [Aggregated Exceptions] ■──────────────────────────" );
+                _prefix += " | ";
                 foreach( var item in aggrex.InnerExceptions )
                 {
                     DumpException( w, true, item );
                 }
                 _prefix = _prefix.Remove( _prefix.Length - 3 );
-                w.WriteLine( _prefix + "\u00A0└─────────────────────────────────────────────────────────────────────────" );
+                w.WriteLine( _prefix + " └─────────────────────────────────────────────────────────────────────────" );
             }
             else if( ex.InnerException != null )
             {
-                w.WriteLine( _prefix + "\u00A0┌──────────────────────────▪ [Inner Exception] ▪──────────────────────────" );
-                _prefix += "\u00A0|\u00A0";
+                w.WriteLine( _prefix + " ┌──────────────────────────■ [Inner Exception] ■──────────────────────────" );
+                _prefix += " | ";
                 DumpException( w, true, ex.InnerException );
                 _prefix = _prefix.Remove( _prefix.Length - 3 );
-                w.WriteLine( _prefix + "\u00A0└─────────────────────────────────────────────────────────────────────────" );
+                w.WriteLine( _prefix + " └─────────────────────────────────────────────────────────────────────────" );
             }
             _prefix = _prefix.Remove( _prefix.Length - 3 );
-            w.WriteLine( _prefix + "\u00A0└─────────────────────────────────────────────────────────────────────────" );
+            w.WriteLine( _prefix + " └" + new String( '─', header.Length - 2 ) );
         }
 
     }

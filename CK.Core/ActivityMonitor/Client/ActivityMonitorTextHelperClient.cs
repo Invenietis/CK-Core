@@ -29,6 +29,8 @@ using CK.Core.Impl;
 namespace CK.Core
 {
     /// <summary>
+    /// Base class for <see cref="IActivityMonitorClient"/> that tracks groups and level changes in order
+    /// to ease text-based renderer.
     /// </summary>
     public abstract class ActivityMonitorTextHelperClient : IActivityMonitorClient
     {
@@ -40,10 +42,6 @@ namespace CK.Core
         protected ActivityMonitorTextHelperClient()
         {
             _curLevel = -1;
-        }
-
-        void IActivityMonitorClient.OnFilterChanged( LogLevelFilter current, LogLevelFilter newValue )
-        {
         }
 
         void IActivityMonitorClient.OnUnfilteredLog( CKTrait tags, LogLevel level, string text, DateTime logTimeUtc )

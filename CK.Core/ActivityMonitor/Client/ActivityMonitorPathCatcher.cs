@@ -88,14 +88,13 @@ namespace CK.Core
             _path = new List<PathElement>();
         }
 
-        LogLevelFilter IActivityMonitorBoundClient.SetMonitor( IActivityMonitorImpl source, bool forceBuggyRemove )
+        void IActivityMonitorBoundClient.SetMonitor( IActivityMonitorImpl source, bool forceBuggyRemove )
         {
             if( !forceBuggyRemove )
             {
-                if( source != null && _source != null ) throw NewMultipleRegisterOnBoundClientException( this );
+                if( source != null && _source != null ) throw CreateMultipleRegisterOnBoundClientException( this );
             }
             _source = source;
-            return LogLevelFilter.None;
         }
 
         /// <summary>

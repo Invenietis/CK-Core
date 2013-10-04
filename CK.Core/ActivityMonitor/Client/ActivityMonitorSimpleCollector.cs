@@ -6,7 +6,7 @@ using System.Text;
 namespace CK.Core
 {
     /// <summary>
-    /// Simple collector of log entries which level is greater or equal to <see cref="LevelFilter"/>.
+    /// Simple collector of log entries which level is greater or equal to <see cref="MinimalFilter"/>.
     /// Its <see cref="Capacity"/> defaults to 50 (no more than Capacity entries are kept).
     /// </summary>
     public class ActivityMonitorSimpleCollector : IActivityMonitorClient
@@ -64,7 +64,7 @@ namespace CK.Core
         }
 
         /// <summary>
-        /// Initializes a new collector with an initial capacity of 50 errors (<see cref="LevelFilter"/> is set to <see cref="LogLevelFilter.Error"/>).
+        /// Initializes a new collector with an initial capacity of 50 errors (<see cref="MinimalFilter"/> is set to <see cref="LogLevelFilter.Error"/>).
         /// </summary>
         public ActivityMonitorSimpleCollector()
         {
@@ -85,7 +85,7 @@ namespace CK.Core
         /// <summary>
         /// Gets or sets the filter level.
         /// </summary>
-        public LogLevelFilter LevelFilter
+        public LogLevelFilter MinimalFilter
         {
             get { return _filter; }
             set 
@@ -123,7 +123,7 @@ namespace CK.Core
         }
 
         /// <summary>
-        /// Appends any log with level equal or above <see cref="LevelFilter"/> to <see cref="Entries"/>.
+        /// Appends any log with level equal or above <see cref="MinimalFilter"/> to <see cref="Entries"/>.
         /// </summary>
         /// <param name="tags">Tags for the log entry.</param>
         /// <param name="level">Level of the log.</param>
@@ -138,7 +138,7 @@ namespace CK.Core
         }
 
         /// <summary>
-        /// Appends any group with level equal or above <see cref="LevelFilter"/> to <see cref="Entries"/>.
+        /// Appends any group with level equal or above <see cref="MinimalFilter"/> to <see cref="Entries"/>.
         /// </summary>
         /// <param name="group">Log group description.</param>
         void IActivityMonitorClient.OnOpenGroup( IActivityLogGroup group )
@@ -147,10 +147,6 @@ namespace CK.Core
             {
                 _entries.Push( new Entry( group.GroupTags, group.GroupLevel, group.GroupText, group.LogTimeUtc, group.Exception ) );
             }
-        }
-
-        void IActivityMonitorClient.OnFilterChanged( LogLevelFilter current, LogLevelFilter newValue )
-        {
         }
 
         void IActivityMonitorClient.OnGroupClosing( IActivityLogGroup group, ref List<ActivityLogGroupConclusion> conclusions )

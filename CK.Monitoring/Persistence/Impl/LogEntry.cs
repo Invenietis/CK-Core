@@ -15,7 +15,7 @@ namespace CK.Monitoring.Impl
             return new LELogWithTrait( text, t, l, tags );
         }
 
-        public static ILogEntry CreateOpenGroup( string text, DateTime t, LogLevel l, CKTrait tags = null, Exception ex = null )
+        public static ILogEntry CreateOpenGroup( string text, DateTime t, LogLevel l, CKTrait tags = null, CKExceptionData ex = null )
         {
             if( ex == null )
             {

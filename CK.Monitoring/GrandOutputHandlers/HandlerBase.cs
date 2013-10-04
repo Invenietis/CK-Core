@@ -1,12 +1,12 @@
 ﻿using CK.RouteConfig;
 
-namespace CK.Monitoring
+namespace CK.Monitoring.GrandOutputHandlers
 {
-    public abstract class ConfiguredSink
+    public abstract class HandlerBase
     {
         readonly string _name;
 
-        protected ConfiguredSink( ActionConfiguration config )
+        protected HandlerBase( ActionConfiguration config )
         {
             _name = config.Name;
         }

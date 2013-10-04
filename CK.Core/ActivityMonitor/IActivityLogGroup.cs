@@ -86,6 +86,19 @@ namespace CK.Core
         Exception Exception { get; }
 
         /// <summary>
+        /// Gets the <see cref="CKExceptionData"/> that captures exception information 
+        /// if it exists. Returns null if no <see cref="P:Exception"/> exists.
+        /// </summary>
+        CKExceptionData ExceptionData { get; }
+
+        /// <summary>
+        /// Gets or creates the <see cref="CKExceptionData"/> that captures exception information.
+        /// If <see cref="P:Exception"/> is null, this method returns null.
+        /// </summary>
+        /// <returns></returns>
+        CKExceptionData EnsureExceptionData();
+
+        /// <summary>
         /// Gets whether the <see cref="GroupText"/> is actually the <see cref="Exception"/> message.
         /// </summary>
         bool IsGroupTextTheExceptionMessage { get; }

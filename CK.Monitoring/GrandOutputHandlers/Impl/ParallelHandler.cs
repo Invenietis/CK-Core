@@ -3,13 +3,13 @@ using System.Threading.Tasks;
 using System.Linq;
 using CK.RouteConfig;
 
-namespace CK.Monitoring.Impl
+namespace CK.Monitoring.GrandOutputHandlers
 {
-    internal class ConfiguredSinkParallel : ConfiguredSink
+    internal class ParallelHandler : HandlerBase
     {
-        readonly ConfiguredSink[] _children;
+        readonly HandlerBase[] _children;
 
-        public ConfiguredSinkParallel( ActionParallelConfiguration c, ConfiguredSink[] children )
+        public ParallelHandler( ActionParallelConfiguration c, HandlerBase[] children )
             : base( c )
         {
             _children = children;
@@ -17,13 +17,12 @@ namespace CK.Monitoring.Impl
 
         /// <summary>
         /// Handles a <see cref="GrandOutputEventInfo"/> by calling each
-        /// child's handle in parallel.
+        /// child's handler in parallel.
         /// </summary>
         /// <param name="logEvent">Event to handle.</param>
         public override void Handle( GrandOutputEventInfo logEvent )
         {
-            IEnumerable<Task> tasks = _children.Select( c => new Task( () => c.Handle( logEvent ) ) );
-            Parallel.ForEach( tasks, t => t.RunSynchronously() );
+            Parallel.For( 0,  _children.Length, i => _children[i].Handle( logEvent ) );
         }
 
     }

@@ -48,6 +48,7 @@ namespace CK.Core
             DateTime _logTime;
             DateTime _closeLogTime;
             Exception _exception;
+            CKExceptionData _exceptionData;
             Func<string> _getConclusion;
 
             /// <summary>
@@ -73,13 +74,13 @@ namespace CK.Core
             /// </param>
             /// <param name="logTimeUtc">Timestamp of the log (must be UTC).</param>
             /// <param name="ex">Optional exception associated to the group.</param>
-            internal protected virtual void Initialize( ref IReadOnlyList<IActivityMonitorClient> clients, CKTrait tags, LogLevel level, string text, Func<string> getConclusionText, DateTime logTimeUtc, Exception ex )
+            internal protected virtual void Initialize( CKTrait tags, LogLevel level, string text, Func<string> getConclusionText, DateTime logTimeUtc, Exception ex )
             {
                 SavedMonitorFilter = _monitor.Filter;
                 SavedMonitorTags = _monitor.AutoTags;
                 // Logs everything when a Group is an error: we then have full details without
                 // logging all with Error or Fatal.
-                if( level >= LogLevel.Error ) _monitor.DoSetFilter( ref clients, LogLevelFilter.Trace );
+                if( level >= LogLevel.Error && _monitor._configuredFilter != LogLevelFilter.Trace ) _monitor.DoSetConfiguredFilter( LogLevelFilter.Trace );
                 GroupLevel = level;
                 _logTime = logTimeUtc;
                 _closeLogTime = DateTime.MinValue;
@@ -107,6 +108,36 @@ namespace CK.Core
             { 
                 get { return _closeLogTime; } 
                 internal set { _closeLogTime = value; } 
+            }
+
+            /// <summary>
+            /// Gets the <see cref="CKExceptionData"/> that captures exception information 
+            /// if it exists. Returns null if no <see cref="P:Exception"/> exists.
+            /// </summary>
+            public CKExceptionData ExceptionData
+            {
+                get
+                {
+                    if( _exceptionData == null && _exception != null )
+                    {
+                        CKException ckEx = _exception as CKException;
+                        if( ckEx != null )
+                        {
+                            _exceptionData = ckEx.ExceptionData;
+                        }
+                    }
+                    return _exceptionData;
+                }
+            }
+
+            /// <summary>
+            /// Gets or creates the <see cref="CKExceptionData"/> that captures exception information.
+            /// If <see cref="P:Exception"/> is null, this returns null.
+            /// </summary>
+            /// <returns></returns>
+            public CKExceptionData EnsureExceptionData()
+            {
+                return _exceptionData ?? (_exceptionData = CKExceptionData.CreateFrom( _exception ));
             }
 
             /// <summary>

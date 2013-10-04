@@ -36,7 +36,7 @@ using System.Xml.XPath;
 using CK.Core;
 using NUnit.Framework;
 
-namespace CK.Core.Tests
+namespace CK.Core.Tests.Monitoring
 {
 
     class SafeClient : IActivityMonitorClient
@@ -44,10 +44,7 @@ namespace CK.Core.Tests
         readonly StringBuilder _buffer = new StringBuilder();
         string _prefix = "";
 
-        public void OnFilterChanged( LogLevelFilter current, LogLevelFilter newValue )
-        {
-            lock( _buffer ) _buffer.Append( _prefix ).AppendLine( "[OnFilterChanged]" );
-        }
+        public LogLevelFilter MinimalFilter { get { return LogLevelFilter.None; } }
 
         public void OnUnfilteredLog( CKTrait tags, LogLevel level, string text, DateTime logTimeUtc )
         {
@@ -117,9 +114,13 @@ namespace CK.Core.Tests
 
         #region IActivityMonitorClient Members
 
-        public void OnFilterChanged( LogLevelFilter current, LogLevelFilter newValue )
+        public LogLevelFilter MinimalFilter 
         {
-            MayFail();
+            get
+            {
+                MayFail();
+                return LogLevelFilter.Trace;
+            } 
         }
 
         public void OnUnfilteredLog( CKTrait tags, LogLevel level, string text, DateTime logTimeUtc )

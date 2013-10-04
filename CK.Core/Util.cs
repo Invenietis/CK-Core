@@ -414,18 +414,20 @@ namespace CK.Core
         }
 
         /// <summary>
-        /// Atomically replaces an array with an item that has been removed.
+        /// Atomically removes an item in an array.
         /// </summary>
         /// <typeparam name="T">Type of the item array.</typeparam>
-        /// <param name="items">Reference (address) of the array.</param>
+        /// <param name="items">Reference (address) of the array. Can be null.</param>
         /// <param name="o">Item to remove.</param>
         /// <returns>The array containing the new item. Note that it may differ from the "current" items content since another thread may have already changed it.</returns>
         public static T[] InterlockedRemove<T>( ref T[] items, T o )
         {
             return InterlockedSet( ref items, o, ( current, item ) =>
             {
+                if( current == null || current.Length == 0 ) return current;
                 int idx = Array.IndexOf( current, item );
                 if( idx < 0 ) return current;
+                if( current.Length == 1 ) return Util.EmptyArray<T>.Empty;
                 var newArray = new T[current.Length - 1];
                 Array.Copy( current, 0, newArray, 0, idx );
                 Array.Copy( current, idx + 1, newArray, idx, newArray.Length - idx );
@@ -434,35 +436,112 @@ namespace CK.Core
         }
 
         /// <summary>
-        /// Atomically prepends an item to an existing array if it does not already exist in the array.
+        /// Atomically removes the first item from an array that matches a predicate.
         /// </summary>
         /// <typeparam name="T">Type of the item array.</typeparam>
-        /// <param name="items">Reference (address) of the array.</param>
-        /// <param name="o">The item to insert at position 0 if it does not already appear in the array.</param>
+        /// <param name="items">Reference (address) of the array. Can be null.</param>
+        /// <param name="predicate">Predicate that identifies the item to remove.</param>
         /// <returns>The array containing the new item. Note that it may differ from the "current" items content since another thread may have already changed it.</returns>
-        public static T[] InterlockedPrepend<T>( ref T[] items, T o )
+        public static T[] InterlockedRemove<T>( ref T[] items, Func<T,bool> predicate )
         {
-            return InterlockedSet( ref items, o, ( current, item ) =>
+            if( predicate == null ) throw new ArgumentNullException( "predicate" );
+            return InterlockedSet( ref items, predicate, ( current, p ) =>
             {
-                if( Array.IndexOf( current, item ) >= 0 ) return current;
-                var newArray = new T[current.Length + 1];
-                Array.Copy( current, 0, newArray, 1, current.Length );
-                newArray[0] = item;
+                if( current == null || current.Length == 0 ) return current;
+                int idx = current.IndexOf( p );
+                if( idx < 0 ) return current;
+                if( current.Length == 1 ) return Util.EmptyArray<T>.Empty;
+                var newArray = new T[current.Length - 1];
+                Array.Copy( current, 0, newArray, 0, idx );
+                Array.Copy( current, idx + 1, newArray, idx, newArray.Length - idx );
                 return newArray;
             } );
         }
 
         /// <summary>
-        /// Atomically prepends an item to an existing array if it does not already exist in the array.
+        /// Atomically removes one or more items from an array that match a predicate.
         /// </summary>
         /// <typeparam name="T">Type of the item array.</typeparam>
-        /// <param name="items">Reference (address) of the array.</param>
+        /// <param name="items">Reference (address) of the array. Can be null.</param>
+        /// <param name="predicate">Predicate that identifies items to remove.</param>
+        /// <returns>The array containing the new item. Note that it may differ from the "current" items content since another thread may have already changed it.</returns>
+        public static T[] InterlockedRemoveAll<T>( ref T[] items, Func<T,bool> predicate )
+        {
+            if( predicate == null ) throw new ArgumentNullException( "predicate" );
+            return InterlockedSet( ref items, predicate, ( current, p ) =>
+            {
+                int len;
+                if( current == null || (len = current.Length) == 0 ) return current;
+                for( int i = 0; i < len; ++i )
+                {
+                    if( !p( current[i] ) )
+                    {
+                        List<T> collector = new List<T>();
+                        collector.Add( current[i] );
+                        while( ++i < len )
+                        {
+                            if( !p( current[i] ) ) collector.Add( current[i] );
+                        }
+                        return collector.ToArray();
+                    }
+                }
+                return Util.EmptyArray<T>.Empty;                
+            } );
+        }
+
+        /// <summary>
+        /// Atomically adds an item to an array (that can be null) if it does not already exist in the array.
+        /// </summary>
+        /// <typeparam name="T">Type of the item array.</typeparam>
+        /// <param name="items">Reference (address) of the array. Can be null.</param>
+        /// <param name="o">The item to insert at position 0 (if <paramref name="prepend"/> is true) or at the end only if it does not already appear in the array.</param>
+        /// <param name="prepend">True to insert the item at the head of the array (index 0) instead of at its end.</param>
+        /// <returns>The array containing the new item. Note that it may differ from the "current" items content since another thread may have already changed it.</returns>
+        public static T[] InterlockedAddUnique<T>( ref T[] items, T o, bool prepend = false )
+        {
+            return InterlockedSet( ref items, o, ( oldItems, item ) =>
+            {
+                if( oldItems == null || oldItems.Length == 0 ) return new T[]{ item };
+                if( Array.IndexOf( oldItems, item ) >= 0 ) return oldItems;
+                T[] newArray = new T[oldItems.Length + 1];
+                Array.Copy( oldItems, 0, newArray, prepend ? 1 : 0, oldItems.Length );
+                newArray[prepend ? 0 : oldItems.Length] = item;
+                return newArray;
+            } );
+        }
+
+        /// <summary>
+        /// Atomically adds an item to an array (that can be null).
+        /// </summary>
+        /// <typeparam name="T">Type of the item array.</typeparam>
+        /// <param name="items">Reference (address) of the array. Can be null.</param>
+        /// <param name="o">The item to insert at position 0 (if <paramref name="prepend"/> is true) or at the end.</param>
+        /// <param name="prepend">True to insert the item at the head of the array (index 0) instead of at its end.</param>
+        /// <returns>The array containing the new item. Note that it may differ from the "current" items content since another thread may have already changed it.</returns>
+        public static T[] InterlockedAdd<T>( ref T[] items, T o, bool prepend = false )
+        {
+            return InterlockedSet( ref items, o, ( oldItems, item ) =>
+            {
+                if( oldItems == null || oldItems.Length == 0 ) return new T[]{ item };
+                T[] newArray = new T[oldItems.Length + 1];
+                Array.Copy( oldItems, 0, newArray, prepend ? 1 : 0, oldItems.Length );
+                newArray[prepend ? 0 : oldItems.Length] = item;
+                return newArray;
+            } );
+        }
+
+        /// <summary>
+        /// Atomically adds an item to an existing array (that can be null) if no existing item satisifies a condition.
+        /// </summary>
+        /// <typeparam name="T">Type of the item array.</typeparam>
+        /// <param name="items">Reference (address) of the array. Can be null.</param>
         /// <param name="tester">Predicate that must be satisfied for at least one existing item.</param>
-        /// <param name="factory">Factory that will be called if no existing item satisfies <paramref name="tester"/>.</param>
-        /// <param name="prepend">True to insert the item at the head of the array instead of at its end.</param>
+        /// <param name="factory">Factory that will be called if no existing item satisfies <paramref name="tester"/>. It will be called only once if needed.</param>
+        /// <param name="prepend">True to insert the item at the head of the array (index 0) instead of at its end.</param>
         /// <returns>
         /// The array containing the an item that satisfies the tester function. 
-        /// Note that it may differ from the "current" items content since another thread may have already changed it.</returns>
+        /// Note that it may differ from the "current" items content since another thread may have already changed it.
+        /// </returns>
         /// <remarks>
         /// The factory function MUST return an item that satisfies the tester function otherwise a <see cref="InvalidOperationException"/> is thrown.
         /// </remarks>
@@ -474,34 +553,23 @@ namespace CK.Core
             bool needFactory = true;
             return InterlockedSet( ref items, oldItems =>
             {
-                foreach( var e in oldItems ) if( e is TItem && tester( (TItem)e ) ) return oldItems;
+                T[] newArray;
+                if( oldItems != null )
+                    foreach( var e in oldItems )
+                        if( e is TItem && tester( (TItem)e ) ) return oldItems;
                 if( needFactory )
                 {
+                    needFactory = false;
                     newE = factory();
-                    if( !tester( newE ) ) throw new InvalidOperationException( R.UtilInterlockedSetFactoryTesterMismatch );
+                    if( !tester( newE ) ) throw new InvalidOperationException( R.FactoryTesterMismatch );
                 }
-                var newArray = new T[oldItems.Length + 1];
-                Array.Copy( oldItems, 0, newArray, prepend ? 1 : 0, oldItems.Length );
-                newArray[prepend ? 0 : oldItems.Length] = newE;
-                return newArray;
-            } );
-        }
-
-        /// <summary>
-        /// Atomically appends an item to an existing array if it does not already exist in the array.
-        /// </summary>
-        /// <typeparam name="T">Type of the item array.</typeparam>
-        /// <param name="items">Reference (address) of the array.</param>
-        /// <param name="o">The item to append if it does not already appear in the array.</param>
-        /// <returns>The array containing the new item. Note that it may differ from the "current" items content since another thread may have already changed it.</returns>
-        public static T[] InterlockedAppend<T>( ref T[] items, T o )
-        {
-            return InterlockedSet( ref items, o, ( current, item ) =>
-            {
-                if( Array.IndexOf( current, item ) >= 0 ) return current;
-                var newArray = new T[current.Length + 1];
-                Array.Copy( current, 0, newArray, 0, current.Length );
-                newArray[current.Length] = item;
+                if( oldItems == null || oldItems.Length == 0 ) newArray = new T[] { newE };
+                else
+                {
+                    newArray = new T[oldItems.Length + 1];
+                    Array.Copy( oldItems, 0, newArray, prepend ? 1 : 0, oldItems.Length );
+                    newArray[prepend ? 0 : oldItems.Length] = newE;
+                }
                 return newArray;
             } );
         }

@@ -58,7 +58,7 @@ namespace Storage
             get { return _monitor.Output.Clients.Contains( _console ); }
             set
             {
-                if( value ) _monitor.Output.AtomicRegisterClient( c => c ==_console, () => _console );
+                if( value ) _monitor.Output.RegisterUniqueClient( c => c ==_console, () => _console );
                 else _monitor.Output.UnregisterClient( _console );
             }
         }

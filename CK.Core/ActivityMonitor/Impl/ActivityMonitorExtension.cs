@@ -26,6 +26,7 @@ using System.Linq;
 using System.Collections.Generic;
 using System.Text;
 using System.Diagnostics;
+using System.Diagnostics.Contracts;
 
 namespace CK.Core
 {
@@ -34,6 +35,295 @@ namespace CK.Core
     /// </summary>
     public static partial class ActivityMonitorExtension
     {
+        /// <summary>
+        /// Challenges <see cref="IActivityMonitor.ActualFilter">this monitors'filter</see> and application domain's <see cref="ActivityMonitor.DefaultFilter"/> 
+        /// to test whether a log should actually be emitted.
+        /// </summary>
+        /// <param name="this">This <see cref="IActivityMonitor"/>.</param>
+        /// <param name="level">Log level.</param>
+        /// <returns>True if the log should be emitted.</returns>
+        public static bool ShouldLog( this IActivityMonitor @this, LogLevel level )
+        {
+            if( @this == null ) throw new NullReferenceException( "this" );
+            int f = (int)@this.ActualFilter;
+            return f <= 0 ? (int)ActivityMonitor.DefaultFilter <= (int)level : f <= (int)level;
+        }
+
+        /// <summary>
+        /// Closes the current Group. Optional parameter is polymorphic. It can be a string, a <see cref="ActivityLogGroupConclusion"/>, 
+        /// a <see cref="List{T}"/> or an <see cref="IEnumerable{T}"/> of ActivityLogGroupConclusion, or any object with an overriden <see cref="Object.ToString"/> method. 
+        /// See remarks (especially for List&lt;ActivityLogGroupConclusion&gt;).
+        /// </summary>
+        /// <param name="this">This <see cref="IActivityMonitor"/>.</param>
+        /// <param name="userConclusion">Optional string, ActivityLogGroupConclusion object, enumerable of ActivityLogGroupConclusion or object to conclude the group. See remarks.</param>
+        /// <remarks>
+        /// An untyped object is used here to easily and efficiently accomodate both string and already existing ActivityLogGroupConclusion.
+        /// When a List&lt;ActivityLogGroupConclusion&gt; is used, it will be direclty used to collect conclusion objects (new conclusions will be added to it). This is an optimization.
+        /// </remarks>
+        public static void CloseGroup( this IActivityMonitor @this, object userConclusion = null )
+        {
+            if( @this == null ) throw new NullReferenceException( "this" );
+            @this.CloseGroup( DateTime.UtcNow, userConclusion );
+        }
+        
+        #region Bridge: FindBridgeTo, CreateBridgeTo and UnbridgeTo.
+
+        /// <summary>
+        /// Finds an existing bridge to another monitor.
+        /// </summary>
+        /// <param name="this">This <see cref="IActivityMonitorOutput"/>.</param>
+        /// <param name="targetBridge">The target bridge that receives our logs.</param>
+        /// <returns>The existing <see cref="ActivityMonitorBridge"/> or null if no such bridge exists.</returns>
+        public static ActivityMonitorBridge FindBridgeTo( this IActivityMonitorOutput @this, ActivityMonitorBridgeTarget targetBridge )
+        {
+            if( @this == null ) throw new NullReferenceException( "this" );
+            if( targetBridge == null ) throw new ArgumentNullException( "targetBridge" );
+            return @this.Clients.OfType<ActivityMonitorBridge>().FirstOrDefault( b => b.TargetBridge == targetBridge );
+        }
+
+        /// <summary>
+        /// Creates a bridge to another monitor's <see cref="ActivityMonitorBridgeTarget"/>. Only one bridge to the same monitor can exist at a time: if <see cref="FindBridgeTo"/> is not null, 
+        /// this throws a <see cref="InvalidOperationException"/>.
+        /// </summary>
+        /// <param name="this">This <see cref="IActivityMonitorOutput"/>.</param>
+        /// <param name="targetBridge">The target bridge that will receive our logs.</param>
+        /// <param name="applyTargetHonorMonitorFilterToOpenGroup">
+        /// True to avoid opening group with level below the target <see cref="IActivityMonitor.ActualFilter"/> (when <see cref="ActivityMonitorBridgeTarget.HonorMonitorFilter">@this.HonorMonitorFilter</see> is true).
+        /// This is an optimization that can be used to send less data to the target monitor.
+        /// </param>
+        /// <returns>A <see cref="IDisposable"/> object that can be disposed to automatically call <see cref="UnbridgeTo"/>.</returns>
+        public static IDisposable CreateBridgeTo( this IActivityMonitorOutput @this, ActivityMonitorBridgeTarget targetBridge, bool applyTargetHonorMonitorFilterToOpenGroup = false )
+        {
+            if( @this == null ) throw new NullReferenceException( "this" );
+            if( targetBridge == null ) throw new ArgumentNullException( "targetBridge" );
+            if( @this.Clients.OfType<ActivityMonitorBridge>().Any( b => b.TargetBridge == targetBridge ) ) throw new InvalidOperationException();
+            var created = @this.RegisterClient( new ActivityMonitorBridge( targetBridge, applyTargetHonorMonitorFilterToOpenGroup ) );
+            return Util.CreateDisposableAction( () => @this.UnregisterClient( created ) );
+        }
+
+        /// <summary>
+        /// Removes an existing <see cref="ActivityMonitorBridge"/> to another monitor if it exists (silently ignores it if not found).
+        /// </summary>
+        /// <param name="this">This <see cref="IActivityMonitorOutput"/>.</param>
+        /// <param name="targetBridge">The target bridge that will no more receive our logs.</param>
+        /// <returns>The unregistered <see cref="ActivityMonitorBridge"/> if found, null otherwise.</returns>
+        public static ActivityMonitorBridge UnbridgeTo( this IActivityMonitorOutput @this, ActivityMonitorBridgeTarget targetBridge )
+        {
+            if( targetBridge == null ) throw new ArgumentNullException( "targetBridge" );
+            return UnregisterClient<ActivityMonitorBridge>( @this, b => b.TargetBridge == targetBridge );
+        }
+
+        #endregion
+
+
+        #region Catch & CatchCounter
+
+        /// <summary>
+        /// Enables simple "using" syntax to easily catch any <see cref="LogLevel"/> (or above) entries (defaults to <see cref="LogLevel.Error"/>).
+        /// </summary>
+        /// <param name="this">This <see cref="IActivityMonitor"/>.</param>
+        /// <param name="errorHandler">An action that accepts a list of fatal or error <see cref="ActivityMonitorSimpleCollector.Entry">entries</see>.</param>
+        /// <param name="level">Defines the level of the entries caught (by default fatal or error entries).</param>
+        /// <returns>A <see cref="IDisposable"/> object used to manage the scope of this handler.</returns>
+        public static IDisposable Catch( this IActivityMonitor @this, Action<IReadOnlyList<ActivityMonitorSimpleCollector.Entry>> errorHandler, LogLevelFilter level = LogLevelFilter.Error )
+        {
+            if( @this == null ) throw new NullReferenceException( "this" );
+            if( errorHandler == null ) throw new ArgumentNullException( "errorHandler" );
+            ActivityMonitorSimpleCollector errorTracker = new ActivityMonitorSimpleCollector() { MinimalFilter = level };
+            @this.Output.RegisterClient( errorTracker );
+            return Util.CreateDisposableAction( () =>
+            {
+                @this.Output.UnregisterClient( errorTracker );
+                if( errorTracker.Entries.Count > 0 ) errorHandler( errorTracker.Entries );
+            } );
+        }
+
+        /// <summary>
+        /// Enables simple "using" syntax to easily detect <see cref="LogLevel.Fatal"/>, <see cref="LogLevel.Error"/> or <see cref="LogLevel.Warn"/>.
+        /// </summary>
+        /// <param name="this">This <see cref="IActivityMonitor"/>.</param>
+        /// <param name="fatalErrorWarnCount">An action that accepts three counts for fatals, errors and warnings.</param>
+        /// <returns>A <see cref="IDisposable"/> object used to manage the scope of this handler.</returns>
+        public static IDisposable CatchCounter( this IActivityMonitor @this, Action<int, int, int> fatalErrorWarnCount )
+        {
+            if( @this == null ) throw new NullReferenceException( "this" );
+            if( fatalErrorWarnCount == null ) throw new ArgumentNullException( "fatalErrorWarnCount" );
+            ActivityMonitorErrorCounter errorCounter = new ActivityMonitorErrorCounter();
+            Debug.Assert( errorCounter.GenerateConclusion == false, "It is false by default." );
+            @this.Output.RegisterClient( errorCounter );
+            return Util.CreateDisposableAction( () =>
+            {
+                @this.Output.UnregisterClient( errorCounter );
+                if( errorCounter.Current.HasWarnOrError ) fatalErrorWarnCount( errorCounter.Current.FatalCount, errorCounter.Current.ErrorCount, errorCounter.Current.WarnCount );
+            } );
+        }
+
+        /// <summary>
+        /// Enables simple "using" syntax to easily detect <see cref="LogLevel.Fatal"/> and <see cref="LogLevel.Error"/>.
+        /// </summary>
+        /// <param name="this">This <see cref="IActivityMonitor"/>.</param>
+        /// <param name="fatalErrorCount">An action that accepts two counts for fatals and errors.</param>
+        /// <returns>A <see cref="IDisposable"/> object used to manage the scope of this handler.</returns>
+        public static IDisposable CatchCounter( this IActivityMonitor @this, Action<int, int> fatalErrorCount )
+        {
+            if( @this == null ) throw new NullReferenceException( "this" );
+            if( fatalErrorCount == null ) throw new ArgumentNullException( "fatalErrorCount" );
+            ActivityMonitorErrorCounter errorCounter = new ActivityMonitorErrorCounter() { GenerateConclusion = false };
+            @this.Output.RegisterClient( errorCounter );
+            return Util.CreateDisposableAction( () =>
+            {
+                @this.Output.UnregisterClient( errorCounter );
+                if( errorCounter.Current.HasError ) fatalErrorCount( errorCounter.Current.FatalCount, errorCounter.Current.ErrorCount );
+            } );
+        }
+
+        /// <summary>
+        /// Enables simple "using" syntax to easily detect <see cref="LogLevel.Fatal"/> or <see cref="LogLevel.Error"/>.
+        /// </summary>
+        /// <param name="this">This <see cref="IActivityMonitor"/>.</param>
+        /// <param name="fatalOrErrorCount">An action that accepts one count that sums fatals and errors.</param>
+        /// <returns>A <see cref="IDisposable"/> object used to manage the scope of this handler.</returns>
+        public static IDisposable CatchCounter( this IActivityMonitor @this, Action<int> fatalOrErrorCount )
+        {
+            if( @this == null ) throw new NullReferenceException( "this" );
+            if( fatalOrErrorCount == null ) throw new ArgumentNullException( "fatalErrorCount" );
+            ActivityMonitorErrorCounter errorCounter = new ActivityMonitorErrorCounter() { GenerateConclusion = false };
+            @this.Output.RegisterClient( errorCounter );
+            return Util.CreateDisposableAction( () =>
+            {
+                @this.Output.UnregisterClient( errorCounter );
+                if( errorCounter.Current.HasError ) fatalOrErrorCount( errorCounter.Current.FatalCount + errorCounter.Current.ErrorCount );
+            } );
+        }
+        
+        #endregion
+
+
+        #region IActivityMonitor.SetFilter( level )
+
+        class LogFilterSentinel : IDisposable
+        {
+            IActivityMonitor _monitor;
+            LogLevelFilter _prevLevel;
+
+            public LogFilterSentinel( IActivityMonitor l, LogLevelFilter filterLevel )
+            {
+                _prevLevel = l.Filter;
+                _monitor = l;
+                l.Filter = filterLevel;
+            }
+
+            public void Dispose()
+            {
+                _monitor.Filter = _prevLevel;
+            }
+
+        }
+
+        /// <summary>
+        /// Sets a filter level on this <see cref="IActivityMonitor"/>. The current <see cref="IActivityMonitor.Filter"/> will be automatically 
+        /// restored when the returned <see cref="IDisposable"/> will be disposed.
+        /// Even if when a Group is closed, the IActivityMonitor.Filter is automatically restored to its original value 
+        /// (captured when the Group was opened), this may be useful to locally change the filter level without bothering to restore the 
+        /// initial value (this is close to what OpenGroup/CloseGroup do with both the filter and the AutoTags).
+        /// </summary>
+        /// <param name="this">This <see cref="IActivityMonitor"/> object.</param>
+        /// <param name="filterLevel">The new filter level.</param>
+        /// <returns>A <see cref="IDisposable"/> object that will restore the current level.</returns>
+        public static IDisposable SetFilter( this IActivityMonitor @this, LogLevelFilter filterLevel )
+        {
+            if( @this == null ) throw new NullReferenceException( "this" );
+            return new LogFilterSentinel( @this, filterLevel );
+        }
+
+        #endregion IActivityMonitor.SetFilter( level )
+
+
+        #region IActivityMonitor.SetAutoTags( Tags, SetOperation )
+
+        class TagsSentinel : IDisposable
+        {
+            readonly IActivityMonitor _monitor;
+            readonly CKTrait _previous;
+
+            public TagsSentinel( IActivityMonitor l, CKTrait t )
+            {
+                _previous = l.AutoTags;
+                _monitor = l;
+                l.AutoTags = t;
+            }
+
+            public void Dispose()
+            {
+                _monitor.AutoTags = _previous;
+            }
+
+        }
+
+        /// <summary>
+        /// Alter tags of this <see cref="IActivityMonitor"/>. Current <see cref="IActivityMonitor.AutoTags"/> will be automatically 
+        /// restored when the returned <see cref="IDisposable"/> will be disposed.
+        /// Even if when a Group is closed, the IActivityMonitor.AutoTags is automatically restored to its original value 
+        /// (captured when the Group was opened), this may be useful to locally change the tags level without bothering to restore the 
+        /// initial value (this is close to what OpenGroup/CloseGroup do with both the Filter and the AutoTags).
+        /// </summary>
+        /// <param name="this">This <see cref="IActivityMonitor"/> object.</param>
+        /// <param name="tags">Tags to combine with the current one.</param>
+        /// <param name="operation">Defines the way the new <paramref name="tags"/> must be combined with current ones.</param>
+        /// <returns>A <see cref="IDisposable"/> object that will restore the current tag when disposed.</returns>
+        public static IDisposable SetAutoTags( this IActivityMonitor @this, CKTrait tags, SetOperation operation = SetOperation.Union )
+        {
+            if( @this == null ) throw new NullReferenceException( "this" );
+            return new TagsSentinel( @this, @this.AutoTags.Apply( tags, operation ) );
+        }
+        
+        #endregion
+
+
+        #region RegisterClients
+
+        /// <summary>
+        /// Registers multiple <see cref="IActivityMonitorClient"/>.
+        /// </summary>
+        /// <param name="this">This <see cref="IActivityMonitorOutput"/> object.</param>
+        /// <param name="clients">Multiple clients to register.</param>
+        /// <returns>This registrar to enable fluent syntax.</returns>
+        public static IActivityMonitorOutput RegisterClients( this IActivityMonitorOutput @this, IEnumerable<IActivityMonitorClient> clients )
+        {
+            if( @this == null ) throw new NullReferenceException( "this" );
+            foreach( var c in clients ) @this.RegisterClient( c );
+            return @this;
+        }
+
+        /// <summary>
+        /// Registers multiple <see cref="IActivityMonitorClient"/>.
+        /// </summary>
+        /// <param name="this">This <see cref="IActivityMonitorOutput"/> object.</param>
+        /// <param name="clients">Multiple clients to register.</param>
+        /// <returns>This registrar to enable fluent syntax.</returns>
+        public static IActivityMonitorOutput RegisterClients( this IActivityMonitorOutput @this, params IActivityMonitorClient[] clients )
+        {
+            return RegisterClients( @this, (IEnumerable<IActivityMonitorClient>)clients );
+        }
+
+        /// <summary>
+        /// Unregisters the first <see cref="IActivityMonitorClient"/> from the <see cref="IActivityMonitorOutput.Clients"/> list
+        /// that satisfies the predicate.
+        /// </summary>
+        /// <param name="this">This <see cref="IActivityMonitorOutput"/>.</param>
+        /// <param name="predicate">A predicate that will be used to determine the first client to unregister.</param>
+        /// <returns>The unregistered client, or null if no client has been found.</returns>
+        public static T UnregisterClient<T>( this IActivityMonitorOutput @this, Func<T, bool> predicate ) where T : IActivityMonitorClient
+        {
+            if( @this == null ) throw new NullReferenceException( "this" );
+            if( predicate == null ) throw new ArgumentNullException( "predicate" );
+            T c = @this.Clients.OfType<T>().Where( predicate ).FirstOrDefault();
+            if( c != null ) @this.UnregisterClient( c );
+            return c;
+        }
+
+        #endregion
+
         /// <summary>
         /// Gets this Group conclusions as a readeable string.
         /// </summary>
@@ -95,253 +385,6 @@ namespace CK.Core
             }
             return b.ToString();
         }
-
-        /// <summary>
-        /// Finds or creates a bridge to another monitor.
-        /// </summary>
-        /// <param name="this">This <see cref="IActivityMonitorOutput"/>.</param>
-        /// <param name="monitor">The monitor that will receive our logs.</param>
-        /// <returns>The <see cref="ActivityMonitorBridge"/> that has been created and registered or the one that already exists.</returns>
-        public static ActivityMonitorBridge BridgeTo( this IActivityMonitorOutput @this, IActivityMonitor monitor )
-        {
-            if( @this == null ) throw new NullReferenceException( "@this" );
-            if( monitor == null ) throw new ArgumentNullException( "monitor" );
-            return @this.AtomicRegisterClient( b => b.TargetMonitor == monitor, () => new ActivityMonitorBridge( monitor.Output.ExternalInput ) );
-        }
-
-        /// <summary>
-        /// Removes an existing <see cref="ActivityMonitorBridge"/> to another monitor.
-        /// </summary>
-        /// <param name="this">This <see cref="IActivityMonitorOutput"/>.</param>
-        /// <param name="monitor">The monitor that will no more receive our logs.</param>
-        /// <returns>The unregistered <see cref="ActivityMonitorBridge"/> if found, null otherwise.</returns>
-        public static ActivityMonitorBridge UnbridgeTo( this IActivityMonitorOutput @this, IActivityMonitor monitor )
-        {
-            if( monitor == null ) throw new ArgumentNullException( "monitor" );
-            return UnregisterClient<ActivityMonitorBridge>( @this, b => b.TargetMonitor == monitor );
-        }
-
-        /// <summary>
-        /// Closes the current Group. Optional parameter is polymorphic. It can be a string, a <see cref="ActivityLogGroupConclusion"/>, 
-        /// a <see cref="List{T}"/> or an <see cref="IEnumerable{T}"/> of ActivityLogGroupConclusion, or any object with an overriden <see cref="Object.ToString"/> method. 
-        /// See remarks (especially for List&lt;ActivityLogGroupConclusion&gt;).
-        /// </summary>
-        /// <param name="this">This <see cref="IActivityMonitor"/>.</param>
-        /// <param name="userConclusion">Optional string, ActivityLogGroupConclusion object, enumerable of ActivityLogGroupConclusion or object to conclude the group. See remarks.</param>
-        /// <remarks>
-        /// An untyped object is used here to easily and efficiently accomodate both string and already existing ActivityLogGroupConclusion.
-        /// When a List&lt;ActivityLogGroupConclusion&gt; is used, it will be direclty used to collect conclusion objects (new conclusions will be added to it). This is an optimization.
-        /// </remarks>
-        public static void CloseGroup( this IActivityMonitor @this, object userConclusion = null )
-        {
-            if( @this == null ) throw new NullReferenceException( "@this" );
-            @this.CloseGroup( DateTime.UtcNow, userConclusion );
-        }
-
-        #region Catch & CatchCounter
-
-        /// <summary>
-        /// Enables simple "using" syntax to easily catch any <see cref="LogLevel"/> (or above) entries (defaults to <see cref="LogLevel.Error"/>).
-        /// </summary>
-        /// <param name="this">This <see cref="IActivityMonitor"/>.</param>
-        /// <param name="errorHandler">An action that accepts a list of fatal or error <see cref="ActivityMonitorSimpleCollector.Entry">entries</see>.</param>
-        /// <param name="level">Defines the level of the entries caught (by default fatal or error entries).</param>
-        /// <returns>A <see cref="IDisposable"/> object used to manage the scope of this handler.</returns>
-        public static IDisposable Catch( this IActivityMonitor @this, Action<IReadOnlyList<ActivityMonitorSimpleCollector.Entry>> errorHandler, LogLevelFilter level = LogLevelFilter.Error )
-        {
-            if( @this == null ) throw new NullReferenceException( "@this" );
-            if( errorHandler == null ) throw new ArgumentNullException( "errorHandler" );
-            ActivityMonitorSimpleCollector errorTracker = new ActivityMonitorSimpleCollector() { LevelFilter = level };
-            @this.Output.RegisterClient( errorTracker );
-            return Util.CreateDisposableAction( () =>
-            {
-                @this.Output.UnregisterClient( errorTracker );
-                if( errorTracker.Entries.Count > 0 ) errorHandler( errorTracker.Entries );
-            } );
-        }
-
-        /// <summary>
-        /// Enables simple "using" syntax to easily detect <see cref="LogLevel.Fatal"/>, <see cref="LogLevel.Error"/> or <see cref="LogLevel.Warn"/>.
-        /// </summary>
-        /// <param name="this">This <see cref="IActivityMonitor"/>.</param>
-        /// <param name="fatalErrorWarnCount">An action that accepts three counts for fatals, errors and warnings.</param>
-        /// <returns>A <see cref="IDisposable"/> object used to manage the scope of this handler.</returns>
-        public static IDisposable CatchCounter( this IActivityMonitor @this, Action<int, int, int> fatalErrorWarnCount )
-        {
-            if( @this == null ) throw new NullReferenceException( "@this" );
-            if( fatalErrorWarnCount == null ) throw new ArgumentNullException( "fatalErrorWarnCount" );
-            ActivityMonitorErrorCounter errorCounter = new ActivityMonitorErrorCounter();
-            Debug.Assert( errorCounter.GenerateConclusion == false, "It is false by default." );
-            @this.Output.RegisterClient( errorCounter );
-            return Util.CreateDisposableAction( () =>
-            {
-                @this.Output.UnregisterClient( errorCounter );
-                if( errorCounter.Current.HasWarnOrError ) fatalErrorWarnCount( errorCounter.Current.FatalCount, errorCounter.Current.ErrorCount, errorCounter.Current.WarnCount );
-            } );
-        }
-
-        /// <summary>
-        /// Enables simple "using" syntax to easily detect <see cref="LogLevel.Fatal"/> and <see cref="LogLevel.Error"/>.
-        /// </summary>
-        /// <param name="this">This <see cref="IActivityMonitor"/>.</param>
-        /// <param name="fatalErrorCount">An action that accepts two counts for fatals and errors.</param>
-        /// <returns>A <see cref="IDisposable"/> object used to manage the scope of this handler.</returns>
-        public static IDisposable CatchCounter( this IActivityMonitor @this, Action<int, int> fatalErrorCount )
-        {
-            if( @this == null ) throw new NullReferenceException( "@this" );
-            if( fatalErrorCount == null ) throw new ArgumentNullException( "fatalErrorCount" );
-            ActivityMonitorErrorCounter errorCounter = new ActivityMonitorErrorCounter() { GenerateConclusion = false };
-            @this.Output.RegisterClient( errorCounter );
-            return Util.CreateDisposableAction( () =>
-            {
-                @this.Output.UnregisterClient( errorCounter );
-                if( errorCounter.Current.HasError ) fatalErrorCount( errorCounter.Current.FatalCount, errorCounter.Current.ErrorCount );
-            } );
-        }
-
-        /// <summary>
-        /// Enables simple "using" syntax to easily detect <see cref="LogLevel.Fatal"/> or <see cref="LogLevel.Error"/>.
-        /// </summary>
-        /// <param name="this">This <see cref="IActivityMonitor"/>.</param>
-        /// <param name="fatalOrErrorCount">An action that accepts one count that sums fatals and errors.</param>
-        /// <returns>A <see cref="IDisposable"/> object used to manage the scope of this handler.</returns>
-        public static IDisposable CatchCounter( this IActivityMonitor @this, Action<int> fatalOrErrorCount )
-        {
-            if( @this == null ) throw new NullReferenceException( "@this" );
-            if( fatalOrErrorCount == null ) throw new ArgumentNullException( "fatalErrorCount" );
-            ActivityMonitorErrorCounter errorCounter = new ActivityMonitorErrorCounter() { GenerateConclusion = false };
-            @this.Output.RegisterClient( errorCounter );
-            return Util.CreateDisposableAction( () =>
-            {
-                @this.Output.UnregisterClient( errorCounter );
-                if( errorCounter.Current.HasError ) fatalOrErrorCount( errorCounter.Current.FatalCount + errorCounter.Current.ErrorCount );
-            } );
-        }
-        
-        #endregion
-
-
-        #region IActivityMonitor.Filter( level )
-
-        class LogFilterSentinel : IDisposable
-        {
-            IActivityMonitor _monitor;
-            LogLevelFilter _prevLevel;
-
-            public LogFilterSentinel( IActivityMonitor l, LogLevelFilter filterLevel )
-            {
-                _prevLevel = l.Filter;
-                _monitor = l;
-                l.Filter = filterLevel;
-            }
-
-            public void Dispose()
-            {
-                _monitor.Filter = _prevLevel;
-            }
-
-        }
-
-        /// <summary>
-        /// Sets a filter level on this <see cref="IActivityMonitor"/>. The current <see cref="IActivityMonitor.Filter"/> will be automatically 
-        /// restored when the returned <see cref="IDisposable"/> will be disposed.
-        /// This may not be useful since when a Group is closed, the IActivityMonitor.Filter is automatically restored to its original value 
-        /// (captured when the Group was opened).
-        /// </summary>
-        /// <param name="this">This <see cref="IActivityMonitor"/> object.</param>
-        /// <param name="filterLevel">The new filter level.</param>
-        /// <returns>A <see cref="IDisposable"/> object that will restore the current level.</returns>
-        public static IDisposable Filter( this IActivityMonitor @this, LogLevelFilter filterLevel )
-        {
-            if( @this == null ) throw new NullReferenceException( "@this" );
-            return new LogFilterSentinel( @this, filterLevel );
-        }
-
-        #endregion IActivityMonitor.Filter( level )
-
-
-        #region IActivityMonitor.Tags( Tags, SetOperation )
-        class TagsSentinel : IDisposable
-        {
-            readonly IActivityMonitor _monitor;
-            readonly CKTrait _previous;
-
-            public TagsSentinel( IActivityMonitor l, CKTrait t )
-            {
-                _previous = l.AutoTags;
-                _monitor = l;
-                l.AutoTags = t;
-            }
-
-            public void Dispose()
-            {
-                _monitor.AutoTags = _previous;
-            }
-
-        }
-
-        /// <summary>
-        /// Alter tags of this <see cref="IActivityMonitor"/>. Current <see cref="IActivityMonitor.AutoTags"/> will be automatically 
-        /// restored when the returned <see cref="IDisposable"/> will be disposed.
-        /// This may not be useful since when a Group is closed, the IActivityMonitor.Tags is automatically restored to its original value 
-        /// (captured when the Group was opened).
-        /// </summary>
-        /// <param name="this">This <see cref="IActivityMonitor"/> object.</param>
-        /// <param name="tags">Tags to combine with the current one.</param>
-        /// <param name="operation">Defines the way the new <paramref name="tags"/> must be combined with current ones.</param>
-        /// <returns>A <see cref="IDisposable"/> object that will restore the current tag when disposed.</returns>
-        public static IDisposable AutoTags( this IActivityMonitor @this, CKTrait tags, SetOperation operation = SetOperation.Union )
-        {
-            if( @this == null ) throw new NullReferenceException( "@this" );
-            return new TagsSentinel( @this, @this.AutoTags.Apply( tags, operation ) );
-        }
-        
-        #endregion
-
-
-        #region Registrar
-
-        /// <summary>
-        /// Registers multiple <see cref="IActivityMonitorClient"/>.
-        /// </summary>
-        /// <param name="this">This <see cref="IActivityMonitorOutput"/> object.</param>
-        /// <param name="clients">Multiple clients to register.</param>
-        /// <returns>This registrar to enable fluent syntax.</returns>
-        public static IActivityMonitorOutput RegisterClients( this IActivityMonitorOutput @this, IEnumerable<IActivityMonitorClient> clients )
-        {
-            if( @this == null ) throw new NullReferenceException( "@this" );
-            foreach( var c in clients ) @this.RegisterClient( c );
-            return @this;
-        }
-
-        /// <summary>
-        /// Registers multiple <see cref="IActivityMonitorClient"/>.
-        /// </summary>
-        /// <param name="this">This <see cref="IActivityMonitorOutput"/> object.</param>
-        /// <param name="clients">Multiple clients to register.</param>
-        /// <returns>This registrar to enable fluent syntax.</returns>
-        public static IActivityMonitorOutput RegisterClients( this IActivityMonitorOutput @this, params IActivityMonitorClient[] clients )
-        {
-            return RegisterClients( @this, (IEnumerable<IActivityMonitorClient>)clients );
-        }
-
-        /// <summary>
-        /// Unregisters the first <see cref="IActivityMonitorClient"/> from the <see cref="IActivityMonitorOutput.Clients"/> list
-        /// that satisfies the predicate.
-        /// </summary>
-        /// <param name="this">This <see cref="IActivityMonitorOutput"/>.</param>
-        /// <param name="predicate">A predicate that will be used to determine the first client to unregister.</param>
-        /// <returns>The unregistered client, or null if no client has been found.</returns>
-        public static T UnregisterClient<T>( this IActivityMonitorOutput @this, Func<T, bool> predicate ) where T : IActivityMonitorClient
-        {
-            if( @this == null ) throw new NullReferenceException( "@this" );
-            if( predicate == null ) throw new ArgumentNullException( "predicate" );
-            T c = @this.Clients.OfType<T>().Where( predicate ).FirstOrDefault();
-            if( c != null ) @this.UnregisterClient( c );
-            return c;
-        }
-
-        #endregion
 
     }
 }

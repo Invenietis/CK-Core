@@ -8,10 +8,11 @@ using System.Threading.Tasks;
 using CK.Core;
 using CK.Core.Impl;
 using CK.RouteConfig;
+using CK.Monitoring.GrandOutputHandlers;
 
 namespace CK.Monitoring.Impl
 {
-    internal sealed class ChannelFactory : RouteActionFactory<ConfiguredSink,IChannel>
+    internal sealed class ChannelFactory : RouteActionFactory<HandlerBase,IChannel>
     {
         readonly IGrandOutputSink _commonSink;
         
@@ -71,23 +72,23 @@ namespace CK.Monitoring.Impl
             return new EmptyChannel( _commonSink );
         }
 
-        protected override ConfiguredSink DoCreate( IActivityMonitor monitor, IRouteConfigurationLock configLock, ActionConfiguration c )
+        protected override HandlerBase DoCreate( IActivityMonitor monitor, IRouteConfigurationLock configLock, ActionConfiguration c )
         {
-            ConfiguredSinkTypeAttribute a = (ConfiguredSinkTypeAttribute)c.GetType().GetCustomAttributes( typeof( ConfiguredSinkTypeAttribute ), true ).Single();
-            return (ConfiguredSink)Activator.CreateInstance( a.SinkType, c );
+            var a = (HandlerTypeAttribute)Attribute.GetCustomAttribute( c.GetType(), typeof( HandlerTypeAttribute ), true );
+            return (HandlerBase)Activator.CreateInstance( a.HandlerType, c );
         }
 
-        protected override ConfiguredSink DoCreateParallel( IActivityMonitor monitor, IRouteConfigurationLock configLock, ActionParallelConfiguration c, ConfiguredSink[] children )
+        protected override HandlerBase DoCreateParallel( IActivityMonitor monitor, IRouteConfigurationLock configLock, ActionParallelConfiguration c, HandlerBase[] children )
         {
-            return new ConfiguredSinkParallel( c, children );  
+            return new ParallelHandler( c, children );  
         }
 
-        protected override ConfiguredSink DoCreateSequence( IActivityMonitor monitor, IRouteConfigurationLock configLock, ActionSequenceConfiguration c, ConfiguredSink[] children )
+        protected override HandlerBase DoCreateSequence( IActivityMonitor monitor, IRouteConfigurationLock configLock, ActionSequenceConfiguration c, HandlerBase[] children )
         {
-            return new ConfiguredSinkSequence( c, children );
+            return new SequenceHandler( c, children );
         }
 
-        protected internal override IChannel DoCreateFinalRoute( IActivityMonitor monitor, IRouteConfigurationLock configLock, ConfiguredSink[] actions, string configurationName )
+        protected internal override IChannel DoCreateFinalRoute( IActivityMonitor monitor, IRouteConfigurationLock configLock, HandlerBase[] actions, string configurationName )
         {
             return new StandardChannel( _commonSink, configLock, actions, configurationName );
         }

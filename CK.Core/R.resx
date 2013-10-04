@@ -165,6 +165,9 @@
   <data name="ExpectedXmlEndElement" xml:space="preserve">
     <value>Expected EndElement token named {0}.</value>
   </data>
+  <data name="FactoryTesterMismatch" xml:space="preserve">
+    <value>The 'factory' function must create an item that satisfies the 'tester' function.</value>
+  </data>
   <data name="FIFOBufferEmpty" xml:space="preserve">
     <value>FIFOBuffer is empty.</value>
   </data>
@@ -198,7 +201,13 @@
   <data name="UnregisteredServiceInServiceProvider" xml:space="preserve">
     <value>Unable to find service '{0}'.</value>
   </data>
-  <data name="UtilInterlockedSetFactoryTesterMismatch" xml:space="preserve">
-    <value>The 'factory' function must create an item that satisfies the 'tester' function.</value>
+  <data name="MustBeAMarshalByRefObject" xml:space="preserve">
+    <value>refObject Must be a MarshalByRefObject.</value>
+  </data>
+  <data name="AggregatedExceptionsMustContainAtLeastOne" xml:space="preserve">
+    <value>AggregatedExceptions must contain at least one exception.</value>
+  </data>
+  <data name="InnerExceptionMustBeTheFirstAggregatedException" xml:space="preserve">
+    <value>The InnerException must be the first AggregatedExceptions.</value>
   </data>
 </root>

@@ -140,7 +140,7 @@ namespace CK.Monitoring
                         var logTimeUtc = DateTime.FromBinary( _binaryReader.ReadInt64() );
                         var exception = (Exception)_binaryFormatter.Deserialize( _stream );
 
-                        _current = new LEOpenGroupWithException( text, logTimeUtc, logLevel, tags, exception );
+                        _current = new LEOpenGroupWithException( text, logTimeUtc, logLevel, tags, CKExceptionData.CreateFrom( exception ) );
                         break;
                     }
                 case StreamLogType.TypeGroupClosed:
@@ -185,7 +185,7 @@ namespace CK.Monitoring
                         destination.UnfilteredLog( log.Tags, log.LogLevel, log.Text, log.LogTimeUtc );
                         break;
                     case LogEntryType.OpenGroup:
-                        destination.OpenGroup( log.Tags, log.LogLevel, null, log.Text, log.LogTimeUtc, log.Exception );
+                        destination.OpenGroup( log.Tags, log.LogLevel, null, log.Text, log.LogTimeUtc, CKException.CreateFrom( log.Exception ) );
                         break;
                 }
             }

@@ -7,7 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using NUnit.Framework;
 
-namespace CK.Core.Tests
+namespace CK.Core.Tests.Monitoring
 {
     [TestFixture]
     [ExcludeFromCodeCoverage]
@@ -39,7 +39,7 @@ namespace CK.Core.Tests
 
             protected override void OnUnfilteredLog( CKTrait tags, LogLevel level, string text, DateTime logTimeUtc )
             {
-                Console.WriteLine( "NotBuggyActivityMonitorClient echo : {0}", _number );
+                Console.WriteLine( "NotBuggyActivityMonitorClient.OnUnfilteredLog n°{0}: {1}", _number, text );
             }
         }
 
@@ -204,89 +204,19 @@ namespace CK.Core.Tests
         public void ReentrancyMonoThread()
         {
             IActivityMonitor monitor = new ActivityMonitor();
-            monitor.Output.BridgeTo( TestHelper.ConsoleMonitor );
-            int clientCount = monitor.Output.Clients.Count;
-            Assert.That( monitor.Output.Clients.Count, Is.EqualTo( clientCount ) );
-
-            BuggyActivityMonitorClient client = new BuggyActivityMonitorClient( monitor );
-            monitor.Output.RegisterClient( client );
-            Assert.That( monitor.Output.Clients.Count, Is.EqualTo( clientCount + 1 ) );
-            monitor.Info( "Test" );
-            Assert.That( monitor.Output.Clients.Count, Is.EqualTo( clientCount ) );
-
-            Assert.DoesNotThrow( () => monitor.Info( "Test" ) ); 
-        }
-
-        [Test]
-        public void MultiThread()
-        {
-            IActivityMonitor monitor = new ActivityMonitor();
-            monitor.Output.BridgeTo( TestHelper.ConsoleMonitor );
-            var initCount = monitor.Output.Clients.Count;
-            NotBuggyActivityMonitorClient[] clients = new NotBuggyActivityMonitorClient[]
+            using( monitor.Output.CreateBridgeTo( TestHelper.ConsoleMonitor.Output.BridgeTarget ) )
             {
-                new NotBuggyActivityMonitorClient(0),
-                new NotBuggyActivityMonitorClient(1),
-                new NotBuggyActivityMonitorClient(2),
-                new NotBuggyActivityMonitorClient(3),
-                new NotBuggyActivityMonitorClient(4),
-                new NotBuggyActivityMonitorClient(5),
-                new NotBuggyActivityMonitorClient(6),
-                new NotBuggyActivityMonitorClient(7),
-                new NotBuggyActivityMonitorClient(8),
-                new NotBuggyActivityMonitorClient(9),
-                new NotBuggyActivityMonitorClient(10),
-                new NotBuggyActivityMonitorClient(11),
-                new NotBuggyActivityMonitorClient(12),
-                new NotBuggyActivityMonitorClient(13),
-                new NotBuggyActivityMonitorClient(14),
-                new NotBuggyActivityMonitorClient(15),
-                new NotBuggyActivityMonitorClient(16),
-                new NotBuggyActivityMonitorClient(17),
-                new NotBuggyActivityMonitorClient(18),
-                new NotBuggyActivityMonitorClient(19)
-            };
+                int clientCount = monitor.Output.Clients.Count;
+                Assert.That( monitor.Output.Clients.Count, Is.EqualTo( clientCount ) );
 
-            Task t = new Task( () =>
-            {
-                Console.WriteLine( "Internal tast Started" );
+                BuggyActivityMonitorClient client = new BuggyActivityMonitorClient( monitor );
+                monitor.Output.RegisterClient( client );
+                Assert.That( monitor.Output.Clients.Count, Is.EqualTo( clientCount + 1 ) );
+                monitor.Info( "Test" );
+                Assert.That( monitor.Output.Clients.Count, Is.EqualTo( clientCount ) );
 
-                Parallel.For( 0, 20, i => { monitor.Output.RegisterClient( clients[i] ); } );
-
-                Assert.That( monitor.Output.Clients.Count, Is.EqualTo( 20 + initCount ) );
-
-                Thread.Sleep( 100 );
-
-                Parallel.For( 0, 20, i => { monitor.Output.UnregisterClient( clients[i] ); } );
-
-                Assert.That( monitor.Output.Clients.Count, Is.EqualTo( initCount ) );
-
-                Thread.Sleep( 100 );
-
-                Random r = new Random();
-
-                Parallel.For( 0, 20, i =>
-                {
-                    Console.WriteLine( "Add : {0}", i );
-                    monitor.Output.RegisterClient( clients[i] );
-                    Thread.Sleep( (int)Math.Round( r.NextDouble() * 50, 0 ) );
-                    Console.WriteLine( "Remove : {0}", i );
-                    monitor.Output.UnregisterClient( clients[i] );
-                } );
-
-                Assert.That( monitor.Output.Clients.Count, Is.EqualTo( initCount ) );
-
-            } );
-
-            t.Start();
-            for( int i = 0; i < 50; i++ )
-            {
-                monitor.Info( "Ok go : " + i );
-                Thread.Sleep( 10 );
+                Assert.DoesNotThrow( () => monitor.Info( "Test" ) );
             }
-            t.Wait();
-            if( t.Exception != null ) throw t.Exception;
-            Assert.That( t.Exception, Is.Null );
         }
     }
 }

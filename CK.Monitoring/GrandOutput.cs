@@ -1,11 +1,7 @@
 ﻿using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
 using CK.Core;
+using CK.Monitoring.GrandOutputHandlers;
 using CK.Monitoring.Impl;
 using CK.RouteConfig;
 
@@ -15,17 +11,15 @@ namespace CK.Monitoring
     {
         readonly List<WeakRef<GrandOutputClient>> _clients;
         readonly GrandOutputCompositeSink _commonSink;
-        readonly ChannelFactory _sinkFactory;
-        readonly ConfiguredRouteHost<ConfiguredSink,IChannel> _routeHost;
+        readonly ChannelHost _channelHost;
         readonly BufferingChannel _bufferingChannel;
 
         public GrandOutput()
         {
             _clients = new List<WeakRef<GrandOutputClient>>();
             _commonSink = new GrandOutputCompositeSink();
-            _sinkFactory = new ChannelFactory( _commonSink );
-            _routeHost = new ConfiguredRouteHost<ConfiguredSink, IChannel>( _sinkFactory, OnConfigurationReady, ( m, a ) => a.Initialize(), ( m, a ) => a.Close() );
-            _routeHost.ConfigurationClosing += OnConfigurationClosing;
+            _channelHost = new ChannelHost( new ChannelFactory( _commonSink ), OnConfigurationReady );
+            _channelHost.ConfigurationClosing += OnConfigurationClosing;
             _bufferingChannel = new BufferingChannel( _commonSink );
         }
 
@@ -41,7 +35,7 @@ namespace CK.Monitoring
                     }
                     return c;
                 };
-            return monitor.Output.AtomicRegisterClient( b => b.Central == this, reg );
+            return monitor.Output.RegisterUniqueClient( b => b.Central == this, reg );
         }
 
         public void RegisterGlobalSink( IGrandOutputSink sink )
@@ -60,17 +54,16 @@ namespace CK.Monitoring
         /// Obtains an actual channel from its full name.
         /// This is called on the monitor's thread.
         /// </summary>
-        /// <param name="monitorId">The monitor identifier. Used only when routes are beeing reconfigured to return a BufferingChannel dedicated to the monitor.</param>
         /// <param name="channelName">The full channel name. Used as the key to find an actual Channel that must handle the log events.</param>
         /// <returns>A <see cref="StandardChannel"/> for the channelName, or an internal BufferingChannel if the configuration is being applied.</returns>
-        internal IChannel ObtainChannel( Guid monitorId, string channelName )
+        internal IChannel ObtainChannel( string channelName )
         {
-            var channel = _routeHost.ObtainRoute( channelName );
+            var channel = _channelHost.ObtainRoute( channelName );
             if( channel == null )
             {
                 lock( _bufferingChannel.FlushLock )
                 {
-                    channel = _routeHost.ObtainRoute( channelName );
+                    channel = _channelHost.ObtainRoute( channelName );
                     if( channel == null )
                     {
                         _bufferingChannel.EnsureActive();
@@ -85,13 +78,13 @@ namespace CK.Monitoring
         /// <summary>
         /// This is called by the host when current configuration must be closed.
         /// </summary>
-        void OnConfigurationClosing( object sender, ConfiguredRouteHost<ConfiguredSink, IChannel>.ConfigurationClosingEventArgs e )
+        void OnConfigurationClosing( object sender, ConfiguredRouteHost<HandlerBase, IChannel>.ConfigurationClosingEventArgs e )
         {
             lock( _bufferingChannel.FlushLock ) _bufferingChannel.EnsureActive();
             SignalConfigurationChanged();
         }
 
-        void OnConfigurationReady( ConfiguredRouteHost<ConfiguredSink, IChannel>.ConfigurationReady e )
+        void OnConfigurationReady( ChannelHost.ConfigurationReady e )
         {
             foreach( var channel in e.GetAllRoutes() )
             {
@@ -115,7 +108,6 @@ namespace CK.Monitoring
                 if( c != null ) c.OnChannelConfigurationChanged();
             }
         }
-
 
         private void DoGarbageDeadClients()
         {

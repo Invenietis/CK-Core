@@ -32,13 +32,18 @@ namespace CK.Core
     public interface IActivityMonitorBoundClient : IActivityMonitorClient
     {
         /// <summary>
+        /// Gets the minimal log level that this Client expects. 
+        /// Should default to <see cref="LogLevelFilter.None"/>.
+        /// </summary>
+        LogLevelFilter MinimalFilter { get; }
+
+        /// <summary>
         /// Called by <see cref="IActivityMonitorOutput"/> when registering or unregistering
         /// this client.
         /// </summary>
         /// <param name="source">The monitor that will send log.</param>
         /// <param name="forceBuggyRemove">True if this method MUST allow the new source without any exceptions: this is used with a null <paramref name="source"/> to
         /// remove this client because one of its method throwed an exception.</param>
-        /// <returns>Minimal required level for the client. <see cref="LogLevelFilter.None"/> if no specific level exists.</returns>
-        LogLevelFilter SetMonitor( IActivityMonitorImpl source, bool forceBuggyRemove );
+        void SetMonitor( IActivityMonitorImpl source, bool forceBuggyRemove );
     }
 }

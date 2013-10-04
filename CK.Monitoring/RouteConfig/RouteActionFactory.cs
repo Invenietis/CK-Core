@@ -151,7 +151,7 @@ namespace CK.RouteConfig
         /// This is always called (even if an error occcured). 
         /// Default implementation does nothing.
         /// </summary>
-        /// <param name="success">True on success, false if creation of routes failed.</param>
+        /// <param name="success">True on success, false if creation of routes has failed.</param>
         protected virtual void DoUninitialize( bool success )
         {
         }

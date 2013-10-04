@@ -56,7 +56,7 @@ namespace CK.Monitoring.Impl
             _useLock.Signal();
         }
 
-        public void HandleBuffer( List<GrandOutputEventInfo> list )
+        void IChannel.HandleBuffer( List<GrandOutputEventInfo> list )
         {
             throw new NotSupportedException( "BufferingChannel does not handle buffered events." );
         }
@@ -84,6 +84,8 @@ namespace CK.Monitoring.Impl
 
         /// <summary>
         /// Flushes all buffered GrandOutputEventInfo into appropriate channels.
+        /// It is called by the GrandOutpu.OnConfigurationReady method to transfer buffered log events
+        /// into the appropriate new routes.
         /// This is the only step during wich a lock blocks GrandOutput.ObtainChannel calls.
         /// </summary>
         /// <param name="newChannels">Function that knows how to return the channel to uses based on its name.</param>

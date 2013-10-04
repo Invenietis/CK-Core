@@ -43,9 +43,9 @@ namespace CK.Monitoring
         DateTime LogTimeUtc { get; }
         
         /// <summary>
-        /// Gets the exception if any (can be not null only when <see cref="LogType"/> is <see cref="LogEntryType.OpenGroup"/>: exceptions are exclusively carried by groups).
+        /// Gets the exception data if any (can be not null only when <see cref="LogType"/> is <see cref="LogEntryType.OpenGroup"/>: exceptions are exclusively carried by groups).
         /// </summary>
-        Exception Exception { get; }
+        CKExceptionData Exception { get; }
 
         /// <summary>
         /// Gets any group conclusion. 

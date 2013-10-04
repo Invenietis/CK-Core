@@ -57,6 +57,11 @@ namespace CK.Core
         /// <summary>
         /// Do not log anything.
         /// </summary>
-        Off = 6
+        Off = 6,
+        /// <summary>
+        /// Invalid filter can be use to designate an unknown filter. 
+        /// Since its value is -1, in the worst case it will not filter anything.
+        /// </summary>
+        Invalid = -1
     }
 }

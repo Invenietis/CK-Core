@@ -101,7 +101,7 @@ namespace CK.RouteConfig
         /// <summary>
         /// Initializes a new <see cref="ConfiguredRouteHost"/> initially <see cref="IsClosed">closed</see>.
         /// </summary>
-        /// <param name="actionFactory">Factory for <typeparamref name="TAction"/> based on an <see cref="ActionConfiguration"/> and final <typeparamref name="TRoute"/>.</param>
+        /// <param name="actionFactory">Factory for <typeparamref name="TAction"/> based on an <see cref="ActionConfiguration"/> for final <typeparamref name="TRoute"/>.</param>
         /// <param name="readyCallback">Optional callback that will be called right before applying a new configuration.</param>
         /// <param name="starter">Optional starter function for a <typeparamref name="TAction"/>.</param>
         /// <param name="closer">Optional closer function.</param>
@@ -126,7 +126,7 @@ namespace CK.RouteConfig
         /// When null, it means that a configuration is waiting to be applied: a route that buffers its work should be substituded.
         /// </summary>
         /// <param name="route">The full route that will be matched.</param>
-        /// <returns>The final route to apply or null ia configuration is applying.</returns>
+        /// <returns>The final route to apply or null if a configuration is applying.</returns>
         public TRoute ObtainRoute( string route )
         {
             var r = _root;
@@ -255,12 +255,20 @@ namespace CK.RouteConfig
         public event EventHandler<ConfigurationClosingEventArgs> ConfigurationClosing;
 
         /// <summary>
-        /// Sets a new <see cref="RouteConfiguration"/>. If the new routes are successfully created, raises <see cref="ConfigurationClosing"/> event.
-        /// Once called, <see cref="ObtainRoute"/> returns null until <see cref="ApplyPendingConfiguration"/> is called.
+        /// Sets a new <see cref="RouteConfiguration"/>.
+        /// <list type="number">
+        /// <item>If the new routes can not be created, false is returned and current configuration remains active.</item>
+        /// <item><see cref="ObtainRoute"/> starts returning null and <see cref="ConfigurationClosing"/> event is raised.</item>
+        /// <item>Closing route are wait</item>
+        /// <item></item>
+        /// </list>
+        /// 
+        /// raises <see cref="ConfigurationClosing"/> event.
+        /// Right before this first event is raised, <see cref="ObtainRoute"/> starts returning null route.until <see cref="ConfigurationReady.ApplyConfiguration"/> is called.
         /// </summary>
         /// <param name="monitor">Monitor that wil receive explanations and errors.</param>
         /// <param name="configuration">The configuration to achieve.</param>
-        /// <returns>True if the new configuration is ready to be applied, false if an error occured while preparing the configuration.</returns>
+        /// <returns>True if the new configuration has been succesfully applied, false if an error occured.</returns>
         public bool SetConfiguration( IActivityMonitor monitor, RouteConfiguration configuration, int millisecondsBeforeForceClose = Timeout.Infinite )
         {
             if( monitor == null ) throw new ArgumentNullException( "monitor" );

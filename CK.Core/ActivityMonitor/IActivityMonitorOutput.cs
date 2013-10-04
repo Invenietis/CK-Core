@@ -29,7 +29,7 @@ using System.Text;
 namespace CK.Core
 {
     /// <summary>
-    /// Offers <see cref="IActivityMonitorClient"/> registration/unregistration and exposes an <see cref="ExternalInput"/> 
+    /// Offers <see cref="IActivityMonitorClient"/> registration/unregistration and exposes a <see cref="BridgeTarget"/> 
     /// (an <see cref="ActivityMonitorBridgeTarget"/>) that can be used to accept logs from other monitors.
     /// </summary>
     public interface IActivityMonitorOutput
@@ -59,7 +59,7 @@ namespace CK.Core
         IActivityMonitorClient UnregisterClient( IActivityMonitorClient client );
 
         /// <summary>
-        /// Enables atomic registration of a <see cref="IActivityMonitorClient"/> that must be unique in a sense.
+        /// Registers a <see cref="IActivityMonitorClient"/> that must be unique in a sense.
         /// </summary>
         /// <param name="tester">Predicate that must be satisfied for at least one registered client.</param>
         /// <param name="factory">Factory that will be called if no existing client satisfies <paramref name="tester"/>.</param>
@@ -67,7 +67,7 @@ namespace CK.Core
         /// <remarks>
         /// The factory function MUST return a client that satisfies the tester function otherwise a <see cref="InvalidOperationException"/> is thrown.
         /// </remarks>
-        T AtomicRegisterClient<T>( Func<T, bool> tester, Func<T> factory ) where T : IActivityMonitorClient;
+        T RegisterUniqueClient<T>( Func<T, bool> tester, Func<T> factory ) where T : IActivityMonitorClient;
 
         /// <summary>
         /// Gets the list of registered <see cref="IActivityMonitorClient"/>.
@@ -78,7 +78,7 @@ namespace CK.Core
         /// Gets an entry point for other monitors: by registering <see cref="ActivityMonitorBridge"/> in other <see cref="IActivityMonitor.Output"/>
         /// bound to this <see cref="ActivityMonitorBridgeTarget"/>, log streams can easily be merged.
         /// </summary>
-        ActivityMonitorBridgeTarget ExternalInput { get; }
+        ActivityMonitorBridgeTarget BridgeTarget { get; }
     }
 
 }

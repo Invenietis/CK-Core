@@ -28,7 +28,7 @@ namespace CK.Monitoring.Impl
 
         public DateTime LogTimeUtc { get { return _time; } }
 
-        public Exception Exception { get { return null; } }
+        public CKExceptionData Exception { get { return null; } }
 
         public CKTrait Tags { get { return ActivityMonitor.EmptyTag; } }
 

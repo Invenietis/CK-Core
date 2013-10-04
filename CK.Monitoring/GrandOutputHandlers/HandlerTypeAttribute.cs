@@ -6,17 +6,17 @@ using System.Threading.Tasks;
 using CK.Core;
 using CK.RouteConfig;
 
-namespace CK.Monitoring
+namespace CK.Monitoring.GrandOutputHandlers
 {
     [AttributeUsage( AttributeTargets.Class )]
-    class ConfiguredSinkTypeAttribute : Attribute
+    public class HandlerTypeAttribute : Attribute
     {
-        public ConfiguredSinkTypeAttribute( Type sinkType )
+        public HandlerTypeAttribute( Type handlerType )
         {
-            SinkType = sinkType;
+            HandlerType = handlerType;
         }
 
-        public readonly Type SinkType;
+        public readonly Type HandlerType;
     }
 
 }

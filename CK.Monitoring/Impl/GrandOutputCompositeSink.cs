@@ -15,7 +15,7 @@ namespace CK.Monitoring
         public void Add( IGrandOutputSink sink )
         {
             if( sink == null ) throw new ArgumentNullException( "sink" );
-            Util.InterlockedPrepend( ref _sinks, sink );
+            Util.InterlockedAdd( ref _sinks, sink );
         }
 
         public void Remove( IGrandOutputSink sink )
@@ -26,22 +26,26 @@ namespace CK.Monitoring
 
         void IGrandOutputSink.Handle( GrandOutputEventInfo logEvent )
         {
-            ThreadPool.QueueUserWorkItem( o =>
+            // DoHandle avoids a closure.
+            ThreadPool.QueueUserWorkItem( DoHandle, logEvent );
+        }
+
+        private void DoHandle( object o )
+        {
+            var logEvent = (GrandOutputEventInfo)o;
+            var sinks = _sinks;
+            foreach( var l in sinks )
+            {
+                try
                 {
-                    var sinks = _sinks;
-                    foreach( var l in sinks )
-                    {
-                        try
-                        {
-                            l.Handle( logEvent );
-                        }
-                        catch( Exception exCall )
-                        {
-                            ActivityMonitor.LoggingError.Add( exCall, l.GetType().FullName );
-                            Util.InterlockedRemove( ref _sinks, l );
-                        }
-                    }
-                } );
+                    l.Handle( logEvent );
+                }
+                catch( Exception exCall )
+                {
+                    ActivityMonitor.LoggingError.Add( exCall, l.GetType().FullName );
+                    Util.InterlockedRemove( ref _sinks, l );
+                }
+            }
         }
     }
 }

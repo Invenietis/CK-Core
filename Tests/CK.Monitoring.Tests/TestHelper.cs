@@ -57,8 +57,29 @@ namespace CK.Monitoring.Tests
             get { return _monitor.Output.Clients.Contains( _console ); }
             set
             {
-                if( value ) _monitor.Output.AtomicRegisterClient( c => c == _console, () => _console );
+                if( value ) _monitor.Output.RegisterUniqueClient( c => c == _console, () => _console );
                 else _monitor.Output.UnregisterClient( _console );
+            }
+        }
+
+        /// <summary>
+        /// Use reflection to actually set <see cref="System.Runtime.Remoting.Lifetime.LifetimeServices.LeaseManagerPollTime"/> to 5 milliseconds.
+        /// This triggers an immediate polling from the internal .Net framework LeaseManager.
+        /// Note that the LeaseManager is per AppDomain.
+        /// </summary>
+        public static void SetRemotingLeaseManagerVeryShortPollTime()
+        {
+            System.Runtime.Remoting.Lifetime.LifetimeServices.LeaseManagerPollTime = TimeSpan.FromMilliseconds( 5 );
+            object remotingData = typeof( AppDomain ).GetProperty( "RemotingData", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance ).GetMethod.Invoke( System.Threading.Thread.GetDomain(), null );
+            if( remotingData != null )
+            {
+                object leaseManager = remotingData.GetType().GetProperty( "LeaseManager", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance ).GetMethod.Invoke( remotingData, null );
+                if( leaseManager != null )
+                {
+                    System.Threading.Timer timer = (System.Threading.Timer)leaseManager.GetType().GetField( "leaseTimer", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance ).GetValue( leaseManager );
+                    Assert.That( timer, Is.Not.Null );
+                    timer.Change( 0, -1 );
+                }
             }
         }
         

@@ -11,13 +11,13 @@ using CK.Monitoring.Impl;
 namespace CK.Monitoring
 {
     /// <summary>
-    /// Abstraction of a Channel: it is a sink that knows how to <see cref="IGrandOutputSink.Handle"/> log events
+    /// Abstraction of a Channel: it knows how to <see cref="Handle"/> log events
     /// and creates a <see cref="GrandOutputSource"/> for each monitor bound to it.
     /// </summary>
     internal interface IChannel
     {
         /// <summary>
-        /// Called once the channel is ready to <see cref="Handle"/> events (but before the new configuration is actally applied).
+        /// Called once the channel is ready to <see cref="Handle"/> events (but before the new configuration is actually applied).
         /// </summary>
         void Initialize();
 
@@ -42,7 +42,7 @@ namespace CK.Monitoring
         LogLevelFilter MinimalFilter { get; }
 
         /// <summary>
-        /// Locks the channel: a call to <see cref="IGrandOutputSink.Handle"/> is pending.
+        /// Locks the channel: a call to <see cref="Handle"/> is pending.
         /// This is required to avoid a race condition between obtention of the Channel by a GrandOutputClient 
         /// and the call to Handle.
         /// </summary>
@@ -56,6 +56,8 @@ namespace CK.Monitoring
 
         /// <summary>
         /// Handles one event.
+        /// This is called by GrandOutputClients that are bound to this channel.
+        /// The lock previously obtained by a call to PreHandleLock is released.
         /// </summary>
         /// <param name="e">Event to handle.</param>
         void Handle( GrandOutputEventInfo e );

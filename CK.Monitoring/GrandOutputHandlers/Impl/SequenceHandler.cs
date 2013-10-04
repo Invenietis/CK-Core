@@ -1,12 +1,12 @@
 ﻿using CK.RouteConfig;
 
-namespace CK.Monitoring.Impl
+namespace CK.Monitoring.GrandOutputHandlers
 {
-    internal class ConfiguredSinkSequence : ConfiguredSink
+    internal class SequenceHandler : HandlerBase
     {
-        readonly ConfiguredSink[] _children;
+        readonly HandlerBase[] _children;
 
-        public ConfiguredSinkSequence( ActionSequenceConfiguration c, ConfiguredSink[] children )
+        public SequenceHandler( ActionSequenceConfiguration c, HandlerBase[] children )
             : base( c )
         {
             _children = children;

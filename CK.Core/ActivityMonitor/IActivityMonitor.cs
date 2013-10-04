@@ -46,14 +46,25 @@ namespace CK.Core
         CKTrait AutoTags { get; set; }
 
         /// <summary>
-        /// Gets or sets a filter based on the log level.
+        /// Gets or sets a filter for the log level.
         /// Modifications to this property are scoped to the current Group since when a Group is closed, this
         /// property (and <see cref="AutoTags"/>) is automatically restored to its original value (captured when the Group was opened).
         /// </summary>
         LogLevelFilter Filter { get; set; }
+        
+        /// <summary>
+        /// Gets the actual filter level for logs: this combines the configured <see cref="Filter"/> and the minimal requirements
+        /// of any <see cref="IActivityMonitorBoundClient"/> that specifies such a minimal filter level.
+        /// </summary>
+        /// <remarks>
+        /// This does NOT take into account the static (application-domain) <see cref="ActivityMonitor.DefaultFilter"/>.
+        /// This global default must be used if this ActualFilter is <see cref="LogLevelFilter.None"/>: the <see cref="ActivityMonitorExtension.ShouldLog">ShouldLog</see>
+        /// extension method takes it into account.
+        /// </remarks>
+        LogLevelFilter ActualFilter { get; }
 
         /// <summary>
-        /// Logs a text regardless of <see cref="Filter"/> level. 
+        /// Logs a text regardless of <see cref="ActalFilter"/> level. 
         /// Each call to log is considered as a unit of text: depending on the rendering engine, a line or a 
         /// paragraph separator (or any appropriate separator) should be appended between each text if 
         /// the <paramref name="level"/> is the same as the previous one.
@@ -77,7 +88,7 @@ namespace CK.Core
         /// close the group, or the returned object must be disposed.
         /// </summary>
         /// <param name="tags">Tags (from <see cref="ActivityMonitor.RegisteredTags"/>) to associate to the log, unioned with current <see cref="AutoTags"/>.</param>
-        /// <param name="level">Log level. Since we are opening a group, the current <see cref="Filter"/> is ignored.</param>
+        /// <param name="level">Log level. Since we are opening a group, the current <see cref="ActualFilter"/> is ignored.</param>
         /// <param name="getConclusionText">Optional function that will be called on group closing.</param>
         /// <param name="text">Text to log (the title of the group). Null text is valid and considered as <see cref="String.Empty"/> or assigned to the <see cref="Exception.Message"/> if it exists.</param>
         /// <param name="logTimeUtc">Timestamp of the log entry (must be UTC).</param>

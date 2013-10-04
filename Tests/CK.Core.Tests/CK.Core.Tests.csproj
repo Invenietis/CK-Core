@@ -65,16 +65,20 @@
     <Compile Include="..\..\SharedAssemblyInfo.cs">
       <Link>Properties\SharedAssemblyInfo.cs</Link>
     </Compile>
-    <Compile Include="ActivityMonitorCrossAppDomain.cs" />
-    <Compile Include="ActivityLoggerMultiThreadTests.cs" />
+    <Compile Include="CKExceptionTests.cs" />
+    <Compile Include="Monitoring\ActivityMonitorClientTester.cs" />
+    <Compile Include="Monitoring\ActivityMonitorCrossAppDomain.cs" />
+    <Compile Include="Monitoring\ActivityLoggerMultiThreadTests.cs" />
     <Compile Include="Collection\ObservableSortedArrayListTests.cs" />
     <Compile Include="Collection\SortedArrayKeyListTests.cs" />
     <Compile Include="Collection\FIFOTests.cs" />
-    <Compile Include="ActivityMonitorTests.cs" />
+    <Compile Include="Monitoring\ActivityMonitorFilterPropagation.cs" />
+    <Compile Include="Monitoring\ActivityMonitorTests.cs" />
     <Compile Include="Collection\SortedArrayListTests.cs" />
-    <Compile Include="ActivityMonitorErrorLogs.cs" />
+    <Compile Include="Monitoring\ActivityMonitorErrorLogs.cs" />
     <Compile Include="CollectionExtensionTests.cs" />
-    <Compile Include="StupidXmlClient.cs" />
+    <Compile Include="MarshallByRefPlayground.cs" />
+    <Compile Include="Monitoring\StupidXmlClient.cs" />
     <Compile Include="CriticalErrorCollectorTests.cs" />
     <Compile Include="EnumerableExtensionTests.cs" />
     <Compile Include="FileUtilTests.cs" />
@@ -84,11 +88,12 @@
     <Compile Include="CoreExtensionTests.cs" />
     <Compile Include="Collection\ReadOnlyTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="StupidStringClient.cs" />
+    <Compile Include="Monitoring\StupidStringClient.cs" />
     <Compile Include="TemporaryFileTests.cs" />
     <Compile Include="TestHelper.cs" />
     <Compile Include="Traits.cs" />
     <Compile Include="UriHelperTests.cs" />
+    <Compile Include="UtilInterlockedTests.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\CK.Core\CK.Core.csproj">

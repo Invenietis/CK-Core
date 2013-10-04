@@ -73,6 +73,47 @@ namespace CK.Core
         /// </summary>
         public static readonly CriticalErrorCollector LoggingError;
 
+        static LogLevelFilter _defaultFilterLevel;
+        
+        /// <summary>
+        /// Internal event used by ActivityMonitorBridgeTarget that have at least one ActivityMonitorBridge in another application domain.
+        /// </summary>
+        static internal event EventHandler DefaultFilterLevelChanged;
+        static object _lockDefaultFilterLevel;
+
+        /// <summary>
+        /// Gets or sets the default filter that should be used when the <see cref="IActivityMonitor.ActualFilter"/> is <see cref="LogLevelFilter.None"/>.
+        /// This configuration is per application domain (the backing field is static).
+        /// It defaults to <see cref="LogLevelFilter.None"/>: it has the same effect as setting it to <see cref="LogLevelFilter.Trace"/> (ie. logging everything) when
+        /// no other configuration exists.
+        /// </summary>
+        public static LogLevelFilter DefaultFilter
+        {
+            get { return _defaultFilterLevel; }
+            set 
+            {
+                lock( _lockDefaultFilterLevel )
+                {
+                    if( _defaultFilterLevel != value )
+                    {
+                        _defaultFilterLevel = value;
+                        var h = DefaultFilterLevelChanged;
+                        if( h != null )
+                        {
+                            try
+                            {
+                                h( null, EventArgs.Empty );
+                            }
+                            catch( Exception ex )
+                            {
+                                LoggingError.Add( ex, "DefaultFilter changed." );
+                            }
+                        }
+                    }
+                }
+            } 
+        }
+
         /// <summary>
         /// The automatic configuration actions.
         /// </summary>
@@ -86,15 +127,20 @@ namespace CK.Core
             TagGetTextConclusion = RegisteredTags.FindOrCreate( "c:GetText" );
             LoggingError = new CriticalErrorCollector();
             AutoConfiguration = new SimpleMultiAction<IActivityMonitor>();
+            _defaultFilterLevel = LogLevelFilter.None;
+            _lockDefaultFilterLevel = new object();
         }
 
-        LogLevelFilter _filter;
+        LogLevelFilter _actualFilter;
+        LogLevelFilter _configuredFilter;
+        LogLevelFilter _clientFilter;
         Group[] _groups;
         Group _current;
         ActivityMonitorOutput _output;
         CKTrait _currentTag;
         int _enteredThreadId;
         Guid _uniqueId;
+        bool _actualFilterIsDirty;
 
         /// <summary>
         /// Initializes a new <see cref="ActivityMonitor"/>.
@@ -122,7 +168,7 @@ namespace CK.Core
         {
             Debug.Assert( RegisteredTags.Separator == '|', "Separator must be the |." );
             _output = output;
-            _groups = new Group[16];
+            _groups = new Group[8];
             for( int i = 0; i < _groups.Length; ++i ) _groups[i] = CreateGroup( i );
             _currentTag = tags ?? EmptyTag;
             _uniqueId = Guid.NewGuid();
@@ -176,54 +222,171 @@ namespace CK.Core
         }
 
         /// <summary>
-        /// Gets or sets a filter based on the log level.
+        /// Gets or sets a filter based for the log level.
         /// Modifications to this property are scoped to the current Group since when a Group is closed, this
         /// property (like <see cref="AutoTags"/>) is automatically restored to its original value (captured when the Group was opened).
         /// </summary>
         public LogLevelFilter Filter
         {
-            get { return _filter; }
+            get { return _configuredFilter; }
             set
             {
-                if( _filter != value )
+                if( _configuredFilter != value )
                 {
-                    ReentrancyCheck();
+                    ReentrantAndConcurrentCheck();
                     try
                     {
-                        var clients = _output.Clients;
-                        DoSetFilter( ref clients, value );
+                        DoSetConfiguredFilter( value );
                     }
                     finally
                     {
-                        ReentrancyRelease();
+                        ReentrantAndConcurrentRelease();
                     }
                 }
             }
         }
 
-        internal void DoSetFilter( ref IReadOnlyList<IActivityMonitorClient> clients, LogLevelFilter value )
+        /// <summary>
+        /// Gets the actual filter level for logs: this combines the configured <see cref="Filter"/> and the minimal requirements
+        /// of any <see cref="IActivityMonitorBoundClient"/> that specifies such a minimal filter level.
+        /// </summary>
+        /// <remarks>
+        /// This does NOT take into account the static (application-domain) <see cref="ActivityMonitor.DefaultFilter"/>.
+        /// This global default must be used if this ActualFilter is <see cref="LogLevelFilter.None"/>: the <see cref="ActivityMonitorExtension.ShouldLog">ShouldLog</see>
+        /// extension method takes it into account.
+        /// </remarks>
+        public LogLevelFilter ActualFilter 
+        {
+            get 
+            {
+                if( _actualFilterIsDirty ) ResyncActualFilter();
+                return _actualFilter; 
+            } 
+        }
+
+        void ResyncActualFilter()
+        {
+            ReentrantAndConcurrentCheck();
+            try
+            {
+                do
+                {
+                    Thread.MemoryBarrier();
+                    _actualFilterIsDirty = false;
+                    _clientFilter = DoGetBoundClientMinimalFilter();
+                    Thread.MemoryBarrier();
+                }
+                while( _actualFilterIsDirty );
+                UpdateActualFilter();
+            }
+            finally
+            {
+                ReentrantAndConcurrentRelease();
+            }
+        }
+
+        internal void DoSetConfiguredFilter( LogLevelFilter value )
         {
             Debug.Assert( _enteredThreadId == Thread.CurrentThread.ManagedThreadId );
-            List<IActivityMonitorClient> buggyClients = null;
-            foreach( var l in clients )
+            Debug.Assert( _configuredFilter != value );
+            _configuredFilter = value;
+            UpdateActualFilter();
+        }
+
+        void UpdateActualFilter()
+        {
+            LogLevelFilter newLevel;
+            if( _configuredFilter == LogLevelFilter.None ) newLevel = _clientFilter;
+            else if( _clientFilter == LogLevelFilter.None ) newLevel = _configuredFilter;
+            else if( _clientFilter < _configuredFilter ) newLevel = _clientFilter;
+            else newLevel = _configuredFilter;
+            if( newLevel != _actualFilter )
             {
-                try
+                _actualFilter = newLevel;
+                _output.BridgeTarget.TargetFilterChanged();
+            }
+        }
+
+        LogLevelFilter DoGetBoundClientMinimalFilter()
+        {
+            Debug.Assert( _enteredThreadId == Thread.CurrentThread.ManagedThreadId );
+            
+            LogLevelFilter minimal = LogLevelFilter.None;
+            List<IActivityMonitorClient> buggyClients = null;
+            foreach( var l in _output.Clients )
+            {
+                IActivityMonitorBoundClient bound = l as IActivityMonitorBoundClient;
+                if( bound != null )
                 {
-                    l.OnFilterChanged( _filter, value );
-                }
-                catch( Exception exCall )
-                {
-                    LoggingError.Add( exCall, l.GetType().FullName );
-                    if( buggyClients == null ) buggyClients = new List<IActivityMonitorClient>();
-                    buggyClients.Add( l );
+                    try
+                    {
+                        var level = bound.MinimalFilter;
+                        if( level != LogLevelFilter.None )
+                        {
+                            if( minimal == LogLevelFilter.None || minimal > level )
+                            {
+                                if( (minimal = level) == LogLevelFilter.Trace ) break;
+                            }
+                        }
+                    }
+                    catch( Exception exCall )
+                    {
+                        LoggingError.Add( exCall, l.GetType().FullName );
+                        if( buggyClients == null ) buggyClients = new List<IActivityMonitorClient>();
+                        buggyClients.Add( l );
+                    }
                 }
             }
             if( buggyClients != null )
             {
                 foreach( var l in buggyClients ) _output.ForceRemoveBuggyClient( l );
-                clients = _output.Clients;
             }
-            _filter = value;
+            return minimal;
+        }
+
+        void IActivityMonitorImpl.SetClientMinimalFilterDirty()
+        {
+            _actualFilterIsDirty = true;
+            Thread.MemoryBarrier();
+        }
+
+        void IActivityMonitorImpl.OnClientMinimalFilterChanged( LogLevelFilter oldLevel, LogLevelFilter newLevel )
+        {
+            // Silently ignores stupid calls.
+            if( oldLevel == newLevel ) return;
+            bool reentrantCall = ConcurrentOnlyCheck();
+            try
+            {
+                do
+                {
+                    Thread.MemoryBarrier();
+                    bool dirty = _actualFilterIsDirty;
+                    _actualFilterIsDirty = false;
+                    // Optimization for some cases: we can conclude without getting the minimal filters.
+                    if( !dirty && (oldLevel == LogLevelFilter.None || oldLevel > _clientFilter) )
+                    {
+                        // This Client had no impact on the current final client filter: if its new level 
+                        // is None or greater or equal to the current one, there is nothing to do.
+                        // If the current final client is None, then the new level is the one that must be applied if it is lower than the current one.
+                        if( newLevel == LogLevelFilter.None || (_clientFilter != LogLevelFilter.None && newLevel >= _clientFilter) ) return;
+                        // Its new level is necessarily the current requirement.
+                        _clientFilter = newLevel;
+                    }
+                    else
+                    {
+                        Debug.Assert( dirty || oldLevel == _clientFilter, "oldLevel can not be lower than the current final one: it is the one!" );
+                        // Whatever the new level is we have to update our client final filter.
+                        _clientFilter = DoGetBoundClientMinimalFilter();
+                    }
+                    Thread.MemoryBarrier();
+                }
+                while( _actualFilterIsDirty );
+                UpdateActualFilter();
+            }
+            finally
+            {
+                if( reentrantCall ) ReentrantAndConcurrentCheck();
+            }
         }
 
         /// <summary>
@@ -249,27 +412,26 @@ namespace CK.Core
         {
             if( logTimeUtc.Kind != DateTimeKind.Utc ) throw new ArgumentException( R.DateTimeMustBeUtc, "logTimeUtc" );
             if( level == LogLevel.None ) return this;
-            ReentrancyCheck();
+            ReentrantAndConcurrentCheck();
             try
             {
-                var clients = _output.Clients;
-                return DoUnfilteredLog( ref clients, tags, level, text, logTimeUtc, ex );
+                return DoUnfilteredLog( tags, level, text, logTimeUtc, ex );
             }
             finally
             {
-                ReentrancyRelease();
+                ReentrantAndConcurrentRelease();
             }
         }
 
-        IActivityMonitor DoUnfilteredLog( ref IReadOnlyList<IActivityMonitorClient> clients, CKTrait tags, LogLevel level, string text, DateTime logTimeUtc, Exception ex = null )
+        IActivityMonitor DoUnfilteredLog( CKTrait tags, LogLevel level, string text, DateTime logTimeUtc, Exception ex = null )
         {
             Debug.Assert( _enteredThreadId == Thread.CurrentThread.ManagedThreadId );
             Debug.Assert( level != LogLevel.None );
 
             if( ex != null )
             {
-                DoOpenGroup( ref clients, tags, level, null, text, logTimeUtc, ex );
-                DoCloseGroup( ref clients, logTimeUtc );
+                DoOpenGroup( tags, level, null, text, logTimeUtc, ex );
+                DoCloseGroup( logTimeUtc );
             }
             else if( !String.IsNullOrEmpty( text ) )
             {
@@ -277,7 +439,7 @@ namespace CK.Core
                 else tags = _currentTag.Union( tags );
 
                 List<IActivityMonitorClient> buggyClients = null;
-                foreach( var l in clients )
+                foreach( var l in _output.Clients )
                 {
                     try
                     {
@@ -293,7 +455,8 @@ namespace CK.Core
                 if( buggyClients != null )
                 {
                     foreach( var l in buggyClients ) _output.ForceRemoveBuggyClient( l );
-                    clients = _output.Clients;
+                    _clientFilter = DoGetBoundClientMinimalFilter();
+                    UpdateActualFilter();
                 }
             }
             return this;
@@ -318,19 +481,18 @@ namespace CK.Core
             if( logTimeUtc.Kind != DateTimeKind.Utc ) throw new ArgumentException( R.DateTimeMustBeUtc, "logTimeUtc" );
             if( level == LogLevel.None ) return Util.EmptyDisposable;
 
-            ReentrancyCheck();
+            ReentrantAndConcurrentCheck();
             try
             {
-                var clients = _output.Clients;
-                return DoOpenGroup( ref clients, tags, level, getConclusionText, text, logTimeUtc, ex );
+                return DoOpenGroup( tags, level, getConclusionText, text, logTimeUtc, ex );
             }
             finally
             {
-                ReentrancyRelease();
+                ReentrantAndConcurrentRelease();
             }
         }
 
-        IDisposable DoOpenGroup( ref IReadOnlyList<IActivityMonitorClient> clients, CKTrait tags, LogLevel level, Func<string> getConclusionText, string text, DateTime logTimeUtc, Exception ex = null )
+        IDisposable DoOpenGroup( CKTrait tags, LogLevel level, Func<string> getConclusionText, string text, DateTime logTimeUtc, Exception ex = null )
         {
             Debug.Assert( _enteredThreadId == Thread.CurrentThread.ManagedThreadId );
             Debug.Assert( logTimeUtc.Kind == DateTimeKind.Utc );
@@ -345,9 +507,9 @@ namespace CK.Core
             _current = _groups[idxNext];
             if( tags == null || tags.IsEmpty ) tags = _currentTag;
             else tags = _currentTag.Union( tags );
-            _current.Initialize( ref clients, tags, level, text ?? (ex != null ? ex.Message : String.Empty), getConclusionText, logTimeUtc, ex );
+            _current.Initialize( tags, level, text ?? (ex != null ? ex.Message : String.Empty), getConclusionText, logTimeUtc, ex );
             List<IActivityMonitorClient> buggyClients = null;
-            foreach( var l in clients )
+            foreach( var l in _output.Clients )
             {
                 try
                 {
@@ -363,7 +525,8 @@ namespace CK.Core
             if( buggyClients != null )
             {
                 foreach( var l in buggyClients ) _output.ForceRemoveBuggyClient( l );
-                clients = _output.Clients;
+                _clientFilter = DoGetBoundClientMinimalFilter();
+                UpdateActualFilter();
             }
             return _current;
         }
@@ -382,19 +545,18 @@ namespace CK.Core
         public virtual void CloseGroup( DateTime logTimeUtc, object userConclusion = null )
         {
             if( logTimeUtc.Kind != DateTimeKind.Utc ) throw new ArgumentException( R.DateTimeMustBeUtc, "logTimeUtc" );
-            ReentrancyCheck();
+            ReentrantAndConcurrentCheck();
             try
             {
-                var clients = _output.Clients;
-                DoCloseGroup( ref clients, logTimeUtc, userConclusion );
+                DoCloseGroup( logTimeUtc, userConclusion );
             }
             finally
             {
-                ReentrancyRelease();
+                ReentrantAndConcurrentRelease();
             }
         }
 
-        void DoCloseGroup( ref IReadOnlyList<IActivityMonitorClient> clients, DateTime logTimeUtc, object userConclusion = null )
+        void DoCloseGroup( DateTime logTimeUtc, object userConclusion = null )
         {
             Debug.Assert( _enteredThreadId == Thread.CurrentThread.ManagedThreadId );
             Debug.Assert( logTimeUtc.Kind == DateTimeKind.Utc );
@@ -424,8 +586,9 @@ namespace CK.Core
                 }
                 g.GroupClosing( ref conclusions );
 
+                bool hasBuggyClients = false;
                 List<IActivityMonitorClient> buggyClients = null;
-                foreach( var l in clients )
+                foreach( var l in _output.Clients )
                 {
                     try
                     {
@@ -442,15 +605,14 @@ namespace CK.Core
                 {
                     foreach( var l in buggyClients ) _output.ForceRemoveBuggyClient( l );
                     buggyClients.Clear();
-                    clients = _output.Clients;
+                    hasBuggyClients = true;
                 }
-
-                DoSetFilter( ref clients, g.SavedMonitorFilter );
+                if( g.SavedMonitorFilter != _configuredFilter ) DoSetConfiguredFilter( g.SavedMonitorFilter );
                 _currentTag = g.SavedMonitorTags;
                 _current = (Group)g.Parent;
 
                 var sentConclusions = conclusions != null ? conclusions.ToReadOnlyList() : CKReadOnlyListEmpty<ActivityLogGroupConclusion>.Empty;
-                foreach( var l in clients )
+                foreach( var l in _output.Clients )
                 {
                     try
                     {
@@ -466,13 +628,39 @@ namespace CK.Core
                 if( buggyClients != null )
                 {
                     foreach( var l in buggyClients ) _output.ForceRemoveBuggyClient( l );
-                    clients = _output.Clients;
+                    hasBuggyClients = true;
+                }
+                if( hasBuggyClients )
+                {
+                    _clientFilter = DoGetBoundClientMinimalFilter();
+                    UpdateActualFilter();
                 }
                 g.GroupClosed();
             }
         }
 
-        void ReentrancyCheck()
+        class RAndCChecker : IDisposable
+        {
+            readonly ActivityMonitor _m;
+
+            public RAndCChecker( ActivityMonitor m )
+            {
+                _m = m;
+                _m.ReentrantAndConcurrentCheck();
+            }
+
+            public void Dispose()
+            {
+                _m.ReentrantAndConcurrentRelease();
+            }
+        }
+
+        IDisposable IActivityMonitorImpl.ReentrancyAndConcurrencyLock()
+        {
+            return new RAndCChecker( this );
+        }
+
+        void ReentrantAndConcurrentCheck()
         {
             int currentThreadId = Thread.CurrentThread.ManagedThreadId;
             int alreadyEnteredId;
@@ -488,8 +676,31 @@ namespace CK.Core
                 }
             }
         }
-        
-        void ReentrancyRelease()
+
+        /// <summary>
+        /// Checks only for concurrency issues. 
+        /// False if a call already exists (reentrant call): when true is returned, ReentrantAndConcurrentRelease must be called.
+        /// </summary>
+        /// <returns>False for a reentrant call, true otherwise.</returns>
+        bool ConcurrentOnlyCheck()
+        {
+            int currentThreadId = Thread.CurrentThread.ManagedThreadId;
+            int alreadyEnteredId;
+            if( (alreadyEnteredId = Interlocked.CompareExchange( ref _enteredThreadId, currentThreadId, 0 )) != 0 )
+            {
+                if( alreadyEnteredId == currentThreadId )
+                {
+                    return false;
+                }
+                else
+                {
+                    throw new InvalidOperationException( R.ActivityMonitorConcurrentThreadAccess );
+                }
+            }
+            return true;
+        }
+
+        void ReentrantAndConcurrentRelease()
         {
             int currentThreadId = Thread.CurrentThread.ManagedThreadId;
             if( Interlocked.CompareExchange( ref _enteredThreadId, 0, currentThreadId ) != currentThreadId )

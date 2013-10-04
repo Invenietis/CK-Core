@@ -38,8 +38,6 @@ namespace CK.Core.Impl
         readonly ActivityMonitorBridgeTarget _externalInput;
         IActivityMonitorClient[] _clients;
 
-        //static object _clientLockTemp = new object();
-
         /// <summary>
         /// Initializes a new <see cref="ActivityMonitorOutput"/> bound to a <see cref="IActivityMonitor"/>.
         /// </summary>
@@ -56,7 +54,7 @@ namespace CK.Core.Impl
         /// Gets an entry point for other monitors: by registering <see cref="ActivityMonitorBridge"/> in other <see cref="IActivityMonitor.Output"/>
         /// bound to this <see cref="ActivityMonitorBridgeTarget"/>, log streams can easily be merged.
         /// </summary>
-        public ActivityMonitorBridgeTarget ExternalInput
+        public ActivityMonitorBridgeTarget BridgeTarget
         {
             get { return _externalInput; }
         }
@@ -75,28 +73,23 @@ namespace CK.Core.Impl
         public IActivityMonitorClient RegisterClient( IActivityMonitorClient client )
         {
             if( client == null ) throw new ArgumentNullException( "client" );
-            //lock( _clientLockTemp )
-            //{
-            //    Console.WriteLine( "Thread={2}, RegisterClient client '{0}'. idx={1}.", client, Array.IndexOf( _clients, client ), Thread.CurrentThread.ManagedThreadId );
-            //    if( Array.IndexOf( _clients, client ) < 0 )
-            //    {
-            //        IActivityMonitorBoundClient bound = client as IActivityMonitorBoundClient;
-            //        if( bound != null ) bound.SetMonitor( _monitor, false );
-            //    }
-            //    _clients = new CKReadOnlyListMono<IActivityMonitorClient>( client ).Concat( _clients ).ToArray();
-            //}
+            using( _monitor.ReentrancyAndConcurrencyLock() )
+            {
+                return DoRegisterClient( client );
+            }
+        }
 
+        private IActivityMonitorClient DoRegisterClient( IActivityMonitorClient client )
+        {
             if( Array.IndexOf( _clients, client ) < 0 )
             {
-                // Has the same Client instance a chance to be registered at the same time by two threads?
-                //
-                // For non-bound client may be... But here we are talking of a bound client that is "associated" 
-                // to one monitor. Since multithreading in this context is quite impossible, we consider that
-                // protecting SetMonitor call here is useless.
-                // (Other option: create a _setMonitorLock and serialize all calls to all SetMonitor in the AppDomain.)
                 IActivityMonitorBoundClient bound = client as IActivityMonitorBoundClient;
                 if( bound != null ) bound.SetMonitor( _monitor, false );
-                Util.InterlockedPrepend( ref _clients, client );
+                var newArray = new IActivityMonitorClient[_clients.Length + 1];
+                Array.Copy( _clients, 0, newArray, 1, _clients.Length );
+                newArray[0] = client;
+                _clients = newArray;
+                if( bound != null ) _monitor.OnClientMinimalFilterChanged( LogLevelFilter.None, bound.MinimalFilter );
             }
             return client;
         }
@@ -105,8 +98,7 @@ namespace CK.Core.Impl
         /// Registers a typed <see cref="IActivityMonitorClient"/>.
         /// </summary>
         /// <typeparam name="T">Any type that specializes <see cref="IActivityMonitorClient"/>.</typeparam>
-        /// <param name="this">This <see cref="IActivityMonitorOutput"/> object.</param>
-        /// <param name="client">Multiple clients to register.</param>
+        /// <param name="client">Clients to register.</param>
         /// <returns>The registered client.</returns>
         public T RegisterClient<T>( T client ) where T : IActivityMonitorClient
         {
@@ -114,37 +106,28 @@ namespace CK.Core.Impl
         }
 
         /// <summary>
-        /// Enables atomic registration of a <see cref="IActivityMonitorClient"/> that must be unique in a sense.
+        /// Registers a <see cref="IActivityMonitorClient"/> that must be unique in a sense.
         /// </summary>
         /// <param name="tester">Predicate that must be satisfied for at least one registered client.</param>
         /// <param name="factory">Factory that will be called if no existing client satisfies <paramref name="tester"/>.</param>
-        /// <returns>This object to enable fluent syntax.</returns>
+        /// <returns>The existing or newly created client.</returns>
         /// <remarks>
         /// The factory function MUST return a client that satisfies the tester function otherwise a <see cref="InvalidOperationException"/> is thrown.
         /// </remarks>
-        public T AtomicRegisterClient<T>( Func<T, bool> tester, Func<T> factory ) where T : IActivityMonitorClient
+        public T RegisterUniqueClient<T>( Func<T, bool> tester, Func<T> factory ) where T : IActivityMonitorClient
         {
-            Func<T> reg = () => 
-            { 
-                var c = factory();
-                IActivityMonitorBoundClient bound = c as IActivityMonitorBoundClient;
-                if( bound != null ) bound.SetMonitor( _monitor, false );
-                return c; 
-            };
-
-            //lock( _clientLockTemp )
-            //{
-            //    T e = _clients.OfType<T>().FirstOrDefault( tester );
-            //    if( e == null )
-            //    {
-            //        e = reg();
-            //        Console.WriteLine( "Thread={2}, AtomicRegisterClient client '{0}'. idx={1}.", e, Array.IndexOf( _clients, e ), Thread.CurrentThread.ManagedThreadId );
-            //        _clients = new CKReadOnlyListMono<IActivityMonitorClient>( e ).Concat( _clients ).ToArray();
-            //    }
-            //    return e;
-            //}
-            
-            return (T)Util.InterlockedAdd( ref _clients, tester,  reg, true )[0];
+            if( tester == null ) throw new ArgumentNullException( "tester" );
+            if( factory == null ) throw new ArgumentNullException( "factory" );
+            using( _monitor.ReentrancyAndConcurrencyLock() )
+            {
+                T e = _clients.OfType<T>().FirstOrDefault( tester );
+                if( e == null )
+                {
+                    e = (T)DoRegisterClient( factory() );
+                    if( !tester( e ) ) throw new InvalidOperationException( R.FactoryTesterMismatch );
+                }
+                return e;
+            }
         }
 
         /// <summary>
@@ -156,31 +139,42 @@ namespace CK.Core.Impl
         public IActivityMonitorClient UnregisterClient( IActivityMonitorClient client )
         {
             if( client == null ) throw new ArgumentNullException( "client" );
-            //lock( _clientLockTemp )
-            //{
-            //    Console.WriteLine( "Thread={2}, Unregistering client '{0}'. idx={1}.", client, Array.IndexOf( _clients, client ), Thread.CurrentThread.ManagedThreadId );
-            //    if( Array.IndexOf( _clients, client ) >= 0 )
-            //    {
-            //        IActivityMonitorBoundClient bound = client as IActivityMonitorBoundClient;
-            //        if( bound != null ) bound.SetMonitor( null, false );
-
-            //        var cc = _clients.ToList();
-            //        cc.Remove( client );
-            //        _clients = cc.ToArray();
-            //        return client;
-            //    }
-            //    return null;
-            //}
-
-            if( Array.IndexOf( _clients, client ) >= 0 )
+            using( _monitor.ReentrancyAndConcurrencyLock() )
             {
-                IActivityMonitorBoundClient bound = client as IActivityMonitorBoundClient;
-                if( bound != null ) bound.SetMonitor( null, false );
-
-                Util.InterlockedRemove( ref _clients, client );
-                return client;
+                int idx;
+                if( (idx = Array.IndexOf( _clients, client )) >= 0 )
+                {
+                    LogLevelFilter filter = LogLevelFilter.None;
+                    IActivityMonitorBoundClient bound = client as IActivityMonitorBoundClient;
+                    if( bound != null )
+                    {
+                        bound.SetMonitor( null, false );
+                        filter = bound.MinimalFilter;
+                    }
+                    var newArray = new IActivityMonitorClient[_clients.Length - 1];
+                    Array.Copy( _clients, 0, newArray, 0, idx );
+                    Array.Copy( _clients, idx + 1, newArray, idx, newArray.Length - idx );
+                    _clients = newArray;
+                    if( filter != LogLevelFilter.None ) _monitor.OnClientMinimalFilterChanged( filter, LogLevelFilter.None );
+                    return client;
+                }
+                return null;
             }
-            return null;
+        }
+
+        /// <summary>
+        /// Gets the list of registered <see cref="IActivityMonitorClient"/>.
+        /// </summary>
+        public IReadOnlyList<IActivityMonitorClient> Clients
+        {
+            get 
+            {
+                #if net45
+                return _clients;
+                #else
+                return _clients.AsReadOnlyList();
+                #endif
+            }
         }
 
         internal void ForceRemoveBuggyClient( IActivityMonitorClient client )
@@ -198,15 +192,15 @@ namespace CK.Core.Impl
                     ActivityMonitor.LoggingError.Add( ex, "While removing the buggy client." );
                 }
             }
-            Util.InterlockedRemove( ref _clients, client );
-        }
-
-        /// <summary>
-        /// Gets the list of registered <see cref="IActivityMonitorClient"/>.
-        /// </summary>
-        public IReadOnlyList<IActivityMonitorClient> Clients
-        {
-            get { return _clients.AsReadOnlyList(); }
+            if( _clients.Length == 1 ) _clients = Util.EmptyArray<IActivityMonitorClient>.Empty;
+            else
+            {
+                int idx = Array.IndexOf( _clients, client );
+                var newArray = new IActivityMonitorClient[_clients.Length - 1];
+                Array.Copy( _clients, 0, newArray, 0, idx );
+                Array.Copy( _clients, idx + 1, newArray, idx, newArray.Length - idx );
+                _clients = newArray;
+            }
         }
 
     }

@@ -31,6 +31,8 @@ namespace CK.Monitoring
             return new ActivityMonitorWriterClient( new FileStream( path, FileMode.Create, FileAccess.Write ), writeVersion );
         }
 
+        public LogLevelFilter MinimalFilter { get { return LogLevelFilter.None; } }
+
         void IActivityMonitorClient.OnUnfilteredLog( CKTrait tags, LogLevel level, string text, DateTime logTimeUtc )
         {
             _binaryWriter.Write( (byte)((int)level << 2 | (int)StreamLogType.TypeLog) );
@@ -65,10 +67,6 @@ namespace CK.Monitoring
         }
 
         void IActivityMonitorClient.OnGroupClosing( IActivityLogGroup group, ref List<ActivityLogGroupConclusion> conclusions )
-        {
-        }
-
-        void IActivityMonitorClient.OnFilterChanged( LogLevelFilter current, LogLevelFilter newValue )
         {
         }
 

@@ -22,12 +22,11 @@
 #endregion
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using NUnit.Framework;
-using CK.Core;
-using System.Collections.Generic;
 
-namespace Keyboard
+namespace CK.Core.Tests
 {
 
     /// <summary>

@@ -148,7 +148,7 @@ namespace CK.Core
         static public ICKReadOnlyList<T> ToReadOnlyList<T, U>( this IList<U> @this, int startIndex, int count, Func<U, T> convertor )
         {
             if( convertor == null ) throw new ArgumentNullException( "convertor" );
-            if( @this == null ) throw new NullReferenceException( "@this" );
+            if( @this == null ) throw new NullReferenceException( "this" );
             if( count == 0 ) return CKReadOnlyListEmpty<T>.Empty;
             if( count < 0 ) throw new ArgumentOutOfRangeException( "count", count, R.ArgumentCountNegative );
             if( count == 1 ) return new CKReadOnlyListMono<T>( convertor( @this[startIndex] ) );
@@ -218,7 +218,7 @@ namespace CK.Core
         /// <returns>A read only list that contains the elements from the input collection following the enumeration order.</returns>
         static public ICKReadOnlyList<T> ToReadOnlyList<T, U>( this ICollection<U> @this, Func<U, T> convertor )
         {
-            if( @this == null ) throw new NullReferenceException( "@this" );
+            if( @this == null ) throw new NullReferenceException( "this" );
             if( convertor == null ) throw new ArgumentNullException( "convertor" );
             if( @this.Count == 0 ) return CKReadOnlyListEmpty<T>.Empty;
             if( @this.Count == 1 )

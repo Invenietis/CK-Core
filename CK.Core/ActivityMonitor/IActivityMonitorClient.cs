@@ -34,13 +34,6 @@ namespace CK.Core
     public interface IActivityMonitorClient
     {
         /// <summary>
-        /// Called when <see cref="IActivityMonitor.Filter"/> is about to change.
-        /// </summary>
-        /// <param name="current">Current level filter.</param>
-        /// <param name="newValue">The new level filter.</param>
-        void OnFilterChanged( LogLevelFilter current, LogLevelFilter newValue );
-
-        /// <summary>
         /// Called for each <see cref="IActivityMonitor.UnfilteredLog"/>.
         /// </summary>
         /// <param name="tags">Tags (from <see cref="ActivityMonitor.RegisteredTags"/>) associated to the log.</param>

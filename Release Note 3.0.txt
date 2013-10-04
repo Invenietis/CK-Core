@@ -5,12 +5,13 @@ CK.Core 3.0 - Roadmap
 	- Util.EmptyArray<T>
 	- .Net 4.0 support use the Microsoft BCL Portability Pack 1.1.3 (but still requires net40/CK.Core.dll for IReadOnlyXXX support).
 	- New Util.InterlokedXXX methods (atomic set and array manipulations).
+	- CKExceptionData captures exception data. It allows serialization of exception data without requiring knowledge of the exception Type.
 	- ActivityMonitor
 		- "Logging is cool, Monitoring is better"
 		- Clear and enforced definition of threading issues:
 			- An ActivityMonitor usage is NOT thread-affine. It is Activity-affine: any thread can use an ActivityMonitor provided they do not call it at the same time.
 			- An ActivityMonitor usage is NOT thread-safe and NOT reentrant: such usage are detected and explicit exceptions are thrown.
-			- Registration of IActivityMonitorClients is thread-safe and supports atomic operations.
+			- Registration of IActivityMonitorClients follows the same rules: registering or unregistering a Client must not be concurrent.
 			- ActivityMonitor usage is most of the time lock-free (even with the GrandOutput).
 		- Centralized outputs (GrandOutput)
 			- Global history enables effective analysis of the activity of the whole System.
@@ -30,6 +31,7 @@ CK.Core 3.0 - Roadmap
 	- No more IDefaultActivityLogger, Tap and Sinks.
 	- No more DefaultActivityLogger/Monitor.
 	- LegacySupport/CallerMemberNameAttribute in favor of BCL Portability Pack.
+	- InvalidFileException.
 
 
 
