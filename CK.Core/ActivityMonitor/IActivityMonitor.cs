@@ -26,6 +26,7 @@ using System.Collections.Generic;
 
 namespace CK.Core
 {
+
     /// <summary>
     /// Defines the core Activity Monitor interface. Small is beautiful. 
     /// </summary>

@@ -71,6 +71,10 @@ namespace CK.Monitoring.Impl
             _useLock.Signal();
         }
 
+        /// <summary>
+        /// Can be called either from GrandOutput.OnConfigurationClosing or from GrandOutput.ObtainChannel when the FlushLock is acquired.
+        /// This sets the CountdownEvent to 1. 
+        /// </summary>
         internal void EnsureActive()
         {
             Debug.Assert( Monitor.IsEntered( _flushLock ) );

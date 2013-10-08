@@ -23,6 +23,11 @@ namespace CK.Monitoring
             _bufferingChannel = new BufferingChannel( _commonSink );
         }
 
+        /// <summary>
+        /// Ensures that a client for this GrandOutput is registered on a monitor.
+        /// </summary>
+        /// <param name="monitor">The monitor onto which a <see cref="GrandOutputClient"/> must be registered.</param>
+        /// <returns>A newly created client or the already existing one.</returns>
         public GrandOutputClient Register( IActivityMonitor monitor )
         {
             if( monitor == null ) throw new ArgumentNullException( "monitor" );           
@@ -38,12 +43,20 @@ namespace CK.Monitoring
             return monitor.Output.RegisterUniqueClient( b => b.Central == this, reg );
         }
 
+        /// <summary>
+        /// Registers a <see cref="IGrandOutputSink"/>.
+        /// </summary>
+        /// <param name="sink">The sink to register.</param>
         public void RegisterGlobalSink( IGrandOutputSink sink )
         {
             if( sink == null ) throw new ArgumentNullException( "sink" );
             _commonSink.Add( sink );
         }
 
+        /// <summary>
+        /// Unregisters a <see cref="IGrandOutputSink"/>.
+        /// </summary>
+        /// <param name="sink">The sink to unregister.</param>
         public void UnregisterGlobalSink( IGrandOutputSink sink )
         {
             if( sink == null ) throw new ArgumentNullException( "sink" );

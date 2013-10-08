@@ -21,12 +21,15 @@
 *-----------------------------------------------------------------------------*/
 #endregion
 
+using System;
+
 namespace CK.Core
 {
     /// <summary>
     /// Defines filters for <see cref="LogLevel"/>.
+    /// Two levels are captured by <see cref="LogFilter"/>.
     /// </summary>
-    public enum LogLevelFilter
+    public enum LogLevelFilter : short
     {
         /// <summary>
         /// No filter: can have the same effect as Trace but SHOULD indicate

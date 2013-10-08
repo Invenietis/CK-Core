@@ -373,7 +373,7 @@ namespace CK.Core
                 appender( newLine );
                 foreach( var item in _aggregatedExceptions )
                 {
-                    item.Write( appender, locPrefix = " | ", newLine );
+                    item.Write( appender, locPrefix + " | ", newLine );
                 }
                 appender( locPrefix );
                 appender( " └─────────────────────────────────────────────────────────────────────────" );

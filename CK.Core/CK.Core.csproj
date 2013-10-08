@@ -92,6 +92,7 @@
     <Compile Include="ActivityMonitor\Impl\ActivityMonitor.cs" />
     <Compile Include="ActivityMonitor\Impl\IActivityMonitorBridgeCallback.cs" />
     <Compile Include="ActivityMonitor\Impl\IActivityMonitorImpl.cs" />
+    <Compile Include="ActivityMonitor\LogFilter.cs" />
     <Compile Include="ActivityMonitor\LogLevel.cs" />
     <Compile Include="ActivityMonitor\LogLevelFilter.cs" />
     <Compile Include="CKException.cs" />
