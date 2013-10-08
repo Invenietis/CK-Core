@@ -78,6 +78,7 @@
     <Compile Include="Monitoring\ActivityMonitorErrorLogs.cs" />
     <Compile Include="CollectionExtensionTests.cs" />
     <Compile Include="MarshallByRefPlayground.cs" />
+    <Compile Include="Monitoring\LogFilterTests.cs" />
     <Compile Include="Monitoring\StupidXmlClient.cs" />
     <Compile Include="CriticalErrorCollectorTests.cs" />
     <Compile Include="EnumerableExtensionTests.cs" />

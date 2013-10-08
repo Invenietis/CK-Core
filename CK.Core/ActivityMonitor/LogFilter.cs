@@ -22,7 +22,7 @@ namespace CK.Core
         public readonly LogLevelFilter Group;
 
         /// <summary>
-        /// Initializes a new <see cref="LogFilter"/> witha level for <see cref="Line"/> logs and <see cref="Group"/>s.
+        /// Initializes a new <see cref="LogFilter"/> with a level for <see cref="Line"/> logs and <see cref="Group"/>s.
         /// </summary>
         /// <param name="line">Filter for lines.</param>
         /// <param name="group">Filter for groups.</param>
@@ -78,6 +78,62 @@ namespace CK.Core
             if( y < x ) return y;
             return x;
         }
+
+        /// <summary>
+        /// Overridden to compare <see cref="Line"/> and <see cref="Group"/>.
+        /// </summary>
+        /// <param name="obj">Other object.</param>
+        /// <returns>True if Line and Group are equal.</returns>
+        public override bool Equals( object obj )
+        {
+            if( obj is LogFilter )
+            {
+                LogFilter x = (LogFilter)obj;
+                return x.Line == Line && x.Group == Group;
+            }
+            return false;
+        }
+
+        /// <summary>
+        /// Overridden to compute hash based on <see cref="Line"/> and <see cref="Group"/> values.
+        /// </summary>
+        /// <returns>The hash code.</returns>
+        public override int GetHashCode()
+        {
+            return ((int)Line) << 16 + (int)Group;
+        }
+
+        /// <summary>
+        /// Overridden to show the line and the group level.
+        /// </summary>
+        /// <returns>A detailed string.</returns>
+        public override string ToString()
+        {
+            return String.Format( "LogFilter: Line={0}, Group={1}.", Line, Group );
+        }
+
+        /// <summary>
+        /// Equality operator.
+        /// </summary>
+        /// <param name="x">First filter.</param>
+        /// <param name="y">Second filter.</param>
+        /// <returns>True if <see cref="Line"/> and <see cref="Group"/> are the same for the two filters.</returns>
+        public static bool operator ==( LogFilter x, LogFilter y )
+        {
+            return x.Line == y.Line && x.Group == y.Group;
+        }
+
+        /// <summary>
+        /// Inequality operator.
+        /// </summary>
+        /// <param name="x">First filter.</param>
+        /// <param name="y">Second filter.</param>
+        /// <returns>True if <see cref="Line"/> and <see cref="Group"/> are the same for the two filters.</returns>
+        public static bool operator !=( LogFilter x, LogFilter y )
+        {
+            return x.Line != y.Line || x.Group != y.Group;
+        }
+
 
     }
 
