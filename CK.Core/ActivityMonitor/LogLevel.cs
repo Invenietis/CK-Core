@@ -21,11 +21,14 @@
 *-----------------------------------------------------------------------------*/
 #endregion
 
+using System;
+
 namespace CK.Core
 {
     /// <summary>
     /// Five standard log levels in increasing order used by <see cref="IActivityMonitor"/>.
     /// </summary>
+    [Flags]
     public enum LogLevel
     {
         /// <summary>
@@ -54,7 +57,20 @@ namespace CK.Core
         /// the current activity. This kind of error may have important side effects
         /// on the system.
         /// </summary>
-        Fatal = 5
+        Fatal = 5,
+
+        /// <summary>
+        /// Mask that covers actual levels to easily ignore <see cref="IsFiltered"/> bit.
+        /// </summary>
+        Mask = 7,
+
+        /// <summary>
+        /// Flag that denotes a log level that has been filtered.
+        /// When this flag is not set, the <see cref="IActivityMonitor.UnfilteredOpenGroup"/> or <see cref="UnfilteredLog"/> has been 
+        /// called directly. When set, the log has typically been emitted through the extension methods that challenge the 
+        /// monitor's <see cref="IActivityMonitor.ActualFilter">actual filter</see> and <see cref="ActivityMonitor.DefaultFilter"/> static configuration.
+        /// </summary>
+        IsFiltered = 8
     }
 
 }

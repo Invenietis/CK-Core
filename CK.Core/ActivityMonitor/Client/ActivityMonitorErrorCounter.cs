@@ -23,6 +23,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text;
@@ -152,6 +153,7 @@ namespace CK.Core
 
             internal void CatchLevel( LogLevel level )
             {
+                Debug.Assert( (level & LogLevel.IsFiltered) == 0 );
                 switch( level )
                 {
                     case LogLevel.Fatal:
@@ -255,7 +257,7 @@ namespace CK.Core
         /// <param name="logTimeUtc">Timestamp of the log.</param>
         protected override void OnUnfilteredLog( CKTrait tags, LogLevel level, string text, DateTime logTimeUtc )
         {
-            _current.CatchLevel( level );
+            _current.CatchLevel( level&LogLevel.Mask );
         }
 
         /// <summary>
@@ -265,7 +267,7 @@ namespace CK.Core
         protected override void OnOpenGroup( IActivityLogGroup group )
         {
             _current = new State( _current );
-            _current.CatchLevel( group.GroupLevel );
+            _current.CatchLevel( group.MaskedGroupLevel );
         }
 
         /// <summary>

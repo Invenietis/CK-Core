@@ -67,7 +67,7 @@ namespace CK.Core.Tests.Monitoring
         {
             Writer.WriteLine();
             Writer.Write( new String( '+', g.Depth ) );
-            Writer.Write( "{1} ({0})", g.GroupLevel, g.GroupText );
+            Writer.Write( "{1} ({0})", g.MaskedGroupLevel, g.GroupText );
             if( g.Exception != null ) Writer.Write( "Exception: " + g.Exception.Message );
             if( WriteTags ) Writer.Write( "-[{0}]", g.GroupTags.ToString() );
         }

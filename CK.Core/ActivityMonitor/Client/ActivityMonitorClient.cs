@@ -50,7 +50,7 @@ namespace CK.Core
         /// <summary>
         /// Gets the minimal log level that this Client expects: defaults to <see cref="LogLevelFilter.None"/>.
         /// </summary>
-        public virtual LogLevelFilter MinimalFilter { get { return LogLevelFilter.None; } }
+        public virtual LogFilter MinimalFilter { get { return LogFilter.Undefined; } }
 
         /// <summary>
         /// Called for each <see cref="IActivityMonitor.UnfilteredLog"/>.
@@ -65,7 +65,7 @@ namespace CK.Core
         }
 
         /// <summary>
-        /// Called for each <see cref="IActivityMonitor.OpenGroup"/>.
+        /// Called for each <see cref="IActivityMonitor.UnfilteredOpenGroup"/>.
         /// Does nothing by default.
         /// </summary>
         /// <param name="group">The newly opened <see cref="IActivityLogGroup"/>.</param>

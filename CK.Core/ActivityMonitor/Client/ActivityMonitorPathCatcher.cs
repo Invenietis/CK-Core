@@ -50,7 +50,7 @@ namespace CK.Core
             /// <summary>
             /// Gets the log level of the log entry.
             /// </summary>
-            public LogLevel Level { get; internal set; }
+            public LogLevel MaskedLevel { get; internal set; }
             /// <summary>
             /// Gets the text of the log entry.
             /// </summary>
@@ -176,7 +176,7 @@ namespace CK.Core
                     _currentIsGroup = false;
                 }
                 _current.Tags = tags;
-                _current.Level = level;
+                _current.MaskedLevel = level&LogLevel.Mask;
                 _current.Text = text;
                 CheckSnapshot();
             }
@@ -197,7 +197,7 @@ namespace CK.Core
             }
             _currentIsGroup = true;
             _current.Tags = group.GroupTags;
-            _current.Level = group.GroupLevel;
+            _current.MaskedLevel = group.MaskedGroupLevel;
             _current.Text = group.GroupText;
             CheckSnapshot();
         }
@@ -240,12 +240,12 @@ namespace CK.Core
         void CheckSnapshot()
         {
             Debug.Assert( _current != null );
-            if( _current.Level >= LogLevel.Warn )
+            if( _current.MaskedLevel >= LogLevel.Warn )
             {
                 // Clone the last element if it is not a group: since it is updated
                 // with levels, it has to be snapshoted.
-                _warnSnaphot = _path.Select( ( e, idx ) => _currentIsGroup || idx < _path.Count-1 ? e : new PathElement() { Tags = e.Tags, Level = e.Level, Text = e.Text } ).ToReadOnlyList();
-                if( _current.Level >= LogLevel.Error )
+                _warnSnaphot = _path.Select( ( e, idx ) => _currentIsGroup || idx < _path.Count-1 ? e : new PathElement() { Tags = e.Tags, MaskedLevel = e.MaskedLevel, Text = e.Text } ).ToReadOnlyList();
+                if( _current.MaskedLevel >= LogLevel.Error )
                 {
                     _errorSnaphot = _warnSnaphot;
                 }

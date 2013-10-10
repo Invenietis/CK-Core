@@ -43,7 +43,7 @@ namespace CK.Core
         void OnUnfilteredLog( CKTrait tags, LogLevel level, string text, DateTime logTimeUtc );
 
         /// <summary>
-        /// Called for each <see cref="IActivityMonitor.OpenGroup"/>.
+        /// Called for each <see cref="IActivityMonitor.UnfilteredOpenGroup"/>.
         /// </summary>
         /// <param name="group">The newly opened <see cref="IActivityLogGroup"/>.</param>
         void OnOpenGroup( IActivityLogGroup group );

@@ -46,26 +46,28 @@ namespace CK.Core.Tests.Monitoring
                 }
             }
 
-            public void DoSomethingInOriginDomainAndSetFilterTo( LogLevelFilter filter, bool emitLogs = false )
+            public void OpenWarnGroupFromOriginDomain( LogFilter expectedConfiguredAndActualFilter )
             {
-                if( emitLogs )
+                Assert.That( MonitorBridge.TargetMonitor, Is.Not.Null, "Since we are in the original App Domain." );
+                Assert.That( MonitorBridge.TargetMonitor.ActualFilter, Is.EqualTo( expectedConfiguredAndActualFilter ) );
+                using( MonitorBridge.TargetMonitor.OpenGroup( LogLevel.Warn, "From Origin AppDomain: changing the Filter in a group (useless)." ) )
                 {
-                    Assert.That( MonitorBridge.TargetMonitor, Is.Not.Null, "Since we are in the original App Domain." );
-                    Assert.That( MonitorBridge.TargetMonitor.ActualFilter, Is.EqualTo( LogLevelFilter.Info ), "This is the original configuration." );
-                    using( MonitorBridge.TargetMonitor.OpenGroup( LogLevel.Info, "From Origin AppDomain: changing the Filter in a group (useless)." ) )
-                    {
-                        // This change must be seen by the Bridge (but is restored).
-                        MonitorBridge.TargetMonitor.Filter = LogLevelFilter.Fatal;
-                        Assert.That( MonitorBridge.TargetMonitor.ActualFilter, Is.EqualTo( LogLevelFilter.Fatal ), "Configured filter is the only one." );
-                    }
-                    Assert.That( MonitorBridge.TargetMonitor.Filter, Is.EqualTo( LogLevelFilter.Info ), "Group closing restores the filter." );
-                    Assert.That( MonitorBridge.TargetMonitor.ActualFilter, Is.EqualTo( LogLevelFilter.Info ), "Group closing restores the filter." );
+                    // This change must be seen by the Bridge (but is restored).
+                    MonitorBridge.TargetMonitor.Filter = MonitorBridge.TargetMonitor.Filter.SetLine( LogLevelFilter.Trace );
+                    Assert.That( MonitorBridge.TargetMonitor.ActualFilter.Line, Is.EqualTo( LogLevelFilter.Trace ), "Configured filter is the only one." );
+                    
+                    Assert.That( MonitorBridge.TargetMonitor.ActualFilter, Is.Not.EqualTo( expectedConfiguredAndActualFilter ), "This test is useless!" );
                 }
+                Assert.That( MonitorBridge.TargetMonitor.ActualFilter, Is.EqualTo( expectedConfiguredAndActualFilter ), "Group closing restores the filter." );
+            }
+
+            public void SetFilterFromOriginDomain( LogFilter filter )
+            {
                 // This change WILL impact the Bridge if the ActualFilter changed (depending on the Client minimal filter).
                 MonitorBridge.TargetMonitor.Filter = filter;
             }
 
-            internal void DoAsyncSetFilterViaClientInOriginDomain( LogLevelFilter logLevelFilter, LogLevelFilter resultingActualFilter )
+            internal void DoAsyncSetFilterViaClientInOriginDomain( LogFilter logLevelFilter, LogFilter resultingActualFilter )
             {
                 var c = MonitorBridge.TargetMonitor.Output.Clients.OfType<ActivityMonitorClientTester>().Single();
                 c.AsyncSetMinimalFilterBlock( logLevelFilter, 1 );
@@ -79,13 +81,16 @@ namespace CK.Core.Tests.Monitoring
         public void TestCrossDomain()
         {
             IActivityMonitor monitor = new ActivityMonitor();
-            monitor.Filter = LogLevelFilter.Info;
+            monitor.Filter = LogFilter.Terse;
             monitor.Output.RegisterClient( new ActivityMonitorClientTester() );
             StupidStringClient textDump = monitor.Output.RegisterClient( new StupidStringClient( true, true ) );
+            monitor.Output.RegisterClient( new ActivityMonitorErrorCounter() { GenerateConclusion = true } );
 
-            Assert.That( monitor.Filter, Is.EqualTo( LogLevelFilter.Info ), "This is the original configuration." );
-            Assert.That( monitor.ActualFilter, Is.EqualTo( LogLevelFilter.Info ), "This is the original configuration." );
-            
+            Assert.That( monitor.Filter, Is.EqualTo( LogFilter.Terse ), "This is the original configuration." );
+            Assert.That( monitor.ActualFilter, Is.EqualTo( LogFilter.Terse ), "This is the original configuration." );
+
+            TestHelper.ConsoleMonitor.Filter = LogFilter.Undefined;
+
             using( monitor.Output.CreateBridgeTo( TestHelper.ConsoleMonitor.Output.BridgeTarget ) )
             {
                 AppDomainSetup setup = new AppDomainSetup();
@@ -93,7 +98,7 @@ namespace CK.Core.Tests.Monitoring
 
                 using( monitor.OpenGroup( LogLevel.Info, "Launching Application Domain." ) )
                 {
-                    Assert.That( monitor.ActualFilter, Is.EqualTo( LogLevelFilter.Info ), "This is the original configuration." );
+                    Assert.That( monitor.ActualFilter, Is.EqualTo( LogFilter.Terse ), "This is the original configuration." );
                     var appDomain = AppDomain.CreateDomain( "ExternalDomainForTestCrossDomainMonitor", null, setup );
                     AppDomainCommunication appDomainComm = new AppDomainCommunication( monitor );
                     appDomain.SetData( "external-appDomainComm", appDomainComm );
@@ -108,10 +113,10 @@ namespace CK.Core.Tests.Monitoring
             Assert.That( text, Is.StringContaining( "In another AppDomain." ) );
             Assert.That( text, Is.StringContaining( "An error is logged|External App Domain|Marshalled trait|Test for fun" ) );
             Assert.That( text, Is.StringContaining( "From external world." ) );
-            Assert.That( text, Is.StringContaining( "Exceptions are serializable." ) );
+            Assert.That( text, Is.StringContaining( "Exceptions are serialized as CKExceptionData." ) );
             Assert.That( text, Is.StringContaining( "Name of the AppDomain is 'ExternalDomainForTestCrossDomainMonitor'." ) );
             Assert.That( text, Is.StringContaining( "Everything is fine.-/[/c:User/]/" ) );
-            Assert.That( text, Is.StringContaining( "1 Error, 1 Warning-/[/c:ErrorCounter/]/" ) );
+            Assert.That( text, Is.StringContaining( "1 Fatal error, 2 Errors, 1 Warning-/[/c:ErrorCounter/]/" ), "There must be only one Warning since the second call to OpenWarnGroupFromOriginDomain must be filtered." );
 
             Assert.That( text, Is.StringContaining( R.ClosedByBridgeRemoved ) );
             Assert.That( text, Is.StringContaining( ActivityMonitorBridge.TagBridgePrematureClose.ToString() ) );
@@ -126,47 +131,53 @@ namespace CK.Core.Tests.Monitoring
             IActivityMonitor monitor = new ActivityMonitor( applyAutoConfigurations: false );
             monitor.Output.RegisterClient( new ActivityMonitorErrorCounter() { GenerateConclusion = true } );
 
-            try
+            using( monitor.Output.CreateBridgeTo( appDomainComm.MonitorBridge ) )
             {
-                using( monitor.Output.CreateBridgeTo( appDomainComm.MonitorBridge, applyTargetHonorMonitorFilterToOpenGroup: true ) )
+                try
                 {
                     monitor.AutoTags = ActivityMonitor.RegisteredTags.FindOrCreate( "External App Domain|Test for fun" );
                     monitor.OpenGroup( LogLevel.Info, "In another AppDomain." );
-                    
-                    monitor.Trace( "This will #NOT APPEAR# (Filter is Info)." );
-                    monitor.Trace( () => { Assert.Fail( "This will never be called." ); return null; } );
 
-                    monitor.Info( "From external world." );
-                    monitor.Error( ActivityMonitor.RegisteredTags.FindOrCreate( "An error is logged|Marshalled trait" ), new Exception( "Exceptions are serializable." ), "From external world." );
-                    monitor.Warn( "Name of the AppDomain is '{0}'.", AppDomain.CurrentDomain.FriendlyName );
+                    monitor.Trace( "This will #NOT APPEAR# (Filter is LogFilter.Terse: only errors are captured)." );
+                    monitor.Warn( () => { Assert.Fail( "This will never be called." ); return null; } );
+
+                    monitor.Error( "From external world." );
+                    monitor.Error( ActivityMonitor.RegisteredTags.FindOrCreate( "An error is logged|Marshalled trait" ), new Exception( "Exceptions are serialized as CKExceptionData." ), "From external world." );
+                    monitor.Fatal( "Name of the AppDomain is '{0}'.", AppDomain.CurrentDomain.FriendlyName );
                     monitor.CloseGroup( "Everything is fine." );
 
-                    Assert.That( monitor.Filter, Is.EqualTo( LogLevelFilter.None ) );
-                    Assert.That( monitor.ActualFilter, Is.EqualTo( LogLevelFilter.Info ) );
-                    appDomainComm.DoSomethingInOriginDomainAndSetFilterTo( LogLevelFilter.Trace, emitLogs: true );
-                    Assert.That( monitor.ActualFilter, Is.EqualTo( LogLevelFilter.Trace ), "Changing Filter in the Origin Domain impacts this monitor since there is no other config here (explicit on the local monitor or by other client)." );
-                    Assert.That( monitor.Filter, Is.EqualTo( LogLevelFilter.None ), "This monitor's configured filter did not change." );
+                    Assert.That( monitor.Filter, Is.EqualTo( LogFilter.Undefined ) );
+                    Assert.That( monitor.ActualFilter, Is.EqualTo( LogFilter.Terse ) );
+                    // This will create a Warn (Terse is Info on Groups).
+                    appDomainComm.OpenWarnGroupFromOriginDomain( LogFilter.Terse );
 
-                    appDomainComm.DoSomethingInOriginDomainAndSetFilterTo( LogLevelFilter.None );
-                    Assert.That( monitor.ActualFilter, Is.EqualTo( LogLevelFilter.None ), "This monitor has NO more configuration." );
+                    appDomainComm.SetFilterFromOriginDomain( LogFilter.Debug );
+                    Assert.That( monitor.ActualFilter, Is.EqualTo( LogFilter.Debug ), "Changing Filter in the Origin Domain impacts this monitor since there is no other config here (explicit on the local monitor or by other client)." );
+                    Assert.That( monitor.Filter, Is.EqualTo( LogFilter.Undefined ), "This monitor's configured filter did not change." );
 
-                    appDomainComm.DoAsyncSetFilterViaClientInOriginDomain( LogLevelFilter.Error, resultingActualFilter: LogLevelFilter.Error );
-                    Assert.That( monitor.ActualFilter, Is.EqualTo( LogLevelFilter.Error ), "The client requires error, no one else requires something else: the target monitor's Actual Filter is Error ==> the bridge has been warned and its own monitor is now on Error..." );
+                    appDomainComm.SetFilterFromOriginDomain( LogFilter.Undefined );
+                    Assert.That( monitor.ActualFilter, Is.EqualTo( LogFilter.Undefined ), "This monitor has NO more configuration." );
+
+                    appDomainComm.DoAsyncSetFilterViaClientInOriginDomain( LogFilter.Release, resultingActualFilter: LogFilter.Release );
+                    Assert.That( monitor.ActualFilter, Is.EqualTo( LogFilter.Release ), "The client requires Release, no one else requires something else: the target monitor's Actual Filter is Release ==> the bridge has been warned and its own monitor is now on Release..." );
+
+                    // This has no effect (since we are in Release).
+                    appDomainComm.OpenWarnGroupFromOriginDomain( LogFilter.Release );
 
                     monitor.Warn( () => { Assert.Fail( "This will never be called." ); return null; } );
-                    
-                    appDomainComm.DoAsyncSetFilterViaClientInOriginDomain( LogLevelFilter.Trace, resultingActualFilter: LogLevelFilter.Trace );
-                    Assert.That( monitor.ActualFilter, Is.EqualTo( LogLevelFilter.Trace ) );
+
+                    appDomainComm.DoAsyncSetFilterViaClientInOriginDomain( LogFilter.Debug, resultingActualFilter: LogFilter.Debug );
+                    Assert.That( monitor.ActualFilter, Is.EqualTo( LogFilter.Debug ) );
 
                     monitor.OpenGroup( LogLevel.Info, "Opened but not closed Group..." );
-                }
 
-                appDomainComm.SetResult( true );
-            }
-            catch( Exception ex )
-            {
-                monitor.Fatal( ex );
-                appDomainComm.SetResult( false );
+                    appDomainComm.SetResult( true );
+                }
+                catch( Exception ex )
+                {
+                    monitor.Fatal( ex );
+                    appDomainComm.SetResult( false );
+                }
             }
         }
 

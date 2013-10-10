@@ -32,7 +32,7 @@ namespace CK.Core.Impl
         /// </summary>
         /// <param name="oldLevel">The previous minimal level that the client expected.</param>
         /// <param name="newLevel">The new minimal level that the client expects.</param>
-        void OnClientMinimalFilterChanged( LogLevelFilter oldLevel, LogLevelFilter newLevel );
+        void OnClientMinimalFilterChanged( LogFilter oldLevel, LogFilter newLevel );
 
         /// <summary>
         /// Signals the monitor that one of the <see cref="IActivityMonitorBoundClient.MinimalFilter"/> has changed:

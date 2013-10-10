@@ -11,11 +11,11 @@ namespace CK.Core.Tests.Monitoring
     class ActivityMonitorClientTester : IActivityMonitorBoundClient
     {
         IActivityMonitorImpl _source;
-        LogLevelFilter _minimalFilter;
+        LogFilter _minimalFilter;
         int _depth;
         string[] _text;
 
-        public LogLevelFilter MinimalFilter
+        public LogFilter MinimalFilter
         {
             get { return _minimalFilter; }
             set
@@ -36,7 +36,7 @@ namespace CK.Core.Tests.Monitoring
 
         class Flag { public bool Set; }
 
-        public void AsyncSetMinimalFilterBlock( LogLevelFilter filter, int delayMilliSeconds = 0 )
+        public void AsyncSetMinimalFilterBlock( LogFilter filter, int delayMilliSeconds = 0 )
         {
             var state = Tuple.Create( TimeSpan.FromMilliseconds( delayMilliSeconds ), filter, new Flag() );
             ThreadPool.QueueUserWorkItem( DoAsyncSetMinimalFilterBlock, state );
@@ -47,14 +47,14 @@ namespace CK.Core.Tests.Monitoring
 
         void DoAsyncSetMinimalFilter( object state )
         {
-            var o = (Tuple<TimeSpan, LogLevelFilter>)state;
+            var o = (Tuple<TimeSpan, LogFilter>)state;
             if( o.Item1 != TimeSpan.Zero ) Thread.Sleep( o.Item1 );
             MinimalFilter = o.Item2;
         }
 
         void DoAsyncSetMinimalFilterBlock( object state )
         {
-            var o = (Tuple<TimeSpan, LogLevelFilter,Flag>)state;
+            var o = (Tuple<TimeSpan, LogFilter,Flag>)state;
             if( o.Item1 != TimeSpan.Zero ) Thread.Sleep( o.Item1 );
             MinimalFilter = o.Item2;
             lock( o )

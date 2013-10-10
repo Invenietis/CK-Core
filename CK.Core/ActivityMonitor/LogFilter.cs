@@ -8,9 +8,52 @@ namespace CK.Core
 {
     /// <summary>
     /// Immutable capture of a double <see cref="LogLevelFilter"/>. One for <see cref="Line"/> and one for <see cref="Group"/>.
+    /// This value type exposes predefined configured couples: <see cref="Debug"/> (full trace), <see cref="Verbose"/>, <see cref="Monitor"/>, 
+    /// <see cref="Terse"/>, <see cref="Release"/> and <see cref="Off"/> (no log at all).
     /// </summary>
+    [Serializable]
     public struct LogFilter
     {
+        /// <summary>
+        /// Undefined filter is <see cref="LogLevelFilter.None"/> for both <see cref="Line"/> and <see cref="Group"/>.
+        /// </summary>
+        static public readonly LogFilter Undefined = new LogFilter( LogLevelFilter.None, LogLevelFilter.None );
+
+        /// <summary>
+        /// Debug filter enables full <see cref="LogLevelFilter.Trace"/> for both <see cref="Line"/> and <see cref="Group"/>.
+        /// </summary>
+        static public readonly LogFilter Debug = new LogFilter( LogLevelFilter.Trace, LogLevelFilter.Trace );
+
+        /// <summary>
+        /// Verbose <see cref="LogLevelFilter.Trace"/> all <see cref="Group"/>s but limits <see cref="Line"/> to <see cref="LogLevelFilter.Info"/> level.
+        /// </summary>
+        static public readonly LogFilter Verbose = new LogFilter( LogLevelFilter.Info, LogLevelFilter.Trace );
+
+        /// <summary>
+        /// While monitoring, only errors and warnings are captured, whereas all <see cref="Group"/>s appear to get the detailed structure of the activity.
+        /// </summary>
+        static public readonly LogFilter Monitor = new LogFilter( LogLevelFilter.Warn, LogLevelFilter.Trace );
+
+        /// <summary>
+        /// Terse filter captures only errors for <see cref="Line"/> and limits <see cref="Group"/>s to <see cref="LogLevelFilter.Info"/> level.
+        /// </summary>
+        static public readonly LogFilter Terse = new LogFilter( LogLevelFilter.Error, LogLevelFilter.Info );
+        
+        /// <summary>
+        /// Release filter captures only <see cref="LogLevelFilter.Error"/>s for both <see cref="Line"/> and <see cref="Group"/>.
+        /// </summary>
+        static public readonly LogFilter Release = new LogFilter( LogLevelFilter.Error, LogLevelFilter.Error );
+
+        /// <summary>
+        /// Off filter does not capture anything.
+        /// </summary>
+        static public readonly LogFilter Off = new LogFilter( LogLevelFilter.Off, LogLevelFilter.Off );
+
+        /// <summary>
+        /// Invalid must be used as a special value. It is <see cref="LogLevelFilter.Invalid"/> for both <see cref="Line"/> and <see cref="Group"/>.
+        /// </summary>
+        static public readonly LogFilter Invalid = new LogFilter( LogLevelFilter.Invalid, LogLevelFilter.Invalid );
+
         /// <summary>
         /// The filter that applies to log lines (Trace, Info, Warn, Error and Fatal). 
         /// </summary>
@@ -44,6 +87,18 @@ namespace CK.Core
         }
 
         /// <summary>
+        /// Combines this filter with another one only if <see cref="Line"/> or <see cref="Group"/> is <see cref="LogLevelFilter.None"/>.
+        /// </summary>
+        /// <param name="other">The other filter to combine with this one.</param>
+        /// <returns>The resulting filter.</returns>
+        public LogFilter CombineNoneOnly( LogFilter other )
+        {
+            var l = Line == LogLevelFilter.None ? other.Line : Line;
+            var g = Group == LogLevelFilter.None ? other.Group : Group;
+            return new LogFilter( l, g );
+        }
+
+        /// <summary>
         /// Returns a <see cref="LogFilter"/> with a given <see cref="LogLevelFilter"/> for the <see cref="Line"/>.
         /// </summary>
         /// <param name="line">Filter for the line.</param>
@@ -61,6 +116,16 @@ namespace CK.Core
         public LogFilter SetGroup( LogLevelFilter group )
         {
             return new LogFilter( Line, group );
+        }
+
+        /// <summary>
+        /// Tests if <see cref="Combine(LogFilter)">combining</see> this and <paramref name="x"/> will result in a different filter than x.
+        /// </summary>
+        /// <param name="x">The other filter.</param>
+        /// <returns>True if combining this filter and <paramref name="x"/> will change x.</returns>
+        public bool HasImpactOn( LogFilter x )
+        {
+            return (Line != LogLevelFilter.None && Line < x.Line) || (Group != LogLevelFilter.None && Group < x.Group); 
         }
 
         /// <summary>

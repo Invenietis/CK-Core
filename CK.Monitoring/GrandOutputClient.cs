@@ -23,7 +23,7 @@ namespace CK.Monitoring
 
         GrandOutputSource _source;
         IChannel _channel;
-        LogLevelFilter _currentMinimalFilter;
+        LogFilter _currentMinimalFilter;
         int _relativeDepth;
         int _curVersion;
         int _version;
@@ -43,7 +43,7 @@ namespace CK.Monitoring
             // Silently ignore null => null or monitor => same monitor.
             if( source != _monitorSource )
             {
-                _currentMinimalFilter = LogLevelFilter.None;
+                _currentMinimalFilter = LogFilter.Undefined;
                 Debug.Assert( (source == null) != (_monitorSource == null) );
                 if( (_monitorSource = source) == null )
                 {
@@ -81,7 +81,7 @@ namespace CK.Monitoring
             }
         }
 
-        public LogLevelFilter MinimalFilter { get { return _currentMinimalFilter; } }
+        public LogFilter MinimalFilter { get { return _currentMinimalFilter; } }
 
         internal void OnChannelConfigurationChanged()
         {

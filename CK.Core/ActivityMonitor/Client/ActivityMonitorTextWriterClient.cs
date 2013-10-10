@@ -27,6 +27,7 @@ using System.Linq;
 using System.Text;
 using System.IO;
 using System.Reflection;
+using System.Diagnostics;
 
 namespace CK.Core
 {
@@ -64,6 +65,7 @@ namespace CK.Core
 
         protected override void OnEnterLevel( CKTrait tags, LogLevel level, string text, DateTime logTimeUtc )
         {
+            Debug.Assert( (level & LogLevel.IsFiltered) == 0 );
             TextWriter w = _writer();
             _prefixLevel = _prefix + new String( ' ', level.ToString().Length + 4 );
             text = text.Replace( Environment.NewLine, Environment.NewLine + _prefixLevel );
@@ -80,6 +82,7 @@ namespace CK.Core
 
         protected override void OnContinueOnSameLevel( CKTrait tags, LogLevel level, string text, DateTime logTimeUtc )
         {
+            Debug.Assert( (level & LogLevel.IsFiltered) == 0 );
             TextWriter w = _writer();
             text = text.Replace( Environment.NewLine, Environment.NewLine + _prefixLevel );
             if( _currentTags != tags )
@@ -92,13 +95,14 @@ namespace CK.Core
 
         protected override void OnLeaveLevel( LogLevel level )
         {
+            Debug.Assert( (level & LogLevel.IsFiltered) == 0 );
             _prefixLevel = _prefix;
         }
 
         protected override void OnGroupOpen( IActivityLogGroup g )
         {
             TextWriter w = _writer();
-            string start = String.Format( "{0}> {1}: ", _prefix, g.GroupLevel.ToString() );
+            string start = String.Format( "{0}> {1}: ", _prefix, g.MaskedGroupLevel.ToString() );
             _prefix += "|  ";
             _prefixLevel = _prefix;
             string text = g.GroupText.Replace( Environment.NewLine, Environment.NewLine + _prefixLevel );

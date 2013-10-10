@@ -51,7 +51,7 @@ namespace CK.Core
         /// Modifications to this property are scoped to the current Group since when a Group is closed, this
         /// property (and <see cref="AutoTags"/>) is automatically restored to its original value (captured when the Group was opened).
         /// </summary>
-        LogLevelFilter Filter { get; set; }
+        LogFilter Filter { get; set; }
         
         /// <summary>
         /// Gets the actual filter level for logs: this combines the configured <see cref="Filter"/> and the minimal requirements
@@ -59,10 +59,10 @@ namespace CK.Core
         /// </summary>
         /// <remarks>
         /// This does NOT take into account the static (application-domain) <see cref="ActivityMonitor.DefaultFilter"/>.
-        /// This global default must be used if this ActualFilter is <see cref="LogLevelFilter.None"/>: the <see cref="ActivityMonitorExtension.ShouldLog">ShouldLog</see>
-        /// extension method takes it into account.
+        /// This global default must be used if this ActualFilter is <see cref="LogLevelFilter.None"/> for <see cref="LogFilter.Line"/> or <see cref="LogFilter.Group"/>: 
+        /// the <see cref="ActivityMonitorExtension.ShouldLogLine">ShouldLog</see> extension method takes it into account.
         /// </remarks>
-        LogLevelFilter ActualFilter { get; }
+        LogFilter ActualFilter { get; }
 
         /// <summary>
         /// Logs a text regardless of <see cref="ActalFilter"/> level. 
@@ -76,30 +76,40 @@ namespace CK.Core
         /// <param name="text">Text to log. Ignored if null or empty.</param>
         /// <param name="logTimeUtc">Timestamp of the log entry (must be UTC).</param>
         /// <param name="ex">Optional exception associated to the log. When not null, a Group is automatically created.</param>
-        /// <returns>This monitor to enable fluent syntax.</returns>
         /// <remarks>
         /// A null or empty <paramref name="text"/> is not logged.
         /// If needed, the special text <see cref="ActivityMonitor.ParkLevel"/> ("PARK-LEVEL") breaks the current <see cref="LogLevel"/>
-        /// and resets it: the next log, even with the same LogLevel, will be treated as if a different LogLevel is used.
+        /// and resets it: the next log, even with the same LogLevel, should be treated as if a different LogLevel is used.
         /// </remarks>
-        IActivityMonitor UnfilteredLog( CKTrait tags, LogLevel level, string text, DateTime logTimeUtc, Exception ex = null );
+        void UnfilteredLog( CKTrait tags, LogLevel level, string text, DateTime logTimeUtc, Exception ex = null );
 
         /// <summary>
-        /// Opens a log level. <see cref="CloseGroup"/> must be called in order to
-        /// close the group, or the returned object must be disposed.
+        /// Opens a group regardless of <see cref="ActalFilter"/> level. 
+        /// <see cref="CloseGroup"/> must be called in order to close the group, and/or the returned object must be disposed (both safely can be called: 
+        /// the group is closed on the first action, the second one is ignored).
         /// </summary>
-        /// <param name="tags">Tags (from <see cref="ActivityMonitor.RegisteredTags"/>) to associate to the log, unioned with current <see cref="AutoTags"/>.</param>
-        /// <param name="level">Log level. Since we are opening a group, the current <see cref="ActualFilter"/> is ignored.</param>
+        /// <param name="tags">Tags (from <see cref="ActivityMonitor.RegisteredTags"/>) to associate to the log. It will be unioned with current <see cref="AutoTags"/>.</param>
+        /// <param name="level">Log level. The <see cref="LogLevel.None"/> level is used to open a filtered group. See remarks.</param>
         /// <param name="getConclusionText">Optional function that will be called on group closing.</param>
         /// <param name="text">Text to log (the title of the group). Null text is valid and considered as <see cref="String.Empty"/> or assigned to the <see cref="Exception.Message"/> if it exists.</param>
         /// <param name="logTimeUtc">Timestamp of the log entry (must be UTC).</param>
         /// <param name="ex">Optional exception associated to the group.</param>
         /// <returns>A disposable object that can be used to close the group.</returns>
         /// <remarks>
-        /// A group opening is not filtered since any subordinated logs may occur with a much higher level.
-        /// It is left to the implementation to handle (or not) filtering when <see cref="CloseGroup"/> is called.
+        /// <para>
+        /// Opening a group does not change the current <see cref="Filter"/>, except when opening a <see cref="LogLevel.Fatal"/> or <see cref="LogLevel.Error"/> group:
+        /// in such case, the Filter is automatically sets to <see cref="LogFilter.Debug"/> to capture all potential information inside the error group.
+        /// </para>
+        /// <para>
+        /// Changes to the monitor's current Filter or AutoTags that occur inside a group are automatically restored to their original values when the group is closed.
+        /// This behavior guaranties that a local modification (deep inside unknown called code) does not impact caller code: groups are a way to easily isolate such 
+        /// configuration changes.
+        /// </para>
+        /// <para>
+        /// Note that this automatic configuration restoration works even if the group is filtered (when the <paramref name="level"/> is None).
+        /// </para>
         /// </remarks>
-        IDisposable OpenGroup( CKTrait tags, LogLevel level, Func<string> getConclusionText, string text, DateTime logTimeUtc, Exception ex = null );
+        IDisposable UnfilteredOpenGroup( CKTrait tags, LogLevel level, Func<string> getConclusionText, string text, DateTime logTimeUtc, Exception ex = null );
 
         /// <summary>
         /// Closes the current Group. Optional parameter is polymorphic. It can be a string, a <see cref="ActivityLogGroupConclusion"/>, 

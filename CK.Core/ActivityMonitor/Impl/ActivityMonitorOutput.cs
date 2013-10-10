@@ -89,7 +89,7 @@ namespace CK.Core.Impl
                 Array.Copy( _clients, 0, newArray, 1, _clients.Length );
                 newArray[0] = client;
                 _clients = newArray;
-                if( bound != null ) _monitor.OnClientMinimalFilterChanged( LogLevelFilter.None, bound.MinimalFilter );
+                if( bound != null ) _monitor.OnClientMinimalFilterChanged( LogFilter.Undefined, bound.MinimalFilter );
             }
             return client;
         }
@@ -144,7 +144,7 @@ namespace CK.Core.Impl
                 int idx;
                 if( (idx = Array.IndexOf( _clients, client )) >= 0 )
                 {
-                    LogLevelFilter filter = LogLevelFilter.None;
+                    LogFilter filter = LogFilter.Undefined;
                     IActivityMonitorBoundClient bound = client as IActivityMonitorBoundClient;
                     if( bound != null )
                     {
@@ -155,7 +155,7 @@ namespace CK.Core.Impl
                     Array.Copy( _clients, 0, newArray, 0, idx );
                     Array.Copy( _clients, idx + 1, newArray, idx, newArray.Length - idx );
                     _clients = newArray;
-                    if( filter != LogLevelFilter.None ) _monitor.OnClientMinimalFilterChanged( filter, LogLevelFilter.None );
+                    if( filter != LogFilter.Undefined ) _monitor.OnClientMinimalFilterChanged( filter, LogFilter.Undefined );
                     return client;
                 }
                 return null;

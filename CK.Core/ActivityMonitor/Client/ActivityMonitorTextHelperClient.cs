@@ -46,6 +46,7 @@ namespace CK.Core
 
         void IActivityMonitorClient.OnUnfilteredLog( CKTrait tags, LogLevel level, string text, DateTime logTimeUtc )
         {
+            level &= LogLevel.Mask;
             if( text == ActivityMonitor.ParkLevel )
             {
                 if( _curLevel != -1 )
@@ -100,7 +101,7 @@ namespace CK.Core
         /// Called for the first text of a <see cref="LogLevel"/>.
         /// </summary>
         /// <param name="tags">Tags (from <see cref="ActivityMonitor.RegisteredTags"/>) associated to the log.</param>
-        /// <param name="level">The new current log level.</param>
+        /// <param name="level">The new current log level (without <see cref="LogLevel.IsFiltered"/>).</param>
         /// <param name="text">Text to start.</param>
         /// <param name="logTimeUtc">Timestamp of the log.</param>
         protected abstract void OnEnterLevel( CKTrait tags, LogLevel level, string text, DateTime logTimeUtc );
@@ -109,7 +110,7 @@ namespace CK.Core
         /// Called for text with the same <see cref="LogLevel"/> as the previous ones.
         /// </summary>
         /// <param name="tags">Tags (from <see cref="ActivityMonitor.RegisteredTags"/>) associated to the log.</param>
-        /// <param name="level">The current log level.</param>
+        /// <param name="level">The current log level (without <see cref="LogLevel.IsFiltered"/>).</param>
         /// <param name="text">Text to append.</param>
         /// <param name="logTimeUtc">Timestamp of the log.</param>
         protected abstract void OnContinueOnSameLevel( CKTrait tags, LogLevel level, string text, DateTime logTimeUtc );
@@ -117,7 +118,7 @@ namespace CK.Core
         /// <summary>
         /// Called when current log level changes.
         /// </summary>
-        /// <param name="level">The previous log level.</param>
+        /// <param name="level">The previous log level (without <see cref="LogLevel.IsFiltered"/>).</param>
         protected abstract void OnLeaveLevel( LogLevel level );
 
         /// <summary>

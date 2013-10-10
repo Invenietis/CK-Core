@@ -44,8 +44,6 @@ namespace CK.Core.Tests.Monitoring
         readonly StringBuilder _buffer = new StringBuilder();
         string _prefix = "";
 
-        public LogLevelFilter MinimalFilter { get { return LogLevelFilter.None; } }
-
         public void OnUnfilteredLog( CKTrait tags, LogLevel level, string text, DateTime logTimeUtc )
         {
             lock( _buffer ) _buffer.Append( _prefix ).AppendFormat( "[{0}]{1}", level, text ).AppendLine();
@@ -114,15 +112,6 @@ namespace CK.Core.Tests.Monitoring
 
         #region IActivityMonitorClient Members
 
-        public LogLevelFilter MinimalFilter 
-        {
-            get
-            {
-                MayFail();
-                return LogLevelFilter.Trace;
-            } 
-        }
-
         public void OnUnfilteredLog( CKTrait tags, LogLevel level, string text, DateTime logTimeUtc )
         {
             MayFail();
@@ -173,7 +162,7 @@ namespace CK.Core.Tests.Monitoring
             for( int i = 0; i < OperationCount; ++i )
             {
                 double op = Rand.NextDouble();
-                if( op < 1.0/60 ) _monitor.Filter = _monitor.Filter == LogLevelFilter.Trace ? LogLevelFilter.Info : LogLevelFilter.Trace;
+                if( op < 1.0 / 60 ) _monitor.Filter = _monitor.Filter == LogFilter.Debug ? LogFilter.Verbose : LogFilter.Debug;
                 
                 if( op < 1.0/3 ) _monitor.Info( "OP-{0}-{1}", NumMonitor, i );
                 else if( op < 2.0/3 ) _monitor.OpenGroup( LogLevel.Info, "G-OP-{0}-{1}", NumMonitor, i );
@@ -208,6 +197,7 @@ namespace CK.Core.Tests.Monitoring
         List<BuggyClient> _buggyClients;
         List<ThreadContext> _contexts;
         double _probFailurePerOperation;
+
 
         [Test]
         public void MonitorErrorTrap()
@@ -250,6 +240,7 @@ namespace CK.Core.Tests.Monitoring
         
         void OneRun( int threadCount, int operationCount )
         {
+            ActivityMonitor.LoggingError.Clear();
             ActivityMonitor.LoggingError.Capacity = 300;
 
             InitializeEnv( 
@@ -295,6 +286,7 @@ namespace CK.Core.Tests.Monitoring
             Assert.That( _nbNotCleared, Is.GreaterThan( 0 ), "Clear is called from SafeOnErrorHandler each 20 errors." );
             Assert.That( ActivityMonitor.LoggingError.Capacity, Is.EqualTo( 500 ), "Changed in SafeOnErrorHandler." );
 
+            ActivityMonitor.LoggingError.Clear();
         }
 
 

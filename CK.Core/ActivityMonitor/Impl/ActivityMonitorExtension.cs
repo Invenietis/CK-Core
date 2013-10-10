@@ -37,16 +37,32 @@ namespace CK.Core
     {
         /// <summary>
         /// Challenges <see cref="IActivityMonitor.ActualFilter">this monitors'filter</see> and application domain's <see cref="ActivityMonitor.DefaultFilter"/> 
-        /// to test whether a log should actually be emitted.
+        /// to test whether a log line should actually be emitted.
         /// </summary>
         /// <param name="this">This <see cref="IActivityMonitor"/>.</param>
         /// <param name="level">Log level.</param>
         /// <returns>True if the log should be emitted.</returns>
-        public static bool ShouldLog( this IActivityMonitor @this, LogLevel level )
+        public static bool ShouldLogLine( this IActivityMonitor @this, LogLevel level )
         {
             if( @this == null ) throw new NullReferenceException( "this" );
-            int f = (int)@this.ActualFilter;
-            return f <= 0 ? (int)ActivityMonitor.DefaultFilter <= (int)level : f <= (int)level;
+            level &= LogLevel.Mask;
+            int f = (int)@this.ActualFilter.Line;
+            return f <= 0 ? (int)ActivityMonitor.DefaultFilter.Line <= (int)level : f <= (int)level;
+        }
+
+        /// <summary>
+        /// Challenges <see cref="IActivityMonitor.ActualFilter">this monitors'filter</see> and application domain's <see cref="ActivityMonitor.DefaultFilter"/> 
+        /// to test whether a log line should actually be emitted.
+        /// </summary>
+        /// <param name="this">This <see cref="IActivityMonitor"/>.</param>
+        /// <param name="level">Log level.</param>
+        /// <returns>True if the log should be emitted.</returns>
+        public static bool ShouldLogGroup( this IActivityMonitor @this, LogLevel level )
+        {
+            if( @this == null ) throw new NullReferenceException( "this" );
+            level &= LogLevel.Mask;
+            int f = (int)@this.ActualFilter.Group;
+            return f <= 0 ? (int)ActivityMonitor.DefaultFilter.Group <= (int)level : f <= (int)level;
         }
 
         /// <summary>
@@ -87,17 +103,13 @@ namespace CK.Core
         /// </summary>
         /// <param name="this">This <see cref="IActivityMonitorOutput"/>.</param>
         /// <param name="targetBridge">The target bridge that will receive our logs.</param>
-        /// <param name="applyTargetHonorMonitorFilterToOpenGroup">
-        /// True to avoid opening group with level below the target <see cref="IActivityMonitor.ActualFilter"/> (when <see cref="ActivityMonitorBridgeTarget.HonorMonitorFilter">@this.HonorMonitorFilter</see> is true).
-        /// This is an optimization that can be used to send less data to the target monitor.
-        /// </param>
         /// <returns>A <see cref="IDisposable"/> object that can be disposed to automatically call <see cref="UnbridgeTo"/>.</returns>
-        public static IDisposable CreateBridgeTo( this IActivityMonitorOutput @this, ActivityMonitorBridgeTarget targetBridge, bool applyTargetHonorMonitorFilterToOpenGroup = false )
+        public static IDisposable CreateBridgeTo( this IActivityMonitorOutput @this, ActivityMonitorBridgeTarget targetBridge )
         {
             if( @this == null ) throw new NullReferenceException( "this" );
             if( targetBridge == null ) throw new ArgumentNullException( "targetBridge" );
             if( @this.Clients.OfType<ActivityMonitorBridge>().Any( b => b.TargetBridge == targetBridge ) ) throw new InvalidOperationException();
-            var created = @this.RegisterClient( new ActivityMonitorBridge( targetBridge, applyTargetHonorMonitorFilterToOpenGroup ) );
+            var created = @this.RegisterClient( new ActivityMonitorBridge( targetBridge ) );
             return Util.CreateDisposableAction( () => @this.UnregisterClient( created ) );
         }
 
@@ -204,13 +216,13 @@ namespace CK.Core
         class LogFilterSentinel : IDisposable
         {
             IActivityMonitor _monitor;
-            LogLevelFilter _prevLevel;
+            LogFilter _prevLevel;
 
-            public LogFilterSentinel( IActivityMonitor l, LogLevelFilter filterLevel )
+            public LogFilterSentinel( IActivityMonitor l, LogFilter filter )
             {
                 _prevLevel = l.Filter;
                 _monitor = l;
-                l.Filter = filterLevel;
+                l.Filter = filter;
             }
 
             public void Dispose()
@@ -221,19 +233,36 @@ namespace CK.Core
         }
 
         /// <summary>
+        /// Sets filter levels on this <see cref="IActivityMonitor"/>. The current <see cref="IActivityMonitor.Filter"/> will be automatically 
+        /// restored when the returned <see cref="IDisposable"/> will be disposed.
+        /// Even if when a Group is closed, the IActivityMonitor.Filter is automatically restored to its original value 
+        /// (captured when the Group was opened), this may be useful to locally change the filter level without bothering to restore the 
+        /// initial value (this is what OpenGroup/CloseGroup do with both the Filter and the AutoTags).
+        /// </summary>
+        /// <param name="this">This <see cref="IActivityMonitor"/> object.</param>
+        /// <param name="filterLineLevel">The new filter level for log line.</param>
+        /// <param name="filterGroupLevel">The new filter level for group.</param>
+        /// <returns>A <see cref="IDisposable"/> object that will restore the current level.</returns>
+        public static IDisposable SetFilter( this IActivityMonitor @this, LogLevelFilter filterLineLevel, LogLevelFilter filterGroupLevel )
+        {
+            if( @this == null ) throw new NullReferenceException( "this" );
+            return new LogFilterSentinel( @this, new LogFilter( filterLineLevel, filterGroupLevel ) );
+        }
+
+        /// <summary>
         /// Sets a filter level on this <see cref="IActivityMonitor"/>. The current <see cref="IActivityMonitor.Filter"/> will be automatically 
         /// restored when the returned <see cref="IDisposable"/> will be disposed.
         /// Even if when a Group is closed, the IActivityMonitor.Filter is automatically restored to its original value 
         /// (captured when the Group was opened), this may be useful to locally change the filter level without bothering to restore the 
-        /// initial value (this is close to what OpenGroup/CloseGroup do with both the filter and the AutoTags).
+        /// initial value (this is what OpenGroup/CloseGroup do with both the Filter and the AutoTags).
         /// </summary>
         /// <param name="this">This <see cref="IActivityMonitor"/> object.</param>
-        /// <param name="filterLevel">The new filter level.</param>
+        /// <param name="f">The new filter.</param>
         /// <returns>A <see cref="IDisposable"/> object that will restore the current level.</returns>
-        public static IDisposable SetFilter( this IActivityMonitor @this, LogLevelFilter filterLevel )
+        public static IDisposable SetFilter( this IActivityMonitor @this, LogFilter f )
         {
             if( @this == null ) throw new NullReferenceException( "this" );
-            return new LogFilterSentinel( @this, filterLevel );
+            return new LogFilterSentinel( @this, f );
         }
 
         #endregion IActivityMonitor.SetFilter( level )
@@ -373,7 +402,7 @@ namespace CK.Core
             {
                 if( b.Length > 0 ) b.Append( elementSeparator );
                 string prefix = trace;
-                switch( e.Level )
+                switch( e.MaskedLevel )
                 {
                     case LogLevel.Fatal: prefix = fatal; break;
                     case LogLevel.Error: prefix = error; break;

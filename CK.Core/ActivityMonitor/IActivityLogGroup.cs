@@ -49,7 +49,7 @@ namespace CK.Core
         DateTime CloseLogTimeUtc { get; }
 
         /// <summary>
-        /// Get the previous group in its origin monitor. Null if this is a top level group.
+        /// Get the previous group in its origin monitor. Null if this group is a top level group.
         /// </summary>
         IActivityLogGroup Parent { get; }
 
@@ -62,7 +62,7 @@ namespace CK.Core
         /// Gets the <see cref="IActivityMonitor.Filter"/> that will be restored when group will be closed.
         /// Initialized with the current value of IActivityMonitor.Filter when the group has been opened.
         /// </summary>
-        LogLevelFilter SavedMonitorFilter { get; }
+        LogFilter SavedMonitorFilter { get; }
 
         /// <summary>
         /// Gets the <see cref="IActivityMonitor.AutoTags"/> that will be restored when group will be closed.
@@ -72,8 +72,16 @@ namespace CK.Core
 
         /// <summary>
         /// Gets the level associated to this group.
+        /// The <see cref="LogLevel.IsFiltered"/> can be set here: use <see cref="MaskedGroupLevel"/> to get 
+        /// the actual level from <see cref="LogLevel.Trace"/> to <see cref="LogLevel.Fatal"/>.
         /// </summary>
         LogLevel GroupLevel { get; }
+
+        /// <summary>
+        /// Gets the actual level (<see cref="LogLevel.Trace"/> to <see cref="LogLevel.Fatal"/>) associated to this group
+        /// without <see cref="LogLevel.IsFiltered"/> bit.
+        /// </summary>
+        LogLevel MaskedGroupLevel { get; }
 
         /// <summary>
         /// Getst the text associated to this group.

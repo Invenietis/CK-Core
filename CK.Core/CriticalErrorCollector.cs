@@ -280,7 +280,7 @@ namespace CK.Core
         /// Obtains a copy of the last (up to) <see cref="Capacity"/> errors from oldest to newest.
         /// The newest may have not been raised by <see cref="OnErrorFromBackgroundThreads"/> yet.
         /// </summary>
-        /// <returns>An independent array.</returns>
+        /// <returns>An independent array. May be empty but never null.</returns>
         public Error[] ToArray()
         {
             lock( _collector )

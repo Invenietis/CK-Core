@@ -48,9 +48,9 @@ namespace CK.Monitoring.Impl
                 // Common sink has already handled the events.
             }
 
-            public LogLevelFilter MinimalFilter
+            public LogFilter MinimalFilter
             {
-                get { return LogLevelFilter.None; }
+                get { return LogFilter.Undefined; }
             }
 
             public void PreHandleLock()

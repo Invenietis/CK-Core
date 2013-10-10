@@ -185,7 +185,7 @@ namespace CK.Monitoring
                         destination.UnfilteredLog( log.Tags, log.LogLevel, log.Text, log.LogTimeUtc );
                         break;
                     case LogEntryType.OpenGroup:
-                        destination.OpenGroup( log.Tags, log.LogLevel, null, log.Text, log.LogTimeUtc, CKException.CreateFrom( log.Exception ) );
+                        destination.UnfilteredOpenGroup( log.Tags, log.LogLevel, null, log.Text, log.LogTimeUtc, CKException.CreateFrom( log.Exception ) );
                         break;
                 }
             }

@@ -39,7 +39,7 @@ namespace CK.Monitoring
         /// Gets the minimal log level that this channel expects. 
         /// Should default to <see cref="LogLevelFilter.None"/>.
         /// </summary>
-        LogLevelFilter MinimalFilter { get; }
+        LogFilter MinimalFilter { get; }
 
         /// <summary>
         /// Locks the channel: a call to <see cref="Handle"/> is pending.

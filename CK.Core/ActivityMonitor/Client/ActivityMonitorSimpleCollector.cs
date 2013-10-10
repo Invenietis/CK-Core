@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 
@@ -27,7 +28,7 @@ namespace CK.Core
             /// <summary>
             /// The log level of the log entry.
             /// </summary>
-            public readonly LogLevel Level;
+            public readonly LogLevel MaskedLevel;
 
             /// <summary>
             /// Timestamp of the log entry.
@@ -46,8 +47,9 @@ namespace CK.Core
 
             internal Entry( CKTrait tags, LogLevel level, string text, DateTime logTimeUtc, Exception ex )
             {
+                Debug.Assert( (level & LogLevel.IsFiltered) == 0 );
                 Tags = tags;
-                Level = level;
+                MaskedLevel = level;
                 LogTimeUtc = logTimeUtc;
                 Text = text;
                 Exception = ex;
@@ -97,7 +99,7 @@ namespace CK.Core
                         Entry[] exist = _entries.ToArray();
                         _entries.Clear();
                         foreach( var e in exist )
-                            if( (int)e.Level >= (int)value ) _entries.Push( e );
+                            if( (int)e.MaskedLevel >= (int)value ) _entries.Push( e );
                     }
                     else _entries.Clear();
                 }
@@ -131,6 +133,7 @@ namespace CK.Core
         /// <param name="logTimeUtc">Timestamp of the log.</param>
         void IActivityMonitorClient.OnUnfilteredLog( CKTrait tags, LogLevel level, string text, DateTime logTimeUtc )
         {
+            level &= LogLevel.Mask;
             if( (int)level >= (int)_filter )
             {
                 _entries.Push( new Entry( tags, level, text, logTimeUtc, null ) );
@@ -143,9 +146,9 @@ namespace CK.Core
         /// <param name="group">Log group description.</param>
         void IActivityMonitorClient.OnOpenGroup( IActivityLogGroup group )
         {
-            if( (int)group.GroupLevel >= (int)_filter )
+            if( (int)group.MaskedGroupLevel >= (int)_filter )
             {
-                _entries.Push( new Entry( group.GroupTags, group.GroupLevel, group.GroupText, group.LogTimeUtc, group.Exception ) );
+                _entries.Push( new Entry( group.GroupTags, group.MaskedGroupLevel, group.GroupText, group.LogTimeUtc, group.Exception ) );
             }
         }
 

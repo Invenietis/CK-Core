@@ -46,10 +46,10 @@ namespace CK.Core
         // The callback is this object if we are in the same AppDomain
         // otherwise it is a CrossAppDomainCallback.
         readonly CrossAppDomainCallback _crossADCallback;
-        // Missing a BitList in the framework...
+        // I'm missing a BitList in the framework...
         readonly List<bool> _openedGroups;
-        LogLevelFilter _targetFilter;
-        readonly bool _applyTargetFilterToGroup;
+        LogFilter _targetFilter;
+        bool _applyTargetFilterToUnfilteredLogs;
 
         class CrossAppDomainCallback : MarshalByRefObject, IActivityMonitorBridgeCallback, ISponsor
         {
@@ -96,15 +96,16 @@ namespace CK.Core
         /// This Client should be registered in the <see cref="IActivityMonitor.Output"/> of a local monitor.
         /// </summary>
         /// <param name="bridge">The bridge to another AppDomain.</param>
-        /// <param name="applyTargetHonorMonitorFilterToOpenGroup">
-        /// True to avoid opening group with level below the target <see cref="IActivityMonitor.Filter"/> (when <see cref="ActivityMonitorBridgeTarget.HonorMonitorFilter"/> is true).
-        /// This is an optimization that can be used to send less data to the target monitor.
+        /// <param name="applyTargetFilterToUnfilteredLogs">
+        /// True to avoid sending logs with level below the target <see cref="IActivityMonitor.Filter"/> (when <see cref="ActivityMonitorBridgeTarget.HonorMonitorFilter"/> is true
+        /// and it is an unfiltered line or group log).
+        /// This is an optimization that can be used to send less data to the target monitor but breaks the UnfilteredLog/UnfilteredOpenGroup contract.
         /// </param>
-        public ActivityMonitorBridge( ActivityMonitorBridgeTarget bridge, bool applyTargetHonorMonitorFilterToOpenGroup = false )
+        public ActivityMonitorBridge( ActivityMonitorBridgeTarget bridge, bool applyTargetFilterToUnfilteredLogs = false )
         {
             if( bridge == null ) throw new ArgumentNullException( "bridge" );
             _bridge = bridge;
-            _applyTargetFilterToGroup = applyTargetHonorMonitorFilterToOpenGroup;
+            _applyTargetFilterToUnfilteredLogs = applyTargetFilterToUnfilteredLogs;
             if( System.Runtime.Remoting.RemotingServices.IsTransparentProxy( bridge ) )
             {
                 _crossADCallback = new CrossAppDomainCallback( this, bridge );
@@ -136,7 +137,7 @@ namespace CK.Core
         {
             Thread.MemoryBarrier();
             var s = _source;
-            _targetFilter = LogLevelFilter.Invalid;
+            _targetFilter = LogFilter.Invalid;
             if( s != null ) s.SetClientMinimalFilterDirty();
         }
 
@@ -179,17 +180,17 @@ namespace CK.Core
             Thread.MemoryBarrier();
         }
 
-        LogLevelFilter IActivityMonitorBoundClient.MinimalFilter { get { return GetMinimalFilter(); } }        
+        LogFilter IActivityMonitorBoundClient.MinimalFilter { get { return GetTargetFilter(); } }        
 
         /// <summary>
         /// This is necessarily called in the context of the activity: we can call the bridge that can call 
         /// the Monitor's ActualFilter that will be resynchronized if needed.
         /// </summary>
-        LogLevelFilter GetMinimalFilter() 
+        LogFilter GetTargetFilter() 
         {
             Thread.MemoryBarrier();
             var f = _targetFilter;
-            if( f == LogLevelFilter.Invalid )
+            if( f == LogFilter.Invalid )
             {
                 do
                 {
@@ -197,22 +198,29 @@ namespace CK.Core
                     _targetFilter = f;
                     Thread.MemoryBarrier();
                 }
-                while( _targetFilter == LogLevelFilter.Invalid );
+                while( _targetFilter == LogFilter.Invalid );
             }
             return f; 
         }
      
         void IActivityMonitorClient.OnUnfilteredLog( CKTrait tags, LogLevel level, string text, DateTime logTimeUtc )
         {
-            if( _finalMonitor != null ) _finalMonitor.UnfilteredLog( tags, level, text, logTimeUtc );
-            else
+            // If the level is above the actual target filter, we always send the message.
+            // If the level is lower: if the log has not been filtered (UnfilteredLog has been called and not an extension method) we must
+            // send it to honor the "Unfiltered" contract, but if _applyTargetFilterToUnfilteredLogs is true, we avoid sending it.
+            if( ((level&LogLevel.IsFiltered) == 0 && !_applyTargetFilterToUnfilteredLogs) || (int)GetTargetFilter().Line <= (int)(level & LogLevel.Mask) )
             {
-                _bridge.UnfilteredLog( tags.ToString(), level, text, logTimeUtc );
+                if( _finalMonitor != null ) _finalMonitor.UnfilteredLog( tags, level, text, logTimeUtc );
+                else
+                {
+                    _bridge.UnfilteredLog( tags.ToString(), level, text, logTimeUtc );
+                }
             }
         }
 
         void IActivityMonitorClient.OnOpenGroup( IActivityLogGroup group )
         {
+            Debug.Assert( group.GroupLevel != LogLevel.None, "A client never sees a filtered group." );
             Debug.Assert( group.Depth > 0, "Depth is 1-based." );
             // Make sure the index is available.
             // This handles the case where this ClientBridge has been added to the Monitor.Output
@@ -220,13 +228,17 @@ namespace CK.Core
             int idx = group.Depth;
             while( idx > _openedGroups.Count ) _openedGroups.Add( false );
 
-            if( !_applyTargetFilterToGroup || (int)GetMinimalFilter() <= (int)group.GroupLevel )
+            // By using here our array of boolean to track filtered opened groups against the target, we avoid useless 
+            // sollicitation (and marshalling when crossing application domains).
+            // Note: If the group has already been filtered out by extension methods (group.GroupLevel == LogLevel.None),
+            // we do not see it here. Checking the LogLevelFilter is ok.
+            if( ( (group.GroupLevel&LogLevel.IsFiltered) == 0 && !_applyTargetFilterToUnfilteredLogs) || (int)GetTargetFilter().Group <= (int)group.MaskedGroupLevel )
             {
                 if( _finalMonitor != null )
-                    _finalMonitor.OpenGroup( group.GroupTags, group.GroupLevel, null, group.GroupText, group.LogTimeUtc, group.Exception );
+                    _finalMonitor.UnfilteredOpenGroup( group.GroupTags, group.GroupLevel, null, group.GroupText, group.LogTimeUtc, group.Exception );
                 else
                 {
-                    _bridge.OpenGroup( group.GroupTags.ToString(), group.GroupLevel, group.EnsureExceptionData(), group.GroupText, group.LogTimeUtc );
+                    _bridge.UnfilteredOpenGroup( group.GroupTags.ToString(), group.GroupLevel, group.EnsureExceptionData(), group.GroupText, group.LogTimeUtc );
                 }
                 _openedGroups[idx - 1] = true;
             }

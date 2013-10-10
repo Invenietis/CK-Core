@@ -349,7 +349,7 @@ namespace CK.Core
         /// <summary>
         /// Creates an array that contains <see cref="Count"/> items.
         /// </summary>
-        /// <returns>An array with the contained items.</returns>
+        /// <returns>An array with the contained items. Never null.</returns>
         public T[] ToArray()
         {
             var t = new T[_count];

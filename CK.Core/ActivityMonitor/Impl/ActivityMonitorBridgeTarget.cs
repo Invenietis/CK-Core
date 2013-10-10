@@ -96,25 +96,24 @@ namespace CK.Core
 
         /// <summary>
         /// Gets the target final filter that must be used: this property takes into account the monitor's filter and the ActivityMonitor.DefaultFilter application domain 
-        /// value if HonorMonitorFilter is true (otherwise it is None).
+        /// value if HonorMonitorFilter is true (otherwise it is <see cref="LogFilter.Undefined"/>).
         /// </summary>
-        internal LogLevelFilter TargetFinalFilterCrossAppDomain
+        internal LogFilter TargetFinalFilterCrossAppDomain
         {
             get
             {
                 if( _honorTargetFilter )
                 {
-                    LogLevelFilter f = _monitor.ActualFilter;
-                    return f == LogLevelFilter.None ? ActivityMonitor.DefaultFilter : f;
+                    return _monitor.ActualFilter.CombineNoneOnly( ActivityMonitor.DefaultFilter );
                 }
-                return LogLevelFilter.None;
+                return LogFilter.Undefined;
             }
         }
 
         /// <summary>
         /// Gets the target final filter that must be used without taking into account the ActivityMonitor.DefaultFilter application domain value.
         /// </summary>
-        internal LogLevelFilter TargetFinalFilter
+        internal LogFilter TargetFinalFilter
         {
             get { return _monitor.ActualFilter; }
         }
@@ -167,10 +166,10 @@ namespace CK.Core
             _monitor.UnfilteredLog( ActivityMonitor.RegisteredTags.FindOrCreate( tags ), level, text, logTimeUtc );
         }
 
-        internal void OpenGroup( string tags, LogLevel level, CKExceptionData exceptionData, string groupText, DateTime logTimeUtc )
+        internal void UnfilteredOpenGroup( string tags, LogLevel level, CKExceptionData exceptionData, string groupText, DateTime logTimeUtc )
         {
             CKException ckEx = exceptionData != null ? new CKException( exceptionData ) : null;
-            _monitor.OpenGroup( ActivityMonitor.RegisteredTags.FindOrCreate( tags ), level, null, groupText, logTimeUtc, ckEx );
+            _monitor.UnfilteredOpenGroup( ActivityMonitor.RegisteredTags.FindOrCreate( tags ), level, null, groupText, logTimeUtc, ckEx );
         }
 
         internal void CloseGroup( string[] taggedConclusions )

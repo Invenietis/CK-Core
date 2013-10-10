@@ -41,8 +41,16 @@ namespace CK.Core
         /// </summary>
         protected class Group : IActivityLogGroup, IDisposable
         {
-            readonly ActivityMonitor _monitor;
-            readonly int _index;
+            /// <summary>
+            /// The monitor that owns this group.
+            /// </summary>
+            public readonly ActivityMonitor Monitor;
+            
+            /// <summary>
+            /// The raw index of the group. 
+            /// </summary>
+            public readonly int Index;
+            
             string _text;
             CKTrait _tags;
             DateTime _logTime;
@@ -50,6 +58,10 @@ namespace CK.Core
             Exception _exception;
             CKExceptionData _exceptionData;
             Func<string> _getConclusion;
+            Group _unfilteredParent;
+            int _depth;
+            LogLevel _level;
+            LogLevel _maskedLevel;
 
             /// <summary>
             /// Initialized a new Group at a given index.
@@ -58,8 +70,8 @@ namespace CK.Core
             /// <param name="index">Index of the group.</param>
             internal protected Group( ActivityMonitor monitor, int index )
             {
-                _monitor = monitor;
-                _index = index;
+                Monitor = monitor;
+                Index = index;
             }
 
             /// <summary>
@@ -76,18 +88,35 @@ namespace CK.Core
             /// <param name="ex">Optional exception associated to the group.</param>
             internal protected virtual void Initialize( CKTrait tags, LogLevel level, string text, Func<string> getConclusionText, DateTime logTimeUtc, Exception ex )
             {
-                SavedMonitorFilter = _monitor.Filter;
-                SavedMonitorTags = _monitor.AutoTags;
+                SavedMonitorFilter = Monitor._configuredFilter;
+                SavedMonitorTags = Monitor._currentTag;
+                if( (_unfilteredParent = Monitor._currentUnfiltered) != null ) _depth = _unfilteredParent._depth + 1;
+                else _depth = 1;
+                _level = level;
+                _maskedLevel = level & LogLevel.Mask;
                 // Logs everything when a Group is an error: we then have full details without
                 // logging all with Error or Fatal.
-                if( level >= LogLevel.Error && _monitor._configuredFilter != LogLevelFilter.Trace ) _monitor.DoSetConfiguredFilter( LogLevelFilter.Trace );
-                GroupLevel = level;
+                if( _maskedLevel >= LogLevel.Error && Monitor._configuredFilter != LogFilter.Debug ) Monitor.DoSetConfiguredFilter( LogFilter.Debug );
                 _logTime = logTimeUtc;
                 _closeLogTime = DateTime.MinValue;
                 _text = text ?? String.Empty;
                 _tags = tags ?? ActivityMonitor.EmptyTag;
                 _getConclusion = getConclusionText;
                 _exception = ex;
+            }
+
+            /// <summary>
+            /// Initializes or reinitializes this group (if it has been disposed) as a filtered group. 
+            /// </summary>
+            internal protected virtual void InitializeFilteredGroup()
+            {
+                SavedMonitorFilter = Monitor._configuredFilter;
+                SavedMonitorTags = Monitor._currentTag;
+                _unfilteredParent = Monitor._currentUnfiltered;
+                _depth = 0;
+                _level = _maskedLevel = LogLevel.None;
+                _text = String.Empty;
+                _tags = ActivityMonitor.EmptyTag;
             }
 
             /// <summary>
@@ -141,20 +170,28 @@ namespace CK.Core
             }
 
             /// <summary>
-            /// Get the previous group in its origin monitor. Null if this is a top level group.
+            /// Get the previous group in its origin monitor. Null if this group is a top level group.
             /// </summary>
-            public IActivityLogGroup Parent { get { return _index > 0 ? _monitor._groups[_index - 1] : null; } }
+            public IActivityLogGroup Parent { get { return _unfilteredParent; } }
             
             /// <summary>
             /// Gets the depth of this group in its origin monitor (1 for top level groups).
             /// </summary>
-            public int Depth { get { return _index+1; } }
+            public int Depth { get { return _depth; } }
 
             /// <summary>
-            /// Gets the level of this group.
+            /// Gets the level associated to this group.
+            /// The <see cref="LogLevel.IsFiltered"/> can be set here: use <see cref="MaskedGroupLevel"/> to get 
+            /// the actual level from <see cref="LogLevel.Trace"/> to <see cref="LogLevel.Fatal"/>.
             /// </summary>
-            public LogLevel GroupLevel { get; private set; }
-            
+            public LogLevel GroupLevel { get { return _level; } }
+
+            /// <summary>
+            /// Gets the actual level (from <see cref="LogLevel.Trace"/> to <see cref="LogLevel.Fatal"/>) associated to this group
+            /// without <see cref="LogLevel.IsFiltered"/> bit.
+            /// </summary>
+            public LogLevel MaskedGroupLevel { get { return _maskedLevel; } }
+
             /// <summary>
             /// Gets the text with which this group has been opened. Null if and only if the group is closed.
             /// </summary>
@@ -169,7 +206,7 @@ namespace CK.Core
             /// Gets or sets the <see cref="IActivityMonitor.Filter"/> that will be restored when group will be closed.
             /// Initialized with the current value of IActivityMonitor.Filter when the group has been opened.
             /// </summary>
-            public LogLevelFilter SavedMonitorFilter { get; protected set; }
+            public LogFilter SavedMonitorFilter { get; protected set; }
 
             /// <summary>
             /// Gets or sets the <see cref="IActivityMonitor.AutoTags"/> that will be restored when group will be closed.
@@ -201,8 +238,8 @@ namespace CK.Core
             {
                 if( _text != null )
                 {
-                    while( _monitor._current != this ) ((IDisposable)_monitor._current).Dispose();
-                    _monitor.CloseGroup( DateTime.UtcNow, null );
+                    while( Monitor._current != this ) ((IDisposable)Monitor._current).Dispose();
+                    Monitor.CloseGroup( DateTime.UtcNow, null );
                 }
             }           
 
@@ -215,12 +252,6 @@ namespace CK.Core
                     conclusions.Add( new ActivityLogGroupConclusion( TagGetTextConclusion, auto ) );
                 }
                 Debug.Assert( _getConclusion == null, "Has been consumed." );
-            }
-
-            internal void GroupClosed()
-            {
-                _text = null;
-                _exception = null;
             }
 
             /// <summary>
@@ -242,6 +273,13 @@ namespace CK.Core
                     _getConclusion = null;
                 }
                 return autoText;
+            }
+
+            internal void GroupClosed()
+            {
+                _text = null;
+                _exception = null;
+                _exceptionData = null;
             }
         }
 

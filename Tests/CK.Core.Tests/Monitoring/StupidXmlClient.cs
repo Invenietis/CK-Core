@@ -23,6 +23,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
@@ -46,6 +47,7 @@ namespace CK.Core.Tests.Monitoring
 
         protected override void OnEnterLevel( CKTrait tags, LogLevel level, string text, DateTime logTimeUtc )
         {
+            Debug.Assert( (level&LogLevel.IsFiltered) == 0 );
             XmlWriter.WriteStartElement( level.ToString() );
             XmlWriter.WriteString( text );
         }
@@ -62,7 +64,7 @@ namespace CK.Core.Tests.Monitoring
 
         protected override void OnGroupOpen( IActivityLogGroup g )
         {
-            XmlWriter.WriteStartElement( g.GroupLevel.ToString() + "s" );
+            XmlWriter.WriteStartElement( g.MaskedGroupLevel.ToString() + "s" );
             XmlWriter.WriteAttributeString( "Depth", g.Depth.ToString() );
             XmlWriter.WriteAttributeString( "Level", g.GroupLevel.ToString() );
             XmlWriter.WriteAttributeString( "Text", g.GroupText.ToString() );

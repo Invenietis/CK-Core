@@ -35,7 +35,7 @@ namespace CK.Core
         /// Gets the minimal log level that this Client expects. 
         /// Should default to <see cref="LogLevelFilter.None"/>.
         /// </summary>
-        LogLevelFilter MinimalFilter { get; }
+        LogFilter MinimalFilter { get; }
 
         /// <summary>
         /// Called by <see cref="IActivityMonitorOutput"/> when registering or unregistering
