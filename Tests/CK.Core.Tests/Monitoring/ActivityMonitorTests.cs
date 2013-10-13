@@ -40,6 +40,7 @@ namespace CK.Core.Tests.Monitoring
         [SetUp]
         public void ClearActivityMonitorErrors()
         {
+            TestHelper.ConsoleMonitor.Filter = LogFilter.Undefined;
             ActivityMonitor.LoggingError.WaitOnErrorFromBackgroundThreadsPending();
             ActivityMonitor.LoggingError.Clear();
         }
@@ -107,7 +108,7 @@ namespace CK.Core.Tests.Monitoring
             IActivityMonitorOutput output = null;
             Assert.Throws<NullReferenceException>( () => output.CreateBridgeTo( TestHelper.ConsoleMonitor.Output.BridgeTarget ) );
             Assert.Throws<NullReferenceException>( () => output.UnbridgeTo( TestHelper.ConsoleMonitor.Output.BridgeTarget ) );
-            Assert.Throws<ArgumentNullException>( () => new ActivityMonitorBridge( null ), "Null guards." );
+            Assert.Throws<ArgumentNullException>( () => new ActivityMonitorBridge( null, false, false ), "Null guards." );
         }
 
         [Test]
@@ -845,6 +846,17 @@ namespace CK.Core.Tests.Monitoring
 
         }
 
+
+        [Test]
+        public void AsyncSetMininimalFilter()
+        {
+            ActivityMonitor m = new ActivityMonitor( false );
+            var tester = m.Output.RegisterClient( new ActivityMonitorClientTester() );
+            
+            Assert.That( m.ActualFilter, Is.EqualTo( LogFilter.Undefined ) );
+            tester.AsyncSetMinimalFilterBlock( LogFilter.Monitor );
+            Assert.That( m.ActualFilter, Is.EqualTo( LogFilter.Monitor ) );
+        }
 
         class CheckAlwaysFilteredClient : ActivityMonitorClient
         {

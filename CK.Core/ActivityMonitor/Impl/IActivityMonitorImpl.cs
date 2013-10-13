@@ -42,5 +42,14 @@ namespace CK.Core.Impl
         /// </summary>
         void SetClientMinimalFilterDirty();
 
+        /// <summary>
+        /// Enables <see cref="IActivityMonitorBoundClient"/> clients to initialize Topic and AutoTag typically from 
+        /// inside their <see cref="IActivityMonitorBoundClient.SetMonitor"/> method or any other methods provided 
+        /// that a reentrancy and concurrent lock has been obtained (otherwise an <see cref="InvalidOperationException"/> is thrown).
+        /// </summary>
+        /// <param name="newTopic">New topic to set. When null, it is ignored.</param>
+        /// <param name="newTags">new tags to set. When null, it is ignored.</param>
+        void InitializeTopicAndAutoTags( string newTopic, CKTrait newTags );
+
     }
 }

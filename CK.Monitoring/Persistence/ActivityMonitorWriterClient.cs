@@ -96,5 +96,13 @@ namespace CK.Monitoring
                 _binaryFormatter = null;
             }
         }
+
+        void IActivityMonitorClient.OnTopicChanged( string newTopic )
+        {
+        }
+
+        void IActivityMonitorClient.OnAutoTagsChanged( CKTrait newTrait )
+        {
+        }
     }
 }

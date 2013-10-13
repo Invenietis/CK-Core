@@ -67,11 +67,11 @@ namespace CK.Core.Tests.Monitoring
                 MonitorBridge.TargetMonitor.Filter = filter;
             }
 
-            internal void DoAsyncSetFilterViaClientInOriginDomain( LogFilter logLevelFilter, LogFilter resultingActualFilter )
+            internal void DoAsyncSetFilterViaClientInOriginDomain( LogFilter logLevelFilter, LogFilter? resultingActualFilter )
             {
                 var c = MonitorBridge.TargetMonitor.Output.Clients.OfType<ActivityMonitorClientTester>().Single();
                 c.AsyncSetMinimalFilterBlock( logLevelFilter, 1 );
-                Assert.That( MonitorBridge.TargetMonitor.ActualFilter, Is.EqualTo( resultingActualFilter ) );
+                if( resultingActualFilter.HasValue ) Assert.That( MonitorBridge.TargetMonitor.ActualFilter, Is.EqualTo( resultingActualFilter.Value ) );
             }
         }
 
@@ -165,6 +165,13 @@ namespace CK.Core.Tests.Monitoring
                     appDomainComm.OpenWarnGroupFromOriginDomain( LogFilter.Release );
 
                     monitor.Warn( () => { Assert.Fail( "This will never be called." ); return null; } );
+
+                    appDomainComm.DoAsyncSetFilterViaClientInOriginDomain( LogFilter.Debug, resultingActualFilter: LogFilter.Debug );
+                    Assert.That( monitor.ActualFilter, Is.EqualTo( LogFilter.Debug ) );
+
+                    // Back to release without any sollicitation of the ActualFilter from the other AppDomain.
+                    appDomainComm.DoAsyncSetFilterViaClientInOriginDomain( LogFilter.Release, null );
+                    Assert.That( monitor.ActualFilter, Is.EqualTo( LogFilter.Release ), "Our ActualFilter is dirty: it triggers an update inside the other AppDomain." );
 
                     appDomainComm.DoAsyncSetFilterViaClientInOriginDomain( LogFilter.Debug, resultingActualFilter: LogFilter.Debug );
                     Assert.That( monitor.ActualFilter, Is.EqualTo( LogFilter.Debug ) );

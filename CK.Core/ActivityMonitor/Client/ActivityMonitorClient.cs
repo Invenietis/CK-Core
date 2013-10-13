@@ -48,7 +48,7 @@ namespace CK.Core
         }
 
         /// <summary>
-        /// Gets the minimal log level that this Client expects: defaults to <see cref="LogLevelFilter.None"/>.
+        /// Gets the minimal log level that this Client expects: defaults to <see cref="LogFilter.Undefined"/>.
         /// </summary>
         public virtual LogFilter MinimalFilter { get { return LogFilter.Undefined; } }
 
@@ -99,6 +99,24 @@ namespace CK.Core
         }
 
         /// <summary>
+        /// Called when <see cref="IActivityMonitor.Topic"/> changed.
+        /// Does nothing by default.
+        /// </summary>
+        /// <param name="newTopic">The new topic.</param>
+        protected virtual void OnTopicChanged( string newTopic )
+        {
+        }
+
+        /// <summary>
+        /// Called when <see cref="IActivityMonitor.AutoTags"/> changed.
+        /// Does nothing by default.
+        /// </summary>
+        /// <param name="newTags">The new auto tags.</param>
+        protected virtual void OnAutoTagsChanged( CKTrait newTags )
+        {
+        }
+
+        /// <summary>
         /// Creates a standardized exception that can be thrown by <see cref="IActivityMonitorBoundClient.SetMonitor"/>.
         /// </summary>
         /// <param name="boundClient">The bound client.</param>
@@ -128,6 +146,16 @@ namespace CK.Core
         void IActivityMonitorClient.OnGroupClosed( IActivityLogGroup group, IReadOnlyList<ActivityLogGroupConclusion> conclusions )
         {
             OnGroupClosed( group, conclusions );
+        }
+
+        void IActivityMonitorClient.OnTopicChanged( string newTopic )
+        {
+            OnTopicChanged( newTopic );
+        }
+
+        void IActivityMonitorClient.OnAutoTagsChanged( CKTrait newTags )
+        {
+            OnAutoTagsChanged( newTags );
         }
 
         #endregion

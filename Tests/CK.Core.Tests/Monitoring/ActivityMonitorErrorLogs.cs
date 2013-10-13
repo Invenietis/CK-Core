@@ -76,6 +76,14 @@ namespace CK.Core.Tests.Monitoring
         {
             lock( _buffer ) return _buffer.ToString();
         }
+
+        void IActivityMonitorClient.OnTopicChanged( string newTopic )
+        {
+        }
+
+        void IActivityMonitorClient.OnAutoTagsChanged( CKTrait newTrait )
+        {
+        }
     }
 
     class BuggyClient : IActivityMonitorClient
@@ -132,7 +140,16 @@ namespace CK.Core.Tests.Monitoring
             MayFail();
         }
 
+        void IActivityMonitorClient.OnTopicChanged( string newTopic )
+        {
+        }
+
+        void IActivityMonitorClient.OnAutoTagsChanged( CKTrait newTrait )
+        {
+        }
+
         #endregion
+
     }
 
     class ThreadContext

@@ -22,7 +22,7 @@ namespace CK.Core
         Union,
         
         /// <summary>
-        /// Intersection of the sets (keeps only items simultaneously that belong to both sets).
+        /// Intersection of the sets (keeps only items that belong to both sets).
         /// </summary>
         Intersect,
         
@@ -32,7 +32,7 @@ namespace CK.Core
         Except,
         
         /// <summary>
-        /// Symetric exclusion (keeps items that belong to first or second set but not to both).
+        /// Symetric exclusion (keeps items that belong to first or second set but not to both) - The XOR operation.
         /// </summary>
         SymetricExcept,
 

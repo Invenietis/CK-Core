@@ -84,7 +84,14 @@ namespace CK.Core.Impl
             if( Array.IndexOf( _clients, client ) < 0 )
             {
                 IActivityMonitorBoundClient bound = client as IActivityMonitorBoundClient;
-                if( bound != null ) bound.SetMonitor( _monitor, false );
+                if( bound != null )
+                {
+                    // Calling SetMonitor before adding it to the client first
+                    // enables the monitor to initialize itself before beeing sollicited.
+                    // And if SetMonitor method calls InitializeTopicAndAutoTags, it does not
+                    // receive a "stupid" OnTopic/AutoTagsChanged. 
+                    bound.SetMonitor( _monitor, false );
+                }
                 var newArray = new IActivityMonitorClient[_clients.Length + 1];
                 Array.Copy( _clients, 0, newArray, 1, _clients.Length );
                 newArray[0] = client;

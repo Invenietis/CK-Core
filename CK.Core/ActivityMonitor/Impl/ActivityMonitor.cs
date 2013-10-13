@@ -66,6 +66,11 @@ namespace CK.Core
         static public readonly CKTrait TagGetTextConclusion;
 
         /// <summary>
+        /// Whenever <see cref="Topic"/> changed, a <see cref="LogLevel.Info"/> is emitted marked with "MonitorTopicChanged".
+        /// </summary>
+        static public readonly CKTrait TagMonitorTopicChanged;
+
+        /// <summary>
         /// The logging error collector. 
         /// Any error that occurs while dispathing logs to <see cref="IActivityMonitorClient"/> or <see cref="IActivityMonitorSink"/> 
         /// are collected and the culprit is removed from <see cref="Output"/> (resp. <see cref="ActivityMonitorTap"/> sinks).
@@ -125,6 +130,7 @@ namespace CK.Core
             EmptyTag = ActivityMonitor.RegisteredTags.EmptyTrait;
             TagUserConclusion = RegisteredTags.FindOrCreate( "c:User" );
             TagGetTextConclusion = RegisteredTags.FindOrCreate( "c:GetText" );
+            TagMonitorTopicChanged = RegisteredTags.FindOrCreate( "MonitorTopicChanged" );
             LoggingError = new CriticalErrorCollector();
             AutoConfiguration = new SimpleMultiAction<IActivityMonitor>();
             _defaultFilterLevel = LogFilter.Undefined;
@@ -141,6 +147,7 @@ namespace CK.Core
         CKTrait _currentTag;
         int _enteredThreadId;
         Guid _uniqueId;
+        string _topic;
         bool _actualFilterIsDirty;
 
         /// <summary>
@@ -173,6 +180,7 @@ namespace CK.Core
             for( int i = 0; i < _groups.Length; ++i ) _groups[i] = CreateGroup( i );
             _currentTag = tags ?? EmptyTag;
             _uniqueId = Guid.NewGuid();
+            _topic = String.Empty;
             if( applyAutoConfigurations ) AutoConfiguration.Apply( this );
         }
 
@@ -211,6 +219,41 @@ namespace CK.Core
         }
 
         /// <summary>
+        /// Gets or sets the current topic for this monitor. This can be any non null string (null topic is mapped to the empty string) that describes
+        /// the current activity.
+        /// </summary>
+        public string Topic 
+        {
+            get { return _topic; }
+            set
+            {
+                if( value == null ) value = String.Empty;
+                if( _topic != value )
+                {
+                    ReentrantAndConcurrentCheck();
+                    try
+                    {
+                        DoSetTopic( value );
+                    }
+                    finally
+                    {
+                        ReentrantAndConcurrentRelease();
+                    }
+                }
+            }
+        }
+
+        void DoSetTopic( string newTopic )
+        {
+            Debug.Assert( _enteredThreadId == Thread.CurrentThread.ManagedThreadId );
+            Debug.Assert( newTopic != null && _topic != newTopic );
+            _topic = newTopic;
+            _output.BridgeTarget.TargetTopicChanged( newTopic );
+            MonoParameterSafeCall( ( client, topic ) => client.OnTopicChanged( topic ), newTopic );
+            DoUnfilteredLog( TagMonitorTopicChanged, LogLevel.Info, "Topic:" + newTopic, DateTime.UtcNow );
+        }
+
+        /// <summary>
         /// Gets or sets the tags of this monitor: any subsequent logs will be tagged by these tags.
         /// The <see cref="CKTrait"/> must be registered in <see cref="ActivityMonitor.RegisteredTags"/>.
         /// Modifications to this property are scoped to the current Group since when a Group is closed, this
@@ -219,7 +262,46 @@ namespace CK.Core
         public CKTrait AutoTags 
         {
             get { return _currentTag; }
-            set { _currentTag = value ?? EmptyTag; } 
+            set
+            {
+                if( value == null ) value = ActivityMonitor.EmptyTag;
+                else if( value.Context != ActivityMonitor.RegisteredTags ) throw new ArgumentException( R.ActivityMonitorTagMustBeRegistered, "value" );
+                if( _currentTag != value )
+                {
+                    ReentrantAndConcurrentCheck();
+                    try
+                    {
+                        DoSetAutoTags( value );
+                    }
+                    finally
+                    {
+                        ReentrantAndConcurrentRelease();
+                    }
+                }
+            }
+        }
+
+        void DoSetAutoTags( CKTrait newTags )
+        {
+            Debug.Assert( _enteredThreadId == Thread.CurrentThread.ManagedThreadId );
+            Debug.Assert( newTags != null && _currentTag != newTags && newTags.Context == RegisteredTags );
+            _currentTag = newTags;
+            _output.BridgeTarget.TargetAutoTagsChanged( newTags );
+            MonoParameterSafeCall( ( client, tags ) => client.OnAutoTagsChanged( tags ), newTags );
+        }
+
+        /// <summary>
+        /// Enables <see cref="IActivityMonitorBoundClient"/> clients to initialize Topic and AutoTag from 
+        /// inside their <see cref="IActivityMonitorBoundClient.SetMonitor"/> method or any other methods provided 
+        /// that a reentrancy and concurrent lock has been obtained (otherwise an <see cref="InvalidOperationException"/> is thrown).
+        /// </summary>
+        /// <param name="newTopic">New topic to set. When null, it is ignored.</param>
+        /// <param name="newTags">new tags to set. When null, it is ignored.</param>
+        void IActivityMonitorImpl.InitializeTopicAndAutoTags( string newTopic, CKTrait newTags )
+        {
+            RentrantOnlyCheck();
+            if( newTopic != null && _topic != newTopic ) DoSetTopic( newTopic );
+            if( newTags != null && _currentTag != newTags ) DoSetAutoTags( newTags );
         }
 
         /// <summary>
@@ -296,11 +378,12 @@ namespace CK.Core
 
         void UpdateActualFilter()
         {
+            Debug.Assert( _enteredThreadId == Thread.CurrentThread.ManagedThreadId );
             LogFilter newLevel = _configuredFilter.Combine( _clientFilter );
             if( newLevel != _actualFilter )
             {
                 _actualFilter = newLevel;
-                _output.BridgeTarget.TargetFilterChanged();
+                _output.BridgeTarget.TargetActualFilterChanged();
             }
         }
 
@@ -339,6 +422,11 @@ namespace CK.Core
         {
             _actualFilterIsDirty = true;
             Thread.MemoryBarrier();
+            // By signaling here the change to the bridge, we handle the case where the current
+            // active thread works on a bridged monitor: the bridged monitor's _actualFilterIsDirty
+            // is set to true and any interaction with its ActualFilter will trigger a resynchronization
+            // of this _actualFilter.
+            _output.BridgeTarget.TargetActualFilterChanged();
         }
 
         void IActivityMonitorImpl.OnClientMinimalFilterChanged( LogFilter oldLevel, LogFilter newLevel )
@@ -348,10 +436,10 @@ namespace CK.Core
             bool reentrantCall = ConcurrentOnlyCheck();
             try
             {
+                Thread.MemoryBarrier();
+                bool dirty = _actualFilterIsDirty;
                 do
                 {
-                    Thread.MemoryBarrier();
-                    bool dirty = _actualFilterIsDirty;
                     _actualFilterIsDirty = false;
                     // Optimization for some cases: if we can be sure that the oldLevel has no impact on the current 
                     // client filter, we can conclude without getting the all the minimal filters.
@@ -370,7 +458,7 @@ namespace CK.Core
                     }
                     Thread.MemoryBarrier();
                 }
-                while( _actualFilterIsDirty );
+                while( (dirty = _actualFilterIsDirty) );
                 UpdateActualFilter();
             }
             finally
@@ -378,6 +466,7 @@ namespace CK.Core
                 if( reentrantCall ) ReentrantAndConcurrentCheck();
             }
         }
+
 
         /// <summary>
         /// Logs a text regardless of <see cref="Filter"/> level. 
@@ -502,26 +591,7 @@ namespace CK.Core
                 else tags = _currentTag.Union( tags );
                 _current.Initialize( tags, level, text ?? (ex != null ? ex.Message : String.Empty), getConclusionText, logTimeUtc, ex );
                 _currentUnfiltered = _current;
-                List<IActivityMonitorClient> buggyClients = null;
-                foreach( var l in _output.Clients )
-                {
-                    try
-                    {
-                        l.OnOpenGroup( _current );
-                    }
-                    catch( Exception exCall )
-                    {
-                        LoggingError.Add( exCall, l.GetType().FullName );
-                        if( buggyClients == null ) buggyClients = new List<IActivityMonitorClient>();
-                        buggyClients.Add( l );
-                    }
-                }
-                if( buggyClients != null )
-                {
-                    foreach( var l in buggyClients ) _output.ForceRemoveBuggyClient( l );
-                    _clientFilter = DoGetBoundClientMinimalFilter();
-                    UpdateActualFilter();
-                }
+                MonoParameterSafeCall( ( client, group ) => client.OnOpenGroup( group ), _current ); 
             }
             return _current;
         }
@@ -645,6 +715,35 @@ namespace CK.Core
             }
         }
 
+        /// <summary>
+        /// Generalizes calls to IActivityMonitorClient methods that have only one parameter.
+        /// </summary>
+        void MonoParameterSafeCall<T>( Action<IActivityMonitorClient, T> call, T arg )
+        {
+            Debug.Assert( _enteredThreadId == Thread.CurrentThread.ManagedThreadId );
+            List<IActivityMonitorClient> buggyClients = null;
+            foreach( var l in _output.Clients )
+            {
+                try
+                {
+                    call( l, arg );
+                }
+                catch( Exception exCall )
+                {
+                    LoggingError.Add( exCall, l.GetType().FullName );
+                    if( buggyClients == null ) buggyClients = new List<IActivityMonitorClient>();
+                    buggyClients.Add( l );
+                }
+            }
+            if( buggyClients != null )
+            {
+                foreach( var l in buggyClients ) _output.ForceRemoveBuggyClient( l );
+                _clientFilter = DoGetBoundClientMinimalFilter();
+                UpdateActualFilter();
+            }
+        }
+
+
         class RAndCChecker : IDisposable
         {
             readonly ActivityMonitor _m;
@@ -664,6 +763,11 @@ namespace CK.Core
         IDisposable IActivityMonitorImpl.ReentrancyAndConcurrencyLock()
         {
             return new RAndCChecker( this );
+        }
+
+        void RentrantOnlyCheck()
+        {
+            if( _enteredThreadId != Thread.CurrentThread.ManagedThreadId ) throw new InvalidOperationException( R.ActivityMonitorReentrancyCallOnly );
         }
 
         void ReentrantAndConcurrentCheck()

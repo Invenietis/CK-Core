@@ -19,7 +19,6 @@ namespace CK.Monitoring
     {
         readonly GrandOutput _central;
         IActivityMonitorImpl _monitorSource;
-        string _channelName;
 
         GrandOutputSource _source;
         IChannel _channel;
@@ -31,7 +30,6 @@ namespace CK.Monitoring
         internal GrandOutputClient( GrandOutput central )
         {
             _central = central;
-            _channelName = String.Empty;
         }
 
         /// <summary>
@@ -67,20 +65,13 @@ namespace CK.Monitoring
             get { return _central; }
         }
 
-        public string ChannelName
+        void IActivityMonitorClient.OnTopicChanged( string newTopic )
         {
-            get { return _channelName; }
-            set
-            {
-                if( value == null ) value = String.Empty;
-                if( _channelName != value )
-                {
-                    _channelName = value;
-                    Interlocked.Increment( ref _version );
-                }
-            }
+            // Next log will obtain a new channel: The Info with the TopiChanged
+            // will appear in the new channel.
+            Interlocked.Increment( ref _version );
         }
-
+        
         public LogFilter MinimalFilter { get { return _currentMinimalFilter; } }
 
         internal void OnChannelConfigurationChanged()
@@ -96,6 +87,9 @@ namespace CK.Monitoring
                 do
                 {
                     _curVersion = _version;
+                    // The Topic can be changed only in the 
+                    // activity (and we are here inside the activity),
+                    // we can safely call the property when needed.
                     if( _channel != null )
                     {
                         _channel.CancelPreHandleLock();
@@ -105,11 +99,11 @@ namespace CK.Monitoring
                             _source = null;
                         }
                     }
-                    _channel = _central.ObtainChannel( _channelName );
+                    _channel = _central.ObtainChannel( _monitorSource.Topic );
                 }
                 while( _version != _curVersion );
             }
-            _source = _channel.CreateInput( _monitorSource, _channelName );
+            _source = _channel.CreateInput( _monitorSource, _monitorSource.Topic );
             _relativeDepth = 0;
             if( _currentMinimalFilter != _channel.MinimalFilter )
             {
@@ -142,6 +136,10 @@ namespace CK.Monitoring
             ILogEntry e = Impl.LogEntry.CreateCloseGroup( group.CloseLogTimeUtc, group.GroupLevel, conclusions );
             EnsureChannel().Handle( new GrandOutputEventInfo( _source, e, _relativeDepth ) );
             --_relativeDepth;
+        }
+
+        void IActivityMonitorClient.OnAutoTagsChanged( CKTrait newTrait )
+        {
         }
     }
 }

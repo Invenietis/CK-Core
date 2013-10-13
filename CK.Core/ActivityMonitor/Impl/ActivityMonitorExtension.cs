@@ -94,12 +94,13 @@ namespace CK.Core
         {
             if( @this == null ) throw new NullReferenceException( "this" );
             if( targetBridge == null ) throw new ArgumentNullException( "targetBridge" );
-            return @this.Clients.OfType<ActivityMonitorBridge>().FirstOrDefault( b => b.TargetBridge == targetBridge );
+            return @this.Clients.OfType<ActivityMonitorBridge>().FirstOrDefault( b => b.BridgeTarget == targetBridge );
         }
 
         /// <summary>
         /// Creates a bridge to another monitor's <see cref="ActivityMonitorBridgeTarget"/>. Only one bridge to the same monitor can exist at a time: if <see cref="FindBridgeTo"/> is not null, 
         /// this throws a <see cref="InvalidOperationException"/>.
+        /// This bridge does not synchronize <see cref="IActivityMonitor.AutoTags"/> and <see cref="IActivityMonitor.Topic"/> (see <see cref="CreateStrongBridgeTo"/>). 
         /// </summary>
         /// <param name="this">This <see cref="IActivityMonitorOutput"/>.</param>
         /// <param name="targetBridge">The target bridge that will receive our logs.</param>
@@ -108,8 +109,27 @@ namespace CK.Core
         {
             if( @this == null ) throw new NullReferenceException( "this" );
             if( targetBridge == null ) throw new ArgumentNullException( "targetBridge" );
-            if( @this.Clients.OfType<ActivityMonitorBridge>().Any( b => b.TargetBridge == targetBridge ) ) throw new InvalidOperationException();
-            var created = @this.RegisterClient( new ActivityMonitorBridge( targetBridge ) );
+            if( @this.Clients.OfType<ActivityMonitorBridge>().Any( b => b.BridgeTarget == targetBridge ) ) throw new InvalidOperationException();
+            var created = @this.RegisterClient( new ActivityMonitorBridge( targetBridge, false, false ) );
+            return Util.CreateDisposableAction( () => @this.UnregisterClient( created ) );
+        }
+
+        /// <summary>
+        /// Creates a string bridge to another monitor's <see cref="ActivityMonitorBridgeTarget"/>. 
+        /// Only one bridge to the same monitor can exist at a time: if <see cref="FindBridgeTo"/> is not null, 
+        /// this throws a <see cref="InvalidOperationException"/>.
+        /// A string bridge synchronizes <see cref="IActivityMonitor.AutoTags"/> and <see cref="IActivityMonitor.Topic"/> between the two monitors. When created, the 2 properties
+        /// of the local monitor are set to the ones of the target monitor. 
+        /// </summary>
+        /// <param name="this">This <see cref="IActivityMonitorOutput"/>.</param>
+        /// <param name="targetBridge">The target bridge that will receive our logs.</param>
+        /// <returns>A <see cref="IDisposable"/> object that can be disposed to automatically call <see cref="UnbridgeTo"/>.</returns>
+        public static IDisposable CreateStrongBridgeTo( this IActivityMonitorOutput @this, ActivityMonitorBridgeTarget targetBridge )
+        {
+            if( @this == null ) throw new NullReferenceException( "this" );
+            if( targetBridge == null ) throw new ArgumentNullException( "targetBridge" );
+            if( @this.Clients.OfType<ActivityMonitorBridge>().Any( b => b.BridgeTarget == targetBridge ) ) throw new InvalidOperationException();
+            var created = @this.RegisterClient( new ActivityMonitorBridge( targetBridge, true, true ) );
             return Util.CreateDisposableAction( () => @this.UnregisterClient( created ) );
         }
 
@@ -122,7 +142,7 @@ namespace CK.Core
         public static ActivityMonitorBridge UnbridgeTo( this IActivityMonitorOutput @this, ActivityMonitorBridgeTarget targetBridge )
         {
             if( targetBridge == null ) throw new ArgumentNullException( "targetBridge" );
-            return UnregisterClient<ActivityMonitorBridge>( @this, b => b.TargetBridge == targetBridge );
+            return UnregisterClient<ActivityMonitorBridge>( @this, b => b.BridgeTarget == targetBridge );
         }
 
         #endregion

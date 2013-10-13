@@ -159,5 +159,14 @@ namespace CK.Core
         void IActivityMonitorClient.OnGroupClosed( IActivityLogGroup group, IReadOnlyList<ActivityLogGroupConclusion> conclusions )
         {
         }
+
+
+        void IActivityMonitorClient.OnTopicChanged( string newTopic )
+        {
+        }
+
+        void IActivityMonitorClient.OnAutoTagsChanged( CKTrait newTrait )
+        {
+        }
     }
 }

@@ -68,6 +68,17 @@ namespace CK.Core
         /// <param name="conclusions">Texts that conclude the group. Never null but can be empty.</param>
         void OnGroupClosed( IActivityLogGroup group, IReadOnlyList<ActivityLogGroupConclusion> conclusions );
 
+        /// <summary>
+        /// Called when a new <see cref="IActivityMonitor.Topic"/> is set.
+        /// </summary>
+        /// <param name="newTopic">The new topic string (never null but can be empty).</param>
+        void OnTopicChanged( string newTopic );
+
+        /// <summary>
+        /// Called when <see cref="IActivityMonitor.AutoTags"/> changed.
+        /// </summary>
+        /// <param name="newTopic">The new tags (never null but can be empty).</param>
+        void OnAutoTagsChanged( CKTrait newTrait );
     }
 
 }

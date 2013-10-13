@@ -50,11 +50,12 @@ namespace CK.Core
         /// Initializes a new conclusion for a group.
         /// </summary>
         /// <param name="conclusion">Must not be null (may be empty).</param>
-        /// <param name="tag">Must not be null and be registered in <see cref="ActivityMonitor.RegisteredTags"/>.</param>
-        public ActivityLogGroupConclusion( string conclusion, CKTrait tag )
+        /// <param name="tag">Must be null or be registered in <see cref="ActivityMonitor.RegisteredTags"/>.</param>
+        public ActivityLogGroupConclusion( string conclusion, CKTrait tag = null )
         {
-            if( tag == null || tag.Context != ActivityMonitor.RegisteredTags ) throw new ArgumentException( R.TagMustBeRegisteredInActivityMonitor, "tag" );
             if( conclusion == null ) throw new ArgumentNullException( "conclusion" );
+            if( tag == null ) tag = ActivityMonitor.EmptyTag;
+            else if( tag.Context != ActivityMonitor.RegisteredTags ) throw new ArgumentException( R.ActivityMonitorTagMustBeRegistered, "tag" );
             Tag = tag;
             Text = conclusion;
         }

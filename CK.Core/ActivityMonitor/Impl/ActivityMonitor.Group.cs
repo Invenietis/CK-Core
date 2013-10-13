@@ -277,6 +277,7 @@ namespace CK.Core
 
             internal void GroupClosed()
             {
+                _getConclusion = null;
                 _text = null;
                 _exception = null;
                 _exceptionData = null;

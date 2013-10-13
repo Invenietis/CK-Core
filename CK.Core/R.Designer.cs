@@ -88,6 +88,15 @@ namespace CK.Core {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Only reentrant calls to this method are supported..
+        /// </summary>
+        internal static string ActivityMonitorReentrancyCallOnly {
+            get {
+                return ResourceManager.GetString("ActivityMonitorReentrancyCallOnly", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to A reentrant call in an ActivityMonitor has been detected. A monitor usage must not trigger another operation on the same monitor..
         /// </summary>
         internal static string ActivityMonitorReentrancyError {
@@ -106,11 +115,11 @@ namespace CK.Core {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Monitor must not be null nor be the Empty one..
+        ///   Looks up a localized string similar to The CKTrait value must be registered in ActivityMonitor.RegisteredTags..
         /// </summary>
-        internal static string ActivityMustNotBeNullNorEmpty {
+        internal static string ActivityMonitorTagMustBeRegistered {
             get {
-                return ResourceManager.GetString("ActivityMustNotBeNullNorEmpty", resourceCulture);
+                return ResourceManager.GetString("ActivityMonitorTagMustBeRegistered", resourceCulture);
             }
         }
         
@@ -138,15 +147,6 @@ namespace CK.Core {
         internal static string ArgumentMustNotBeNullOrWhiteSpace {
             get {
                 return ResourceManager.GetString("ArgumentMustNotBeNullOrWhiteSpace", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Can not Unregister the Tap, PathCatcher or ErrorCounter of a default monitor..
-        /// </summary>
-        internal static string CanNotUnregisterDefaultClient {
-            get {
-                return ResourceManager.GetString("CanNotUnregisterDefaultClient", resourceCulture);
             }
         }
         
@@ -309,15 +309,6 @@ namespace CK.Core {
         internal static string SimpleMultiActionNullAction {
             get {
                 return ResourceManager.GetString("SimpleMultiActionNullAction", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Must be not null and registered in ActivityMonitor.RegisteredTags..
-        /// </summary>
-        internal static string TagMustBeRegisteredInActivityMonitor {
-            get {
-                return ResourceManager.GetString("TagMustBeRegisteredInActivityMonitor", resourceCulture);
             }
         }
         

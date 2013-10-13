@@ -134,5 +134,13 @@ namespace CK.Core
         /// <param name="conclusions">Texts that concludes the group. Never null but can be empty.</param>
         protected abstract void OnGroupClose( IActivityLogGroup group, IReadOnlyList<ActivityLogGroupConclusion> conclusions );
 
+
+        void IActivityMonitorClient.OnTopicChanged( string newTopic )
+        {
+        }
+
+        void IActivityMonitorClient.OnAutoTagsChanged( CKTrait newTrait )
+        {
+        }
     }
 }

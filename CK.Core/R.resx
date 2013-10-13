@@ -132,17 +132,11 @@
   <data name="ActivityMonitorReentrancyReleaseError" xml:space="preserve">
     <value>Internal error: Error during release reentrancy operation. Thread id={0} entered whereas release is called from thread '{1}', id={2}.</value>
   </data>
-  <data name="ActivityMustNotBeNullNorEmpty" xml:space="preserve">
-    <value>Monitor must not be null nor be the Empty one.</value>
-  </data>
   <data name="ArgumentCountNegative" xml:space="preserve">
     <value>Argument count can not be negative.</value>
   </data>
   <data name="ArgumentMustNotBeNullOrWhiteSpace" xml:space="preserve">
     <value>Argument must not be null or whitespace.</value>
-  </data>
-  <data name="CanNotUnregisterDefaultClient" xml:space="preserve">
-    <value>Can not Unregister the Tap, PathCatcher or ErrorCounter of a default monitor.</value>
   </data>
   <data name="ClosedByBridgeRemoved" xml:space="preserve">
     <value>Prematurely closed by Bridge removed.</value>
@@ -192,9 +186,6 @@
   <data name="SimpleMultiActionNullAction" xml:space="preserve">
     <value>One of the action is null.</value>
   </data>
-  <data name="TagMustBeRegisteredInActivityMonitor" xml:space="preserve">
-    <value>Must be not null and registered in ActivityMonitor.RegisteredTags.</value>
-  </data>
   <data name="TraitsMustBelongToTheSameContext" xml:space="preserve">
     <value>Traits must belong to the same context.</value>
   </data>
@@ -209,5 +200,11 @@
   </data>
   <data name="InnerExceptionMustBeTheFirstAggregatedException" xml:space="preserve">
     <value>The InnerException must be the first AggregatedExceptions.</value>
+  </data>
+  <data name="ActivityMonitorTagMustBeRegistered" xml:space="preserve">
+    <value>The CKTrait value must be registered in ActivityMonitor.RegisteredTags.</value>
+  </data>
+  <data name="ActivityMonitorReentrancyCallOnly" xml:space="preserve">
+    <value>Only reentrant calls to this method are supported.</value>
   </data>
 </root>

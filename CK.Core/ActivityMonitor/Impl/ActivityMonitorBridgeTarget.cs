@@ -83,8 +83,11 @@ namespace CK.Core
             {
                 if( _honorTargetFilter != value )
                 {
-                    _honorTargetFilter = value;
-                    TargetFilterChanged();
+                    using( _monitor.ReentrancyAndConcurrencyLock() )
+                    {
+                        _honorTargetFilter = value;
+                        TargetActualFilterChanged();
+                    }
                 }
             }
         }
@@ -121,46 +124,73 @@ namespace CK.Core
         /// <summary>
         /// Called by ActivityMonitorBridge.SetMonitor (the reentrant check is acquired).
         /// </summary>
-        internal void AddCallback( IActivityMonitorBridgeCallback callback, bool isCrossAppDomain )
+        internal void AddCallback( IActivityMonitorBridgeCallback callback )
         {
             Debug.Assert( Array.IndexOf( _callbacks, callback ) < 0 );
             Util.InterlockedAdd( ref _callbacks, callback );
-            if( isCrossAppDomain )
+            if( callback.IsCrossAppDomain )
             {
                 var bridges = Util.InterlockedAdd( ref _crossAppDomainBriddges, callback );
-                if( bridges.Length == 1 ) ActivityMonitor.DefaultFilterLevelChanged -= DefaultFilterChanged;
+                if( bridges.Length == 1 ) ActivityMonitor.DefaultFilterLevelChanged -= DefaultAppDomainFilterChanged;
             }
         }
 
         /// <summary>
         /// Called by ActivityMonitorBridge.SetMonitor (the reentrant check is acquired).
         /// </summary>
-        internal void RemoveCallback( IActivityMonitorBridgeCallback callback, bool isCrossAppDomain )
+        internal void RemoveCallback( IActivityMonitorBridgeCallback callback )
         {
             Debug.Assert( Array.IndexOf( _callbacks, callback ) >= 0 );
             Util.InterlockedRemove( ref _callbacks, callback );
-            if( isCrossAppDomain )
+            if( callback.IsCrossAppDomain )
             {
                 var bridges = Util.InterlockedRemove( ref _crossAppDomainBriddges, callback );
-                if( bridges.Length == 0 ) ActivityMonitor.DefaultFilterLevelChanged -= DefaultFilterChanged;
+                if( bridges.Length == 0 ) ActivityMonitor.DefaultFilterLevelChanged -= DefaultAppDomainFilterChanged;
             }
         }
 
-        internal void TargetFilterChanged()
+        /// <summary>
+        /// This is called when HonorMonitorFilter changes or by ActivityMonitor.UpdateActualFilter 
+        /// whenever the monitors's ActualFilter changed (in such cases, we are bound to the activity: the Reentrancy and concurrency 
+        /// lock has been obtained), or by our monitor's SetClientMinimalFilterDirty() method (in this case, we are called on 
+        /// any thread).
+        /// </summary>
+        internal void TargetActualFilterChanged()
         {
-            // This occurs on another thread.
-            var bridges = _callbacks;
-            foreach( var b in bridges ) b.OnTargetFilterChanged();
+            var callbacks = _callbacks;
+            foreach( var b in callbacks ) b.OnTargetActualFilterChanged();
         }
 
-        void DefaultFilterChanged( object sender, EventArgs e )
+        internal void TargetAutoTagsChanged( CKTrait newTags )
         {
-            // This occurs on another thread.
+            string cachedTags = null;
+            foreach( var b in _callbacks )
+            {
+                if( b.PullTopicAndAutoTagsFromTarget )
+                {
+                    if( b.IsCrossAppDomain ) b.OnTargetAutoTagsChanged( cachedTags ?? (cachedTags = _monitor.AutoTags.ToString()) );
+                    else b.OnTargetAutoTagsChanged( newTags );
+                }
+            }
+        }
+
+        internal void TargetTopicChanged( string newTopic )
+        {
+            foreach( var b in _callbacks )
+            {
+                if( b.PullTopicAndAutoTagsFromTarget ) b.OnTargetTopicChanged( newTopic );
+            }
+        }
+
+        void DefaultAppDomainFilterChanged( object sender, EventArgs e )
+        {
+            // This occurs on a totally external thread.
             var bridges = _crossAppDomainBriddges;
-            foreach( var b in bridges ) b.OnTargetFilterChanged();
+            foreach( var b in bridges ) b.OnTargetActualFilterChanged();
         }
 
         #region Cross AppDomain interface.
+
         internal void UnfilteredLog( string tags, LogLevel level, string text, DateTime logTimeUtc )
         {
             _monitor.UnfilteredLog( ActivityMonitor.RegisteredTags.FindOrCreate( tags ), level, text, logTimeUtc );
@@ -187,7 +217,35 @@ namespace CK.Core
                 }
             }
             _monitor.CloseGroup( c );
-        } 
+        }
+
+        internal void GetTargetAndAutoTags( out string targetTopic, out string marshalledTags )
+        {
+            targetTopic = _monitor.Topic;
+            marshalledTags = _monitor.AutoTags.ToString();
+        }
+
+        internal void GetTargetAndAutoTags( out string targetTopic, out CKTrait targetTags )
+        {
+            targetTopic = _monitor.Topic;
+            targetTags = _monitor.AutoTags;
+        }
+
+        internal void SetAutoTags( string marshalledTags )
+        {
+            SetAutoTags( ActivityMonitor.RegisteredTags.FindOrCreate( marshalledTags ) );
+        }
+
+        internal void SetTopic( string newTopic )
+        {
+            _monitor.Topic = newTopic;
+        }
+
+        internal void SetAutoTags( CKTrait tags )
+        {
+            _monitor.AutoTags = tags;
+        }
+
         #endregion
 
         public override object InitializeLifetimeService()
@@ -204,5 +262,6 @@ namespace CK.Core
         {
             return _crossAppDomainBriddges.Length == 0 ? TimeSpan.Zero : TimeSpan.FromMinutes( 2 );
         }
+
     }
 }

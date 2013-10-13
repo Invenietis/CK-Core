@@ -65,6 +65,16 @@ namespace CK.Core
         LogFilter ActualFilter { get; }
 
         /// <summary>
+        /// Gets or sets the current topic for this monitor. This can be any non null string (null topic is mapped to the empty string) that describes
+        /// the current activity.
+        /// </summary>
+        /// <remarks>
+        /// Clients are warned of the change thanks to <see cref="IActivityMonitorClient.OnTopicChanged"/> and an unfiltered <see cref="LogLevel.Info"/> log 
+        /// with the new topic preficed with "Topic:" and tagged with <see cref="ActivityMonitor.TagMonitorTopicChanged"/> is emitted.
+        /// </remarks>
+        string Topic { get; set; }
+
+        /// <summary>
         /// Logs a text regardless of <see cref="ActalFilter"/> level. 
         /// Each call to log is considered as a unit of text: depending on the rendering engine, a line or a 
         /// paragraph separator (or any appropriate separator) should be appended between each text if 
