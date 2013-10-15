@@ -29,12 +29,12 @@ namespace CK.Monitoring.Impl
             {
             }
 
-            public GrandOutputSource CreateInput( IActivityMonitorImpl monitor, string channelName )
+            public GrandOutputSource CreateSource( IActivityMonitorImpl monitor, string channelName )
             {
                 return new GrandOutputSource( monitor, channelName );
             }
 
-            public void ReleaseInput( GrandOutputSource source )
+            public void ReleaseSource( GrandOutputSource source )
             {
             }
 

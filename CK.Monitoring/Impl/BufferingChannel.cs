@@ -35,12 +35,12 @@ namespace CK.Monitoring.Impl
         {
         }
 
-        public GrandOutputSource CreateInput( IActivityMonitorImpl monitor, string channelName )
+        public GrandOutputSource CreateSource( IActivityMonitorImpl monitor, string channelName )
         {
             return new GrandOutputSource( monitor, channelName );
         }
 
-        public void ReleaseInput( GrandOutputSource source )
+        public void ReleaseSource( GrandOutputSource source )
         {
         }
 
@@ -110,7 +110,7 @@ namespace CK.Monitoring.Impl
                 GrandOutputEventInfo e;
                 while( _buffer.TryDequeue( out e ) )
                 {
-                    IChannel c = newChannels( e.Source.ChannelName );
+                    IChannel c = newChannels( e.Source.Topic );
                     List<GrandOutputEventInfo> events = routedEvents.GetValueWithDefaultFunc( c, channel => new List<GrandOutputEventInfo>() );
                     events.Add( e );
                 }

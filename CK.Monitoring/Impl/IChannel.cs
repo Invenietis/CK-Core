@@ -27,13 +27,13 @@ namespace CK.Monitoring
         /// <param name="monitor">Monitor that uses this channel.</param>
         /// <param name="channelName">Full name of the required channel.</param>
         /// <returns>A <see cref="GrandOutputSource"/> that captures information related to the relation between a monitor and this channel/</returns>
-        GrandOutputSource CreateInput( IActivityMonitorImpl monitor, string channelName );
+        GrandOutputSource CreateSource( IActivityMonitorImpl monitor, string channelName );
 
         /// <summary>
         /// Called by <see cref="GrandOutputClient"/> when the currently bound channel is no more used.
         /// </summary>
-        /// <param name="source">The source previously obtained by <see cref="CreateInput"/>.</param>
-        void ReleaseInput( GrandOutputSource source );
+        /// <param name="source">The source previously obtained by <see cref="CreateSource"/>.</param>
+        void ReleaseSource( GrandOutputSource source );
 
         /// <summary>
         /// Gets the minimal log level that this channel expects. 

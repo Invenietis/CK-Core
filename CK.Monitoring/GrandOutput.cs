@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.Threading;
 using CK.Core;
 using CK.Monitoring.GrandOutputHandlers;
 using CK.Monitoring.Impl;
@@ -7,13 +9,56 @@ using CK.RouteConfig;
 
 namespace CK.Monitoring
 {
+    /// <summary>
+    /// A GrandOutput collects activity of multiple <see cref="IActivityMonitor"/>. It routes log events to 
+    /// multiple channels based on <see cref="IActivityMonitor.Topic"/>.
+    /// 
+    /// It is usually useless to explicitely create an instance of GrandOutput: the <see cref="Default"/> one is 
+    /// available as soon as <see cref="EnsureActiveDefault"/> is called and will be automatically used by new <see cref="ActivityMonitor"/>.
+    /// </summary>
     public partial class GrandOutput
     {
         readonly List<WeakRef<GrandOutputClient>> _clients;
         readonly GrandOutputCompositeSink _commonSink;
         readonly ChannelHost _channelHost;
         readonly BufferingChannel _bufferingChannel;
+        DateTime _nextDeadClientGarbage;
 
+        static GrandOutput _default;
+        static readonly object _defaultLock = new object();
+
+        /// <summary>
+        /// Gets the default <see cref="GrandOutput"/> for the current Application Domain.
+        /// Note that <see cref="EnsureActiveDefault"/> must have been called, otherwise this static property is null.
+        /// </summary>
+        public static GrandOutput Default 
+        { 
+            get { return _default; } 
+        }
+
+        /// <summary>
+        /// Ensures that the <see cref="Default"/> GrandOutput is created and that any <see cref="ActivityMonitor"/> that will be created in this
+        /// application domain will automatically have a <see cref="GrandOutpuClient"/> registered for this Default GrandOutput.
+        /// </summary>
+        /// <returns>The Default GrandOutput.</returns>
+        /// <remarks>
+        /// This method is thread-safe (simple lock protects it) and uses a <see cref="ActivityMonitor.AutoConfiguration"/> action 
+        /// that <see cref="Register"/>s newly created <see cref="ActivityMonitor"/>.
+        /// </remarks>
+        static public GrandOutput EnsureActiveDefault()
+        {
+            lock( _defaultLock )
+            {
+                SystemActivityMonitor.EnsureStaticInitialization();
+                _default = new GrandOutput();
+                ActivityMonitor.AutoConfiguration.Append( m => Default.Register( m ) );
+            }
+            return _default;
+        }
+
+        /// <summary>
+        /// Initializes a new <see cref="GrandOutput"/>. 
+        /// </summary>
         public GrandOutput()
         {
             _clients = new List<WeakRef<GrandOutputClient>>();
@@ -21,6 +66,7 @@ namespace CK.Monitoring
             _channelHost = new ChannelHost( new ChannelFactory( _commonSink ), OnConfigurationReady );
             _channelHost.ConfigurationClosing += OnConfigurationClosing;
             _bufferingChannel = new BufferingChannel( _commonSink );
+            _nextDeadClientGarbage = DateTime.UtcNow.AddMinutes( 5 );
         }
 
         /// <summary>
@@ -30,14 +76,12 @@ namespace CK.Monitoring
         /// <returns>A newly created client or the already existing one.</returns>
         public GrandOutputClient Register( IActivityMonitor monitor )
         {
-            if( monitor == null ) throw new ArgumentNullException( "monitor" );           
+            if( monitor == null ) throw new ArgumentNullException( "monitor" );
+            AttemptGarbageDeadClients();
             Func<GrandOutputClient> reg = () =>
                 {
                     var c = new GrandOutputClient( this );
-                    lock( _clients ) 
-                    {
-                        _clients.Add( new WeakRef<GrandOutputClient>( c ) ); 
-                    }
+                    lock( _clients ) _clients.Add( new WeakRef<GrandOutputClient>( c ) ); 
                     return c;
                 };
             return monitor.Output.RegisterUniqueClient( b => b.Central == this, reg );
@@ -50,6 +94,7 @@ namespace CK.Monitoring
         public void RegisterGlobalSink( IGrandOutputSink sink )
         {
             if( sink == null ) throw new ArgumentNullException( "sink" );
+            AttemptGarbageDeadClients();
             _commonSink.Add( sink );
         }
 
@@ -60,23 +105,24 @@ namespace CK.Monitoring
         public void UnregisterGlobalSink( IGrandOutputSink sink )
         {
             if( sink == null ) throw new ArgumentNullException( "sink" );
+            AttemptGarbageDeadClients();
             _commonSink.Remove( sink );
         }
 
         /// <summary>
-        /// Obtains an actual channel from its full name.
+        /// Obtains an actual channel based on the activity <see cref="IActivityMonitor.Topic"/>.
         /// This is called on the monitor's thread.
         /// </summary>
-        /// <param name="channelName">The full channel name. Used as the key to find an actual Channel that must handle the log events.</param>
-        /// <returns>A <see cref="StandardChannel"/> for the channelName, or an internal BufferingChannel if the configuration is being applied.</returns>
-        internal IChannel ObtainChannel( string channelName )
+        /// <param name="topic">The topic. Used as the key to find an actual Channel that must handle the log events.</param>
+        /// <returns>A channel for the topic (or an internal BufferingChannel if a configuration is being applied).</returns>
+        internal IChannel ObtainChannel( string topic )
         {
-            var channel = _channelHost.ObtainRoute( channelName );
+            var channel = _channelHost.ObtainRoute( topic );
             if( channel == null )
             {
                 lock( _bufferingChannel.FlushLock )
                 {
-                    channel = _channelHost.ObtainRoute( channelName );
+                    channel = _channelHost.ObtainRoute( topic );
                     if( channel == null )
                     {
                         _bufferingChannel.EnsureActive();
@@ -108,23 +154,55 @@ namespace CK.Monitoring
                 _bufferingChannel.FlushBuffer( e.IsClosed ? (Func<string,IChannel>)null : e.ObtainRoute );
                 e.ApplyConfiguration();
             }
-            SignalConfigurationChanged();
+            // The new configuration is applied: we signal the clients
+            // and use this configuration thread to clean the weak refs list if needed.
+            if( SignalConfigurationChanged() )
+            {
+                int nbDeadClients;
+                lock( _clients ) nbDeadClients = DoGarbageDeadClients( DateTime.UtcNow );
+                if( nbDeadClients > 0 ) e.Monitor.Info( "Removing {0} dead client(s).", nbDeadClients );
+                else e.Monitor.Trace( "No dead client to remove." );
+            }
         }
 
-        void SignalConfigurationChanged()
+        /// <summary>
+        /// Signals the clients referenced by weak refs that they need to obtain a new channel
+        /// and returns true if at least one weak ref is not alive.
+        /// </summary>
+        bool SignalConfigurationChanged()
         {
             WeakRef<GrandOutputClient>[] current;
             lock( _clients ) current = _clients.ToArray();
+            bool hasDeadClients = false;
             foreach( var cw in current )
             {
                 GrandOutputClient c = cw.Target;
                 if( c != null ) c.OnChannelConfigurationChanged();
+                else hasDeadClients = true;
             }
+            return hasDeadClients;
         }
 
-        private void DoGarbageDeadClients()
+        void AttemptGarbageDeadClients()
         {
-            throw new NotImplementedException();
+            DateTime t = DateTime.UtcNow;
+            if( t > _nextDeadClientGarbage ) DoGarbageDeadClients( t );
+        }
+
+        int DoGarbageDeadClients( DateTime utcNow )
+        {
+            Debug.Assert( Monitor.IsEntered( _clients ) );
+            _nextDeadClientGarbage = utcNow.AddMinutes( 5 );
+            int count = 0;
+            for( int i = 0; i < _clients.Count; ++i )
+            {
+                if( !_clients[i].IsAlive )
+                {
+                    _clients.RemoveAt( i-- );
+                    ++count;
+                }
+            }
+            return count;
         }
     }
 }

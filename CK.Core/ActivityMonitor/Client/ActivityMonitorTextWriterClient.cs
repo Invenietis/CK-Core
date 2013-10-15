@@ -122,7 +122,7 @@ namespace CK.Core
             TextWriter w = _writer();
             if( g.Exception != null )
             {
-                DumpException( w, !g.IsGroupTextTheExceptionMessage, g.Exception );
+                DumpException( w, _prefix, !g.IsGroupTextTheExceptionMessage, g.Exception );
             }
             _prefixLevel = _prefix = _prefix.Remove( _prefix.Length - 3 );
 
@@ -135,42 +135,42 @@ namespace CK.Core
             }
         }
 
-        void DumpException( TextWriter w, bool displayMessage, Exception ex )
+        static public void DumpException( TextWriter w, string prefix, bool displayMessage, Exception ex )
         {
             CKException ckEx = ex as CKException;
             if( ckEx != null && ckEx.ExceptionData != null )
             {
-                ckEx.ExceptionData.ToTextWriter( w, _prefix );
+                ckEx.ExceptionData.ToTextWriter( w, prefix );
                 return;
             }
 
             string header = String.Format( " ┌──────────────────────────■ Exception : {0} ■──────────────────────────", ex.GetType().Name );
 
             string p;
-            w.WriteLine( _prefix + header );
-            _prefix += " | ";
+            w.WriteLine( prefix + header );
+            string localPrefix = prefix + " | ";
             string start;
             if( displayMessage && ex.Message != null )
             {
-                start = _prefix + "Message: ";
-                p = _prefix + "         ";
-                w.WriteLine( start + ex.Message.Replace( Environment.NewLine, Environment.NewLine + p ) );
+                start = localPrefix + "Message: ";
+                p = Environment.NewLine + localPrefix + "         ";
+                w.WriteLine( start + ex.Message.Replace( Environment.NewLine, p ) );
             }
             if( ex.StackTrace != null )
             {
-                start = _prefix + "Stack: ";
-                p = _prefix + "       ";
-                w.WriteLine( start + ex.StackTrace.Replace( Environment.NewLine, Environment.NewLine + p ) );
+                start = localPrefix + "Stack: ";
+                p = Environment.NewLine + localPrefix + "       ";
+                w.WriteLine( start + ex.StackTrace.Replace( Environment.NewLine, p ) );
             }
             var fileNFEx = ex as System.IO.FileNotFoundException;
             if( fileNFEx != null )
             {
-                if( !String.IsNullOrEmpty( fileNFEx.FileName ) ) w.WriteLine( _prefix + "FileName: " + fileNFEx.FileName );
+                if( !String.IsNullOrEmpty( fileNFEx.FileName ) ) w.WriteLine( localPrefix + "FileName: " + fileNFEx.FileName );
                 if( fileNFEx.FusionLog != null )
                 {
-                    start = _prefix + "FusionLog: ";
-                    p = _prefix + "         ";
-                    w.WriteLine( start + fileNFEx.FusionLog.Replace( Environment.NewLine, Environment.NewLine + p ) );
+                    start = localPrefix + "FusionLog: ";
+                    p = Environment.NewLine + localPrefix + "         ";
+                    w.WriteLine( start + fileNFEx.FusionLog.Replace( Environment.NewLine, p ) );
                 }
             }
             else
@@ -178,33 +178,32 @@ namespace CK.Core
                 var loadFileEx = ex as System.IO.FileLoadException;
                 if( loadFileEx != null )
                 {
-                    if( !String.IsNullOrEmpty( loadFileEx.FileName ) ) w.WriteLine( _prefix + "FileName: " + loadFileEx.FileName );
+                    if( !String.IsNullOrEmpty( loadFileEx.FileName ) ) w.WriteLine( localPrefix + "FileName: " + loadFileEx.FileName );
                     if( loadFileEx.FusionLog != null )
                     {
-                        start = _prefix + "FusionLog: ";
-                        p = _prefix + "         ";
-                        w.WriteLine( start + loadFileEx.FusionLog.Replace( Environment.NewLine, Environment.NewLine + p ) );
+                        start = localPrefix + "FusionLog: ";
+                        p = Environment.NewLine + localPrefix + "         ";
+                        w.WriteLine( start + loadFileEx.FusionLog.Replace( Environment.NewLine, p ) );
                     }
                     else
                     {
                         var typeLoadEx = ex as ReflectionTypeLoadException;
                         if( typeLoadEx != null )
                         {
-                            w.WriteLine( _prefix + " ┌──────────────────────────■ [Loader Exceptions] ■──────────────────────────" );
-                            _prefix += " | ";
+                            w.WriteLine( localPrefix + " ┌──────────────────────────■ [Loader Exceptions] ■──────────────────────────" );
+                            p = localPrefix + " | ";
                             foreach( var item in typeLoadEx.LoaderExceptions )
                             {
-                                DumpException( w, true, item );
+                                DumpException( w, p, true, item );
                             }
-                            _prefix = _prefix.Remove( _prefix.Length - 3 );
-                            w.WriteLine( _prefix + " └─────────────────────────────────────────────────────────────────────────" );
+                            w.WriteLine( localPrefix + " └─────────────────────────────────────────────────────────────────────────" );
                         }
                         else
                         {
                             var configEx = ex as System.Configuration.ConfigurationException;
                             if( configEx != null )
                             {
-                                if( !String.IsNullOrEmpty( configEx.Filename ) ) w.WriteLine( _prefix + "FileName: " + configEx.Filename );
+                                if( !String.IsNullOrEmpty( configEx.Filename ) ) w.WriteLine( localPrefix + "FileName: " + configEx.Filename );
                             }
                         }
                     }
@@ -216,25 +215,22 @@ namespace CK.Core
             var aggrex = ex as AggregateException;
             if( aggrex != null && aggrex.InnerExceptions.Count > 0 )
             {
-                w.WriteLine( _prefix + " ┌──────────────────────────■ [Aggregated Exceptions] ■──────────────────────────" );
-                _prefix += " | ";
+                w.WriteLine( localPrefix + " ┌──────────────────────────■ [Aggregated Exceptions] ■──────────────────────────" );
+                p = localPrefix + " | ";
                 foreach( var item in aggrex.InnerExceptions )
                 {
-                    DumpException( w, true, item );
+                    DumpException( w, p, true, item );
                 }
-                _prefix = _prefix.Remove( _prefix.Length - 3 );
-                w.WriteLine( _prefix + " └─────────────────────────────────────────────────────────────────────────" );
+                w.WriteLine( localPrefix + " └─────────────────────────────────────────────────────────────────────────" );
             }
             else if( ex.InnerException != null )
             {
-                w.WriteLine( _prefix + " ┌──────────────────────────■ [Inner Exception] ■──────────────────────────" );
-                _prefix += " | ";
-                DumpException( w, true, ex.InnerException );
-                _prefix = _prefix.Remove( _prefix.Length - 3 );
-                w.WriteLine( _prefix + " └─────────────────────────────────────────────────────────────────────────" );
+                w.WriteLine( localPrefix + " ┌──────────────────────────■ [Inner Exception] ■──────────────────────────" );
+                p = localPrefix + " | ";
+                DumpException( w, p, true, ex.InnerException );
+                w.WriteLine( localPrefix + " └─────────────────────────────────────────────────────────────────────────" );
             }
-            _prefix = _prefix.Remove( _prefix.Length - 3 );
-            w.WriteLine( _prefix + " └" + new String( '─', header.Length - 2 ) );
+            w.WriteLine( prefix + " └" + new String( '─', header.Length - 2 ) );
         }
 
     }

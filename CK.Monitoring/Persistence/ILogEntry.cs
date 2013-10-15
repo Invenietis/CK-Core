@@ -32,7 +32,7 @@ namespace CK.Monitoring
         string Text { get; }
 
         /// <summary>
-        /// Gets the traits for this entry.
+        /// Gets the tags for this entry.
         /// Always equals to <see cref="ActivityMonitor.EmptyTag"/> when <see cref="LogType"/> is <see cref="LogEntryType.CloseGroup"/>.
         /// </summary>
         CKTrait Tags { get; }

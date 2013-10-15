@@ -48,7 +48,7 @@ namespace CK.Monitoring
                     // Releases the channel if any.
                     if( _channel != null )
                     {
-                        _channel.ReleaseInput( _source );
+                        _channel.ReleaseSource( _source );
                         _source = null;
                         _channel = null;
                     }
@@ -95,7 +95,7 @@ namespace CK.Monitoring
                         _channel.CancelPreHandleLock();
                         if( _source != null )
                         {
-                            _channel.ReleaseInput( _source );
+                            _channel.ReleaseSource( _source );
                             _source = null;
                         }
                     }
@@ -103,7 +103,7 @@ namespace CK.Monitoring
                 }
                 while( _version != _curVersion );
             }
-            _source = _channel.CreateInput( _monitorSource, _monitorSource.Topic );
+            _source = _channel.CreateSource( _monitorSource, _monitorSource.Topic );
             _relativeDepth = 0;
             if( _currentMinimalFilter != _channel.MinimalFilter )
             {

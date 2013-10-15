@@ -10,7 +10,7 @@ using CK.RouteConfig;
 namespace CK.Monitoring.Impl
 {
     /// <summary>
-    /// 
+    /// Actual specialization of the generic <see cref="ConfiguredRouteHost{TAction,TRoute}"/> with <see cref="HandlerBase"/> and <see cref="IChannel"/>.
     /// </summary>
     internal class ChannelHost : ConfiguredRouteHost<HandlerBase, IChannel>
     {

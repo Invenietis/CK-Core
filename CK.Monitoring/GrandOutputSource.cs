@@ -15,15 +15,15 @@ namespace CK.Monitoring
     public class GrandOutputSource
     {
         readonly Guid _monitorId;
-        readonly string _channelName;
+        readonly string _topic;
         readonly int _depth;
 
-        internal GrandOutputSource( IActivityMonitorImpl monitor, string channelName )
+        internal GrandOutputSource( IActivityMonitorImpl monitor, string topic )
         {
             var g = monitor.CurrentGroup;
             _depth = g != null ? g.Depth : 0;
             _monitorId = monitor.UniqueId;
-            _channelName = channelName;
+            _topic = topic;
         }
 
         /// <summary>
@@ -35,16 +35,16 @@ namespace CK.Monitoring
         }
 
         /// <summary>
-        /// Gets the full channel name.
+        /// Gets the activity topic.
         /// </summary>
-        public string ChannelName
+        public string Topic
         {
-            get { return _channelName; }
+            get { return _topic; }
         }
 
         /// <summary>
         /// Gets the initial number of opened groups in the origin monitor when this source has been created.
-        /// The source is created when the <see cref="GrandOutputClient.ChannelName"/> changes or the channel
+        /// The source is created when the <see cref="IActivityMonitor.Topic"/> changes or the channel
         /// itself changes (reconfiguration).
         /// </summary>
         public int InitialDepth

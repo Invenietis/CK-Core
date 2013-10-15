@@ -36,13 +36,13 @@ namespace CK.Monitoring
             _minimalFilter = option.CurrentMinimalFilter;
         }
 
-        public GrandOutputSource CreateInput( IActivityMonitorImpl monitor, string channelName )
+        public GrandOutputSource CreateSource( IActivityMonitorImpl monitor, string channelName )
         {
             Interlocked.Increment( ref _inputCount );
             return new GrandOutputSource( monitor, channelName );
         }
 
-        public void ReleaseInput( GrandOutputSource source )
+        public void ReleaseSource( GrandOutputSource source )
         {
             Interlocked.Decrement( ref _inputCount );
         }
@@ -51,6 +51,8 @@ namespace CK.Monitoring
         {
             _common.Handle( logEvent );
             // HandleWaitCallback avoids a closure.
+            // Use the threadpool to guaranty that the message handling will be executed
+            // on another thread.
             ThreadPool.QueueUserWorkItem( HandleWaitCallback, logEvent );
         }
 
@@ -74,6 +76,8 @@ namespace CK.Monitoring
         public void HandleBuffer( List<GrandOutputEventInfo> list )
         {
             // HandleWaitCallbackBuffer avoids a closure.
+            // Using the thread pool here is a good idea: it triggers an immediate 
+            // schedule of a pooled thread.
             ThreadPool.QueueUserWorkItem( HandleWaitCallbackBuffer, list );
         }
 

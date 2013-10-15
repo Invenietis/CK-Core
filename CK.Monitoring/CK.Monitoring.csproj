@@ -42,6 +42,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
+    <Reference Include="System.Configuration" />
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Xml" />
@@ -111,6 +112,7 @@
     <Compile Include="GrandOutputHandlers\HandlerTypeAttribute.cs" />
     <Compile Include="GrandOutputHandlers\Impl\SequenceHandler.cs" />
     <Compile Include="GrandOutputHandlers\Impl\ParallelHandler.cs" />
+    <Compile Include="SystemActivityMonitor.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\SharedKey.snk">
