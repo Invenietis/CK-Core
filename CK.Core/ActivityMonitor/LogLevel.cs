@@ -46,23 +46,23 @@ namespace CK.Core
         /// <summary>
         /// A warn logging level.
         /// </summary>
-        Warn = 3,
+        Warn = 4,
         /// <summary>
         /// An error logging level: denotes an error for the current activity. 
         /// This error does not necessarily abort the activity.
         /// </summary>
-        Error = 4,
+        Error = 8,
         /// <summary>
         /// A fatal error logging level: denotes an error that breaks (aborts)
         /// the current activity. This kind of error may have important side effects
         /// on the system.
         /// </summary>
-        Fatal = 5,
+        Fatal = 16,
 
         /// <summary>
         /// Mask that covers actual levels to easily ignore <see cref="IsFiltered"/> bit.
         /// </summary>
-        Mask = 7,
+        Mask = 31,
 
         /// <summary>
         /// Flag that denotes a log level that has been filtered.
@@ -70,7 +70,7 @@ namespace CK.Core
         /// called directly. When set, the log has typically been emitted through the extension methods that challenge the 
         /// monitor's <see cref="IActivityMonitor.ActualFilter">actual filter</see> and <see cref="ActivityMonitor.DefaultFilter"/> static configuration.
         /// </summary>
-        IsFiltered = 8
+        IsFiltered = 32
     }
 
 }

@@ -48,19 +48,19 @@ namespace CK.Core
         /// <summary>
         /// Only <see cref="LogLevel.Warn"/> and above is logged.
         /// </summary>
-        Warn = 3,
+        Warn = 4,
         /// <summary>
         /// Only <see cref="LogLevel.Error"/> and above is logged.
         /// </summary>
-        Error = 4,
+        Error = 8,
         /// <summary>
         /// Only <see cref="LogLevel.Fatal"/> is logged.
         /// </summary>
-        Fatal = 5,
+        Fatal = 16,
         /// <summary>
         /// Do not log anything.
         /// </summary>
-        Off = 6,
+        Off = 64,
         /// <summary>
         /// Invalid filter can be use to designate an unknown filter. 
         /// Since its value is -1, in the worst case it will not filter anything.

@@ -628,6 +628,7 @@ namespace CK.Core
             Group g = _current;
             if( g != null )
             {
+                // Handles th filtered case first (easiest).
                 if( g.GroupLevel == LogLevel.None )
                 {
                     if( g.SavedMonitorFilter != _configuredFilter ) DoSetConfiguredFilter( g.SavedMonitorFilter );
