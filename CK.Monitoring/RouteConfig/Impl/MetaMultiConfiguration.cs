@@ -1,8 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using CK.Core;
 
 namespace CK.RouteConfig.Impl
 {
@@ -22,7 +20,7 @@ namespace CK.RouteConfig.Impl
 
         protected IReadOnlyList<T> Items
         {
-            get { return _items.AsReadOnly(); }
+            get { return _items.AsReadOnlyList(); }
         }
 
         protected void Add( T item )

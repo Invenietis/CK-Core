@@ -145,7 +145,7 @@ namespace CK.RouteConfig.Impl
 
             IReadOnlyList<IProtoSubRoute> IProtoRoute.SubRoutes
             {
-                get { return _subRoutes.AsReadOnly(); }
+                get { return _subRoutes.AsReadOnlyList(); }
             }
 
             #endregion

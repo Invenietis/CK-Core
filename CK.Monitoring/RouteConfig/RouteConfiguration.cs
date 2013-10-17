@@ -16,6 +16,7 @@ namespace CK.RouteConfig
         readonly string _name;
         readonly List<MetaConfiguration> _configurations;
         string _namespace;
+        object _configData;
 
         /// <summary>
         /// Initializes a new root <see cref="RouteConfiguration"/>.
@@ -37,7 +38,19 @@ namespace CK.RouteConfig
             _namespace = String.Empty;
         }
 
+        /// <summary>
+        /// Gets the name of this configuration.
+        /// </summary>
         public string Name { get { return _name; } }
+
+        /// <summary>
+        /// Gets or sets any configuration data for this route.
+        /// </summary>
+        public object ConfigData 
+        {
+            get { return _configData; }
+            set { _configData = value; } 
+        }
 
         /// <summary>
         /// Gets or sets an optional namespace for this route: declared <see cref="SubRouteConfiguration"/>
@@ -50,7 +63,7 @@ namespace CK.RouteConfig
             set { _namespace = value ?? String.Empty; } 
         }
 
-        public IReadOnlyList<MetaConfiguration> Configurations { get { return _configurations; } }
+        public IReadOnlyList<MetaConfiguration> Configurations { get { return _configurations.AsReadOnlyList(); } }
 
         public RouteConfiguration AddAction( ActionConfiguration a, params ActionConfiguration[] otherActions )
         {
@@ -97,7 +110,7 @@ namespace CK.RouteConfig
         /// Attempts to resolve the configuration. Null if an error occured.
         /// </summary>
         /// <param name="monitor">Monitor to use. Must not be null nor the empty monitor.</param>
-        /// <returns>Null or a set of resolved channel configuration.</returns>
+        /// <returns>Null or a set of resolved route configuration.</returns>
         public RouteConfigurationResult Resolve( IActivityMonitor monitor )
         {
             if( monitor == null ) throw new ArgumentNullException( "monitor" );

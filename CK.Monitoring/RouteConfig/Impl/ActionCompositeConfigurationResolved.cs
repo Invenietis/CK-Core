@@ -37,7 +37,7 @@ namespace CK.RouteConfig.Impl
 
         public new ActionCompositeConfiguration ActionConfiguration { get { return (ActionCompositeConfiguration)base.ActionConfiguration; } }
 
-        public IReadOnlyList<ActionConfigurationResolved> Children { get { return _children; } }
+        public IReadOnlyList<ActionConfigurationResolved> Children { get { return _children.AsReadOnlyList(); } }
 
 
      }

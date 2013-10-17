@@ -13,7 +13,7 @@ namespace CK.RouteConfig
         readonly Func<string,bool> _routePredicate;
 
         internal SubRouteConfigurationResolved( IProtoSubRoute c, IReadOnlyList<ActionConfigurationResolved> actions )
-            : base( c.FullName, actions )
+            : base( c.FullName, c.Configuration.ConfigData, actions )
         {
             _routePredicate = c.Configuration.RoutePredicate;
         }

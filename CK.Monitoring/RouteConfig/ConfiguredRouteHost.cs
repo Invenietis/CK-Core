@@ -39,15 +39,17 @@ namespace CK.RouteConfig
                 FinalRoute = factory.DoCreateEmptyFinalRoute();
             }
 
-            internal RouteHost( IActivityMonitor monitor, RouteConfigurationLockShell configLock, RouteActionFactory<TAction, TRoute> factory, RouteConfigurationResolved c )
+            internal RouteHost( IActivityMonitor monitor, List<TRoute> routePath, RouteConfigurationLockShell configLock, RouteActionFactory<TAction, TRoute> factory, RouteConfigurationResolved c )
             {
                 using( monitor.OpenGroup( LogLevel.Info, "Initializing compiled route '{0}'.", c.Name ) )
                 {
                     try
                     {
                         Actions = c.ActionsResolved.Select( r => factory.Create( monitor, r.ActionConfiguration ) ).ToArray();
-                        FinalRoute = factory.DoCreateFinalRoute( monitor, configLock, Actions, c.Name );
-                        Routes = c.SubRoutes.Where( r => r.ActionsResolved.Any() ).Select( r => new SubRouteHost( monitor, configLock, factory, r ) ).ToArray();
+                        FinalRoute = factory.DoCreateFinalRoute( monitor, configLock, Actions, c.Name, c.ConfigData, routePath.AsReadOnlyList() );
+                        routePath.Add( FinalRoute ); 
+                        Routes = c.SubRoutes.Where( r => r.ActionsResolved.Any() ).Select( r => new SubRouteHost( monitor, routePath, configLock, factory, r ) ).ToArray();
+                        routePath.RemoveAt( routePath.Count-1 );
                     }
                     catch( Exception ex )
                     {
@@ -79,8 +81,8 @@ namespace CK.RouteConfig
         {
             public readonly Func<string,bool> Filter;
 
-            internal SubRouteHost( IActivityMonitor monitor, RouteConfigurationLockShell configLock, RouteActionFactory<TAction, TRoute> factory, SubRouteConfigurationResolved c )
-                : base( monitor, configLock, factory, c )
+            internal SubRouteHost( IActivityMonitor monitor, List<TRoute> routePath, RouteConfigurationLockShell configLock, RouteActionFactory<TAction, TRoute> factory, SubRouteConfigurationResolved c )
+                : base( monitor, routePath, configLock, factory, c )
             {
                 Filter = c.RoutePredicate;
             }
@@ -339,7 +341,7 @@ namespace CK.RouteConfig
             {
                 try
                 {
-                    newRoot = new RouteHost( monitor, shellLock, _actionFactory, result.Root );
+                    newRoot = new RouteHost( monitor, new List<TRoute>(), shellLock, _actionFactory, result.Root );
                 }
                 catch( Exception ex )
                 {

@@ -11,7 +11,10 @@ using CK.Core.Impl;
 namespace CK.Core
 {
     /// <summary>
-    /// 
+    /// This <see cref="ActivityMonitor"/> logs errors in a directory (if the static <see cref="LogPath"/> property is not null) and 
+    /// raises <see cref="OnError"/> events.
+    /// Its main goal is to be internally used by the Monitor framework but can be used, if you believe it is a good idea, independently.
+    /// The easiest way to configure it is to set an application settings with the key "CK.Core.SystemActivityMonitor.LogPath".
     /// </summary>
     public sealed class SystemActivityMonitor : ActivityMonitor
     {
@@ -104,7 +107,7 @@ namespace CK.Core
             AppSettingsKey = "CK.Core.SystemActivityMonitor.LogPath";
             SubDirectoryName = "SystemActivityMonitor/";
             _client = new SysClient();
-            LogPath = ConfigurationManager.AppSettings[AppSettingsKey];
+            LogPath = AppSettings.Default[ AppSettingsKey ];
             _activityMonitorErrorTracked = 1;
             ActivityMonitor.LoggingError.OnErrorFromBackgroundThreads += OnTrackActivityMonitorLoggingError;
         }
@@ -129,7 +132,7 @@ namespace CK.Core
         }
 
         /// <summary>
-        /// The key in the application settings used to initialize the <see cref="LogPath"/> if it exists in <see cref="ConfigurationManager.AppSettings"/> section.
+        /// The key in the application settings used to initialize the <see cref="LogPath"/> if it exists in <see cref="AppSettings.Default"/>.
         /// </summary>
         static readonly string AppSettingsKey;
 
@@ -149,7 +152,7 @@ namespace CK.Core
         /// <summary>
         /// Gets or sets whether <see cref="ActivityMonitor.LoggingError"/> are tracked (this is thread safe).
         /// When true, LoggingError events are tracked, written to a file (if <see cref="LogPath"/> is available) and ultimately 
-        /// republished throug as <see cref="OnError"/> events.
+        /// published again as a <see cref="OnError"/> events.
         /// Defaults to true.
         /// </summary>
         static public bool TrackActivityMonitorLoggingError
@@ -176,7 +179,7 @@ namespace CK.Core
         /// a test file is created (and deleted) inside it to ensure that (at least at configuration time), no security configuration prevents us to create log files:
         /// all errors files will be created in this sub directory.
         /// When not null, it necessarily ends with a <see cref="Path.DirectorySeparatorChar"/>.
-        /// Defaults to the value of <see cref="AppSettingsKey"/> in <see cref="ConfigurationManager.AppSettings"/> or null.
+        /// Defaults to the value of <see cref="AppSettingsKey"/> in <see cref="AppSettings.Default"/> or null.
         /// </summary>
         static public string LogPath
         {

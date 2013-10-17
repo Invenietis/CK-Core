@@ -42,7 +42,7 @@ namespace CK.RouteConfig.Impl
 
         public bool IsParallel { get { return _isParallel; } }
 
-        public IReadOnlyList<ActionConfiguration> Children { get { return _children; } }
+        public IReadOnlyList<ActionConfiguration> Children { get { return _children.AsReadOnlyList(); } }
 
         public override bool CheckValidity( string routeName, IActivityMonitor monitor )
         {

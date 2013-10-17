@@ -142,9 +142,11 @@ namespace CK.RouteConfig
         /// its work can keep a reference to it and use it as needed.
         /// </param>
         /// <param name="actions">Array of actions for the route.</param>
-        /// <param name="configurationName"><see cref="RouteConfiguration"/> name.</param>
+        /// <param name="configurationName">The <see cref="RouteConfiguration"/> name.</param>
+        /// <param name="configData">Configuration data of the route.</param>
+        /// <param name="routePath">Path to this route: parent route objects are already created.</param>
         /// <returns>Final route actions encapsulation.</returns>
-        internal protected abstract TRoute DoCreateFinalRoute( IActivityMonitor monitor, IRouteConfigurationLock configLock, TAction[] actions, string configurationName );
+        internal protected abstract TRoute DoCreateFinalRoute( IActivityMonitor monitor, IRouteConfigurationLock configLock, TAction[] actions, string configurationName, object configData, IReadOnlyList<TRoute> routePath );
 
         /// <summary>
         /// Must be implemented to cleanup any resources (if any) once new actions and routes have been created.

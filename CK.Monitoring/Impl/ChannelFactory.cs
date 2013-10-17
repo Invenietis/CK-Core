@@ -88,7 +88,7 @@ namespace CK.Monitoring.Impl
             return new SequenceHandler( c, children );
         }
 
-        protected internal override IChannel DoCreateFinalRoute( IActivityMonitor monitor, IRouteConfigurationLock configLock, HandlerBase[] actions, string configurationName )
+        protected internal override IChannel DoCreateFinalRoute( IActivityMonitor monitor, IRouteConfigurationLock configLock, HandlerBase[] actions, string configurationName, object configData, IReadOnlyList<IChannel> routePath )
         {
             return new StandardChannel( _commonSink, configLock, actions, configurationName );
         }

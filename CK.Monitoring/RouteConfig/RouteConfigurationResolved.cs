@@ -10,12 +10,14 @@ namespace CK.RouteConfig
     public class RouteConfigurationResolved
     {
         readonly string _name;
+        readonly object _configData;
         readonly IReadOnlyList<ActionConfigurationResolved> _actions;
         IReadOnlyList<SubRouteConfigurationResolved> _routes;
 
-        internal RouteConfigurationResolved( string name, IReadOnlyList<ActionConfigurationResolved> actions )
+        internal RouteConfigurationResolved( string name, object configData, IReadOnlyList<ActionConfigurationResolved> actions )
         {
             _name = name;
+            _configData = configData;
             _actions = actions;
         }
 
@@ -23,6 +25,11 @@ namespace CK.RouteConfig
         /// Gets the name of the route.
         /// </summary>
         public string Name { get { return _name; } }
+
+        /// <summary>
+        /// Gets the configuration data object associated to this route.
+        /// </summary>
+        public object ConfigData { get { return _configData; } }
 
         /// <summary>
         /// Gets the subordinated routes that this route contains.

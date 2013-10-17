@@ -94,11 +94,11 @@ namespace CK.RouteConfig.Impl
                     using( monitor.OpenGroup( LogLevel.Info, "Building final routes." ) )
                     {
                         var preRoot = new PreRoute( monitor, protoResolver.Root );
-                        Root = new RouteConfigurationResolved( protoResolver.Root.FullName, preRoot.FinalizeActions() );
+                        Root = new RouteConfigurationResolved( protoResolver.Root.FullName, c.ConfigData, preRoot.FinalizeActions().AsReadOnlyList() );
                         foreach( IProtoSubRoute sub in protoResolver.NamedSubRoutes.Values )
                         {
                             var preRoute = new PreRoute( monitor, sub );
-                            NamedSubRoutes.Add( sub.FullName, new SubRouteConfigurationResolved( sub, preRoute.FinalizeActions() ) );
+                            NamedSubRoutes.Add( sub.FullName, new SubRouteConfigurationResolved( sub, preRoute.FinalizeActions().AsReadOnlyList() ) );
                         }
                         Root.SubRoutes = protoResolver.NamedSubRoutes.Values.Select( p => NamedSubRoutes[p.FullName] ).ToArray().AsReadOnlyList();
                         foreach( IProtoSubRoute sub in protoResolver.NamedSubRoutes.Values )
