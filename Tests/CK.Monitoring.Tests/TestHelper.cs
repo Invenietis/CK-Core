@@ -105,18 +105,25 @@ namespace CK.Monitoring.Tests
 
         private static void InitalizePaths()
         {
-            string p = System.Reflection.Assembly.GetExecutingAssembly().CodeBase;
-            // Code base is like "file:///C:/Documents and Settings/Olivier Spinelli/Mes documents/Dev/CK/Output/Debug/App/CVKTests.DLL"
-            StringAssert.StartsWith( "file:///", p, "Code base must start with file:/// protocol." );
-
-            p = p.Substring( 8 ).Replace( '/', System.IO.Path.DirectorySeparatorChar );
-
-            // => Debug/
+            string p = new Uri( System.Reflection.Assembly.GetExecutingAssembly().CodeBase ).LocalPath;
+            // => CK.Monitoring.Tests/bin/Debug/net45
             p = Path.GetDirectoryName( p );
-
-            // ==> Debug/SubTestDir
-            _testFolder = Path.Combine( p, "SubTestDir" );
-            if( Directory.Exists( _testFolder ) ) Directory.Delete( _testFolder, true );
+            // => CK.Monitoring.Tests/bin/Debug/
+            p = Path.GetDirectoryName( p );
+            // => CK.Monitoring.Tests/bin/
+            p = Path.GetDirectoryName( p );
+            // => CK.Monitoring.Tests/
+            p = Path.GetDirectoryName( p );
+            // ==> CK.Monitoring.Tests/TestFolder
+            _testFolder = Path.Combine( p, "TestFolder" );
+            if( Directory.Exists( _testFolder ) )
+            {
+                try
+                {
+                    Directory.Delete( _testFolder, true );
+                }
+                catch {}
+            }
             Directory.CreateDirectory( _testFolder );
         }
 

@@ -11,10 +11,10 @@ using CK.Core.Impl;
 namespace CK.Core
 {
     /// <summary>
-    /// This <see cref="ActivityMonitor"/> logs errors in a directory (if the static <see cref="LogPath"/> property is not null) and 
+    /// This <see cref="ActivityMonitor"/> logs errors in a directory (if the static <see cref="RootLogPath"/> property is not null) and 
     /// raises <see cref="OnError"/> events.
-    /// Its main goal is to be internally used by the Monitor framework but can be used, if you believe it is a good idea, independently.
-    /// The easiest way to configure it is to set an application settings with the key "CK.Core.SystemActivityMonitor.LogPath".
+    /// Its main goal is to be internally used by the Monitor framework but can be used as a "normal" monitor (if you believe it is a good idea).
+    /// The easiest way to configure it is to set an application settings with the key "CK.Core.SystemActivityMonitor.RootLogPath".
     /// </summary>
     public sealed class SystemActivityMonitor : ActivityMonitor
     {
@@ -80,20 +80,21 @@ namespace CK.Core
             public readonly string ErrorMessage;
 
             /// <summary>
-            /// True if the <see cref="ErrorMessage"/> has been successfully written (if <see cref="SystemActivityMonitor.LogPath"/> is set).
+            /// Not null if the <see cref="ErrorMessage"/> has been successfully written (if <see cref="SystemActivityMonitor.RootLogPath"/> is set).
+            /// Contains the full path of the log file.
             /// </summary>
-            public readonly bool SuccessfullyWritten;
+            public readonly string FullLogFilePath;
 
             /// <summary>
-            /// Exception raised while attempting to write the error file.
+            /// Exception raised while attempting to create the error file.
             /// This could be used to handle configuration error: an exception here means that something is going really wrong.
             /// </summary>
             public readonly Exception ErrorWhileWritingLogFile;
 
-            internal LowLevelErrorEventArgs( string errorMessage, bool successfulWrite, Exception writeError )
+            internal LowLevelErrorEventArgs( string errorMessage, string fullLogFilePath, Exception writeError )
             {
                 ErrorMessage = errorMessage;
-                SuccessfullyWritten = successfulWrite;
+                FullLogFilePath = fullLogFilePath;
                 ErrorWhileWritingLogFile = writeError;
             }
         }
@@ -104,10 +105,10 @@ namespace CK.Core
 
         static SystemActivityMonitor()
         {
-            AppSettingsKey = "CK.Core.SystemActivityMonitor.LogPath";
+            AppSettingsKey = "CK.Core.SystemActivityMonitor.RootLogPath";
             SubDirectoryName = "SystemActivityMonitor/";
             _client = new SysClient();
-            LogPath = AppSettings.Default[ AppSettingsKey ];
+            RootLogPath = AppSettings.Default[ AppSettingsKey ];
             _activityMonitorErrorTracked = 1;
             ActivityMonitor.LoggingError.OnErrorFromBackgroundThreads += OnTrackActivityMonitorLoggingError;
         }
@@ -132,14 +133,14 @@ namespace CK.Core
         }
 
         /// <summary>
-        /// The key in the application settings used to initialize the <see cref="LogPath"/> if it exists in <see cref="AppSettings.Default"/>.
+        /// The key in the application settings used to initialize the <see cref="RootLogPath"/> if it exists in <see cref="AppSettings.Default"/>.
         /// </summary>
-        static readonly string AppSettingsKey;
+        static public readonly string AppSettingsKey;
 
         /// <summary>
-        /// The directory in <see cref="LogPath"/> into which errors file will created is "SystemActivityMonitor/".
+        /// The directory in <see cref="RootLogPath"/> into which errors file will created is "SystemActivityMonitor/".
         /// </summary>
-        static readonly string SubDirectoryName;
+        static public readonly string SubDirectoryName;
 
         /// <summary>
         /// Event that enables subsequent handling of errors.
@@ -147,11 +148,11 @@ namespace CK.Core
         /// exception will be added to the <see cref="ActivityMonitor.LoggingError"/> collector to give other participants a chance 
         /// to handle it and track the culprit.
         /// </summary>
-        static event EventHandler<LowLevelErrorEventArgs> OnError;
+        static public event EventHandler<LowLevelErrorEventArgs> OnError;
 
         /// <summary>
         /// Gets or sets whether <see cref="ActivityMonitor.LoggingError"/> are tracked (this is thread safe).
-        /// When true, LoggingError events are tracked, written to a file (if <see cref="LogPath"/> is available) and ultimately 
+        /// When true, LoggingError events are tracked, written to a file (if <see cref="RootLogPath"/> is available) and ultimately 
         /// published again as a <see cref="OnError"/> events.
         /// Defaults to true.
         /// </summary>
@@ -181,7 +182,7 @@ namespace CK.Core
         /// When not null, it necessarily ends with a <see cref="Path.DirectorySeparatorChar"/>.
         /// Defaults to the value of <see cref="AppSettingsKey"/> in <see cref="AppSettings.Default"/> or null.
         /// </summary>
-        static public string LogPath
+        static public string RootLogPath
         {
             get { return _logPath; }
             set 
@@ -222,16 +223,18 @@ namespace CK.Core
         static void HandleError( string s )
         {
             // Atomically captures the LogPath to use.
-            bool fileHasBeenLogged = false;
+            string fullLogFilePath = null;
+
             Exception errorWhileWritingFile = null;
             string logPath = _logPath;
             if( logPath != null )
             {
-                string p = LogPath + Guid.NewGuid().ToString( "N" ) + ".txt";
+                string p = RootLogPath + SubDirectoryName + DateTime.UtcNow.ToString( "O" ).Replace( ':', '-' ) + ".txt";
+                if( File.Exists( p ) ) p = p.Insert( p.Length - 4, Guid.NewGuid().ToString( "N" ) );
                 try
                 {
                     File.AppendAllText( p, s );
-                    fileHasBeenLogged = true;
+                    fullLogFilePath = p;
                 }
                 catch( Exception ex )
                 {
@@ -241,7 +244,7 @@ namespace CK.Core
             var h = OnError;
             if( h != null )
             {
-                LowLevelErrorEventArgs e = new LowLevelErrorEventArgs( s, fileHasBeenLogged, errorWhileWritingFile );
+                LowLevelErrorEventArgs e = new LowLevelErrorEventArgs( s, fullLogFilePath, errorWhileWritingFile );
                 // h.GetInvocationList() creates an independant copy of Delegate[].
                 foreach( EventHandler<LowLevelErrorEventArgs> d in h.GetInvocationList() )
                 {
@@ -252,7 +255,7 @@ namespace CK.Core
                     catch( Exception ex )
                     {
                         OnError -= (EventHandler<LowLevelErrorEventArgs>)d;
-                        ActivityMonitor.LoggingError.Add( ex, "While raising SystemActivityMonitor.Errors event." );
+                        ActivityMonitor.LoggingError.Add( ex, "While raising SystemActivityMonitor.OnError event." );
                     }
                 }
             }
@@ -282,8 +285,7 @@ namespace CK.Core
         static StringBuilder CreateHeader( DateTime logTimeUtc, string text, LogLevel level, CKTrait tags )
         {
             StringBuilder buffer = new StringBuilder();
-            buffer.Append( '>' ).Append( level.ToString() ).Append( '-', 10 ).AppendLine();
-            buffer.Append( " - " ).Append( logTimeUtc );
+            buffer.Append( '<' ).Append( level.ToString() ).Append( '>' ).Append( '@' ).AppendFormat( "{0:O}", logTimeUtc );
             if( tags != null && !tags.IsEmpty ) buffer.Append( " - " ).Append( tags.ToString() );
             buffer.AppendLine();
             if( text != null && text.Length > 0 ) buffer.Append( text ).AppendLine();
@@ -292,7 +294,7 @@ namespace CK.Core
 
         static void WriteFooter( LogLevel level, StringBuilder buffer )
         {
-            buffer.Append( '<' ).Append( level.ToString() ).Append( '-', 10 ).AppendLine();
+            buffer.Append( "</" ).Append( level.ToString() ).Append( '>' ).AppendLine();
         }
         #endregion
 

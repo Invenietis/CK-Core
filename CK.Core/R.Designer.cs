@@ -133,6 +133,42 @@ namespace CK.Core {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to ApplicationSettings have already been initialized.It can be initialized only once..
+        /// </summary>
+        internal static string AppSettingsAlreadyInitialized {
+            get {
+                return ResourceManager.GetString("AppSettingsAlreadyInitialized", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unable to initialize AppSettings, the default fallback to System.Configuration.ConfigurationManager.AppSettings can not be generated since System.Configuration assembly is not available..
+        /// </summary>
+        internal static string AppSettingsDefaultInitializationFailed {
+            get {
+                return ResourceManager.GetString("AppSettingsDefaultInitializationFailed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Required AppSettings configuration named &apos;{0}&apos; is missising: it must be a &apos;{1}&apos;..
+        /// </summary>
+        internal static string AppSettingsRequiredConfigurationBadType {
+            get {
+                return ResourceManager.GetString("AppSettingsRequiredConfigurationBadType", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Required AppSettings configuration named &apos;{0}&apos; is missising..
+        /// </summary>
+        internal static string AppSettingsRequiredConfigurationMissing {
+            get {
+                return ResourceManager.GetString("AppSettingsRequiredConfigurationMissing", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Argument count can not be negative..
         /// </summary>
         internal static string ArgumentCountNegative {

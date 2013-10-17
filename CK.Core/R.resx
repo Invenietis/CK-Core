@@ -207,4 +207,16 @@
   <data name="ActivityMonitorReentrancyCallOnly" xml:space="preserve">
     <value>Only reentrant calls to this method are supported.</value>
   </data>
+  <data name="AppSettingsAlreadyInitialized" xml:space="preserve">
+    <value>ApplicationSettings have already been initialized.It can be initialized only once.</value>
+  </data>
+  <data name="AppSettingsDefaultInitializationFailed" xml:space="preserve">
+    <value>Unable to initialize AppSettings, the default fallback to System.Configuration.ConfigurationManager.AppSettings can not be generated since System.Configuration assembly is not available.</value>
+  </data>
+  <data name="AppSettingsRequiredConfigurationBadType" xml:space="preserve">
+    <value>Required AppSettings configuration named '{0}' is missising: it must be a '{1}'.</value>
+  </data>
+  <data name="AppSettingsRequiredConfigurationMissing" xml:space="preserve">
+    <value>Required AppSettings configuration named '{0}' is missising.</value>
+  </data>
 </root>

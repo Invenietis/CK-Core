@@ -10,7 +10,7 @@ namespace CK.Core
 {
     /// <summary>
     /// Very simple façade for simple application settings.
-    /// This does not handle multiple configuration per key (like ConfigurationManager.AppSettings can do since it is a NameValueCollection) but
+    /// This does not handle multiple configurations per key (like ConfigurationManager.AppSettings can do since it is a NameValueCollection) but
     /// can expose potentially complex configuration objects instead of only strings.
     /// It can be initialized only once, before any other access, and when not initialized tries to or use the standard ConfigurationManager.AppSettings through 
     /// late binding. However, it supports multiple overriding and reverting to the original configuration. 
@@ -83,7 +83,7 @@ namespace CK.Core
         {
             lock( _lock )
             {
-                if( _initialized ) throw new CKException( "AppSettingsAlreadyInitialied" );
+                if( _initialized ) throw new CKException( R.AppSettingsAlreadyInitialized );
                 DoDefaultInitialize();
             }
         }
@@ -135,7 +135,7 @@ namespace CK.Core
         {
             if( !_initialized ) DefaultInitialization();
             var o = _getObject( key );
-            if( o == null ) throw new CKException( "AppSettingsRequiredConfigurationMissing", key );
+            if( o == null ) throw new CKException( R.AppSettingsRequiredConfigurationMissing, key );
             return o;
         }
 
@@ -148,8 +148,8 @@ namespace CK.Core
         {
             if( !_initialized ) DefaultInitialization();
             var o = _getObject( key );
-            if( o == null ) throw new CKException( "AppSettingsRequiredConfigurationMissing", key );
-            if( !(o is T) ) throw new CKException( "AppSettingsRequiredConfigurationBadType", key, typeof(T).FullName );
+            if( o == null ) throw new CKException( R.AppSettingsRequiredConfigurationMissing, key );
+            if( !(o is T) ) throw new CKException( R.AppSettingsRequiredConfigurationBadType, key, typeof(T).FullName );
             return (T)o;
         }
 
@@ -171,7 +171,7 @@ namespace CK.Core
                 MethodInfo getAppSettings = configMananger.GetProperty( "AppSettings", BindingFlags.Public | BindingFlags.Static ).GetGetMethod();
                 MethodInfo indexer = getAppSettings.ReturnType.GetProperty( "Item", typeof( string ), stringParams ).GetGetMethod();
 
-                DynamicMethod getter = new DynamicMethod( "CK-ReadConfigAppSettings", typeof( string ), stringParams, true );
+                DynamicMethod getter = new DynamicMethod( "CK-ReadConfigurationManagerAppSettings", typeof( string ), stringParams, true );
                 ILGenerator g = getter.GetILGenerator();
                 g.EmitCall( OpCodes.Call, getAppSettings, null );
                 g.Emit( OpCodes.Ldarg_0 );
@@ -180,7 +180,7 @@ namespace CK.Core
                 _getObject = (Func<string, object>)getter.CreateDelegate( typeof( Func<string, object> ) );
                 _initialized = true;
             }
-            else throw new CKException( "AppSettingsDefaultInitializationFailed" );
+            else throw new CKException( R.AppSettingsDefaultInitializationFailed );
         }
 
     }

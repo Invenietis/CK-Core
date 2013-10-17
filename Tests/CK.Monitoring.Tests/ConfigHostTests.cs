@@ -283,7 +283,7 @@ namespace CK.Monitoring.Tests
                 return new TestSequence( monitor, c, children );
             }
 
-            protected internal override FinalRoute DoCreateFinalRoute( IActivityMonitor monitor, IRouteConfigurationLock configLock, ITestIt[] actions, string configurationName )
+            protected internal override FinalRoute DoCreateFinalRoute( IActivityMonitor monitor, IRouteConfigurationLock configLock, ITestIt[] actions, string configurationName, object configData, IReadOnlyList<FinalRoute> parentPath )
             {
                 return new FinalRoute( configLock, actions, configurationName );
             }
