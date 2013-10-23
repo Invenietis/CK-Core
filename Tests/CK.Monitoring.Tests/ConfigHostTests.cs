@@ -199,7 +199,7 @@ namespace CK.Monitoring.Tests
                 }
                 catch( Exception ex )
                 {
-                    ActivityMonitor.LoggingError.Add( ex, String.Format( "WriteAction named '{0}'.", _name ) );
+                    ActivityMonitor.MonitoringError.Add( ex, String.Format( "WriteAction named '{0}'.", _name ) );
                 }
             }
 
@@ -251,7 +251,7 @@ namespace CK.Monitoring.Tests
                 }
                 catch( Exception ex )
                 {
-                    ActivityMonitor.LoggingError.Add( ex, "While logging event." );
+                    ActivityMonitor.MonitoringError.Add( ex, "While logging event." );
                 }
                 finally
                 {
@@ -296,7 +296,7 @@ namespace CK.Monitoring.Tests
         public void SetupContext()
         {
             File.AllFiles.Clear();
-            ActivityMonitor.LoggingError.Clear();
+            ActivityMonitor.MonitoringError.Clear();
             File.FileWaitMilliSeconds = -1;
             FinalRoute.SynchronousRoute = true;
             _host = new ConfiguredRouteHost<ITestIt, FinalRoute>( new TestFactory(), OnConfigurationReady, ( m, t ) => t.Initialize( m ), ( m, t ) => t.Close( m ) );
@@ -323,7 +323,7 @@ namespace CK.Monitoring.Tests
         {
             _host.Dispose();
             File.AllFiles.Clear();
-            ActivityMonitor.LoggingError.Clear();
+            ActivityMonitor.MonitoringError.Clear();
         }
 
         [Test]
@@ -371,7 +371,7 @@ namespace CK.Monitoring.Tests
             CheckContent( f1, "0", "1", "2", "3", "4" );
             CheckContent( f2, "0", "1", "2" );
 
-            Assert.That( ActivityMonitor.LoggingError.ToArray().Length, Is.EqualTo( 0 ) );
+            Assert.That( ActivityMonitor.MonitoringError.ToArray().Length, Is.EqualTo( 0 ) );
         }
 
         private static void CheckContent( File f, params string[] values )

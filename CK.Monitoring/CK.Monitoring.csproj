@@ -50,6 +50,10 @@
     <Compile Include="..\SharedAssemblyInfo.cs">
       <Link>Properties\SharedAssemblyInfo.cs</Link>
     </Compile>
+    <Compile Include="Configuration\GrandOutputChannelConfigData.cs" />
+    <Compile Include="Configuration\GrandOutputConfiguration.cs" />
+    <Compile Include="Configuration\XmlMonitoringExtensions.cs" />
+    <Compile Include="GrandOutputHandlers\HandlerConfiguration.cs" />
     <Compile Include="RouteConfig\ActionConfigurationResolved.cs" />
     <Compile Include="RouteConfig\ConfiguredRouteHost.cs" />
     <Compile Include="RouteConfig\Impl\IProtoRoute.cs" />
@@ -94,7 +98,7 @@
     <Compile Include="Persistence\Impl\LEOpenGroupWithTrait.cs" />
     <Compile Include="Persistence\LogEntryType.cs" />
     <Compile Include="Persistence\LogReader.cs" />
-    <Compile Include="Persistence\ActivityMonitorWriterClient.cs" />
+    <Compile Include="Persistence\ActivityMonitorBinaryWriterClient.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="GrandOutputHandlers\BinaryFile.cs" />
     <Compile Include="GrandOutputHandlers\BinaryFileConfiguration.cs" />
@@ -111,7 +115,6 @@
     <Compile Include="GrandOutputHandlers\HandlerTypeAttribute.cs" />
     <Compile Include="GrandOutputHandlers\Impl\SequenceHandler.cs" />
     <Compile Include="GrandOutputHandlers\Impl\ParallelHandler.cs" />
-    <Compile Include="SystemActivityMonitor.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\SharedKey.snk">
@@ -124,6 +127,7 @@
       <Name>CK.Core</Name>
     </ProjectReference>
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

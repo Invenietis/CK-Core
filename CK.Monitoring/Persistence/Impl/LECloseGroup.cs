@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.IO;
 
 namespace CK.Monitoring.Impl
 {
@@ -30,8 +31,18 @@ namespace CK.Monitoring.Impl
 
         public CKExceptionData Exception { get { return null; } }
 
+        public string FileName { get { return null; } }
+        
+        public int LineNumber { get { return 0; } }
+
         public CKTrait Tags { get { return ActivityMonitor.EmptyTag; } }
 
         public IReadOnlyList<ActivityLogGroupConclusion> Conclusions { get { return _conclusions; } }
+
+        public void Write( BinaryWriter w )
+        {
+            LogEntry.WriteCloseGroup( w, _level, _time, _conclusions );
+        }
+        
     }
 }

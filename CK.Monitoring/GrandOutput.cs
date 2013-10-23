@@ -51,7 +51,7 @@ namespace CK.Monitoring
             {
                 SystemActivityMonitor.EnsureStaticInitialization();
                 _default = new GrandOutput();
-                ActivityMonitor.AutoConfiguration.Append( m => Default.Register( m ) );
+                ActivityMonitor.AutoConfiguration += m => Default.Register( m );
             }
             return _default;
         }
@@ -107,6 +107,28 @@ namespace CK.Monitoring
             if( sink == null ) throw new ArgumentNullException( "sink" );
             AttemptGarbageDeadClients();
             _commonSink.Remove( sink );
+        }
+
+        /// <summary>
+        /// Attempts to set a new configuration.
+        /// </summary>
+        /// <param name="config">The configuration that must be set.</param>
+        /// <param name="monitor">Optional monitor.</param>
+        /// <param name="millisecondsBeforeForceClose">Optional timeout to wait before forcing the close of the currently active configuration.</param>
+        /// <returns>True on succees.</returns>
+        public bool SetConfiguration( GrandOutputConfiguration config, IActivityMonitor monitor = null, int millisecondsBeforeForceClose = Timeout.Infinite )
+        {
+            if( config == null ) throw new ArgumentNullException( "config" );
+            if( monitor == null ) monitor = new SystemActivityMonitor();
+            using( monitor.OpenGroup( LogLevel.Info, this == Default ? "Default GrandOutput configuration." : "GrandOutput configuration." ) )
+            {
+                if( _channelHost.SetConfiguration( monitor, config.RouteConfiguration, millisecondsBeforeForceClose ) )
+                {
+                    monitor.CloseGroup( "Success." );
+                    return true;
+                }
+                return false;
+            }
         }
 
         /// <summary>
@@ -204,5 +226,6 @@ namespace CK.Monitoring
             }
             return count;
         }
+
     }
 }

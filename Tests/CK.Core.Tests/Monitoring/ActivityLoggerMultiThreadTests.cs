@@ -22,10 +22,10 @@ namespace CK.Core.Tests.Monitoring
                 _monitor = monitor;
             }
 
-            protected override void OnUnfilteredLog( CKTrait tags, LogLevel level, string text, DateTime logTimeUtc )
+            protected override void OnUnfilteredLog( CKTrait tags, LogLevel level, string text, DateTime logTimeUtc, string fileName, int lineNumber )
             {
                 _monitor.Info( "I'm buggy: I'm logging back in my monitor!" );
-                base.OnUnfilteredLog( tags, level, text, logTimeUtc );
+                base.OnUnfilteredLog( tags, level, text, logTimeUtc, fileName, lineNumber );
             }
         }
 
@@ -37,7 +37,7 @@ namespace CK.Core.Tests.Monitoring
                 _number = number;
             }
 
-            protected override void OnUnfilteredLog( CKTrait tags, LogLevel level, string text, DateTime logTimeUtc )
+            protected override void OnUnfilteredLog( CKTrait tags, LogLevel level, string text, DateTime logTimeUtc, string fileName, int lineNumber )
             {
                 Console.WriteLine( "NotBuggyActivityMonitorClient.OnUnfilteredLog n°{0}: {1}", _number, text );
             }
@@ -51,7 +51,7 @@ namespace CK.Core.Tests.Monitoring
                 _log = log;
             }
 
-            protected override void OnUnfilteredLog( CKTrait tags, LogLevel level, string text, DateTime logTimeUtc )
+            protected override void OnUnfilteredLog( CKTrait tags, LogLevel level, string text, DateTime logTimeUtc, string fileName, int lineNumber )
             {
                 _log();
             }
@@ -65,7 +65,7 @@ namespace CK.Core.Tests.Monitoring
             readonly object _outLocker = new object();
             bool _outDone = false;
 
-            protected override void OnUnfilteredLog( CKTrait tags, LogLevel level, string text, DateTime logTimeUtc )
+            protected override void OnUnfilteredLog( CKTrait tags, LogLevel level, string text, DateTime logTimeUtc, string fileName, int lineNumber )
             {
                 lock( _locker )
                 {
@@ -99,7 +99,7 @@ namespace CK.Core.Tests.Monitoring
         [Test]
         public void ExhibeReentrancyAndMultiThreadErrors()
         {
-            ActivityMonitor.AutoConfiguration.Clear();
+            ActivityMonitor.AutoConfiguration = null;
             ActivityMonitor monitor = new ActivityMonitor();
             monitor.Output.RegisterClient( new ActivityMonitorConsoleClient() );
             WaitActivityMonitorClient client = monitor.Output.RegisterClient( new WaitActivityMonitorClient() );

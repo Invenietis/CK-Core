@@ -40,6 +40,6 @@ namespace CK.Core
         /// <summary>
         /// Called when the target Topic changed.
         /// </summary>
-        void OnTargetTopicChanged( string newTopic );
+        void OnTargetTopicChanged( string newTopic, string fileName, int lineNumber );
     }
 }

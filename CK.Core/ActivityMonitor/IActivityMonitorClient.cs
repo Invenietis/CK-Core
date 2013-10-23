@@ -39,8 +39,10 @@ namespace CK.Core
         /// <param name="tags">Tags (from <see cref="ActivityMonitor.RegisteredTags"/>) associated to the log.</param>
         /// <param name="level">Log level.</param>
         /// <param name="text">Text (not null).</param>
+        /// <param name="fileName">Source file name.</param>
+        /// <param name="lineNumber">Source line number.</param>
         /// <param name="logTimeUtc">Timestamp of the log.</param>
-        void OnUnfilteredLog( CKTrait tags, LogLevel level, string text, DateTime logTimeUtc );
+        void OnUnfilteredLog( CKTrait tags, LogLevel level, string text, DateTime logTimeUtc, string fileName, int lineNumber );
 
         /// <summary>
         /// Called for each <see cref="IActivityMonitor.UnfilteredOpenGroup"/>.
@@ -72,12 +74,14 @@ namespace CK.Core
         /// Called when a new <see cref="IActivityMonitor.Topic"/> is set.
         /// </summary>
         /// <param name="newTopic">The new topic string (never null but can be empty).</param>
-        void OnTopicChanged( string newTopic );
+        /// <param name="fileName">Source file name where <see cref="IActivityMonitor.SetTopic"/> has been called.</param>
+        /// <param name="lineNumber">Source line number where IActivityMonitor.SetTopic has been called.</param>
+        void OnTopicChanged( string newTopic, string fileName, int lineNumber );
 
         /// <summary>
         /// Called when <see cref="IActivityMonitor.AutoTags"/> changed.
         /// </summary>
-        /// <param name="newTopic">The new tags (never null but can be empty).</param>
+        /// <param name="newTrait">The new tags (never null but can be empty).</param>
         void OnAutoTagsChanged( CKTrait newTrait );
     }
 

@@ -534,6 +534,7 @@ namespace CK.Core
         /// Atomically adds an item to an existing array (that can be null) if no existing item satisifies a condition.
         /// </summary>
         /// <typeparam name="T">Type of the item array.</typeparam>
+        /// <typeparam name="TItem">Type of the item to add: can be any specialization of T.</typeparam>
         /// <param name="items">Reference (address) of the array. Can be null.</param>
         /// <param name="tester">Predicate that must be satisfied for at least one existing item.</param>
         /// <param name="factory">Factory that will be called if no existing item satisfies <paramref name="tester"/>. It will be called only once if needed.</param>

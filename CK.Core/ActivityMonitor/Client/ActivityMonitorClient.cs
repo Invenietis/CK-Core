@@ -59,8 +59,10 @@ namespace CK.Core
         /// <param name="tags">Tags (from <see cref="ActivityMonitor.RegisteredTags"/>) associated to the log.</param>
         /// <param name="level">Log level.</param>
         /// <param name="text">Text (not null).</param>
+        /// <param name="fileName">Source file name.</param>
+        /// <param name="lineNumber">Source line number.</param>
         /// <param name="logTimeUtc">Timestamp of the log.</param>
-        protected virtual void OnUnfilteredLog( CKTrait tags, LogLevel level, string text, DateTime logTimeUtc )
+        protected virtual void OnUnfilteredLog( CKTrait tags, LogLevel level, string text, DateTime logTimeUtc, string fileName, int lineNumber )
         {
         }
 
@@ -103,7 +105,9 @@ namespace CK.Core
         /// Does nothing by default.
         /// </summary>
         /// <param name="newTopic">The new topic.</param>
-        protected virtual void OnTopicChanged( string newTopic )
+        /// <param name="fileName">Source file name where <see cref="IActivityMonitor.SetTopic"/> has been called.</param>
+        /// <param name="lineNumber">Source line number where IActivityMonitor.SetTopic has been called.</param>
+        protected virtual void OnTopicChanged( string newTopic, string fileName, int lineNumber )
         {
         }
 
@@ -128,9 +132,9 @@ namespace CK.Core
 
         #region IActivityMonitorClient Members
 
-        void IActivityMonitorClient.OnUnfilteredLog( CKTrait tags, LogLevel level, string text, DateTime logTimeUtc )
+        void IActivityMonitorClient.OnUnfilteredLog( CKTrait tags, LogLevel level, string text, DateTime logTimeUtc, string fileName, int lineNumber )
         {
-            OnUnfilteredLog( tags, level, text, logTimeUtc );
+            OnUnfilteredLog( tags, level, text, logTimeUtc, fileName, lineNumber );
         }
 
         void IActivityMonitorClient.OnOpenGroup( IActivityLogGroup group )
@@ -148,9 +152,9 @@ namespace CK.Core
             OnGroupClosed( group, conclusions );
         }
 
-        void IActivityMonitorClient.OnTopicChanged( string newTopic )
+        void IActivityMonitorClient.OnTopicChanged( string newTopic, string fileName, int lineNumber )
         {
-            OnTopicChanged( newTopic );
+            OnTopicChanged( newTopic, fileName, lineNumber );
         }
 
         void IActivityMonitorClient.OnAutoTagsChanged( CKTrait newTags )

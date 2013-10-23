@@ -63,6 +63,10 @@ namespace CK.RouteConfig
             set { _namespace = value ?? String.Empty; } 
         }
 
+        /// <summary>
+        /// Gets the content of this configuration: a list of <see cref="MetaConfiguration"/> that 
+        /// encapsulates <see cref="ActionConfiguration"/> and/or <see cref="SubRouteConfiguration"/>.
+        /// </summary>
         public IReadOnlyList<MetaConfiguration> Configurations { get { return _configurations.AsReadOnlyList(); } }
 
         public RouteConfiguration AddAction( ActionConfiguration a, params ActionConfiguration[] otherActions )

@@ -131,7 +131,7 @@ namespace CK.Core
         /// <param name="level">Level of the log.</param>
         /// <param name="text">Text of the log.</param>
         /// <param name="logTimeUtc">Timestamp of the log.</param>
-        void IActivityMonitorClient.OnUnfilteredLog( CKTrait tags, LogLevel level, string text, DateTime logTimeUtc )
+        void IActivityMonitorClient.OnUnfilteredLog( CKTrait tags, LogLevel level, string text, DateTime logTimeUtc, string fileName, int lineNumber )
         {
             level &= LogLevel.Mask;
             if( (int)level >= (int)_filter )
@@ -161,7 +161,7 @@ namespace CK.Core
         }
 
 
-        void IActivityMonitorClient.OnTopicChanged( string newTopic )
+        void IActivityMonitorClient.OnTopicChanged( string newTopic, string fileName, int lineNumber )
         {
         }
 

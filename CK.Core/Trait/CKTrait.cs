@@ -38,7 +38,7 @@ namespace CK.Core
     /// <remarks>
     /// A CKTrait is not serializable: since it is relative to <see cref="CKTraitContext"/>, it must be recreated in the right context. A CKTraitContext is typically
     /// a static object that exists in the origin application domain. A CKTrait must be serialized as its <see cref="ToString"/> representation and it is up to the 
-    /// code to call <see cref="CKTraitContext.FindOrCreate"/> on the appropriate context when deserializing it.
+    /// code to call <see cref="CKTraitContext.FindOrCreate(string)"/> on the appropriate context when deserializing it.
     /// </remarks>
     public sealed class CKTrait : IComparable<CKTrait>
     {

@@ -174,11 +174,11 @@ namespace CK.Core
             }
         }
 
-        internal void TargetTopicChanged( string newTopic )
+        internal void TargetTopicChanged( string newTopic, string fileName, int lineNumber )
         {
             foreach( var b in _callbacks )
             {
-                if( b.PullTopicAndAutoTagsFromTarget ) b.OnTargetTopicChanged( newTopic );
+                if( b.PullTopicAndAutoTagsFromTarget ) b.OnTargetTopicChanged( newTopic, fileName, lineNumber );
             }
         }
 
@@ -191,15 +191,15 @@ namespace CK.Core
 
         #region Cross AppDomain interface.
 
-        internal void UnfilteredLog( string tags, LogLevel level, string text, DateTime logTimeUtc )
+        internal void UnfilteredLog( string tags, LogLevel level, string text, DateTime logTimeUtc, string fileName, int lineNumber )
         {
-            _monitor.UnfilteredLog( ActivityMonitor.RegisteredTags.FindOrCreate( tags ), level, text, logTimeUtc );
+            _monitor.UnfilteredLog( ActivityMonitor.RegisteredTags.FindOrCreate( tags ), level, text, logTimeUtc, null, fileName, lineNumber );
         }
 
-        internal void UnfilteredOpenGroup( string tags, LogLevel level, CKExceptionData exceptionData, string groupText, DateTime logTimeUtc )
+        internal void UnfilteredOpenGroup( string tags, LogLevel level, CKExceptionData exceptionData, string groupText, string fileName, int lineNumber, DateTime logTimeUtc )
         {
             CKException ckEx = exceptionData != null ? new CKException( exceptionData ) : null;
-            _monitor.UnfilteredOpenGroup( ActivityMonitor.RegisteredTags.FindOrCreate( tags ), level, null, groupText, logTimeUtc, ckEx );
+            _monitor.UnfilteredOpenGroup( ActivityMonitor.RegisteredTags.FindOrCreate( tags ), level, null, groupText, logTimeUtc, ckEx, fileName, lineNumber );
         }
 
         internal void CloseGroup( string[] taggedConclusions )
@@ -236,9 +236,9 @@ namespace CK.Core
             SetAutoTags( ActivityMonitor.RegisteredTags.FindOrCreate( marshalledTags ) );
         }
 
-        internal void SetTopic( string newTopic )
+        internal void SetTopic( string newTopic, string fileName, int lineNumber )
         {
-            _monitor.Topic = newTopic;
+            _monitor.SetTopic( newTopic, fileName, lineNumber );
         }
 
         internal void SetAutoTags( CKTrait tags )
@@ -248,6 +248,10 @@ namespace CK.Core
 
         #endregion
 
+        /// <summary>
+        /// Gets the lease for this object.
+        /// </summary>
+        /// <returns>The lease.</returns>
         public override object InitializeLifetimeService()
         {
             ILease lease = (ILease)base.InitializeLifetimeService();

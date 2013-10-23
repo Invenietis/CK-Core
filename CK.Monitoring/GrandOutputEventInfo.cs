@@ -26,7 +26,8 @@ namespace CK.Monitoring
         }
 
         /// <summary>
-        /// Gets the source of the event: the source is defined by a monitor identifier and the channel name.
+        /// Gets the source of the event: the carries the a monitor identifier ant its topic and initial depth of the 
+        /// log activity (number of opened groups) at the time of mointor/channel association.
         /// </summary>
         public GrandOutputSource Source { get { return _source; } }
 

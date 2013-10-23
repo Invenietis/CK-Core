@@ -164,7 +164,9 @@ namespace CK.Core
         /// <param name="level">Log level.</param>
         /// <param name="text">Text (not null).</param>
         /// <param name="logTimeUtc">Timestamp of the log.</param>
-        protected override void OnUnfilteredLog( CKTrait tags, LogLevel level, string text, DateTime logTimeUtc )
+        /// <param name="fileName">Source file name.</param>
+        /// <param name="lineNumber">Source line number.</param>
+        protected override void OnUnfilteredLog( CKTrait tags, LogLevel level, string text, DateTime logTimeUtc, string fileName, int lineNumber )
         {
             if( text != ActivityMonitor.ParkLevel )
             {

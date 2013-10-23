@@ -51,20 +51,11 @@ namespace CK.Core
         readonly char _separator;
 
         /// <summary>
-        /// Initializes a new context for traits with a '|' as the separator.
-        /// </summary>
-        /// <param name="name">Name for the context. Must not be null nor whitespace.</param>
-        public CKTraitContext( string name )
-            : this( name, '|' )
-        {
-        }
-
-        /// <summary>
         /// Initializes a new context for traits with the given separator.
         /// </summary>
         /// <param name="name">Name for the context. Must not be null nor whitespace.</param>
         /// <param name="separator">Separator if it must differ from '|'.</param>
-        public CKTraitContext( string name, char separator )
+        public CKTraitContext( string name, char separator = '|' )
         {
             if( String.IsNullOrWhiteSpace( name ) ) throw new ArgumentException( R.ArgumentMustNotBeNullOrWhiteSpace, "uniqueName" );
             _uniqueName = name.Normalize();
@@ -81,7 +72,7 @@ namespace CK.Core
         }
 
         /// <summary>
-        /// Gets the separator to use to separate combined traits.
+        /// Gets the separator to use to separate combined traits. It is | by default.
         /// </summary>
         public char Separator { get { return _separator; } }
 
@@ -118,7 +109,7 @@ namespace CK.Core
         /// <summary>
         /// Obtains a <see cref="CKTrait"/> (either combined or atomic).
         /// </summary>
-        /// <param name="traits">Atomic trait or traits separated by +.</param>
+        /// <param name="traits">Atomic trait or traits separated by <see cref="Separator"/>.</param>
         /// <returns>A trait.</returns>
         public CKTrait FindOrCreate( string traits )
         {
@@ -130,7 +121,7 @@ namespace CK.Core
         /// of its atomic traits already exists: if any of the atomic traits are not already 
         /// registered, null is returned.
         /// </summary>
-        /// <param name="traits">Atomic trait or traits separated by +.</param>
+        /// <param name="traits">Atomic trait or traits separated by <see cref="Separator"/>.</param>
         /// <returns>A trait or null if the trait does not exists.</returns>
         public CKTrait FindIfAllExist( string traits )
         {
@@ -140,7 +131,7 @@ namespace CK.Core
         /// <summary>
         /// Finds a <see cref="CKTrait"/> with only already existing atomic traits (null when not found).
         /// </summary>
-        /// <param name="traits">Atomic trait or traits separated by +.</param>
+        /// <param name="traits">Atomic trait or traits separated by <see cref="Separator"/>.</param>
         /// <param name="collector">Optional collector for unknown trait. As soon as the collector returns false, the process stops.</param>
         /// <returns>A trait that contains only already existing trait or null if none already exists.</returns>
         public CKTrait FindOnlyExisting( string traits, Func<string,bool> collector = null )

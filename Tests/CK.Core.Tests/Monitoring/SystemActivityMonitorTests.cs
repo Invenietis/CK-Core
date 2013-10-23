@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 using CK.Core;
 using NUnit.Framework;
 
-namespace CK.Monitoring.Tests
+namespace CK.Core.Tests
 {
     [TestFixture]
     public class SystemActivityMonitorTests
@@ -36,8 +36,8 @@ namespace CK.Monitoring.Tests
             SystemActivityMonitor.OnError += h;
             try
             {
-                ActivityMonitor.LoggingError.Add( new CKException( "The-Test-Exception-Message" ), "Produced by SystemActivityMonitorTests.SimpleTest" );
-                ActivityMonitor.LoggingError.WaitOnErrorFromBackgroundThreadsPending();
+                ActivityMonitor.MonitoringError.Add( new CKException( "The-Test-Exception-Message" ), "Produced by SystemActivityMonitorTests.SimpleTest" );
+                ActivityMonitor.MonitoringError.WaitOnErrorFromBackgroundThreadsPending();
                 Assert.That( eventHasBeenRaised );
             }
             finally
@@ -58,13 +58,13 @@ namespace CK.Monitoring.Tests
             SystemActivityMonitor.OnError += hBad;
             try
             {
-                ActivityMonitor.LoggingError.Add( new CKException( "The-Test-Exception-Message" ), "First call to SystemActivityMonitorTests.OnErrorEventIsSecured" );
-                ActivityMonitor.LoggingError.WaitOnErrorFromBackgroundThreadsPending();
+                ActivityMonitor.MonitoringError.Add( new CKException( "The-Test-Exception-Message" ), "First call to SystemActivityMonitorTests.OnErrorEventIsSecured" );
+                ActivityMonitor.MonitoringError.WaitOnErrorFromBackgroundThreadsPending();
                 Assert.That( eventHandlerCount, Is.EqualTo( 2 ), "We also received the error of the buggy handler :-)." );
                 Assert.That( buggyEventHandlerCount, Is.EqualTo( 1 ) );
 
-                ActivityMonitor.LoggingError.Add( new CKException( "The-Test-Exception-Message" ), "Second call to SystemActivityMonitorTests.OnErrorEventIsSecured" );
-                ActivityMonitor.LoggingError.WaitOnErrorFromBackgroundThreadsPending();
+                ActivityMonitor.MonitoringError.Add( new CKException( "The-Test-Exception-Message" ), "Second call to SystemActivityMonitorTests.OnErrorEventIsSecured" );
+                ActivityMonitor.MonitoringError.WaitOnErrorFromBackgroundThreadsPending();
                 Assert.That( eventHandlerCount, Is.EqualTo( 3 ) );
                 Assert.That( buggyEventHandlerCount, Is.EqualTo( 1 ) );
             }

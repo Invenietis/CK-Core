@@ -91,9 +91,9 @@ namespace CK.Core
                 Debug.Fail( "Never called." );
             }
 
-            void IActivityMonitorBridgeCallback.OnTargetTopicChanged( string newTopic )
+            void IActivityMonitorBridgeCallback.OnTargetTopicChanged( string newTopic, string fileName, int lineNumber )
             {
-                _local.OnTargetTopicChanged( newTopic );
+                _local.OnTargetTopicChanged( newTopic, fileName, lineNumber );
             }
 
             public override object InitializeLifetimeService()
@@ -131,7 +131,7 @@ namespace CK.Core
         /// When true, any change to <see cref="IActivityMonitor.Topic"/> or <see cref="IActivityMonitor.AutoTags"/> are applied to the target monitor.
         /// </param>
         /// <param name="applyTargetFilterToUnfilteredLogs">
-        /// True to avoid sending logs with level below the target <see cref="IActivityMonitor.Filter"/> (when <see cref="ActivityMonitorBridgeTarget.HonorMonitorFilter"/> is true
+        /// True to avoid sending logs with level below the target <see cref="IActivityMonitor.MinimalFilter"/> (when <see cref="ActivityMonitorBridgeTarget.HonorMonitorFilter"/> is true
         /// and it is an unfiltered line or group log).
         /// This is an optimization that can be used to send less data to the target monitor but breaks the UnfilteredLog/UnfilteredOpenGroup contract.
         /// </param>
@@ -186,9 +186,9 @@ namespace CK.Core
             if( s != null ) s.SetClientMinimalFilterDirty();
         }
 
-        void IActivityMonitorBridgeCallback.OnTargetTopicChanged( string newTopic )
+        void IActivityMonitorBridgeCallback.OnTargetTopicChanged( string newTopic, string fileName, int lineNumber )
         {
-            _source.Topic = newTopic;
+            _source.SetTopic( newTopic, fileName, lineNumber );
         }
 
         void IActivityMonitorBridgeCallback.OnTargetAutoTagsChanged( string marshalledNewTags )
@@ -276,18 +276,18 @@ namespace CK.Core
             }
             return f; 
         }
-     
-        void IActivityMonitorClient.OnUnfilteredLog( CKTrait tags, LogLevel level, string text, DateTime logTimeUtc )
+
+        void IActivityMonitorClient.OnUnfilteredLog( CKTrait tags, LogLevel level, string text, DateTime logTimeUtc, string fileName, int lineNumber )
         {
             // If the level is above the actual target filter, we always send the message.
             // If the level is lower: if the log has not been filtered (UnfilteredLog has been called and not an extension method) we must
             // send it to honor the "Unfiltered" contract, but if _applyTargetFilterToUnfilteredLogs is true, we avoid sending it.
             if( ((level&LogLevel.IsFiltered) == 0 && !_applyTargetFilterToUnfilteredLogs) || (int)GetActualTargetFilter().Line <= (int)(level & LogLevel.Mask) )
             {
-                if( _targetMonitor != null ) _targetMonitor.UnfilteredLog( tags, level, text, logTimeUtc );
+                if( _targetMonitor != null ) _targetMonitor.UnfilteredLog( tags, level, text, logTimeUtc, null, fileName, lineNumber );
                 else
                 {
-                    _bridgeTarget.UnfilteredLog( tags.ToString(), level, text, logTimeUtc );
+                    _bridgeTarget.UnfilteredLog( tags.ToString(), level, text, logTimeUtc, fileName, lineNumber );
                 }
             }
         }
@@ -309,10 +309,10 @@ namespace CK.Core
             if( ( (group.GroupLevel&LogLevel.IsFiltered) == 0 && !_applyTargetFilterToUnfilteredLogs) || (int)GetActualTargetFilter().Group <= (int)group.MaskedGroupLevel )
             {
                 if( _targetMonitor != null )
-                    _targetMonitor.UnfilteredOpenGroup( group.GroupTags, group.GroupLevel, null, group.GroupText, group.LogTimeUtc, group.Exception );
+                    _targetMonitor.UnfilteredOpenGroup( group.GroupTags, group.GroupLevel, null, group.GroupText, group.LogTimeUtc, group.Exception, group.FileName, group.LineNumber );
                 else
                 {
-                    _bridgeTarget.UnfilteredOpenGroup( group.GroupTags.ToString(), group.GroupLevel, group.EnsureExceptionData(), group.GroupText, group.LogTimeUtc );
+                    _bridgeTarget.UnfilteredOpenGroup( group.GroupTags.ToString(), group.GroupLevel, group.EnsureExceptionData(), group.GroupText, group.FileName, group.LineNumber, group.LogTimeUtc );
                 }
                 _openedGroups[idx - 1] = true;
             }
@@ -349,9 +349,9 @@ namespace CK.Core
             }
         }
 
-        void IActivityMonitorClient.OnTopicChanged( string newTopic )
+        void IActivityMonitorClient.OnTopicChanged( string newTopic, string fileName, int lineNumber )
         {
-            if( _pushTopicAndAutoTagsToTarget ) _bridgeTarget.SetTopic( newTopic );
+            if( _pushTopicAndAutoTagsToTarget ) _bridgeTarget.SetTopic( newTopic, fileName, lineNumber );
         }
 
         void IActivityMonitorClient.OnAutoTagsChanged( CKTrait newTags )

@@ -9,7 +9,7 @@ namespace CK.RouteConfig
 {
     public class SubRouteConfiguration : RouteConfiguration
     {
-        readonly Func<string,bool> _routePredicate;
+        Func<string,bool> _routePredicate;
         bool _importParentActions;
         bool _importParentDeclaredActionsAbove;
 
@@ -20,8 +20,15 @@ namespace CK.RouteConfig
             _importParentDeclaredActionsAbove = _importParentActions = true;
         }
 
-        public Func<string, bool> RoutePredicate { get { return _routePredicate; } }
-
+        /// <summary>
+        /// Gets or sets the filter for this route.
+        /// </summary>
+        public Func<string, bool> RoutePredicate 
+        {
+            get { return _routePredicate; }
+            set { _routePredicate = value; } 
+        }
+        
         /// <summary>
         /// Gets or sets whether actions inserted above at the parent level initially apply to this route.
         /// Defaults to true: by default, a route inherits the actions of its parent, setting this to false, makes this route initially empty.

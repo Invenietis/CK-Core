@@ -27,6 +27,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using CK.Core.Tests;
 using NUnit.Framework;
@@ -38,8 +39,6 @@ namespace CK.Core.Tests
     [Category("File")]
     public class FileUtilTests
     {
-        readonly DirectoryInfo _testFolderInfo = TestHelper.TestFolderDir;
-
         [Test]
         public void PathNormalizationTest()
         {
@@ -61,113 +60,122 @@ namespace CK.Core.Tests
         [Test]
         public void CopyDirectoryTest()
         {
-            DirectoryInfo copyDir = TestHelper.CopyFolderDir;
-
             TestHelper.CleanupTestDir();
-            TestHelper.CleanupCopyDir();
+            DirectoryInfo copyDir = new DirectoryInfo( Path.Combine( TestHelper.TestFolder, "Cpy" ) );
+            DirectoryInfo testDir = new DirectoryInfo( Path.Combine( TestHelper.TestFolder, "Src" ) );
 
-            CreateFiles( _testFolderInfo.FullName, "azerty.png" );
-            CreateHiddenFiles( _testFolderInfo.FullName, "hiddenAzerty.gif" );
+            copyDir.Create();
+            testDir.Create();
 
-            FileUtil.CopyDirectory( _testFolderInfo, copyDir );
-            AssertContains( _testFolderInfo.FullName, Directory.GetFiles( _testFolderInfo.FullName ), "azerty.png", "hiddenAzerty.gif" );
+            CleanupDir( copyDir.FullName );
+
+            CreateFiles( testDir.FullName, "azerty.png" );
+            CreateHiddenFiles( testDir.FullName, "hiddenAzerty.gif" );
+
+            FileUtil.CopyDirectory( testDir, copyDir );
+            AssertContains( testDir.FullName, Directory.GetFiles( testDir.FullName ), "azerty.png", "hiddenAzerty.gif" );
             AssertContains( copyDir.FullName, Directory.GetFiles( copyDir.FullName ), "azerty.png", "hiddenAzerty.gif" );
 
-            Assert.Throws<IOException>( () => FileUtil.CopyDirectory( _testFolderInfo, copyDir ) );
+            Assert.Throws<IOException>( () => FileUtil.CopyDirectory( testDir, copyDir ) );
 
-            TestHelper.CleanupCopyDir();
+            CleanupDir( copyDir.FullName );
 
-            FileUtil.CopyDirectory( _testFolderInfo, copyDir, false );
-            AssertContains( _testFolderInfo.FullName, Directory.GetFiles( _testFolderInfo.FullName ), "azerty.png", "hiddenAzerty.gif" );
+            FileUtil.CopyDirectory( testDir, copyDir, false );
+            AssertContains( testDir.FullName, Directory.GetFiles( testDir.FullName ), "azerty.png", "hiddenAzerty.gif" );
             AssertContains( copyDir.FullName, Directory.GetFiles( copyDir.FullName ), "azerty.png" );
 
-            TestHelper.CleanupCopyDir();
+            CleanupDir( copyDir.FullName );
 
-
-            DirectoryInfo recursiveDir = Directory.CreateDirectory( _testFolderInfo.FullName + "//recursiveDir" );
+            DirectoryInfo recursiveDir = Directory.CreateDirectory( testDir.FullName + @"\recDir" );
             CreateFiles( recursiveDir.FullName, "REC.png" );
             CreateHiddenFiles( recursiveDir.FullName, "hiddenREC.gif" );
 
-            FileUtil.CopyDirectory( _testFolderInfo, copyDir );
-            AssertContains( _testFolderInfo.FullName, Directory.GetFiles( _testFolderInfo.FullName ), "azerty.png", "hiddenAzerty.gif" );
+            FileUtil.CopyDirectory( testDir, copyDir );
+            AssertContains( testDir.FullName, Directory.GetFiles( testDir.FullName ), "azerty.png", "hiddenAzerty.gif" );
             AssertContains( recursiveDir.FullName, Directory.GetFiles( recursiveDir.FullName ), "REC.png", "hiddenREC.gif" );
             AssertContains( copyDir.FullName, Directory.GetFiles( copyDir.FullName ), "azerty.png", "hiddenAzerty.gif" );
             AssertContains( Path.Combine( copyDir.FullName, recursiveDir.Name ), Directory.GetFiles( Path.Combine( copyDir.FullName, recursiveDir.Name ) ), "REC.png", "hiddenREC.gif" );
 
-            TestHelper.CleanupCopyDir();
+            CleanupDir( copyDir.FullName );
 
             recursiveDir.Attributes = FileAttributes.Directory | FileAttributes.Hidden;
 
-            FileUtil.CopyDirectory( _testFolderInfo, copyDir, false, false );
-            AssertContains( _testFolderInfo.FullName, Directory.GetFiles( _testFolderInfo.FullName ), "azerty.png", "hiddenAzerty.gif" );
+            FileUtil.CopyDirectory( testDir, copyDir, false, false );
+            AssertContains( testDir.FullName, Directory.GetFiles( testDir.FullName ), "azerty.png", "hiddenAzerty.gif" );
             AssertContains( recursiveDir.FullName, Directory.GetFiles( recursiveDir.FullName ), "REC.png", "hiddenREC.gif" );
             AssertContains( copyDir.FullName, Directory.GetFiles( copyDir.FullName ), "azerty.png" );
             Assert.That( Directory.Exists( Path.Combine( copyDir.FullName, recursiveDir.Name ) ), Is.False );
 
-            TestHelper.CleanupCopyDir();
+            CleanupDir( copyDir.FullName );
 
             recursiveDir.Attributes = FileAttributes.Directory | FileAttributes.Hidden;
 
-            FileUtil.CopyDirectory( _testFolderInfo, copyDir, false, true );
-            AssertContains( _testFolderInfo.FullName, Directory.GetFiles( _testFolderInfo.FullName ), "azerty.png", "hiddenAzerty.gif" );
+            FileUtil.CopyDirectory( testDir, copyDir, false, true );
+            AssertContains( testDir.FullName, Directory.GetFiles( testDir.FullName ), "azerty.png", "hiddenAzerty.gif" );
             AssertContains( recursiveDir.FullName, Directory.GetFiles( recursiveDir.FullName ), "REC.png", "hiddenREC.gif" );
             AssertContains( copyDir.FullName, Directory.GetFiles( copyDir.FullName ), "azerty.png" );
             AssertContains( Path.Combine( copyDir.FullName, recursiveDir.Name ), Directory.GetFiles( Path.Combine( copyDir.FullName, recursiveDir.Name ) ), "REC.png" );
 
-            TestHelper.CleanupCopyDir();
+            CleanupDir( copyDir.FullName );
 
-            FileUtil.CopyDirectory( _testFolderInfo, copyDir, true, true, a => { return a.Name == "azerty.png"; }, a => { return a.Name != recursiveDir.Name; } );
-            AssertContains( _testFolderInfo.FullName, Directory.GetFiles( _testFolderInfo.FullName ), "azerty.png", "hiddenAzerty.gif" );
+            FileUtil.CopyDirectory( testDir, copyDir, true, true, a => { return a.Name == "azerty.png"; }, a => { return a.Name != recursiveDir.Name; } );
+            AssertContains( testDir.FullName, Directory.GetFiles( testDir.FullName ), "azerty.png", "hiddenAzerty.gif" );
             AssertContains( recursiveDir.FullName, Directory.GetFiles( recursiveDir.FullName ), "REC.png", "hiddenREC.gif" );
             AssertContains( copyDir.FullName, Directory.GetFiles( copyDir.FullName ), "azerty.png" );
             Assert.That( Directory.Exists( Path.Combine( copyDir.FullName, recursiveDir.Name ) ), Is.False );
 
             //Exception Test
-            Assert.Throws<ArgumentNullException>( () => FileUtil.CopyDirectory( null, _testFolderInfo ) );
-            Assert.Throws<ArgumentNullException>( () => FileUtil.CopyDirectory( _testFolderInfo, null) );
+            Assert.Throws<ArgumentNullException>( () => FileUtil.CopyDirectory( null, testDir ) );
+            Assert.Throws<ArgumentNullException>( () => FileUtil.CopyDirectory( testDir, null) );
 
             TestHelper.CleanupTestDir();
-            TestHelper.CleanupCopyDir();
+        }
+
+        static void CleanupDir( string path )
+        {
+            if( Directory.Exists( path ) ) Directory.Delete( path, true );
+            Directory.CreateDirectory( path );
         }
 
         [Test]
         public void GetFilesTest()
         {
             TestHelper.CleanupTestDir();
+            DirectoryInfo testFolder = TestHelper.TestFolderDir;
 
-            CreateFiles( _testFolderInfo.FullName, "azerty.gif", "azerty.jpg", "azerty.png" );
-            AssertContains( _testFolderInfo.FullName, FileUtil.GetFiles( _testFolderInfo.FullName, "*.png;*.jpg;*.gif" ), "azerty.gif", "azerty.jpg", "azerty.png" );
-            AssertContains( _testFolderInfo.FullName, FileUtil.GetFiles( _testFolderInfo.FullName, "azerty.*" ), "azerty.gif", "azerty.jpg", "azerty.png" );
-            AssertContains( _testFolderInfo.FullName, FileUtil.GetFiles( _testFolderInfo.FullName, "azer*.gif" ), "azerty.gif" );
-            AssertContains( _testFolderInfo.FullName, FileUtil.GetFiles( _testFolderInfo.FullName, "azer*.*if" ), "azerty.gif" );
-            AssertContains( _testFolderInfo.FullName, FileUtil.GetFiles( _testFolderInfo.FullName, "azerty.*g" ), "azerty.jpg", "azerty.png" );
+            CreateFiles( testFolder.FullName, "azerty.gif", "azerty.jpg", "azerty.png" );
+            AssertContains( testFolder.FullName, FileUtil.GetFiles( testFolder.FullName, "*.png;*.jpg;*.gif" ), "azerty.gif", "azerty.jpg", "azerty.png" );
+            AssertContains( testFolder.FullName, FileUtil.GetFiles( testFolder.FullName, "azerty.*" ), "azerty.gif", "azerty.jpg", "azerty.png" );
+            AssertContains( testFolder.FullName, FileUtil.GetFiles( testFolder.FullName, "azer*.gif" ), "azerty.gif" );
+            AssertContains( testFolder.FullName, FileUtil.GetFiles( testFolder.FullName, "azer*.*if" ), "azerty.gif" );
+            AssertContains( testFolder.FullName, FileUtil.GetFiles( testFolder.FullName, "azerty.*g" ), "azerty.jpg", "azerty.png" );
                             
-            AssertContains( _testFolderInfo.FullName, FileUtil.GetFiles( _testFolderInfo.FullName, "*.png;*.jpg" ), "azerty.jpg", "azerty.png" );
-            AssertContains( _testFolderInfo.FullName, FileUtil.GetFiles( _testFolderInfo.FullName, "*.png;*.gif" ), "azerty.gif", "azerty.png" );
-            AssertContains( _testFolderInfo.FullName, FileUtil.GetFiles( _testFolderInfo.FullName, "*.gif" ), "azerty.gif" );
-            AssertContains( _testFolderInfo.FullName, FileUtil.GetFiles( _testFolderInfo.FullName, string.Empty ) );
+            AssertContains( testFolder.FullName, FileUtil.GetFiles( testFolder.FullName, "*.png;*.jpg" ), "azerty.jpg", "azerty.png" );
+            AssertContains( testFolder.FullName, FileUtil.GetFiles( testFolder.FullName, "*.png;*.gif" ), "azerty.gif", "azerty.png" );
+            AssertContains( testFolder.FullName, FileUtil.GetFiles( testFolder.FullName, "*.gif" ), "azerty.gif" );
+            AssertContains( testFolder.FullName, FileUtil.GetFiles( testFolder.FullName, string.Empty ) );
                              
-            AssertContains( _testFolderInfo.FullName, FileUtil.GetFiles( _testFolderInfo.FullName, "*" ), "azerty.gif", "azerty.jpg", "azerty.png" );
-            AssertContains( _testFolderInfo.FullName, FileUtil.GetFiles( _testFolderInfo.FullName, "*.*" ), "azerty.gif", "azerty.jpg", "azerty.png" );
-            AssertContains( _testFolderInfo.FullName, FileUtil.GetFiles( _testFolderInfo.FullName, "*;*.*" ), "azerty.gif", "azerty.jpg", "azerty.png" );
-            AssertContains( _testFolderInfo.FullName, FileUtil.GetFiles( _testFolderInfo.FullName, "*.png;*" ), "azerty.gif", "azerty.jpg", "azerty.png" );
-            AssertContains( _testFolderInfo.FullName, FileUtil.GetFiles( _testFolderInfo.FullName, "*.png;*.*" ), "azerty.gif", "azerty.jpg", "azerty.png" );
+            AssertContains( testFolder.FullName, FileUtil.GetFiles( testFolder.FullName, "*" ), "azerty.gif", "azerty.jpg", "azerty.png" );
+            AssertContains( testFolder.FullName, FileUtil.GetFiles( testFolder.FullName, "*.*" ), "azerty.gif", "azerty.jpg", "azerty.png" );
+            AssertContains( testFolder.FullName, FileUtil.GetFiles( testFolder.FullName, "*;*.*" ), "azerty.gif", "azerty.jpg", "azerty.png" );
+            AssertContains( testFolder.FullName, FileUtil.GetFiles( testFolder.FullName, "*.png;*" ), "azerty.gif", "azerty.jpg", "azerty.png" );
+            AssertContains( testFolder.FullName, FileUtil.GetFiles( testFolder.FullName, "*.png;*.*" ), "azerty.gif", "azerty.jpg", "azerty.png" );
                             
-            AssertContains( _testFolderInfo.FullName, FileUtil.GetFiles( _testFolderInfo.FullName, ";;" ) );
-            AssertContains( _testFolderInfo.FullName, FileUtil.GetFiles( _testFolderInfo.FullName, ";*;" ), "azerty.gif", "azerty.jpg", "azerty.png" );
+            AssertContains( testFolder.FullName, FileUtil.GetFiles( testFolder.FullName, ";;" ) );
+            AssertContains( testFolder.FullName, FileUtil.GetFiles( testFolder.FullName, ";*;" ), "azerty.gif", "azerty.jpg", "azerty.png" );
                             
-            AssertContains( _testFolderInfo.FullName, FileUtil.GetFiles( _testFolderInfo.FullName, "a" ) );
-            AssertContains( _testFolderInfo.FullName, FileUtil.GetFiles( _testFolderInfo.FullName, "a.z" ) );
-            AssertContains( _testFolderInfo.FullName, FileUtil.GetFiles( _testFolderInfo.FullName, "" ) );
+            AssertContains( testFolder.FullName, FileUtil.GetFiles( testFolder.FullName, "a" ) );
+            AssertContains( testFolder.FullName, FileUtil.GetFiles( testFolder.FullName, "a.z" ) );
+            AssertContains( testFolder.FullName, FileUtil.GetFiles( testFolder.FullName, "" ) );
 
             TestHelper.CleanupTestDir();
 
-            CreateFiles( _testFolderInfo.FullName, "az.gif", "rty.jpg", "arty.gif", "raz.png" );
-            AssertContains( _testFolderInfo.FullName, FileUtil.GetFiles( _testFolderInfo.FullName, "*.jpg;*.gif" ), "az.gif", "rty.jpg", "arty.gif" );
-            AssertContains( _testFolderInfo.FullName, FileUtil.GetFiles( _testFolderInfo.FullName, "a*.gif" ), "az.gif", "arty.gif" );
-            AssertContains( _testFolderInfo.FullName, FileUtil.GetFiles( _testFolderInfo.FullName, "r*.*" ), "rty.jpg", "raz.png" );
-            AssertContains( _testFolderInfo.FullName, FileUtil.GetFiles( _testFolderInfo.FullName, "r*.*;a*.gif" ), "raz.png", "az.gif", "rty.jpg", "arty.gif" );
-            AssertContains( _testFolderInfo.FullName, FileUtil.GetFiles( _testFolderInfo.FullName, "r*.png" ), "raz.png" );
+            CreateFiles( testFolder.FullName, "az.gif", "rty.jpg", "arty.gif", "raz.png" );
+            AssertContains( testFolder.FullName, FileUtil.GetFiles( testFolder.FullName, "*.jpg;*.gif" ), "az.gif", "rty.jpg", "arty.gif" );
+            AssertContains( testFolder.FullName, FileUtil.GetFiles( testFolder.FullName, "a*.gif" ), "az.gif", "arty.gif" );
+            AssertContains( testFolder.FullName, FileUtil.GetFiles( testFolder.FullName, "r*.*" ), "rty.jpg", "raz.png" );
+            AssertContains( testFolder.FullName, FileUtil.GetFiles( testFolder.FullName, "r*.*;a*.gif" ), "raz.png", "az.gif", "rty.jpg", "arty.gif" );
+            AssertContains( testFolder.FullName, FileUtil.GetFiles( testFolder.FullName, "r*.png" ), "raz.png" );
 
             TestHelper.CleanupTestDir();
         }
@@ -175,20 +183,25 @@ namespace CK.Core.Tests
         [Test]
         public void WaitForWriteAccessTest()
         {
+            Assert.Throws<ArgumentNullException>( () => FileUtil.WaitForWriteAcccess( null, 0 ) );
+
             TestHelper.CleanupTestDir();
 
-            string path = Path.Combine( _testFolderInfo.FullName, "testWriteAccess" );
-            Assert.That( FileUtil.WaitForWriteAcccess( new FileInfo( "Nothing" ), 1 ), Is.True );
+            string path = Path.Combine( TestHelper.TestFolder, "Locked.txt" );
+            Assert.That( FileUtil.WaitForWriteAcccess( path, 1 ), Is.True );
+            
+            object startLock = new object();
             Task.Factory.StartNew( () =>
                 {
                     FileStream fs = File.Create( path );
-                    System.Threading.Thread.Sleep( 1000 );
+                    Thread.Sleep( 2 );
+                    lock( startLock ) Monitor.Pulse( startLock );
+                    Thread.Sleep( 1000 );
                     fs.Close();
                 } );
-            Assert.That( FileUtil.WaitForWriteAcccess( new FileInfo( path ), 0 ), Is.False );
-            Assert.That( FileUtil.WaitForWriteAcccess( new FileInfo( path ), 2 ), Is.True );
-
-            Assert.Throws<NullReferenceException>( () => FileUtil.WaitForWriteAcccess( null, 0 ) );
+            lock( startLock ) Monitor.Wait( startLock );
+            Assert.That( FileUtil.WaitForWriteAcccess( path, 0 ), Is.False );
+            Assert.That( FileUtil.WaitForWriteAcccess( path, 2 ), Is.True );
 
             TestHelper.CleanupTestDir();
         }
@@ -201,6 +214,7 @@ namespace CK.Core.Tests
             Assert.That( FileUtil.IndexOfInvalidFileNameChars( "ab" ), Is.EqualTo( -1 ) );
             Assert.That( FileUtil.IndexOfInvalidFileNameChars( "abcde" ), Is.EqualTo( -1 ) );
             Assert.That( FileUtil.IndexOfInvalidFileNameChars( "a<" ), Is.EqualTo( 1 ) );
+            Assert.That( FileUtil.IndexOfInvalidFileNameChars( "a:" ), Is.EqualTo( 1 ) );
             Assert.That( FileUtil.IndexOfInvalidFileNameChars( "ab<" ), Is.EqualTo( 2 ) );
             Assert.That( FileUtil.IndexOfInvalidFileNameChars( "<a" ), Is.EqualTo( 0 ) );
             Assert.That( FileUtil.IndexOfInvalidFileNameChars( "abc>" ), Is.EqualTo( 3 ) );

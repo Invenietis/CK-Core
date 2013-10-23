@@ -75,7 +75,7 @@ namespace CK.Core.Tests.Monitoring
             else _source = null;
         }
 
-        void IActivityMonitorClient.OnUnfilteredLog( CKTrait tags, LogLevel level, string text, DateTime logTimeUtc )
+        void IActivityMonitorClient.OnUnfilteredLog( CKTrait tags, LogLevel level, string text, DateTime logTimeUtc, string fileName, int lineNumber )
         {
             Util.InterlockedAdd( ref _text, String.Format( "{0} {1} - {2} -[{3}]", new String( '>', _depth ), level, text, tags ) ); 
         }
@@ -94,7 +94,7 @@ namespace CK.Core.Tests.Monitoring
         {
         }
 
-        void IActivityMonitorClient.OnTopicChanged( string newTopic )
+        void IActivityMonitorClient.OnTopicChanged( string newTopic, string fileName, int lineNumber )
         {
         }
 

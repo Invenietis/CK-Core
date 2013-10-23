@@ -63,7 +63,16 @@ namespace CK.Core
             _currentTags = ActivityMonitor.EmptyTag;
         }
 
-        protected override void OnEnterLevel( CKTrait tags, LogLevel level, string text, DateTime logTimeUtc )
+        /// <summary>
+        /// Writes all the information.
+        /// </summary>
+        /// <param name="tags">Tags of the log entry.</param>
+        /// <param name="level">New level.</param>
+        /// <param name="text">Log text.</param>
+        /// <param name="logTimeUtc">Time of the log.</param>
+        /// <param name="fileName">Source file name.</param>
+        /// <param name="lineNumber">Source line number.</param>
+        protected override void OnEnterLevel( CKTrait tags, LogLevel level, string text, DateTime logTimeUtc, string fileName, int lineNumber )
         {
             Debug.Assert( (level & LogLevel.IsFiltered) == 0 );
             TextWriter w = _writer();
@@ -80,7 +89,16 @@ namespace CK.Core
             }
         }
 
-        protected override void OnContinueOnSameLevel( CKTrait tags, LogLevel level, string text, DateTime logTimeUtc )
+        /// <summary>
+        /// Writes all information.
+        /// </summary>
+        /// <param name="tags">Tags of the log entry.</param>
+        /// <param name="level">Current level.</param>
+        /// <param name="text">Log text.</param>
+        /// <param name="logTimeUtc">Time of the log.</param>
+        /// <param name="fileName">Source file name.</param>
+        /// <param name="lineNumber">Source line number.</param>
+        protected override void OnContinueOnSameLevel( CKTrait tags, LogLevel level, string text, DateTime logTimeUtc, string fileName, int lineNumber )
         {
             Debug.Assert( (level & LogLevel.IsFiltered) == 0 );
             TextWriter w = _writer();
@@ -93,12 +111,20 @@ namespace CK.Core
             else w.WriteLine( _prefixLevel + text );
         }
 
+        /// <summary>
+        /// Updates the internally maintained prefix for lines.
+        /// </summary>
+        /// <param name="level">Previous level.</param>
         protected override void OnLeaveLevel( LogLevel level )
         {
             Debug.Assert( (level & LogLevel.IsFiltered) == 0 );
             _prefixLevel = _prefix;
         }
 
+        /// <summary>
+        /// Writes a group opening.
+        /// </summary>
+        /// <param name="g">Group information.</param>
         protected override void OnGroupOpen( IActivityLogGroup g )
         {
             TextWriter w = _writer();
@@ -117,6 +143,11 @@ namespace CK.Core
             }
         }
 
+        /// <summary>
+        /// Wtites group conclusion and updates internally managed line prefix.
+        /// </summary>
+        /// <param name="g">Group that must be closed.</param>
+        /// <param name="conclusions">Conclusions for the group.</param>
         protected override void OnGroupClose( IActivityLogGroup g, IReadOnlyList<ActivityLogGroupConclusion> conclusions )
         {
             TextWriter w = _writer();
@@ -135,6 +166,13 @@ namespace CK.Core
             }
         }
 
+        /// <summary>
+        /// Recursively dumps an <see cref="Exception"/> as readable text.
+        /// </summary>
+        /// <param name="w">The TextWriter to write to.</param>
+        /// <param name="prefix">Prefix that will start all lines.</param>
+        /// <param name="displayMessage">Wether the exception message must be displayed or skip.</param>
+        /// <param name="ex">The exception to display.</param>
         static public void DumpException( TextWriter w, string prefix, bool displayMessage, Exception ex )
         {
             CKException ckEx = ex as CKException;

@@ -40,22 +40,42 @@ namespace CK.Core.Tests.Monitoring
         [SetUp]
         public void ClearActivityMonitorErrors()
         {
-            TestHelper.ConsoleMonitor.Filter = LogFilter.Undefined;
-            ActivityMonitor.LoggingError.WaitOnErrorFromBackgroundThreadsPending();
-            ActivityMonitor.LoggingError.Clear();
+            TestHelper.ConsoleMonitor.MinimalFilter = LogFilter.Undefined;
+            ActivityMonitor.MonitoringError.WaitOnErrorFromBackgroundThreadsPending();
+            ActivityMonitor.MonitoringError.Clear();
         }
 
         [TearDown]
         public void CheckActivityMonitorErrors()
         {
-            var e = ActivityMonitor.LoggingError.ToArray();
+            var e = ActivityMonitor.MonitoringError.ToArray();
             Assert.That( e, Is.Empty );
+        }
+
+        [Test]
+        public void AutoConfig()
+        {
+            StupidStringClient c = new StupidStringClient();
+
+            ActivityMonitor.AutoConfiguration = null;
+            ActivityMonitor.AutoConfiguration += m => m.Output.RegisterClient( c );
+            int i = 0;
+            ActivityMonitor.AutoConfiguration += m => m.Trace( "This monitors has been created at {0:O}, n°{1}", DateTime.UtcNow, ++i );
+
+            ActivityMonitor monitor1 = new ActivityMonitor();
+            ActivityMonitor monitor2 = new ActivityMonitor();
+
+            Assert.That( c.ToString(), Is.StringContaining( "This monitors has been created at" ) );
+            Assert.That( c.ToString(), Is.StringContaining( "n°1" ) );
+            Assert.That( c.ToString(), Is.StringContaining( "n°2" ) );
+            
+            ActivityMonitor.AutoConfiguration = null;
         }
 
         [Test]
         public void NonMultipleRegistrationClients()
         {
-            ActivityMonitor.AutoConfiguration.Clear();
+            ActivityMonitor.AutoConfiguration = null;
             IActivityMonitor monitor = new ActivityMonitor();
             Assert.That( monitor.Output.Clients.Count, Is.EqualTo( 0 ) );
 
@@ -124,10 +144,10 @@ namespace CK.Core.Tests.Monitoring
             // Both the console and the pseudoConsole accepts at most Info level.
             IActivityMonitor pseudoConsole = new ActivityMonitor();
             var consoleDump = pseudoConsole.Output.RegisterClient( new StupidStringClient() );
-            pseudoConsole.Filter = InfoInfo;
-            TestHelper.ConsoleMonitor.Filter = InfoInfo;
+            pseudoConsole.MinimalFilter = InfoInfo;
+            TestHelper.ConsoleMonitor.MinimalFilter = InfoInfo;
             // The monitor that is bridged to the Console accepts everything.
-            monitor.Filter = LogFilter.Debug;
+            monitor.MinimalFilter = LogFilter.Debug;
 
             int i = 0;
             for( ; i < 60; i++ ) monitor.OpenGroup( LogLevel.Info, "Not Bridged n°{0}", i );
@@ -167,19 +187,19 @@ namespace CK.Core.Tests.Monitoring
             using( monitor.OpenGroup( LogLevel.Trace, "G1" ) )
             {
                 monitor.AutoTags = ActivityMonitor.RegisteredTags.FindOrCreate( "Tag" );
-                monitor.Filter = LogFilter.Monitor;
+                monitor.MinimalFilter = LogFilter.Monitor;
                 using( monitor.OpenGroup( LogLevel.Warn, "G2" ) )
                 {
                     monitor.AutoTags = ActivityMonitor.RegisteredTags.FindOrCreate( "A|B|C" );
-                    monitor.Filter = LogFilter.Release;
+                    monitor.MinimalFilter = LogFilter.Release;
                     Assert.That( monitor.AutoTags.ToString(), Is.EqualTo( "A|B|C" ) );
-                    Assert.That( monitor.Filter, Is.EqualTo( LogFilter.Release ) );
+                    Assert.That( monitor.MinimalFilter, Is.EqualTo( LogFilter.Release ) );
                 }
                 Assert.That( monitor.AutoTags.ToString(), Is.EqualTo( "Tag" ) );
-                Assert.That( monitor.Filter, Is.EqualTo( LogFilter.Monitor ) );
+                Assert.That( monitor.MinimalFilter, Is.EqualTo( LogFilter.Monitor ) );
             }
             Assert.That( monitor.AutoTags, Is.SameAs( ActivityMonitor.EmptyTag ) );
-            Assert.That( monitor.Filter, Is.EqualTo( LogFilter.Undefined ) );
+            Assert.That( monitor.MinimalFilter, Is.EqualTo( LogFilter.Undefined ) );
         }
 
         [Test]
@@ -364,32 +384,32 @@ namespace CK.Core.Tests.Monitoring
                         l.Error( "Error n°2." );
                         using( l.OpenGroup( LogLevel.Warn, "GroupWarn: this appears." ) )
                         {
-                            Assert.That( l.Filter, Is.EqualTo( WarnWarn ), "Groups does not change the current filter level." );
+                            Assert.That( l.MinimalFilter, Is.EqualTo( WarnWarn ), "Groups does not change the current filter level." );
                             l.Trace( "NO SHOW" );
                             l.Info( "NO SHOW" );
                             l.Warn( "Warn n°2." );
                             l.Error( "Error n°3." );
                             // Changing the level inside a Group.
-                            l.Filter = FatalFatal;
+                            l.MinimalFilter = FatalFatal;
                             l.Error( "NO SHOW" );
                             l.Fatal( "Fatal n°1." );
                         }
                         using( l.OpenGroup( LogLevel.Info, "GroupInfo: NO SHOW." ) )
                         {
-                            Assert.That( l.Filter, Is.EqualTo( WarnWarn ), "Groups does not change the current filter level." );
+                            Assert.That( l.MinimalFilter, Is.EqualTo( WarnWarn ), "Groups does not change the current filter level." );
                             l.Trace( "NO SHOW" );
                             l.Info( "NO SHOW" );
                             l.Warn( "Warn n°2-bis." );
                             l.Error( "Error n°3-bis." );
                             // Changing the level inside a Group.
-                            l.Filter = FatalFatal;
+                            l.MinimalFilter = FatalFatal;
                             l.Error( "NO SHOW" );
                             l.Fatal( "Fatal n°1." );
                             using( l.OpenGroup( LogLevel.Error, "GroupError: NO SHOW." ) )
                             {
                             }
                         }
-                        Assert.That( l.Filter, Is.EqualTo( WarnWarn ), "But Groups restores the original filter level when closed." );
+                        Assert.That( l.MinimalFilter, Is.EqualTo( WarnWarn ), "But Groups restores the original filter level when closed." );
                         l.Trace( "NO SHOW" );
                         l.Info( "NO SHOW" );
                         l.Warn( "Warn n°3." );
@@ -865,7 +885,7 @@ namespace CK.Core.Tests.Monitoring
                 Assert.That( (group.GroupLevel & LogLevel.IsFiltered) != 0 );
             }
 
-            protected override void OnUnfilteredLog( CKTrait tags, LogLevel level, string text, DateTime logTimeUtc )
+            protected override void OnUnfilteredLog( CKTrait tags, LogLevel level, string text, DateTime logTimeUtc, string fileName, int lineNumber )
             {
                 Assert.That( (level & LogLevel.IsFiltered) != 0 );
             }

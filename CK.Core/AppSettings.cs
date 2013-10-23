@@ -118,7 +118,8 @@ namespace CK.Core
         /// Gets the settings as a typed object: if the object is not available or is not of the given type, the default value is returned;
         /// </summary>
         /// <param name="key">The configuration key.</param>
-        /// <returns>The configured available object or the <paramref name="defaultVale"/> if no such configuration exists.</returns>
+        /// <param name="defaultValue">The default value to return if no object exists.</param>
+        /// <returns>The configured available object or the <paramref name="defaultValue"/> if no such configuration exists.</returns>
         public T GetObject<T>( string key, T defaultValue )
         {
             if( !_initialized ) DefaultInitialization();
@@ -165,7 +166,7 @@ namespace CK.Core
         void DoDefaultInitialize()
         {
             Type configMananger = SimpleTypeFinder.WeakDefault.ResolveType( "System.Configuration.ConfigurationManager, System.Configuration, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a", false );
-            if( configMananger != null )
+            if( !ReferenceEquals( configMananger, null ) )
             {
                 Type[] stringParams = new Type[] { typeof( string ) };
                 MethodInfo getAppSettings = configMananger.GetProperty( "AppSettings", BindingFlags.Public | BindingFlags.Static ).GetGetMethod();

@@ -59,7 +59,7 @@ namespace CK.Core
         int Depth { get; }
 
         /// <summary>
-        /// Gets the <see cref="IActivityMonitor.Filter"/> that will be restored when group will be closed.
+        /// Gets the <see cref="IActivityMonitor.MinimalFilter"/> that will be restored when group will be closed.
         /// Initialized with the current value of IActivityMonitor.Filter when the group has been opened.
         /// </summary>
         LogFilter SavedMonitorFilter { get; }
@@ -110,5 +110,15 @@ namespace CK.Core
         /// Gets whether the <see cref="GroupText"/> is actually the <see cref="Exception"/> message.
         /// </summary>
         bool IsGroupTextTheExceptionMessage { get; }
+
+        /// <summary>
+        /// Gets the file name of the source code that issued the log.
+        /// </summary>
+        string FileName { get; }
+
+        /// <summary>
+        /// Gets the line number of the <see cref="FileName"/> that issued the log.
+        /// </summary>
+        int LineNumber { get; }
     }
 }

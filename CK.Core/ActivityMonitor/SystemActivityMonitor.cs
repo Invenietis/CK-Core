@@ -33,7 +33,7 @@ namespace CK.Core
                 if( !forceBuggyRemove && source == null ) throw new InvalidOperationException();
             }
 
-            public void OnUnfilteredLog( CKTrait tags, LogLevel level, string text, DateTime logTimeUtc )
+            public void OnUnfilteredLog( CKTrait tags, LogLevel level, string text, DateTime logTimeUtc, string fileName, int lineNumber )
             {
                 level &= LogLevel.Mask;
                 if( level >= LogLevel.Error )
@@ -60,7 +60,7 @@ namespace CK.Core
             {
             }
 
-            public void OnTopicChanged( string newTopic )
+            public void OnTopicChanged( string newTopic, string fileName, int lineNumber )
             {
             }
 
@@ -110,7 +110,7 @@ namespace CK.Core
             _client = new SysClient();
             RootLogPath = AppSettings.Default[ AppSettingsKey ];
             _activityMonitorErrorTracked = 1;
-            ActivityMonitor.LoggingError.OnErrorFromBackgroundThreads += OnTrackActivityMonitorLoggingError;
+            ActivityMonitor.MonitoringError.OnErrorFromBackgroundThreads += OnTrackActivityMonitorLoggingError;
         }
 
         /// <summary>
@@ -145,13 +145,13 @@ namespace CK.Core
         /// <summary>
         /// Event that enables subsequent handling of errors.
         /// Raising this event is protected: a registered handler that raises an exception will be automatically removed and the
-        /// exception will be added to the <see cref="ActivityMonitor.LoggingError"/> collector to give other participants a chance 
+        /// exception will be added to the <see cref="ActivityMonitor.MonitoringError"/> collector to give other participants a chance 
         /// to handle it and track the culprit.
         /// </summary>
         static public event EventHandler<LowLevelErrorEventArgs> OnError;
 
         /// <summary>
-        /// Gets or sets whether <see cref="ActivityMonitor.LoggingError"/> are tracked (this is thread safe).
+        /// Gets or sets whether <see cref="ActivityMonitor.MonitoringError"/> are tracked (this is thread safe).
         /// When true, LoggingError events are tracked, written to a file (if <see cref="RootLogPath"/> is available) and ultimately 
         /// published again as a <see cref="OnError"/> events.
         /// Defaults to true.
@@ -165,12 +165,12 @@ namespace CK.Core
                 {
                     if( Interlocked.CompareExchange( ref _activityMonitorErrorTracked, 1, 0 ) == 0 )
                     {
-                        ActivityMonitor.LoggingError.OnErrorFromBackgroundThreads += OnTrackActivityMonitorLoggingError;
+                        ActivityMonitor.MonitoringError.OnErrorFromBackgroundThreads += OnTrackActivityMonitorLoggingError;
                     }
                 }
                 else if( Interlocked.CompareExchange( ref _activityMonitorErrorTracked, 0, 1 ) == 1 )
                 {
-                    ActivityMonitor.LoggingError.OnErrorFromBackgroundThreads -= OnTrackActivityMonitorLoggingError;
+                    ActivityMonitor.MonitoringError.OnErrorFromBackgroundThreads -= OnTrackActivityMonitorLoggingError;
                 }
             }
         }
@@ -255,7 +255,7 @@ namespace CK.Core
                     catch( Exception ex )
                     {
                         OnError -= (EventHandler<LowLevelErrorEventArgs>)d;
-                        ActivityMonitor.LoggingError.Add( ex, "While raising SystemActivityMonitor.OnError event." );
+                        ActivityMonitor.MonitoringError.Add( ex, "While raising SystemActivityMonitor.OnError event." );
                     }
                 }
             }

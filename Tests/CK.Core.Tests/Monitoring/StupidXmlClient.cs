@@ -45,14 +45,14 @@ namespace CK.Core.Tests.Monitoring
             InnerWriter = s;
         }
 
-        protected override void OnEnterLevel( CKTrait tags, LogLevel level, string text, DateTime logTimeUtc )
+        protected override void OnEnterLevel( CKTrait tags, LogLevel level, string text, DateTime logTimeUtc, string fileName, int lineNumber )
         {
             Debug.Assert( (level&LogLevel.IsFiltered) == 0 );
             XmlWriter.WriteStartElement( level.ToString() );
             XmlWriter.WriteString( text );
         }
 
-        protected override void OnContinueOnSameLevel( CKTrait tags, LogLevel level, string text, DateTime logTimeUtc )
+        protected override void OnContinueOnSameLevel( CKTrait tags, LogLevel level, string text, DateTime logTimeUtc, string fileName, int lineNumber )
         {
             XmlWriter.WriteString( text );
         }

@@ -42,7 +42,7 @@ namespace CK.Monitoring
                 }
                 catch( Exception exCall )
                 {
-                    ActivityMonitor.LoggingError.Add( exCall, l.GetType().FullName );
+                    ActivityMonitor.MonitoringError.Add( exCall, l.GetType().FullName );
                     Util.InterlockedRemove( ref _sinks, l );
                 }
             }

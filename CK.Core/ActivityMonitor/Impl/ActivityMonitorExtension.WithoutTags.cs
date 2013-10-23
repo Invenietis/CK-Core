@@ -26,6 +26,7 @@ using System.Linq;
 using System.Collections.Generic;
 using System.Text;
 using System.Diagnostics;
+using System.Runtime.CompilerServices;
 
 namespace CK.Core
 {
@@ -37,12 +38,19 @@ namespace CK.Core
         #region IActivityMonitor.OpenGroup( ... )
 
 
-        static IDisposable DoShouldLogGroup( IActivityMonitor @this, LogLevel level )
+        /// <summary>
+        /// Opens a log level. <see cref="IActivityMonitor.CloseGroup">CloseGroup</see> must be called in order to
+        /// close the group, or the returned object must be disposed.
+        /// </summary>
+        /// <param name="this">This <see cref="IActivityMonitor"/> object.</param>
+        /// <param name="level">The log level of the group.</param>
+        /// <param name="text">The text associated to the opening of the log.</param>
+        /// <param name="fileName">The source code file name from which the group is opened. Injected by the compiler thanks to the attribute.</param>
+        /// <param name="lineNumber">The line number in the source from which the group is opened. Injected by the compiler thanks to the attribute.</param>
+        /// <returns>A disposable object that can be used to close the group.</returns>
+        public static IDisposable OpenGroup( this IActivityMonitor @this, LogLevel level, string text )
         {
-            Debug.Assert( (level & LogLevel.IsFiltered) == 0 );
-            int f = (int)@this.ActualFilter.Group;
-            if( f <= 0 ? (int)ActivityMonitor.DefaultFilter.Group <= (int)level : f <= (int)level ) return null;
-            return @this.UnfilteredOpenGroup( ActivityMonitor.EmptyTag, LogLevel.None, null, null, DateTime.MinValue );
+            return FilteredGroup( @this, level & LogLevel.Mask ) ?? @this.UnfilteredOpenGroup( ActivityMonitor.EmptyTag, level | LogLevel.IsFiltered, null, text, DateTime.UtcNow, null );
         }
 
         /// <summary>
@@ -51,11 +59,14 @@ namespace CK.Core
         /// </summary>
         /// <param name="this">This <see cref="IActivityMonitor"/> object.</param>
         /// <param name="level">The log level of the group.</param>
-        /// <param name="text">The text associated to the opening of the log.</param>
+        /// <param name="format">A format with one placeholder for the group title.</param>
+        /// <param name="arg0">Parameter to format (placeholder {0}).</param>
+        /// <param name="fileName">The source code file name from which the group is opened. Injected by the compiler thanks to the attribute.</param>
+        /// <param name="lineNumber">The line number in the source from which the group is opened. Injected by the compiler thanks to the attribute.</param>
         /// <returns>A disposable object that can be used to close the group.</returns>
-        public static IDisposable OpenGroup( this IActivityMonitor @this, LogLevel level, string text )
+        public static IDisposable OpenGroup( this IActivityMonitor @this, LogLevel level, string format, object arg0 )
         {
-            return DoShouldLogGroup( @this, level & LogLevel.Mask ) ?? @this.UnfilteredOpenGroup( ActivityMonitor.EmptyTag, level | LogLevel.IsFiltered, null, text, DateTime.UtcNow );
+            return FilteredGroup( @this, level & LogLevel.Mask ) ?? @this.UnfilteredOpenGroup( ActivityMonitor.EmptyTag, level | LogLevel.IsFiltered, null, String.Format( format, arg0 ), DateTime.UtcNow, null );
         }
 
         /// <summary>
@@ -63,18 +74,73 @@ namespace CK.Core
         /// close the group, or the returned object must be disposed.
         /// </summary>
         /// <param name="this">This <see cref="IActivityMonitor"/> object.</param>
-        /// <param name="level">Log level. Since we are opening a group, the current <see cref="IActivityMonitor.ActualFilter">Filter</see> is ignored.</param>
-        /// <param name="getConclusionText">Optional function that will be called on group closing.</param>
-        /// <param name="format">A composite format for the group title.</param>
-        /// <param name="arguments">Arguments to format.</param>
+        /// <param name="level">The log level of the group.</param>
+        /// <param name="format">A format with two placeholders for the group title.</param>
+        /// <param name="arg0">Parameter to format (placeholder {0}).</param>
+        /// <param name="arg1">Parameter to format (placeholder {1}).</param>
+        /// <param name="fileName">The source code file name from which the group is opened. Injected by the compiler thanks to the attribute.</param>
+        /// <param name="lineNumber">The line number in the source from which the group is opened. Injected by the compiler thanks to the attribute.</param>
         /// <returns>A disposable object that can be used to close the group.</returns>
-        /// <remarks>
-        /// A group opening is not be filtered since any subordinated logs may occur.
-        /// It is left to the implementation to handle (or not) filtering when <see cref="IActivityMonitor.CloseGroup">CloseGroup</see> is called.
-        /// </remarks>
-        public static IDisposable OpenGroup( this IActivityMonitor @this, LogLevel level, Func<string> getConclusionText, string format, params object[] arguments )
+        public static IDisposable OpenGroup( this IActivityMonitor @this, LogLevel level, string format, object arg0, object arg1 )
         {
-            return DoShouldLogGroup( @this, level & LogLevel.Mask ) ?? @this.UnfilteredOpenGroup( ActivityMonitor.EmptyTag, level | LogLevel.IsFiltered, getConclusionText, String.Format( format, arguments ), DateTime.UtcNow );
+            return FilteredGroup( @this, level & LogLevel.Mask ) ?? @this.UnfilteredOpenGroup( ActivityMonitor.EmptyTag, level | LogLevel.IsFiltered, null, String.Format( format, arg0, arg1 ), DateTime.UtcNow, null );
+        }
+
+        /// <summary>
+        /// Opens a log level. <see cref="IActivityMonitor.CloseGroup">CloseGroup</see> must be called in order to
+        /// close the group, or the returned object must be disposed.
+        /// </summary>
+        /// <param name="this">This <see cref="IActivityMonitor"/> object.</param>
+        /// <param name="level">The log level of the group.</param>
+        /// <param name="format">A format with three placeholders for the group title.</param>
+        /// <param name="arg0">Parameter to format (placeholder {0}).</param>
+        /// <param name="arg1">Parameter to format (placeholder {1}).</param>
+        /// <param name="arg2">Parameter to format (placeholder {2}).</param>
+        /// <param name="fileName">The source code file name from which the group is opened. Injected by the compiler thanks to the attribute.</param>
+        /// <param name="lineNumber">The line number in the source from which the group is opened. Injected by the compiler thanks to the attribute.</param>
+        /// <returns>A disposable object that can be used to close the group.</returns>
+        public static IDisposable OpenGroup( this IActivityMonitor @this, LogLevel level, string format, object arg0, object arg1, object arg2 )
+        {
+            return FilteredGroup( @this, level & LogLevel.Mask ) ?? @this.UnfilteredOpenGroup( ActivityMonitor.EmptyTag, level | LogLevel.IsFiltered, null, String.Format( format, arg0, arg1, arg2 ), DateTime.UtcNow, null );
+        }
+
+        /// <summary>
+        /// Opens a log level. <see cref="IActivityMonitor.CloseGroup">CloseGroup</see> must be called in order to
+        /// close the group, or the returned object must be disposed.
+        /// </summary>
+        /// <param name="this">This <see cref="IActivityMonitor"/> object.</param>
+        /// <param name="level">The log level of the group.</param>
+        /// <param name="format">A format with four placeholders for the group title.</param>
+        /// <param name="arg0">Parameter to format (placeholder {0}).</param>
+        /// <param name="arg1">Parameter to format (placeholder {1}).</param>
+        /// <param name="arg2">Parameter to format (placeholder {2}).</param>
+        /// <param name="arg3">Parameter to format (placeholder {3}).</param>
+        /// <param name="fileName">The source code file name from which the group is opened. Injected by the compiler thanks to the attribute.</param>
+        /// <param name="lineNumber">The line number in the source from which the group is opened. Injected by the compiler thanks to the attribute.</param>
+        /// <returns>A disposable object that can be used to close the group.</returns>
+        public static IDisposable OpenGroup( this IActivityMonitor @this, LogLevel level, string format, object arg0, object arg1, object arg2, object arg3 )
+        {
+            return FilteredGroup( @this, level & LogLevel.Mask ) ?? @this.UnfilteredOpenGroup( ActivityMonitor.EmptyTag, level | LogLevel.IsFiltered, null, String.Format( format, arg0, arg1, arg2, arg3 ), DateTime.UtcNow, null );
+        }
+
+        /// <summary>
+        /// Opens a log level. <see cref="IActivityMonitor.CloseGroup">CloseGroup</see> must be called in order to
+        /// close the group, or the returned object must be disposed.
+        /// </summary>
+        /// <param name="this">This <see cref="IActivityMonitor"/> object.</param>
+        /// <param name="level">The log level of the group.</param>
+        /// <param name="format">A format with five placeholders for the group title.</param>
+        /// <param name="arg0">Parameter to format (placeholder {0}).</param>
+        /// <param name="arg1">Parameter to format (placeholder {1}).</param>
+        /// <param name="arg2">Parameter to format (placeholder {2}).</param>
+        /// <param name="arg3">Parameter to format (placeholder {3}).</param>
+        /// <param name="arg4">Parameter to format (placeholder {4}).</param>
+        /// <param name="fileName">The source code file name from which the group is opened. Injected by the compiler thanks to the attribute.</param>
+        /// <param name="lineNumber">The line number in the source from which the group is opened. Injected by the compiler thanks to the attribute.</param>
+        /// <returns>A disposable object that can be used to close the group.</returns>
+        public static IDisposable OpenGroup( this IActivityMonitor @this, LogLevel level, string format, object arg0, object arg1, object arg2, object arg3, object arg4 )
+        {
+            return FilteredGroup( @this, level & LogLevel.Mask ) ?? @this.UnfilteredOpenGroup( ActivityMonitor.EmptyTag, level | LogLevel.IsFiltered, null, String.Format( format, arg0, arg1, arg2, arg3, arg4 ), DateTime.UtcNow, null );
         }
 
         /// <summary>
@@ -85,6 +151,8 @@ namespace CK.Core
         /// <param name="level">Log level. Since we are opening a group, the current <see cref="IActivityMonitor.ActualFilter">Filter</see> is ignored.</param>
         /// <param name="format">Format of the string.</param>
         /// <param name="arguments">Arguments to format.</param>
+        /// <param name="fileName">The source code file name from which the group is opened. Injected by the compiler thanks to the attribute.</param>
+        /// <param name="lineNumber">The line number in the source from which the group is opened. Injected by the compiler thanks to the attribute.</param>
         /// <returns>A disposable object that can be used to close the group.</returns>
         /// <remarks>
         /// A group opening is not be filtered since any subordinated logs may occur.
@@ -92,8 +160,168 @@ namespace CK.Core
         /// </remarks>
         public static IDisposable OpenGroup( this IActivityMonitor @this, LogLevel level, string format, params object[] arguments )
         {
-            return DoShouldLogGroup( @this, level & LogLevel.Mask ) ?? @this.UnfilteredOpenGroup( ActivityMonitor.EmptyTag, level | LogLevel.IsFiltered, null, String.Format( format, arguments ), DateTime.UtcNow );
+            return FilteredGroup( @this, level & LogLevel.Mask ) ?? @this.UnfilteredOpenGroup( ActivityMonitor.EmptyTag, level | LogLevel.IsFiltered, null, String.Format( format, arguments ), DateTime.UtcNow, null );
         }
+
+        #region With getConclusionText
+
+        /// <summary>
+        /// Opens a log level. <see cref="IActivityMonitor.CloseGroup">CloseGroup</see> must be called in order to
+        /// close the group, or the returned object must be disposed.
+        /// </summary>
+        /// <param name="this">This <see cref="IActivityMonitor"/> object.</param>
+        /// <param name="level">Log level. Since we are opening a group, the current <see cref="IActivityMonitor.ActualFilter">Filter</see> is ignored.</param>
+        /// <param name="getConclusionText">Optional function that will be called on group closing.</param>
+        /// <param name="text">Group title.</param>
+        /// <param name="fileName">The source code file name from which the group is opened. Injected by the compiler thanks to the attribute.</param>
+        /// <param name="lineNumber">The line number in the source from which the group is opened. Injected by the compiler thanks to the attribute.</param>
+        /// <returns>A disposable object that can be used to close the group.</returns>
+        /// <remarks>
+        /// A group opening is not be filtered since any subordinated logs may occur.
+        /// It is left to the implementation to handle (or not) filtering when <see cref="IActivityMonitor.CloseGroup">CloseGroup</see> is called.
+        /// </remarks>
+        public static IDisposable OpenGroup( this IActivityMonitor @this, LogLevel level, Func<string> getConclusionText, string text )
+        {
+            return FilteredGroup( @this, level & LogLevel.Mask ) ?? @this.UnfilteredOpenGroup( ActivityMonitor.EmptyTag, level | LogLevel.IsFiltered, getConclusionText, text, DateTime.UtcNow, null );
+        }
+
+        /// <summary>
+        /// Opens a log level. <see cref="IActivityMonitor.CloseGroup">CloseGroup</see> must be called in order to
+        /// close the group, or the returned object must be disposed.
+        /// </summary>
+        /// <param name="this">This <see cref="IActivityMonitor"/> object.</param>
+        /// <param name="level">Log level. Since we are opening a group, the current <see cref="IActivityMonitor.ActualFilter">Filter</see> is ignored.</param>
+        /// <param name="getConclusionText">Optional function that will be called on group closing.</param>
+        /// <param name="format">A format with one placeholder for the group title.</param>
+        /// <param name="arg0">Parameter to format (placeholder {0}).</param>
+        /// <param name="fileName">The source code file name from which the group is opened. Injected by the compiler thanks to the attribute.</param>
+        /// <param name="lineNumber">The line number in the source from which the group is opened. Injected by the compiler thanks to the attribute.</param>
+        /// <returns>A disposable object that can be used to close the group.</returns>
+        /// <remarks>
+        /// A group opening is not be filtered since any subordinated logs may occur.
+        /// It is left to the implementation to handle (or not) filtering when <see cref="IActivityMonitor.CloseGroup">CloseGroup</see> is called.
+        /// </remarks>
+        public static IDisposable OpenGroup( this IActivityMonitor @this, LogLevel level, Func<string> getConclusionText, string format, object arg0 )
+        {
+            return FilteredGroup( @this, level & LogLevel.Mask ) ?? @this.UnfilteredOpenGroup( ActivityMonitor.EmptyTag, level | LogLevel.IsFiltered, getConclusionText, String.Format( format, arg0 ), DateTime.UtcNow, null );
+        }
+
+        /// <summary>
+        /// Opens a log level. <see cref="IActivityMonitor.CloseGroup">CloseGroup</see> must be called in order to
+        /// close the group, or the returned object must be disposed.
+        /// </summary>
+        /// <param name="this">This <see cref="IActivityMonitor"/> object.</param>
+        /// <param name="level">Log level. Since we are opening a group, the current <see cref="IActivityMonitor.ActualFilter">Filter</see> is ignored.</param>
+        /// <param name="getConclusionText">Optional function that will be called on group closing.</param>
+        /// <param name="format">A format with two placeholders for the group title.</param>
+        /// <param name="arg0">Parameter to format (placeholder {0}).</param>
+        /// <param name="arg1">Parameter to format (placeholder {1}).</param>
+        /// <param name="fileName">The source code file name from which the group is opened. Injected by the compiler thanks to the attribute.</param>
+        /// <param name="lineNumber">The line number in the source from which the group is opened. Injected by the compiler thanks to the attribute.</param>
+        /// <returns>A disposable object that can be used to close the group.</returns>
+        /// <remarks>
+        /// A group opening is not be filtered since any subordinated logs may occur.
+        /// It is left to the implementation to handle (or not) filtering when <see cref="IActivityMonitor.CloseGroup">CloseGroup</see> is called.
+        /// </remarks>
+        public static IDisposable OpenGroup( this IActivityMonitor @this, LogLevel level, Func<string> getConclusionText, string format, object arg0, object arg1 )
+        {
+            return FilteredGroup( @this, level & LogLevel.Mask ) ?? @this.UnfilteredOpenGroup( ActivityMonitor.EmptyTag, level | LogLevel.IsFiltered, getConclusionText, String.Format( format, arg0, arg1 ), DateTime.UtcNow, null );
+        }
+
+        /// <summary>
+        /// Opens a log level. <see cref="IActivityMonitor.CloseGroup">CloseGroup</see> must be called in order to
+        /// close the group, or the returned object must be disposed.
+        /// </summary>
+        /// <param name="this">This <see cref="IActivityMonitor"/> object.</param>
+        /// <param name="level">Log level. Since we are opening a group, the current <see cref="IActivityMonitor.ActualFilter">Filter</see> is ignored.</param>
+        /// <param name="getConclusionText">Optional function that will be called on group closing.</param>
+        /// <param name="format">A format with three placeholders for the group title.</param>
+        /// <param name="arg0">Parameter to format (placeholder {0}).</param>
+        /// <param name="arg1">Parameter to format (placeholder {1}).</param>
+        /// <param name="arg2">Parameter to format (placeholder {2}).</param>
+        /// <param name="fileName">The source code file name from which the group is opened. Injected by the compiler thanks to the attribute.</param>
+        /// <param name="lineNumber">The line number in the source from which the group is opened. Injected by the compiler thanks to the attribute.</param>
+        /// <returns>A disposable object that can be used to close the group.</returns>
+        /// <remarks>
+        /// A group opening is not be filtered since any subordinated logs may occur.
+        /// It is left to the implementation to handle (or not) filtering when <see cref="IActivityMonitor.CloseGroup">CloseGroup</see> is called.
+        /// </remarks>
+        public static IDisposable OpenGroup( this IActivityMonitor @this, LogLevel level, Func<string> getConclusionText, string format, object arg0, object arg1, object arg2 )
+        {
+            return FilteredGroup( @this, level & LogLevel.Mask ) ?? @this.UnfilteredOpenGroup( ActivityMonitor.EmptyTag, level | LogLevel.IsFiltered, getConclusionText, String.Format( format, arg0, arg1, arg2 ), DateTime.UtcNow, null );
+        }
+
+        /// <summary>
+        /// Opens a log level. <see cref="IActivityMonitor.CloseGroup">CloseGroup</see> must be called in order to
+        /// close the group, or the returned object must be disposed.
+        /// </summary>
+        /// <param name="this">This <see cref="IActivityMonitor"/> object.</param>
+        /// <param name="level">Log level. Since we are opening a group, the current <see cref="IActivityMonitor.ActualFilter">Filter</see> is ignored.</param>
+        /// <param name="getConclusionText">Optional function that will be called on group closing.</param>
+        /// <param name="format">A format with four placeholders for the group title.</param>
+        /// <param name="arg0">Parameter to format (placeholder {0}).</param>
+        /// <param name="arg1">Parameter to format (placeholder {1}).</param>
+        /// <param name="arg2">Parameter to format (placeholder {2}).</param>
+        /// <param name="arg3">Parameter to format (placeholder {3}).</param>
+        /// <param name="fileName">The source code file name from which the group is opened. Injected by the compiler thanks to the attribute.</param>
+        /// <param name="lineNumber">The line number in the source from which the group is opened. Injected by the compiler thanks to the attribute.</param>
+        /// <returns>A disposable object that can be used to close the group.</returns>
+        /// <remarks>
+        /// A group opening is not be filtered since any subordinated logs may occur.
+        /// It is left to the implementation to handle (or not) filtering when <see cref="IActivityMonitor.CloseGroup">CloseGroup</see> is called.
+        /// </remarks>
+        public static IDisposable OpenGroup( this IActivityMonitor @this, LogLevel level, Func<string> getConclusionText, string format, object arg0, object arg1, object arg2, object arg3 )
+        {
+            return FilteredGroup( @this, level & LogLevel.Mask ) ?? @this.UnfilteredOpenGroup( ActivityMonitor.EmptyTag, level | LogLevel.IsFiltered, getConclusionText, String.Format( format, arg0, arg1, arg2, arg3 ), DateTime.UtcNow, null );
+        }
+
+        /// <summary>
+        /// Opens a log level. <see cref="IActivityMonitor.CloseGroup">CloseGroup</see> must be called in order to
+        /// close the group, or the returned object must be disposed.
+        /// </summary>
+        /// <param name="this">This <see cref="IActivityMonitor"/> object.</param>
+        /// <param name="level">Log level. Since we are opening a group, the current <see cref="IActivityMonitor.ActualFilter">Filter</see> is ignored.</param>
+        /// <param name="getConclusionText">Optional function that will be called on group closing.</param>
+        /// <param name="format">A format with five placeholders for the group title.</param>
+        /// <param name="arg0">Parameter to format (placeholder {0}).</param>
+        /// <param name="arg1">Parameter to format (placeholder {1}).</param>
+        /// <param name="arg2">Parameter to format (placeholder {2}).</param>
+        /// <param name="arg3">Parameter to format (placeholder {3}).</param>
+        /// <param name="arg4">Parameter to format (placeholder {4}).</param>
+        /// <param name="fileName">The source code file name from which the group is opened. Injected by the compiler thanks to the attribute.</param>
+        /// <param name="lineNumber">The line number in the source from which the group is opened. Injected by the compiler thanks to the attribute.</param>
+        /// <returns>A disposable object that can be used to close the group.</returns>
+        /// <remarks>
+        /// A group opening is not be filtered since any subordinated logs may occur.
+        /// It is left to the implementation to handle (or not) filtering when <see cref="IActivityMonitor.CloseGroup">CloseGroup</see> is called.
+        /// </remarks>
+        public static IDisposable OpenGroup( this IActivityMonitor @this, LogLevel level, Func<string> getConclusionText, string format, object arg0, object arg1, object arg2, object arg3, object arg4 )
+        {
+            return FilteredGroup( @this, level & LogLevel.Mask ) ?? @this.UnfilteredOpenGroup( ActivityMonitor.EmptyTag, level | LogLevel.IsFiltered, getConclusionText, String.Format( format, arg0, arg1, arg2, arg3, arg4 ), DateTime.UtcNow, null );
+        }
+
+        /// <summary>
+        /// Opens a log level. <see cref="IActivityMonitor.CloseGroup">CloseGroup</see> must be called in order to
+        /// close the group, or the returned object must be disposed.
+        /// </summary>
+        /// <param name="this">This <see cref="IActivityMonitor"/> object.</param>
+        /// <param name="level">Log level. Since we are opening a group, the current <see cref="IActivityMonitor.ActualFilter">Filter</see> is ignored.</param>
+        /// <param name="getConclusionText">Optional function that will be called on group closing.</param>
+        /// <param name="format">A multiple placeholders format for the group title.</param>
+        /// <param name="arguments">Arguments to format.</param>
+        /// <param name="fileName">The source code file name from which the group is opened. Injected by the compiler thanks to the attribute.</param>
+        /// <param name="lineNumber">The line number in the source from which the group is opened. Injected by the compiler thanks to the attribute.</param>
+        /// <returns>A disposable object that can be used to close the group.</returns>
+        /// <remarks>
+        /// A group opening is not be filtered since any subordinated logs may occur.
+        /// It is left to the implementation to handle (or not) filtering when <see cref="IActivityMonitor.CloseGroup">CloseGroup</see> is called.
+        /// </remarks>
+        public static IDisposable OpenGroup( this IActivityMonitor @this, LogLevel level, Func<string> getConclusionText, string format, object[] arguments )
+        {
+            return FilteredGroup( @this, level & LogLevel.Mask ) ?? @this.UnfilteredOpenGroup( ActivityMonitor.EmptyTag, level | LogLevel.IsFiltered, getConclusionText, String.Format( format, arguments ), DateTime.UtcNow, null );
+        }
+
+        #endregion
 
         #endregion
 
@@ -106,11 +334,11 @@ namespace CK.Core
         /// </summary>
         /// <param name="this">This <see cref="IActivityMonitor"/> object.</param>
         /// <param name="text">Text to log as a trace.</param>
-        /// <returns>This monitor to enable fluent syntax.</returns>
-        public static IActivityMonitor Trace( this IActivityMonitor @this, string text )
+        /// <param name="fileName">The source code file name from which the log is emitted. Injected by the compiler thanks to the attribute.</param>
+        /// <param name="lineNumber">The line number in the source from which the log is emitted. Injected by the compiler thanks to the attribute.</param>
+        public static void Trace( this IActivityMonitor @this, string text )
         {
-            if( ShouldLogLine( @this, LogLevel.Trace ) ) @this.UnfilteredLog( ActivityMonitor.EmptyTag, LogLevel.Trace | LogLevel.IsFiltered, text, DateTime.UtcNow );
-            return @this;
+            if( ShouldLogLine( @this, LogLevel.Trace ) ) @this.UnfilteredLog( ActivityMonitor.EmptyTag, LogLevel.Trace | LogLevel.IsFiltered, text, DateTime.UtcNow, null );
         }
 
         /// <summary>
@@ -119,15 +347,14 @@ namespace CK.Core
         /// <param name="this">This <see cref="IActivityMonitor"/> object.</param>
         /// <param name="format">Text format to log as a trace.</param>
         /// <param name="arg0">Parameter to format (placeholder {0}).</param>
-        /// <returns>This monitor to enable fluent syntax.</returns>
-        public static IActivityMonitor Trace( this IActivityMonitor @this, string format, object arg0 )
+
+        public static void Trace( this IActivityMonitor @this, string format, object arg0 )
         {
             if( ShouldLogLine( @this, LogLevel.Trace ) )
             {
                 if( arg0 is Exception ) throw new ArgumentException( R.PossibleWrongOverloadUseWithException, "arg0" );
-                @this.UnfilteredLog( ActivityMonitor.EmptyTag, LogLevel.Trace | LogLevel.IsFiltered, String.Format( format, arg0 ), DateTime.UtcNow );
+                @this.UnfilteredLog( ActivityMonitor.EmptyTag, LogLevel.Trace | LogLevel.IsFiltered, String.Format( format, arg0 ), DateTime.UtcNow, null );
             }
-            return @this;
         }
 
         /// <summary>
@@ -137,11 +364,10 @@ namespace CK.Core
         /// <param name="format">Text format to log as a trace.</param>
         /// <param name="arg0">First parameter to format (placeholder {0}).</param>
         /// <param name="arg1">Second parameter to format (placeholder {1}).</param>
-        /// <returns>This monitor to enable fluent syntax.</returns>
-        public static IActivityMonitor Trace( this IActivityMonitor @this, string format, object arg0, object arg1 )
+
+        public static void Trace( this IActivityMonitor @this, string format, object arg0, object arg1 )
         {
-            if( ShouldLogLine( @this, LogLevel.Trace ) ) @this.UnfilteredLog( ActivityMonitor.EmptyTag, LogLevel.Trace | LogLevel.IsFiltered, String.Format( format, arg0, arg1 ), DateTime.UtcNow );
-            return @this;
+            if( ShouldLogLine( @this, LogLevel.Trace ) ) @this.UnfilteredLog( ActivityMonitor.EmptyTag, LogLevel.Trace | LogLevel.IsFiltered, String.Format( format, arg0, arg1 ), DateTime.UtcNow, null );
         }
 
         /// <summary>
@@ -152,11 +378,10 @@ namespace CK.Core
         /// <param name="arg0">First parameter to format (placeholder {0}).</param>
         /// <param name="arg1">Second parameter to format (placeholder {1}).</param>
         /// <param name="arg2">Third parameter to format (placeholder {2}).</param>
-        /// <returns>This monitor to enable fluent syntax.</returns>
-        public static IActivityMonitor Trace( this IActivityMonitor @this, string format, object arg0, object arg1, object arg2 )
+
+        public static void Trace( this IActivityMonitor @this, string format, object arg0, object arg1, object arg2 )
         {
-            if( ShouldLogLine( @this, LogLevel.Trace ) ) @this.UnfilteredLog( ActivityMonitor.EmptyTag, LogLevel.Trace | LogLevel.IsFiltered, String.Format( format, arg0, arg1, arg2 ), DateTime.UtcNow );
-            return @this;
+            if( ShouldLogLine( @this, LogLevel.Trace ) ) @this.UnfilteredLog( ActivityMonitor.EmptyTag, LogLevel.Trace | LogLevel.IsFiltered, String.Format( format, arg0, arg1, arg2 ), DateTime.UtcNow, null );
         }
 
         /// <summary>
@@ -165,11 +390,10 @@ namespace CK.Core
         /// <param name="this">This <see cref="IActivityMonitor"/> object.</param>
         /// <param name="format">Text format to log as a trace.</param>
         /// <param name="args">Multiple parameters to format.</param>
-        /// <returns>This monitor to enable fluent syntax.</returns>
-        public static IActivityMonitor Trace( this IActivityMonitor @this, string format, params object[] args )
+
+        public static void Trace( this IActivityMonitor @this, string format, params object[] args )
         {
-            if( ShouldLogLine( @this, LogLevel.Trace ) ) @this.UnfilteredLog( ActivityMonitor.EmptyTag, LogLevel.Trace | LogLevel.IsFiltered, String.Format( format, args ), DateTime.UtcNow );
-            return @this;
+            if( ShouldLogLine( @this, LogLevel.Trace ) ) @this.UnfilteredLog( ActivityMonitor.EmptyTag, LogLevel.Trace | LogLevel.IsFiltered, String.Format( format, args ), DateTime.UtcNow, null );
         }
 
         /// <summary>
@@ -177,11 +401,10 @@ namespace CK.Core
         /// </summary>
         /// <param name="this">This <see cref="IActivityMonitor"/> object.</param>
         /// <param name="text">Delegate that returns a string.</param>
-        /// <returns>This monitor to enable fluent syntax.</returns>
-        public static IActivityMonitor Trace( this IActivityMonitor @this, Func<string> text )
+
+        public static void Trace( this IActivityMonitor @this, Func<string> text )
         {
-            if( ShouldLogLine( @this, LogLevel.Trace ) ) @this.UnfilteredLog( ActivityMonitor.EmptyTag, LogLevel.Trace | LogLevel.IsFiltered, text(), DateTime.UtcNow );
-            return @this;
+            if( ShouldLogLine( @this, LogLevel.Trace ) ) @this.UnfilteredLog( ActivityMonitor.EmptyTag, LogLevel.Trace | LogLevel.IsFiltered, text(), DateTime.UtcNow, null );
         }
 
         /// <summary>
@@ -191,11 +414,9 @@ namespace CK.Core
         /// <param name="param">Parameter of the <paramref name="text"/> delegate.</param>
         /// <param name="this">This <see cref="IActivityMonitor"/> object.</param>
         /// <param name="text">Delegate that returns a string.</param>
-        /// <returns>This monitor to enable fluent syntax.</returns>
-        public static IActivityMonitor Trace<T>( this IActivityMonitor @this, T param, Func<T, string> text )
+        public static void Trace<T>( this IActivityMonitor @this, T param, Func<T, string> text )
         {
-            if( ShouldLogLine( @this, LogLevel.Trace ) ) @this.UnfilteredLog( ActivityMonitor.EmptyTag, LogLevel.Trace | LogLevel.IsFiltered, text( param ), DateTime.UtcNow );
-            return @this;
+            if( ShouldLogLine( @this, LogLevel.Trace ) ) @this.UnfilteredLog( ActivityMonitor.EmptyTag, LogLevel.Trace | LogLevel.IsFiltered, text( param ), DateTime.UtcNow, null );
         }
 
         /// <summary>
@@ -207,11 +428,9 @@ namespace CK.Core
         /// <param name="param1">First parameter for the <paramref name="text"/> delegate.</param>
         /// <param name="param2">Second parameter for the <paramref name="text"/> delegate.</param>
         /// <param name="text">Delegate that returns a string.</param>
-        /// <returns>This monitor to enable fluent syntax.</returns>
-        public static IActivityMonitor Trace<T1, T2>( this IActivityMonitor @this, T1 param1, T2 param2, Func<T1, T2, string> text )
+        public static void Trace<T1, T2>( this IActivityMonitor @this, T1 param1, T2 param2, Func<T1, T2, string> text )
         {
-            if( ShouldLogLine( @this, LogLevel.Trace ) ) @this.UnfilteredLog( ActivityMonitor.EmptyTag, LogLevel.Trace | LogLevel.IsFiltered, text( param1, param2 ), DateTime.UtcNow );
-            return @this;
+            if( ShouldLogLine( @this, LogLevel.Trace ) ) @this.UnfilteredLog( ActivityMonitor.EmptyTag, LogLevel.Trace | LogLevel.IsFiltered, text( param1, param2 ), DateTime.UtcNow, null );
         }
         #endregion
 
@@ -222,11 +441,10 @@ namespace CK.Core
         /// </summary>
         /// <param name="this">This <see cref="IActivityMonitor"/> object.</param>
         /// <param name="text">Text to log as an info.</param>
-        /// <returns>This monitor to enable fluent syntax.</returns>
-        public static IActivityMonitor Info( this IActivityMonitor @this, string text )
+
+        public static void Info( this IActivityMonitor @this, string text )
         {
-            if( ShouldLogLine( @this, LogLevel.Info ) ) @this.UnfilteredLog( ActivityMonitor.EmptyTag, LogLevel.Info | LogLevel.IsFiltered, text, DateTime.UtcNow );
-            return @this;
+            if( ShouldLogLine( @this, LogLevel.Info ) ) @this.UnfilteredLog( ActivityMonitor.EmptyTag, LogLevel.Info | LogLevel.IsFiltered, text, DateTime.UtcNow, null );
         }
 
         /// <summary>
@@ -235,15 +453,14 @@ namespace CK.Core
         /// <param name="this">This <see cref="IActivityMonitor"/> object.</param>
         /// <param name="format">Text format to log as an info.</param>
         /// <param name="arg0">Parameter to format (placeholder {0}).</param>
-        /// <returns>This monitor to enable fluent syntax.</returns>
-        public static IActivityMonitor Info( this IActivityMonitor @this, string format, object arg0 )
+
+        public static void Info( this IActivityMonitor @this, string format, object arg0 )
         {
             if( ShouldLogLine( @this, LogLevel.Info ) )
             {
                 if( arg0 is Exception ) throw new ArgumentException( R.PossibleWrongOverloadUseWithException, "arg0" );
-                @this.UnfilteredLog( ActivityMonitor.EmptyTag, LogLevel.Info | LogLevel.IsFiltered, String.Format( format, arg0 ), DateTime.UtcNow );
+                @this.UnfilteredLog( ActivityMonitor.EmptyTag, LogLevel.Info | LogLevel.IsFiltered, String.Format( format, arg0 ), DateTime.UtcNow, null );
             }
-            return @this;
         }
 
         /// <summary>
@@ -253,11 +470,10 @@ namespace CK.Core
         /// <param name="format">Text format to log as an info.</param>
         /// <param name="arg0">First parameter to format (placeholder {0}).</param>
         /// <param name="arg1">Second parameter to format (placeholder {1}).</param>
-        /// <returns>This monitor to enable fluent syntax.</returns>
-        public static IActivityMonitor Info( this IActivityMonitor @this, string format, object arg0, object arg1 )
+
+        public static void Info( this IActivityMonitor @this, string format, object arg0, object arg1 )
         {
-            if( ShouldLogLine( @this, LogLevel.Info ) ) @this.UnfilteredLog( ActivityMonitor.EmptyTag, LogLevel.Info | LogLevel.IsFiltered, String.Format( format, arg0, arg1 ), DateTime.UtcNow );
-            return @this;
+            if( ShouldLogLine( @this, LogLevel.Info ) ) @this.UnfilteredLog( ActivityMonitor.EmptyTag, LogLevel.Info | LogLevel.IsFiltered, String.Format( format, arg0, arg1 ), DateTime.UtcNow, null );
         }
 
         /// <summary>
@@ -268,11 +484,10 @@ namespace CK.Core
         /// <param name="arg0">First parameter to format (placeholder {0}).</param>
         /// <param name="arg1">Second parameter to format (placeholder {1}).</param>
         /// <param name="arg2">Third parameter to format (placeholder {2}).</param>
-        /// <returns>This monitor to enable fluent syntax.</returns>
-        public static IActivityMonitor Info( this IActivityMonitor @this, string format, object arg0, object arg1, object arg2 )
+
+        public static void Info( this IActivityMonitor @this, string format, object arg0, object arg1, object arg2 )
         {
-            if( ShouldLogLine( @this, LogLevel.Info ) ) @this.UnfilteredLog( ActivityMonitor.EmptyTag, LogLevel.Info | LogLevel.IsFiltered, String.Format( format, arg0, arg1, arg2 ), DateTime.UtcNow );
-            return @this;
+            if( ShouldLogLine( @this, LogLevel.Info ) ) @this.UnfilteredLog( ActivityMonitor.EmptyTag, LogLevel.Info | LogLevel.IsFiltered, String.Format( format, arg0, arg1, arg2 ), DateTime.UtcNow, null );
         }
 
         /// <summary>
@@ -281,11 +496,10 @@ namespace CK.Core
         /// <param name="this">This <see cref="IActivityMonitor"/> object.</param>
         /// <param name="format">Text format to log as an info.</param>
         /// <param name="args">Multiple parameters to format.</param>
-        /// <returns>This monitor to enable fluent syntax.</returns>
-        public static IActivityMonitor Info( this IActivityMonitor @this, string format, params object[] args )
+
+        public static void Info( this IActivityMonitor @this, string format, params object[] args )
         {
-            if( ShouldLogLine( @this, LogLevel.Info ) ) @this.UnfilteredLog( ActivityMonitor.EmptyTag, LogLevel.Info | LogLevel.IsFiltered, String.Format( format, args ), DateTime.UtcNow );
-            return @this;
+            if( ShouldLogLine( @this, LogLevel.Info ) ) @this.UnfilteredLog( ActivityMonitor.EmptyTag, LogLevel.Info | LogLevel.IsFiltered, String.Format( format, args ), DateTime.UtcNow, null );
         }
 
         /// <summary>
@@ -293,11 +507,10 @@ namespace CK.Core
         /// </summary>
         /// <param name="this">This <see cref="IActivityMonitor"/> object.</param>
         /// <param name="text">Delegate that returns a string.</param>
-        /// <returns>This monitor to enable fluent syntax.</returns>
-        public static IActivityMonitor Info( this IActivityMonitor @this, Func<string> text )
+
+        public static void Info( this IActivityMonitor @this, Func<string> text )
         {
-            if( ShouldLogLine( @this, LogLevel.Info ) ) @this.UnfilteredLog( ActivityMonitor.EmptyTag, LogLevel.Info | LogLevel.IsFiltered, text(), DateTime.UtcNow );
-            return @this;
+            if( ShouldLogLine( @this, LogLevel.Info ) ) @this.UnfilteredLog( ActivityMonitor.EmptyTag, LogLevel.Info | LogLevel.IsFiltered, text(), DateTime.UtcNow, null );
         }
 
         /// <summary>
@@ -307,11 +520,10 @@ namespace CK.Core
         /// <param name="this">This <see cref="IActivityMonitor"/> object.</param>
         /// <param name="param">Parameter of the <paramref name="text"/> delegate.</param>
         /// <param name="text">Delegate that returns a string.</param>
-        /// <returns>This monitor to enable fluent syntax.</returns>
-        public static IActivityMonitor Info<T>( this IActivityMonitor @this, T param, Func<T, string> text )
+
+        public static void Info<T>( this IActivityMonitor @this, T param, Func<T, string> text )
         {
-            if( ShouldLogLine( @this, LogLevel.Info ) ) @this.UnfilteredLog( ActivityMonitor.EmptyTag, LogLevel.Info | LogLevel.IsFiltered, text( param ), DateTime.UtcNow );
-            return @this;
+            if( ShouldLogLine( @this, LogLevel.Info ) ) @this.UnfilteredLog( ActivityMonitor.EmptyTag, LogLevel.Info | LogLevel.IsFiltered, text( param ), DateTime.UtcNow, null );
         }
 
         /// <summary>
@@ -323,11 +535,10 @@ namespace CK.Core
         /// <param name="param1">First parameter for the <paramref name="text"/> delegate.</param>
         /// <param name="param2">Second parameter for the <paramref name="text"/> delegate.</param>
         /// <param name="text">Delegate that returns a string.</param>
-        /// <returns>This monitor to enable fluent syntax.</returns>
-        public static IActivityMonitor Info<T1, T2>( this IActivityMonitor @this, T1 param1, T2 param2, Func<T1, T2, string> text )
+
+        public static void Info<T1, T2>( this IActivityMonitor @this, T1 param1, T2 param2, Func<T1, T2, string> text )
         {
-            if( ShouldLogLine( @this, LogLevel.Info ) ) @this.UnfilteredLog( ActivityMonitor.EmptyTag, LogLevel.Info | LogLevel.IsFiltered, text( param1, param2 ), DateTime.UtcNow );
-            return @this;
+            if( ShouldLogLine( @this, LogLevel.Info ) ) @this.UnfilteredLog( ActivityMonitor.EmptyTag, LogLevel.Info | LogLevel.IsFiltered, text( param1, param2 ), DateTime.UtcNow, null );
         }
         #endregion
 
@@ -338,11 +549,10 @@ namespace CK.Core
         /// </summary>
         /// <param name="this">This <see cref="IActivityMonitor"/> object.</param>
         /// <param name="text">Text to log as a warning.</param>
-        /// <returns>This monitor to enable fluent syntax.</returns>
-        public static IActivityMonitor Warn( this IActivityMonitor @this, string text )
+
+        public static void Warn( this IActivityMonitor @this, string text )
         {
-            if( ShouldLogLine( @this, LogLevel.Warn ) ) @this.UnfilteredLog( ActivityMonitor.EmptyTag, LogLevel.Warn | LogLevel.IsFiltered, text, DateTime.UtcNow );
-            return @this;
+            if( ShouldLogLine( @this, LogLevel.Warn ) ) @this.UnfilteredLog( ActivityMonitor.EmptyTag, LogLevel.Warn | LogLevel.IsFiltered, text, DateTime.UtcNow, null );
         }
 
         /// <summary>
@@ -351,15 +561,14 @@ namespace CK.Core
         /// <param name="this">This <see cref="IActivityMonitor"/> object.</param>
         /// <param name="format">Text format to log as a warning.</param>
         /// <param name="arg0">Parameter to format (placeholder {0}).</param>
-        /// <returns>This monitor to enable fluent syntax.</returns>
-        public static IActivityMonitor Warn( this IActivityMonitor @this, string format, object arg0 )
+
+        public static void Warn( this IActivityMonitor @this, string format, object arg0 )
         {
             if( ShouldLogLine( @this, LogLevel.Warn ) )
             {
                 if( arg0 is Exception ) throw new ArgumentException( R.PossibleWrongOverloadUseWithException, "arg0" );
-                @this.UnfilteredLog( ActivityMonitor.EmptyTag, LogLevel.Warn | LogLevel.IsFiltered, String.Format( format, arg0 ), DateTime.UtcNow );
+                @this.UnfilteredLog( ActivityMonitor.EmptyTag, LogLevel.Warn | LogLevel.IsFiltered, String.Format( format, arg0 ), DateTime.UtcNow, null );
             }
-            return @this;
         }
 
         /// <summary>
@@ -369,11 +578,10 @@ namespace CK.Core
         /// <param name="format">Text format to log as a warning.</param>
         /// <param name="arg0">First parameter to format (placeholder {0}).</param>
         /// <param name="arg1">Second parameter to format (placeholder {1}).</param>
-        /// <returns>This monitor to enable fluent syntax.</returns>
-        public static IActivityMonitor Warn( this IActivityMonitor @this, string format, object arg0, object arg1 )
+
+        public static void Warn( this IActivityMonitor @this, string format, object arg0, object arg1 )
         {
-            if( ShouldLogLine( @this, LogLevel.Warn ) ) @this.UnfilteredLog( ActivityMonitor.EmptyTag, LogLevel.Warn | LogLevel.IsFiltered, String.Format( format, arg0, arg1 ), DateTime.UtcNow );
-            return @this;
+            if( ShouldLogLine( @this, LogLevel.Warn ) ) @this.UnfilteredLog( ActivityMonitor.EmptyTag, LogLevel.Warn | LogLevel.IsFiltered, String.Format( format, arg0, arg1 ), DateTime.UtcNow, null );
         }
 
         /// <summary>
@@ -384,11 +592,10 @@ namespace CK.Core
         /// <param name="arg0">First parameter to format (placeholder {0}).</param>
         /// <param name="arg1">Second parameter to format (placeholder {1}).</param>
         /// <param name="arg2">Third parameter to format (placeholder {2}).</param>
-        /// <returns>This monitor to enable fluent syntax.</returns>
-        public static IActivityMonitor Warn( this IActivityMonitor @this, string format, object arg0, object arg1, object arg2 )
+
+        public static void Warn( this IActivityMonitor @this, string format, object arg0, object arg1, object arg2 )
         {
-            if( ShouldLogLine( @this, LogLevel.Warn ) ) @this.UnfilteredLog( ActivityMonitor.EmptyTag, LogLevel.Warn | LogLevel.IsFiltered, String.Format( format, arg0, arg1, arg2 ), DateTime.UtcNow );
-            return @this;
+            if( ShouldLogLine( @this, LogLevel.Warn ) ) @this.UnfilteredLog( ActivityMonitor.EmptyTag, LogLevel.Warn | LogLevel.IsFiltered, String.Format( format, arg0, arg1, arg2 ), DateTime.UtcNow, null );
         }
 
         /// <summary>
@@ -397,11 +604,10 @@ namespace CK.Core
         /// <param name="this">This <see cref="IActivityMonitor"/> object.</param>
         /// <param name="format">Text format to log as a warning.</param>
         /// <param name="args">Multiple parameters to format.</param>
-        /// <returns>This monitor to enable fluent syntax.</returns>
-        public static IActivityMonitor Warn( this IActivityMonitor @this, string format, params object[] args )
+
+        public static void Warn( this IActivityMonitor @this, string format, params object[] args )
         {
-            if( ShouldLogLine( @this, LogLevel.Warn ) ) @this.UnfilteredLog( ActivityMonitor.EmptyTag, LogLevel.Warn | LogLevel.IsFiltered, String.Format( format, args ), DateTime.UtcNow );
-            return @this;
+            if( ShouldLogLine( @this, LogLevel.Warn ) ) @this.UnfilteredLog( ActivityMonitor.EmptyTag, LogLevel.Warn | LogLevel.IsFiltered, String.Format( format, args ), DateTime.UtcNow, null );
         }
 
         /// <summary>
@@ -409,11 +615,10 @@ namespace CK.Core
         /// </summary>
         /// <param name="this">This <see cref="IActivityMonitor"/> object.</param>
         /// <param name="text">Delegate that returns a string.</param>
-        /// <returns>This monitor to enable fluent syntax.</returns>
-        public static IActivityMonitor Warn( this IActivityMonitor @this, Func<string> text )
+
+        public static void Warn( this IActivityMonitor @this, Func<string> text )
         {
-            if( ShouldLogLine( @this, LogLevel.Warn ) ) @this.UnfilteredLog( ActivityMonitor.EmptyTag, LogLevel.Warn | LogLevel.IsFiltered, text(), DateTime.UtcNow );
-            return @this;
+            if( ShouldLogLine( @this, LogLevel.Warn ) ) @this.UnfilteredLog( ActivityMonitor.EmptyTag, LogLevel.Warn | LogLevel.IsFiltered, text(), DateTime.UtcNow, null );
         }
 
         /// <summary>
@@ -423,11 +628,10 @@ namespace CK.Core
         /// <param name="this">This <see cref="IActivityMonitor"/> object.</param>
         /// <param name="param">Parameter of the <paramref name="text"/> delegate.</param>
         /// <param name="text">Delegate that returns a string.</param>
-        /// <returns>This monitor to enable fluent syntax.</returns>
-        public static IActivityMonitor Warn<T>( this IActivityMonitor @this, T param, Func<T, string> text )
+
+        public static void Warn<T>( this IActivityMonitor @this, T param, Func<T, string> text )
         {
-            if( ShouldLogLine( @this, LogLevel.Warn ) ) @this.UnfilteredLog( ActivityMonitor.EmptyTag, LogLevel.Warn | LogLevel.IsFiltered, text( param ), DateTime.UtcNow );
-            return @this;
+            if( ShouldLogLine( @this, LogLevel.Warn ) ) @this.UnfilteredLog( ActivityMonitor.EmptyTag, LogLevel.Warn | LogLevel.IsFiltered, text( param ), DateTime.UtcNow, null );
         }
 
         /// <summary>
@@ -439,11 +643,10 @@ namespace CK.Core
         /// <param name="param1">First parameter for the <paramref name="text"/> delegate.</param>
         /// <param name="param2">Second parameter for the <paramref name="text"/> delegate.</param>
         /// <param name="text">Delegate that returns a string.</param>
-        /// <returns>This monitor to enable fluent syntax.</returns>
-        public static IActivityMonitor Warn<T1, T2>( this IActivityMonitor @this, T1 param1, T2 param2, Func<T1, T2, string> text )
+
+        public static void Warn<T1, T2>( this IActivityMonitor @this, T1 param1, T2 param2, Func<T1, T2, string> text )
         {
-            if( ShouldLogLine( @this, LogLevel.Warn ) ) @this.UnfilteredLog( ActivityMonitor.EmptyTag, LogLevel.Warn | LogLevel.IsFiltered, text( param1, param2 ), DateTime.UtcNow );
-            return @this;
+            if( ShouldLogLine( @this, LogLevel.Warn ) ) @this.UnfilteredLog( ActivityMonitor.EmptyTag, LogLevel.Warn | LogLevel.IsFiltered, text( param1, param2 ), DateTime.UtcNow, null );
         }
         #endregion
 
@@ -454,11 +657,10 @@ namespace CK.Core
         /// </summary>
         /// <param name="this">This <see cref="IActivityMonitor"/> object.</param>
         /// <param name="text">Text to log as an error.</param>
-        /// <returns>This monitor to enable fluent syntax.</returns>
-        public static IActivityMonitor Error( this IActivityMonitor @this, string text )
+
+        public static void Error( this IActivityMonitor @this, string text )
         {
-            if( ShouldLogLine( @this, LogLevel.Error ) ) @this.UnfilteredLog( ActivityMonitor.EmptyTag, LogLevel.Error | LogLevel.IsFiltered, text, DateTime.UtcNow );
-            return @this;
+            if( ShouldLogLine( @this, LogLevel.Error ) ) @this.UnfilteredLog( ActivityMonitor.EmptyTag, LogLevel.Error | LogLevel.IsFiltered, text, DateTime.UtcNow, null );
         }
 
         /// <summary>
@@ -467,15 +669,14 @@ namespace CK.Core
         /// <param name="this">This <see cref="IActivityMonitor"/> object.</param>
         /// <param name="format">Text format to log as an error.</param>
         /// <param name="arg0">Parameter to format (placeholder {0}).</param>
-        /// <returns>This monitor to enable fluent syntax.</returns>
-        public static IActivityMonitor Error( this IActivityMonitor @this, string format, object arg0 )
+
+        public static void Error( this IActivityMonitor @this, string format, object arg0 )
         {
             if( ShouldLogLine( @this, LogLevel.Error ) )
             {
                 if( arg0 is Exception ) throw new ArgumentException( R.PossibleWrongOverloadUseWithException, "arg0" );
-                @this.UnfilteredLog( ActivityMonitor.EmptyTag, LogLevel.Error | LogLevel.IsFiltered, String.Format( format, arg0 ), DateTime.UtcNow );
+                @this.UnfilteredLog( ActivityMonitor.EmptyTag, LogLevel.Error | LogLevel.IsFiltered, String.Format( format, arg0 ), DateTime.UtcNow, null );
             }
-            return @this;
         }
 
         /// <summary>
@@ -485,11 +686,10 @@ namespace CK.Core
         /// <param name="format">Text format to log as an error.</param>
         /// <param name="arg0">First parameter to format (placeholder {0}).</param>
         /// <param name="arg1">Second parameter to format (placeholder {1}).</param>
-        /// <returns>This monitor to enable fluent syntax.</returns>
-        public static IActivityMonitor Error( this IActivityMonitor @this, string format, object arg0, object arg1 )
+
+        public static void Error( this IActivityMonitor @this, string format, object arg0, object arg1 )
         {
-            if( ShouldLogLine( @this, LogLevel.Error ) ) @this.UnfilteredLog( ActivityMonitor.EmptyTag, LogLevel.Error | LogLevel.IsFiltered, String.Format( format, arg0, arg1 ), DateTime.UtcNow );
-            return @this;
+            if( ShouldLogLine( @this, LogLevel.Error ) ) @this.UnfilteredLog( ActivityMonitor.EmptyTag, LogLevel.Error | LogLevel.IsFiltered, String.Format( format, arg0, arg1 ), DateTime.UtcNow, null );
         }
 
         /// <summary>
@@ -500,11 +700,10 @@ namespace CK.Core
         /// <param name="arg0">First parameter to format (placeholder {0}).</param>
         /// <param name="arg1">Second parameter to format (placeholder {1}).</param>
         /// <param name="arg2">Third parameter to format (placeholder {2}).</param>
-        /// <returns>This monitor to enable fluent syntax.</returns>
-        public static IActivityMonitor Error( this IActivityMonitor @this, string format, object arg0, object arg1, object arg2 )
+
+        public static void Error( this IActivityMonitor @this, string format, object arg0, object arg1, object arg2 )
         {
-            if( ShouldLogLine( @this, LogLevel.Error ) ) @this.UnfilteredLog( ActivityMonitor.EmptyTag, LogLevel.Error | LogLevel.IsFiltered, String.Format( format, arg0, arg1, arg2 ), DateTime.UtcNow );
-            return @this;
+            if( ShouldLogLine( @this, LogLevel.Error ) ) @this.UnfilteredLog( ActivityMonitor.EmptyTag, LogLevel.Error | LogLevel.IsFiltered, String.Format( format, arg0, arg1, arg2 ), DateTime.UtcNow, null );
         }
 
         /// <summary>
@@ -513,11 +712,10 @@ namespace CK.Core
         /// <param name="this">This <see cref="IActivityMonitor"/> object.</param>
         /// <param name="format">Text format to log as an error.</param>
         /// <param name="args">Multiple parameters to format.</param>
-        /// <returns>This monitor to enable fluent syntax.</returns>
-        public static IActivityMonitor Error( this IActivityMonitor @this, string format, params object[] args )
+
+        public static void Error( this IActivityMonitor @this, string format, params object[] args )
         {
-            if( ShouldLogLine( @this, LogLevel.Error ) ) @this.UnfilteredLog( ActivityMonitor.EmptyTag, LogLevel.Error | LogLevel.IsFiltered, String.Format( format, args ), DateTime.UtcNow );
-            return @this;
+            if( ShouldLogLine( @this, LogLevel.Error ) ) @this.UnfilteredLog( ActivityMonitor.EmptyTag, LogLevel.Error | LogLevel.IsFiltered, String.Format( format, args ), DateTime.UtcNow, null );
         }
 
         /// <summary>
@@ -525,11 +723,10 @@ namespace CK.Core
         /// </summary>
         /// <param name="this">This <see cref="IActivityMonitor"/> object.</param>
         /// <param name="text">Delegate that returns a string.</param>
-        /// <returns>This monitor to enable fluent syntax.</returns>
-        public static IActivityMonitor Error( this IActivityMonitor @this, Func<string> text )
+
+        public static void Error( this IActivityMonitor @this, Func<string> text )
         {
-            if( ShouldLogLine( @this, LogLevel.Error ) ) @this.UnfilteredLog( ActivityMonitor.EmptyTag, LogLevel.Error | LogLevel.IsFiltered, text(), DateTime.UtcNow );
-            return @this;
+            if( ShouldLogLine( @this, LogLevel.Error ) ) @this.UnfilteredLog( ActivityMonitor.EmptyTag, LogLevel.Error | LogLevel.IsFiltered, text(), DateTime.UtcNow, null );
         }
 
         /// <summary>
@@ -539,11 +736,10 @@ namespace CK.Core
         /// <param name="this">This <see cref="IActivityMonitor"/> object.</param>
         /// <param name="param">Parameter of the <paramref name="text"/> delegate.</param>
         /// <param name="text">Delegate that returns a string.</param>
-        /// <returns>This monitor to enable fluent syntax.</returns>
-        public static IActivityMonitor Error<T>( this IActivityMonitor @this, T param, Func<T, string> text )
+
+        public static void Error<T>( this IActivityMonitor @this, T param, Func<T, string> text )
         {
-            if( ShouldLogLine( @this, LogLevel.Error ) ) @this.UnfilteredLog( ActivityMonitor.EmptyTag, LogLevel.Error | LogLevel.IsFiltered, text( param ), DateTime.UtcNow );
-            return @this;
+            if( ShouldLogLine( @this, LogLevel.Error ) ) @this.UnfilteredLog( ActivityMonitor.EmptyTag, LogLevel.Error | LogLevel.IsFiltered, text( param ), DateTime.UtcNow, null );
         }
 
         /// <summary>
@@ -555,11 +751,10 @@ namespace CK.Core
         /// <param name="param1">First parameter for the <paramref name="text"/> delegate.</param>
         /// <param name="param2">Second parameter for the <paramref name="text"/> delegate.</param>
         /// <param name="text">Delegate that returns a string.</param>
-        /// <returns>This monitor to enable fluent syntax.</returns>
-        public static IActivityMonitor Error<T1, T2>( this IActivityMonitor @this, T1 param1, T2 param2, Func<T1, T2, string> text )
+
+        public static void Error<T1, T2>( this IActivityMonitor @this, T1 param1, T2 param2, Func<T1, T2, string> text )
         {
-            if( ShouldLogLine( @this, LogLevel.Error ) ) @this.UnfilteredLog( ActivityMonitor.EmptyTag, LogLevel.Error | LogLevel.IsFiltered, text( param1, param2 ), DateTime.UtcNow );
-            return @this;
+            if( ShouldLogLine( @this, LogLevel.Error ) ) @this.UnfilteredLog( ActivityMonitor.EmptyTag, LogLevel.Error | LogLevel.IsFiltered, text( param1, param2 ), DateTime.UtcNow, null );
         }
         #endregion
 
@@ -570,11 +765,10 @@ namespace CK.Core
         /// </summary>
         /// <param name="this">This <see cref="IActivityMonitor"/> object.</param>
         /// <param name="text">Text to log as a fatal error.</param>
-        /// <returns>This monitor to enable fluent syntax.</returns>
-        public static IActivityMonitor Fatal( this IActivityMonitor @this, string text )
+
+        public static void Fatal( this IActivityMonitor @this, string text )
         {
-            if( ShouldLogLine( @this, LogLevel.Fatal ) ) @this.UnfilteredLog( ActivityMonitor.EmptyTag, LogLevel.Fatal | LogLevel.IsFiltered, text, DateTime.UtcNow );
-            return @this;
+            if( ShouldLogLine( @this, LogLevel.Fatal ) ) @this.UnfilteredLog( ActivityMonitor.EmptyTag, LogLevel.Fatal | LogLevel.IsFiltered, text, DateTime.UtcNow, null );
         }
 
         /// <summary>
@@ -583,15 +777,14 @@ namespace CK.Core
         /// <param name="this">This <see cref="IActivityMonitor"/> object.</param>
         /// <param name="format">Text format to log as a fatal error.</param>
         /// <param name="arg0">Parameter to format (placeholder {0}).</param>
-        /// <returns>This monitor to enable fluent syntax.</returns>
-        public static IActivityMonitor Fatal( this IActivityMonitor @this, string format, object arg0 )
+
+        public static void Fatal( this IActivityMonitor @this, string format, object arg0 )
         {
             if( ShouldLogLine( @this, LogLevel.Fatal ) )
             {
                 if( arg0 is Exception ) throw new ArgumentException( R.PossibleWrongOverloadUseWithException, "arg0" );
-                @this.UnfilteredLog( ActivityMonitor.EmptyTag, LogLevel.Fatal | LogLevel.IsFiltered, String.Format( format, arg0 ), DateTime.UtcNow );
+                @this.UnfilteredLog( ActivityMonitor.EmptyTag, LogLevel.Fatal | LogLevel.IsFiltered, String.Format( format, arg0 ), DateTime.UtcNow, null );
             }
-            return @this;
         }
 
         /// <summary>
@@ -601,11 +794,10 @@ namespace CK.Core
         /// <param name="format">Text format to log as a fatal error.</param>
         /// <param name="arg0">First parameter to format (placeholder {0}).</param>
         /// <param name="arg1">Second parameter to format (placeholder {1}).</param>
-        /// <returns>This monitor to enable fluent syntax.</returns>
-        public static IActivityMonitor Fatal( this IActivityMonitor @this, string format, object arg0, object arg1 )
+
+        public static void Fatal( this IActivityMonitor @this, string format, object arg0, object arg1 )
         {
-            if( ShouldLogLine( @this, LogLevel.Fatal ) ) @this.UnfilteredLog( ActivityMonitor.EmptyTag, LogLevel.Fatal | LogLevel.IsFiltered, String.Format( format, arg0, arg1 ), DateTime.UtcNow );
-            return @this;
+            if( ShouldLogLine( @this, LogLevel.Fatal ) ) @this.UnfilteredLog( ActivityMonitor.EmptyTag, LogLevel.Fatal | LogLevel.IsFiltered, String.Format( format, arg0, arg1 ), DateTime.UtcNow, null );
         }
 
         /// <summary>
@@ -616,11 +808,10 @@ namespace CK.Core
         /// <param name="arg0">First parameter to format (placeholder {0}).</param>
         /// <param name="arg1">Second parameter to format (placeholder {1}).</param>
         /// <param name="arg2">Third parameter to format (placeholder {2}).</param>
-        /// <returns>This monitor to enable fluent syntax.</returns>
-        public static IActivityMonitor Fatal( this IActivityMonitor @this, string format, object arg0, object arg1, object arg2 )
+
+        public static void Fatal( this IActivityMonitor @this, string format, object arg0, object arg1, object arg2 )
         {
-            if( ShouldLogLine( @this, LogLevel.Fatal ) ) @this.UnfilteredLog( ActivityMonitor.EmptyTag, LogLevel.Fatal | LogLevel.IsFiltered, String.Format( format, arg0, arg1, arg2 ), DateTime.UtcNow );
-            return @this;
+            if( ShouldLogLine( @this, LogLevel.Fatal ) ) @this.UnfilteredLog( ActivityMonitor.EmptyTag, LogLevel.Fatal | LogLevel.IsFiltered, String.Format( format, arg0, arg1, arg2 ), DateTime.UtcNow, null );
         }
 
         /// <summary>
@@ -629,11 +820,10 @@ namespace CK.Core
         /// <param name="this">This <see cref="IActivityMonitor"/> object.</param>
         /// <param name="format">Text format to log as a fatal error.</param>
         /// <param name="args">Multiple parameters to format.</param>
-        /// <returns>This monitor to enable fluent syntax.</returns>
-        public static IActivityMonitor Fatal( this IActivityMonitor @this, string format, params object[] args )
+
+        public static void Fatal( this IActivityMonitor @this, string format, params object[] args )
         {
-            if( ShouldLogLine( @this, LogLevel.Fatal ) ) @this.UnfilteredLog( ActivityMonitor.EmptyTag, LogLevel.Fatal | LogLevel.IsFiltered, String.Format( format, args ), DateTime.UtcNow );
-            return @this;
+            if( ShouldLogLine( @this, LogLevel.Fatal ) ) @this.UnfilteredLog( ActivityMonitor.EmptyTag, LogLevel.Fatal | LogLevel.IsFiltered, String.Format( format, args ), DateTime.UtcNow, null );
         }
 
         /// <summary>
@@ -641,11 +831,10 @@ namespace CK.Core
         /// </summary>
         /// <param name="this">This <see cref="IActivityMonitor"/> object.</param>
         /// <param name="text">Delegate that returns a string.</param>
-        /// <returns>This monitor to enable fluent syntax.</returns>
-        public static IActivityMonitor Fatal( this IActivityMonitor @this, Func<string> text )
+
+        public static void Fatal( this IActivityMonitor @this, Func<string> text )
         {
-            if( ShouldLogLine( @this, LogLevel.Fatal ) ) @this.UnfilteredLog( ActivityMonitor.EmptyTag, LogLevel.Fatal | LogLevel.IsFiltered, text(), DateTime.UtcNow );
-            return @this;
+            if( ShouldLogLine( @this, LogLevel.Fatal ) ) @this.UnfilteredLog( ActivityMonitor.EmptyTag, LogLevel.Fatal | LogLevel.IsFiltered, text(), DateTime.UtcNow, null );
         }
 
         /// <summary>
@@ -655,10 +844,9 @@ namespace CK.Core
         /// <param name="this">This <see cref="IActivityMonitor"/> object.</param>
         /// <param name="param">Parameter of the <paramref name="text"/> delegate.</param>
         /// <param name="text">Delegate that returns a string.</param>
-        /// <returns>This monitor to enable fluent syntax.</returns>
         public static IActivityMonitor Fatal<T>( this IActivityMonitor @this, T param, Func<T, string> text )
         {
-            if( ShouldLogLine( @this, LogLevel.Fatal ) ) @this.UnfilteredLog( ActivityMonitor.EmptyTag, LogLevel.Fatal | LogLevel.IsFiltered, text( param ), DateTime.UtcNow );
+            if( ShouldLogLine( @this, LogLevel.Fatal ) ) @this.UnfilteredLog( ActivityMonitor.EmptyTag, LogLevel.Fatal | LogLevel.IsFiltered, text( param ), DateTime.UtcNow, null );
             return @this;
         }
 
@@ -671,11 +859,9 @@ namespace CK.Core
         /// <param name="param1">First parameter for the <paramref name="text"/> delegate.</param>
         /// <param name="param2">Second parameter for the <paramref name="text"/> delegate.</param>
         /// <param name="text">Delegate that returns a string.</param>
-        /// <returns>This monitor to enable fluent syntax.</returns>
-        public static IActivityMonitor Fatal<T1, T2>( this IActivityMonitor @this, T1 param1, T2 param2, Func<T1, T2, string> text )
+        public static void Fatal<T1, T2>( this IActivityMonitor @this, T1 param1, T2 param2, Func<T1, T2, string> text )
         {
-            if( ShouldLogLine( @this, LogLevel.Fatal ) ) @this.UnfilteredLog( ActivityMonitor.EmptyTag, LogLevel.Fatal | LogLevel.IsFiltered, text( param1, param2 ), DateTime.UtcNow );
-            return @this;
+            if( ShouldLogLine( @this, LogLevel.Fatal ) ) @this.UnfilteredLog( ActivityMonitor.EmptyTag, LogLevel.Fatal | LogLevel.IsFiltered, text( param1, param2 ), DateTime.UtcNow, null );
         }
         #endregion
 
@@ -690,11 +876,10 @@ namespace CK.Core
         /// </summary>
         /// <param name="this">This <see cref="IActivityMonitor"/> object.</param>
         /// <param name="ex">The exception to log.</param>
-        /// <returns>This monitor to enable fluent syntax.</returns>
-        public static IActivityMonitor Trace( this IActivityMonitor @this, Exception ex )
+
+        public static void Trace( this IActivityMonitor @this, Exception ex )
         {
             if( ShouldLogLine( @this, LogLevel.Trace ) ) @this.UnfilteredLog( ActivityMonitor.EmptyTag, LogLevel.Trace | LogLevel.IsFiltered, null, DateTime.UtcNow, ex );
-            return @this;
         }
 
         /// <summary>
@@ -703,11 +888,10 @@ namespace CK.Core
         /// <param name="this">This <see cref="IActivityMonitor"/> object.</param>
         /// <param name="ex">The exception to log.</param>
         /// <param name="text">Text to log as a trace.</param>
-        /// <returns>This monitor to enable fluent syntax.</returns>
-        public static IActivityMonitor Trace( this IActivityMonitor @this, Exception ex, string text )
+
+        public static void Trace( this IActivityMonitor @this, Exception ex, string text )
         {
             if( ShouldLogLine( @this, LogLevel.Trace ) ) @this.UnfilteredLog( ActivityMonitor.EmptyTag, LogLevel.Trace | LogLevel.IsFiltered, text, DateTime.UtcNow, ex );
-            return @this;
         }
 
         /// <summary>
@@ -717,11 +901,10 @@ namespace CK.Core
         /// <param name="ex">The exception to log.</param>
         /// <param name="format">Text format to log as a trace.</param>
         /// <param name="arg0">Parameter to format (placeholder {0}).</param>
-        /// <returns>This monitor to enable fluent syntax.</returns>
-        public static IActivityMonitor Trace( this IActivityMonitor @this, Exception ex, string format, object arg0 )
+
+        public static void Trace( this IActivityMonitor @this, Exception ex, string format, object arg0 )
         {
             if( ShouldLogLine( @this, LogLevel.Trace ) ) @this.UnfilteredLog( ActivityMonitor.EmptyTag, LogLevel.Trace | LogLevel.IsFiltered, String.Format( format, arg0 ), DateTime.UtcNow, ex );
-            return @this;
         }
 
         /// <summary>
@@ -732,11 +915,10 @@ namespace CK.Core
         /// <param name="format">Text format to log as a trace.</param>
         /// <param name="arg0">First parameter to format (placeholder {0}).</param>
         /// <param name="arg1">Second parameter to format (placeholder {1}).</param>
-        /// <returns>This monitor to enable fluent syntax.</returns>
-        public static IActivityMonitor Trace( this IActivityMonitor @this, Exception ex, string format, object arg0, object arg1 )
+
+        public static void Trace( this IActivityMonitor @this, Exception ex, string format, object arg0, object arg1 )
         {
             if( ShouldLogLine( @this, LogLevel.Trace ) ) @this.UnfilteredLog( ActivityMonitor.EmptyTag, LogLevel.Trace | LogLevel.IsFiltered, String.Format( format, arg0, arg1 ), DateTime.UtcNow, ex );
-            return @this;
         }
 
         /// <summary>
@@ -748,11 +930,10 @@ namespace CK.Core
         /// <param name="arg0">First parameter to format (placeholder {0}).</param>
         /// <param name="arg1">Second parameter to format (placeholder {1}).</param>
         /// <param name="arg2">Third parameter to format (placeholder {2}).</param>
-        /// <returns>This monitor to enable fluent syntax.</returns>
-        public static IActivityMonitor Trace( this IActivityMonitor @this, Exception ex, string format, object arg0, object arg1, object arg2 )
+
+        public static void Trace( this IActivityMonitor @this, Exception ex, string format, object arg0, object arg1, object arg2 )
         {
             if( ShouldLogLine( @this, LogLevel.Trace ) ) @this.UnfilteredLog( ActivityMonitor.EmptyTag, LogLevel.Trace | LogLevel.IsFiltered, String.Format( format, arg0, arg1, arg2 ), DateTime.UtcNow, ex );
-            return @this;
         }
 
         /// <summary>
@@ -762,11 +943,10 @@ namespace CK.Core
         /// <param name="ex">The exception to log.</param>
         /// <param name="format">Text format to log as a trace.</param>
         /// <param name="args">Multiple parameters to format.</param>
-        /// <returns>This monitor to enable fluent syntax.</returns>
-        public static IActivityMonitor Trace( this IActivityMonitor @this, Exception ex, string format, params object[] args )
+
+        public static void Trace( this IActivityMonitor @this, Exception ex, string format, params object[] args )
         {
             if( ShouldLogLine( @this, LogLevel.Trace ) ) @this.UnfilteredLog( ActivityMonitor.EmptyTag, LogLevel.Trace | LogLevel.IsFiltered, String.Format( format, args ), DateTime.UtcNow, ex );
-            return @this;
         }
 
         #endregion
@@ -778,11 +958,10 @@ namespace CK.Core
         /// </summary>
         /// <param name="this">This <see cref="IActivityMonitor"/> object.</param>
         /// <param name="ex">The exception to log.</param>
-        /// <returns>This monitor to enable fluent syntax.</returns>
-        public static IActivityMonitor Info( this IActivityMonitor @this, Exception ex )
+
+        public static void Info( this IActivityMonitor @this, Exception ex )
         {
             if( ShouldLogLine( @this, LogLevel.Info ) ) @this.UnfilteredLog( ActivityMonitor.EmptyTag, LogLevel.Info | LogLevel.IsFiltered, null, DateTime.UtcNow, ex );
-            return @this;
         }
 
         /// <summary>
@@ -791,11 +970,10 @@ namespace CK.Core
         /// <param name="this">This <see cref="IActivityMonitor"/> object.</param>
         /// <param name="ex">The exception to log.</param>
         /// <param name="text">Text to log as an information.</param>
-        /// <returns>This monitor to enable fluent syntax.</returns>
-        public static IActivityMonitor Info( this IActivityMonitor @this, Exception ex, string text )
+
+        public static void Info( this IActivityMonitor @this, Exception ex, string text )
         {
             if( ShouldLogLine( @this, LogLevel.Info ) ) @this.UnfilteredLog( ActivityMonitor.EmptyTag, LogLevel.Info | LogLevel.IsFiltered, text, DateTime.UtcNow, ex );
-            return @this;
         }
 
         /// <summary>
@@ -805,11 +983,10 @@ namespace CK.Core
         /// <param name="ex">The exception to log.</param>
         /// <param name="format">Text format to log as an information.</param>
         /// <param name="arg0">Parameter to format (placeholder {0}).</param>
-        /// <returns>This monitor to enable fluent syntax.</returns>
-        public static IActivityMonitor Info( this IActivityMonitor @this, Exception ex, string format, object arg0 )
+
+        public static void Info( this IActivityMonitor @this, Exception ex, string format, object arg0 )
         {
             if( ShouldLogLine( @this, LogLevel.Info ) ) @this.UnfilteredLog( ActivityMonitor.EmptyTag, LogLevel.Info | LogLevel.IsFiltered, String.Format( format, arg0 ), DateTime.UtcNow, ex );
-            return @this;
         }
 
         /// <summary>
@@ -820,11 +997,10 @@ namespace CK.Core
         /// <param name="format">Text format to log as an information.</param>
         /// <param name="arg0">First parameter to format (placeholder {0}).</param>
         /// <param name="arg1">Second parameter to format (placeholder {1}).</param>
-        /// <returns>This monitor to enable fluent syntax.</returns>
-        public static IActivityMonitor Info( this IActivityMonitor @this, Exception ex, string format, object arg0, object arg1 )
+
+        public static void Info( this IActivityMonitor @this, Exception ex, string format, object arg0, object arg1 )
         {
             if( ShouldLogLine( @this, LogLevel.Info ) ) @this.UnfilteredLog( ActivityMonitor.EmptyTag, LogLevel.Info | LogLevel.IsFiltered, String.Format( format, arg0, arg1 ), DateTime.UtcNow, ex );
-            return @this;
         }
 
         /// <summary>
@@ -836,11 +1012,10 @@ namespace CK.Core
         /// <param name="arg0">First parameter to format (placeholder {0}).</param>
         /// <param name="arg1">Second parameter to format (placeholder {1}).</param>
         /// <param name="arg2">Third parameter to format (placeholder {2}).</param>
-        /// <returns>This monitor to enable fluent syntax.</returns>
-        public static IActivityMonitor Info( this IActivityMonitor @this, Exception ex, string format, object arg0, object arg1, object arg2 )
+
+        public static void Info( this IActivityMonitor @this, Exception ex, string format, object arg0, object arg1, object arg2 )
         {
             if( ShouldLogLine( @this, LogLevel.Info ) ) @this.UnfilteredLog( ActivityMonitor.EmptyTag, LogLevel.Info | LogLevel.IsFiltered, String.Format( format, arg0, arg1, arg2 ), DateTime.UtcNow, ex );
-            return @this;
         }
 
         /// <summary>
@@ -850,11 +1025,10 @@ namespace CK.Core
         /// <param name="ex">The exception to log.</param>
         /// <param name="format">Text format to log as an information.</param>
         /// <param name="args">Multiple parameters to format.</param>
-        /// <returns>This monitor to enable fluent syntax.</returns>
-        public static IActivityMonitor Info( this IActivityMonitor @this, Exception ex, string format, params object[] args )
+
+        public static void Info( this IActivityMonitor @this, Exception ex, string format, params object[] args )
         {
             if( ShouldLogLine( @this, LogLevel.Info ) ) @this.UnfilteredLog( ActivityMonitor.EmptyTag, LogLevel.Info | LogLevel.IsFiltered, String.Format( format, args ), DateTime.UtcNow, ex );
-            return @this;
         }
 
         #endregion
@@ -866,11 +1040,10 @@ namespace CK.Core
         /// </summary>
         /// <param name="this">This <see cref="IActivityMonitor"/> object.</param>
         /// <param name="ex">The exception to log.</param>
-        /// <returns>This monitor to enable fluent syntax.</returns>
-        public static IActivityMonitor Warn( this IActivityMonitor @this, Exception ex )
+
+        public static void Warn( this IActivityMonitor @this, Exception ex )
         {
             if( ShouldLogLine( @this, LogLevel.Warn ) ) @this.UnfilteredLog( ActivityMonitor.EmptyTag, LogLevel.Warn | LogLevel.IsFiltered, null, DateTime.UtcNow, ex );
-            return @this;
         }
 
         /// <summary>
@@ -879,11 +1052,10 @@ namespace CK.Core
         /// <param name="this">This <see cref="IActivityMonitor"/> object.</param>
         /// <param name="ex">The exception to log.</param>
         /// <param name="text">Text to log as a warning.</param>
-        /// <returns>This monitor to enable fluent syntax.</returns>
-        public static IActivityMonitor Warn( this IActivityMonitor @this, Exception ex, string text )
+
+        public static void Warn( this IActivityMonitor @this, Exception ex, string text )
         {
             if( ShouldLogLine( @this, LogLevel.Warn ) ) @this.UnfilteredLog( ActivityMonitor.EmptyTag, LogLevel.Warn | LogLevel.IsFiltered, text, DateTime.UtcNow, ex );
-            return @this;
         }
 
         /// <summary>
@@ -893,11 +1065,10 @@ namespace CK.Core
         /// <param name="ex">The exception to log.</param>
         /// <param name="format">Text format to log as a warning.</param>
         /// <param name="arg0">Parameter to format (placeholder {0}).</param>
-        /// <returns>This monitor to enable fluent syntax.</returns>
-        public static IActivityMonitor Warn( this IActivityMonitor @this, Exception ex, string format, object arg0 )
+
+        public static void Warn( this IActivityMonitor @this, Exception ex, string format, object arg0 )
         {
             if( ShouldLogLine( @this, LogLevel.Warn ) ) @this.UnfilteredLog( ActivityMonitor.EmptyTag, LogLevel.Warn | LogLevel.IsFiltered, String.Format( format, arg0 ), DateTime.UtcNow, ex );
-            return @this;
         }
 
         /// <summary>
@@ -908,11 +1079,10 @@ namespace CK.Core
         /// <param name="format">Text format to log as a warning.</param>
         /// <param name="arg0">First parameter to format (placeholder {0}).</param>
         /// <param name="arg1">Second parameter to format (placeholder {1}).</param>
-        /// <returns>This monitor to enable fluent syntax.</returns>
-        public static IActivityMonitor Warn( this IActivityMonitor @this, Exception ex, string format, object arg0, object arg1 )
+
+        public static void Warn( this IActivityMonitor @this, Exception ex, string format, object arg0, object arg1 )
         {
             if( ShouldLogLine( @this, LogLevel.Warn ) ) @this.UnfilteredLog( ActivityMonitor.EmptyTag, LogLevel.Warn | LogLevel.IsFiltered, String.Format( format, arg0, arg1 ), DateTime.UtcNow, ex );
-            return @this;
         }
 
         /// <summary>
@@ -924,11 +1094,10 @@ namespace CK.Core
         /// <param name="arg0">First parameter to format (placeholder {0}).</param>
         /// <param name="arg1">Second parameter to format (placeholder {1}).</param>
         /// <param name="arg2">Third parameter to format (placeholder {2}).</param>
-        /// <returns>This monitor to enable fluent syntax.</returns>
-        public static IActivityMonitor Warn( this IActivityMonitor @this, Exception ex, string format, object arg0, object arg1, object arg2 )
+
+        public static void Warn( this IActivityMonitor @this, Exception ex, string format, object arg0, object arg1, object arg2 )
         {
             if( ShouldLogLine( @this, LogLevel.Warn ) ) @this.UnfilteredLog( ActivityMonitor.EmptyTag, LogLevel.Warn | LogLevel.IsFiltered, String.Format( format, arg0, arg1, arg2 ), DateTime.UtcNow, ex );
-            return @this;
         }
 
         /// <summary>
@@ -938,11 +1107,10 @@ namespace CK.Core
         /// <param name="ex">The exception to log.</param>
         /// <param name="format">Text format to log as a warning.</param>
         /// <param name="args">Multiple parameters to format.</param>
-        /// <returns>This monitor to enable fluent syntax.</returns>
-        public static IActivityMonitor Warn( this IActivityMonitor @this, Exception ex, string format, params object[] args )
+
+        public static void Warn( this IActivityMonitor @this, Exception ex, string format, params object[] args )
         {
             if( ShouldLogLine( @this, LogLevel.Warn ) ) @this.UnfilteredLog( ActivityMonitor.EmptyTag, LogLevel.Warn | LogLevel.IsFiltered, String.Format( format, args ), DateTime.UtcNow, ex );
-            return @this;
         }
 
         #endregion
@@ -954,11 +1122,10 @@ namespace CK.Core
         /// </summary>
         /// <param name="this">This <see cref="IActivityMonitor"/> object.</param>
         /// <param name="ex">The exception to log.</param>
-        /// <returns>This monitor to enable fluent syntax.</returns>
-        public static IActivityMonitor Error( this IActivityMonitor @this, Exception ex )
+
+        public static void Error( this IActivityMonitor @this, Exception ex )
         {
             if( ShouldLogLine( @this, LogLevel.Error ) ) @this.UnfilteredLog( ActivityMonitor.EmptyTag, LogLevel.Error | LogLevel.IsFiltered, null, DateTime.UtcNow, ex );
-            return @this;
         }
 
         /// <summary>
@@ -967,11 +1134,10 @@ namespace CK.Core
         /// <param name="this">This <see cref="IActivityMonitor"/> object.</param>
         /// <param name="ex">The exception to log.</param>
         /// <param name="text">Text to log as an error.</param>
-        /// <returns>This monitor to enable fluent syntax.</returns>
-        public static IActivityMonitor Error( this IActivityMonitor @this, Exception ex, string text )
+
+        public static void Error( this IActivityMonitor @this, Exception ex, string text )
         {
             if( ShouldLogLine( @this, LogLevel.Error ) ) @this.UnfilteredLog( ActivityMonitor.EmptyTag, LogLevel.Error | LogLevel.IsFiltered, text, DateTime.UtcNow, ex );
-            return @this;
         }
 
         /// <summary>
@@ -981,11 +1147,10 @@ namespace CK.Core
         /// <param name="ex">The exception to log.</param>
         /// <param name="format">Text format to log as an error.</param>
         /// <param name="arg0">Parameter to format (placeholder {0}).</param>
-        /// <returns>This monitor to enable fluent syntax.</returns>
-        public static IActivityMonitor Error( this IActivityMonitor @this, Exception ex, string format, object arg0 )
+
+        public static void Error( this IActivityMonitor @this, Exception ex, string format, object arg0 )
         {
             if( ShouldLogLine( @this, LogLevel.Error ) ) @this.UnfilteredLog( ActivityMonitor.EmptyTag, LogLevel.Error | LogLevel.IsFiltered, String.Format( format, arg0 ), DateTime.UtcNow, ex );
-            return @this;
         }
 
         /// <summary>
@@ -996,11 +1161,10 @@ namespace CK.Core
         /// <param name="format">Text format to log as an error.</param>
         /// <param name="arg0">First parameter to format (placeholder {0}).</param>
         /// <param name="arg1">Second parameter to format (placeholder {1}).</param>
-        /// <returns>This monitor to enable fluent syntax.</returns>
-        public static IActivityMonitor Error( this IActivityMonitor @this, Exception ex, string format, object arg0, object arg1 )
+
+        public static void Error( this IActivityMonitor @this, Exception ex, string format, object arg0, object arg1 )
         {
             if( ShouldLogLine( @this, LogLevel.Error ) ) @this.UnfilteredLog( ActivityMonitor.EmptyTag, LogLevel.Error | LogLevel.IsFiltered, String.Format( format, arg0, arg1 ), DateTime.UtcNow, ex );
-            return @this;
         }
 
         /// <summary>
@@ -1012,11 +1176,10 @@ namespace CK.Core
         /// <param name="arg0">First parameter to format (placeholder {0}).</param>
         /// <param name="arg1">Second parameter to format (placeholder {1}).</param>
         /// <param name="arg2">Third parameter to format (placeholder {2}).</param>
-        /// <returns>This monitor to enable fluent syntax.</returns>
-        public static IActivityMonitor Error( this IActivityMonitor @this, Exception ex, string format, object arg0, object arg1, object arg2 )
+
+        public static void Error( this IActivityMonitor @this, Exception ex, string format, object arg0, object arg1, object arg2 )
         {
             if( ShouldLogLine( @this, LogLevel.Error ) ) @this.UnfilteredLog( ActivityMonitor.EmptyTag, LogLevel.Error | LogLevel.IsFiltered, String.Format( format, arg0, arg1, arg2 ), DateTime.UtcNow, ex );
-            return @this;
         }
 
         /// <summary>
@@ -1026,11 +1189,10 @@ namespace CK.Core
         /// <param name="ex">The exception to log.</param>
         /// <param name="format">Text format to log as an error.</param>
         /// <param name="args">Multiple parameters to format.</param>
-        /// <returns>This monitor to enable fluent syntax.</returns>
-        public static IActivityMonitor Error( this IActivityMonitor @this, Exception ex, string format, params object[] args )
+
+        public static void Error( this IActivityMonitor @this, Exception ex, string format, params object[] args )
         {
             if( ShouldLogLine( @this, LogLevel.Error ) ) @this.UnfilteredLog( ActivityMonitor.EmptyTag, LogLevel.Error | LogLevel.IsFiltered, String.Format( format, args ), DateTime.UtcNow, ex );
-            return @this;
         }
 
         #endregion
@@ -1042,11 +1204,10 @@ namespace CK.Core
         /// </summary>
         /// <param name="this">This <see cref="IActivityMonitor"/> object.</param>
         /// <param name="ex">The exception to log.</param>
-        /// <returns>This monitor to enable fluent syntax.</returns>
-        public static IActivityMonitor Fatal( this IActivityMonitor @this, Exception ex )
+
+        public static void Fatal( this IActivityMonitor @this, Exception ex )
         {
             if( ShouldLogLine( @this, LogLevel.Fatal ) ) @this.UnfilteredLog( ActivityMonitor.EmptyTag, LogLevel.Fatal | LogLevel.IsFiltered, null, DateTime.UtcNow, ex );
-            return @this;
         }
 
         /// <summary>
@@ -1055,11 +1216,10 @@ namespace CK.Core
         /// <param name="this">This <see cref="IActivityMonitor"/> object.</param>
         /// <param name="ex">The exception to log.</param>
         /// <param name="text">Text to log as a fatal error.</param>
-        /// <returns>This monitor to enable fluent syntax.</returns>
-        public static IActivityMonitor Fatal( this IActivityMonitor @this, Exception ex, string text )
+
+        public static void Fatal( this IActivityMonitor @this, Exception ex, string text )
         {
             if( ShouldLogLine( @this, LogLevel.Fatal ) ) @this.UnfilteredLog( ActivityMonitor.EmptyTag, LogLevel.Fatal | LogLevel.IsFiltered, text, DateTime.UtcNow, ex );
-            return @this;
         }
 
         /// <summary>
@@ -1069,11 +1229,10 @@ namespace CK.Core
         /// <param name="ex">The exception to log.</param>
         /// <param name="format">Text format to log as a fatal error.</param>
         /// <param name="arg0">Parameter to format (placeholder {0}).</param>
-        /// <returns>This monitor to enable fluent syntax.</returns>
-        public static IActivityMonitor Fatal( this IActivityMonitor @this, Exception ex, string format, object arg0 )
+
+        public static void Fatal( this IActivityMonitor @this, Exception ex, string format, object arg0 )
         {
             if( ShouldLogLine( @this, LogLevel.Fatal ) ) @this.UnfilteredLog( ActivityMonitor.EmptyTag, LogLevel.Fatal | LogLevel.IsFiltered, String.Format( format, arg0 ), DateTime.UtcNow, ex );
-            return @this;
         }
 
         /// <summary>
@@ -1084,11 +1243,10 @@ namespace CK.Core
         /// <param name="format">Text format to log as a fatal error.</param>
         /// <param name="arg0">First parameter to format (placeholder {0}).</param>
         /// <param name="arg1">Second parameter to format (placeholder {1}).</param>
-        /// <returns>This monitor to enable fluent syntax.</returns>
-        public static IActivityMonitor Fatal( this IActivityMonitor @this, Exception ex, string format, object arg0, object arg1 )
+
+        public static void Fatal( this IActivityMonitor @this, Exception ex, string format, object arg0, object arg1 )
         {
             if( ShouldLogLine( @this, LogLevel.Fatal ) ) @this.UnfilteredLog( ActivityMonitor.EmptyTag, LogLevel.Fatal | LogLevel.IsFiltered, String.Format( format, arg0, arg1 ), DateTime.UtcNow, ex );
-            return @this;
         }
 
         /// <summary>
@@ -1100,11 +1258,10 @@ namespace CK.Core
         /// <param name="arg0">First parameter to format (placeholder {0}).</param>
         /// <param name="arg1">Second parameter to format (placeholder {1}).</param>
         /// <param name="arg2">Third parameter to format (placeholder {2}).</param>
-        /// <returns>This monitor to enable fluent syntax.</returns>
-        public static IActivityMonitor Fatal( this IActivityMonitor @this, Exception ex, string format, object arg0, object arg1, object arg2 )
+
+        public static void Fatal( this IActivityMonitor @this, Exception ex, string format, object arg0, object arg1, object arg2 )
         {
             if( ShouldLogLine( @this, LogLevel.Fatal ) ) @this.UnfilteredLog( ActivityMonitor.EmptyTag, LogLevel.Fatal | LogLevel.IsFiltered, String.Format( format, arg0, arg1, arg2 ), DateTime.UtcNow, ex );
-            return @this;
         }
 
         /// <summary>
@@ -1114,11 +1271,10 @@ namespace CK.Core
         /// <param name="ex">The exception to log.</param>
         /// <param name="format">Text format to log as a fatal error.</param>
         /// <param name="args">Multiple parameters to format.</param>
-        /// <returns>This monitor to enable fluent syntax.</returns>
-        public static IActivityMonitor Fatal( this IActivityMonitor @this, Exception ex, string format, params object[] args )
+
+        public static void Fatal( this IActivityMonitor @this, Exception ex, string format, params object[] args )
         {
             if( ShouldLogLine( @this, LogLevel.Fatal ) ) @this.UnfilteredLog( ActivityMonitor.EmptyTag, LogLevel.Fatal | LogLevel.IsFiltered, String.Format( format, args ), DateTime.UtcNow, ex );
-            return @this;
         }
 
         #endregion
@@ -1135,7 +1291,7 @@ namespace CK.Core
         /// <returns>A disposable object that can be used to close the group.</returns>
         public static IDisposable OpenGroup( this IActivityMonitor @this, LogLevel level, Exception ex )
         {
-            return DoShouldLogGroup( @this, level & LogLevel.Mask ) ?? @this.UnfilteredOpenGroup( ActivityMonitor.EmptyTag, level | LogLevel.IsFiltered, null, null, DateTime.UtcNow, ex );
+            return FilteredGroup( @this, level & LogLevel.Mask ) ?? @this.UnfilteredOpenGroup( ActivityMonitor.EmptyTag, level | LogLevel.IsFiltered, null, null, DateTime.UtcNow, ex );
         }
 
         /// <summary>
@@ -1149,7 +1305,7 @@ namespace CK.Core
         /// <returns>A disposable object that can be used to close the group.</returns>
         public static IDisposable OpenGroup( this IActivityMonitor @this, LogLevel level, Exception ex, string text )
         {
-            return DoShouldLogGroup( @this, level & LogLevel.Mask ) ?? @this.UnfilteredOpenGroup( ActivityMonitor.EmptyTag, level | LogLevel.IsFiltered, null, text, DateTime.UtcNow, ex );
+            return FilteredGroup( @this, level & LogLevel.Mask ) ?? @this.UnfilteredOpenGroup( ActivityMonitor.EmptyTag, level | LogLevel.IsFiltered, null, text, DateTime.UtcNow, ex );
         }
 
         /// <summary>
@@ -1164,7 +1320,7 @@ namespace CK.Core
         /// <returns>A disposable object that can be used to close the group.</returns>
         public static IDisposable OpenGroup( this IActivityMonitor @this, LogLevel level, Exception ex, string format, object arg0 )
         {
-            return DoShouldLogGroup( @this, level & LogLevel.Mask ) ?? @this.UnfilteredOpenGroup( ActivityMonitor.EmptyTag, level | LogLevel.IsFiltered, null, String.Format( format, arg0 ), DateTime.UtcNow, ex );
+            return FilteredGroup( @this, level & LogLevel.Mask ) ?? @this.UnfilteredOpenGroup( ActivityMonitor.EmptyTag, level | LogLevel.IsFiltered, null, String.Format( format, arg0 ), DateTime.UtcNow, ex );
         }
 
         /// <summary>
@@ -1180,7 +1336,7 @@ namespace CK.Core
         /// <returns>A disposable object that can be used to close the group.</returns>
         public static IDisposable OpenGroup( this IActivityMonitor @this, LogLevel level, Exception ex, string format, object arg0, object arg1 )
         {
-            return DoShouldLogGroup( @this, level & LogLevel.Mask ) ?? @this.UnfilteredOpenGroup( ActivityMonitor.EmptyTag, level | LogLevel.IsFiltered, null, String.Format( format, arg0, arg1 ), DateTime.UtcNow, ex );
+            return FilteredGroup( @this, level & LogLevel.Mask ) ?? @this.UnfilteredOpenGroup( ActivityMonitor.EmptyTag, level | LogLevel.IsFiltered, null, String.Format( format, arg0, arg1 ), DateTime.UtcNow, ex );
         }
 
         /// <summary>
@@ -1197,7 +1353,7 @@ namespace CK.Core
         /// <returns>A disposable object that can be used to close the group.</returns>
         public static IDisposable OpenGroup( this IActivityMonitor @this, LogLevel level, Exception ex, string format, object arg0, object arg1, object arg2 )
         {
-            return DoShouldLogGroup( @this, level & LogLevel.Mask ) ?? @this.UnfilteredOpenGroup( ActivityMonitor.EmptyTag, level | LogLevel.IsFiltered, null, String.Format( format, arg0, arg1, arg2 ), DateTime.UtcNow, ex );
+            return FilteredGroup( @this, level & LogLevel.Mask ) ?? @this.UnfilteredOpenGroup( ActivityMonitor.EmptyTag, level | LogLevel.IsFiltered, null, String.Format( format, arg0, arg1, arg2 ), DateTime.UtcNow, ex );
         }
 
         /// <summary>
@@ -1212,7 +1368,7 @@ namespace CK.Core
         /// <returns>A disposable object that can be used to close the group.</returns>
         public static IDisposable OpenGroup( this IActivityMonitor @this, LogLevel level, Exception ex, string format, params object[] arguments )
         {
-            return DoShouldLogGroup( @this, level & LogLevel.Mask ) ?? @this.UnfilteredOpenGroup( ActivityMonitor.EmptyTag, level | LogLevel.IsFiltered, null, String.Format( format, arguments ), DateTime.UtcNow, ex );
+            return FilteredGroup( @this, level & LogLevel.Mask ) ?? @this.UnfilteredOpenGroup( ActivityMonitor.EmptyTag, level | LogLevel.IsFiltered, null, String.Format( format, arguments ), DateTime.UtcNow, ex );
         }
 
         #endregion

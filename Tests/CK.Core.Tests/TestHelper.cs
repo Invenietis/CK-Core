@@ -36,10 +36,7 @@ namespace CK.Core.Tests
     static class TestHelper
     {
         static string _testFolder;
-        static string _copyFolder;
-
         static DirectoryInfo _testFolderDir;
-        static DirectoryInfo _copyFolderDir;
         
         static IActivityMonitor _monitor;
         static ActivityMonitorConsoleClient _console;
@@ -98,23 +95,9 @@ namespace CK.Core.Tests
             }
         }
 
-        public static string CopyFolder
-        {
-            get
-            {
-                if( _copyFolder == null ) InitalizePaths();
-                return _copyFolder;
-            }
-        }
-
         public static DirectoryInfo TestFolderDir
         {
             get { return _testFolderDir ?? (_testFolderDir = new DirectoryInfo( TestFolder )); }
-        }
-
-        public static DirectoryInfo CopyFolderDir
-        {
-            get { return _copyFolderDir ?? (_copyFolderDir = new DirectoryInfo( CopyFolder )); }
         }
 
         public static void CleanupTestDir()
@@ -123,34 +106,28 @@ namespace CK.Core.Tests
             TestFolderDir.Create();
         }
 
-        public static void CleanupCopyDir()
-        {
-            if( CopyFolderDir.Exists ) CopyFolderDir.Delete( true );
-            CopyFolderDir.Create();
-        }
-
         private static void InitalizePaths()
         {
-            string p = System.Reflection.Assembly.GetExecutingAssembly().CodeBase;
-            // Code base is like "file:///C:/Documents and Settings/Olivier Spinelli/Mes documents/Dev/CK/Output/Debug/App/CVKTests.DLL"
-            StringAssert.StartsWith( "file:///", p, "Code base must start with file:/// protocol." );
-
-            p = p.Substring( 8 ).Replace( '/', System.IO.Path.DirectorySeparatorChar );
-
-            // => Debug/
+            string p = new Uri( System.Reflection.Assembly.GetExecutingAssembly().CodeBase ).LocalPath;
+            // => CK.Core.Tests/bin/Debug/net45
             p = Path.GetDirectoryName( p );
-
-            // ==> Debug/SubTestDir
-            _testFolder = Path.Combine( p, "SubTestDir" );
-            if( Directory.Exists( _testFolder ) ) Directory.Delete( _testFolder, true );
+            // => CK.Core.Tests/bin/Debug/
+            p = Path.GetDirectoryName( p );
+            // => CK.Core.Tests/bin/
+            p = Path.GetDirectoryName( p );
+            // => CK.Core.Tests/
+            p = Path.GetDirectoryName( p );
+            // ==> CK.Core.Tests/TestFolder
+            _testFolder = Path.Combine( p, "TestDir" );
+            if( Directory.Exists( _testFolder ) )
+            {
+                try
+                {
+                    Directory.Delete( _testFolder, true );
+                }
+                catch { }
+            }
             Directory.CreateDirectory( _testFolder );
-
-            // ==> Debug/SubCopyTestDir
-            _copyFolder = Path.Combine( p, "SubCopyTestDir" );
-            if( Directory.Exists( _copyFolder ) ) Directory.Delete( _copyFolder, true );
-            Directory.CreateDirectory( _copyFolder );
-
         }
-
     }
 }

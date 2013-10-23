@@ -23,6 +23,7 @@
 
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.IO;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -51,7 +52,7 @@ namespace CK.Core
             string[] m = multiFileMask.Split( ';' );
             if( m.Length > 1 )
             {
-                ArrayList l = new ArrayList();
+                List<string> l = new List<string>();
                 foreach( string oneMask in m )
                 {
                     if( oneMask.Length > 0 )
@@ -66,7 +67,7 @@ namespace CK.Core
                         }
                     }
                 }
-                return (string[])l.ToArray( typeof( string ) );
+                return l.ToArray();
             }
             if( m.Length > 0 && m[0] != "*" && m[0] != "*.*" )
                 return Directory.GetFiles( path, m[0] );
@@ -179,23 +180,24 @@ namespace CK.Core
         /// Waits for a file to be writable. Do not open the file.
         /// Waits approximately the number of seconds given before leaving and returning false.
         /// </summary>
-        /// <param name="file">The file to write to.</param>
+        /// <param name="path">The path of the file to write to.</param>
         /// <param name="nbMaxSecond">Maximum number of seconds to wait before returning false.</param>
         /// <returns>True if the file has been correctly opened in write mode.</returns>
-        static public bool WaitForWriteAcccess( FileInfo file, int nbMaxSecond )
+        static public bool WaitForWriteAcccess( string path, int nbMaxSecond )
         {
+            if( path == null ) throw new ArgumentNullException( "path" );
             for( ; ; )
             {
-                System.Threading.Thread.Sleep( 100 );
-                if( !file.Exists ) return true;
+                System.Threading.Thread.Sleep( 10 );
+                if( !File.Exists( path ) ) return true;
                 try
                 {
-                    using( Stream s = file.OpenWrite() ) { return true; }
+                    using( Stream s = File.OpenWrite( path ) ) { return true; }
                 }
                 catch
                 {
                     if( --nbMaxSecond < 0 ) return false;
-                    System.Threading.Thread.Sleep( 900 );
+                    System.Threading.Thread.Sleep( 990 );
                 }
             }
         }

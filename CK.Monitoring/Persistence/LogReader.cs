@@ -17,7 +17,6 @@ namespace CK.Monitoring
     public class LogReader : IEnumerator<ILogEntry>
     {
         Stream _stream;
-        BinaryFormatter _binaryFormatter;
         BinaryReader _binaryReader;
         ILogEntry _current;
         int _streamVersion;
@@ -52,7 +51,6 @@ namespace CK.Monitoring
                 throw new ArgumentException( "Must be -1 or greater or equal to 4 (the first version).", "streamVersion" );
             _stream = stream;
             _binaryReader = new BinaryReader( stream, Encoding.UTF8, !mustClose );
-            _binaryFormatter = new BinaryFormatter();
             _streamVersion = streamVersion;
         }
 
@@ -105,69 +103,7 @@ namespace CK.Monitoring
                     throw new InvalidOperationException( String.Format( "Stream is not a log stream or its version is not handled (Current Version = {0}).", CurrentStreamVersion ) );
                 }
             }
-            int bH = _binaryReader.ReadByte();
-            if( bH == 0 )
-            {
-                Close( false );
-                return false;
-            }
-            StreamLogType h = (StreamLogType)(bH & 3);
-            var logLevel = (LogLevel)(bH >> 2);
-            switch( h )
-            {
-                case StreamLogType.TypeLog:
-                    {
-                        var tags = ActivityMonitor.RegisteredTags.FindOrCreate( _binaryReader.ReadString() );
-                        var text = _binaryReader.ReadString();
-                        var logTimeUtc = DateTime.FromBinary( _binaryReader.ReadInt64() );
-                        if( tags != ActivityMonitor.EmptyTag ) _current = new LELogWithTrait( text, logTimeUtc, logLevel, tags );
-                        else _current = new LELog( text, logTimeUtc, logLevel );
-                        break;
-                    }
-                case StreamLogType.TypeOpenGroup:
-                    {
-                        var tags = ActivityMonitor.RegisteredTags.FindOrCreate( _binaryReader.ReadString() );
-                        var text = _binaryReader.ReadString();
-                        var logTimeUtc = DateTime.FromBinary( _binaryReader.ReadInt64() );
-                        if( tags != ActivityMonitor.EmptyTag ) _current = new LEOpenGroupWithTrait( text, logTimeUtc, logLevel, tags );
-                        else _current = new LEOpenGroup( text, logTimeUtc, logLevel );
-                        break;
-                    }
-                case StreamLogType.TypeOpenGroupWithException:
-                    {
-                        var tags = ActivityMonitor.RegisteredTags.FindOrCreate( _binaryReader.ReadString() );
-                        var text = _binaryReader.ReadString();
-                        var logTimeUtc = DateTime.FromBinary( _binaryReader.ReadInt64() );
-                        var exception = (Exception)_binaryFormatter.Deserialize( _stream );
-
-                        _current = new LEOpenGroupWithException( text, logTimeUtc, logLevel, tags, CKExceptionData.CreateFrom( exception ) );
-                        break;
-                    }
-                case StreamLogType.TypeGroupClosed:
-                    {
-                        DateTime time = DateTime.FromBinary( _binaryReader.ReadInt64() );
-                        int conclusionsCount = _binaryReader.ReadInt32();
-                        ActivityLogGroupConclusion[] conclusions;
-                        if( conclusionsCount == 0 ) conclusions = Util.EmptyArray<ActivityLogGroupConclusion>.Empty;
-                        else
-                        {
-                            conclusions = new ActivityLogGroupConclusion[conclusionsCount];
-                            for( int i = 0; i < conclusionsCount; i++ )
-                            {
-                                CKTrait tags = ActivityMonitor.RegisteredTags.FindOrCreate( _binaryReader.ReadString() );
-                                string text = _binaryReader.ReadString();
-                                conclusions[i] = new ActivityLogGroupConclusion( text, tags );
-                            }
-                        }
-                        _current = new LECloseGroup( time, logLevel, conclusions.AsReadOnlyList() );
-                        break;
-                    }
-                default: 
-                    {
-                        Close( true );
-                        break;
-                    }
-            }
+            _current = LogEntry.Read( _binaryReader );
             return true;
         }
 
@@ -182,13 +118,13 @@ namespace CK.Monitoring
                         destination.CloseGroup( log.LogTimeUtc, log.Conclusions );
                         break;
                     case LogEntryType.Log:
-                        destination.UnfilteredLog( log.Tags, log.LogLevel, log.Text, log.LogTimeUtc );
+                        destination.UnfilteredLog( log.Tags, log.LogLevel, log.Text, log.LogTimeUtc, null );
                         break;
                     case LogEntryType.OpenGroup:
-                        destination.UnfilteredOpenGroup( log.Tags, log.LogLevel, null, log.Text, log.LogTimeUtc, CKException.CreateFrom( log.Exception ) );
+                        destination.UnfilteredOpenGroup( log.Tags, log.LogLevel, null, log.Text, log.LogTimeUtc, CKException.CreateFrom( log.Exception ), log.FileName, log.LineNumber );
                         break;
                 }
-            }
+           }
         }
 
         /// <summary>
@@ -207,7 +143,6 @@ namespace CK.Monitoring
                 _binaryReader.Dispose();
                 _stream = null;
                 _binaryReader = null;
-                _binaryFormatter = null;
             }
             if( throwError ) throw new InvalidOperationException( "Invalid log data." );
         }

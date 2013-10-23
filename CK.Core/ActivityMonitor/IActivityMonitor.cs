@@ -23,6 +23,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 
 namespace CK.Core
 {
@@ -42,7 +43,7 @@ namespace CK.Core
         /// Gets or sets the tags of this monitor: any subsequent logs will be tagged by these tags.
         /// The <see cref="CKTrait"/> must be registered in <see cref="ActivityMonitor.RegisteredTags"/>.
         /// Modifications to this property are scoped to the current Group since when a Group is closed, this
-        /// property (and <see cref="Filter"/>) is automatically restored to its original value (captured when the Group was opened).
+        /// property (and <see cref="MinimalFilter"/>) is automatically restored to its original value (captured when the Group was opened).
         /// </summary>
         CKTrait AutoTags { get; set; }
 
@@ -50,11 +51,12 @@ namespace CK.Core
         /// Gets or sets a filter for the log level.
         /// Modifications to this property are scoped to the current Group since when a Group is closed, this
         /// property (and <see cref="AutoTags"/>) is automatically restored to its original value (captured when the Group was opened).
+        /// Defaults to <see cref="LogFilter.Undefined"/>.
         /// </summary>
-        LogFilter Filter { get; set; }
+        LogFilter MinimalFilter { get; set; }
         
         /// <summary>
-        /// Gets the actual filter level for logs: this combines the configured <see cref="Filter"/> and the minimal requirements
+        /// Gets the actual filter level for logs: this combines the configured <see cref="MinimalFilter"/> and the minimal requirements
         /// of any <see cref="IActivityMonitorBoundClient"/> that specifies such a minimal filter level.
         /// </summary>
         /// <remarks>
@@ -65,17 +67,27 @@ namespace CK.Core
         LogFilter ActualFilter { get; }
 
         /// <summary>
-        /// Gets or sets the current topic for this monitor. This can be any non null string (null topic is mapped to the empty string) that describes
-        /// the current activity.
+        /// Gets the current topic for this monitor. This can be any non null string (null topic is mapped to the empty string) that describes
+        /// the current activity. It must be set with <see cref="SetTopic"/> and unlike <see cref="MinimalFilter"/> and <see cref="AutoTags"/>, 
+        /// the topic is not reseted when groups are closed.
         /// </summary>
         /// <remarks>
         /// Clients are warned of the change thanks to <see cref="IActivityMonitorClient.OnTopicChanged"/> and an unfiltered <see cref="LogLevel.Info"/> log 
         /// with the new topic preficed with "Topic:" and tagged with <see cref="ActivityMonitor.TagMonitorTopicChanged"/> is emitted.
         /// </remarks>
-        string Topic { get; set; }
+        string Topic { get; }
 
         /// <summary>
-        /// Logs a text regardless of <see cref="ActalFilter"/> level. 
+        /// Sets the current topic for this monitor. This can be any non null string (null topic is mapped to the empty string) that describes
+        /// the current activity.
+        /// </summary>
+        /// <param name="fileName">The source code file name from which the topic is set.</param>
+        /// <param name="lineNumber">The line number in the source from which the topic is set.</param>
+        /// <param name="newTopic">The new topic string to associate to this monitor.</param>
+        void SetTopic( string newTopic, [CallerFilePath]string fileName = null, [CallerLineNumber]int lineNumber = 0 );
+
+        /// <summary>
+        /// Logs a text regardless of <see cref="ActualFilter"/> level. 
         /// Each call to log is considered as a unit of text: depending on the rendering engine, a line or a 
         /// paragraph separator (or any appropriate separator) should be appended between each text if 
         /// the <paramref name="level"/> is the same as the previous one.
@@ -86,15 +98,17 @@ namespace CK.Core
         /// <param name="text">Text to log. Ignored if null or empty.</param>
         /// <param name="logTimeUtc">Timestamp of the log entry (must be UTC).</param>
         /// <param name="ex">Optional exception associated to the log. When not null, a Group is automatically created.</param>
+        /// <param name="fileName">The source code file name from which the log is emitted.</param>
+        /// <param name="lineNumber">The line number in the source from which the log is emitted.</param>
         /// <remarks>
         /// A null or empty <paramref name="text"/> is not logged.
         /// If needed, the special text <see cref="ActivityMonitor.ParkLevel"/> ("PARK-LEVEL") breaks the current <see cref="LogLevel"/>
         /// and resets it: the next log, even with the same LogLevel, should be treated as if a different LogLevel is used.
         /// </remarks>
-        void UnfilteredLog( CKTrait tags, LogLevel level, string text, DateTime logTimeUtc, Exception ex = null );
+        void UnfilteredLog( CKTrait tags, LogLevel level, string text, DateTime logTimeUtc, Exception ex, [CallerFilePath]string fileName = null, [CallerLineNumber]int lineNumber = 0 );
 
         /// <summary>
-        /// Opens a group regardless of <see cref="ActalFilter"/> level. 
+        /// Opens a group regardless of <see cref="ActualFilter"/> level. 
         /// <see cref="CloseGroup"/> must be called in order to close the group, and/or the returned object must be disposed (both safely can be called: 
         /// the group is closed on the first action, the second one is ignored).
         /// </summary>
@@ -104,10 +118,12 @@ namespace CK.Core
         /// <param name="text">Text to log (the title of the group). Null text is valid and considered as <see cref="String.Empty"/> or assigned to the <see cref="Exception.Message"/> if it exists.</param>
         /// <param name="logTimeUtc">Timestamp of the log entry (must be UTC).</param>
         /// <param name="ex">Optional exception associated to the group.</param>
+        /// <param name="fileName">The source code file name from which the group is opened.</param>
+        /// <param name="lineNumber">The line number in the source from which the group is opened.</param>
         /// <returns>A disposable object that can be used to close the group.</returns>
         /// <remarks>
         /// <para>
-        /// Opening a group does not change the current <see cref="Filter"/>, except when opening a <see cref="LogLevel.Fatal"/> or <see cref="LogLevel.Error"/> group:
+        /// Opening a group does not change the current <see cref="MinimalFilter"/>, except when opening a <see cref="LogLevel.Fatal"/> or <see cref="LogLevel.Error"/> group:
         /// in such case, the Filter is automatically sets to <see cref="LogFilter.Debug"/> to capture all potential information inside the error group.
         /// </para>
         /// <para>
@@ -119,7 +135,7 @@ namespace CK.Core
         /// Note that this automatic configuration restoration works even if the group is filtered (when the <paramref name="level"/> is None).
         /// </para>
         /// </remarks>
-        IDisposable UnfilteredOpenGroup( CKTrait tags, LogLevel level, Func<string> getConclusionText, string text, DateTime logTimeUtc, Exception ex = null );
+        IDisposable UnfilteredOpenGroup( CKTrait tags, LogLevel level, Func<string> getConclusionText, string text, DateTime logTimeUtc, Exception ex, [CallerFilePath]string fileName = null, [CallerLineNumber]int lineNumber = 0 );
 
         /// <summary>
         /// Closes the current Group. Optional parameter is polymorphic. It can be a string, a <see cref="ActivityLogGroupConclusion"/>, 

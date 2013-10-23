@@ -210,7 +210,7 @@ namespace CK.Core
         /// <summary>
         /// Initializes a new error counter with <see cref="GenerateConclusion"/> sets to false.
         /// </summary>
-        /// <param name="generateUserConclusion">True to generate a conclusion. See <see cref="GenerateConclusion"/>.</param>
+        /// <param name="generateConclusion">True to generate a conclusion. See <see cref="GenerateConclusion"/>.</param>
         public ActivityMonitorErrorCounter( bool generateConclusion = false )
         {
             _current = _root = new State( null );
@@ -255,7 +255,9 @@ namespace CK.Core
         /// <param name="level">Log level.</param>
         /// <param name="text">Text (not null).</param>
         /// <param name="logTimeUtc">Timestamp of the log.</param>
-        protected override void OnUnfilteredLog( CKTrait tags, LogLevel level, string text, DateTime logTimeUtc )
+        /// <param name="fileName">Source file name.</param>
+        /// <param name="lineNumber">Source line number.</param>
+        protected override void OnUnfilteredLog( CKTrait tags, LogLevel level, string text, DateTime logTimeUtc, string fileName, int lineNumber )
         {
             _current.CatchLevel( level&LogLevel.Mask );
         }

@@ -8,12 +8,16 @@ namespace CK.Monitoring.Impl
     {
         readonly DateTime _time;
         readonly string _text;
+        readonly string _fileName;
+        readonly int _lineNumber;
         readonly LogLevel _level;
 
-        public LELog( string text, DateTime t, LogLevel l ) 
+        public LELog( string text, DateTime t, string fileName, int lineNumber, LogLevel l ) 
         {
             _text = text;
             _time = t;
+            _fileName = fileName;
+            _lineNumber = lineNumber;
             _level = l;
         }
 
@@ -29,7 +33,15 @@ namespace CK.Monitoring.Impl
 
         public CKExceptionData Exception { get { return null; } }
 
+        public string FileName { get { return _fileName; } }
+
+        public int LineNumber { get { return _lineNumber; } }
+
         public IReadOnlyList<ActivityLogGroupConclusion> Conclusions { get { return null; } }
 
+        public void Write( System.IO.BinaryWriter w )
+        {
+            LogEntry.WriteLog( w, _level, _time, _text, null, _fileName, _lineNumber );
+        }
     }
 }

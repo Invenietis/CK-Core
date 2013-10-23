@@ -28,6 +28,7 @@ using System.Text;
 using System.Diagnostics;
 using System.Threading;
 using CK.Core.Impl;
+using System.Runtime.CompilerServices;
 
 namespace CK.Core
 {
@@ -71,12 +72,12 @@ namespace CK.Core
         static public readonly CKTrait TagMonitorTopicChanged;
 
         /// <summary>
-        /// The logging error collector. 
-        /// Any error that occurs while dispathing logs to <see cref="IActivityMonitorClient"/> or <see cref="IActivityMonitorSink"/> 
-        /// are collected and the culprit is removed from <see cref="Output"/> (resp. <see cref="ActivityMonitorTap"/> sinks).
+        /// The monitoring error collector. 
+        /// Any error that occurs while dispathing logs to <see cref="IActivityMonitorClient"/>
+        /// are collected and the culprit is removed from <see cref="Output"/>.
         /// See <see cref="CriticalErrorCollector"/>.
         /// </summary>
-        public static readonly CriticalErrorCollector LoggingError;
+        public static readonly CriticalErrorCollector MonitoringError;
 
         static LogFilter _defaultFilterLevel;
         
@@ -111,7 +112,7 @@ namespace CK.Core
                             }
                             catch( Exception ex )
                             {
-                                LoggingError.Add( ex, "DefaultFilter changed." );
+                                MonitoringError.Add( ex, "DefaultFilter changed." );
                             }
                         }
                     }
@@ -121,8 +122,10 @@ namespace CK.Core
 
         /// <summary>
         /// The automatic configuration actions.
+        /// Registers actions via += (or <see cref="Delegate.Combine"/> if you like pain), unregister with -= operator (or <see cref="Delegate.Remove"/>).
+        /// Simply sets it to null to clear all currently registered actions (this, of course, only from tests and not in real code).
         /// </summary>
-        static readonly public SimpleMultiAction<IActivityMonitor> AutoConfiguration;
+        static public Action<IActivityMonitor> AutoConfiguration;
 
         static ActivityMonitor()
         {
@@ -131,8 +134,8 @@ namespace CK.Core
             TagUserConclusion = RegisteredTags.FindOrCreate( "c:User" );
             TagGetTextConclusion = RegisteredTags.FindOrCreate( "c:GetText" );
             TagMonitorTopicChanged = RegisteredTags.FindOrCreate( "MonitorTopicChanged" );
-            LoggingError = new CriticalErrorCollector();
-            AutoConfiguration = new SimpleMultiAction<IActivityMonitor>();
+            MonitoringError = new CriticalErrorCollector();
+            AutoConfiguration = null;
             _defaultFilterLevel = LogFilter.Undefined;
             _lockDefaultFilterLevel = new object();
         }
@@ -153,7 +156,6 @@ namespace CK.Core
         /// <summary>
         /// Initializes a new <see cref="ActivityMonitor"/>.
         /// </summary>
-        /// <param name="initialTags">Initial <see cref="AutoTags"/>.</param>
         /// <param name="applyAutoConfigurations">Whether <see cref="AutoConfiguration"/> should be applied.</param>
         public ActivityMonitor( bool applyAutoConfigurations = true )
         {
@@ -181,7 +183,8 @@ namespace CK.Core
             _currentTag = tags ?? EmptyTag;
             _uniqueId = Guid.NewGuid();
             _topic = String.Empty;
-            if( applyAutoConfigurations ) AutoConfiguration.Apply( this );
+            var autoConf = AutoConfiguration;
+            if( autoConf != null && applyAutoConfigurations ) autoConf( this );
         }
 
         Guid IUniqueId.UniqueId
@@ -219,45 +222,51 @@ namespace CK.Core
         }
 
         /// <summary>
-        /// Gets or sets the current topic for this monitor. This can be any non null string (null topic is mapped to the empty string) that describes
-        /// the current activity.
+        /// Gets the current topic for this monitor. This can be any non null string (null topic is mapped to the empty string) that describes
+        /// the current activity. It must be set with <see cref="SetTopic"/> and unlike <see cref="MinimalFilter"/> and <see cref="AutoTags"/>, 
+        /// the topic is not reseted when groups are closed.
         /// </summary>
         public string Topic 
         {
             get { return _topic; }
-            set
+        }
+
+        /// <summary>
+        /// Sets the current topic for this monitor. This can be any non null string (null topic is mapped to the empty string) that describes
+        /// the current activity.
+        /// </summary>
+        public void SetTopic( string newTopic, [CallerFilePath]string fileName = null, [CallerLineNumber]int lineNumber = 0 )
+        {
+            if( newTopic == null ) newTopic = String.Empty;
+            if( _topic != newTopic )
             {
-                if( value == null ) value = String.Empty;
-                if( _topic != value )
+                ReentrantAndConcurrentCheck();
+                try
                 {
-                    ReentrantAndConcurrentCheck();
-                    try
-                    {
-                        DoSetTopic( value );
-                    }
-                    finally
-                    {
-                        ReentrantAndConcurrentRelease();
-                    }
+                    DoSetTopic( newTopic, fileName, lineNumber );
+                }
+                finally
+                {
+                    ReentrantAndConcurrentRelease();
                 }
             }
         }
 
-        void DoSetTopic( string newTopic )
+        void DoSetTopic( string newTopic, string fileName, int lineNumber )
         {
             Debug.Assert( _enteredThreadId == Thread.CurrentThread.ManagedThreadId );
             Debug.Assert( newTopic != null && _topic != newTopic );
             _topic = newTopic;
-            _output.BridgeTarget.TargetTopicChanged( newTopic );
-            MonoParameterSafeCall( ( client, topic ) => client.OnTopicChanged( topic ), newTopic );
-            DoUnfilteredLog( TagMonitorTopicChanged, LogLevel.Info, "Topic:" + newTopic, DateTime.UtcNow );
+            _output.BridgeTarget.TargetTopicChanged( newTopic, fileName, lineNumber );
+            MonoParameterSafeCall( ( client, topic ) => client.OnTopicChanged( topic, fileName, lineNumber ), newTopic );
+            DoUnfilteredLog( TagMonitorTopicChanged, LogLevel.Info, "Topic:" + newTopic, DateTime.UtcNow, fileName, lineNumber );
         }
 
         /// <summary>
         /// Gets or sets the tags of this monitor: any subsequent logs will be tagged by these tags.
         /// The <see cref="CKTrait"/> must be registered in <see cref="ActivityMonitor.RegisteredTags"/>.
         /// Modifications to this property are scoped to the current Group since when a Group is closed, this
-        /// property (like <see cref="Filter"/>) is automatically restored to its original value (captured when the Group was opened).
+        /// property (like <see cref="MinimalFilter"/>) is automatically restored to its original value (captured when the Group was opened).
         /// </summary>
         public CKTrait AutoTags 
         {
@@ -291,16 +300,14 @@ namespace CK.Core
         }
 
         /// <summary>
-        /// Enables <see cref="IActivityMonitorBoundClient"/> clients to initialize Topic and AutoTag from 
-        /// inside their <see cref="IActivityMonitorBoundClient.SetMonitor"/> method or any other methods provided 
-        /// that a reentrancy and concurrent lock has been obtained (otherwise an <see cref="InvalidOperationException"/> is thrown).
+        /// Called by IActivityMonitorBoundClient clients to initialize Topic and AutoTag from 
+        /// inside their SetMonitor or any other methods provided that a reentrancy and concurrent lock 
+        /// has been obtained (otherwise an InvalidOperationException is thrown).
         /// </summary>
-        /// <param name="newTopic">New topic to set. When null, it is ignored.</param>
-        /// <param name="newTags">new tags to set. When null, it is ignored.</param>
-        void IActivityMonitorImpl.InitializeTopicAndAutoTags( string newTopic, CKTrait newTags )
+        void IActivityMonitorImpl.InitializeTopicAndAutoTags( string newTopic, CKTrait newTags, string fileName, int lineNumber )
         {
             RentrantOnlyCheck();
-            if( newTopic != null && _topic != newTopic ) DoSetTopic( newTopic );
+            if( newTopic != null && _topic != newTopic ) DoSetTopic( newTopic, fileName, lineNumber );
             if( newTags != null && _currentTag != newTags ) DoSetAutoTags( newTags );
         }
 
@@ -309,7 +316,7 @@ namespace CK.Core
         /// Modifications to this property are scoped to the current Group since when a Group is closed, this
         /// property (like <see cref="AutoTags"/>) is automatically restored to its original value (captured when the Group was opened).
         /// </summary>
-        public LogFilter Filter
+        public LogFilter MinimalFilter
         {
             get { return _configuredFilter; }
             set
@@ -330,7 +337,7 @@ namespace CK.Core
         }
 
         /// <summary>
-        /// Gets the actual filter level for logs: this combines the configured <see cref="Filter"/> and the minimal requirements
+        /// Gets the actual filter level for logs: this combines the configured <see cref="MinimalFilter"/> and the minimal requirements
         /// of any <see cref="IActivityMonitorBoundClient"/> that specifies such a minimal filter level.
         /// </summary>
         /// <remarks>
@@ -405,7 +412,7 @@ namespace CK.Core
                     }
                     catch( Exception exCall )
                     {
-                        LoggingError.Add( exCall, l.GetType().FullName );
+                        MonitoringError.Add( exCall, l.GetType().FullName );
                         if( buggyClients == null ) buggyClients = new List<IActivityMonitorClient>();
                         buggyClients.Add( l );
                     }
@@ -469,7 +476,7 @@ namespace CK.Core
 
 
         /// <summary>
-        /// Logs a text regardless of <see cref="Filter"/> level. 
+        /// Logs a text regardless of <see cref="MinimalFilter"/> level. 
         /// Each call to log is considered as a unit of text: depending on the rendering engine, a line or a 
         /// paragraph separator (or any appropriate separator) should be appended between each text if 
         /// the <paramref name="level"/> is the same as the previous one.
@@ -480,20 +487,22 @@ namespace CK.Core
         /// <param name="text">Text to log. Ignored if null or empty.</param>
         /// <param name="logTimeUtc">Timestamp of the log entry (must be Utc).</param>
         /// <param name="ex">Optional exception associated to the log. When not null, a Group is automatically created.</param>
+        /// <param name="fileName">The source code file name from which the log is emitted.</param>
+        /// <param name="lineNumber">The line number in the source from which the log is emitted.</param>
         /// <remarks>
         /// A null or empty <paramref name="text"/> is not logged.
         /// If needed, the special text <see cref="ActivityMonitor.ParkLevel"/> ("PARK-LEVEL") breaks the current <see cref="LogLevel"/>
         /// and resets it: the next log, even with the same LogLevel, will be treated as if
         /// a different LogLevel is used.
         /// </remarks>
-        public void UnfilteredLog( CKTrait tags, LogLevel level, string text, DateTime logTimeUtc, Exception ex = null )
+        public void UnfilteredLog( CKTrait tags, LogLevel level, string text, DateTime logTimeUtc, Exception ex = null, [CallerFilePath]string fileName = null, [CallerLineNumber]int lineNumber = 0 )
         {
             if( level == LogLevel.None ) return;
             if( logTimeUtc.Kind != DateTimeKind.Utc ) throw new ArgumentException( R.DateTimeMustBeUtc, "logTimeUtc" );
             ReentrantAndConcurrentCheck();
             try
             {
-                DoUnfilteredLog( tags, level, text, logTimeUtc, ex );
+                DoUnfilteredLog( tags, level, text, logTimeUtc, fileName, lineNumber, ex );
             }
             finally
             {
@@ -501,14 +510,14 @@ namespace CK.Core
             }
         }
 
-        void DoUnfilteredLog( CKTrait tags, LogLevel level, string text, DateTime logTimeUtc, Exception ex = null )
+        void DoUnfilteredLog( CKTrait tags, LogLevel level, string text, DateTime logTimeUtc, string fileName, int lineNumber, Exception ex = null )
         {
             Debug.Assert( _enteredThreadId == Thread.CurrentThread.ManagedThreadId );
             Debug.Assert( level != LogLevel.None );
 
             if( ex != null )
             {
-                DoOpenGroup( tags, level, null, text, logTimeUtc, ex );
+                DoOpenGroup( tags, level, null, text, logTimeUtc, fileName, lineNumber, ex );
                 DoCloseGroup( logTimeUtc );
             }
             else if( !String.IsNullOrEmpty( text ) )
@@ -521,11 +530,11 @@ namespace CK.Core
                 {
                     try
                     {
-                        l.OnUnfilteredLog( tags, level, text, logTimeUtc );
+                        l.OnUnfilteredLog( tags, level, text, logTimeUtc, fileName, lineNumber );
                     }
                     catch( Exception exCall )
                     {
-                        LoggingError.Add( exCall, l.GetType().FullName );
+                        MonitoringError.Add( exCall, l.GetType().FullName );
                         if( buggyClients == null ) buggyClients = new List<IActivityMonitorClient>();
                         buggyClients.Add( l );
                     }
@@ -551,9 +560,11 @@ namespace CK.Core
         /// </param>
         /// <param name="text">Text to log (the title of the group). Null text is valid and considered as <see cref="String.Empty"/> or assigned to the <see cref="Exception.Message"/> if it exists.</param>
         /// <param name="logTimeUtc">Timestamp of the log entry (must be UTC).</param>
+        /// <param name="fileName">The source code file name from which the group is opened.</param>
+        /// <param name="lineNumber">The line number in the source from which the group is opened.</param>
         /// <param name="ex">Optional exception associated to the group.</param>
         /// <returns>The <see cref="Group"/> that can be disposed to close it.</returns>
-        public virtual IDisposable UnfilteredOpenGroup( CKTrait tags, LogLevel level, Func<string> getConclusionText, string text, DateTime logTimeUtc, Exception ex = null )
+        public virtual IDisposable UnfilteredOpenGroup( CKTrait tags, LogLevel level, Func<string> getConclusionText, string text, DateTime logTimeUtc, Exception ex = null, [CallerFilePath]string fileName = null, [CallerLineNumber]int lineNumber = 0 )
         {
             if( level == LogLevel.IsFiltered ) throw new ArgumentException( "level" );
             if( logTimeUtc.Kind != DateTimeKind.Utc && level != LogLevel.None ) throw new ArgumentException( R.DateTimeMustBeUtc, "logTimeUtc" );
@@ -561,7 +572,7 @@ namespace CK.Core
             ReentrantAndConcurrentCheck();
             try
             {
-                return DoOpenGroup( tags, level, getConclusionText, text, logTimeUtc, ex );
+                return DoOpenGroup( tags, level, getConclusionText, text, logTimeUtc, fileName, lineNumber, ex );
             }
             finally
             {
@@ -569,7 +580,7 @@ namespace CK.Core
             }
         }
 
-        IDisposable DoOpenGroup( CKTrait tags, LogLevel level, Func<string> getConclusionText, string text, DateTime logTimeUtc, Exception ex = null )
+        IDisposable DoOpenGroup( CKTrait tags, LogLevel level, Func<string> getConclusionText, string text, DateTime logTimeUtc, string fileName, int lineNumber, Exception ex = null )
         {
             Debug.Assert( _enteredThreadId == Thread.CurrentThread.ManagedThreadId );
             Debug.Assert( logTimeUtc.Kind == DateTimeKind.Utc || level == LogLevel.None );
@@ -589,7 +600,7 @@ namespace CK.Core
             {
                 if( tags == null || tags.IsEmpty ) tags = _currentTag;
                 else tags = _currentTag.Union( tags );
-                _current.Initialize( tags, level, text ?? (ex != null ? ex.Message : String.Empty), getConclusionText, logTimeUtc, ex );
+                _current.Initialize( tags, level, text ?? (ex != null ? ex.Message : String.Empty), getConclusionText, logTimeUtc, fileName, lineNumber, ex );
                 _currentUnfiltered = _current;
                 MonoParameterSafeCall( ( client, group ) => client.OnOpenGroup( group ), _current ); 
             }
@@ -671,7 +682,7 @@ namespace CK.Core
                         }
                         catch( Exception exCall )
                         {
-                            LoggingError.Add( exCall, l.GetType().FullName );
+                            MonitoringError.Add( exCall, l.GetType().FullName );
                             if( buggyClients == null ) buggyClients = new List<IActivityMonitorClient>();
                             buggyClients.Add( l );
                         }
@@ -696,7 +707,7 @@ namespace CK.Core
                         }
                         catch( Exception exCall )
                         {
-                            LoggingError.Add( exCall, l.GetType().FullName );
+                            MonitoringError.Add( exCall, l.GetType().FullName );
                             if( buggyClients == null ) buggyClients = new List<IActivityMonitorClient>();
                             buggyClients.Add( l );
                         }
@@ -731,7 +742,7 @@ namespace CK.Core
                 }
                 catch( Exception exCall )
                 {
-                    LoggingError.Add( exCall, l.GetType().FullName );
+                    MonitoringError.Add( exCall, l.GetType().FullName );
                     if( buggyClients == null ) buggyClients = new List<IActivityMonitorClient>();
                     buggyClients.Add( l );
                 }

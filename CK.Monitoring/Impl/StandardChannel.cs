@@ -65,7 +65,7 @@ namespace CK.Monitoring
             }
             catch( Exception ex )
             {
-                ActivityMonitor.LoggingError.Add( ex, "While logging event." );
+                ActivityMonitor.MonitoringError.Add( ex, "While logging event." );
             }
             finally
             {
@@ -93,7 +93,7 @@ namespace CK.Monitoring
             }
             catch( Exception ex )
             {
-                ActivityMonitor.LoggingError.Add( ex, "While logging event." );
+                ActivityMonitor.MonitoringError.Add( ex, "While logging event." );
             }
             finally
             {

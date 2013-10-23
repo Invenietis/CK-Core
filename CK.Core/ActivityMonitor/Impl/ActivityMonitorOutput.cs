@@ -196,7 +196,7 @@ namespace CK.Core.Impl
                 }
                 catch( Exception ex )
                 {
-                    ActivityMonitor.LoggingError.Add( ex, "While removing the buggy client." );
+                    ActivityMonitor.MonitoringError.Add( ex, "While removing the buggy client." );
                 }
             }
             if( _clients.Length == 1 ) _clients = Util.EmptyArray<IActivityMonitorClient>.Empty;

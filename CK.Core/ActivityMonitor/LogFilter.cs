@@ -60,7 +60,7 @@ namespace CK.Core
         public readonly LogLevelFilter Line;
 
         /// <summary>
-        /// The filter that applies to groups (<see cref="IAcitvityMonitor.OpenGroup"/>). 
+        /// The filter that applies to groups. 
         /// </summary>
         public readonly LogLevelFilter Group;
 
@@ -199,7 +199,55 @@ namespace CK.Core
             return x.Line != y.Line || x.Group != y.Group;
         }
 
+        /// <summary>
+        /// Parses the filter: it can be a predefined filter as ("Undefined", "Debug", "Verbose", etc.) 
+        /// or as {LineLogLevelFilter,GroupLogLevelFilter} pairs like "{None,None}", "{Error,Trace}".
+        /// </summary>
+        /// <param name="filter">Predefined filter as (Undefined, Debug, Verbose, etc.) or as {LineLogLevelFilter,GroupLogLevelFilter} like {None,None}, {Error,Trace}.</param>
+        /// <returns>The filter.</returns>
+        public static LogFilter Parse( string filter )
+        {
+            if( filter == null ) throw new ArgumentNullException( filter );
+            LogFilter f;
+            if( !TryParse( filter, out f ) ) throw new CKException( "Invalid filter: '{0}'.", filter );
+            return f;
+        }
 
+        /// <summary>
+        /// Try to parse the filter: it can be a predefined filter as ("Undefined", "Debug", "Verbose", etc.)  
+        /// or as {LineLogLevelFilter,GroupLogLevelFilter} pairs like "{None,None}", "{Error,Trace}".
+        /// </summary>
+        /// <param name="filter">Filter to parse.</param>
+        /// <param name="f">Resulting filter.</param>
+        /// <returns>True on success, false on error.</returns>
+        public static bool TryParse( string filter, out LogFilter f )
+        {
+            f = Undefined;
+            if( String.IsNullOrWhiteSpace( filter ) ) return false;
+            if( StringComparer.InvariantCultureIgnoreCase.Equals( filter, "Undefined" ) ) return true;
+            
+            if( StringComparer.InvariantCultureIgnoreCase.Equals( filter, "Debug" ) ) f = Debug;
+            else if( StringComparer.InvariantCultureIgnoreCase.Equals( filter, "Verbose" ) ) f = Verbose;
+            else if( StringComparer.InvariantCultureIgnoreCase.Equals( filter, "Monitor" ) ) f = Monitor;
+            else if( StringComparer.InvariantCultureIgnoreCase.Equals( filter, "Terse" ) ) f = Terse;
+            else if( StringComparer.InvariantCultureIgnoreCase.Equals( filter, "Release" ) ) f = Release;
+            else if( StringComparer.InvariantCultureIgnoreCase.Equals( filter, "Off" ) ) f = Off;
+            else
+            {
+                if( filter[0] != '{' ) return false;
+                if( filter[filter.Length-1] != '}' ) return false;
+                int idx = filter.IndexOf( ',' );
+                if( idx < 0 ) return false;
+                // Ensures that no comma exists after the first one.
+                if( filter.IndexOf( ',', idx+1 ) >= 0 ) return false;
+
+                LogLevelFilter line, group;
+                if( !Enum.TryParse<LogLevelFilter>( filter.Substring( 1, idx - 1 ), true, out line ) ) return false;
+                if( !Enum.TryParse<LogLevelFilter>( filter.Substring( idx+1, filter.Length - idx - 2 ), true, out group ) ) return false;
+                f = new LogFilter( line, group );
+            }
+            return true;
+        }
     }
 
 }

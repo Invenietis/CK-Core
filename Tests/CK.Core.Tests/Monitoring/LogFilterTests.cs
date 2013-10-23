@@ -19,7 +19,7 @@ namespace CK.Core.Tests.Monitoring
             Assert.That( LogFilter.Combine( LogLevelFilter.None, LogLevelFilter.None ), Is.EqualTo( LogLevelFilter.None ) );
             Assert.That( LogFilter.Combine( LogLevelFilter.Info, LogLevelFilter.Error ), Is.EqualTo( LogLevelFilter.Info ) );
         }
-        
+
         [Test]
         public void CombineLogTests()
         {
@@ -28,8 +28,37 @@ namespace CK.Core.Tests.Monitoring
             Assert.That( f2.Line == LogLevelFilter.Error && f2.Group == LogLevelFilter.Info );
             LogFilter f3 = new LogFilter( LogLevelFilter.Info, LogLevelFilter.Trace );
             LogFilter f4 = f2.Combine( f3 );
-            Assert.That( f4.Equals( f3 ) ); 
-            Assert.That( f4 == f3 ); 
+            Assert.That( f4.Equals( f3 ) );
+            Assert.That( f4 == f3 );
+        }
+        
+        [Test]
+        public void ParseTests()
+        {
+            Assert.That( LogFilter.Parse( "Undefined" ), Is.EqualTo( LogFilter.Undefined ) );
+            Assert.That( LogFilter.Parse( "Debug" ), Is.EqualTo( LogFilter.Debug ) );
+            Assert.That( LogFilter.Parse( "Verbose" ), Is.EqualTo( LogFilter.Verbose ) );
+            Assert.That( LogFilter.Parse( "Monitor" ), Is.EqualTo( LogFilter.Monitor ) );
+            Assert.That( LogFilter.Parse( "Terse" ), Is.EqualTo( LogFilter.Terse ) );
+            Assert.That( LogFilter.Parse( "Release" ), Is.EqualTo( LogFilter.Release ) );
+            Assert.That( LogFilter.Parse( "Off" ), Is.EqualTo( LogFilter.Off ) );
+
+            Assert.That( LogFilter.Parse( "{None,None}" ), Is.EqualTo( LogFilter.Undefined ) );
+            Assert.That( LogFilter.Parse( "{Warn,None}" ), Is.EqualTo( new LogFilter( LogLevelFilter.Warn, LogLevelFilter.None ) ) );
+            Assert.That( LogFilter.Parse( "{Error,Warn}" ), Is.EqualTo( new LogFilter( LogLevelFilter.Error, LogLevelFilter.Warn ) ) );
+            Assert.That( LogFilter.Parse( "{Off,None}" ), Is.EqualTo( new LogFilter( LogLevelFilter.Off, LogLevelFilter.None ) ) );
+            Assert.That( LogFilter.Parse( "{Error,Error}" ), Is.EqualTo( LogFilter.Release ) );
+
+            Assert.That( LogFilter.Parse( "{ Error , Error }" ), Is.EqualTo( LogFilter.Release ) );
+            Assert.That( LogFilter.Parse( "{   Error    ,    Error   }" ), Is.EqualTo( LogFilter.Release ) );
+
+            Assert.Throws<CKException>( () => LogFilter.Parse( " {Error,Error}" ) );
+            Assert.Throws<CKException>( () => LogFilter.Parse( "{Error,Error} " ) );
+            Assert.Throws<CKException>( () => LogFilter.Parse( "Error,Error}" ) );
+            Assert.Throws<CKException>( () => LogFilter.Parse( "{Error,Error" ) );
+            Assert.Throws<CKException>( () => LogFilter.Parse( "{Error,,Error}" ) );
+            Assert.Throws<CKException>( () => LogFilter.Parse( "{Error,Warn,Trace}" ) );
+            Assert.Throws<CKException>( () => LogFilter.Parse( "{}" ) );
         }
     }
 }

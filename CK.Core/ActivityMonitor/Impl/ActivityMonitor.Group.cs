@@ -62,6 +62,8 @@ namespace CK.Core
             int _depth;
             LogLevel _level;
             LogLevel _maskedLevel;
+            string _fileName;
+            int _lineNumber;
 
             /// <summary>
             /// Initialized a new Group at a given index.
@@ -86,7 +88,7 @@ namespace CK.Core
             /// </param>
             /// <param name="logTimeUtc">Timestamp of the log (must be UTC).</param>
             /// <param name="ex">Optional exception associated to the group.</param>
-            internal protected virtual void Initialize( CKTrait tags, LogLevel level, string text, Func<string> getConclusionText, DateTime logTimeUtc, Exception ex )
+            internal protected virtual void Initialize( CKTrait tags, LogLevel level, string text, Func<string> getConclusionText, DateTime logTimeUtc, string fileName, int lineNumber, Exception ex )
             {
                 SavedMonitorFilter = Monitor._configuredFilter;
                 SavedMonitorTags = Monitor._currentTag;
@@ -103,6 +105,8 @@ namespace CK.Core
                 _tags = tags ?? ActivityMonitor.EmptyTag;
                 _getConclusion = getConclusionText;
                 _exception = ex;
+                _fileName = fileName;
+                _lineNumber = lineNumber;
             }
 
             /// <summary>
@@ -203,7 +207,7 @@ namespace CK.Core
             public Exception Exception { get { return _exception; } }
 
             /// <summary>
-            /// Gets or sets the <see cref="IActivityMonitor.Filter"/> that will be restored when group will be closed.
+            /// Gets or sets the <see cref="IActivityMonitor.MinimalFilter"/> that will be restored when group will be closed.
             /// Initialized with the current value of IActivityMonitor.Filter when the group has been opened.
             /// </summary>
             public LogFilter SavedMonitorFilter { get; protected set; }
@@ -221,6 +225,16 @@ namespace CK.Core
             {
                 get { return _exception != null && ReferenceEquals( _exception.Message, GroupText ); } 
             }
+
+            /// <summary>
+            /// Gets the file name of the source code that issued the log.
+            /// </summary>
+            public string FileName { get { return _fileName; } }
+
+            /// <summary>
+            /// Gets the line number of the <see cref="FileName"/> that issued the log.
+            /// </summary>
+            public int LineNumber { get { return _lineNumber; } }
 
             /// <summary>
             /// Gets or sets an optional function that will be called on group closing. 

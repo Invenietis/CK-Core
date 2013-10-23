@@ -79,14 +79,18 @@
     <Compile Include="ActivityMonitor\Client\ActivityMonitorConsoleClient.cs" />
     <Compile Include="ActivityMonitor\Client\ActivityMonitorErrorCounter.cs" />
     <Compile Include="ActivityMonitor\Client\ActivityMonitorClient.cs" />
+    <Compile Include="ActivityMonitor\Impl\ActivityMonitorExtension.WithoutTags.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="ActivityMonitor\Impl\ActivityMonitorExtension.WithTags.cs">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Include="ActivityMonitor\Impl\ActivityMonitorOutput.cs" />
     <Compile Include="ActivityMonitor\Client\ActivityMonitorPathCatcher.cs" />
     <Compile Include="ActivityMonitor\Client\ActivityMonitorSimpleCollector.cs" />
     <Compile Include="ActivityMonitor\Client\ActivityMonitorTextHelperClient.cs" />
     <Compile Include="ActivityMonitor\Client\ActivityMonitorTextWriterClient.cs" />
     <Compile Include="ActivityMonitor\Impl\ActivityMonitor.Group.cs" />
-    <Compile Include="ActivityMonitor\Impl\ActivityMonitorExtension.WithoutTags.cs" />
-    <Compile Include="ActivityMonitor\Impl\ActivityMonitorExtension.WithTags.cs" />
     <Compile Include="ActivityMonitor\Impl\ActivityMonitorBridge.cs" />
     <Compile Include="ActivityMonitor\Impl\ActivityMonitorExtension.cs" />
     <Compile Include="ActivityMonitor\Impl\ActivityMonitor.cs" />
@@ -95,6 +99,7 @@
     <Compile Include="ActivityMonitor\LogFilter.cs" />
     <Compile Include="ActivityMonitor\LogLevel.cs" />
     <Compile Include="ActivityMonitor\LogLevelFilter.cs" />
+    <Compile Include="ActivityMonitor\SystemActivityMonitor.cs" />
     <Compile Include="AppSettings.cs" />
     <Compile Include="CKException.cs" />
     <Compile Include="CKExceptionData.cs" />
@@ -119,11 +124,10 @@
     <Compile Include="ICKWritableCollection.cs" />
     <Compile Include="LegacySupport\CallerMemberNameAttribute.cs" />
     <Compile Include="SetOperation.cs" />
-    <Compile Include="SimpleMultiAction.cs" />
     <Compile Include="Trait\CKTrait.cs" />
     <Compile Include="Trait\CKTraitContext.cs" />
     <Compile Include="IFluentInterface.cs" />
-    <Compile Include="Collection\ISimpleTypeNaming.cs" />
+    <Compile Include="ISimpleTypeNaming.cs" />
     <Compile Include="File\TemporaryFile.cs" />
     <Compile Include="UniqueId\IVersionedUniqueId.cs" />
     <Compile Include="UniqueId\SimpleNamedVersionedUniqueId.cs" />
@@ -133,9 +137,9 @@
     <Compile Include="UniqueId\SimpleUniqueId.cs" />
     <Compile Include="IMergeable.cs" />
     <Compile Include="UniqueId\IUniqueId.cs" />
-    <Compile Include="Collection\SimpleServiceContainer.cs" />
-    <Compile Include="Collection\ISimpleServiceContainer.cs" />
-    <Compile Include="Collection\SimpleTypeFinder.cs" />
+    <Compile Include="SimpleServiceContainer.cs" />
+    <Compile Include="ISimpleServiceContainer.cs" />
+    <Compile Include="SimpleTypeFinder.cs" />
     <Compile Include="Collection\DictionaryExtension.cs" />
     <Compile Include="Collection\EnumerableExtension.cs" />
     <Compile Include="Collection\CKEnumeratorEmpty.cs" />
@@ -153,7 +157,7 @@
     <Compile Include="Collection\CKReadOnlyExtension.cs" />
     <Compile Include="LegacySupport\IReadOnlyCollection.cs" />
     <Compile Include="LegacySupport\IReadOnlyList.cs" />
-    <Compile Include="Collection\ISimpleTypeFinder.cs" />
+    <Compile Include="ISimpleTypeFinder.cs" />
     <Compile Include="OSVersionInfo.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="R.Designer.cs">
@@ -179,6 +183,9 @@
     <None Include="..\SharedKey.snk">
       <Link>Properties\SharedKey.snk</Link>
     </None>
+  </ItemGroup>
+  <ItemGroup>
+    <Service Include="{508349B6-6B84-4DF5-91F0-309BEEBAD82D}" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>

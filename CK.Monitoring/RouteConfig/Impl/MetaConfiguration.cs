@@ -30,7 +30,6 @@ namespace CK.RouteConfig.Impl
             protoContext.AddMeta( this );
         }
 
-
         /// <summary>
         /// Applies the configuration (second step).
         /// </summary>

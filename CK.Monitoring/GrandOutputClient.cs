@@ -65,7 +65,7 @@ namespace CK.Monitoring
             get { return _central; }
         }
 
-        void IActivityMonitorClient.OnTopicChanged( string newTopic )
+        void IActivityMonitorClient.OnTopicChanged( string newTopic, string fileName, int lineNumber )
         {
             // Next log will obtain a new channel: The Info with the TopiChanged
             // will appear in the new channel.
@@ -87,9 +87,6 @@ namespace CK.Monitoring
                 do
                 {
                     _curVersion = _version;
-                    // The Topic can be changed only in the 
-                    // activity (and we are here inside the activity),
-                    // we can safely call the property when needed.
                     if( _channel != null )
                     {
                         _channel.CancelPreHandleLock();
@@ -99,6 +96,9 @@ namespace CK.Monitoring
                             _source = null;
                         }
                     }
+                    // The Topic can be changed only in the 
+                    // activity (and we are here inside the activity),
+                    // we can safely call the property when needed.
                     _channel = _central.ObtainChannel( _monitorSource.Topic );
                 }
                 while( _version != _curVersion );
@@ -114,16 +114,16 @@ namespace CK.Monitoring
             return _channel;
         }
 
-        void IActivityMonitorClient.OnUnfilteredLog( CKTrait tags, LogLevel level, string text, DateTime logTimeUtc )
+        void IActivityMonitorClient.OnUnfilteredLog( CKTrait tags, LogLevel level, string text, DateTime logTimeUtc, string fileName, int lineNumber )
         {
-            ILogEntry e = Impl.LogEntry.CreateLog( text, logTimeUtc, level, tags );
+            ILogEntry e = Impl.LogEntry.CreateLog( text, logTimeUtc, level, fileName, lineNumber, tags );
             EnsureChannel().Handle( new GrandOutputEventInfo( _source, e, _relativeDepth )  );
         }
 
         public void OnOpenGroup( IActivityLogGroup group )
         {
             ++_relativeDepth;
-            ILogEntry e = Impl.LogEntry.CreateOpenGroup( group.GroupText, group.LogTimeUtc, group.GroupLevel, group.GroupTags, group.EnsureExceptionData() );
+            ILogEntry e = Impl.LogEntry.CreateOpenGroup( group.GroupText, group.LogTimeUtc, group.GroupLevel, group.FileName, group.LineNumber, group.GroupTags, group.EnsureExceptionData() );
             EnsureChannel().Handle( new GrandOutputEventInfo( _source, e, _relativeDepth ) );
         }
 

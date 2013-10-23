@@ -261,12 +261,10 @@ namespace CK.RouteConfig
         /// <list type="number">
         /// <item>If the new routes can not be created, false is returned and current configuration remains active.</item>
         /// <item><see cref="ObtainRoute"/> starts returning null and <see cref="ConfigurationClosing"/> event is raised.</item>
-        /// <item>Closing route are wait</item>
-        /// <item></item>
+        /// <item>Waiting for previous routes termination (unititialization).</item>
+        /// <item>Calling ConfigurationReady callback: new routes must be initialized.</item>
+        /// <item>If the new configuration has not been applied by the ConfigurationReady callback, it is automaticaly applied.</item>
         /// </list>
-        /// 
-        /// raises <see cref="ConfigurationClosing"/> event.
-        /// Right before this first event is raised, <see cref="ObtainRoute"/> starts returning null route.until <see cref="ConfigurationReady.ApplyConfiguration"/> is called.
         /// </summary>
         /// <param name="monitor">Monitor that wil receive explanations and errors.</param>
         /// <param name="configuration">The configuration to achieve.</param>

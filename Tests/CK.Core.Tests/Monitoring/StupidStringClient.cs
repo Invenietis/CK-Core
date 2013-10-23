@@ -45,14 +45,14 @@ namespace CK.Core.Tests.Monitoring
             WriteConclusionTraits = writeConclusionTraits;
         }
 
-        protected override void OnEnterLevel( CKTrait tags, LogLevel level, string text, DateTime logTimeUtc )
+        protected override void OnEnterLevel( CKTrait tags, LogLevel level, string text, DateTime logTimeUtc, string fileName, int lineNumber )
         {
             Writer.WriteLine();
             Writer.Write( level.ToString() + ": " + text );
             if( WriteTags ) Writer.Write( "-[{0}]", tags.ToString() );
         }
 
-        protected override void OnContinueOnSameLevel( CKTrait tags, LogLevel level, string text, DateTime logTimeUtc )
+        protected override void OnContinueOnSameLevel( CKTrait tags, LogLevel level, string text, DateTime logTimeUtc, string fileName, int lineNumber )
         {
             Writer.Write( text );
             if( WriteTags ) Writer.Write( "-[{0}]", tags.ToString() );

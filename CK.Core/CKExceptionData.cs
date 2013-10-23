@@ -129,7 +129,7 @@ namespace CK.Core
         }
 
         /// <summary>
-        /// Creates a <see cref="CKExceptionData"/> from any <see cref="Exception."/>
+        /// Creates a <see cref="CKExceptionData"/> from any <see cref="Exception"/>.
         /// </summary>
         /// <param name="ex">Exception for which data must be created. Can be null: null is returned.</param>
         /// <returns>The data that describes the exception.</returns>
@@ -302,7 +302,7 @@ namespace CK.Core
         /// <param name="newLine">Defaults to <see cref="Environment.NewLine"/>.</param>
         public void ToTextWriter( TextWriter w, string prefix, string newLine = null )
         {
-            Write( w.Write, prefix, newLine );
+            WriteText( w.Write, prefix, newLine );
         }
 
         /// <summary>
@@ -313,7 +313,7 @@ namespace CK.Core
         /// <param name="newLine">Defaults to <see cref="Environment.NewLine"/>.</param>
         public void ToStringBuilder( StringBuilder b, string prefix, string newLine = null )
         {
-            Write( t => b.Append( t ), prefix, newLine );
+            WriteText( t => b.Append( t ), prefix, newLine );
         }
 
         /// <summary>
@@ -322,7 +322,7 @@ namespace CK.Core
         /// <param name="appender">The function that collects the text fragments.</param>
         /// <param name="prefix">Prefix that will appear at the start of each line.</param>
         /// <param name="newLine">Defaults to <see cref="Environment.NewLine"/>.</param>
-        public void Write( Action<string> appender, string prefix, string newLine = null )
+        public void WriteText( Action<string> appender, string prefix, string newLine = null )
         {
             if( appender == null ) throw new ArgumentNullException( "appender" );
             if( prefix == null ) prefix = String.Empty;
@@ -357,7 +357,7 @@ namespace CK.Core
                 appender( newLine );
                 foreach( var item in _loaderExceptions )
                 {
-                    item.Write( appender, locPrefix + " | ", newLine );
+                    item.WriteText( appender, locPrefix + " | ", newLine );
                 }
                 appender( locPrefix  );
                 appender( " └─────────────────────────────────────────────────────────────────────────" );
@@ -373,7 +373,7 @@ namespace CK.Core
                 appender( newLine );
                 foreach( var item in _aggregatedExceptions )
                 {
-                    item.Write( appender, locPrefix + " | ", newLine );
+                    item.WriteText( appender, locPrefix + " | ", newLine );
                 }
                 appender( locPrefix );
                 appender( " └─────────────────────────────────────────────────────────────────────────" );
@@ -384,7 +384,7 @@ namespace CK.Core
                 appender( locPrefix );
                 appender( " ┌──────────────────────────■ [Inner Exception] ■──────────────────────────" );
                 appender( newLine );
-                _innerException.Write( appender, locPrefix + " | ", newLine );
+                _innerException.WriteText( appender, locPrefix + " | ", newLine );
                 appender( locPrefix );
                 appender( " └─────────────────────────────────────────────────────────────────────────" );
                 appender( newLine );
@@ -414,7 +414,7 @@ namespace CK.Core
         }
 
         /// <summary>
-        /// Overridden to return the result of <see cref="Write"/> without prefix and a standard <see cref="Environment.Newline"/>.
+        /// Overridden to return the result of <see cref="WriteText"/> without prefix and a standard <see cref="Environment.NewLine"/>.
         /// This is cached once built.
         /// </summary>
         /// <returns>This exception data as a block of readable text.</returns>

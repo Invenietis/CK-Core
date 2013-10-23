@@ -66,6 +66,17 @@ namespace CK.Core
         }
 
         /// <summary>
+        /// Private method used by OpenXXX extension methods.
+        /// </summary>
+        static IDisposable FilteredGroup( IActivityMonitor @this, LogLevel level )
+        {
+            Debug.Assert( (level & LogLevel.IsFiltered) == 0 );
+            int f = (int)@this.ActualFilter.Group;
+            if( f <= 0 ? (int)ActivityMonitor.DefaultFilter.Group <= (int)level : f <= (int)level ) return null;
+            return @this.UnfilteredOpenGroup( ActivityMonitor.EmptyTag, LogLevel.None, null, null, DateTime.MinValue, null );
+        }
+
+        /// <summary>
         /// Closes the current Group. Optional parameter is polymorphic. It can be a string, a <see cref="ActivityLogGroupConclusion"/>, 
         /// a <see cref="List{T}"/> or an <see cref="IEnumerable{T}"/> of ActivityLogGroupConclusion, or any object with an overriden <see cref="Object.ToString"/> method. 
         /// See remarks (especially for List&lt;ActivityLogGroupConclusion&gt;).
@@ -240,20 +251,20 @@ namespace CK.Core
 
             public LogFilterSentinel( IActivityMonitor l, LogFilter filter )
             {
-                _prevLevel = l.Filter;
+                _prevLevel = l.MinimalFilter;
                 _monitor = l;
-                l.Filter = filter;
+                l.MinimalFilter = filter;
             }
 
             public void Dispose()
             {
-                _monitor.Filter = _prevLevel;
+                _monitor.MinimalFilter = _prevLevel;
             }
 
         }
 
         /// <summary>
-        /// Sets filter levels on this <see cref="IActivityMonitor"/>. The current <see cref="IActivityMonitor.Filter"/> will be automatically 
+        /// Sets filter levels on this <see cref="IActivityMonitor"/>. The current <see cref="IActivityMonitor.MinimalFilter"/> will be automatically 
         /// restored when the returned <see cref="IDisposable"/> will be disposed.
         /// Even if when a Group is closed, the IActivityMonitor.Filter is automatically restored to its original value 
         /// (captured when the Group was opened), this may be useful to locally change the filter level without bothering to restore the 
@@ -270,7 +281,7 @@ namespace CK.Core
         }
 
         /// <summary>
-        /// Sets a filter level on this <see cref="IActivityMonitor"/>. The current <see cref="IActivityMonitor.Filter"/> will be automatically 
+        /// Sets a filter level on this <see cref="IActivityMonitor"/>. The current <see cref="IActivityMonitor.MinimalFilter"/> will be automatically 
         /// restored when the returned <see cref="IDisposable"/> will be disposed.
         /// Even if when a Group is closed, the IActivityMonitor.Filter is automatically restored to its original value 
         /// (captured when the Group was opened), this may be useful to locally change the filter level without bothering to restore the 

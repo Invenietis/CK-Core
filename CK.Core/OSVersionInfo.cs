@@ -310,7 +310,7 @@ namespace CK.Core
 
         static OSVersionInfo()
         {
-            IsMono = Type.GetType( "Mono.Runtime", false ) != null;
+            IsMono = !ReferenceEquals( Type.GetType( "Mono.Runtime", false ), null );
             OSVersion = Environment.OSVersion;
             PlatformID platformID = OSVersion.Platform;
             bool isWin32 = platformID == PlatformID.Win32NT || platformID == PlatformID.Win32Windows;

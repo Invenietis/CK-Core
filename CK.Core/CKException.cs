@@ -82,7 +82,7 @@ namespace CK.Core
 
         /// <summary>
         /// Initializes a new <see cref="CKException"/> with an <see cref="ExceptionData"/>.
-        /// The message of this exception is the <see cref="ExceptionData.Message"/>.
+        /// The message of this exception is the <see cref="CKExceptionData.Message"/>.
         /// </summary>
         /// <param name="data"></param>
         public CKException( CKExceptionData data )

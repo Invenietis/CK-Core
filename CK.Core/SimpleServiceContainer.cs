@@ -101,7 +101,7 @@ namespace CK.Core
         /// <returns>This object to enable fluent syntax.</returns>
         public ISimpleServiceContainer Add( Type serviceType, Func<Object> serviceInstance, Action<Object> onRemove )
         {
-            if( serviceType == null ) throw new ArgumentNullException( "serviceType" );
+            if( ReferenceEquals( serviceType, null ) ) throw new ArgumentNullException( "serviceType" );
             if( serviceInstance == null ) throw new ArgumentNullException( "serviceInstance" );
             if( GetDirectService( serviceType ) != null ) throw new CKException( R.ServiceAlreadyDirectlySupported, serviceType.FullName );
             DoAdd( serviceType, new ServiceEntry() { Instance = null, Creator = serviceInstance, OnRemove = onRemove } );
@@ -117,7 +117,7 @@ namespace CK.Core
         /// <returns>This object to enable fluent syntax.</returns>
         public ISimpleServiceContainer Add( Type serviceType, object serviceInstance, Action<Object> onRemove )
         {
-            if( serviceType == null ) throw new ArgumentNullException( "serviceType" );
+            if( ReferenceEquals( serviceType, null ) ) throw new ArgumentNullException( "serviceType" );
             if( serviceInstance == null ) throw new ArgumentNullException( "serviceInstance" );
             if( GetDirectService( serviceType ) != null ) throw new CKException( R.ServiceAlreadyDirectlySupported, serviceType.FullName );
             if( !serviceType.IsAssignableFrom( serviceInstance.GetType() ) ) throw new CKException( R.ServiceImplTypeMismatch, serviceType.FullName, serviceInstance.GetType().FullName );
@@ -139,7 +139,7 @@ namespace CK.Core
         /// <returns>This object to enable fluent syntax.</returns>
         public ISimpleServiceContainer AddDisabled( Type serviceType )
         {
-            if( serviceType == null ) throw new ArgumentNullException( "serviceType" );
+            if( ReferenceEquals( serviceType, null ) ) throw new ArgumentNullException( "serviceType" );
             if( GetDirectService( serviceType ) != null ) throw new CKException( R.DirectServicesCanNotBeDisabled, serviceType.FullName );
             DoAdd( serviceType, new ServiceEntry() );
             return this;
@@ -186,7 +186,7 @@ namespace CK.Core
         /// <returns>Built-in service, registered service, service from <see cref="BaseProvider"/> or null.</returns>
         public object GetService( Type serviceType )
         {
-            if( serviceType == null ) throw new ArgumentNullException( "serviceType" );
+            if( ReferenceEquals( serviceType, null ) ) throw new ArgumentNullException( "serviceType" );
             object result = GetDirectService( serviceType );
             if( result == null )
             {
@@ -225,7 +225,7 @@ namespace CK.Core
         /// <returns>A built-in service or null.</returns>
         protected virtual object GetDirectService( Type serviceType )
         {
-            if( serviceType == typeof( IServiceProvider ) || serviceType == typeof( ISimpleServiceContainer ) ) return this;
+            if( serviceType.Equals( typeof( IServiceProvider ) ) || serviceType.Equals( typeof( ISimpleServiceContainer ) ) ) return this;
             return null;
         }
 
@@ -243,7 +243,7 @@ namespace CK.Core
         /// </summary>
         void DoAdd( Type s, ServiceEntry e )
         {
-            Debug.Assert( s != null );
+            Debug.Assert( !ReferenceEquals( s, null ) );
             try
             {
                 _services.Add( s, e );

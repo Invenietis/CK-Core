@@ -85,6 +85,7 @@
     <Compile Include="EnumerableExtensionTests.cs" />
     <Compile Include="FileUtilTests.cs" />
     <Compile Include="Animals.cs" />
+    <Compile Include="Monitoring\SystemActivityMonitorTests.cs" />
     <Compile Include="OSVersionInfoTests.cs" />
     <Compile Include="ServiceContainerTests.cs" />
     <Compile Include="CoreExtensionTests.cs" />
@@ -109,6 +110,9 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="TestDir\" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="$(SolutionDir)\.nuget\nuget.targets" />

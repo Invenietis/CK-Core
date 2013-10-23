@@ -53,7 +53,7 @@ namespace CK.Core.Tests.Monitoring
                 using( MonitorBridge.TargetMonitor.OpenGroup( LogLevel.Warn, "From Origin AppDomain: changing the Filter in a group (useless)." ) )
                 {
                     // This change must be seen by the Bridge (but is restored).
-                    MonitorBridge.TargetMonitor.Filter = MonitorBridge.TargetMonitor.Filter.SetLine( LogLevelFilter.Trace );
+                    MonitorBridge.TargetMonitor.MinimalFilter = MonitorBridge.TargetMonitor.MinimalFilter.SetLine( LogLevelFilter.Trace );
                     Assert.That( MonitorBridge.TargetMonitor.ActualFilter.Line, Is.EqualTo( LogLevelFilter.Trace ), "Configured filter is the only one." );
                     
                     Assert.That( MonitorBridge.TargetMonitor.ActualFilter, Is.Not.EqualTo( expectedConfiguredAndActualFilter ), "This test is useless!" );
@@ -64,7 +64,7 @@ namespace CK.Core.Tests.Monitoring
             public void SetFilterFromOriginDomain( LogFilter filter )
             {
                 // This change WILL impact the Bridge if the ActualFilter changed (depending on the Client minimal filter).
-                MonitorBridge.TargetMonitor.Filter = filter;
+                MonitorBridge.TargetMonitor.MinimalFilter = filter;
             }
 
             internal void DoAsyncSetFilterViaClientInOriginDomain( LogFilter logLevelFilter, LogFilter? resultingActualFilter )
@@ -81,15 +81,15 @@ namespace CK.Core.Tests.Monitoring
         public void TestCrossDomain()
         {
             IActivityMonitor monitor = new ActivityMonitor();
-            monitor.Filter = LogFilter.Terse;
+            monitor.MinimalFilter = LogFilter.Terse;
             monitor.Output.RegisterClient( new ActivityMonitorClientTester() );
             StupidStringClient textDump = monitor.Output.RegisterClient( new StupidStringClient( true, true ) );
             monitor.Output.RegisterClient( new ActivityMonitorErrorCounter() { GenerateConclusion = true } );
 
-            Assert.That( monitor.Filter, Is.EqualTo( LogFilter.Terse ), "This is the original configuration." );
+            Assert.That( monitor.MinimalFilter, Is.EqualTo( LogFilter.Terse ), "This is the original configuration." );
             Assert.That( monitor.ActualFilter, Is.EqualTo( LogFilter.Terse ), "This is the original configuration." );
 
-            TestHelper.ConsoleMonitor.Filter = LogFilter.Undefined;
+            TestHelper.ConsoleMonitor.MinimalFilter = LogFilter.Undefined;
 
             using( monitor.Output.CreateBridgeTo( TestHelper.ConsoleMonitor.Output.BridgeTarget ) )
             {
@@ -146,14 +146,14 @@ namespace CK.Core.Tests.Monitoring
                     monitor.Fatal( "Name of the AppDomain is '{0}'.", AppDomain.CurrentDomain.FriendlyName );
                     monitor.CloseGroup( "Everything is fine." );
 
-                    Assert.That( monitor.Filter, Is.EqualTo( LogFilter.Undefined ) );
+                    Assert.That( monitor.MinimalFilter, Is.EqualTo( LogFilter.Undefined ) );
                     Assert.That( monitor.ActualFilter, Is.EqualTo( LogFilter.Terse ) );
                     // This will create a Warn (Terse is Info on Groups).
                     appDomainComm.OpenWarnGroupFromOriginDomain( LogFilter.Terse );
 
                     appDomainComm.SetFilterFromOriginDomain( LogFilter.Debug );
                     Assert.That( monitor.ActualFilter, Is.EqualTo( LogFilter.Debug ), "Changing Filter in the Origin Domain impacts this monitor since there is no other config here (explicit on the local monitor or by other client)." );
-                    Assert.That( monitor.Filter, Is.EqualTo( LogFilter.Undefined ), "This monitor's configured filter did not change." );
+                    Assert.That( monitor.MinimalFilter, Is.EqualTo( LogFilter.Undefined ), "This monitor's configured filter did not change." );
 
                     appDomainComm.SetFilterFromOriginDomain( LogFilter.Undefined );
                     Assert.That( monitor.ActualFilter, Is.EqualTo( LogFilter.Undefined ), "This monitor has NO more configuration." );
