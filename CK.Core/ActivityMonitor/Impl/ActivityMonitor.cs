@@ -259,7 +259,7 @@ namespace CK.Core
             _topic = newTopic;
             _output.BridgeTarget.TargetTopicChanged( newTopic, fileName, lineNumber );
             MonoParameterSafeCall( ( client, topic ) => client.OnTopicChanged( topic, fileName, lineNumber ), newTopic );
-            DoUnfilteredLog( TagMonitorTopicChanged, LogLevel.Info, "Topic:" + newTopic, DateTime.UtcNow, fileName, lineNumber );
+            DoUnfilteredLog( new ActivityMonitorData( LogLevel.Info, TagMonitorTopicChanged, "Topic:" + newTopic, DateTime.UtcNow, null, fileName, lineNumber ) );
         }
 
         /// <summary>
@@ -495,14 +495,13 @@ namespace CK.Core
         /// and resets it: the next log, even with the same LogLevel, will be treated as if
         /// a different LogLevel is used.
         /// </remarks>
-        public void UnfilteredLog( CKTrait tags, LogLevel level, string text, DateTime logTimeUtc, Exception ex = null, [CallerFilePath]string fileName = null, [CallerLineNumber]int lineNumber = 0 )
+        public void UnfilteredLog( ActivityMonitorData logLine )
         {
-            if( level == LogLevel.None ) return;
-            if( logTimeUtc.Kind != DateTimeKind.Utc ) throw new ArgumentException( R.DateTimeMustBeUtc, "logTimeUtc" );
+            if( logLine == null ) throw new ArgumentNullException( "logLine" );
             ReentrantAndConcurrentCheck();
             try
             {
-                DoUnfilteredLog( tags, level, text, logTimeUtc, fileName, lineNumber, ex );
+                DoUnfilteredLog( logLine );
             }
             finally
             {
@@ -510,27 +509,26 @@ namespace CK.Core
             }
         }
 
-        void DoUnfilteredLog( CKTrait tags, LogLevel level, string text, DateTime logTimeUtc, string fileName, int lineNumber, Exception ex = null )
+        void DoUnfilteredLog( ActivityMonitorData data )
         {
             Debug.Assert( _enteredThreadId == Thread.CurrentThread.ManagedThreadId );
-            Debug.Assert( level != LogLevel.None );
+            Debug.Assert( data.Level != LogLevel.None );
+            Debug.Assert( !String.IsNullOrEmpty( data.Text ) );
 
-            if( ex != null )
+            if( data.Exception != null )
             {
-                DoOpenGroup( tags, level, null, text, logTimeUtc, fileName, lineNumber, ex );
-                DoCloseGroup( logTimeUtc );
+                DoOpenGroup( data.Tags, data.Level, null, data.Text, data.LogTimeUtc, data.FileName, data.LineNumber, data.Exception );
+                DoCloseGroup( data.LogTimeUtc );
             }
-            else if( !String.IsNullOrEmpty( text ) )
+            else
             {
-                if( tags == null || tags.IsEmpty ) tags = _currentTag;
-                else tags = _currentTag.Union( tags );
-
+                data.CombineTags( _currentTag );
                 List<IActivityMonitorClient> buggyClients = null;
                 foreach( var l in _output.Clients )
                 {
                     try
                     {
-                        l.OnUnfilteredLog( tags, level, text, logTimeUtc, fileName, lineNumber );
+                        l.OnUnfilteredLog( data );
                     }
                     catch( Exception exCall )
                     {

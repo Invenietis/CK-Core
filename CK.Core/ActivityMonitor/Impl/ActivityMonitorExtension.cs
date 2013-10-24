@@ -27,6 +27,7 @@ using System.Collections.Generic;
 using System.Text;
 using System.Diagnostics;
 using System.Diagnostics.Contracts;
+using System.Runtime.CompilerServices;
 
 namespace CK.Core
 {
@@ -65,6 +66,7 @@ namespace CK.Core
             return f <= 0 ? (int)ActivityMonitor.DefaultFilter.Group <= (int)level : f <= (int)level;
         }
 
+        #region OpenTrace, OpenInfo, OpenWarn, OpenError, OpenFatal
         /// <summary>
         /// Private method used by OpenXXX extension methods.
         /// </summary>
@@ -75,6 +77,119 @@ namespace CK.Core
             if( f <= 0 ? (int)ActivityMonitor.DefaultFilter.Group <= (int)level : f <= (int)level ) return null;
             return @this.UnfilteredOpenGroup( ActivityMonitor.EmptyTag, LogLevel.None, null, null, DateTime.MinValue, null );
         }
+
+        #endregion
+
+        /// <summary>
+        /// Logs a text regardless of <see cref="IActivityMonitor.ActualFilter">ActualFilter</see> level. 
+        /// </summary>
+        /// <param name="this">This <see cref="IActivityMonitor"/>.</param>
+        /// <param name="tags">
+        /// Tags (from <see cref="ActivityMonitor.RegisteredTags"/>) to associate to the log. 
+        /// These tags will be unioned with the current <see cref="IActivityMonitor.AutoTags">AutoTags</see>.
+        /// </param>
+        /// <param name="level">Log level. Must not be <see cref="LogLevel.None"/>.</param>
+        /// <param name="text">Text to log. Must not be null or empty.</param>
+        /// <param name="logTimeUtc">Timestamp of the log entry (must be UTC).</param>
+        /// <param name="ex">Optional exception associated to the log. When not null, a Group is automatically created.</param>
+        /// <param name="fileName">The source code file name from which the log is emitted.</param>
+        /// <param name="lineNumber">The line number in the source from which the log is emitted.</param>
+        /// <remarks>
+        /// The <paramref name="text"/> can not be null or empty.
+        /// <para>
+        /// Each call to log is considered as a unit of text: depending on the rendering engine, a line or a 
+        /// paragraph separator (or any appropriate separator) should be appended between each text if 
+        /// the <paramref name="level"/> is the same as the previous one.
+        /// </para>
+        /// <para>If needed, the special text <see cref="ActivityMonitor.ParkLevel"/> ("PARK-LEVEL") can be used as a convention 
+        /// to break the current <see cref="LogLevel"/> and resets it: the next log, even with the same LogLevel, should be 
+        /// treated as if a different LogLevel is used.
+        /// </para>
+        /// </remarks>
+        static public void UnfilteredLog( this IActivityMonitor @this, CKTrait tags, LogLevel level, string text, DateTime logTimeUtc, Exception ex, [CallerFilePath]string fileName = null, [CallerLineNumber]int lineNumber = 0 )
+        {
+            @this.UnfilteredLog( new ActivityMonitorData( level, tags, text, logTimeUtc, ex, fileName, lineNumber ) );
+        }
+
+        #region Trace, Info, Warn, Error, Fatal
+
+        static ActivityMonitorLineSender FilterLogLine( this IActivityMonitor @this, LogLevel level, string fileName, int lineNumber )
+        {
+            if( @this == null ) throw new NullReferenceException( "this" );
+            int f = (int)@this.ActualFilter.Line;
+            if( f <= 0 ? (int)ActivityMonitor.DefaultFilter.Line <= (int)level : f <= (int)level )
+            {
+                return new ActivityMonitorLineSender( @this, level | LogLevel.IsFiltered, fileName, lineNumber );
+            }
+            return null;
+        }
+
+        /// <summary>
+        /// Filters <see cref="LogLevel.Trace"/> logs. FileName end LineNumber may be also used to determine whether
+        /// the log should eventually be emitted.
+        /// </summary>
+        /// <param name="this">This <see cref="IActivityMonitor"/>.</param>
+        /// <param name="fileName">Source file name of the emitter (automatically injected by C# compiler).</param>
+        /// <param name="lineNumber">Line number in the source file (automatically injected by C# compiler).</param>
+        /// <returns>A <see cref="ActivityMonitorLineSender"/> or null if the log must not be emitted.</returns>
+        static public ActivityMonitorLineSender Trace( this IActivityMonitor @this, [CallerFilePath]string fileName = null, [CallerLineNumber]int lineNumber = 0 )
+        {
+            return FilterLogLine( @this, LogLevel.Trace, fileName, lineNumber );
+        }
+
+        /// <summary>
+        /// Filters <see cref="LogLevel.Info"/> logs. FileName end LineNumber may be also used to determine whether
+        /// the log should eventually be emitted.
+        /// </summary>
+        /// <param name="this">This <see cref="IActivityMonitor"/>.</param>
+        /// <param name="fileName">Source file name of the emitter (automatically injected by C# compiler).</param>
+        /// <param name="lineNumber">Line number in the source file (automatically injected by C# compiler).</param>
+        /// <returns>A <see cref="ActivityMonitorLineSender"/> or null if the log must not be emitted.</returns>
+        static public ActivityMonitorLineSender Info( this IActivityMonitor @this, [CallerFilePath]string fileName = null, [CallerLineNumber]int lineNumber = 0 )
+        {
+            return FilterLogLine( @this, LogLevel.Info, fileName, lineNumber );
+        }
+
+        /// <summary>
+        /// Filters <see cref="LogLevel.Warn"/> logs. FileName end LineNumber may be also used to determine whether
+        /// the log should eventually be emitted.
+        /// </summary>
+        /// <param name="this">This <see cref="IActivityMonitor"/>.</param>
+        /// <param name="fileName">Source file name of the emitter (automatically injected by C# compiler).</param>
+        /// <param name="lineNumber">Line number in the source file (automatically injected by C# compiler).</param>
+        /// <returns>A <see cref="ActivityMonitorLineSender"/> or null if the log must not be emitted.</returns>
+        static public ActivityMonitorLineSender Warn( this IActivityMonitor @this, [CallerFilePath]string fileName = null, [CallerLineNumber]int lineNumber = 0 )
+        {
+            return FilterLogLine( @this, LogLevel.Warn, fileName, lineNumber );
+        }
+
+        /// <summary>
+        /// Filters <see cref="LogLevel.Error"/> logs. FileName end LineNumber may be also used to determine whether
+        /// the log should eventually be emitted.
+        /// </summary>
+        /// <param name="this">This <see cref="IActivityMonitor"/>.</param>
+        /// <param name="fileName">Source file name of the emitter (automatically injected by C# compiler).</param>
+        /// <param name="lineNumber">Line number in the source file (automatically injected by C# compiler).</param>
+        /// <returns>A <see cref="ActivityMonitorLineSender"/> or null if the log must not be emitted.</returns>
+        static public ActivityMonitorLineSender Error( this IActivityMonitor @this, [CallerFilePath]string fileName = null, [CallerLineNumber]int lineNumber = 0 )
+        {
+            return FilterLogLine( @this, LogLevel.Error, fileName, lineNumber );
+        }
+
+        /// <summary>
+        /// Filters <see cref="LogLevel.Fatal"/> logs. FileName end LineNumber may be also used to determine whether
+        /// the log should eventually be emitted.
+        /// </summary>
+        /// <param name="this">This <see cref="IActivityMonitor"/>.</param>
+        /// <param name="fileName">Source file name of the emitter (automatically injected by C# compiler).</param>
+        /// <param name="lineNumber">Line number in the source file (automatically injected by C# compiler).</param>
+        /// <returns>A <see cref="ActivityMonitorLineSender"/> or null if the log must not be emitted.</returns>
+        static public ActivityMonitorLineSender Fatal( this IActivityMonitor @this, [CallerFilePath]string fileName = null, [CallerLineNumber]int lineNumber = 0 )
+        {
+            return FilterLogLine( @this, LogLevel.Fatal, fileName, lineNumber );
+        }
+
+        #endregion
 
         /// <summary>
         /// Closes the current Group. Optional parameter is polymorphic. It can be a string, a <see cref="ActivityLogGroupConclusion"/>, 

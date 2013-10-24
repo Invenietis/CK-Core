@@ -70,6 +70,7 @@
       <Link>Properties\SharedAssemblyInfo.cs</Link>
     </Compile>
     <Compile Include="ActivityMonitor\ActivityLogGroupConclusion.cs" />
+    <Compile Include="ActivityMonitor\ActivityMonitorData.cs" />
     <Compile Include="ActivityMonitor\IActivityMonitor.cs" />
     <Compile Include="ActivityMonitor\IActivityMonitorBoundClient.cs" />
     <Compile Include="ActivityMonitor\IActivityMonitorClient.cs" />
@@ -79,12 +80,18 @@
     <Compile Include="ActivityMonitor\Client\ActivityMonitorConsoleClient.cs" />
     <Compile Include="ActivityMonitor\Client\ActivityMonitorErrorCounter.cs" />
     <Compile Include="ActivityMonitor\Client\ActivityMonitorClient.cs" />
+    <Compile Include="ActivityMonitor\Impl\ActivityMonitorExtension.Gen.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>ActivityMonitorSend.Gen.tt</DependentUpon>
+    </Compile>
     <Compile Include="ActivityMonitor\Impl\ActivityMonitorExtension.WithoutTags.cs">
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="ActivityMonitor\Impl\ActivityMonitorExtension.WithTags.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="ActivityMonitor\ActivityMonitorLineSender.cs" />
     <Compile Include="ActivityMonitor\Impl\ActivityMonitorOutput.cs" />
     <Compile Include="ActivityMonitor\Client\ActivityMonitorPathCatcher.cs" />
     <Compile Include="ActivityMonitor\Client\ActivityMonitorSimpleCollector.cs" />
@@ -182,6 +189,10 @@
   <ItemGroup>
     <None Include="..\SharedKey.snk">
       <Link>Properties\SharedKey.snk</Link>
+    </None>
+    <None Include="ActivityMonitor\Impl\ActivityMonitorSend.Gen.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>ActivityMonitorExtension.Gen.cs</LastGenOutput>
     </None>
   </ItemGroup>
   <ItemGroup>

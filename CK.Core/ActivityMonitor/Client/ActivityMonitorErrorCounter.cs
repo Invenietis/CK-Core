@@ -251,15 +251,10 @@ namespace CK.Core
         /// <summary>
         /// Updates error counters.
         /// </summary>
-        /// <param name="tags">Tags (from <see cref="ActivityMonitor.RegisteredTags"/>) associated to the log.</param>
-        /// <param name="level">Log level.</param>
-        /// <param name="text">Text (not null).</param>
-        /// <param name="logTimeUtc">Timestamp of the log.</param>
-        /// <param name="fileName">Source file name.</param>
-        /// <param name="lineNumber">Source line number.</param>
-        protected override void OnUnfilteredLog( CKTrait tags, LogLevel level, string text, DateTime logTimeUtc, string fileName, int lineNumber )
+        /// <param name="data">Log data. Never null.</param>
+        protected override void OnUnfilteredLog( ActivityMonitorData data )
         {
-            _current.CatchLevel( level&LogLevel.Mask );
+            _current.CatchLevel( data.Level&LogLevel.Mask );
         }
 
         /// <summary>

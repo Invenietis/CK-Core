@@ -193,7 +193,7 @@ namespace CK.Core
 
         internal void UnfilteredLog( string tags, LogLevel level, string text, DateTime logTimeUtc, string fileName, int lineNumber )
         {
-            _monitor.UnfilteredLog( ActivityMonitor.RegisteredTags.FindOrCreate( tags ), level, text, logTimeUtc, null, fileName, lineNumber );
+            _monitor.UnfilteredLog( new ActivityMonitorData( level, ActivityMonitor.RegisteredTags.FindOrCreate( tags ), text, logTimeUtc, null, fileName, lineNumber ) );
         }
 
         internal void UnfilteredOpenGroup( string tags, LogLevel level, CKExceptionData exceptionData, string groupText, string fileName, int lineNumber, DateTime logTimeUtc )

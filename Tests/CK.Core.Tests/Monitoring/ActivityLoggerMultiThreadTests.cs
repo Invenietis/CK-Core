@@ -22,10 +22,10 @@ namespace CK.Core.Tests.Monitoring
                 _monitor = monitor;
             }
 
-            protected override void OnUnfilteredLog( CKTrait tags, LogLevel level, string text, DateTime logTimeUtc, string fileName, int lineNumber )
+            protected override void OnUnfilteredLog( ActivityMonitorData data )
             {
-                _monitor.Info( "I'm buggy: I'm logging back in my monitor!" );
-                base.OnUnfilteredLog( tags, level, text, logTimeUtc, fileName, lineNumber );
+                _monitor.Info().Send( "I'm buggy: I'm logging back in my monitor!" );
+                base.OnUnfilteredLog( data );
             }
         }
 
@@ -37,9 +37,9 @@ namespace CK.Core.Tests.Monitoring
                 _number = number;
             }
 
-            protected override void OnUnfilteredLog( CKTrait tags, LogLevel level, string text, DateTime logTimeUtc, string fileName, int lineNumber )
+            protected override void OnUnfilteredLog( ActivityMonitorData data )
             {
-                Console.WriteLine( "NotBuggyActivityMonitorClient.OnUnfilteredLog n°{0}: {1}", _number, text );
+                Console.WriteLine( "NotBuggyActivityMonitorClient.OnUnfilteredLog n°{0}: {1}", _number, data.Text );
             }
         }
 
@@ -51,7 +51,7 @@ namespace CK.Core.Tests.Monitoring
                 _log = log;
             }
 
-            protected override void OnUnfilteredLog( CKTrait tags, LogLevel level, string text, DateTime logTimeUtc, string fileName, int lineNumber )
+            protected override void OnUnfilteredLog( ActivityMonitorData data )
             {
                 _log();
             }
@@ -65,7 +65,7 @@ namespace CK.Core.Tests.Monitoring
             readonly object _outLocker = new object();
             bool _outDone = false;
 
-            protected override void OnUnfilteredLog( CKTrait tags, LogLevel level, string text, DateTime logTimeUtc, string fileName, int lineNumber )
+            protected override void OnUnfilteredLog( ActivityMonitorData data )
             {
                 lock( _locker )
                 {
@@ -110,12 +110,12 @@ namespace CK.Core.Tests.Monitoring
             {
                 Task.Factory.StartNew( () =>
                 {
-                    monitor.Info( "Test must work in task" );
+                    monitor.Info().Send( "Test must work in task" );
                 } );
 
                 client.WaitForOnUnfilteredLog();
 
-                Assert.That( () => monitor.Info( "Test must fail" ),
+                Assert.That( () => monitor.Info().Send( "Test must fail" ),
                     Throws.TypeOf( typeof( InvalidOperationException ) ).
                         And.Message.EqualTo( R.ActivityMonitorConcurrentThreadAccess ) );
                 
@@ -127,24 +127,24 @@ namespace CK.Core.Tests.Monitoring
             }
 
             Thread.Sleep( 50 );
-            monitor.Info( "Test must work after task" );
+            monitor.Info().Send( "Test must work after task" );
 
             monitor.Output.RegisterClient( new ActionActivityMonitorClient( () =>
             {
-                Assert.That( () => monitor.Info( "Test must fail reentrant client" ),
+                Assert.That( () => monitor.Info().Send( "Test must fail reentrant client" ),
                     Throws.TypeOf( typeof( InvalidOperationException ) ).
                         And.Message.EqualTo( R.ActivityMonitorReentrancyError ) );
             } ) );
 
-            monitor.Info( "Test must work after reentrant client" );
+            monitor.Info().Send( "Test must work after reentrant client" );
             Assert.That( monitor.Output.Clients.Count, Is.EqualTo( 3 ), "The RegisterClient action above is ok: it checks that it triggered a reentrant call." );
 
             monitor.Output.RegisterClient( new ActionActivityMonitorClient( () =>
             {
-                monitor.Info( "Test must fail reentrant client" );
+                monitor.Info().Send( "Test must fail reentrant client" );
             } ) );
 
-            monitor.Info( "Test must work after reentrant client" );
+            monitor.Info().Send( "Test must work after reentrant client" );
             Assert.That( monitor.Output.Clients.Count, Is.EqualTo( 3 ), "The BUGGY RegisterClient action above is NOT ok: it let the a reentrant call exception => We have removed it." );
 
         }
@@ -172,14 +172,14 @@ namespace CK.Core.Tests.Monitoring
 
             Task[] tasks = new Task[] 
             {            
-                new Task( () => { getLock(); monitor.Info( "Test T1" ); } ),
-                new Task( () => { getLock(); monitor.Info( new Exception(), "Test T2" ); } ),
-                new Task( () => { getLock(); monitor.Info( "Test T3" ); } ),
-                new Task( () => { getLock(); monitor.Info( new Exception(), "Test T4" ); } ),
-                new Task( () => { getLock(); monitor.Info( "Test T5" ); } ),
-                new Task( () => { getLock(); monitor.Info( new Exception(), "Test T6" ); } ),
-                new Task( () => { getLock(); monitor.Info( "Test T7" ); } ),
-                new Task( () => { getLock(); monitor.Info( new Exception(), "Test T8" ); } )
+                new Task( () => { getLock(); monitor.Info().Send( "Test T1" ); } ),
+                new Task( () => { getLock(); monitor.Info().Send( new Exception(), "Test T2" ); } ),
+                new Task( () => { getLock(); monitor.Info().Send( "Test T3" ); } ),
+                new Task( () => { getLock(); monitor.Info().Send( new Exception(), "Test T4" ); } ),
+                new Task( () => { getLock(); monitor.Info().Send( "Test T5" ); } ),
+                new Task( () => { getLock(); monitor.Info().Send( new Exception(), "Test T6" ); } ),
+                new Task( () => { getLock(); monitor.Info().Send( "Test T7" ); } ),
+                new Task( () => { getLock(); monitor.Info().Send( new Exception(), "Test T8" ); } )
             };
 
             Parallel.ForEach( tasks, t => t.Start() );
@@ -197,7 +197,7 @@ namespace CK.Core.Tests.Monitoring
                                                                 SelectMany( x => x.Exception.Flatten().InnerExceptions ),
                                                                 typeof( InvalidOperationException ) );
 
-            Assert.DoesNotThrow( () => monitor.Info( "Test" ) );
+            Assert.DoesNotThrow( () => monitor.Info().Send( "Test" ) );
         }
 
         [Test]
@@ -212,10 +212,10 @@ namespace CK.Core.Tests.Monitoring
                 BuggyActivityMonitorClient client = new BuggyActivityMonitorClient( monitor );
                 monitor.Output.RegisterClient( client );
                 Assert.That( monitor.Output.Clients.Count, Is.EqualTo( clientCount + 1 ) );
-                monitor.Info( "Test" );
+                monitor.Info().Send( "Test" );
                 Assert.That( monitor.Output.Clients.Count, Is.EqualTo( clientCount ) );
 
-                Assert.DoesNotThrow( () => monitor.Info( "Test" ) );
+                Assert.DoesNotThrow( () => monitor.Info().Send( "Test" ) );
             }
         }
     }

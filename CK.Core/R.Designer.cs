@@ -88,6 +88,15 @@ namespace CK.Core {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The level can not be None..
+        /// </summary>
+        internal static string ActivityMonitorLogLevelMustNotBeNone {
+            get {
+                return ResourceManager.GetString("ActivityMonitorLogLevelMustNotBeNone", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Only reentrant calls to this method are supported..
         /// </summary>
         internal static string ActivityMonitorReentrancyCallOnly {

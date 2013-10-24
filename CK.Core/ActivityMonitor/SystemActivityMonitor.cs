@@ -33,12 +33,12 @@ namespace CK.Core
                 if( !forceBuggyRemove && source == null ) throw new InvalidOperationException();
             }
 
-            public void OnUnfilteredLog( CKTrait tags, LogLevel level, string text, DateTime logTimeUtc, string fileName, int lineNumber )
+            public void OnUnfilteredLog( ActivityMonitorData data )
             {
-                level &= LogLevel.Mask;
+                var level = data.Level & LogLevel.Mask;
                 if( level >= LogLevel.Error )
                 {
-                    string s = DumpErrorText( logTimeUtc, text, level, null, tags );
+                    string s = DumpErrorText( data.LogTimeUtc, data.Text, data.Level, null, data.Tags );
                     SystemActivityMonitor.HandleError( s );
                 }
             }

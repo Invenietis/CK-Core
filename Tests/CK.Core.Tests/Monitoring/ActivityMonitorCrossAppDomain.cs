@@ -138,12 +138,12 @@ namespace CK.Core.Tests.Monitoring
                     monitor.AutoTags = ActivityMonitor.RegisteredTags.FindOrCreate( "External App Domain|Test for fun" );
                     monitor.OpenGroup( LogLevel.Info, "In another AppDomain." );
 
-                    monitor.Trace( "This will #NOT APPEAR# (Filter is LogFilter.Terse: only errors are captured)." );
-                    monitor.Warn( () => { Assert.Fail( "This will never be called." ); return null; } );
+                    monitor.Trace().Send( "This will #NOT APPEAR# (Filter is LogFilter.Terse: only errors are captured)." );
+                    monitor.Warn().Send( () => { Assert.Fail( "This will never be called." ); return null; } );
 
-                    monitor.Error( "From external world." );
-                    monitor.Error( ActivityMonitor.RegisteredTags.FindOrCreate( "An error is logged|Marshalled trait" ), new Exception( "Exceptions are serialized as CKExceptionData." ), "From external world." );
-                    monitor.Fatal( "Name of the AppDomain is '{0}'.", AppDomain.CurrentDomain.FriendlyName );
+                    monitor.Error().Send( "From external world." );
+                    monitor.Error().Send( ActivityMonitor.RegisteredTags.FindOrCreate( "An error is logged|Marshalled trait" ), new Exception( "Exceptions are serialized as CKExceptionData." ), "From external world." );
+                    monitor.Fatal().Send( "Name of the AppDomain is '{0}'.", AppDomain.CurrentDomain.FriendlyName );
                     monitor.CloseGroup( "Everything is fine." );
 
                     Assert.That( monitor.MinimalFilter, Is.EqualTo( LogFilter.Undefined ) );
@@ -164,7 +164,7 @@ namespace CK.Core.Tests.Monitoring
                     // This has no effect (since we are in Release).
                     appDomainComm.OpenWarnGroupFromOriginDomain( LogFilter.Release );
 
-                    monitor.Warn( () => { Assert.Fail( "This will never be called." ); return null; } );
+                    monitor.Warn().Send( () => { Assert.Fail( "This will never be called." ); return null; } );
 
                     appDomainComm.DoAsyncSetFilterViaClientInOriginDomain( LogFilter.Debug, resultingActualFilter: LogFilter.Debug );
                     Assert.That( monitor.ActualFilter, Is.EqualTo( LogFilter.Debug ) );
@@ -182,7 +182,7 @@ namespace CK.Core.Tests.Monitoring
                 }
                 catch( Exception ex )
                 {
-                    monitor.Fatal( ex );
+                    monitor.Fatal().Send( ex );
                     appDomainComm.SetResult( false );
                 }
             }

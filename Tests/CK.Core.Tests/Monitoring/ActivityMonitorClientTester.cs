@@ -75,9 +75,9 @@ namespace CK.Core.Tests.Monitoring
             else _source = null;
         }
 
-        void IActivityMonitorClient.OnUnfilteredLog( CKTrait tags, LogLevel level, string text, DateTime logTimeUtc, string fileName, int lineNumber )
+        void IActivityMonitorClient.OnUnfilteredLog( ActivityMonitorData data )
         {
-            Util.InterlockedAdd( ref _text, String.Format( "{0} {1} - {2} -[{3}]", new String( '>', _depth ), level, text, tags ) ); 
+            Util.InterlockedAdd( ref _text, String.Format( "{0} {1} - {2} -[{3}]", new String( '>', _depth ), data.Level, data.Text, data.Tags ) ); 
         }
 
         void IActivityMonitorClient.OnOpenGroup( IActivityLogGroup group )

@@ -53,16 +53,12 @@ namespace CK.Core
         public virtual LogFilter MinimalFilter { get { return LogFilter.Undefined; } }
 
         /// <summary>
-        /// Called for each <see cref="IActivityMonitor.UnfilteredLog"/>.
-        /// Does nothing by default.
+        /// Called for each <see cref="IActivityMonitor.UnfilteredLog"/>. Does nothing by default.
+        /// The <see cref="ActivityMonitorData.Exception"/> is always null since exceptions
+        /// are carried by groups.
         /// </summary>
-        /// <param name="tags">Tags (from <see cref="ActivityMonitor.RegisteredTags"/>) associated to the log.</param>
-        /// <param name="level">Log level.</param>
-        /// <param name="text">Text (not null).</param>
-        /// <param name="fileName">Source file name.</param>
-        /// <param name="lineNumber">Source line number.</param>
-        /// <param name="logTimeUtc">Timestamp of the log.</param>
-        protected virtual void OnUnfilteredLog( CKTrait tags, LogLevel level, string text, DateTime logTimeUtc, string fileName, int lineNumber )
+        /// <param name="data">Log data. Never null.</param>
+        protected virtual void OnUnfilteredLog( ActivityMonitorData data )
         {
         }
 
@@ -132,9 +128,9 @@ namespace CK.Core
 
         #region IActivityMonitorClient Members
 
-        void IActivityMonitorClient.OnUnfilteredLog( CKTrait tags, LogLevel level, string text, DateTime logTimeUtc, string fileName, int lineNumber )
+        void IActivityMonitorClient.OnUnfilteredLog( ActivityMonitorData data )
         {
-            OnUnfilteredLog( tags, level, text, logTimeUtc, fileName, lineNumber );
+            OnUnfilteredLog( data );
         }
 
         void IActivityMonitorClient.OnOpenGroup( IActivityLogGroup group )

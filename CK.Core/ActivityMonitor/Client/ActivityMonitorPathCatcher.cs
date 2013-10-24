@@ -160,15 +160,10 @@ namespace CK.Core
         /// Appends or updates the last <see cref="PathElement"/> of <see cref="DynamicPath"/>
         /// and handles errors or warning.
         /// </summary>
-        /// <param name="tags">Tags (from <see cref="ActivityMonitor.RegisteredTags"/>) associated to the log.</param>
-        /// <param name="level">Log level.</param>
-        /// <param name="text">Text (not null).</param>
-        /// <param name="logTimeUtc">Timestamp of the log.</param>
-        /// <param name="fileName">Source file name.</param>
-        /// <param name="lineNumber">Source line number.</param>
-        protected override void OnUnfilteredLog( CKTrait tags, LogLevel level, string text, DateTime logTimeUtc, string fileName, int lineNumber )
+        /// <param name="data">Log data. Never null.</param>
+        protected override void OnUnfilteredLog( ActivityMonitorData data )
         {
-            if( text != ActivityMonitor.ParkLevel )
+            if( data.Text != ActivityMonitor.ParkLevel )
             {
                 if( _currentIsGroupClosed ) HandleCurrentGroupIsClosed();
                 if( _currentIsGroup || _current == null )
@@ -177,9 +172,9 @@ namespace CK.Core
                     _path.Add( _current );
                     _currentIsGroup = false;
                 }
-                _current.Tags = tags;
-                _current.MaskedLevel = level&LogLevel.Mask;
-                _current.Text = text;
+                _current.Tags = data.Tags;
+                _current.MaskedLevel = data.Level&LogLevel.Mask;
+                _current.Text = data.Text;
                 CheckSnapshot();
             }
         }

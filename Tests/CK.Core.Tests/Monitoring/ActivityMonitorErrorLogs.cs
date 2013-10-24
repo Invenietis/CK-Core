@@ -44,9 +44,9 @@ namespace CK.Core.Tests.Monitoring
         readonly StringBuilder _buffer = new StringBuilder();
         string _prefix = "";
 
-        public void OnUnfilteredLog( CKTrait tags, LogLevel level, string text, DateTime logTimeUtc, string fileName, int lineNumber )
+        public void OnUnfilteredLog( ActivityMonitorData data )
         {
-            lock( _buffer ) _buffer.Append( _prefix ).AppendFormat( "[{0}]{1}", level, text ).AppendLine();
+            lock( _buffer ) _buffer.Append( _prefix ).AppendFormat( "[{0}]{1}", data.Level, data.Text ).AppendLine();
         }
 
         public void OnOpenGroup( IActivityLogGroup group )
@@ -120,7 +120,7 @@ namespace CK.Core.Tests.Monitoring
 
         #region IActivityMonitorClient Members
 
-        public void OnUnfilteredLog( CKTrait tags, LogLevel level, string text, DateTime logTimeUtc, string fileName, int lineNumber )
+        public void OnUnfilteredLog( ActivityMonitorData data )
         {
             MayFail();
         }
@@ -171,7 +171,7 @@ namespace CK.Core.Tests.Monitoring
 
         public void Run()
         {
-            _monitor.Info( "ThreadContext{0}Begin", NumMonitor );
+            _monitor.Info().Send( "ThreadContext{0}Begin", NumMonitor );
             foreach( var bc in _monitor.Output.Clients.OfType<BuggyClient>() )
             {
                 bc.RunThreadId = Thread.CurrentThread.ManagedThreadId;
@@ -181,11 +181,11 @@ namespace CK.Core.Tests.Monitoring
                 double op = Rand.NextDouble();
                 if( op < 1.0 / 60 ) _monitor.MinimalFilter = _monitor.MinimalFilter == LogFilter.Debug ? LogFilter.Verbose : LogFilter.Debug;
                 
-                if( op < 1.0/3 ) _monitor.Info( "OP-{0}-{1}", NumMonitor, i );
+                if( op < 1.0/3 ) _monitor.Info().Send( "OP-{0}-{1}", NumMonitor, i );
                 else if( op < 2.0/3 ) _monitor.OpenGroup( LogLevel.Info, "G-OP-{0}-{1}", NumMonitor, i );
                 else _monitor.CloseGroup();
             }
-            _monitor.Info( "ThreadContext{0}End", NumMonitor );
+            _monitor.Info().Send( "ThreadContext{0}End", NumMonitor );
         }
 
         IActivityMonitor CreateMonitorWithBuggyListeners( int buggyClientCount )
@@ -226,6 +226,7 @@ namespace CK.Core.Tests.Monitoring
             do
             {
                 OneRun( threadCount: 30, operationCount: 225 );
+                //OneRun( threadCount: 2, operationCount: 225 );
             }
             while( w.ElapsedMilliseconds < nbSecond*1000 );
         }

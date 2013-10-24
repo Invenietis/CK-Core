@@ -277,17 +277,18 @@ namespace CK.Core
             return f; 
         }
 
-        void IActivityMonitorClient.OnUnfilteredLog( CKTrait tags, LogLevel level, string text, DateTime logTimeUtc, string fileName, int lineNumber )
+        void IActivityMonitorClient.OnUnfilteredLog( ActivityMonitorData data )
         {
             // If the level is above the actual target filter, we always send the message.
             // If the level is lower: if the log has not been filtered (UnfilteredLog has been called and not an extension method) we must
             // send it to honor the "Unfiltered" contract, but if _applyTargetFilterToUnfilteredLogs is true, we avoid sending it.
+            var level = data.Level;
             if( ((level&LogLevel.IsFiltered) == 0 && !_applyTargetFilterToUnfilteredLogs) || (int)GetActualTargetFilter().Line <= (int)(level & LogLevel.Mask) )
             {
-                if( _targetMonitor != null ) _targetMonitor.UnfilteredLog( tags, level, text, logTimeUtc, null, fileName, lineNumber );
+                if( _targetMonitor != null ) _targetMonitor.UnfilteredLog( data );
                 else
                 {
-                    _bridgeTarget.UnfilteredLog( tags.ToString(), level, text, logTimeUtc, fileName, lineNumber );
+                    _bridgeTarget.UnfilteredLog( data.Tags.ToString(), level, data.Text, data.LogTimeUtc, data.FileName, data.LineNumber );
                 }
             }
         }

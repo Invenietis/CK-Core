@@ -127,16 +127,13 @@ namespace CK.Core
         /// <summary>
         /// Appends any log with level equal or above <see cref="MinimalFilter"/> to <see cref="Entries"/>.
         /// </summary>
-        /// <param name="tags">Tags for the log entry.</param>
-        /// <param name="level">Level of the log.</param>
-        /// <param name="text">Text of the log.</param>
-        /// <param name="logTimeUtc">Timestamp of the log.</param>
-        void IActivityMonitorClient.OnUnfilteredLog( CKTrait tags, LogLevel level, string text, DateTime logTimeUtc, string fileName, int lineNumber )
+        /// <param name="data">Log data. Never null.</param>
+        void IActivityMonitorClient.OnUnfilteredLog( ActivityMonitorData data )
         {
-            level &= LogLevel.Mask;
+            var level = data.Level & LogLevel.Mask;
             if( (int)level >= (int)_filter )
             {
-                _entries.Push( new Entry( tags, level, text, logTimeUtc, null ) );
+                _entries.Push( new Entry( data.Tags, level, data.Text, data.LogTimeUtc, data.Exception ) );
             }
         }
 

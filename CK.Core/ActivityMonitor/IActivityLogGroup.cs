@@ -84,7 +84,7 @@ namespace CK.Core
         LogLevel MaskedGroupLevel { get; }
 
         /// <summary>
-        /// Getst the text associated to this group.
+        /// Gets the text associated to this group.
         /// </summary>
         string GroupText { get; }
 

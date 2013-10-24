@@ -32,9 +32,9 @@ namespace CK.Monitoring
 
         public LogFilter MinimalFilter { get { return LogFilter.Undefined; } }
 
-        void IActivityMonitorClient.OnUnfilteredLog( CKTrait tags, LogLevel level, string text, DateTime logTimeUtc, string fileName, int lineNumber )
+        void IActivityMonitorClient.OnUnfilteredLog( ActivityMonitorData data )
         {
-            LogEntry.WriteLog( _binaryWriter, level, logTimeUtc, text, tags, fileName, lineNumber );
+            LogEntry.WriteLog( _binaryWriter, data.Level, data.LogTimeUtc, data.Text, data.Tags, data.FileName, data.LineNumber );
         }
 
         void IActivityMonitorClient.OnOpenGroup( IActivityLogGroup group )

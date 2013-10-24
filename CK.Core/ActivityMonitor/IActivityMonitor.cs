@@ -87,25 +87,10 @@ namespace CK.Core
         void SetTopic( string newTopic, [CallerFilePath]string fileName = null, [CallerLineNumber]int lineNumber = 0 );
 
         /// <summary>
-        /// Logs a text regardless of <see cref="ActualFilter"/> level. 
-        /// Each call to log is considered as a unit of text: depending on the rendering engine, a line or a 
-        /// paragraph separator (or any appropriate separator) should be appended between each text if 
-        /// the <paramref name="level"/> is the same as the previous one.
-        /// See remarks.
+        /// Logs a line regardless of <see cref="ActualFilter"/> level. 
         /// </summary>
-        /// <param name="tags">Tags (from <see cref="ActivityMonitor.RegisteredTags"/>) to associate to the log, unioned with current <see cref="AutoTags"/>.</param>
-        /// <param name="level">Log level.</param>
-        /// <param name="text">Text to log. Ignored if null or empty.</param>
-        /// <param name="logTimeUtc">Timestamp of the log entry (must be UTC).</param>
-        /// <param name="ex">Optional exception associated to the log. When not null, a Group is automatically created.</param>
-        /// <param name="fileName">The source code file name from which the log is emitted.</param>
-        /// <param name="lineNumber">The line number in the source from which the log is emitted.</param>
-        /// <remarks>
-        /// A null or empty <paramref name="text"/> is not logged.
-        /// If needed, the special text <see cref="ActivityMonitor.ParkLevel"/> ("PARK-LEVEL") breaks the current <see cref="LogLevel"/>
-        /// and resets it: the next log, even with the same LogLevel, should be treated as if a different LogLevel is used.
-        /// </remarks>
-        void UnfilteredLog( CKTrait tags, LogLevel level, string text, DateTime logTimeUtc, Exception ex, [CallerFilePath]string fileName = null, [CallerLineNumber]int lineNumber = 0 );
+        /// <param name="data">Data that describes the log. Can not be null.</param>
+        void UnfilteredLog( ActivityMonitorData data );
 
         /// <summary>
         /// Opens a group regardless of <see cref="ActualFilter"/> level. 

@@ -114,9 +114,9 @@ namespace CK.Monitoring
             return _channel;
         }
 
-        void IActivityMonitorClient.OnUnfilteredLog( CKTrait tags, LogLevel level, string text, DateTime logTimeUtc, string fileName, int lineNumber )
+        void IActivityMonitorClient.OnUnfilteredLog( ActivityMonitorData data )
         {
-            ILogEntry e = Impl.LogEntry.CreateLog( text, logTimeUtc, level, fileName, lineNumber, tags );
+            ILogEntry e = Impl.LogEntry.CreateLog( data.Text, data.LogTimeUtc, data.Level, data.FileName, data.LineNumber, data.Tags );
             EnsureChannel().Handle( new GrandOutputEventInfo( _source, e, _relativeDepth )  );
         }
 

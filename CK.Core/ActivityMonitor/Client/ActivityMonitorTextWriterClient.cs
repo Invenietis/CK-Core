@@ -141,6 +141,10 @@ namespace CK.Core
             {
                 w.WriteLine( start + text );
             }
+            if( g.Exception != null )
+            {
+                DumpException( w, _prefix, !g.IsGroupTextTheExceptionMessage, g.Exception );
+            }
         }
 
         /// <summary>
@@ -151,10 +155,6 @@ namespace CK.Core
         protected override void OnGroupClose( IActivityLogGroup g, IReadOnlyList<ActivityLogGroupConclusion> conclusions )
         {
             TextWriter w = _writer();
-            if( g.Exception != null )
-            {
-                DumpException( w, _prefix, !g.IsGroupTextTheExceptionMessage, g.Exception );
-            }
             _prefixLevel = _prefix = _prefix.Remove( _prefix.Length - 3 );
 
             w.WriteLine( "{0}< {1}", _prefixLevel, conclusions.Where( c => !c.Text.Contains( Environment.NewLine ) ).ToStringGroupConclusion() );

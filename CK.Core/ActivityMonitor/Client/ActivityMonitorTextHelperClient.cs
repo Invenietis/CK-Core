@@ -44,10 +44,10 @@ namespace CK.Core
             _curLevel = -1;
         }
 
-        void IActivityMonitorClient.OnUnfilteredLog( CKTrait tags, LogLevel level, string text, DateTime logTimeUtc, string fileName, int lineNumber )
+        void IActivityMonitorClient.OnUnfilteredLog( ActivityMonitorData data )
         {
-            level &= LogLevel.Mask;
-            if( text == ActivityMonitor.ParkLevel )
+            var level = data.Level & LogLevel.Mask;
+            if( data.Text == ActivityMonitor.ParkLevel )
             {
                 if( _curLevel != -1 )
                 {
@@ -59,7 +59,7 @@ namespace CK.Core
             {
                 if( _curLevel == (int)level )
                 {
-                    OnContinueOnSameLevel( tags, level, text, logTimeUtc, fileName, lineNumber );
+                    OnContinueOnSameLevel( data.Tags, level, data.Text, data.LogTimeUtc, data.FileName, data.LineNumber );
                 }
                 else
                 {
@@ -67,7 +67,7 @@ namespace CK.Core
                     {
                         OnLeaveLevel( (LogLevel)_curLevel );
                     }
-                    OnEnterLevel( tags, level, text, logTimeUtc, fileName, lineNumber );
+                    OnEnterLevel( data.Tags, level, data.Text, data.LogTimeUtc, data.FileName, data.LineNumber );
                     _curLevel = (int)level;
                 }
             }
@@ -101,7 +101,7 @@ namespace CK.Core
         /// Called for the first text of a <see cref="LogLevel"/>.
         /// </summary>
         /// <param name="tags">Tags (from <see cref="ActivityMonitor.RegisteredTags"/>) associated to the log.</param>
-        /// <param name="level">The new current log level (without <see cref="LogLevel.IsFiltered"/>).</param>
+        /// <param name="level">The new current log level (without <see cref="LogLevel.IsFiltered"/> bit flag).</param>
         /// <param name="text">Text to start.</param>
         /// <param name="logTimeUtc">Timestamp of the log.</param>
         /// <param name="fileName">Source file name.</param>
@@ -112,7 +112,7 @@ namespace CK.Core
         /// Called for text with the same <see cref="LogLevel"/> as the previous ones.
         /// </summary>
         /// <param name="tags">Tags (from <see cref="ActivityMonitor.RegisteredTags"/>) associated to the log.</param>
-        /// <param name="level">The current log level (without <see cref="LogLevel.IsFiltered"/>).</param>
+        /// <param name="level">The current log level (without <see cref="LogLevel.IsFiltered"/> bit flag).</param>
         /// <param name="text">Text to append.</param>
         /// <param name="logTimeUtc">Timestamp of the log.</param>
         /// <param name="fileName">Source file name.</param>
