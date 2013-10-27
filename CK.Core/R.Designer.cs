@@ -88,11 +88,11 @@ namespace CK.Core {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The level can not be None..
+        ///   Looks up a localized string similar to The level must be a valid level (Trace, Info, Warn, Error or Fatal)..
         /// </summary>
-        internal static string ActivityMonitorLogLevelMustNotBeNone {
+        internal static string ActivityMonitorInvalidLogLevel {
             get {
-                return ResourceManager.GetString("ActivityMonitorLogLevelMustNotBeNone", resourceCulture);
+                return ResourceManager.GetString("ActivityMonitorInvalidLogLevel", resourceCulture);
             }
         }
         

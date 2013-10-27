@@ -37,13 +37,15 @@ namespace CK.Core
     public static partial class ActivityMonitorExtension
     {
         /// <summary>
-        /// Challenges <see cref="IActivityMonitor.ActualFilter">this monitors'filter</see> and application domain's <see cref="ActivityMonitor.DefaultFilter"/> 
-        /// to test whether a log line should actually be emitted.
+        /// Challenges FileName/LineNumber filters, <see cref="IActivityMonitor.ActualFilter">this monitors'filter</see> and application 
+        /// domain's <see cref="ActivityMonitor.DefaultFilter"/> filters to test whether a log line should actually be emitted.
         /// </summary>
         /// <param name="this">This <see cref="IActivityMonitor"/>.</param>
         /// <param name="level">Log level.</param>
+        /// <param name="fileName">Source file name of the emitter (automatically injected by C# compiler but can be explicitely set).</param>
+        /// <param name="lineNumber">Line number in the source file (automatically injected by C# compiler but can be explicitely set).</param>
         /// <returns>True if the log should be emitted.</returns>
-        public static bool ShouldLogLine( this IActivityMonitor @this, LogLevel level )
+        public static bool ShouldLogLine( this IActivityMonitor @this, LogLevel level, [CallerFilePath]string fileName = null, [CallerLineNumber]int lineNumber = 0 )
         {
             if( @this == null ) throw new NullReferenceException( "this" );
             level &= LogLevel.Mask;
@@ -52,13 +54,15 @@ namespace CK.Core
         }
 
         /// <summary>
-        /// Challenges <see cref="IActivityMonitor.ActualFilter">this monitors'filter</see> and application domain's <see cref="ActivityMonitor.DefaultFilter"/> 
-        /// to test whether a log line should actually be emitted.
+        /// Challenges FileName/LineNumber filters, <see cref="IActivityMonitor.ActualFilter">this monitors'filter</see> and application 
+        /// domain's <see cref="ActivityMonitor.DefaultFilter"/> filters to test whether a log group should actually be emitted.
         /// </summary>
         /// <param name="this">This <see cref="IActivityMonitor"/>.</param>
         /// <param name="level">Log level.</param>
+        /// <param name="fileName">Source file name of the emitter (automatically injected by C# compiler but can be explicitely set).</param>
+        /// <param name="lineNumber">Line number in the source file (automatically injected by C# compiler but can be explicitely set).</param>
         /// <returns>True if the log should be emitted.</returns>
-        public static bool ShouldLogGroup( this IActivityMonitor @this, LogLevel level )
+        public static bool ShouldLogGroup( this IActivityMonitor @this, LogLevel level, [CallerFilePath]string fileName = null, [CallerLineNumber]int lineNumber = 0 )
         {
             if( @this == null ) throw new NullReferenceException( "this" );
             level &= LogLevel.Mask;
@@ -66,19 +70,33 @@ namespace CK.Core
             return f <= 0 ? (int)ActivityMonitor.DefaultFilter.Group <= (int)level : f <= (int)level;
         }
 
-        #region OpenTrace, OpenInfo, OpenWarn, OpenError, OpenFatal
         /// <summary>
-        /// Private method used by OpenXXX extension methods.
+        /// Private method used by XXX (Trace, Info,..., Fatal) extension methods.
         /// </summary>
-        static IDisposable FilteredGroup( IActivityMonitor @this, LogLevel level )
+        static IActivityMonitorLineSender FilterLogLine( this IActivityMonitor @this, LogLevel level, string fileName, int lineNumber )
+        {
+            if( @this == null ) throw new NullReferenceException( "this" );
+            int f = (int)@this.ActualFilter.Line;
+            if( f <= 0 ? (int)ActivityMonitor.DefaultFilter.Line <= (int)level : f <= (int)level )
+            {
+                return new ActivityMonitorLineSender( @this, level | LogLevel.IsFiltered, fileName, lineNumber );
+            }
+            return ActivityMonitorLineSender.FakeLineSender;
+        }
+
+        /// <summary>
+        /// Private method used by OpenXXX (Trace, Info,..., Fatal) extension methods.
+        /// </summary>
+        static IActivityMonitorGroupSender FilteredGroup( IActivityMonitor @this, LogLevel level, string fileName, int lineNumber )
         {
             Debug.Assert( (level & LogLevel.IsFiltered) == 0 );
             int f = (int)@this.ActualFilter.Group;
-            if( f <= 0 ? (int)ActivityMonitor.DefaultFilter.Group <= (int)level : f <= (int)level ) return null;
-            return @this.UnfilteredOpenGroup( ActivityMonitor.EmptyTag, LogLevel.None, null, null, DateTime.MinValue, null );
+            if( f <= 0 ? (int)ActivityMonitor.DefaultFilter.Group <= (int)level : f <= (int)level )
+            {
+                return new ActivityMonitorGroupSender( @this, level | LogLevel.IsFiltered, fileName, lineNumber );
+            }
+            return new ActivityMonitorGroupSender( @this );
         }
-
-        #endregion
 
         /// <summary>
         /// Logs a text regardless of <see cref="IActivityMonitor.ActualFilter">ActualFilter</see> level. 
@@ -108,88 +126,41 @@ namespace CK.Core
         /// </remarks>
         static public void UnfilteredLog( this IActivityMonitor @this, CKTrait tags, LogLevel level, string text, DateTime logTimeUtc, Exception ex, [CallerFilePath]string fileName = null, [CallerLineNumber]int lineNumber = 0 )
         {
-            @this.UnfilteredLog( new ActivityMonitorData( level, tags, text, logTimeUtc, ex, fileName, lineNumber ) );
-        }
-
-        #region Trace, Info, Warn, Error, Fatal
-
-        static ActivityMonitorLineSender FilterLogLine( this IActivityMonitor @this, LogLevel level, string fileName, int lineNumber )
-        {
-            if( @this == null ) throw new NullReferenceException( "this" );
-            int f = (int)@this.ActualFilter.Line;
-            if( f <= 0 ? (int)ActivityMonitor.DefaultFilter.Line <= (int)level : f <= (int)level )
-            {
-                return new ActivityMonitorLineSender( @this, level | LogLevel.IsFiltered, fileName, lineNumber );
-            }
-            return null;
+            @this.UnfilteredLog( new ActivityMonitorLogData( level, ex, tags, text, logTimeUtc, fileName, lineNumber ) );
         }
 
         /// <summary>
-        /// Filters <see cref="LogLevel.Trace"/> logs. FileName end LineNumber may be also used to determine whether
-        /// the log should eventually be emitted.
+        /// Opens a group regardless of <see cref="ActualFilter"/> level. 
+        /// <see cref="CloseGroup"/> must be called in order to close the group, and/or the returned object must be disposed (both safely can be called: 
+        /// the group is closed on the first action, the second one is ignored).
         /// </summary>
-        /// <param name="this">This <see cref="IActivityMonitor"/>.</param>
-        /// <param name="fileName">Source file name of the emitter (automatically injected by C# compiler).</param>
-        /// <param name="lineNumber">Line number in the source file (automatically injected by C# compiler).</param>
-        /// <returns>A <see cref="ActivityMonitorLineSender"/> or null if the log must not be emitted.</returns>
-        static public ActivityMonitorLineSender Trace( this IActivityMonitor @this, [CallerFilePath]string fileName = null, [CallerLineNumber]int lineNumber = 0 )
+        /// <param name="tags">Tags (from <see cref="ActivityMonitor.RegisteredTags"/>) to associate to the log. It will be unioned with current <see cref="AutoTags"/>.</param>
+        /// <param name="level">Log level. The <see cref="LogLevel.None"/> level is used to open a filtered group. See remarks.</param>
+        /// <param name="getConclusionText">Optional function that will be called on group closing.</param>
+        /// <param name="text">Text to log (the title of the group). Null text is valid and considered as <see cref="String.Empty"/> or assigned to the <see cref="Exception.Message"/> if it exists.</param>
+        /// <param name="logTimeUtc">Timestamp of the log entry (must be UTC).</param>
+        /// <param name="ex">Optional exception associated to the group.</param>
+        /// <param name="fileName">The source code file name from which the group is opened.</param>
+        /// <param name="lineNumber">The line number in the source from which the group is opened.</param>
+        /// <returns>A disposable object that can be used to close the group.</returns>
+        /// <remarks>
+        /// <para>
+        /// Opening a group does not change the current <see cref="MinimalFilter"/>, except when opening a <see cref="LogLevel.Fatal"/> or <see cref="LogLevel.Error"/> group:
+        /// in such case, the Filter is automatically sets to <see cref="LogFilter.Debug"/> to capture all potential information inside the error group.
+        /// </para>
+        /// <para>
+        /// Changes to the monitor's current Filter or AutoTags that occur inside a group are automatically restored to their original values when the group is closed.
+        /// This behavior guaranties that a local modification (deep inside unknown called code) does not impact caller code: groups are a way to easily isolate such 
+        /// configuration changes.
+        /// </para>
+        /// <para>
+        /// Note that this automatic configuration restoration works even if the group is filtered (when the <paramref name="level"/> is None).
+        /// </para>
+        /// </remarks>
+        static public IDisposable UnfilteredOpenGroup( this IActivityMonitor @this, CKTrait tags, LogLevel level, Func<string> getConclusionText, string text, DateTime logTimeUtc, Exception ex, [CallerFilePath]string fileName = null, [CallerLineNumber]int lineNumber = 0 )
         {
-            return FilterLogLine( @this, LogLevel.Trace, fileName, lineNumber );
+            return @this.UnfilteredOpenGroup( new ActivityMonitorGroupData( level, tags, text, logTimeUtc, ex, getConclusionText, fileName, lineNumber ) );
         }
-
-        /// <summary>
-        /// Filters <see cref="LogLevel.Info"/> logs. FileName end LineNumber may be also used to determine whether
-        /// the log should eventually be emitted.
-        /// </summary>
-        /// <param name="this">This <see cref="IActivityMonitor"/>.</param>
-        /// <param name="fileName">Source file name of the emitter (automatically injected by C# compiler).</param>
-        /// <param name="lineNumber">Line number in the source file (automatically injected by C# compiler).</param>
-        /// <returns>A <see cref="ActivityMonitorLineSender"/> or null if the log must not be emitted.</returns>
-        static public ActivityMonitorLineSender Info( this IActivityMonitor @this, [CallerFilePath]string fileName = null, [CallerLineNumber]int lineNumber = 0 )
-        {
-            return FilterLogLine( @this, LogLevel.Info, fileName, lineNumber );
-        }
-
-        /// <summary>
-        /// Filters <see cref="LogLevel.Warn"/> logs. FileName end LineNumber may be also used to determine whether
-        /// the log should eventually be emitted.
-        /// </summary>
-        /// <param name="this">This <see cref="IActivityMonitor"/>.</param>
-        /// <param name="fileName">Source file name of the emitter (automatically injected by C# compiler).</param>
-        /// <param name="lineNumber">Line number in the source file (automatically injected by C# compiler).</param>
-        /// <returns>A <see cref="ActivityMonitorLineSender"/> or null if the log must not be emitted.</returns>
-        static public ActivityMonitorLineSender Warn( this IActivityMonitor @this, [CallerFilePath]string fileName = null, [CallerLineNumber]int lineNumber = 0 )
-        {
-            return FilterLogLine( @this, LogLevel.Warn, fileName, lineNumber );
-        }
-
-        /// <summary>
-        /// Filters <see cref="LogLevel.Error"/> logs. FileName end LineNumber may be also used to determine whether
-        /// the log should eventually be emitted.
-        /// </summary>
-        /// <param name="this">This <see cref="IActivityMonitor"/>.</param>
-        /// <param name="fileName">Source file name of the emitter (automatically injected by C# compiler).</param>
-        /// <param name="lineNumber">Line number in the source file (automatically injected by C# compiler).</param>
-        /// <returns>A <see cref="ActivityMonitorLineSender"/> or null if the log must not be emitted.</returns>
-        static public ActivityMonitorLineSender Error( this IActivityMonitor @this, [CallerFilePath]string fileName = null, [CallerLineNumber]int lineNumber = 0 )
-        {
-            return FilterLogLine( @this, LogLevel.Error, fileName, lineNumber );
-        }
-
-        /// <summary>
-        /// Filters <see cref="LogLevel.Fatal"/> logs. FileName end LineNumber may be also used to determine whether
-        /// the log should eventually be emitted.
-        /// </summary>
-        /// <param name="this">This <see cref="IActivityMonitor"/>.</param>
-        /// <param name="fileName">Source file name of the emitter (automatically injected by C# compiler).</param>
-        /// <param name="lineNumber">Line number in the source file (automatically injected by C# compiler).</param>
-        /// <returns>A <see cref="ActivityMonitorLineSender"/> or null if the log must not be emitted.</returns>
-        static public ActivityMonitorLineSender Fatal( this IActivityMonitor @this, [CallerFilePath]string fileName = null, [CallerLineNumber]int lineNumber = 0 )
-        {
-            return FilterLogLine( @this, LogLevel.Fatal, fileName, lineNumber );
-        }
-
-        #endregion
 
         /// <summary>
         /// Closes the current Group. Optional parameter is polymorphic. It can be a string, a <see cref="ActivityLogGroupConclusion"/>, 

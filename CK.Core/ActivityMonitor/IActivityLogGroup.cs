@@ -72,7 +72,7 @@ namespace CK.Core
 
         /// <summary>
         /// Gets the level associated to this group.
-        /// The <see cref="LogLevel.IsFiltered"/> can be set here: use <see cref="MaskedGroupLevel"/> to get 
+        /// The <see cref="LogLevel.IsFiltered"/> can be set here: use <see cref="MaskedLevel"/> to get 
         /// the actual level from <see cref="LogLevel.Trace"/> to <see cref="LogLevel.Fatal"/>.
         /// </summary>
         LogLevel GroupLevel { get; }

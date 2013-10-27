@@ -54,7 +54,7 @@ namespace CK.RouteConfig.Impl
             {
                 if( !_idxActions.Remove( name ) )
                 {
-                    _monitor.Warn( "Action declaration '{0}' to remove is not found.", name );
+                    _monitor.Warn().Send( "Action declaration '{0}' to remove is not found.", name );
                     return false;
                 }
                 return true;
@@ -65,13 +65,13 @@ namespace CK.RouteConfig.Impl
                 var a = _protoRoute.FindDeclaredAction( declaredName );
                 if( a == null ) 
                 {
-                    if( !fromDeclaration ) _monitor.Warn( "Action declaration '{0}' not found. Action '{1}' can not be registered.", declaredName );
+                    if( !fromDeclaration ) _monitor.Warn().Send( "Action declaration '{0}' not found. Action '{1}' can not be registered.", declaredName );
                     return false;
                 }
                 ActionConfigurationResolved exists = _idxActions.GetValueWithDefault( name, null );
                 if( exists != null )
                 {
-                    _monitor.Error( "Action '{0}' can not be added. An action with the same name already exists.", name );
+                    _monitor.Error().Send( "Action '{0}' can not be added. An action with the same name already exists.", name );
                     return false;
                 }
                 var added = ActionConfigurationResolved.Create( _monitor, a, true, _idxActions.Count );
@@ -87,11 +87,11 @@ namespace CK.RouteConfig.Impl
         {
             try
             {
-                using( monitor.OpenGroup( LogLevel.Info, c.Name.Length > 0 ? "Resolving root configuration (name is '{0}')." : "Resolving root configuration.", c.Name ) )
+                using( monitor.OpenInfo().Send( c.Name.Length > 0 ? "Resolving root configuration (name is '{0}')." : "Resolving root configuration.", c.Name ) )
                 {
                     ProtoResolver protoResolver = new ProtoResolver( monitor, c );
                     NamedSubRoutes = new Dictionary<string, SubRouteConfigurationResolved>();
-                    using( monitor.OpenGroup( LogLevel.Info, "Building final routes." ) )
+                    using( monitor.OpenInfo().Send( "Building final routes." ) )
                     {
                         var preRoot = new PreRoute( monitor, protoResolver.Root );
                         Root = new RouteConfigurationResolved( protoResolver.Root.FullName, c.ConfigData, preRoot.FinalizeActions().AsReadOnlyList() );
@@ -110,7 +110,7 @@ namespace CK.RouteConfig.Impl
             }
             catch( Exception ex )
             {
-                monitor.Fatal( ex );
+                monitor.Fatal().Send( ex );
             }
         }
     }

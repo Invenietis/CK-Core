@@ -70,28 +70,32 @@
       <Link>Properties\SharedAssemblyInfo.cs</Link>
     </Compile>
     <Compile Include="ActivityMonitor\ActivityLogGroupConclusion.cs" />
-    <Compile Include="ActivityMonitor\ActivityMonitorData.cs" />
+    <Compile Include="ActivityMonitor\ActivityMonitorLogData.cs" />
+    <Compile Include="ActivityMonitor\ActivityMonitorGroupData.cs" />
+    <Compile Include="ActivityMonitor\IActivityMonitorGroupSender.cs" />
+    <Compile Include="ActivityMonitor\IActivityMonitorLineSender.cs" />
+    <Compile Include="ActivityMonitor\Impl\ActivityMonitorGroupSender.cs" />
     <Compile Include="ActivityMonitor\IActivityMonitor.cs" />
     <Compile Include="ActivityMonitor\IActivityMonitorBoundClient.cs" />
     <Compile Include="ActivityMonitor\IActivityMonitorClient.cs" />
     <Compile Include="ActivityMonitor\IActivityMonitorOutput.cs" />
     <Compile Include="ActivityMonitor\IActivityLogGroup.cs" />
+    <Compile Include="ActivityMonitor\IDisposableGroup.cs" />
     <Compile Include="ActivityMonitor\Impl\ActivityMonitorBridgeTarget.cs" />
     <Compile Include="ActivityMonitor\Client\ActivityMonitorConsoleClient.cs" />
     <Compile Include="ActivityMonitor\Client\ActivityMonitorErrorCounter.cs" />
     <Compile Include="ActivityMonitor\Client\ActivityMonitorClient.cs" />
-    <Compile Include="ActivityMonitor\Impl\ActivityMonitorExtension.Gen.cs">
+    <Compile Include="ActivityMonitor\Impl\ActivityMonitorLineSender-Gen.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
-      <DependentUpon>ActivityMonitorSend.Gen.tt</DependentUpon>
+      <DependentUpon>ActivityMonitorLineSender-Gen.tt</DependentUpon>
     </Compile>
-    <Compile Include="ActivityMonitor\Impl\ActivityMonitorExtension.WithoutTags.cs">
-      <SubType>Code</SubType>
+    <Compile Include="ActivityMonitor\Impl\ActivityMonitorExtension-Gen.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>ActivityMonitorExtension-Gen.tt</DependentUpon>
     </Compile>
-    <Compile Include="ActivityMonitor\Impl\ActivityMonitorExtension.WithTags.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="ActivityMonitor\ActivityMonitorLineSender.cs" />
+    <Compile Include="ActivityMonitor\Impl\ActivityMonitorLineSender.cs" />
     <Compile Include="ActivityMonitor\Impl\ActivityMonitorOutput.cs" />
     <Compile Include="ActivityMonitor\Client\ActivityMonitorPathCatcher.cs" />
     <Compile Include="ActivityMonitor\Client\ActivityMonitorSimpleCollector.cs" />
@@ -101,6 +105,11 @@
     <Compile Include="ActivityMonitor\Impl\ActivityMonitorBridge.cs" />
     <Compile Include="ActivityMonitor\Impl\ActivityMonitorExtension.cs" />
     <Compile Include="ActivityMonitor\Impl\ActivityMonitor.cs" />
+    <Compile Include="ActivityMonitor\Impl\ActivityMonitorGroupSender-Gen.cs">
+      <DependentUpon>ActivityMonitorGroupSender-Gen.tt</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+    </Compile>
     <Compile Include="ActivityMonitor\Impl\IActivityMonitorBridgeCallback.cs" />
     <Compile Include="ActivityMonitor\Impl\IActivityMonitorImpl.cs" />
     <Compile Include="ActivityMonitor\LogFilter.cs" />
@@ -133,7 +142,6 @@
     <Compile Include="SetOperation.cs" />
     <Compile Include="Trait\CKTrait.cs" />
     <Compile Include="Trait\CKTraitContext.cs" />
-    <Compile Include="IFluentInterface.cs" />
     <Compile Include="ISimpleTypeNaming.cs" />
     <Compile Include="File\TemporaryFile.cs" />
     <Compile Include="UniqueId\IVersionedUniqueId.cs" />
@@ -190,9 +198,17 @@
     <None Include="..\SharedKey.snk">
       <Link>Properties\SharedKey.snk</Link>
     </None>
-    <None Include="ActivityMonitor\Impl\ActivityMonitorSend.Gen.tt">
+    <None Include="ActivityMonitor\Impl\ActivityMonitorExtension-Gen.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
-      <LastGenOutput>ActivityMonitorExtension.Gen.cs</LastGenOutput>
+      <LastGenOutput>ActivityMonitorExtension-Gen.cs</LastGenOutput>
+    </None>
+    <None Include="ActivityMonitor\Impl\ActivityMonitorLineSender-Gen.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>ActivityMonitorLineSender-Gen.cs</LastGenOutput>
+    </None>
+    <None Include="ActivityMonitor\Impl\ActivityMonitorGroupSender-Gen.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>ActivityMonitorGroupSender-Gen.cs</LastGenOutput>
     </None>
   </ItemGroup>
   <ItemGroup>

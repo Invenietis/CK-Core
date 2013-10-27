@@ -22,7 +22,7 @@ namespace CK.Core.Tests.Monitoring
                 _monitor = monitor;
             }
 
-            protected override void OnUnfilteredLog( ActivityMonitorData data )
+            protected override void OnUnfilteredLog( ActivityMonitorLogData data )
             {
                 _monitor.Info().Send( "I'm buggy: I'm logging back in my monitor!" );
                 base.OnUnfilteredLog( data );
@@ -37,7 +37,7 @@ namespace CK.Core.Tests.Monitoring
                 _number = number;
             }
 
-            protected override void OnUnfilteredLog( ActivityMonitorData data )
+            protected override void OnUnfilteredLog( ActivityMonitorLogData data )
             {
                 Console.WriteLine( "NotBuggyActivityMonitorClient.OnUnfilteredLog n°{0}: {1}", _number, data.Text );
             }
@@ -51,7 +51,7 @@ namespace CK.Core.Tests.Monitoring
                 _log = log;
             }
 
-            protected override void OnUnfilteredLog( ActivityMonitorData data )
+            protected override void OnUnfilteredLog( ActivityMonitorLogData data )
             {
                 _log();
             }
@@ -65,7 +65,7 @@ namespace CK.Core.Tests.Monitoring
             readonly object _outLocker = new object();
             bool _outDone = false;
 
-            protected override void OnUnfilteredLog( ActivityMonitorData data )
+            protected override void OnUnfilteredLog( ActivityMonitorLogData data )
             {
                 lock( _locker )
                 {

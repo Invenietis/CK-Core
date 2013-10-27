@@ -277,7 +277,7 @@ namespace CK.Core
             return f; 
         }
 
-        void IActivityMonitorClient.OnUnfilteredLog( ActivityMonitorData data )
+        void IActivityMonitorClient.OnUnfilteredLog( ActivityMonitorLogData data )
         {
             // If the level is above the actual target filter, we always send the message.
             // If the level is lower: if the log has not been filtered (UnfilteredLog has been called and not an extension method) we must
@@ -288,7 +288,7 @@ namespace CK.Core
                 if( _targetMonitor != null ) _targetMonitor.UnfilteredLog( data );
                 else
                 {
-                    _bridgeTarget.UnfilteredLog( data.Tags.ToString(), level, data.Text, data.LogTimeUtc, data.FileName, data.LineNumber );
+                    _bridgeTarget.UnfilteredLog( data.Tags.ToString(), level, data.Text, data.EnsureExceptionData(), data.LogTimeUtc, data.FileName, data.LineNumber );
                 }
             }
         }

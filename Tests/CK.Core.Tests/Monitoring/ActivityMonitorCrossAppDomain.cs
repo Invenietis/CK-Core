@@ -50,7 +50,7 @@ namespace CK.Core.Tests.Monitoring
             {
                 Assert.That( MonitorBridge.TargetMonitor, Is.Not.Null, "Since we are in the original App Domain." );
                 Assert.That( MonitorBridge.TargetMonitor.ActualFilter, Is.EqualTo( expectedConfiguredAndActualFilter ) );
-                using( MonitorBridge.TargetMonitor.OpenGroup( LogLevel.Warn, "From Origin AppDomain: changing the Filter in a group (useless)." ) )
+                using( MonitorBridge.TargetMonitor.OpenWarn().Send( "From Origin AppDomain: changing the Filter in a group (useless)." ) )
                 {
                     // This change must be seen by the Bridge (but is restored).
                     MonitorBridge.TargetMonitor.MinimalFilter = MonitorBridge.TargetMonitor.MinimalFilter.SetLine( LogLevelFilter.Trace );
@@ -96,7 +96,7 @@ namespace CK.Core.Tests.Monitoring
                 AppDomainSetup setup = new AppDomainSetup();
                 setup.ApplicationBase = AppDomain.CurrentDomain.SetupInformation.ApplicationBase;
 
-                using( monitor.OpenGroup( LogLevel.Info, "Launching Application Domain." ) )
+                using( monitor.OpenInfo().Send( "Launching Application Domain." ) )
                 {
                     Assert.That( monitor.ActualFilter, Is.EqualTo( LogFilter.Terse ), "This is the original configuration." );
                     var appDomain = AppDomain.CreateDomain( "ExternalDomainForTestCrossDomainMonitor", null, setup );
@@ -136,13 +136,13 @@ namespace CK.Core.Tests.Monitoring
                 try
                 {
                     monitor.AutoTags = ActivityMonitor.RegisteredTags.FindOrCreate( "External App Domain|Test for fun" );
-                    monitor.OpenGroup( LogLevel.Info, "In another AppDomain." );
+                    monitor.OpenInfo().Send( "In another AppDomain." );
 
                     monitor.Trace().Send( "This will #NOT APPEAR# (Filter is LogFilter.Terse: only errors are captured)." );
                     monitor.Warn().Send( () => { Assert.Fail( "This will never be called." ); return null; } );
 
                     monitor.Error().Send( "From external world." );
-                    monitor.Error().Send( ActivityMonitor.RegisteredTags.FindOrCreate( "An error is logged|Marshalled trait" ), new Exception( "Exceptions are serialized as CKExceptionData." ), "From external world." );
+                    monitor.Error().Send( new Exception( "Exceptions are serialized as CKExceptionData." ), ActivityMonitor.RegisteredTags.FindOrCreate( "An error is logged|Marshalled trait" ), "From external world." );
                     monitor.Fatal().Send( "Name of the AppDomain is '{0}'.", AppDomain.CurrentDomain.FriendlyName );
                     monitor.CloseGroup( "Everything is fine." );
 
@@ -176,7 +176,7 @@ namespace CK.Core.Tests.Monitoring
                     appDomainComm.DoAsyncSetFilterViaClientInOriginDomain( LogFilter.Debug, resultingActualFilter: LogFilter.Debug );
                     Assert.That( monitor.ActualFilter, Is.EqualTo( LogFilter.Debug ) );
 
-                    monitor.OpenGroup( LogLevel.Info, "Opened but not closed Group..." );
+                    monitor.OpenInfo().Send( "Opened but not closed Group..." );
 
                     appDomainComm.SetResult( true );
                 }

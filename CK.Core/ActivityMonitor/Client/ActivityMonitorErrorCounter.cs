@@ -252,7 +252,7 @@ namespace CK.Core
         /// Updates error counters.
         /// </summary>
         /// <param name="data">Log data. Never null.</param>
-        protected override void OnUnfilteredLog( ActivityMonitorData data )
+        protected override void OnUnfilteredLog( ActivityMonitorLogData data )
         {
             _current.CatchLevel( data.Level&LogLevel.Mask );
         }

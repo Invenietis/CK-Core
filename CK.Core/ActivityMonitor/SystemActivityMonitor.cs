@@ -33,7 +33,7 @@ namespace CK.Core
                 if( !forceBuggyRemove && source == null ) throw new InvalidOperationException();
             }
 
-            public void OnUnfilteredLog( ActivityMonitorData data )
+            public void OnUnfilteredLog( ActivityMonitorLogData data )
             {
                 var level = data.Level & LogLevel.Mask;
                 if( level >= LogLevel.Error )

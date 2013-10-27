@@ -8,8 +8,9 @@ namespace CK.Core
 {
     /// <summary>
     /// Data required by <see cref="IActivityMonitor.UnfilteredLog"/>.
+    /// This is also the base class for <see cref="ActivityMonitorGroupData"/>.
     /// </summary>
-    public class ActivityMonitorData
+    public class ActivityMonitorLogData
     {
         string _text;
         CKTrait _tags;
@@ -18,7 +19,8 @@ namespace CK.Core
         CKExceptionData _exceptionData;
 
         /// <summary>
-        /// Log level. If the log has been successfully filtered, the <see cref="LogLevel.IsFiltered"/> bit flag is set.
+        /// Log level. Can not be <see cref="LogLevel.None"/>.
+        /// If the log has been successfully filtered, the <see cref="LogLevel.IsFiltered"/> bit flag is set.
         /// </summary>
         public readonly LogLevel Level;
 
@@ -26,7 +28,7 @@ namespace CK.Core
         /// The actual level (<see cref="LogLevel.Trace"/> to <see cref="LogLevel.Fatal"/>) associated to this group
         /// without <see cref="LogLevel.IsFiltered"/> bit flag.
         /// </summary>
-        public readonly LogLevel MaskedGroupLevel;
+        public readonly LogLevel MaskedLevel;
 
         /// <summary>
         /// Name of the source file that emitted the log. Can be null.
@@ -39,7 +41,7 @@ namespace CK.Core
         public readonly int LineNumber;
 
         /// <summary>
-        /// Gets whether this log data has been successfuly filtered.
+        /// Gets whether this log data has been successfuly filtered (otherwise it is an unfiltered log).
         /// </summary>
         public bool IsFilteredLog
         {
@@ -47,7 +49,8 @@ namespace CK.Core
         }
 
         /// <summary>
-        /// Tags of the log. Never null.
+        /// Tags (from <see cref="ActivityMonitor.RegisteredTags"/>) associated to the log. 
+        /// It will be unioned with the current <see cref="IActivityMonitor.AutoTags"/>.</param>
         /// </summary>
         public CKTrait Tags
         {
@@ -55,7 +58,7 @@ namespace CK.Core
         }
 
         /// <summary>
-        /// Text of the log. Can be null.
+        /// Text of the log. Can not be null.
         /// </summary>
         public string Text
         {
@@ -102,7 +105,7 @@ namespace CK.Core
         /// Gets or creates the <see cref="CKExceptionData"/> that captures exception information.
         /// If <see cref="P:Exception"/> is null, this returns null.
         /// </summary>
-        /// <returns></returns>
+        /// <returns>A data representation of the exception or null.</returns>
         public CKExceptionData EnsureExceptionData()
         {
             return _exceptionData ?? (_exceptionData = CKExceptionData.CreateFrom( _exception ));
@@ -117,48 +120,48 @@ namespace CK.Core
         }
 
         /// <summary>
-        /// Initializes a new <see cref="ActivityMonitorData"/>.
+        /// Initializes a new <see cref="ActivityMonitorLogData"/>.
         /// </summary>
         /// <param name="level">Log level. Can not be <see cref="LogLevel.None"/>.</param>
-        /// <param name="tags">Tags of the log. Can be null.</param>
+        /// <param name="exception">Exception of the log. Can be null.</param>
+        /// <param name="tags">Tags (from <see cref="ActivityMonitor.RegisteredTags"/>) to associate to the log. It will be unioned with the current <see cref="IActivityMonitor.AutoTags"/>.</param>
         /// <param name="text">Text of the log. Can be null or empty only if <paramref name="exception"/> is not null: the <see cref="Exception.Message"/> is the text.</param>
         /// <param name="logTimeUtc">Date and time of the log. Must be in UTC.</param>
-        /// <param name="exception">Exception of the log. Can be null.</param>
         /// <param name="fileName">Name of the source file that emitted the log. Can be null.</param>
         /// <param name="lineNumber">Line number in the source filethat emitted the log. Can be null.</param>
-        public ActivityMonitorData( LogLevel level, CKTrait tags, string text, DateTime logTimeUtc, Exception exception, string fileName, int lineNumber )
+        public ActivityMonitorLogData( LogLevel level, Exception exception, CKTrait tags, string text, DateTime logTimeUtc, string fileName, int lineNumber )
             : this( level, fileName, lineNumber )
         {
-            if( logTimeUtc.Kind != DateTimeKind.Utc ) throw new ArgumentException( R.DateTimeMustBeUtc, "logTimeUtc" );
-            if( level == LogLevel.None ) throw new ArgumentException( R.ActivityMonitorLogLevelMustNotBeNone, "level" );
-            if( String.IsNullOrEmpty( (_text = text) ) )
-            {
-                if( exception == null ) throw new ArgumentNullException( "text" );
-                _text = exception.Message;
-            }
-            _tags = tags ?? ActivityMonitor.EmptyTag;
-            _logTimeUtc = logTimeUtc;
+            if( MaskedLevel == LogLevel.None || MaskedLevel == LogLevel.Mask ) throw new ArgumentException( R.ActivityMonitorInvalidLogLevel, "level" );
+            Initialize( text, exception, tags, logTimeUtc );
         }
 
-        internal ActivityMonitorData( LogLevel level, string fileName, int lineNumber )
+        internal ActivityMonitorLogData( LogLevel level, string fileName, int lineNumber )
         {
-            Debug.Assert( level != LogLevel.None );
+            // level == LogLevel.None is for fake senders (when log filtering is rejected).
             Level = level;
-            MaskedGroupLevel = level & LogLevel.Mask;
+            MaskedLevel = level & LogLevel.Mask;
             FileName = fileName;
             LineNumber = lineNumber;
         }
 
+        /// <summary>
+        /// Used only to initialize a ActivityMonitorGroupSender for rejected opened group.
+        /// </summary>
+        internal ActivityMonitorLogData()
+        {
+            Debug.Assert( Level == LogLevel.None );
+        }
+
         internal void Initialize( string text, Exception exception, CKTrait tags, DateTime logTimeUtc )
         {
-            Debug.Assert( logTimeUtc.Kind == DateTimeKind.Utc );
+            if( logTimeUtc.Kind != DateTimeKind.Utc ) throw new ArgumentException( R.DateTimeMustBeUtc, "logTimeUtc" );
             if( String.IsNullOrEmpty( (_text = text) ) )
             {
                 if( exception == null ) throw new ArgumentNullException( "text" );
                 _text = exception.Message;
             }
             _exception = exception;
-            if( _text == null ) _text = exception.Message;
             _tags = tags ?? ActivityMonitor.EmptyTag;
             _logTimeUtc = logTimeUtc;
         }

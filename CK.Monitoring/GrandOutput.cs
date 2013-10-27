@@ -120,7 +120,7 @@ namespace CK.Monitoring
         {
             if( config == null ) throw new ArgumentNullException( "config" );
             if( monitor == null ) monitor = new SystemActivityMonitor();
-            using( monitor.OpenGroup( LogLevel.Info, this == Default ? "Default GrandOutput configuration." : "GrandOutput configuration." ) )
+            using( monitor.OpenInfo().Send( this == Default ? "Default GrandOutput configuration." : "GrandOutput configuration." ) )
             {
                 if( _channelHost.SetConfiguration( monitor, config.RouteConfiguration, millisecondsBeforeForceClose ) )
                 {

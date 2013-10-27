@@ -128,7 +128,7 @@ namespace CK.Core
         /// Appends any log with level equal or above <see cref="MinimalFilter"/> to <see cref="Entries"/>.
         /// </summary>
         /// <param name="data">Log data. Never null.</param>
-        void IActivityMonitorClient.OnUnfilteredLog( ActivityMonitorData data )
+        void IActivityMonitorClient.OnUnfilteredLog( ActivityMonitorLogData data )
         {
             var level = data.Level & LogLevel.Mask;
             if( (int)level >= (int)_filter )

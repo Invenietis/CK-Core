@@ -32,7 +32,7 @@ namespace CK.Monitoring
             }
             catch( Exception ex )
             {
-                monitor.Error( ex );
+                monitor.Error().Send( ex );
                 return false;
             }
         }
@@ -48,7 +48,7 @@ namespace CK.Monitoring
             }
             catch( Exception ex )
             {
-                monitor.Error( ex );
+                monitor.Error().Send( ex );
             }
             return false;
         }
@@ -57,7 +57,6 @@ namespace CK.Monitoring
         {
             get { return _routeConfig; }
         }
-
 
         void FillRoute( XElement xml, RouteConfiguration route )
         {

@@ -151,6 +151,7 @@ namespace CK.Core
         int _enteredThreadId;
         Guid _uniqueId;
         string _topic;
+
         bool _actualFilterIsDirty;
 
         /// <summary>
@@ -259,7 +260,7 @@ namespace CK.Core
             _topic = newTopic;
             _output.BridgeTarget.TargetTopicChanged( newTopic, fileName, lineNumber );
             MonoParameterSafeCall( ( client, topic ) => client.OnTopicChanged( topic, fileName, lineNumber ), newTopic );
-            DoUnfilteredLog( new ActivityMonitorData( LogLevel.Info, TagMonitorTopicChanged, "Topic:" + newTopic, DateTime.UtcNow, null, fileName, lineNumber ) );
+            DoUnfilteredLog( new ActivityMonitorLogData( LogLevel.Info, null, TagMonitorTopicChanged, "Topic:" + newTopic, DateTime.UtcNow, fileName, lineNumber ) );
         }
 
         /// <summary>
@@ -482,26 +483,20 @@ namespace CK.Core
         /// the <paramref name="level"/> is the same as the previous one.
         /// See remarks.
         /// </summary>
-        /// <param name="tags">Tags (from <see cref="RegisteredTags"/>) to associate to the log, combined with current <see cref="AutoTags"/>.</param>
-        /// <param name="level">Log level.</param>
-        /// <param name="text">Text to log. Ignored if null or empty.</param>
-        /// <param name="logTimeUtc">Timestamp of the log entry (must be Utc).</param>
-        /// <param name="ex">Optional exception associated to the log. When not null, a Group is automatically created.</param>
-        /// <param name="fileName">The source code file name from which the log is emitted.</param>
-        /// <param name="lineNumber">The line number in the source from which the log is emitted.</param>
+        /// <param name="data">Data that describes the log. Can not be null.</param>
         /// <remarks>
         /// A null or empty <paramref name="text"/> is not logged.
         /// If needed, the special text <see cref="ActivityMonitor.ParkLevel"/> ("PARK-LEVEL") breaks the current <see cref="LogLevel"/>
         /// and resets it: the next log, even with the same LogLevel, will be treated as if
         /// a different LogLevel is used.
         /// </remarks>
-        public void UnfilteredLog( ActivityMonitorData logLine )
+        public void UnfilteredLog( ActivityMonitorLogData data )
         {
-            if( logLine == null ) throw new ArgumentNullException( "logLine" );
+            if( data == null ) throw new ArgumentNullException( "data" );
             ReentrantAndConcurrentCheck();
             try
             {
-                DoUnfilteredLog( logLine );
+                DoUnfilteredLog( data );
             }
             finally
             {
@@ -509,68 +504,65 @@ namespace CK.Core
             }
         }
 
-        void DoUnfilteredLog( ActivityMonitorData data )
+        void DoUnfilteredLog( ActivityMonitorLogData data )
         {
             Debug.Assert( _enteredThreadId == Thread.CurrentThread.ManagedThreadId );
             Debug.Assert( data.Level != LogLevel.None );
             Debug.Assert( !String.IsNullOrEmpty( data.Text ) );
 
-            if( data.Exception != null )
+            data.CombineTags( _currentTag );
+            List<IActivityMonitorClient> buggyClients = null;
+            foreach( var l in _output.Clients )
             {
-                DoOpenGroup( data.Tags, data.Level, null, data.Text, data.LogTimeUtc, data.FileName, data.LineNumber, data.Exception );
-                DoCloseGroup( data.LogTimeUtc );
+                try
+                {
+                    l.OnUnfilteredLog( data );
+                }
+                catch( Exception exCall )
+                {
+                    MonitoringError.Add( exCall, l.GetType().FullName );
+                    if( buggyClients == null ) buggyClients = new List<IActivityMonitorClient>();
+                    buggyClients.Add( l );
+                }
             }
-            else
+            if( buggyClients != null )
             {
-                data.CombineTags( _currentTag );
-                List<IActivityMonitorClient> buggyClients = null;
-                foreach( var l in _output.Clients )
-                {
-                    try
-                    {
-                        l.OnUnfilteredLog( data );
-                    }
-                    catch( Exception exCall )
-                    {
-                        MonitoringError.Add( exCall, l.GetType().FullName );
-                        if( buggyClients == null ) buggyClients = new List<IActivityMonitorClient>();
-                        buggyClients.Add( l );
-                    }
-                }
-                if( buggyClients != null )
-                {
-                    foreach( var l in buggyClients ) _output.ForceRemoveBuggyClient( l );
-                    _clientFilter = DoGetBoundClientMinimalFilter();
-                    UpdateActualFilter();
-                }
+                foreach( var l in buggyClients ) _output.ForceRemoveBuggyClient( l );
+                _clientFilter = DoGetBoundClientMinimalFilter();
+                UpdateActualFilter();
             }
         }
 
 
         /// <summary>
-        /// Opens a <see cref="Group"/> configured with the given parameters.
+        /// Opens a group regardless of <see cref="ActualFilter"/> level. 
+        /// <see cref="CloseGroup"/> must be called in order to close the group, and/or the returned object must be disposed (both safely can be called: 
+        /// the group is closed on the first action, the second one is ignored).
         /// </summary>
-        /// <param name="tags">Tags (from <see cref="RegisteredTags"/>) to associate to the log, combined with current <see cref="AutoTags"/>.</param>
-        /// <param name="level">The log level of the group.</param>
-        /// <param name="getConclusionText">
-        /// Optional function that will be called on group closing to obtain a conclusion
-        /// if no explicit conclusion is provided through <see cref="CloseGroup"/>.
-        /// </param>
-        /// <param name="text">Text to log (the title of the group). Null text is valid and considered as <see cref="String.Empty"/> or assigned to the <see cref="Exception.Message"/> if it exists.</param>
-        /// <param name="logTimeUtc">Timestamp of the log entry (must be UTC).</param>
-        /// <param name="fileName">The source code file name from which the group is opened.</param>
-        /// <param name="lineNumber">The line number in the source from which the group is opened.</param>
-        /// <param name="ex">Optional exception associated to the group.</param>
-        /// <returns>The <see cref="Group"/> that can be disposed to close it.</returns>
-        public virtual IDisposable UnfilteredOpenGroup( CKTrait tags, LogLevel level, Func<string> getConclusionText, string text, DateTime logTimeUtc, Exception ex = null, [CallerFilePath]string fileName = null, [CallerLineNumber]int lineNumber = 0 )
+        /// <param name="data">Data that describes the log. Can not be null.</param>
+        /// <returns>A disposable object that can be used to set a function that provides a conclusion text and/or close the group.</returns>
+        /// <remarks>
+        /// <para>
+        /// Opening a group does not change the current <see cref="MinimalFilter"/>, except when opening a <see cref="LogLevel.Fatal"/> or <see cref="LogLevel.Error"/> group:
+        /// in such case, the MinimalFilter is automatically sets to <see cref="LogFilter.Debug"/> to capture all potential information inside the error group.
+        /// </para>
+        /// <para>
+        /// Changes to the monitor's current Filter or AutoTags that occur inside a group are automatically restored to their original values when the group is closed.
+        /// This behavior guaranties that a local modification (deep inside unknown called code) does not impact caller code: groups are a way to easily isolate such 
+        /// configuration changes.
+        /// </para>
+        /// <para>
+        /// Note that this automatic configuration restoration works even if the group is filtered (when the <paramref name="level"/> is None).
+        /// </para>
+        /// </remarks>
+        public virtual IDisposableGroup UnfilteredOpenGroup( ActivityMonitorGroupData data )
         {
-            if( level == LogLevel.IsFiltered ) throw new ArgumentException( "level" );
-            if( logTimeUtc.Kind != DateTimeKind.Utc && level != LogLevel.None ) throw new ArgumentException( R.DateTimeMustBeUtc, "logTimeUtc" );
+            if( data == null ) throw new ArgumentNullException( "data" );
 
             ReentrantAndConcurrentCheck();
             try
             {
-                return DoOpenGroup( tags, level, getConclusionText, text, logTimeUtc, fileName, lineNumber, ex );
+                return DoOpenGroup( data );
             }
             finally
             {
@@ -578,10 +570,9 @@ namespace CK.Core
             }
         }
 
-        IDisposable DoOpenGroup( CKTrait tags, LogLevel level, Func<string> getConclusionText, string text, DateTime logTimeUtc, string fileName, int lineNumber, Exception ex = null )
+        IDisposableGroup DoOpenGroup( ActivityMonitorGroupData data )
         {
             Debug.Assert( _enteredThreadId == Thread.CurrentThread.ManagedThreadId );
-            Debug.Assert( logTimeUtc.Kind == DateTimeKind.Utc || level == LogLevel.None );
 
             int idxNext = _current != null ? _current.Index + 1 : 0;
             if( idxNext == _groups.Length )
@@ -590,15 +581,14 @@ namespace CK.Core
                 for( int i = idxNext; i < _groups.Length; ++i ) _groups[i] = CreateGroup( i );
             }
             _current = _groups[idxNext];
-            if( level == LogLevel.None )
+            if( data.Level == LogLevel.None )
             {
-                _current.InitializeFilteredGroup();
+                _current.InitializeRejectedGroup( data );
             }
             else
             {
-                if( tags == null || tags.IsEmpty ) tags = _currentTag;
-                else tags = _currentTag.Union( tags );
-                _current.Initialize( tags, level, text ?? (ex != null ? ex.Message : String.Empty), getConclusionText, logTimeUtc, fileName, lineNumber, ex );
+                data.CombineTags( _currentTag );
+                _current.Initialize( data );
                 _currentUnfiltered = _current;
                 MonoParameterSafeCall( ( client, group ) => client.OnOpenGroup( group ), _current ); 
             }
@@ -637,7 +627,7 @@ namespace CK.Core
             Group g = _current;
             if( g != null )
             {
-                // Handles th filtered case first (easiest).
+                // Handles the rejected case first (easiest).
                 if( g.GroupLevel == LogLevel.None )
                 {
                     if( g.SavedMonitorFilter != _configuredFilter ) DoSetConfiguredFilter( g.SavedMonitorFilter );

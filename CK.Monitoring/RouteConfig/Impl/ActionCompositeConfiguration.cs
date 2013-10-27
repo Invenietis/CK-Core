@@ -55,7 +55,7 @@ namespace CK.RouteConfig.Impl
                 {
                     if( _children[j].Name == child.Name )
                     {
-                        monitor.Error( "Duplicate action name '{0}' in {1} '{2}', route '{3}'.", child.Name, TypeDisplayName, Name, routeName );
+                        monitor.Error().Send( "Duplicate action name '{0}' in {1} '{2}', route '{3}'.", child.Name, TypeDisplayName, Name, routeName );
                         validChild = false;
                     }
                 }
@@ -89,17 +89,17 @@ namespace CK.RouteConfig.Impl
                 {
                     if( a.Name == Name )
                     {
-                        monitor.Warn( "Action n°{2} '{0}' has the name of its parent {1}.", a.Name, TypeDisplayName, i+1 );
+                        monitor.Warn().Send( "Action n°{2} '{0}' has the name of its parent {1}.", a.Name, TypeDisplayName, i+1 );
                     }
                     else
                     {
                         if( _isParallel )
                         {
-                            monitor.Warn( "Duplicate name '{0}' found in {1} (action n°{2}).", a.Name, _parDisplayName, i + 1 );
+                            monitor.Warn().Send( "Duplicate name '{0}' found in {1} (action n°{2}).", a.Name, _parDisplayName, i + 1 );
                         }
                         else
                         {
-                            monitor.Error( "Action n°{2}'s name '{0}' alreay appears in {1}. In a {1}, names must be unique.", a.Name, _seqDisplayName );
+                            monitor.Error().Send( "Action n°{2}'s name '{0}' alreay appears in {1}. In a {1}, names must be unique.", a.Name, _seqDisplayName );
                             formalError = true;
                         }
                     }

@@ -54,11 +54,11 @@ namespace CK.Core
 
         /// <summary>
         /// Called for each <see cref="IActivityMonitor.UnfilteredLog"/>. Does nothing by default.
-        /// The <see cref="ActivityMonitorData.Exception"/> is always null since exceptions
+        /// The <see cref="ActivityMonitorLogData.Exception"/> is always null since exceptions
         /// are carried by groups.
         /// </summary>
         /// <param name="data">Log data. Never null.</param>
-        protected virtual void OnUnfilteredLog( ActivityMonitorData data )
+        protected virtual void OnUnfilteredLog( ActivityMonitorLogData data )
         {
         }
 
@@ -128,7 +128,7 @@ namespace CK.Core
 
         #region IActivityMonitorClient Members
 
-        void IActivityMonitorClient.OnUnfilteredLog( ActivityMonitorData data )
+        void IActivityMonitorClient.OnUnfilteredLog( ActivityMonitorLogData data )
         {
             OnUnfilteredLog( data );
         }

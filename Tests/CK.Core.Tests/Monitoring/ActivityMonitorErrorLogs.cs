@@ -44,7 +44,7 @@ namespace CK.Core.Tests.Monitoring
         readonly StringBuilder _buffer = new StringBuilder();
         string _prefix = "";
 
-        public void OnUnfilteredLog( ActivityMonitorData data )
+        public void OnUnfilteredLog( ActivityMonitorLogData data )
         {
             lock( _buffer ) _buffer.Append( _prefix ).AppendFormat( "[{0}]{1}", data.Level, data.Text ).AppendLine();
         }
@@ -120,7 +120,7 @@ namespace CK.Core.Tests.Monitoring
 
         #region IActivityMonitorClient Members
 
-        public void OnUnfilteredLog( ActivityMonitorData data )
+        public void OnUnfilteredLog( ActivityMonitorLogData data )
         {
             MayFail();
         }
@@ -182,7 +182,7 @@ namespace CK.Core.Tests.Monitoring
                 if( op < 1.0 / 60 ) _monitor.MinimalFilter = _monitor.MinimalFilter == LogFilter.Debug ? LogFilter.Verbose : LogFilter.Debug;
                 
                 if( op < 1.0/3 ) _monitor.Info().Send( "OP-{0}-{1}", NumMonitor, i );
-                else if( op < 2.0/3 ) _monitor.OpenGroup( LogLevel.Info, "G-OP-{0}-{1}", NumMonitor, i );
+                else if( op < 2.0/3 ) _monitor.OpenInfo().Send( "G-OP-{0}-{1}", NumMonitor, i );
                 else _monitor.CloseGroup();
             }
             _monitor.Info().Send( "ThreadContext{0}End", NumMonitor );

@@ -44,7 +44,7 @@ namespace CK.Core
             _curLevel = -1;
         }
 
-        void IActivityMonitorClient.OnUnfilteredLog( ActivityMonitorData data )
+        void IActivityMonitorClient.OnUnfilteredLog( ActivityMonitorLogData data )
         {
             var level = data.Level & LogLevel.Mask;
             if( data.Text == ActivityMonitor.ParkLevel )
@@ -59,7 +59,7 @@ namespace CK.Core
             {
                 if( _curLevel == (int)level )
                 {
-                    OnContinueOnSameLevel( data.Tags, level, data.Text, data.LogTimeUtc, data.FileName, data.LineNumber );
+                    OnContinueOnSameLevel( data );
                 }
                 else
                 {
@@ -67,7 +67,7 @@ namespace CK.Core
                     {
                         OnLeaveLevel( (LogLevel)_curLevel );
                     }
-                    OnEnterLevel( data.Tags, level, data.Text, data.LogTimeUtc, data.FileName, data.LineNumber );
+                    OnEnterLevel( data );
                     _curLevel = (int)level;
                 }
             }
@@ -100,24 +100,14 @@ namespace CK.Core
         /// <summary>
         /// Called for the first text of a <see cref="LogLevel"/>.
         /// </summary>
-        /// <param name="tags">Tags (from <see cref="ActivityMonitor.RegisteredTags"/>) associated to the log.</param>
-        /// <param name="level">The new current log level (without <see cref="LogLevel.IsFiltered"/> bit flag).</param>
-        /// <param name="text">Text to start.</param>
-        /// <param name="logTimeUtc">Timestamp of the log.</param>
-        /// <param name="fileName">Source file name.</param>
-        /// <param name="lineNumber">Source line number.</param>
-        protected abstract void OnEnterLevel( CKTrait tags, LogLevel level, string text, DateTime logTimeUtc, string fileName, int lineNumber );
+        /// <param name="data">Log data.</param>
+        protected abstract void OnEnterLevel( ActivityMonitorLogData data );
 
         /// <summary>
         /// Called for text with the same <see cref="LogLevel"/> as the previous ones.
         /// </summary>
-        /// <param name="tags">Tags (from <see cref="ActivityMonitor.RegisteredTags"/>) associated to the log.</param>
-        /// <param name="level">The current log level (without <see cref="LogLevel.IsFiltered"/> bit flag).</param>
-        /// <param name="text">Text to append.</param>
-        /// <param name="logTimeUtc">Timestamp of the log.</param>
-        /// <param name="fileName">Source file name.</param>
-        /// <param name="lineNumber">Source line number.</param>
-        protected abstract void OnContinueOnSameLevel( CKTrait tags, LogLevel level, string text, DateTime logTimeUtc, string fileName, int lineNumber );
+        /// <param name="data">Log data.</param>
+        protected abstract void OnContinueOnSameLevel( ActivityMonitorLogData data );
 
         /// <summary>
         /// Called when current log level changes.

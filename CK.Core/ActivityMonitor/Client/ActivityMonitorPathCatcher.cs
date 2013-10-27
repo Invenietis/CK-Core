@@ -161,7 +161,7 @@ namespace CK.Core
         /// and handles errors or warning.
         /// </summary>
         /// <param name="data">Log data. Never null.</param>
-        protected override void OnUnfilteredLog( ActivityMonitorData data )
+        protected override void OnUnfilteredLog( ActivityMonitorLogData data )
         {
             if( data.Text != ActivityMonitor.ParkLevel )
             {

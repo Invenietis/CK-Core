@@ -35,11 +35,11 @@ namespace CK.Core
     {
         /// <summary>
         /// Called for each <see cref="IActivityMonitor.UnfilteredLog"/>.
-        /// The <see cref="ActivityMonitorData.Exception"/> is always null since exceptions
+        /// The <see cref="ActivityMonitorLogData.Exception"/> is always null since exceptions
         /// are carried by groups.
         /// </summary>
         /// <param name="data">Log data. Never null.</param>
-        void OnUnfilteredLog( ActivityMonitorData data );
+        void OnUnfilteredLog( ActivityMonitorLogData data );
 
         /// <summary>
         /// Called for each <see cref="IActivityMonitor.UnfilteredOpenGroup"/>.

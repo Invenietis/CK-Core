@@ -39,7 +39,7 @@ namespace CK.Core
         /// Groups are bound to an <see cref="ActivityMonitor"/> and are linked together from 
         /// the current one to the very first one (a kind of stack).
         /// </summary>
-        protected class Group : IActivityLogGroup, IDisposable
+        protected class Group : IActivityLogGroup, IDisposableGroup
         {
             /// <summary>
             /// The monitor that owns this group.
@@ -50,20 +50,11 @@ namespace CK.Core
             /// The raw index of the group. 
             /// </summary>
             public readonly int Index;
-            
-            string _text;
-            CKTrait _tags;
-            DateTime _logTime;
+
+            ActivityMonitorGroupData _data;
             DateTime _closeLogTime;
-            Exception _exception;
-            CKExceptionData _exceptionData;
-            Func<string> _getConclusion;
             Group _unfilteredParent;
             int _depth;
-            LogLevel _level;
-            LogLevel _maskedLevel;
-            string _fileName;
-            int _lineNumber;
 
             /// <summary>
             /// Initialized a new Group at a given index.
@@ -79,59 +70,40 @@ namespace CK.Core
             /// <summary>
             /// Initializes or reinitializes this group (if it has been disposed). 
             /// </summary>
-            /// <param name="tags">Tags for the group.</param>
-            /// <param name="level">The <see cref="GroupLevel"/>.</param>
-            /// <param name="text">The <see cref="GroupText"/>.</param>
-            /// <param name="getConclusionText">
-            /// Optional delegate to call on close to obtain a conclusion text if no 
-            /// explicit conclusion is provided through <see cref="IActivityMonitor.CloseGroup"/>.
-            /// </param>
-            /// <param name="logTimeUtc">Timestamp of the log (must be UTC).</param>
-            /// <param name="ex">Optional exception associated to the group.</param>
-            internal protected virtual void Initialize( CKTrait tags, LogLevel level, string text, Func<string> getConclusionText, DateTime logTimeUtc, string fileName, int lineNumber, Exception ex )
+            internal protected virtual void Initialize( ActivityMonitorGroupData data )
             {
                 SavedMonitorFilter = Monitor._configuredFilter;
                 SavedMonitorTags = Monitor._currentTag;
                 if( (_unfilteredParent = Monitor._currentUnfiltered) != null ) _depth = _unfilteredParent._depth + 1;
                 else _depth = 1;
-                _level = level;
-                _maskedLevel = level & LogLevel.Mask;
                 // Logs everything when a Group is an error: we then have full details without
                 // logging all with Error or Fatal.
-                if( _maskedLevel >= LogLevel.Error && Monitor._configuredFilter != LogFilter.Debug ) Monitor.DoSetConfiguredFilter( LogFilter.Debug );
-                _logTime = logTimeUtc;
+                if( data.MaskedLevel >= LogLevel.Error && Monitor._configuredFilter != LogFilter.Debug ) Monitor.DoSetConfiguredFilter( LogFilter.Debug );
                 _closeLogTime = DateTime.MinValue;
-                _text = text ?? String.Empty;
-                _tags = tags ?? ActivityMonitor.EmptyTag;
-                _getConclusion = getConclusionText;
-                _exception = ex;
-                _fileName = fileName;
-                _lineNumber = lineNumber;
+                _data = data;
             }
 
             /// <summary>
             /// Initializes or reinitializes this group (if it has been disposed) as a filtered group. 
             /// </summary>
-            internal protected virtual void InitializeFilteredGroup()
+            internal protected virtual void InitializeRejectedGroup( ActivityMonitorGroupData data )
             {
                 SavedMonitorFilter = Monitor._configuredFilter;
                 SavedMonitorTags = Monitor._currentTag;
                 _unfilteredParent = Monitor._currentUnfiltered;
                 _depth = 0;
-                _level = _maskedLevel = LogLevel.None;
-                _text = String.Empty;
-                _tags = ActivityMonitor.EmptyTag;
+                _data = data;
             }
 
             /// <summary>
             /// Gets the tags for the log group.
             /// </summary>
-            public CKTrait GroupTags { get { return _tags; } }
+            public CKTrait GroupTags { get { return _data.Tags; } }
 
             /// <summary>
             /// Gets the log time for the log.
             /// </summary>
-            public DateTime LogTimeUtc { get { return _logTime; } }
+            public DateTime LogTimeUtc { get { return _data.LogTimeUtc; } }
 
             /// <summary>
             /// Gets the log time of the group closing.
@@ -147,21 +119,7 @@ namespace CK.Core
             /// Gets the <see cref="CKExceptionData"/> that captures exception information 
             /// if it exists. Returns null if no <see cref="P:Exception"/> exists.
             /// </summary>
-            public CKExceptionData ExceptionData
-            {
-                get
-                {
-                    if( _exceptionData == null && _exception != null )
-                    {
-                        CKException ckEx = _exception as CKException;
-                        if( ckEx != null )
-                        {
-                            _exceptionData = ckEx.ExceptionData;
-                        }
-                    }
-                    return _exceptionData;
-                }
-            }
+            public CKExceptionData ExceptionData { get { return _data.ExceptionData;  } }
 
             /// <summary>
             /// Gets or creates the <see cref="CKExceptionData"/> that captures exception information.
@@ -170,7 +128,7 @@ namespace CK.Core
             /// <returns></returns>
             public CKExceptionData EnsureExceptionData()
             {
-                return _exceptionData ?? (_exceptionData = CKExceptionData.CreateFrom( _exception ));
+                return _data.EnsureExceptionData();
             }
 
             /// <summary>
@@ -185,26 +143,26 @@ namespace CK.Core
 
             /// <summary>
             /// Gets the level associated to this group.
-            /// The <see cref="LogLevel.IsFiltered"/> can be set here: use <see cref="MaskedGroupLevel"/> to get 
+            /// The <see cref="LogLevel.IsFiltered"/> can be set here: use <see cref="MaskedLevel"/> to get 
             /// the actual level from <see cref="LogLevel.Trace"/> to <see cref="LogLevel.Fatal"/>.
             /// </summary>
-            public LogLevel GroupLevel { get { return _level; } }
+            public LogLevel GroupLevel { get { return _data.Level; } }
 
             /// <summary>
             /// Gets the actual level (from <see cref="LogLevel.Trace"/> to <see cref="LogLevel.Fatal"/>) associated to this group
             /// without <see cref="LogLevel.IsFiltered"/> bit.
             /// </summary>
-            public LogLevel MaskedGroupLevel { get { return _maskedLevel; } }
+            public LogLevel MaskedGroupLevel { get { return _data.MaskedLevel; } }
 
             /// <summary>
             /// Gets the text with which this group has been opened. Null if and only if the group is closed.
             /// </summary>
-            public string GroupText { get { return _text; } }
+            public string GroupText { get { return _data.Text; } }
 
             /// <summary>
             /// Gets the associated <see cref="Exception"/> if it exists.
             /// </summary>
-            public Exception Exception { get { return _exception; } }
+            public Exception Exception { get { return _data.Exception; } }
 
             /// <summary>
             /// Gets or sets the <see cref="IActivityMonitor.MinimalFilter"/> that will be restored when group will be closed.
@@ -223,34 +181,40 @@ namespace CK.Core
             /// </summary>
             public bool IsGroupTextTheExceptionMessage 
             {
-                get { return _exception != null && ReferenceEquals( _exception.Message, GroupText ); } 
+                get { return _data.IsTextTheExceptionMessage; } 
             }
 
             /// <summary>
             /// Gets the file name of the source code that issued the log.
             /// </summary>
-            public string FileName { get { return _fileName; } }
+            public string FileName { get { return _data.FileName; } }
 
             /// <summary>
             /// Gets the line number of the <see cref="FileName"/> that issued the log.
             /// </summary>
-            public int LineNumber { get { return _lineNumber; } }
+            public int LineNumber { get { return _data.LineNumber; } }
 
             /// <summary>
-            /// Gets or sets an optional function that will be called on group closing. 
+            /// Gets or sets the optional function that will be called on group closing. 
             /// </summary>
             protected Func<string> GetConclusionText 
             { 
-                get { return _getConclusion; } 
-                set { _getConclusion = value; } 
+                get { return _data.GetConclusionText; }
+                set { _data.GetConclusionText = value; } 
             }
       
+            IDisposable IDisposableGroup.ConcludeWith( Func<string> getConclusionText )
+            {
+                _data.GetConclusionText = getConclusionText;
+                return this;
+            }
+
             /// <summary>
             /// Ensures that any groups opened after this one are closed before closing this one.
             /// </summary>
             void IDisposable.Dispose()
             {
-                if( _text != null )
+                if( _data != null )
                 {
                     while( Monitor._current != this ) ((IDisposable)Monitor._current).Dispose();
                     Monitor.CloseGroup( DateTime.UtcNow, null );
@@ -259,43 +223,19 @@ namespace CK.Core
 
             internal void GroupClosing( ref List<ActivityLogGroupConclusion> conclusions )
             {
-                string auto = ConsumeConclusionText();
+                string auto = _data.ConsumeConclusionText();
                 if( auto != null )
                 {
                     if( conclusions == null ) conclusions = new List<ActivityLogGroupConclusion>();
                     conclusions.Add( new ActivityLogGroupConclusion( TagGetTextConclusion, auto ) );
                 }
-                Debug.Assert( _getConclusion == null, "Has been consumed." );
-            }
-
-            /// <summary>
-            /// Calls <see cref="GetConclusionText"/> and sets it to null.
-            /// </summary>
-            string ConsumeConclusionText()
-            {
-                string autoText = null;
-                if( _getConclusion != null )
-                {
-                    try
-                    {
-                        autoText = _getConclusion();
-                    }
-                    catch( Exception ex )
-                    {
-                        autoText = String.Format( R.ActivityMonitorErrorWhileGetConclusionText, ex.Message );
-                    }
-                    _getConclusion = null;
-                }
-                return autoText;
             }
 
             internal void GroupClosed()
             {
-                _getConclusion = null;
-                _text = null;
-                _exception = null;
-                _exceptionData = null;
+                _data = null;
             }
+
         }
 
         IActivityLogGroup IActivityMonitorImpl.CurrentGroup

@@ -123,12 +123,12 @@ namespace CK.Monitoring.Tests
             {
                 _name = c.Name;
                 _children = children;
-                m.Info( "Created Sequence '{0}' with {1} children.", _name, _children.Length );
+                m.Info().Send( "Created Sequence '{0}' with {1} children.", _name, _children.Length );
             }
 
             public void Initialize( IActivityMonitor m )
             {
-                m.Info( "Initializing Sequence '{0}'.", _name );
+                m.Info().Send( "Initializing Sequence '{0}'.", _name );
             }
 
             public void RunMe( int token )
@@ -138,7 +138,7 @@ namespace CK.Monitoring.Tests
 
             public void Close( IActivityMonitor m )
             {
-                m.Info( "Closing Sequence '{0}'.", _name );
+                m.Info().Send( "Closing Sequence '{0}'.", _name );
             }
         }
 
@@ -151,12 +151,12 @@ namespace CK.Monitoring.Tests
             {
                 _name = c.Name;
                 _children = children;
-                m.Info( "Created Parallel '{0}' with {1} children.", _name, _children.Length );
+                m.Info().Send( "Created Parallel '{0}' with {1} children.", _name, _children.Length );
             }
 
             public void Initialize( IActivityMonitor m )
             {
-                m.Info( "Initializing Parallel '{0}'.", _name );
+                m.Info().Send( "Initializing Parallel '{0}'.", _name );
             }
 
             public void RunMe( int token )
@@ -167,7 +167,7 @@ namespace CK.Monitoring.Tests
 
             public void Close( IActivityMonitor m )
             {
-                m.Info( "Closing Parallel '{0}'.", _name );
+                m.Info().Send( "Closing Parallel '{0}'.", _name );
             }
         }
 
@@ -185,7 +185,7 @@ namespace CK.Monitoring.Tests
 
             public void Initialize( IActivityMonitor m )
             {
-                using( m.OpenGroup( LogLevel.Info, "{0} opens file {1}.", _name, _fileName ) )
+                using( m.OpenInfo().Send( "{0} opens file {1}.", _name, _fileName ) )
                 {
                     _file = File.OpenOrCreate( _fileName );
                 }

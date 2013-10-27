@@ -127,8 +127,6 @@ namespace CK.Core
 
         #endregion
 
-        #region IActivityMonitor Trace( Exception ), Warn( Exception ), Error( Exception ), Fatal( Exception ), OpenGroup( Exception ).
-
         #region OpenGroup
 
         /// <summary>
@@ -253,6 +251,5 @@ namespace CK.Core
 
         #endregion
 
-        #endregion
     }
 }

@@ -219,7 +219,7 @@
   <data name="AppSettingsRequiredConfigurationMissing" xml:space="preserve">
     <value>Required AppSettings configuration named '{0}' is missising.</value>
   </data>
-  <data name="ActivityMonitorLogLevelMustNotBeNone" xml:space="preserve">
-    <value>The level can not be None.</value>
+  <data name="ActivityMonitorInvalidLogLevel" xml:space="preserve">
+    <value>The level must be a valid level (Trace, Info, Warn, Error or Fatal).</value>
   </data>
 </root>

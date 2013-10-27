@@ -32,7 +32,7 @@ namespace CK.Monitoring
 
         public LogFilter MinimalFilter { get { return LogFilter.Undefined; } }
 
-        void IActivityMonitorClient.OnUnfilteredLog( ActivityMonitorData data )
+        void IActivityMonitorClient.OnUnfilteredLog( ActivityMonitorLogData data )
         {
             LogEntry.WriteLog( _binaryWriter, data.Level, data.LogTimeUtc, data.Text, data.Tags, data.FileName, data.LineNumber );
         }

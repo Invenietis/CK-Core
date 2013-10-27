@@ -6,7 +6,7 @@
 <#@ output extension=".cs" #>
 #region LGPL License
 /*----------------------------------------------------------------------------
-* This file (CK.Core\ActivityMonitor\Impl\ActivityMonitorSend.cs and CK.Core\ActivityMonitor\Impl\ActivityMonitorSendGen.cs ) is part of CiviKey. 
+* This file (CK.Core\ActivityMonitor\Impl\ActivityMonitorSend-Gen.cs and CK.Core\ActivityMonitor\Impl\ActivityMonitorSend-Gen.tt ) is part of CiviKey. 
 *  
 * CiviKey is free software: you can redistribute it and/or modify 
 * it under the terms of the GNU Lesser General Public License as published 
@@ -35,36 +35,35 @@ using System.Runtime.CompilerServices;
 namespace CK.Core
 {
     /// <summary>
-    /// Provides Send extension methods for <see cref="ActivityMonitorLineSender"/> and <see cref="ActivityMonitorGroupSender"/>.
+    /// Provides Send extension methods for <see cref="IActivityMonitorGroupSender"/>.
     /// </summary>
-    public static class ActivityMonitorSendExtension
+    public static partial class ActivityMonitorSendExtension
     {
 		<# 
 		while( NextState() ) 
-		{ #> 
-		#region Send logs<# 
-			Write( WithTags ? " with tags" : "" ); 
-			Write( WithException ? " with exception" : "" ); 
+		{ 
+		#>#region <#= MethodNameRegion #>  
+		<#
 			for( int nbArg = 0; nbArg <= _maxExplicitArgument; ++nbArg ) 
 			{ 
 				if( nbArg > 0 || WithException ) 
 				{ 
 		#> 
-
 		/// <summary>
         /// <# HeaderStandardComment( nbArg ); #>.
         /// </summary>
-        /// <param name="this">This <see cref="ActivityMonitorLineSender"/> object.</param><# StateArgumentComment(); #><# TextArgumentComment( nbArg ); #>
-        static public void Send( this ActivityMonitorLineSender @this<# StateArgumentSignature(); #><# TextArgumentSignature( nbArg ); #> )
+        /// <param name="this">This <see cref="IActivityMonitorGroupSender"/> object.</param><# StateArgumentComment(); #><# TextArgumentComment( nbArg ); #>
+        static public IDisposableGroup <#= MethodName( nbArg ) #>( this IActivityMonitorGroupSender @this<# StateArgumentSignature(); #><# TextArgumentSignature( nbArg ); #> )
         {
-            if( @this == null ) return;
+			ActivityMonitorGroupSender s = (ActivityMonitorGroupSender)@this;
+            if( s.IsRejected ) return s.Monitor.UnfilteredOpenGroup( s );
 			<# 
 			if( nbArg == 2 && !WithException ) 
 			{ 
 			#>if( arg0 is Exception ) throw new ArgumentException( R.PossibleWrongOverloadUseWithException, "arg0" );
 			<#
 			}
-			#>@this.InitializeAndSend( <# TextCall( nbArg ); #>, <# StateCall(); #>, DateTime.UtcNow );
+			#>return s.InitializeAndSend( <# StateCall(); #>, <# TextCall( nbArg ); #>, DateTime.UtcNow );
         }
 		<#	
 				} 
@@ -74,12 +73,12 @@ namespace CK.Core
         /// Sends a text obtained through a delegate<# HeaderStateComment(); #>.
 		/// The delegate will be called only if the log is not filtered.
         /// </summary>
-        /// <param name="this">This <see cref="ActivityMonitorLineSender"/> object.</param><# StateArgumentComment(); #> 
+        /// <param name="this">This <see cref="IActivityMonitorGroupSender"/> object.</param><# StateArgumentComment(); #> 
         /// <param name="text">Function that returns a string. Must not be null.</param>
-        public static void Send( this ActivityMonitorLineSender @this<# StateArgumentSignature(); #>, Func<string> text )
+        public static IDisposableGroup <#= MethodName() #>( this IActivityMonitorGroupSender @this<# StateArgumentSignature(); #>, Func<string> text )
         {
-            if( @this == null ) return;
-            @this.InitializeAndSend( text(), <# StateCall(); #>, DateTime.UtcNow );
+			ActivityMonitorGroupSender s = (ActivityMonitorGroupSender)@this;
+            return s.IsRejected ? s.Monitor.UnfilteredOpenGroup( s ) : s.InitializeAndSend( <# StateCall(); #>, text(), DateTime.UtcNow );
         }
 
 		/// <summary>
@@ -87,13 +86,13 @@ namespace CK.Core
 		/// The delegate will be called only if the log is not filtered.
         /// </summary>
         /// <typeparam name="T">Type of the parameter that <paramref name="text"/> accepts.</typeparam>
-        /// <param name="this">This <see cref="ActivityMonitorLineSender"/> object.</param><# StateArgumentComment(); #> 
+        /// <param name="this">This <see cref="IActivityMonitorGroupSender"/> object.</param><# StateArgumentComment(); #> 
         /// <param name="text">Function that returns a string. Must not be null.</param>
         /// <param name="param">Parameter of the <paramref name="text"/> delegate.</param>
-        public static void Send<T>( this ActivityMonitorLineSender @this<# StateArgumentSignature(); #>, Func<T,string> text, T param )
+        public static IDisposableGroup <#= MethodName() #><T>( this IActivityMonitorGroupSender @this<# StateArgumentSignature(); #>, Func<T,string> text, T param )
         {
-            if( @this == null ) return;
-            @this.InitializeAndSend( text(param), <# StateCall(); #>, DateTime.UtcNow );
+			ActivityMonitorGroupSender s = (ActivityMonitorGroupSender)@this;
+            return s.IsRejected ? s.Monitor.UnfilteredOpenGroup( s ) : s.InitializeAndSend( <# StateCall(); #>, text(param), DateTime.UtcNow );
         }
 
 		/// <summary>
@@ -102,14 +101,14 @@ namespace CK.Core
         /// </summary>
         /// <typeparam name="T1">Type of the first parameter that <paramref name="text"/> accepts.</typeparam>
         /// <typeparam name="T2">Type of the second parameter that <paramref name="text"/> accepts.</typeparam>
-        /// <param name="this">This <see cref="ActivityMonitorLineSender"/> object.</param><# StateArgumentComment(); #> 
+        /// <param name="this">This <see cref="IActivityMonitorGroupSender"/> object.</param><# StateArgumentComment(); #> 
         /// <param name="text">Function that returns a string. Must not be null.</param>
         /// <param name="param1">First parameter for the <paramref name="text"/> delegate.</param>
         /// <param name="param2">Second parameter for the <paramref name="text"/> delegate.</param>
-        public static void Send<T1,T2>( this ActivityMonitorLineSender @this<# StateArgumentSignature(); #>, Func<T1,T2,string> text, T1 param1, T2 param2 )
+        public static IDisposableGroup <#= MethodName() #><T1,T2>( this IActivityMonitorGroupSender @this<# StateArgumentSignature(); #>, Func<T1,T2,string> text, T1 param1, T2 param2 )
         {
-            if( @this == null ) return;
-            @this.InitializeAndSend( text(param1,param2), <# StateCall(); #>, DateTime.UtcNow );
+			ActivityMonitorGroupSender s = (ActivityMonitorGroupSender)@this;
+            return s.IsRejected ? s.Monitor.UnfilteredOpenGroup( s ) : s.InitializeAndSend( <# StateCall(); #>, text(param1,param2), DateTime.UtcNow );
         }
 
 		/// <summary>
@@ -119,22 +118,20 @@ namespace CK.Core
         /// <typeparam name="T1">Type of the first parameter that <paramref name="text"/> accepts.</typeparam>
         /// <typeparam name="T2">Type of the second parameter that <paramref name="text"/> accepts.</typeparam>
         /// <typeparam name="T3">Type of the third parameter that <paramref name="text"/> accepts.</typeparam>
-        /// <param name="this">This <see cref="ActivityMonitorLineSender"/> object.</param><# StateArgumentComment(); #> 
+        /// <param name="this">This <see cref="IActivityMonitorGroupSender"/> object.</param><# StateArgumentComment(); #> 
         /// <param name="text">Function that returns a string. Must not be null.</param>
         /// <param name="param1">First parameter for the <paramref name="text"/> delegate.</param>
         /// <param name="param2">Second parameter for the <paramref name="text"/> delegate.</param>
         /// <param name="param3">Third parameter for the <paramref name="text"/> delegate.</param>
-        public static void Send<T1,T2,T3>( this ActivityMonitorLineSender @this<# StateArgumentSignature(); #>, Func<T1,T2,T3,string> text, T1 param1, T2 param2, T3 param3 )
+        public static IDisposableGroup <#= MethodName() #><T1,T2,T3>( this IActivityMonitorGroupSender @this<# StateArgumentSignature(); #>, Func<T1,T2,T3,string> text, T1 param1, T2 param2, T3 param3 )
         {
-            if( @this == null ) return;
-            @this.InitializeAndSend( text(param1,param2,param3), <# StateCall(); #>, DateTime.UtcNow );
+			ActivityMonitorGroupSender s = (ActivityMonitorGroupSender)@this;
+            return s.IsRejected ? s.Monitor.UnfilteredOpenGroup( s ) : s.InitializeAndSend( <# StateCall(); #>, text(param1,param2,param3), DateTime.UtcNow );
         }
 
-		#endregion<# 
-			Write( WithTags ? " with tags" : "" ); 
-			Write( WithException ? " with exception" : "" );
-		} 
-		#> 
+		#endregion <#= MethodNameRegion #> 
+
+		<# } #> 
 	}
 }
 <#+
@@ -148,9 +145,32 @@ namespace CK.Core
 		return ++_state < 4;
 	}
 
+	string MethodName( int nbArgs = -1 )
+	{
+		return "Send";
+		/*
+		string m = "";
+		if( WithTags ) m += "Tagged";
+		if( WithException ) m += "Exception";
+		if( nbArgs != 0 ) m += "Text";
+		return m;
+		*/
+	}
+
+	string MethodNameRegion
+	{
+		get 
+		{
+			string m = "Send";
+			if( WithException ) m += "Exception";
+			if( WithTags ) m += "Tagged";
+			return m;
+		}
+	}
+
 	void HeaderStandardComment( int nbArg )
 	{
-		if( nbArg == 0 ) Write( @"Sends a log" );
+		if( nbArg == 0 ) Write( @"Sends a log " );
 		else if( nbArg == 1 ) Write( @"Sends a text" );
 		else if( nbArg > 1 ) 
 		{
@@ -161,26 +181,26 @@ namespace CK.Core
 
 	void HeaderStateComment()
 	{
-		if( WithTags ) 
+		if( WithException ) 
 		{ 
-			Write( @" with associated tags" );
-			if( WithException ) Write( @" and an exception" );
+			Write( @" with an exception" );
+			if( WithTags ) Write( @" and associated tags" );
 		}		
-		else Write( @" with an exception" );
+		else if( WithTags ) Write( @" with associated tags" );
 	}
 
 	void StateArgumentComment()
 	{
-		if( WithTags ) Write( @"
-		/// <param name=""tags"">Tags for the log.</param>" );
 		if( WithException ) Write( @"
 		/// <param name=""ex"">The exception. Must not be null.</param>" );
+		if( WithTags ) Write( @"
+		/// <param name=""tags"">Tags for the log.</param>" );
 	}
 
 	void StateArgumentSignature()
 	{
-		if( WithTags ) Write( ", CKTrait tags" );
 		if( WithException ) Write( ", Exception ex" );
+		if( WithTags ) Write( ", CKTrait tags" );
 	}
 
 	void StateCall()

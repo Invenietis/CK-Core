@@ -41,7 +41,7 @@ namespace CK.RouteConfig
 
             internal RouteHost( IActivityMonitor monitor, List<TRoute> routePath, RouteConfigurationLockShell configLock, RouteActionFactory<TAction, TRoute> factory, RouteConfigurationResolved c )
             {
-                using( monitor.OpenGroup( LogLevel.Info, "Initializing compiled route '{0}'.", c.Name ) )
+                using( monitor.OpenInfo().Send( "Initializing compiled route '{0}'.", c.Name ) )
                 {
                     try
                     {
@@ -53,7 +53,7 @@ namespace CK.RouteConfig
                     }
                     catch( Exception ex )
                     {
-                        monitor.Fatal( ex );
+                        monitor.Fatal().Send( ex );
                         Actions = null;
                     }
                 }
@@ -275,7 +275,7 @@ namespace CK.RouteConfig
             if( configuration == null ) throw new ArgumentNullException( "configuration" );
             lock( _initializeLock )
             {
-                using( monitor.OpenGroup( LogLevel.Info, "New route configuration initialization." ) )
+                using( monitor.OpenInfo().Send( "New route configuration initialization." ) )
                 {
                     Interlocked.Increment( ref _configurationAttemptCount );
                     RouteConfigurationResult result = configuration.Resolve( monitor );
@@ -291,12 +291,12 @@ namespace CK.RouteConfig
                     var h1 = ConfigurationClosing;
                     if( h1 != null )
                     {
-                        using( monitor.OpenGroup( LogLevel.Info, "Raising ConfigurationClosing event." ) )
+                        using( monitor.OpenInfo().Send( "Raising ConfigurationClosing event." ) )
                         {
                             h1( this, new ConfigurationClosingEventArgs( monitor, result ) );
                         }
                     }
-                    using( monitor.OpenGroup( LogLevel.Info, "Waiting for current routes to terminate." ) )
+                    using( monitor.OpenInfo().Send( "Waiting for current routes to terminate." ) )
                     {
                         if( _root != _emptyHost ) _configLock.Signal();
                         if( !_configLock.Wait( millisecondsBeforeForceClose ) ) monitor.Warn( "Timeout expired. Force the termination." );
@@ -308,7 +308,7 @@ namespace CK.RouteConfig
                     ConfigurationReady ready = new ConfigurationReady( monitor, this );
                     if( _readyCallback != null )
                     {
-                        using( monitor.OpenGroup( LogLevel.Info, "Calling ConfigurationReady callback." ) )
+                        using( monitor.OpenInfo().Send( "Calling ConfigurationReady callback." ) )
                         {
                             _readyCallback( ready );
                         }
@@ -335,7 +335,7 @@ namespace CK.RouteConfig
         {
             _actionFactory.Initialize( shellLock );
             newRoot = null;
-            using( monitor.OpenGroup( LogLevel.Trace, "Routes creation." ) )
+            using( monitor.OpenTrace().Send( "Routes creation." ) )
             {
                 try
                 {
@@ -343,7 +343,7 @@ namespace CK.RouteConfig
                 }
                 catch( Exception ex )
                 {
-                    monitor.Error( ex );
+                    monitor.Error().Send( ex );
                 }
             }
             if( newRoot == null || newRoot.Actions == null )
@@ -354,7 +354,7 @@ namespace CK.RouteConfig
             if( newRoot.Actions.Length == 0 && newRoot.Routes.Length == 0 )
             {
                 newRoot = _emptyHost;
-                monitor.Info( "New route configuration is empty." );
+                monitor.Info().Send( "New route configuration is empty." );
             }
             return true;
         }
@@ -369,7 +369,7 @@ namespace CK.RouteConfig
             List<int> failed = null;
             if( _starter != null && _futureAllActions.Length > 0 )
             {
-                using( monitor.OpenGroup( LogLevel.Info, "Starting {0} new action(s).", _futureAllActions.Length ) )
+                using( monitor.OpenInfo().Send( "Starting {0} new action(s).", _futureAllActions.Length ) )
                 {
                     int i = 0;
                     foreach( var d in _futureAllActions )
@@ -382,7 +382,7 @@ namespace CK.RouteConfig
                         {
                             if( failed == null ) failed = new List<int>();
                             failed.Add( i );
-                            monitor.Fatal( ex );
+                            monitor.Fatal().Send( ex );
                         }
                     }
                 }
@@ -395,7 +395,7 @@ namespace CK.RouteConfig
             }
             if( _closer != null && _futureAllActions.Length > failed.Count )
             {
-                using( monitor.OpenGroup( LogLevel.Info, "Closing {0} started action(s) due to {1} failure(s).", _futureAllActions.Length - failed.Count, failed.Count ) )
+                using( monitor.OpenInfo().Send( "Closing {0} started action(s) due to {1} failure(s).", _futureAllActions.Length - failed.Count, failed.Count ) )
                 {
                     for( int i = 0; i < _futureAllActions.Length; ++i )
                     {
@@ -407,7 +407,7 @@ namespace CK.RouteConfig
                             }
                             catch( Exception ex )
                             {
-                                monitor.Warn( ex );
+                                monitor.Warn().Send( ex );
                             }
                         }
                     }
@@ -471,7 +471,7 @@ namespace CK.RouteConfig
             Debug.Assert( toClose != null );
             if( _closer != null )
             {
-                using( monitor.OpenGroup( LogLevel.Info, "Closing {0} previous action(s).", toClose.Length ) )
+                using( monitor.OpenInfo().Send( "Closing {0} previous action(s).", toClose.Length ) )
                 {
                     foreach( var d in toClose )
                     {
@@ -481,7 +481,7 @@ namespace CK.RouteConfig
                         }
                         catch( Exception ex )
                         {
-                            monitor.Warn( ex );
+                            monitor.Warn().Send( ex );
                         }
                     }
                 }

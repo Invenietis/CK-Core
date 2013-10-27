@@ -66,49 +66,45 @@ namespace CK.Core
         /// <summary>
         /// Writes all the information.
         /// </summary>
-        /// <param name="tags">Tags of the log entry.</param>
-        /// <param name="level">New level.</param>
-        /// <param name="text">Log text.</param>
-        /// <param name="logTimeUtc">Time of the log.</param>
-        /// <param name="fileName">Source file name.</param>
-        /// <param name="lineNumber">Source line number.</param>
-        protected override void OnEnterLevel( CKTrait tags, LogLevel level, string text, DateTime logTimeUtc, string fileName, int lineNumber )
+        /// <param name="data">Log data.</param>
+        protected override void OnEnterLevel( ActivityMonitorLogData data )
         {
-            Debug.Assert( (level & LogLevel.IsFiltered) == 0 );
             TextWriter w = _writer();
-            _prefixLevel = _prefix + new String( ' ', level.ToString().Length + 4 );
-            text = text.Replace( Environment.NewLine, Environment.NewLine + _prefixLevel );
-            if( _currentTags != tags )
+            _prefixLevel = _prefix + new String( ' ', data.MaskedLevel.ToString().Length + 4 );
+            string text = data.Text.Replace( Environment.NewLine, Environment.NewLine + _prefixLevel );
+            if( _currentTags != data.Tags )
             {
-                w.WriteLine( "{0}- {1}: {2} -[{3}]", _prefix, level.ToString(), text, tags );
-                _currentTags = tags;
+                w.WriteLine( "{0}- {1}: {2} -[{3}]", _prefix, data.MaskedLevel.ToString(), text, data.Tags );
+                _currentTags = data.Tags;
             }
             else
             {
-                w.WriteLine( "{0}- {1}: {2}", _prefix, level.ToString(), text );
+                w.WriteLine( "{0}- {1}: {2}", _prefix, data.MaskedLevel.ToString(), text );
+            }
+            if( data.Exception != null )
+            {
+                DumpException( w, _prefix, !data.IsTextTheExceptionMessage, data.Exception );
             }
         }
 
         /// <summary>
         /// Writes all information.
         /// </summary>
-        /// <param name="tags">Tags of the log entry.</param>
-        /// <param name="level">Current level.</param>
-        /// <param name="text">Log text.</param>
-        /// <param name="logTimeUtc">Time of the log.</param>
-        /// <param name="fileName">Source file name.</param>
-        /// <param name="lineNumber">Source line number.</param>
-        protected override void OnContinueOnSameLevel( CKTrait tags, LogLevel level, string text, DateTime logTimeUtc, string fileName, int lineNumber )
+        /// <param name="data">Log data.</param>
+        protected override void OnContinueOnSameLevel( ActivityMonitorLogData data )
         {
-            Debug.Assert( (level & LogLevel.IsFiltered) == 0 );
             TextWriter w = _writer();
-            text = text.Replace( Environment.NewLine, Environment.NewLine + _prefixLevel );
-            if( _currentTags != tags )
+            string text = data.Text.Replace( Environment.NewLine, Environment.NewLine + _prefixLevel );
+            if( _currentTags != data.Tags )
             {
-                w.WriteLine( "{0}{1} -[{2}]", _prefixLevel, text, tags );
-                _currentTags = tags;
+                w.WriteLine( "{0}{1} -[{2}]", _prefixLevel, text, data.Tags );
+                _currentTags = data.Tags;
             }
             else w.WriteLine( _prefixLevel + text );
+            if( data.Exception != null )
+            {
+                DumpException( w, _prefix, !data.IsTextTheExceptionMessage, data.Exception );
+            }
         }
 
         /// <summary>

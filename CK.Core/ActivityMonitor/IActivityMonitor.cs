@@ -90,26 +90,19 @@ namespace CK.Core
         /// Logs a line regardless of <see cref="ActualFilter"/> level. 
         /// </summary>
         /// <param name="data">Data that describes the log. Can not be null.</param>
-        void UnfilteredLog( ActivityMonitorData data );
+        void UnfilteredLog( ActivityMonitorLogData data );
 
         /// <summary>
         /// Opens a group regardless of <see cref="ActualFilter"/> level. 
         /// <see cref="CloseGroup"/> must be called in order to close the group, and/or the returned object must be disposed (both safely can be called: 
         /// the group is closed on the first action, the second one is ignored).
         /// </summary>
-        /// <param name="tags">Tags (from <see cref="ActivityMonitor.RegisteredTags"/>) to associate to the log. It will be unioned with current <see cref="AutoTags"/>.</param>
-        /// <param name="level">Log level. The <see cref="LogLevel.None"/> level is used to open a filtered group. See remarks.</param>
-        /// <param name="getConclusionText">Optional function that will be called on group closing.</param>
-        /// <param name="text">Text to log (the title of the group). Null text is valid and considered as <see cref="String.Empty"/> or assigned to the <see cref="Exception.Message"/> if it exists.</param>
-        /// <param name="logTimeUtc">Timestamp of the log entry (must be UTC).</param>
-        /// <param name="ex">Optional exception associated to the group.</param>
-        /// <param name="fileName">The source code file name from which the group is opened.</param>
-        /// <param name="lineNumber">The line number in the source from which the group is opened.</param>
-        /// <returns>A disposable object that can be used to close the group.</returns>
+        /// <param name="data">Data that describes the log. Can not be null.</param>
+        /// <returns>A disposable object that can be used to set a function that provides a conclusion text and/or close the group.</returns>
         /// <remarks>
         /// <para>
         /// Opening a group does not change the current <see cref="MinimalFilter"/>, except when opening a <see cref="LogLevel.Fatal"/> or <see cref="LogLevel.Error"/> group:
-        /// in such case, the Filter is automatically sets to <see cref="LogFilter.Debug"/> to capture all potential information inside the error group.
+        /// in such case, the MinimalFilter is automatically sets to <see cref="LogFilter.Debug"/> to capture all potential information inside the error group.
         /// </para>
         /// <para>
         /// Changes to the monitor's current Filter or AutoTags that occur inside a group are automatically restored to their original values when the group is closed.
@@ -120,7 +113,7 @@ namespace CK.Core
         /// Note that this automatic configuration restoration works even if the group is filtered (when the <paramref name="level"/> is None).
         /// </para>
         /// </remarks>
-        IDisposable UnfilteredOpenGroup( CKTrait tags, LogLevel level, Func<string> getConclusionText, string text, DateTime logTimeUtc, Exception ex, [CallerFilePath]string fileName = null, [CallerLineNumber]int lineNumber = 0 );
+        IDisposableGroup UnfilteredOpenGroup( ActivityMonitorGroupData data );
 
         /// <summary>
         /// Closes the current Group. Optional parameter is polymorphic. It can be a string, a <see cref="ActivityLogGroupConclusion"/>, 
