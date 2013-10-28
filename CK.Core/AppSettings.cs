@@ -12,8 +12,8 @@ namespace CK.Core
     /// Very simple façade for simple application settings.
     /// This does not handle multiple configurations per key (like ConfigurationManager.AppSettings can do since it is a NameValueCollection) but
     /// can expose potentially complex configuration objects instead of only strings.
-    /// It can be initialized only once, before any other access, and when not initialized tries to or use the standard ConfigurationManager.AppSettings through 
-    /// late binding. However, it supports multiple overriding and reverting to the original configuration. 
+    /// It can be initialized only once, before any other access, and when not initialized tries to automatically use the standard ConfigurationManager.AppSettings 
+    /// through late binding. However, it supports multiple overriding and reverting to the original configuration. 
     /// (Override support and restoration is mainly designed for tests but the override functionnality alone can be a useful feature in real life application.)
     /// </summary>
     public class AppSettings
@@ -90,6 +90,7 @@ namespace CK.Core
 
         /// <summary>
         /// Gets the settings as a string: <see cref="Object.ToString"/> is called on object.
+        /// Null if the key is not found.
         /// </summary>
         /// <param name="key">The configuration key.</param>
         /// <returns>The string (object expressed as a string) or null if no such configuration exists.</returns>
@@ -108,7 +109,7 @@ namespace CK.Core
         /// </summary>
         /// <param name="key">The configuration key.</param>
         /// <returns>The configured available object or null if no such configuration exists.</returns>
-        public object GetObject( string key )
+        public object Get( string key )
         {
             if( !_initialized ) DefaultInitialization();
             return _getObject( key );
@@ -120,7 +121,7 @@ namespace CK.Core
         /// <param name="key">The configuration key.</param>
         /// <param name="defaultValue">The default value to return if no object exists.</param>
         /// <returns>The configured available object or the <paramref name="defaultValue"/> if no such configuration exists.</returns>
-        public T GetObject<T>( string key, T defaultValue )
+        public T Get<T>( string key, T defaultValue )
         {
             if( !_initialized ) DefaultInitialization();
             var o = _getObject( key );
@@ -132,7 +133,7 @@ namespace CK.Core
         /// </summary>
         /// <param name="key">The configuration key.</param>
         /// <returns>The configured available object.</returns>
-        public object GetRequiredObject( string key )
+        public object GetRequired( string key )
         {
             if( !_initialized ) DefaultInitialization();
             var o = _getObject( key );
@@ -145,7 +146,7 @@ namespace CK.Core
         /// </summary>
         /// <param name="key">The configuration key.</param>
         /// <returns>The configured available object.</returns>
-        public T GetRequiredObject<T>( string key )
+        public T GetRequired<T>( string key )
         {
             if( !_initialized ) DefaultInitialization();
             var o = _getObject( key );
@@ -163,9 +164,12 @@ namespace CK.Core
             }
         }
 
+        const string _defType = "System.Configuration.ConfigurationManager, System.Configuration, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a";
+
         void DoDefaultInitialize()
         {
-            Type configMananger = SimpleTypeFinder.WeakDefault.ResolveType( "System.Configuration.ConfigurationManager, System.Configuration, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a", false );
+            Type configMananger = SimpleTypeFinder.Default.ResolveType( _defType, false );
+            // Type op_equality is not portable: use ReferenceEquals.
             if( !ReferenceEquals( configMananger, null ) )
             {
                 Type[] stringParams = new Type[] { typeof( string ) };

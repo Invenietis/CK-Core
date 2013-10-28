@@ -32,15 +32,15 @@ namespace CK.Core.Tests
         {
             AppSettings settings = new AppSettings();
             settings.Initialize( s => s == "Test" ? (object)3712 : null );
-            Assert.That( settings.GetObject( "Test" ), Is.EqualTo( 3712 ) );
-            Assert.That( settings.GetObject<int>( "Test", -5 ), Is.EqualTo( 3712 ) );
-            Assert.That( settings.GetObject<int>( "None", -5 ), Is.EqualTo( -5 ) );
+            Assert.That( settings.Get( "Test" ), Is.EqualTo( 3712 ) );
+            Assert.That( settings.Get<int>( "Test", -5 ), Is.EqualTo( 3712 ) );
+            Assert.That( settings.Get<int>( "None", -5 ), Is.EqualTo( -5 ) );
 
-            Assert.Throws<CKException>( () => Console.Write( settings.GetRequiredObject( "None" ) ) );
-            Assert.Throws<CKException>( () => Console.Write( settings.GetRequiredObject<int>( "None" ) ) );
+            Assert.Throws<CKException>( () => Console.Write( settings.GetRequired( "None" ) ) );
+            Assert.Throws<CKException>( () => Console.Write( settings.GetRequired<int>( "None" ) ) );
 
-            Assert.That( settings.GetObject<float>( "Test", -8 ), Is.EqualTo( -8.0 ) );
-            Assert.Throws<CKException>( () => settings.GetRequiredObject<float>( "None" ) );
+            Assert.That( settings.Get<float>( "Test", -8 ), Is.EqualTo( -8.0 ) );
+            Assert.Throws<CKException>( () => settings.GetRequired<float>( "None" ) );
             
             Assert.That( settings["Test"], Is.EqualTo( "3712" ) );
         }
