@@ -22,7 +22,7 @@ namespace CK.Monitoring
         /// Except <see cref="ILogEntry.Conclusions"/> (reserved to <see cref="CloseGroup"/>) and <see cref="ILogEntry.Exception"/> (only <see cref="OpenGroup"/> can carry
         /// an exception), all other properties of the <see cref="ILogEntry"/> may be set.
         /// </summary>
-        Log,
+        Line,
 
         /// <summary>
         /// Group is opened.

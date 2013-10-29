@@ -71,6 +71,6 @@ namespace CK.Monitoring
         /// Use <see cref="LogEntry.Read"/> to read it back.
         /// </summary>
         /// <param name="w">The binary writer.</param>
-        void Write( BinaryWriter w );
+        void WriteLogEntry( BinaryWriter w );
     }
 }

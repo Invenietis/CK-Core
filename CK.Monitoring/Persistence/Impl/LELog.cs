@@ -8,40 +8,44 @@ namespace CK.Monitoring.Impl
     {
         readonly DateTime _time;
         readonly string _text;
+        readonly CKTrait _tags;
         readonly string _fileName;
         readonly int _lineNumber;
         readonly LogLevel _level;
+        readonly CKExceptionData _ex;
 
-        public LELog( string text, DateTime t, string fileName, int lineNumber, LogLevel l ) 
+        public LELog( string text, DateTime t, string fileName, int lineNumber, LogLevel l, CKTrait tags, CKExceptionData ex )
         {
             _text = text;
             _time = t;
             _fileName = fileName;
             _lineNumber = lineNumber;
             _level = l;
+            _tags = tags;
+            _ex = ex;
         }
 
-        public LogEntryType LogType { get { return LogEntryType.Log; } }
+        public LogEntryType LogType { get { return LogEntryType.Line; } }
 
         public LogLevel LogLevel { get { return _level; } }
 
         public string Text { get { return _text; } }
 
-        public CKTrait Tags { get { return ActivityMonitor.EmptyTag; } }
+        public CKTrait Tags { get { return _tags; } }
 
         public DateTime LogTimeUtc { get { return _time; } }
-
-        public CKExceptionData Exception { get { return null; } }
 
         public string FileName { get { return _fileName; } }
 
         public int LineNumber { get { return _lineNumber; } }
 
+        public CKExceptionData Exception { get { return _ex; } }
+
         public IReadOnlyList<ActivityLogGroupConclusion> Conclusions { get { return null; } }
 
-        public void Write( System.IO.BinaryWriter w )
+        public void WriteLogEntry( System.IO.BinaryWriter w )
         {
-            LogEntry.WriteLog( w, _level, _time, _text, null, _fileName, _lineNumber );
+            LogEntry.WriteLog( w, false, _level, _time, _text, _tags, _ex, _fileName, _lineNumber );
         }
     }
 }

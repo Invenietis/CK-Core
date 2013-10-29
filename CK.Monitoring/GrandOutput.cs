@@ -42,7 +42,7 @@ namespace CK.Monitoring
         /// </summary>
         /// <returns>The Default GrandOutput.</returns>
         /// <remarks>
-        /// This method is thread-safe (simple lock protects it) and uses a <see cref="ActivityMonitor.AutoConfiguration"/> action 
+        /// This method is thread-safe (a simple lock protects it) and uses a <see cref="ActivityMonitor.AutoConfiguration"/> action 
         /// that <see cref="Register"/>s newly created <see cref="ActivityMonitor"/>.
         /// </remarks>
         static public GrandOutput EnsureActiveDefault()

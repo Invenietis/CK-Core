@@ -76,8 +76,8 @@ namespace CK.Monitoring
         }
 
         /// <summary>
-        /// Current <see cref="ILogEntry"/>. 
-        /// <see cref="MoveNext"/> must be called before getting the first entry.
+        /// Current <see cref="ILogEntry"/> that can be a <see cref="IMulticastLogEntry"/>.
+        /// As usual, <see cref="MoveNext"/> must be called before getting the first entry.
         /// </summary>
         public ILogEntry Current
         {
@@ -117,8 +117,8 @@ namespace CK.Monitoring
                     case LogEntryType.CloseGroup:
                         destination.CloseGroup( log.LogTimeUtc, log.Conclusions );
                         break;
-                    case LogEntryType.Log:
-                        destination.UnfilteredLog( log.Tags, log.LogLevel, log.Text, log.LogTimeUtc, null );
+                    case LogEntryType.Line:
+                        destination.UnfilteredLog( log.Tags, log.LogLevel, log.Text, log.LogTimeUtc, CKException.CreateFrom( log.Exception ), log.FileName, log.LineNumber );
                         break;
                     case LogEntryType.OpenGroup:
                         destination.UnfilteredOpenGroup( log.Tags, log.LogLevel, null, log.Text, log.LogTimeUtc, CKException.CreateFrom( log.Exception ), log.FileName, log.LineNumber );

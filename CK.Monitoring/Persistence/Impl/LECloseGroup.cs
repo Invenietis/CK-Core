@@ -39,7 +39,7 @@ namespace CK.Monitoring.Impl
 
         public IReadOnlyList<ActivityLogGroupConclusion> Conclusions { get { return _conclusions; } }
 
-        public void Write( BinaryWriter w )
+        public void WriteLogEntry( BinaryWriter w )
         {
             LogEntry.WriteCloseGroup( w, _level, _time, _conclusions );
         }

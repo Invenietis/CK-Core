@@ -27,19 +27,19 @@ namespace CK.Monitoring
         {
             if( autoNameFile == null ) autoNameFile = "CK.Monitor-{0:u}.ckmon";
             string path = Path.Combine( fileDirectory, String.Format( autoNameFile, DateTime.UtcNow ) );
-            return new ActivityMonitorBinaryWriterClient( new FileStream( path, FileMode.Create, FileAccess.Write ), writeVersion );
+            return new ActivityMonitorBinaryWriterClient( new FileStream( path, FileMode.CreateNew, FileAccess.Write ), writeVersion );
         }
 
         public LogFilter MinimalFilter { get { return LogFilter.Undefined; } }
 
         void IActivityMonitorClient.OnUnfilteredLog( ActivityMonitorLogData data )
         {
-            LogEntry.WriteLog( _binaryWriter, data.Level, data.LogTimeUtc, data.Text, data.Tags, data.FileName, data.LineNumber );
+            LogEntry.WriteLog( _binaryWriter, false, data.Level, data.LogTimeUtc, data.Text, data.Tags, data.EnsureExceptionData(), data.FileName, data.LineNumber );
         }
 
         void IActivityMonitorClient.OnOpenGroup( IActivityLogGroup group )
         {
-            LogEntry.WriteOpenGroup( _binaryWriter, group.GroupLevel, group.LogTimeUtc, group.GroupText, group.GroupTags, group.EnsureExceptionData(), group.FileName, group.LineNumber );
+            LogEntry.WriteLog( _binaryWriter, true, group.GroupLevel, group.LogTimeUtc, group.GroupText, group.GroupTags, group.EnsureExceptionData(), group.FileName, group.LineNumber );
         }
 
         void IActivityMonitorClient.OnGroupClosed( IActivityLogGroup group, IReadOnlyList<ActivityLogGroupConclusion> conclusions )

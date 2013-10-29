@@ -79,6 +79,23 @@ namespace CK.Core
         /// </summary>
         public static readonly CriticalErrorCollector MonitoringError;
 
+        /// <summary>
+        /// Delegate type that can be assigned to <see cref="FilterSource"/> static property to 
+        /// enable filter override based on the caller source location. 
+        /// </summary>
+        /// <param name="fileName">FileName of the source file (that can be changed, typically by removing a common path prefix).</param>
+        /// <param name="lineNumber">The line number in the source file.</param>
+        /// <returns>The LogFilter to apply. Must default to <see cref="LogFilter.Undefined"/>.</returns>
+        public delegate LogFilter FilterSourceDelegate( ref string fileName, int lineNumber );
+
+        /// <summary>
+        /// Holds a <see cref="FilterSourceDelegate"/> that can override filter configuration and/or alter 
+        /// source file name.
+        /// It can be changed at any time and application is immediate.
+        /// </summary>
+        public static FilterSourceDelegate FilterSource;
+
+
         static LogFilter _defaultFilterLevel;
         
         /// <summary>
@@ -818,5 +835,18 @@ namespace CK.Core
                 throw new CKException( R.ActivityMonitorReentrancyReleaseError, _enteredThreadId, Thread.CurrentThread.Name, currentThreadId );
             }
         }
+
+        internal static int SourceFilterLine( ref string fileName, int lineNumber )
+        {
+            var h = FilterSource;
+            return h == null ? 0 : (int)h( ref fileName, lineNumber ).Line;
+        }
+
+        internal static int SourceFilterGroup( ref string fileName, int lineNumber )
+        {
+            var h = FilterSource;
+            return h == null ? 0 : (int)h( ref fileName, lineNumber ).Group;
+        }
+
     }
 }

@@ -9,9 +9,16 @@ namespace CK.Monitoring.Impl
 
         TypeMask                    = 3,
 
-        TypeLog                     = 1,
+        TypeLine                    = 1,
         TypeOpenGroup               = 2,
-        TypeOpenGroupWithException  = 3,
-        TypeGroupClosed             = 4
+        TypeGroupClosed             = 3,
+
+        HasTags = 4,
+        HasException = 8,
+        HasFileName = 16,
+        IsTextTheExceptionMessage = 32,
+        HasConclusions = 64,
+
+        IsMultiCast = 128
     }
 }
