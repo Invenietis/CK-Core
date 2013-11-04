@@ -34,4 +34,3 @@ _ReSharper*/
 CK-Core.Tests.VisualState.xml
 *.nuspec
 *.nupkg
-Documentation/*/Generated/*
