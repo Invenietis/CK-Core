@@ -194,13 +194,13 @@ namespace CK.Core
         internal void UnfilteredLog( string tags, LogLevel level, string text, CKExceptionData exceptionData, DateTime logTimeUtc, string fileName, int lineNumber )
         {
             CKException ckEx = exceptionData != null ? new CKException( exceptionData ) : null;
-            _monitor.UnfilteredLog( new ActivityMonitorLogData( level, ckEx, ActivityMonitor.RegisteredTags.FindOrCreate( tags ), text, logTimeUtc, fileName, lineNumber ) );
+            _monitor.UnfilteredLog( new ActivityMonitorLogData( level, ckEx, ActivityMonitor.Tags.Register( tags ), text, logTimeUtc, fileName, lineNumber ) );
         }
 
         internal void UnfilteredOpenGroup( string tags, LogLevel level, CKExceptionData exceptionData, string groupText, string fileName, int lineNumber, DateTime logTimeUtc )
         {
             CKException ckEx = exceptionData != null ? new CKException( exceptionData ) : null;
-            _monitor.UnfilteredOpenGroup( ActivityMonitor.RegisteredTags.FindOrCreate( tags ), level, null, groupText, logTimeUtc, ckEx, fileName, lineNumber );
+            _monitor.UnfilteredOpenGroup( ActivityMonitor.Tags.Register( tags ), level, null, groupText, logTimeUtc, ckEx, fileName, lineNumber );
         }
 
         internal void CloseGroup( string[] taggedConclusions )
@@ -213,7 +213,7 @@ namespace CK.Core
                 int i = 0;
                 while( i < taggedConclusions.Length )
                 {
-                    CKTrait t = ActivityMonitor.RegisteredTags.FindOrCreate( taggedConclusions[i++] );
+                    CKTrait t = ActivityMonitor.Tags.Register( taggedConclusions[i++] );
                     c.Add( new ActivityLogGroupConclusion( t, taggedConclusions[i++] ) );
                 }
             }
@@ -234,7 +234,7 @@ namespace CK.Core
 
         internal void SetAutoTags( string marshalledTags )
         {
-            SetAutoTags( ActivityMonitor.RegisteredTags.FindOrCreate( marshalledTags ) );
+            SetAutoTags( ActivityMonitor.Tags.Register( marshalledTags ) );
         }
 
         internal void SetTopic( string newTopic, string fileName, int lineNumber )

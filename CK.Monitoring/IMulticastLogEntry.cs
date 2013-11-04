@@ -23,12 +23,12 @@ namespace CK.Monitoring
         /// <summary>
         /// Gets the depth of the entry in the source <see cref="MonitorId"/>.
         /// This is always available (whatever the <see cref="ILogEntry.LogType">LogType</see> is <see cref="LogEntryType.OpenGroup"/>, <see cref="LogEntryType.CloseGroup"/>,
-        /// or <see cref="LogEntryType.Line"/>.
+        /// or <see cref="LogEntryType.Line"/>).
         /// </summary>
         int GroupDepth { get; }
 
         /// <summary>
-        /// Writes the multicat entry in a <see cref="BinaryWriter"/>.
+        /// Writes the multicast entry in a <see cref="BinaryWriter"/>.
         /// Use <see cref="LogEntry.Read"/> to read it back.
         /// </summary>
         /// <param name="w">The binary writer.</param>

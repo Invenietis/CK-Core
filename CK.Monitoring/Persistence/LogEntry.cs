@@ -6,17 +6,20 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using CK.Core;
+using CK.Monitoring.Impl;
 
-namespace CK.Monitoring.Impl
+namespace CK.Monitoring
 {
-    static class LogEntry
+    public static class LogEntry
     {
-        public static ILogEntry CreateLog( string text, DateTime t, LogLevel level, string fileName, int lineNumber, CKTrait tags = null, CKExceptionData ex = null )
+        #region Unicast
+
+        public static ILogEntry CreateLog( string text, DateTime t, LogLevel level, string fileName, int lineNumber, CKTrait tags, CKExceptionData ex )
         {
             return new LELog( text, t, fileName, lineNumber, level, tags, ex );
         }
 
-        public static ILogEntry CreateOpenGroup( string text, DateTime t, LogLevel level, string fileName, int lineNumber, CKTrait tags = null, CKExceptionData ex = null )
+        public static ILogEntry CreateOpenGroup( string text, DateTime t, LogLevel level, string fileName, int lineNumber, CKTrait tags, CKExceptionData ex )
         {
             return new LEOpenGroup( text, t, fileName, lineNumber, level, tags, ex );
         }
@@ -25,6 +28,27 @@ namespace CK.Monitoring.Impl
         {
             return new LECloseGroup( t, level, c );
         }
+
+        #endregion
+
+        #region Multicast
+
+        public static IMulticastLogEntry CreateMulticastLog( Guid monitorId, int depth, string text, DateTime t, LogLevel level, string fileName, int lineNumber, CKTrait tags, CKExceptionData ex )
+        {
+            return new LEMCLog( monitorId, depth, text, t, fileName, lineNumber, level, tags, ex );
+        }
+
+        public static IMulticastLogEntry CreateMulticastOpenGroup( Guid monitorId, int depth, string text, DateTime t, LogLevel level, string fileName, int lineNumber, CKTrait tags, CKExceptionData ex )
+        {
+            return new LEMCOpenGroup( monitorId, depth, text, t, fileName, lineNumber, level, tags, ex );
+        }
+
+        public static IMulticastLogEntry CreateMulticastCloseGroup( Guid monitorId, int depth, DateTime t, LogLevel level, IReadOnlyList<ActivityLogGroupConclusion> c )
+        {
+            return new LEMCCloseGroup( monitorId, depth, t, level, c );
+        }
+
+        #endregion
 
         static public void WriteLog( BinaryWriter w, Guid monitorId, int depth, bool isOpenGroup, LogLevel level, DateTime logTimeUtc, string text, CKTrait tags, CKExceptionData ex, string fileName, int lineNumber )
         {
@@ -113,13 +137,13 @@ namespace CK.Monitoring.Impl
                 return ReadGroupClosed( r, t, logLevel );
             }
             var logTimeUtc = DateTime.FromBinary( r.ReadInt64() );
-            CKTrait tags = ActivityMonitor.EmptyTag;
+            CKTrait tags = ActivityMonitor.Tags.Empty;
             string fileName = null;
             int lineNumber = 0;
             CKExceptionData ex = null;
             string text = null;
 
-            if( (t & StreamLogType.HasTags) != 0 ) tags = ActivityMonitor.RegisteredTags.FindOrCreate( r.ReadString() );
+            if( (t & StreamLogType.HasTags) != 0 ) tags = ActivityMonitor.Tags.Register( r.ReadString() );
             if( (t & StreamLogType.HasFileName) != 0 )
             {
                 fileName = r.ReadString();
@@ -162,7 +186,7 @@ namespace CK.Monitoring.Impl
                 conclusions = new ActivityLogGroupConclusion[conclusionsCount];
                 for( int i = 0; i < conclusionsCount; i++ )
                 {
-                    CKTrait cTags = ActivityMonitor.RegisteredTags.FindOrCreate( r.ReadString() );
+                    CKTrait cTags = ActivityMonitor.Tags.Register( r.ReadString() );
                     string cText = r.ReadString();
                     conclusions[i] = new ActivityLogGroupConclusion( cText, cTags );
                 }

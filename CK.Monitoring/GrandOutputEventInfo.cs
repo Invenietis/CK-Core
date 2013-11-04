@@ -6,45 +6,29 @@ using System.Threading.Tasks;
 
 namespace CK.Monitoring
 {
-    public class GrandOutputEventInfo
+    /// <summary>
+    /// Captures a log data with the current <see cref="IActivityMonitor.Topic"/>.
+    /// </summary>
+    public struct GrandOutputEventInfo
     {
-        readonly GrandOutputSource _source;
-        readonly ILogEntry _entry;
-        readonly int _depth;
+        /// <summary>
+        /// A unified, immutable, log data.
+        /// </summary>
+        public readonly IMulticastLogEntry Entry;
+        
+        /// <summary>
+        /// The current topic of the monitor when the log occured. 
+        /// </summary>
+        public readonly string Topic;
 
         /// <summary>
         /// Initializes a new <see cref="GrandOutputEventInfo"/>.
         /// </summary>
-        /// <param name="source">Source information (monitor and channel name).</param>
         /// <param name="e">Log entry.</param>
-        /// <param name="depth">See <see cref="SourceRelativeDepth"/>.</param>
-        public GrandOutputEventInfo( GrandOutputSource source, ILogEntry e, int depth )
+        public GrandOutputEventInfo( IMulticastLogEntry e, string topic )
         {
-            _source = source;
-            _entry = e;
-            _depth = depth;
+            Entry = e;
+            Topic = topic;
         }
-
-        /// <summary>
-        /// Gets the source of the event: the carries the a monitor identifier ant its topic and initial depth of the 
-        /// log activity (number of opened groups) at the time of mointor/channel association.
-        /// </summary>
-        public GrandOutputSource Source { get { return _source; } }
-
-        /// Gets a unified, immutable, view of the log event as a <see cref="ILogEntry"/>.
-        /// </summary>
-        public ILogEntry LogEntry { get { return _entry; } }
-
-        /// <summary>
-        /// Gets the depth of this entry relatively to the source: a negative depth indicates an entry that is emmitted in a group "above", a group that has not
-        /// been previously seen by this <see cref="Source"/>.
-        /// </summary>
-        public int SourceRelativeDepth { get { return _depth; } }
-
-        /// <summary>
-        /// Gets the depth of this entry from the root of the activities.
-        /// </summary>
-        public int EntryDepth { get { return _depth + _source.InitialDepth; } }
-
     }
 }

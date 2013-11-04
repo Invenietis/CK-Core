@@ -22,20 +22,6 @@ namespace CK.Monitoring
         void Initialize();
 
         /// <summary>
-        /// Creates a source for a monitor.
-        /// </summary>
-        /// <param name="monitor">Monitor that uses this channel.</param>
-        /// <param name="channelName">Full name of the required channel.</param>
-        /// <returns>A <see cref="GrandOutputSource"/> that captures information related to the relation between a monitor and this channel/</returns>
-        GrandOutputSource CreateSource( IActivityMonitorImpl monitor, string channelName );
-
-        /// <summary>
-        /// Called by <see cref="GrandOutputClient"/> when the currently bound channel is no more used.
-        /// </summary>
-        /// <param name="source">The source previously obtained by <see cref="CreateSource"/>.</param>
-        void ReleaseSource( GrandOutputSource source );
-
-        /// <summary>
         /// Gets the minimal log level that this channel expects. 
         /// Should default to <see cref="LogLevelFilter.None"/>.
         /// </summary>
@@ -60,13 +46,11 @@ namespace CK.Monitoring
         /// The lock previously obtained by a call to PreHandleLock is released.
         /// </summary>
         /// <param name="e">Event to handle.</param>
-        void Handle( GrandOutputEventInfo e );
-
-        /// <summary>
-        /// Handles multiple events that have been buffered.
-        /// </summary>
-        /// <param name="list">Buffered events.</param>
-        void HandleBuffer( List<GrandOutputEventInfo> list );
+        /// <param name="sendToCommonSink">
+        /// True when the event must be sent to the common sink. 
+        /// False when the event has been buffered: it has already been sent to the common sink.
+        /// </param>
+        void Handle( GrandOutputEventInfo e, bool sendToCommonSink = true );
 
     }
 }

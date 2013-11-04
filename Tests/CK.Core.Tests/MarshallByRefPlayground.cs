@@ -144,7 +144,11 @@ namespace CK.Core.Tests
 
         private static void CreateAndUnloadTwoDomainsWithTwoServers( AppDomainSource origin )
         {
-            AppDomainSetup setup = new AppDomainSetup() { ApplicationBase = AppDomain.CurrentDomain.SetupInformation.ApplicationBase };
+            AppDomainSetup setup = new AppDomainSetup() 
+            { 
+                ApplicationBase = AppDomain.CurrentDomain.SetupInformation.ApplicationBase,
+                PrivateBinPath = AppDomain.CurrentDomain.SetupInformation.PrivateBinPath
+            };
 
             var ad1 = AppDomain.CreateDomain( "Child1", null, setup );
             ad1.SetData( "external-AppDomainSource", origin );
@@ -193,7 +197,11 @@ namespace CK.Core.Tests
             // A MarshalByRefObject whose proxies are GCed can be GCed. 
             {
                 var origin = new AppDomainSource() { InitialLeaseTimeForCreatedServer = TimeSpan.FromMilliseconds( 100 ) };
-                AppDomainSetup setup = new AppDomainSetup() { ApplicationBase = AppDomain.CurrentDomain.SetupInformation.ApplicationBase };
+                AppDomainSetup setup = new AppDomainSetup()
+                {
+                    ApplicationBase = AppDomain.CurrentDomain.SetupInformation.ApplicationBase,
+                    PrivateBinPath = AppDomain.CurrentDomain.SetupInformation.PrivateBinPath
+                };
                 var appDomain = AppDomain.CreateDomain( "ClientAppDomain", null, setup );
                 appDomain.SetData( "external-AppDomainSource", origin );
                 appDomain.DoCallBack( new CrossAppDomainDelegate( ClientAppDomainCreateServer ) );

@@ -17,9 +17,9 @@ namespace CK.Monitoring.GrandOutputHandlers
         /// child's handle in sequence.
         /// </summary>
         /// <param name="logEvent">Event to handle.</param>
-        public override void Handle( GrandOutputEventInfo logEvent )
+        public override void Handle( GrandOutputEventInfo logEvent, bool parrallelCall )
         {
-            foreach( var c in _children ) c.Handle( logEvent );
+            foreach( var c in _children ) c.Handle( logEvent, parrallelCall );
         }
 
     }

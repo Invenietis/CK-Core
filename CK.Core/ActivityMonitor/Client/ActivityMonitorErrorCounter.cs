@@ -49,7 +49,7 @@ namespace CK.Core
         /// <summary>
         /// Gets the tag used for generated error conclusions ("c:ErrorCounter") when <see cref="GenerateConclusion"/> is true.
         /// </summary>
-        public static readonly CKTrait TagErrorCounter = ActivityMonitor.RegisteredTags.FindOrCreate( "c:ErrorCounter" );
+        public static readonly CKTrait TagErrorCounter = ActivityMonitor.Tags.Register( "c:ErrorCounter" );
 
         /// <summary>
         /// Encapsulates error information.

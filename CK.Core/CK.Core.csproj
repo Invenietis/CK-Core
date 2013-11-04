@@ -173,7 +173,6 @@
     <Compile Include="LegacySupport\IReadOnlyCollection.cs" />
     <Compile Include="LegacySupport\IReadOnlyList.cs" />
     <Compile Include="ISimpleTypeFinder.cs" />
-    <Compile Include="OSVersionInfo.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="R.Designer.cs">
       <DependentUpon>R.resx</DependentUpon>

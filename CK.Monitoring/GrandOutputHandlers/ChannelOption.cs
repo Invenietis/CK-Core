@@ -12,26 +12,23 @@ namespace CK.Monitoring.GrandOutputHandlers
     /// </summary>
     public sealed class ChannelOption
     {
-        LogLevelFilter _currentFilter;
+        LogFilter _currentFilter;
 
         /// <summary>
-        /// Enables a <see cref="GrandOutpuHandler"/> to publish the filter level it requires (if any).
+        /// Enables any handler to publish the minimal filter level it requires (if any).
         /// </summary>
-        /// <param name="filter">Filter required by a <see cref="GrandOutpuHandler"/>.</param>
-        public void SetMinimalFilter( LogLevelFilter filter )
+        /// <param name="filter">Filter required by a <see cref="HandlerBase"/>.</param>
+        public void SetMinimalFilter( LogFilter filter )
         {
-            if( filter != LogLevelFilter.None ) 
-            {
-                if( _currentFilter == LogLevelFilter.None || filter < _currentFilter ) _currentFilter = filter;
-            }
+            _currentFilter = _currentFilter.Combine( filter );
         }
 
         /// <summary>
-        /// Gets the minimal <see cref="LogLevelFilter"/>.
-        /// Since a <see cref="GrandOutpuHandler"/> can publish its level, we can optimize the filtering level on 
+        /// Gets the minimal <see cref="LogFilter"/>.
+        /// Since a handler can publish its minimal filter requirement, we can optimize the filtering levels on 
         /// monitors bound to a channel.
         /// </summary>
-        public LogLevelFilter CurrentMinimalFilter { get { return _currentFilter; } }
+        public LogFilter CurrentMinimalFilter { get { return _currentFilter; } }
 
     }
 }

@@ -44,7 +44,7 @@ namespace CK.Core
         {
 			ActivityMonitorLineSender s = (ActivityMonitorLineSender)@this;
             if( s.IsRejected ) return;
-			s.InitializeAndSend( null, ActivityMonitor.EmptyTag, text, DateTime.UtcNow );
+			s.InitializeAndSend( null, ActivityMonitor.Tags.Empty, text, DateTime.UtcNow );
         }
 		 
 		/// <summary>
@@ -58,7 +58,7 @@ namespace CK.Core
 			ActivityMonitorLineSender s = (ActivityMonitorLineSender)@this;
             if( s.IsRejected ) return;
 			if( arg0 is Exception ) throw new ArgumentException( R.PossibleWrongOverloadUseWithException, "arg0" );
-			s.InitializeAndSend( null, ActivityMonitor.EmptyTag, String.Format( format, arg0 ), DateTime.UtcNow );
+			s.InitializeAndSend( null, ActivityMonitor.Tags.Empty, String.Format( format, arg0 ), DateTime.UtcNow );
         }
 		 
 		/// <summary>
@@ -72,7 +72,7 @@ namespace CK.Core
         {
 			ActivityMonitorLineSender s = (ActivityMonitorLineSender)@this;
             if( s.IsRejected ) return;
-			s.InitializeAndSend( null, ActivityMonitor.EmptyTag, String.Format( format, arg0, arg1 ), DateTime.UtcNow );
+			s.InitializeAndSend( null, ActivityMonitor.Tags.Empty, String.Format( format, arg0, arg1 ), DateTime.UtcNow );
         }
 		 
 		/// <summary>
@@ -87,7 +87,7 @@ namespace CK.Core
         {
 			ActivityMonitorLineSender s = (ActivityMonitorLineSender)@this;
             if( s.IsRejected ) return;
-			s.InitializeAndSend( null, ActivityMonitor.EmptyTag, String.Format( format, arg0, arg1, arg2 ), DateTime.UtcNow );
+			s.InitializeAndSend( null, ActivityMonitor.Tags.Empty, String.Format( format, arg0, arg1, arg2 ), DateTime.UtcNow );
         }
 		 
 		/// <summary>
@@ -100,7 +100,7 @@ namespace CK.Core
         {
 			ActivityMonitorLineSender s = (ActivityMonitorLineSender)@this;
             if( s.IsRejected ) return;
-			s.InitializeAndSend( null, ActivityMonitor.EmptyTag, String.Format( format, arguments ), DateTime.UtcNow );
+			s.InitializeAndSend( null, ActivityMonitor.Tags.Empty, String.Format( format, arguments ), DateTime.UtcNow );
         }
 		 
 		/// <summary>
@@ -113,7 +113,7 @@ namespace CK.Core
         {
 			ActivityMonitorLineSender s = (ActivityMonitorLineSender)@this;
             if( s.IsRejected ) return;
-            s.InitializeAndSend( null, ActivityMonitor.EmptyTag, text(), DateTime.UtcNow );
+            s.InitializeAndSend( null, ActivityMonitor.Tags.Empty, text(), DateTime.UtcNow );
         }
 
 		/// <summary>
@@ -128,7 +128,7 @@ namespace CK.Core
         {
             ActivityMonitorLineSender s = (ActivityMonitorLineSender)@this;
 			if( s.IsRejected ) return;
-            s.InitializeAndSend( null, ActivityMonitor.EmptyTag, text(param), DateTime.UtcNow );
+            s.InitializeAndSend( null, ActivityMonitor.Tags.Empty, text(param), DateTime.UtcNow );
         }
 
 		/// <summary>
@@ -145,7 +145,7 @@ namespace CK.Core
         {
             ActivityMonitorLineSender s = (ActivityMonitorLineSender)@this;
 			if( s.IsRejected ) return;
-            s.InitializeAndSend(  null, ActivityMonitor.EmptyTag, text(param1,param2),DateTime.UtcNow );
+            s.InitializeAndSend(  null, ActivityMonitor.Tags.Empty, text(param1,param2),DateTime.UtcNow );
         }
 
 		/// <summary>
@@ -164,7 +164,7 @@ namespace CK.Core
         {
             ActivityMonitorLineSender s = (ActivityMonitorLineSender)@this;
 			if( s.IsRejected ) return;
-            s.InitializeAndSend( null, ActivityMonitor.EmptyTag, text(param1,param2,param3), DateTime.UtcNow );
+            s.InitializeAndSend( null, ActivityMonitor.Tags.Empty, text(param1,param2,param3), DateTime.UtcNow );
         }
 
 		#endregion Text 
@@ -325,7 +325,7 @@ namespace CK.Core
         {
 			ActivityMonitorLineSender s = (ActivityMonitorLineSender)@this;
             if( s.IsRejected ) return;
-			s.InitializeAndSend( ex, ActivityMonitor.EmptyTag, null, DateTime.UtcNow );
+			s.InitializeAndSend( ex, ActivityMonitor.Tags.Empty, null, DateTime.UtcNow );
         }
 		 
 		/// <summary>
@@ -338,7 +338,7 @@ namespace CK.Core
         {
 			ActivityMonitorLineSender s = (ActivityMonitorLineSender)@this;
             if( s.IsRejected ) return;
-			s.InitializeAndSend( ex, ActivityMonitor.EmptyTag, text, DateTime.UtcNow );
+			s.InitializeAndSend( ex, ActivityMonitor.Tags.Empty, text, DateTime.UtcNow );
         }
 		 
 		/// <summary>
@@ -352,7 +352,7 @@ namespace CK.Core
         {
 			ActivityMonitorLineSender s = (ActivityMonitorLineSender)@this;
             if( s.IsRejected ) return;
-			s.InitializeAndSend( ex, ActivityMonitor.EmptyTag, String.Format( format, arg0 ), DateTime.UtcNow );
+			s.InitializeAndSend( ex, ActivityMonitor.Tags.Empty, String.Format( format, arg0 ), DateTime.UtcNow );
         }
 		 
 		/// <summary>
@@ -367,7 +367,7 @@ namespace CK.Core
         {
 			ActivityMonitorLineSender s = (ActivityMonitorLineSender)@this;
             if( s.IsRejected ) return;
-			s.InitializeAndSend( ex, ActivityMonitor.EmptyTag, String.Format( format, arg0, arg1 ), DateTime.UtcNow );
+			s.InitializeAndSend( ex, ActivityMonitor.Tags.Empty, String.Format( format, arg0, arg1 ), DateTime.UtcNow );
         }
 		 
 		/// <summary>
@@ -383,7 +383,7 @@ namespace CK.Core
         {
 			ActivityMonitorLineSender s = (ActivityMonitorLineSender)@this;
             if( s.IsRejected ) return;
-			s.InitializeAndSend( ex, ActivityMonitor.EmptyTag, String.Format( format, arg0, arg1, arg2 ), DateTime.UtcNow );
+			s.InitializeAndSend( ex, ActivityMonitor.Tags.Empty, String.Format( format, arg0, arg1, arg2 ), DateTime.UtcNow );
         }
 		 
 		/// <summary>
@@ -397,7 +397,7 @@ namespace CK.Core
         {
 			ActivityMonitorLineSender s = (ActivityMonitorLineSender)@this;
             if( s.IsRejected ) return;
-			s.InitializeAndSend( ex, ActivityMonitor.EmptyTag, String.Format( format, arguments ), DateTime.UtcNow );
+			s.InitializeAndSend( ex, ActivityMonitor.Tags.Empty, String.Format( format, arguments ), DateTime.UtcNow );
         }
 		 
 		/// <summary>
@@ -411,7 +411,7 @@ namespace CK.Core
         {
 			ActivityMonitorLineSender s = (ActivityMonitorLineSender)@this;
             if( s.IsRejected ) return;
-            s.InitializeAndSend( ex, ActivityMonitor.EmptyTag, text(), DateTime.UtcNow );
+            s.InitializeAndSend( ex, ActivityMonitor.Tags.Empty, text(), DateTime.UtcNow );
         }
 
 		/// <summary>
@@ -427,7 +427,7 @@ namespace CK.Core
         {
             ActivityMonitorLineSender s = (ActivityMonitorLineSender)@this;
 			if( s.IsRejected ) return;
-            s.InitializeAndSend( ex, ActivityMonitor.EmptyTag, text(param), DateTime.UtcNow );
+            s.InitializeAndSend( ex, ActivityMonitor.Tags.Empty, text(param), DateTime.UtcNow );
         }
 
 		/// <summary>
@@ -445,7 +445,7 @@ namespace CK.Core
         {
             ActivityMonitorLineSender s = (ActivityMonitorLineSender)@this;
 			if( s.IsRejected ) return;
-            s.InitializeAndSend(  ex, ActivityMonitor.EmptyTag, text(param1,param2),DateTime.UtcNow );
+            s.InitializeAndSend(  ex, ActivityMonitor.Tags.Empty, text(param1,param2),DateTime.UtcNow );
         }
 
 		/// <summary>
@@ -465,7 +465,7 @@ namespace CK.Core
         {
             ActivityMonitorLineSender s = (ActivityMonitorLineSender)@this;
 			if( s.IsRejected ) return;
-            s.InitializeAndSend( ex, ActivityMonitor.EmptyTag, text(param1,param2,param3), DateTime.UtcNow );
+            s.InitializeAndSend( ex, ActivityMonitor.Tags.Empty, text(param1,param2,param3), DateTime.UtcNow );
         }
 
 		#endregion ExceptionText 

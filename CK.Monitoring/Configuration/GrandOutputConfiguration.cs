@@ -16,6 +16,7 @@ namespace CK.Monitoring
     public class GrandOutputConfiguration
     {
         RouteConfiguration _routeConfig;
+        LogFilter? _appDomainDefaultFilter;
 
         public GrandOutputConfiguration()
         {
@@ -27,7 +28,7 @@ namespace CK.Monitoring
             if( monitor == null ) throw new ArgumentNullException( "monitor" );
             try
             {
-                var doc = XDocument.Load( path, LoadOptions.SetBaseUri );
+                var doc = XDocument.Load( path, LoadOptions.SetBaseUri|LoadOptions.SetLineInfo );
                 return Load( doc.Root, monitor );
             }
             catch( Exception ex )
@@ -37,14 +38,17 @@ namespace CK.Monitoring
             }
         }
 
-        public bool Load( XElement xml, IActivityMonitor monitor )
+        public bool Load( XElement xmlGrandOutputConfiguration, IActivityMonitor monitor )
         {
-            if( xml == null ) throw new ArgumentNullException( "xml" );
+            if( xmlGrandOutputConfiguration == null ) throw new ArgumentNullException( "xml" );
             if( monitor == null ) throw new ArgumentNullException( "monitor" );
             try
             {
+                if( xmlGrandOutputConfiguration.Name != "GrandOutputConfiguration" ) throw new XmlException( "Element name must be <GrandOutputConfiguration>." );
+                _appDomainDefaultFilter = xmlGrandOutputConfiguration.GetAttributeLogFilter( "AppDomainDefaultFilter", false );
                 _routeConfig = new RouteConfiguration();
-                FillRoute( xml, _routeConfig );
+                FillRoute( monitor, xmlGrandOutputConfiguration, _routeConfig );
+                return true;
             }
             catch( Exception ex )
             {
@@ -53,12 +57,19 @@ namespace CK.Monitoring
             return false;
         }
 
+        /// <summary>
+        /// Gets the default filter for the application domain. 
+        /// This value is set on the static <see cref="ActivityMonitor.DefaultFilter"/> by <see cref="GrandOutputConfiguration.SetConfiguration"/>
+        /// if and only if the configured GrandOutput is the <see cref="GrandOutput.Default"/>.
+        /// </summary>
+        public LogFilter? AppDomainDefaultFilter { get { return _appDomainDefaultFilter; } }
+
         internal RouteConfiguration RouteConfiguration
         {
             get { return _routeConfig; }
         }
 
-        void FillRoute( XElement xml, RouteConfiguration route )
+        void FillRoute( IActivityMonitor monitor, XElement xml, RouteConfiguration route )
         {
             route.ConfigData = new GrandOutputChannelConfigData( xml );
             foreach( var e in xml.Elements() )
@@ -66,25 +77,25 @@ namespace CK.Monitoring
                 switch( e.Name.LocalName )
                 {
                     case "Channel":
-                        route.DeclareRoute( FillSubRoute( xml, new SubRouteConfiguration( xml.AttributeRequired( "Name" ).Value, null ) ) );
+                        route.DeclareRoute( FillSubRoute( monitor, e, new SubRouteConfiguration( e.AttributeRequired( "Name" ).Value, null ) ) );
                         break;
                     case "Parallel": 
                     case "Sequence":
-                    case "Add": DoSequenceOrParallelOrAdd( a => route.AddAction( a ), xml );
+                    case "Add": DoSequenceOrParallelOrAdd( monitor, a => route.AddAction( a ), e );
                         break;
                     default: throw new XmlException( "Element name must be <Add>, <Parallel>, <Sequence> or <Channel>." );
                 }
             }
         }
 
-        SubRouteConfiguration FillSubRoute( XElement xml, SubRouteConfiguration sub )
+        SubRouteConfiguration FillSubRoute( IActivityMonitor monitor, XElement xml, SubRouteConfiguration sub )
         {
-            FillRoute( xml, sub );
+            FillRoute( monitor, xml, sub );
             sub.RoutePredicate = CreatePredicate( xml.AttributeRequired( "TopicFilter" ).Value );
             return sub;
         }
 
-        void DoSequenceOrParallelOrAdd( Action<ActionConfiguration> collector, XElement xml )
+        void DoSequenceOrParallelOrAdd( IActivityMonitor monitor, Action<ActionConfiguration> collector, XElement xml )
         {
             if( xml.Name == "Parallel" || xml.Name == "Sequence" )
             {
@@ -101,15 +112,15 @@ namespace CK.Monitoring
                     elementCollector = a => s.AddAction( a );
                     collector( s );
                 }
-                foreach( var action in xml.Elements() ) DoSequenceOrParallelOrAdd( collector, action );
+                foreach( var action in xml.Elements() ) DoSequenceOrParallelOrAdd( monitor, collector, action );
             }
             else
             {
-                if( xml.Name != "Add" ) throw new CKException( "Unknown element '{0}': only <Add>, <Parallel> or <Sequence>.", xml.Name );
+                if( xml.Name != "Add" ) throw new XmlException( String.Format( "Unknown element '{0}': only <Add>, <Parallel> or <Sequence>.", xml.Name ) );
                 string type = xml.AttributeRequired( "Type" ).Value;
                 Type t = FindConfigurationType( type );
-                HandlerConfiguration hC = (HandlerConfiguration)Activator.CreateInstance( t );
-                hC.Initialize( xml );
+                HandlerConfiguration hC = (HandlerConfiguration)Activator.CreateInstance( t, xml.AttributeRequired( "Name" ).Value );
+                hC.DoInitialize( monitor, xml );
                 collector( hC );
             }
         }

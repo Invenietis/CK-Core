@@ -8,6 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using CK.Core;
 using CK.Core.Impl;
+using CK.Monitoring.GrandOutputHandlers;
 
 namespace CK.Monitoring.Impl
 {
@@ -18,14 +19,16 @@ namespace CK.Monitoring.Impl
     /// </summary>
     class BufferingChannel : IChannel
     {
-        readonly IGrandOutputSink _commonSink;
+        readonly EventDispatcher _dispatcher;
+        readonly EventDispatcher.FinalReceiver _receiver;
         readonly CountdownEvent _useLock;
         readonly ConcurrentQueue<GrandOutputEventInfo> _buffer;
         readonly object _flushLock;
 
-        internal BufferingChannel( IGrandOutputSink commonSink )
+        internal BufferingChannel( IGrandOutputSink commonSink, EventDispatcher dispatcher, EventDispatcher.FinalReceiver commonSinkOnly )
         {
-            _commonSink = commonSink;
+            _dispatcher = dispatcher;
+            _receiver = commonSinkOnly;
             _useLock = new CountdownEvent( 0 );
             _buffer = new ConcurrentQueue<GrandOutputEventInfo>();
             _flushLock = new Object();
@@ -35,30 +38,17 @@ namespace CK.Monitoring.Impl
         {
         }
 
-        public GrandOutputSource CreateSource( IActivityMonitorImpl monitor, string channelName )
-        {
-            return new GrandOutputSource( monitor, channelName );
-        }
-
-        public void ReleaseSource( GrandOutputSource source )
-        {
-        }
-
         public LogFilter MinimalFilter
         {
             get { return LogFilter.Undefined; }
         }
 
-        public void Handle( GrandOutputEventInfo logEvent )
+        public void Handle( GrandOutputEventInfo logEvent, bool sendToCommonSink )
         {
-            _commonSink.Handle( logEvent );
+            Debug.Assert( sendToCommonSink == true );
+            _dispatcher.Add( logEvent, _receiver );
             _buffer.Enqueue( logEvent );
             _useLock.Signal();
-        }
-
-        void IChannel.HandleBuffer( List<GrandOutputEventInfo> list )
-        {
-            throw new NotSupportedException( "BufferingChannel does not handle buffered events." );
         }
         
         public void PreHandleLock()
@@ -88,11 +78,11 @@ namespace CK.Monitoring.Impl
 
         /// <summary>
         /// Flushes all buffered GrandOutputEventInfo into appropriate channels.
-        /// It is called by the GrandOutpu.OnConfigurationReady method to transfer buffered log events
+        /// It is called by the GrandOutput.OnConfigurationReady method to transfer buffered log events
         /// into the appropriate new routes.
         /// This is the only step during wich a lock blocks GrandOutput.ObtainChannel calls.
         /// </summary>
-        /// <param name="newChannels">Function that knows how to return the channel to uses based on its name.</param>
+        /// <param name="newChannels">Function that knows how to return the channel to uses based on the topic string.</param>
         internal void FlushBuffer( Func<string,IChannel> newChannels )
         {
             Debug.Assert( Monitor.IsEntered( _flushLock ) );
@@ -106,17 +96,11 @@ namespace CK.Monitoring.Impl
             }
             else
             {
-                Dictionary<IChannel,List<GrandOutputEventInfo>> routedEvents = new Dictionary<IChannel, List<GrandOutputEventInfo>>();
                 GrandOutputEventInfo e;
                 while( _buffer.TryDequeue( out e ) )
                 {
-                    IChannel c = newChannels( e.Source.Topic );
-                    List<GrandOutputEventInfo> events = routedEvents.GetValueWithDefaultFunc( c, channel => new List<GrandOutputEventInfo>() );
-                    events.Add( e );
-                }
-                foreach( var pair in routedEvents )
-                {
-                    pair.Key.HandleBuffer( pair.Value );
+                    IChannel c = newChannels( e.Topic );
+                    c.Handle( e, false );
                 }
             }
             Debug.Assert( _useLock.CurrentCount == 0 );

@@ -124,7 +124,7 @@ namespace CK.Core {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The CKTrait value must be registered in ActivityMonitor.RegisteredTags..
+        ///   Looks up a localized string similar to The Tag (CKTrait) must be registered in ActivityMonitor.Tags..
         /// </summary>
         internal static string ActivityMonitorTagMustBeRegistered {
             get {

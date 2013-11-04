@@ -36,8 +36,8 @@ namespace CK.Core
     {
         /// <summary>
         /// The tag (never null).
-        /// It may be combined but is often atomic like <see cref="ActivityMonitor.TagUserConclusion"/>, 
-        /// or <see cref="ActivityMonitor.TagGetTextConclusion"/>.
+        /// It may be combined but is often atomic like <see cref="ActivityMonitor.Tags.UserConclusion"/>, 
+        /// or <see cref="ActivityMonitor.Tags.GetTextConclusion"/>.
         /// </summary>
         public readonly CKTrait Tag;
 
@@ -50,19 +50,19 @@ namespace CK.Core
         /// Initializes a new conclusion for a group.
         /// </summary>
         /// <param name="conclusion">Must not be null (may be empty).</param>
-        /// <param name="tag">Must be null or be registered in <see cref="ActivityMonitor.RegisteredTags"/>.</param>
+        /// <param name="tag">Must be null or be registered in <see cref="ActivityMonitor.Tags"/>.</param>
         public ActivityLogGroupConclusion( string conclusion, CKTrait tag = null )
         {
             if( conclusion == null ) throw new ArgumentNullException( "conclusion" );
-            if( tag == null ) tag = ActivityMonitor.EmptyTag;
-            else if( tag.Context != ActivityMonitor.RegisteredTags ) throw new ArgumentException( R.ActivityMonitorTagMustBeRegistered, "tag" );
+            if( tag == null ) tag = ActivityMonitor.Tags.Empty;
+            else if( tag.Context != ActivityMonitor.Tags.Context ) throw new ArgumentException( R.ActivityMonitorTagMustBeRegistered, "tag" );
             Tag = tag;
             Text = conclusion;
         }
 
         internal ActivityLogGroupConclusion( CKTrait t, string conclusion )
         {
-            Debug.Assert( t != null && t.Context == ActivityMonitor.RegisteredTags );
+            Debug.Assert( t != null && t.Context == ActivityMonitor.Tags.Context );
             Debug.Assert( conclusion != null );
             Tag = t;
             Text = conclusion;

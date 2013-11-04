@@ -15,7 +15,7 @@ namespace CK.Monitoring
 
         public GrandOutputChannelConfigData( XElement xml )
         {
-            MinimalFilter = xml.GetAttributeLogFilter( "MinimalFilter" );
+            MinimalFilter = xml.GetAttributeLogFilter( "MinimalFilter", true ).Value;
         }
     }
 }

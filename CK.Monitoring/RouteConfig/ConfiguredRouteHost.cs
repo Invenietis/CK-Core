@@ -99,9 +99,10 @@ namespace CK.RouteConfig
         TAction[] _futureAllActions;
         int _configurationAttemptCount;
         int _succesfulConfigurationCount;
+        bool _disposed;
 
         /// <summary>
-        /// Initializes a new <see cref="ConfiguredRouteHost"/> initially <see cref="IsClosed">closed</see>.
+        /// Initializes a new <see cref="ConfiguredRouteHost"/> initially <see cref="IsEmpty">empty</see>.
         /// </summary>
         /// <param name="actionFactory">Factory for <typeparamref name="TAction"/> based on an <see cref="ActionConfiguration"/> for final <typeparamref name="TRoute"/>.</param>
         /// <param name="readyCallback">Optional callback that will be called right before applying a new configuration.</param>
@@ -125,10 +126,11 @@ namespace CK.RouteConfig
         /// <summary>
         /// Returns the <typeparamref name="TRoute"/> for a full name.
         /// This obtention locks the configuration: it must be unlocked when not used anymore.
-        /// When null, it means that a configuration is waiting to be applied: a route that buffers its work should be substituded.
+        /// When null, it means that a configuration is waiting to be applied (a route that buffers its work should be substituded)
+        /// or that this host <see cref="IsDisposed"/>.
         /// </summary>
         /// <param name="route">The full route that will be matched.</param>
-        /// <returns>The final route to apply or null if a configuration is applying.</returns>
+        /// <returns>The final route to apply or null if a configuration is applying or if <see cref="IsDisposed"/> is true.</returns>
         public TRoute ObtainRoute( string route )
         {
             var r = _root;
@@ -161,9 +163,18 @@ namespace CK.RouteConfig
         /// Gets whether this host is closed.
         /// When closed, all routes are empty.
         /// </summary>
-        public bool IsClosed
+        public bool IsEmpty
         {
             get { return _root == _emptyHost; }
+        }
+
+        /// <summary>
+        /// Gets whether this host has been disposed.
+        /// When disposed, <see cref="ObtainRoute"/> always returns null.
+        /// </summary>
+        public bool IsDisposed
+        {
+            get { return _disposed; }
         }
 
         /// <summary>
@@ -173,6 +184,7 @@ namespace CK.RouteConfig
         {
             /// <summary>
             /// The configuration waiting to be applied.
+            /// Null when the host is disposed.
             /// </summary>
             public readonly RouteConfigurationResult NewConfiguration;
 
@@ -180,6 +192,11 @@ namespace CK.RouteConfig
             /// The <see cref="IActivityMonitor"/> that monitors the change of the configuration.
             /// </summary>
             public readonly IActivityMonitor Monitor;
+
+            /// <summary>
+            /// Gets whether the host is disposed.
+            /// </summary>
+            public bool IsDisposed { get { return NewConfiguration == null; } }
 
             internal ConfigurationClosingEventArgs( IActivityMonitor m, RouteConfigurationResult c )
             {
@@ -207,9 +224,9 @@ namespace CK.RouteConfig
             }
 
             /// <summary>
-            /// Gets whether the new route is the empty one.
+            /// Gets whether the new configuration is empty.
             /// </summary>
-            public bool IsClosed
+            public bool IsEmptyConfiguration
             {
                 get { return _host._futureRoot == _host._emptyHost; }
             }
@@ -262,12 +279,15 @@ namespace CK.RouteConfig
         /// <item>If the new routes can not be created, false is returned and current configuration remains active.</item>
         /// <item><see cref="ObtainRoute"/> starts returning null and <see cref="ConfigurationClosing"/> event is raised.</item>
         /// <item>Waiting for previous routes termination (unititialization).</item>
-        /// <item>Calling ConfigurationReady callback: new routes must be initialized.</item>
+        /// <item>Initializing the new routes (starter function when provided to the constructor is called for each actions).</item>
+        /// <item>Calling ConfigurationReady callback: new routes can be initialized.</item>
         /// <item>If the new configuration has not been applied by the ConfigurationReady callback, it is automaticaly applied.</item>
         /// </list>
+        /// If an error occurs while starting the new routes, false is returned and routes are empty.
         /// </summary>
         /// <param name="monitor">Monitor that wil receive explanations and errors.</param>
         /// <param name="configuration">The configuration to achieve.</param>
+        /// <param name="millisecondsBeforeForceClose">Maximal time to wait for current routes to be unlocked (see <see cref="IRouteConfigurationLock"/>).</param>
         /// <returns>True if the new configuration has been succesfully applied, false if an error occured.</returns>
         public bool SetConfiguration( IActivityMonitor monitor, RouteConfiguration configuration, int millisecondsBeforeForceClose = Timeout.Infinite )
         {
@@ -275,6 +295,7 @@ namespace CK.RouteConfig
             if( configuration == null ) throw new ArgumentNullException( "configuration" );
             lock( _initializeLock )
             {
+                if( _disposed ) throw new ObjectDisposedException( "ConfiguredRouteHost" );
                 using( monitor.OpenInfo().Send( "New route configuration initialization." ) )
                 {
                     Interlocked.Increment( ref _configurationAttemptCount );
@@ -301,10 +322,10 @@ namespace CK.RouteConfig
                         if( _root != _emptyHost ) _configLock.Signal();
                         if( !_configLock.Wait( millisecondsBeforeForceClose ) ) monitor.Warn( "Timeout expired. Force the termination." );
                     }
-                    if( !CloseCurrentRoutesAndStartNewOnes( monitor ) ) return false;
+                    bool success = CloseCurrentRoutesAndStartNewOnes( monitor );
                     // The new routes are ready.
-                    Debug.Assert( _configLock.CurrentCount == 1 );
-                    shellLock.Open();
+                    Debug.Assert( (_futureRoot == _emptyHost && _configLock.CurrentCount == 0) || (_futureRoot != _emptyHost && _configLock.CurrentCount == 1) );
+                    if( _futureRoot != _emptyHost ) shellLock.Open();
                     ConfigurationReady ready = new ConfigurationReady( monitor, this );
                     if( _readyCallback != null )
                     {
@@ -314,9 +335,9 @@ namespace CK.RouteConfig
                         }
                     }
                     ready.ApplyConfiguration();
+                    return success;
                 }
             }
-            return true;
         }
 
         void DoApplyConfiguration()
@@ -374,17 +395,25 @@ namespace CK.RouteConfig
                     int i = 0;
                     foreach( var d in _futureAllActions )
                     {
-                        try
+                        int errorCount = 0;
+                        using( monitor.CatchCounter( nbError => errorCount = nbError ) )
                         {
-                            _starter( monitor, d );
+                            try
+                            {
+                                _starter( monitor, d );
+                            }
+                            catch( Exception ex )
+                            {
+                                monitor.Fatal().Send( ex );
+                            }
                         }
-                        catch( Exception ex )
+                        if( errorCount > 0 )
                         {
                             if( failed == null ) failed = new List<int>();
                             failed.Add( i );
-                            monitor.Fatal().Send( ex );
                         }
                     }
+                    monitor.CloseGroup( failed != null ? "Failed to start new actions." : "Actions successfully started." );
                 }
             }
             if( failed == null )
@@ -435,35 +464,55 @@ namespace CK.RouteConfig
         }
 
         /// <summary>
-        /// Closes the current configuration regardless of any potential work of the current actions. 
-        /// Current actions are closed and any route is associated to an empty set of actions.
+        /// Closes the current configuration. 
+        /// Current actions are closed. <see cref="IsDisposed"/> is set to true.
         /// </summary>
         /// <param name="monitor">Monitor that will be used. Must not be null.</param>
-        public void DirectClose( IActivityMonitor monitor )
+        /// <param name="millisecondsBeforeForceClose">Maximal time to wait for current routes to be unlocked (see <see cref="IRouteConfigurationLock"/>).</param>
+        public void Dispose( IActivityMonitor monitor, int millisecondsBeforeForceClose = Timeout.Infinite )
         {
-            if( monitor == null ) throw new ArgumentNullException();
+            if( monitor == null ) throw new ArgumentNullException( "monitor" );
             lock( _initializeLock )
             {
-                if( _root != _emptyHost )
+                if( _disposed ) return;
+                _disposed = true;
+                _futureRoot = _emptyHost;
+                _allActionsDying = _allActions;
+                _futureAllActions = _emptyHost.Actions;
+                // Let outside world know that current routes must be released.
+                var h1 = ConfigurationClosing;
+                if( h1 != null )
                 {
-                    Debug.Assert( _allActions != null );
-                    _root = _emptyHost;
-                    _allActions = Util.EmptyArray<TAction>.Empty;
-                    _futureAllActions = null;
-                    _futureRoot = null;
-                    CloseActions( monitor, _allActions );
-                    lock( _waitLock ) Monitor.PulseAll( _waitLock );
+                    using( monitor.OpenInfo().Send( "Raising last ConfigurationClosing event." ) )
+                    {
+                        h1( this, new ConfigurationClosingEventArgs( monitor, null ) );
+                    }
                 }
+                using( monitor.OpenInfo().Send( "Waiting for current routes to terminate." ) )
+                {
+                    if( _root != _emptyHost ) _configLock.Signal();
+                    if( !_configLock.Wait( millisecondsBeforeForceClose ) ) monitor.Warn( "Timeout expired. Force the termination." );
+                }
+                if( _allActionsDying != null )
+                {
+                    CloseActions( monitor, _allActionsDying );
+                    _allActionsDying = null;
+                }
+                _configLock.Dispose();
+                _root = _emptyHost;
+                // When disposed, _futureRoot is set to _emptyHost so that ObtainRoute returns null.
+                _futureRoot = _emptyHost;
+                _futureAllActions = null;
+                lock( _waitLock ) Monitor.PulseAll( _waitLock );
             }
         }
 
         /// <summary>
-        /// Calls <see cref="DirectClose"/>.
+        /// Calls <see cref="Dispose(IActivityMonitor,int)"/> with a <see cref="SystemActivityMonitor"/> and no closing time limit.
         /// </summary>
         public void Dispose()
         {
-            DirectClose( new ActivityMonitor( false ) );
-            _configLock.Dispose();
+            Dispose( new SystemActivityMonitor(), Timeout.Infinite );
         }
 
         void CloseActions( IActivityMonitor monitor, TAction[] toClose )

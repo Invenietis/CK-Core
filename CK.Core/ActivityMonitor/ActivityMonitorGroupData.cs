@@ -23,7 +23,7 @@ namespace CK.Core
         /// Initializes a new <see cref="ActivityMonitorGroupData"/>.
         /// </summary>
         /// <param name="level">Log level. Can not be <see cref="LogLevel.None"/>.</param>
-        /// <param name="tags">Tags (from <see cref="ActivityMonitor.RegisteredTags"/>) to associate to the log. It will be unioned with the current <see cref="IActivityMonitor.AutoTags"/>.</param>
+        /// <param name="tags">Tags (from <see cref="ActivityMonitor.Tags"/>) to associate to the log. It will be unioned with the current <see cref="IActivityMonitor.AutoTags"/>.</param>
         /// <param name="text">Text of the log. Can be null or empty only if <paramref name="exception"/> is not null: the <see cref="Exception.Message"/> is the text.</param>
         /// <param name="logTimeUtc">Date and time of the log. Must be in UTC.</param>
         /// <param name="exception">Exception of the log. Can be null.</param>

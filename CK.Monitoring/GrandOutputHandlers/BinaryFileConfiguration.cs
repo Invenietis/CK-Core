@@ -9,11 +9,20 @@ using CK.Core;
 
 namespace CK.Monitoring.GrandOutputHandlers
 {
+    /// <summary>
+    /// Configuration object for <see cref="BinaryFile"/>.
+    /// </summary>
+    [HandlerType( typeof(BinaryFile) )]
     public class BinaryFileConfiguration : HandlerConfiguration
     {
+        /// <summary>
+        /// Initializes a new <see cref="BinaryFileConfiguration"/>.
+        /// </summary>
+        /// <param name="name">Name of this configuration.</param>
         public BinaryFileConfiguration( string name )
             : base( name )
         {
+            MaxCountPerFile = 10000;
         }
 
         /// <summary>
@@ -24,16 +33,15 @@ namespace CK.Monitoring.GrandOutputHandlers
         public string Path { get; set; }
 
         /// <summary>
-        /// Gets or sets the minimal filter for this file handler.
-        /// Defaults to <see cref="LogFilter.Undefined"/>: unless specified, the handler will log 
-        /// whatever it receives thanks to the other minimal filters in the system.
+        /// Gets or sets the maximal count of entries per file.
+        /// Defaults to 10000.
         /// </summary>
-        public LogFilter MinimalFilter { get; set; }
+        public int MaxCountPerFile { get; set; }
 
-        protected internal override void Initialize( XElement xml )
+        protected override void Initialize( IActivityMonitor monitor, XElement xml )
         {
             Path = xml.AttributeRequired( "Path" ).Value;
-            MinimalFilter = xml.GetAttributeLogFilter( "MinimalFilter" );
+            MaxCountPerFile = xml.GetAttributeInt( "MaxCountPerFile", MaxCountPerFile );
         }
     }
 }

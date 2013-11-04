@@ -20,8 +20,9 @@ namespace CK.Monitoring
         BinaryReader _binaryReader;
         ILogEntry _current;
         int _streamVersion;
-        
-        public const int CurrentStreamVersion = 4;
+        long _currentPosition;
+
+        public const int CurrentStreamVersion = 5;
 
         /// <summary>
         /// Initializes a new <see cref="LogReader"/> on a stream that must start with the version number.
@@ -56,6 +57,7 @@ namespace CK.Monitoring
 
         /// <summary>
         /// Opens a <see cref="LogReader"/> to read the content of a file.
+        /// The file will be closed when <see cref="LogReader.Dispose"/> will be called.
         /// </summary>
         /// <param name="path">Path of the log file.</param>
         /// <returns>A <see cref="LogReader"/> that will close the file when disposed.</returns>
@@ -89,6 +91,14 @@ namespace CK.Monitoring
         }
 
         /// <summary>
+        /// Gets the inner <see cref="Stream.Position"/> of the <see cref="Current"/> entry.
+        /// </summary>
+        public long StreamOffset 
+        {
+            get { return _currentPosition; }
+        }
+
+        /// <summary>
         /// Attempts to read the next <see cref="ILogEntry"/>.
         /// </summary>
         /// <returns>True on success, false otherwise.</returns>
@@ -103,28 +113,72 @@ namespace CK.Monitoring
                     throw new InvalidOperationException( String.Format( "Stream is not a log stream or its version is not handled (Current Version = {0}).", CurrentStreamVersion ) );
                 }
             }
+            _currentPosition = _stream.Position;
             _current = LogEntry.Read( _binaryReader );
             return true;
         }
 
-        public void ReplayAll( IActivityMonitor destination )
+        /// <summary>
+        /// Replays mono activity. Multicast entries (<see cref="IMulticastLogEntry"/>) are ignored.
+        /// </summary>
+        /// <param name="destination">Target <see cref="IActivityMonitor"/>.</param>
+        public void ReplayUnicast( IActivityMonitor destination )
         {
+            if( destination == null ) throw new ArgumentNullException( "destinations" );
             while( this.MoveNext() )
             {
                 var log = this.Current;
-                switch( this.Current.LogType )
+                if( !(log is IMulticastLogEntry) )
                 {
-                    case LogEntryType.CloseGroup:
-                        destination.CloseGroup( log.LogTimeUtc, log.Conclusions );
-                        break;
-                    case LogEntryType.Line:
-                        destination.UnfilteredLog( log.Tags, log.LogLevel, log.Text, log.LogTimeUtc, CKException.CreateFrom( log.Exception ), log.FileName, log.LineNumber );
-                        break;
-                    case LogEntryType.OpenGroup:
-                        destination.UnfilteredOpenGroup( log.Tags, log.LogLevel, null, log.Text, log.LogTimeUtc, CKException.CreateFrom( log.Exception ), log.FileName, log.LineNumber );
-                        break;
+                    switch( log.LogType )
+                    {
+                        case LogEntryType.Line:
+                            destination.UnfilteredLog( log.Tags, log.LogLevel, log.Text, log.LogTimeUtc, CKException.CreateFrom( log.Exception ), log.FileName, log.LineNumber );
+                            break;
+                        case LogEntryType.OpenGroup:
+                            destination.UnfilteredOpenGroup( log.Tags, log.LogLevel, null, log.Text, log.LogTimeUtc, CKException.CreateFrom( log.Exception ), log.FileName, log.LineNumber );
+                            break;
+                        case LogEntryType.CloseGroup:
+                            destination.CloseGroup( log.LogTimeUtc, log.Conclusions );
+                            break;
+                    }
                 }
-           }
+            }
+        }
+
+        /// <summary>
+        /// Replays multiple activities. Unicast entries (<see cref="ILogeEntry"/> that are not <see cref="IMulticastLogEntry"/>) are ignored.
+        /// </summary>
+        /// <param name="destinations">
+        /// Must provide a <see cref="IActivityMonitor"/> for each identifier. 
+        /// The <see cref="IMulticastLogEntry.GroupDepth"/> is provided for each entry.
+        /// </param>
+        public void ReplayMulticast( Func<Guid,int,IActivityMonitor> destinations )
+        {
+            if( destinations == null ) throw new ArgumentNullException( "destinations" );
+            while( this.MoveNext() )
+            {
+                var log = this.Current as IMulticastLogEntry;
+                if( log != null )
+                {
+                    IActivityMonitor d = destinations( log.MonitorId, log.GroupDepth );
+                    if( d != null )
+                    {
+                        switch( this.Current.LogType )
+                        {
+                            case LogEntryType.Line:
+                                d.UnfilteredLog( log.Tags, log.LogLevel, log.Text, log.LogTimeUtc, CKException.CreateFrom( log.Exception ), log.FileName, log.LineNumber );
+                                break;
+                            case LogEntryType.OpenGroup:
+                                d.UnfilteredOpenGroup( log.Tags, log.LogLevel, null, log.Text, log.LogTimeUtc, CKException.CreateFrom( log.Exception ), log.FileName, log.LineNumber );
+                                break;
+                            case LogEntryType.CloseGroup:
+                                d.CloseGroup( log.LogTimeUtc, log.Conclusions );
+                                break;
+                        }
+                    }
+                }
+            }
         }
 
         /// <summary>
@@ -156,5 +210,6 @@ namespace CK.Monitoring
         {
             throw new NotSupportedException();
         }
+
     }
 }

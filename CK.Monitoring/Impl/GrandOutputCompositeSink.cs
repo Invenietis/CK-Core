@@ -8,7 +8,7 @@ using CK.Core;
 
 namespace CK.Monitoring
 {
-    class GrandOutputCompositeSink : IGrandOutputSink
+    internal class GrandOutputCompositeSink : IGrandOutputSink
     {
         IGrandOutputSink[] _sinks;
 
@@ -24,21 +24,14 @@ namespace CK.Monitoring
             Util.InterlockedRemove( ref _sinks, sink );
         }
 
-        void IGrandOutputSink.Handle( GrandOutputEventInfo logEvent )
+        void IGrandOutputSink.Handle( GrandOutputEventInfo logEvent, bool parrallelCall )
         {
-            // DoHandle avoids a closure.
-            ThreadPool.QueueUserWorkItem( DoHandle, logEvent );
-        }
-
-        private void DoHandle( object o )
-        {
-            var logEvent = (GrandOutputEventInfo)o;
             var sinks = _sinks;
             foreach( var l in sinks )
             {
                 try
                 {
-                    l.Handle( logEvent );
+                    l.Handle( logEvent, parrallelCall );
                 }
                 catch( Exception exCall )
                 {

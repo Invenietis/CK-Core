@@ -35,7 +35,7 @@ namespace CK.Monitoring.Impl
         
         public int LineNumber { get { return 0; } }
 
-        public CKTrait Tags { get { return ActivityMonitor.EmptyTag; } }
+        public CKTrait Tags { get { return ActivityMonitor.Tags.Empty; } }
 
         public IReadOnlyList<ActivityLogGroupConclusion> Conclusions { get { return _conclusions; } }
 

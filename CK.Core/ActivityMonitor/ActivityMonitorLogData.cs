@@ -36,7 +36,7 @@ namespace CK.Core
         public readonly string FileName;
 
         /// <summary>
-        /// Line number in the source filethat emitted the log. Can be null.
+        /// Line number in the source file that emitted the log. Can be null.
         /// </summary>
         public readonly int LineNumber;
 
@@ -49,8 +49,8 @@ namespace CK.Core
         }
 
         /// <summary>
-        /// Tags (from <see cref="ActivityMonitor.RegisteredTags"/>) associated to the log. 
-        /// It will be unioned with the current <see cref="IActivityMonitor.AutoTags"/>.</param>
+        /// Tags (from <see cref="ActivityMonitor.Tags"/>) associated to the log. 
+        /// It will be unioned with the current <see cref="IActivityMonitor.AutoTags"/>.
         /// </summary>
         public CKTrait Tags
         {
@@ -124,8 +124,8 @@ namespace CK.Core
         /// </summary>
         /// <param name="level">Log level. Can not be <see cref="LogLevel.None"/>.</param>
         /// <param name="exception">Exception of the log. Can be null.</param>
-        /// <param name="tags">Tags (from <see cref="ActivityMonitor.RegisteredTags"/>) to associate to the log. It will be unioned with the current <see cref="IActivityMonitor.AutoTags"/>.</param>
-        /// <param name="text">Text of the log. Can be null or empty only if <paramref name="exception"/> is not null: the <see cref="Exception.Message"/> is the text.</param>
+        /// <param name="tags">Tags (from <see cref="ActivityMonitor.Tags"/>) to associate to the log. It will be unioned with the current <see cref="IActivityMonitor.AutoTags"/>.</param>
+        /// <param name="text">Text of the log. Can be null or empty only if <paramref name="exception"/> is not null: the <see cref="T:Exception.Message"/> is the text.</param>
         /// <param name="logTimeUtc">Date and time of the log. Must be in UTC.</param>
         /// <param name="fileName">Name of the source file that emitted the log. Can be null.</param>
         /// <param name="lineNumber">Line number in the source filethat emitted the log. Can be null.</param>
@@ -162,7 +162,7 @@ namespace CK.Core
                 _text = exception.Message;
             }
             _exception = exception;
-            _tags = tags ?? ActivityMonitor.EmptyTag;
+            _tags = tags ?? ActivityMonitor.Tags.Empty;
             _logTimeUtc = logTimeUtc;
         }
 

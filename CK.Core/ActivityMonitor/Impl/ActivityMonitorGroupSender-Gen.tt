@@ -206,7 +206,7 @@ namespace CK.Core
 	void StateCall()
 	{
 		Write( WithException ? "ex, " : "null, " );
-		Write( WithTags ? "tags" : "ActivityMonitor.EmptyTag" );
+		Write( WithTags ? "tags" : "ActivityMonitor.Tags.Empty" );
 	}
 
 	void TextArgumentComment( int count )

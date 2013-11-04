@@ -1,5 +1,5 @@
 
-CK.Core 3.0 - Roadmap
+CK.Core 3.0 - Release Notes
 
 - Apparition:
 	- Util.EmptyArray<T>
@@ -30,13 +30,13 @@ CK.Core 3.0 - Roadmap
 			- GrandOutput is configurable (routes and actions).
 			- GrandOutput is thread-safe.
 			- Cross AppDomain monitoring is supported (exceptions are marshalled as CKExceptionData to avoid assembly loading side-effects).
-			- Routes (and Actions) can configure the MinimalFilter fo logs they expect.
+			- Routes (and Actions) can configure the MinimalFilter for logs they expect.
 		- Support of file name/line number.
 		- New LogEntry model that captures contextual information (errors and fatal are "contextualized" with their "Activity Path").
 		- Multiple ActivityMonitorClients (memory, binary file, text file).
 		- Newed ActivityMonitors are, by default, automatically configured (GrandOutput uses this).
 		- ActivityMonitor.Topic is a get/set string that defines the current activity of a monitor. It can be changed at any time: the GrandOutput 
-		  uses this Topic to, when it changes, dynamlically choose e new Route for the output of this monitor.
+		  uses this Topic to, when it changes, dynamlically choose the new Route for the output of this monitor.
 		- LogLevel filters now applies to OpenGroup as well as "line" logs:
 			- LogFilter value type contains a Line and a Group filter level.
 			- Predefined filters are: Undefined, Debug (full Trace), Verbose (skips Trace line but keeps all OpenGroup),
@@ -58,7 +58,8 @@ CK.Core 3.0 - Roadmap
 	- No more IDefaultActivityLogger, Tap and Sinks.
 	- No more DefaultActivityLogger/Monitor.
 	- No more LegacySupport/CallerMemberNameAttribute in favor of BCL Portability Pack.
-	- InvalidFileException.
+	- No more InvalidFileException.
+	- No more OSVersionInfo.
 
 
 

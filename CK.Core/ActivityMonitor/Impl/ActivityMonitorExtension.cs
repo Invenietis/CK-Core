@@ -107,7 +107,7 @@ namespace CK.Core
         /// </summary>
         /// <param name="this">This <see cref="IActivityMonitor"/>.</param>
         /// <param name="tags">
-        /// Tags (from <see cref="ActivityMonitor.RegisteredTags"/>) to associate to the log. 
+        /// Tags (from <see cref="ActivityMonitor.Tags"/>) to associate to the log. 
         /// These tags will be unioned with the current <see cref="IActivityMonitor.AutoTags">AutoTags</see>.
         /// </param>
         /// <param name="level">Log level. Must not be <see cref="LogLevel.None"/>.</param>
@@ -134,11 +134,12 @@ namespace CK.Core
         }
 
         /// <summary>
-        /// Opens a group regardless of <see cref="ActualFilter"/> level. 
+        /// Opens a group regardless of <see cref="IActivityMonitor.ActualFilter">ActualFilter</see> level. 
         /// <see cref="CloseGroup"/> must be called in order to close the group, and/or the returned object must be disposed (both safely can be called: 
         /// the group is closed on the first action, the second one is ignored).
         /// </summary>
-        /// <param name="tags">Tags (from <see cref="ActivityMonitor.RegisteredTags"/>) to associate to the log. It will be unioned with current <see cref="AutoTags"/>.</param>
+        /// <param name="this">This <see cref="IActivityMonitor"/>.</param>
+        /// <param name="tags">Tags (from <see cref="ActivityMonitor.Tags"/>) to associate to the log. It will be unioned with current <see cref="IActivityMonitor.AutoTags">AutoTags</see>.</param>
         /// <param name="level">Log level. The <see cref="LogLevel.None"/> level is used to open a filtered group. See remarks.</param>
         /// <param name="getConclusionText">Optional function that will be called on group closing.</param>
         /// <param name="text">Text to log (the title of the group). Null text is valid and considered as <see cref="String.Empty"/> or assigned to the <see cref="Exception.Message"/> if it exists.</param>
@@ -149,8 +150,9 @@ namespace CK.Core
         /// <returns>A disposable object that can be used to close the group.</returns>
         /// <remarks>
         /// <para>
-        /// Opening a group does not change the current <see cref="MinimalFilter"/>, except when opening a <see cref="LogLevel.Fatal"/> or <see cref="LogLevel.Error"/> group:
-        /// in such case, the Filter is automatically sets to <see cref="LogFilter.Debug"/> to capture all potential information inside the error group.
+        /// Opening a group does not change the current <see cref="IActivityMonitor.MinimalFilter">MinimalFilter</see>, except when 
+        /// opening a <see cref="LogLevel.Fatal"/> or <see cref="LogLevel.Error"/> group: in such case, the Filter is automatically 
+        /// sets to <see cref="LogFilter.Debug"/> to capture all potential information inside the error group.
         /// </para>
         /// <para>
         /// Changes to the monitor's current Filter or AutoTags that occur inside a group are automatically restored to their original values when the group is closed.

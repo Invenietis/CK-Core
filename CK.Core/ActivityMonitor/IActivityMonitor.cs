@@ -41,7 +41,7 @@ namespace CK.Core
     {
         /// <summary>
         /// Gets or sets the tags of this monitor: any subsequent logs will be tagged by these tags.
-        /// The <see cref="CKTrait"/> must be registered in <see cref="ActivityMonitor.RegisteredTags"/>.
+        /// The <see cref="CKTrait"/> must be registered in <see cref="ActivityMonitor.Tags"/>.
         /// Modifications to this property are scoped to the current Group since when a Group is closed, this
         /// property (and <see cref="MinimalFilter"/>) is automatically restored to its original value (captured when the Group was opened).
         /// </summary>
@@ -73,7 +73,7 @@ namespace CK.Core
         /// </summary>
         /// <remarks>
         /// Clients are warned of the change thanks to <see cref="IActivityMonitorClient.OnTopicChanged"/> and an unfiltered <see cref="LogLevel.Info"/> log 
-        /// with the new topic preficed with "Topic:" and tagged with <see cref="ActivityMonitor.TagMonitorTopicChanged"/> is emitted.
+        /// with the new topic preficed with "Topic:" and tagged with <see cref="ActivityMonitor.Tags.MonitorTopicChanged"/> is emitted.
         /// </remarks>
         string Topic { get; }
 
@@ -110,7 +110,7 @@ namespace CK.Core
         /// configuration changes.
         /// </para>
         /// <para>
-        /// Note that this automatic configuration restoration works even if the group is filtered (when the <paramref name="level"/> is None).
+        /// Note that this automatic configuration restoration works even if the group has been filtered.
         /// </para>
         /// </remarks>
         IDisposableGroup UnfilteredOpenGroup( ActivityMonitorGroupData data );

@@ -42,6 +42,62 @@ namespace CK.Core
         /// </summary>
         static public readonly string ParkLevel = "PARK-LEVEL";
 
+
+        /// <summary>
+        /// Thread-safe context for tags used to categorize log entries (and group conclusions).
+        /// All tags used in monitoring must be <see cref="Register"/>ed here.
+        /// </summary>
+        /// <remarks>
+        /// Tags used for conclusions should start with "c:".
+        /// </remarks>
+        public static class Tags
+        {
+            /// <summary>
+            /// The central, unique, context of all monitoring related tags used in the application domain.
+            /// </summary>
+            public static readonly CKTraitContext Context;
+
+            /// <summary>
+            /// Shortcut to <see cref="CKTraitContext.EmptyTrait">Context.EmptyTrait</see>.
+            /// </summary>
+            static public readonly CKTrait Empty;
+
+            /// <summary>
+            /// Conlusions provided to IActivityMonitor.Close(string) are marked with "c:User".
+            /// </summary>
+            static public readonly CKTrait UserConclusion;
+
+            /// <summary>
+            /// Conlusions returned by the optional function when a group is opened (see <see cref="IActivityMonitor.UnfilteredOpenGroup"/>) are marked with "c:GetText".
+            /// </summary>
+            static public readonly CKTrait GetTextConclusion;
+
+            /// <summary>
+            /// Whenever <see cref="Topic"/> changed, a <see cref="LogLevel.Info"/> is emitted marked with "MonitorTopicChanged".
+            /// </summary>
+            static public readonly CKTrait MonitorTopicChanged;
+
+            /// <summary>
+            /// Simple shortcut to <see cref="CKTraitContext.FindOrCreate(string)"/>.
+            /// </summary>
+            /// <param name="tags">Atomic tag or multiple tags separated by pipes (|).</param>
+            /// <returns>Registered tags.</returns>
+            static public CKTrait Register( string tags )
+            {
+                return Context.FindOrCreate( tags );
+            }
+
+            static Tags()
+            {
+                Context = new CKTraitContext( "ActivityMonitor" );
+                Empty = Context.EmptyTrait;
+                UserConclusion = Context.FindOrCreate( "c:User" );
+                GetTextConclusion = Context.FindOrCreate( "c:GetText" );
+                MonitorTopicChanged = Context.FindOrCreate( "MonitorTopicChanged" );
+            }
+        }
+
+        /*
         /// <summary>
         /// Thread-safe contexts for traits used to categorize log entries and group conclusions.
         /// All traits used in logging must be registered here.
@@ -70,6 +126,7 @@ namespace CK.Core
         /// Whenever <see cref="Topic"/> changed, a <see cref="LogLevel.Info"/> is emitted marked with "MonitorTopicChanged".
         /// </summary>
         static public readonly CKTrait TagMonitorTopicChanged;
+        */
 
         /// <summary>
         /// The monitoring error collector. 
@@ -94,7 +151,6 @@ namespace CK.Core
         /// It can be changed at any time and application is immediate.
         /// </summary>
         public static FilterSourceDelegate FilterSource;
-
 
         static LogFilter _defaultFilterLevel;
         
@@ -139,18 +195,13 @@ namespace CK.Core
 
         /// <summary>
         /// The automatic configuration actions.
-        /// Registers actions via += (or <see cref="Delegate.Combine"/> if you like pain), unregister with -= operator (or <see cref="Delegate.Remove"/>).
+        /// Registers actions via += (or <see cref="G:Delegate.Combine"/> if you like pain), unregister with -= operator (or <see cref="Delegate.Remove"/>).
         /// Simply sets it to null to clear all currently registered actions (this, of course, only from tests and not in real code).
         /// </summary>
         static public Action<IActivityMonitor> AutoConfiguration;
 
         static ActivityMonitor()
         {
-            RegisteredTags = new CKTraitContext( "ActivityMonitor" );
-            EmptyTag = ActivityMonitor.RegisteredTags.EmptyTrait;
-            TagUserConclusion = RegisteredTags.FindOrCreate( "c:User" );
-            TagGetTextConclusion = RegisteredTags.FindOrCreate( "c:GetText" );
-            TagMonitorTopicChanged = RegisteredTags.FindOrCreate( "MonitorTopicChanged" );
             MonitoringError = new CriticalErrorCollector();
             AutoConfiguration = null;
             _defaultFilterLevel = LogFilter.Undefined;
@@ -177,7 +228,7 @@ namespace CK.Core
         /// <param name="applyAutoConfigurations">Whether <see cref="AutoConfiguration"/> should be applied.</param>
         public ActivityMonitor( bool applyAutoConfigurations = true )
         {
-            Build( new ActivityMonitorOutput( this ), EmptyTag, applyAutoConfigurations );
+            Build( new ActivityMonitorOutput( this ), Tags.Empty, applyAutoConfigurations );
         }
 
         /// <summary>
@@ -194,11 +245,11 @@ namespace CK.Core
 
         void Build( ActivityMonitorOutput output, CKTrait tags, bool applyAutoConfigurations )
         {
-            Debug.Assert( RegisteredTags.Separator == '|', "Separator must be the |." );
+            Debug.Assert( Tags.Context.Separator == '|', "Separator must be the |." );
             _output = output;
             _groups = new Group[8];
             for( int i = 0; i < _groups.Length; ++i ) _groups[i] = CreateGroup( i );
-            _currentTag = tags ?? EmptyTag;
+            _currentTag = tags ?? Tags.Empty;
             _uniqueId = Guid.NewGuid();
             _topic = String.Empty;
             var autoConf = AutoConfiguration;
@@ -277,12 +328,12 @@ namespace CK.Core
             _topic = newTopic;
             _output.BridgeTarget.TargetTopicChanged( newTopic, fileName, lineNumber );
             MonoParameterSafeCall( ( client, topic ) => client.OnTopicChanged( topic, fileName, lineNumber ), newTopic );
-            DoUnfilteredLog( new ActivityMonitorLogData( LogLevel.Info, null, TagMonitorTopicChanged, "Topic:" + newTopic, DateTime.UtcNow, fileName, lineNumber ) );
+            DoUnfilteredLog( new ActivityMonitorLogData( LogLevel.Info, null, Tags.MonitorTopicChanged, "Topic:" + newTopic, DateTime.UtcNow, fileName, lineNumber ) );
         }
 
         /// <summary>
         /// Gets or sets the tags of this monitor: any subsequent logs will be tagged by these tags.
-        /// The <see cref="CKTrait"/> must be registered in <see cref="ActivityMonitor.RegisteredTags"/>.
+        /// The <see cref="CKTrait"/> must be registered in <see cref="ActivityMonitor.Tags"/>.
         /// Modifications to this property are scoped to the current Group since when a Group is closed, this
         /// property (like <see cref="MinimalFilter"/>) is automatically restored to its original value (captured when the Group was opened).
         /// </summary>
@@ -291,8 +342,8 @@ namespace CK.Core
             get { return _currentTag; }
             set
             {
-                if( value == null ) value = ActivityMonitor.EmptyTag;
-                else if( value.Context != ActivityMonitor.RegisteredTags ) throw new ArgumentException( R.ActivityMonitorTagMustBeRegistered, "value" );
+                if( value == null ) value = Tags.Empty;
+                else if( value.Context != Tags.Context ) throw new ArgumentException( R.ActivityMonitorTagMustBeRegistered, "value" );
                 if( _currentTag != value )
                 {
                     ReentrantAndConcurrentCheck();
@@ -311,7 +362,7 @@ namespace CK.Core
         void DoSetAutoTags( CKTrait newTags )
         {
             Debug.Assert( _enteredThreadId == Thread.CurrentThread.ManagedThreadId );
-            Debug.Assert( newTags != null && _currentTag != newTags && newTags.Context == RegisteredTags );
+            Debug.Assert( newTags != null && _currentTag != newTags && newTags.Context == Tags.Context );
             _currentTag = newTags;
             _output.BridgeTarget.TargetAutoTagsChanged( newTags );
             MonoParameterSafeCall( ( client, tags ) => client.OnAutoTagsChanged( tags ), newTags );
@@ -497,12 +548,12 @@ namespace CK.Core
         /// Logs a text regardless of <see cref="MinimalFilter"/> level. 
         /// Each call to log is considered as a unit of text: depending on the rendering engine, a line or a 
         /// paragraph separator (or any appropriate separator) should be appended between each text if 
-        /// the <paramref name="level"/> is the same as the previous one.
+        /// the level is the same as the previous one.
         /// See remarks.
         /// </summary>
         /// <param name="data">Data that describes the log. Can not be null.</param>
         /// <remarks>
-        /// A null or empty <paramref name="text"/> is not logged.
+        /// A null or empty <see cref="ActivityMonitorLogData.Text"/> is not logged.
         /// If needed, the special text <see cref="ActivityMonitor.ParkLevel"/> ("PARK-LEVEL") breaks the current <see cref="LogLevel"/>
         /// and resets it: the next log, even with the same LogLevel, will be treated as if
         /// a different LogLevel is used.
@@ -569,7 +620,7 @@ namespace CK.Core
         /// configuration changes.
         /// </para>
         /// <para>
-        /// Note that this automatic configuration restoration works even if the group is filtered (when the <paramref name="level"/> is None).
+        /// Note that this automatic configuration restoration works even if the group has been filtered.
         /// </para>
         /// </remarks>
         public virtual IDisposableGroup UnfilteredOpenGroup( ActivityMonitorGroupData data )
@@ -660,7 +711,7 @@ namespace CK.Core
                     {
                         conclusions = new List<ActivityLogGroupConclusion>();
                         string s = userConclusion as string;
-                        if( s != null ) conclusions.Add( new ActivityLogGroupConclusion( TagUserConclusion, s ) );
+                        if( s != null ) conclusions.Add( new ActivityLogGroupConclusion( Tags.UserConclusion, s ) );
                         else
                         {
                             if( userConclusion is ActivityLogGroupConclusion )
@@ -671,7 +722,7 @@ namespace CK.Core
                             {
                                 IEnumerable<ActivityLogGroupConclusion> multi = userConclusion as IEnumerable<ActivityLogGroupConclusion>;
                                 if( multi != null ) conclusions.AddRange( multi );
-                                else conclusions.Add( new ActivityLogGroupConclusion( TagUserConclusion, userConclusion.ToString() ) );
+                                else conclusions.Add( new ActivityLogGroupConclusion( Tags.UserConclusion, userConclusion.ToString() ) );
                             }
                         }
                     }

@@ -16,7 +16,7 @@ namespace CK.Monitoring.Impl
     internal class ChannelHost : ConfiguredRouteHost<HandlerBase, IChannel>
     {
         public ChannelHost( ChannelFactory handlerFactory, Action<ConfigurationReady> readyCallback )
-            : base( handlerFactory, readyCallback, ( m, a ) => a.Initialize(), ( m, a ) => a.Close() )
+            : base( handlerFactory, readyCallback, ( m, a ) => a.Initialize( m ), ( m, a ) => a.Close( m ) )
         {
         }
 

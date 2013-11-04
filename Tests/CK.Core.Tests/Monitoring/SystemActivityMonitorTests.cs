@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 using CK.Core;
 using NUnit.Framework;
 
-namespace CK.Core.Tests
+namespace CK.Core.Tests.Monitoring
 {
     [TestFixture]
     public class SystemActivityMonitorTests

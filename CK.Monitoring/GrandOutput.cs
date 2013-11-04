@@ -16,16 +16,18 @@ namespace CK.Monitoring
     /// It is usually useless to explicitely create an instance of GrandOutput: the <see cref="Default"/> one is 
     /// available as soon as <see cref="EnsureActiveDefault"/> is called and will be automatically used by new <see cref="ActivityMonitor"/>.
     /// </summary>
-    public partial class GrandOutput
+    public partial class GrandOutput : IDisposable
     {
         readonly List<WeakRef<GrandOutputClient>> _clients;
         readonly GrandOutputCompositeSink _commonSink;
         readonly ChannelHost _channelHost;
         readonly BufferingChannel _bufferingChannel;
+        readonly EventDispatcher _dispatcher;
         DateTime _nextDeadClientGarbage;
 
         static GrandOutput _default;
         static readonly object _defaultLock = new object();
+
 
         /// <summary>
         /// Gets the default <see cref="GrandOutput"/> for the current Application Domain.
@@ -62,10 +64,12 @@ namespace CK.Monitoring
         public GrandOutput()
         {
             _clients = new List<WeakRef<GrandOutputClient>>();
+            _dispatcher = new EventDispatcher();
             _commonSink = new GrandOutputCompositeSink();
-            _channelHost = new ChannelHost( new ChannelFactory( _commonSink ), OnConfigurationReady );
+            var factory = new ChannelFactory( _commonSink, _dispatcher );
+            _channelHost = new ChannelHost( factory, OnConfigurationReady );
             _channelHost.ConfigurationClosing += OnConfigurationClosing;
-            _bufferingChannel = new BufferingChannel( _commonSink );
+            _bufferingChannel = new BufferingChannel( _commonSink, _dispatcher, factory.CommonSinkOnlyReceiver );
             _nextDeadClientGarbage = DateTime.UtcNow.AddMinutes( 5 );
         }
 
@@ -124,6 +128,7 @@ namespace CK.Monitoring
             {
                 if( _channelHost.SetConfiguration( monitor, config.RouteConfiguration, millisecondsBeforeForceClose ) )
                 {
+                    if( this == _default && config.AppDomainDefaultFilter.HasValue ) ActivityMonitor.DefaultFilter = config.AppDomainDefaultFilter.Value;
                     monitor.CloseGroup( "Success." );
                     return true;
                 }
@@ -132,11 +137,11 @@ namespace CK.Monitoring
         }
 
         /// <summary>
-        /// Obtains an actual channel based on the activity <see cref="IActivityMonitor.Topic"/>.
+        /// Obtains an actual channel based on the activity <see cref="IActivityMonitor.Topic"/> (null when .
         /// This is called on the monitor's thread.
         /// </summary>
         /// <param name="topic">The topic. Used as the key to find an actual Channel that must handle the log events.</param>
-        /// <returns>A channel for the topic (or an internal BufferingChannel if a configuration is being applied).</returns>
+        /// <returns>A channel for the topic (or an internal BufferingChannel if a configuration is being applied) or null if the GrandOutput has been disposed.</returns>
         internal IChannel ObtainChannel( string topic )
         {
             var channel = _channelHost.ObtainRoute( topic );
@@ -145,7 +150,7 @@ namespace CK.Monitoring
                 lock( _bufferingChannel.FlushLock )
                 {
                     channel = _channelHost.ObtainRoute( topic );
-                    if( channel == null )
+                    if( channel == null && !_channelHost.IsDisposed )
                     {
                         _bufferingChannel.EnsureActive();
                         _bufferingChannel.PreHandleLock();
@@ -161,7 +166,14 @@ namespace CK.Monitoring
         /// </summary>
         void OnConfigurationClosing( object sender, ConfiguredRouteHost<HandlerBase, IChannel>.ConfigurationClosingEventArgs e )
         {
-            lock( _bufferingChannel.FlushLock ) _bufferingChannel.EnsureActive();
+            if( e.IsDisposed )
+            {
+                _dispatcher.Dispose(); 
+            }
+            else
+            {
+                lock( _bufferingChannel.FlushLock ) _bufferingChannel.EnsureActive();
+            }
             SignalConfigurationChanged();
         }
 
@@ -173,7 +185,7 @@ namespace CK.Monitoring
             }
             lock( _bufferingChannel.FlushLock )
             {
-                _bufferingChannel.FlushBuffer( e.IsClosed ? (Func<string,IChannel>)null : e.ObtainRoute );
+                _bufferingChannel.FlushBuffer( e.IsEmptyConfiguration ? (Func<string,IChannel>)null : e.ObtainRoute );
                 e.ApplyConfiguration();
             }
             // The new configuration is applied: we signal the clients
@@ -227,5 +239,34 @@ namespace CK.Monitoring
             return count;
         }
 
+        /// <summary>
+        /// Gets whether this GrandOutput has been disposed.
+        /// </summary>
+        public bool IsDisposed
+        {
+            get { return _channelHost.IsDisposed; }
+        }
+
+        /// <summary>
+        /// Closes this <see cref="GrandOutput"/>.
+        /// </summary>
+        /// <param name="monitor">Monitor that will be used. Must not be null.</param>
+        /// <param name="millisecondsBeforeForceClose">Maximal time to wait for current routes to be unlocked (see <see cref="IRouteConfigurationLock"/>).</param>
+        public void Dispose( IActivityMonitor monitor, int millisecondsBeforeForceClose = Timeout.Infinite )
+        {
+            if( monitor == null ) throw new ArgumentNullException( "monitor" );
+            if( !_channelHost.IsDisposed )
+            {
+                _channelHost.Dispose( monitor, millisecondsBeforeForceClose );
+            }
+        }
+
+        /// <summary>
+        /// Calls <see cref="Dispose(IActivityMonitor,int)"/> with a <see cref="SystemActivityMonitor"/> and no closing time limit.
+        /// </summary>
+        public void Dispose()
+        {
+            Dispose( new SystemActivityMonitor(), Timeout.Infinite );
+        }
     }
 }

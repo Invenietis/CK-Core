@@ -49,7 +49,7 @@ namespace CK.Core
         {
             _writer = writer;
             _prefixLevel = _prefix = String.Empty;
-            _currentTags = ActivityMonitor.EmptyTag;
+            _currentTags = ActivityMonitor.Tags.Empty;
         }
 
         /// <summary>
@@ -60,7 +60,7 @@ namespace CK.Core
         {
             _writer = () => writer;
             _prefixLevel = _prefix = String.Empty;
-            _currentTags = ActivityMonitor.EmptyTag;
+            _currentTags = ActivityMonitor.Tags.Empty;
         }
 
         /// <summary>

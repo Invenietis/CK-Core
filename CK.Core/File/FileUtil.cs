@@ -24,6 +24,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -141,6 +142,78 @@ namespace CK.Core
             return path.IndexOfAny( _invalidFileNameChars );
         }
 
+        /// <summary>
+        /// Creates a new necessarily unique file and writes bytes content in a directory that must exist.
+        /// The file name is based on a <see cref="DateTime"/>, with an eventual uniquifier if a file already exists with the same name.
+        /// </summary>
+        /// <param name="pathPrefix">The path prefix. Must not be null. Must be a valid path and may ends with a prefix for the file name itself.</param>
+        /// <param name="fileSuffix">Suffix for the file name. Must not be null. Typically an extension (like ".txt").</param>
+        /// <param name="time">The time that will be used to create the file name. It should be an UTC time.</param>
+        /// <param name="content">The bytes to write. Can be null or empty if the file must only be created.</param>
+        /// <param name="withUTF8Bom">True to write the UTF8 Byte Order Mask (the preamble).</param>
+        /// <param name="maxTryBeforeGuid">Maximum value for short hexa uniquifier before using a base 64 guid suffix. Must between 0 and 15 (included).</param>
+        /// <returns>The full path name of the created file.</returns>
+        public static string WriteUniqueTimedFile( string pathPrefix, string fileSuffix, DateTime time, byte[] content, bool withUTF8Bom, int maxTryBeforeGuid = 3 )
+        {
+            string fullLogFilePath;
+            using( var f = CreateAndOpenUniqueTimedFile( pathPrefix, fileSuffix, time, maxTryBeforeGuid ) )
+            {
+                Debug.Assert( Encoding.UTF8.GetPreamble().Length == 3 );
+                if( withUTF8Bom ) f.Write( Encoding.UTF8.GetPreamble(), 0, 3 );
+                if( content != null && content.Length > 0 ) f.Write( content, 0, content.Length );
+                fullLogFilePath = f.Name;
+            }
+            return fullLogFilePath;
+        }
+
+        /// <summary>
+        /// Creates and opens a new necessarily unique file in a directory that must exist.
+        /// The file name is based on a <see cref="DateTime"/>, with an eventual uniquifier if a file already exists with the same name.
+        /// You can use <see cref="FileStream.Name"/> to obtain the file name.
+        /// </summary>
+        /// <param name="pathPrefix">The path prefix. Must not be null. Must be a valid path and may ends with a prefix for the file name itself.</param>
+        /// <param name="fileSuffix">Suffix for the file name. Must not be null. Typically an extension (like ".txt").</param>
+        /// <param name="time">The time that will be used to create the file name. It should be an UTC time.</param>
+        /// <param name="maxTryBeforeGuid">Maximum value for short hexa uniquifier before using a base 64 guid suffix. Must between 0 and 15 (included).</param>
+        /// <returns>An opened <see cref="FileStream"/>.</returns>
+        public static FileStream CreateAndOpenUniqueTimedFile( string pathPrefix, string fileSuffix, DateTime time, int maxTryBeforeGuid = 3 )
+        {
+            if( pathPrefix == null ) throw new ArgumentNullException( "pathPrefix" );
+            if( fileSuffix == null ) throw new ArgumentNullException( "fileSuffix" );
+            if( maxTryBeforeGuid < 0 || maxTryBeforeGuid > 15 ) throw new ArgumentOutOfRangeException( "maxTryBeforeGuid" );
+            FileStream f = null;
+            string pOrigin = pathPrefix + time.ToString( @"yyyy-MM-dd HH\hmm.ss.fffffff" ) + fileSuffix;
+            string p = pOrigin;
+            int counter = 0;
+            for( ; ; )
+            {
+                try
+                {
+                    f = new FileStream( p, FileMode.CreateNew, FileAccess.Write, FileShare.Read, 8, FileOptions.SequentialScan | FileOptions.WriteThrough );
+                    break;
+                }
+                catch( IOException ex )
+                {
+                    if( ex is PathTooLongException || ex is DirectoryNotFoundException ) throw;
+                    if( counter >= maxTryBeforeGuid )
+                    {
+                        if( counter == maxTryBeforeGuid+1 ) throw;
+                        if( counter == maxTryBeforeGuid )
+                        {
+                            Debug.Assert( Convert.ToBase64String( Guid.NewGuid().ToByteArray() ).Length == 24 );
+                            Debug.Assert( Convert.ToBase64String( Guid.NewGuid().ToByteArray() ).EndsWith( "==" ) );
+                            // Use http://en.wikipedia.org/wiki/Base64#URL_applications encoding.
+                            string dedup = Convert.ToBase64String( Guid.NewGuid().ToByteArray() ).Remove( 22 ).Replace( '+', '-' ).Replace( '/', '_' );
+                            p = pOrigin.Insert( pOrigin.Length - fileSuffix.Length, "-" + dedup );
+                        }
+                    }
+                    else p = pOrigin.Insert( pOrigin.Length - fileSuffix.Length, "-" + Util.Converter.HexChars[counter] );
+                    ++counter;
+                }
+            }
+            return f;
+        }
+        
         /// <summary>
         /// Recursively copy a directory. 
         /// Throws an IOException, if a same file exists in the target directory.

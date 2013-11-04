@@ -15,37 +15,25 @@ namespace CK.Monitoring.Impl
     internal sealed class ChannelFactory : RouteActionFactory<HandlerBase,IChannel>
     {
         readonly IGrandOutputSink _commonSink;
-        
+        readonly EventDispatcher _dispatcher;
+        public readonly EventDispatcher.FinalReceiver CommonSinkOnlyReceiver;
+
         sealed class EmptyChannel : IChannel
         {
-            readonly IGrandOutputSink _commonSink;
+            readonly ChannelFactory _factory;
 
-            public EmptyChannel( IGrandOutputSink common )
+            public EmptyChannel( ChannelFactory f )
             {
-                _commonSink = common;
+                _factory = f;
             }
 
             public void Initialize()
             {
             }
 
-            public GrandOutputSource CreateSource( IActivityMonitorImpl monitor, string channelName )
+            public void Handle( GrandOutputEventInfo logEvent, bool sendToCommonSink )
             {
-                return new GrandOutputSource( monitor, channelName );
-            }
-
-            public void ReleaseSource( GrandOutputSource source )
-            {
-            }
-
-            public void Handle( GrandOutputEventInfo logEvent )
-            {
-                _commonSink.Handle( logEvent );
-            }
-
-            public void HandleBuffer( List<GrandOutputEventInfo> events )
-            {
-                // Common sink has already handled the events.
+                if( sendToCommonSink ) _factory._dispatcher.Add( logEvent, _factory.CommonSinkOnlyReceiver );
             }
 
             public LogFilter MinimalFilter
@@ -62,19 +50,22 @@ namespace CK.Monitoring.Impl
             }
         }
 
-        internal ChannelFactory( IGrandOutputSink commonSink )
+        internal ChannelFactory( IGrandOutputSink commonSink, EventDispatcher dispatcher )
         {
             _commonSink = commonSink;
+            _dispatcher = dispatcher;
+            CommonSinkOnlyReceiver = new EventDispatcher.FinalReceiver( commonSink, Util.EmptyArray<HandlerBase>.Empty, null );
         }
 
         protected internal override IChannel DoCreateEmptyFinalRoute()
         {
-            return new EmptyChannel( _commonSink );
+            return new EmptyChannel( this );
         }
 
         protected override HandlerBase DoCreate( IActivityMonitor monitor, IRouteConfigurationLock configLock, ActionConfiguration c )
         {
             var a = (HandlerTypeAttribute)Attribute.GetCustomAttribute( c.GetType(), typeof( HandlerTypeAttribute ), true );
+            if( a == null ) throw new CKException( "A [HandlerType(typeof(H))] attribute (where H is a CK.Monitoring.GrandOutputHandlers.HandlerBase class) is missing on class '{0}'.", c.GetType().FullName );
             return (HandlerBase)Activator.CreateInstance( a.HandlerType, c );
         }
 
@@ -90,7 +81,7 @@ namespace CK.Monitoring.Impl
 
         protected internal override IChannel DoCreateFinalRoute( IActivityMonitor monitor, IRouteConfigurationLock configLock, HandlerBase[] actions, string configurationName, object configData, IReadOnlyList<IChannel> routePath )
         {
-            return new StandardChannel( _commonSink, configLock, actions, configurationName );
+            return new StandardChannel( _commonSink, _dispatcher, configLock, actions, configurationName );
         }
     }
 }

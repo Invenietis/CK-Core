@@ -202,7 +202,7 @@
     <value>The InnerException must be the first AggregatedExceptions.</value>
   </data>
   <data name="ActivityMonitorTagMustBeRegistered" xml:space="preserve">
-    <value>The CKTrait value must be registered in ActivityMonitor.RegisteredTags.</value>
+    <value>The Tag (CKTrait) must be registered in ActivityMonitor.Tags.</value>
   </data>
   <data name="ActivityMonitorReentrancyCallOnly" xml:space="preserve">
     <value>Only reentrant calls to this method are supported.</value>

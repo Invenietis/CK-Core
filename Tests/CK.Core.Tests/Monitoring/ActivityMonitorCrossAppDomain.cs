@@ -93,8 +93,11 @@ namespace CK.Core.Tests.Monitoring
 
             using( monitor.Output.CreateBridgeTo( TestHelper.ConsoleMonitor.Output.BridgeTarget ) )
             {
-                AppDomainSetup setup = new AppDomainSetup();
-                setup.ApplicationBase = AppDomain.CurrentDomain.SetupInformation.ApplicationBase;
+                AppDomainSetup setup = new AppDomainSetup()
+                {
+                    ApplicationBase = AppDomain.CurrentDomain.SetupInformation.ApplicationBase,
+                    PrivateBinPath = AppDomain.CurrentDomain.SetupInformation.PrivateBinPath
+                };
 
                 using( monitor.OpenInfo().Send( "Launching Application Domain." ) )
                 {
@@ -135,14 +138,14 @@ namespace CK.Core.Tests.Monitoring
             {
                 try
                 {
-                    monitor.AutoTags = ActivityMonitor.RegisteredTags.FindOrCreate( "External App Domain|Test for fun" );
+                    monitor.AutoTags = ActivityMonitor.Tags.Register( "External App Domain|Test for fun" );
                     monitor.OpenInfo().Send( "In another AppDomain." );
 
                     monitor.Trace().Send( "This will #NOT APPEAR# (Filter is LogFilter.Terse: only errors are captured)." );
                     monitor.Warn().Send( () => { Assert.Fail( "This will never be called." ); return null; } );
 
                     monitor.Error().Send( "From external world." );
-                    monitor.Error().Send( new Exception( "Exceptions are serialized as CKExceptionData." ), ActivityMonitor.RegisteredTags.FindOrCreate( "An error is logged|Marshalled trait" ), "From external world." );
+                    monitor.Error().Send( new Exception( "Exceptions are serialized as CKExceptionData." ), ActivityMonitor.Tags.Register( "An error is logged|Marshalled trait" ), "From external world." );
                     monitor.Fatal().Send( "Name of the AppDomain is '{0}'.", AppDomain.CurrentDomain.FriendlyName );
                     monitor.CloseGroup( "Everything is fine." );
 

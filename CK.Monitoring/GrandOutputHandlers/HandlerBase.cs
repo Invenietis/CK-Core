@@ -1,14 +1,27 @@
-﻿using CK.RouteConfig;
+﻿using CK.Core;
+using CK.RouteConfig;
 
 namespace CK.Monitoring.GrandOutputHandlers
 {
-    public abstract class HandlerBase
+    public abstract class HandlerBase : IGrandOutputSink
     {
         readonly string _name;
+        readonly LogFilter _minimalFilter;
 
-        protected HandlerBase( ActionConfiguration config )
+        /// <summary>
+        /// Internal ctor used by Sequence and Parrallel.
+        /// </summary>
+        /// <param name="config">Parallel or sequence configuration.</param>
+        internal HandlerBase( CK.RouteConfig.Impl.ActionCompositeConfiguration config )
         {
             _name = config.Name;
+            _minimalFilter = LogFilter.Undefined;
+        }
+
+        protected HandlerBase( HandlerConfiguration config )
+        {
+            _name = config.Name;
+            _minimalFilter = config.MinimalFilter;
         }
 
         /// <summary>
@@ -22,32 +35,36 @@ namespace CK.Monitoring.GrandOutputHandlers
         /// configuration, before the first call to <see cref="Handle"/>.
         /// Default implementation does nothing.
         /// </summary>
-        public virtual void Initialize()
+        /// <param name="monitor">The monitor that tracks configuration process.</param>
+        public virtual void Initialize( IActivityMonitor monitor )
         {
         }
 
         /// <summary>
         /// Enables this sink to interact with any channel to which it belongs. 
         /// This is called after <see cref="Initialize"/> and for each channel where this sink appears, before the first call to <see cref="Handle"/>.
-        /// Default implementation does nothing.
+        /// Default implementation must be called: sets the minimal filter on the option if the <see cref="HandlerConfiguration"/> defines it.
         /// </summary>
         public virtual void CollectChannelOption( ChannelOption option )
         {
+            option.SetMinimalFilter( _minimalFilter );
         }
 
         /// <summary>
         /// Handles a <see cref="GrandOutputEventInfo"/>.
         /// </summary>
         /// <param name="logEvent">Event to handle.</param>
-        public abstract void Handle( GrandOutputEventInfo logEvent );
+        /// <param name="parrallelCall">True when this method is called in parallel with other handlers.</param>
+        public abstract void Handle( GrandOutputEventInfo logEvent, bool parrallelCall );
 
         /// <summary>
-        /// Closes this sink.
+        /// Closes this handler.
         /// This is called when a reconfiguration occurs after all
         /// events have been <see cref="Handle"/>d.
         /// Default implementation does nothing.
         /// </summary>
-        public void Close()
+        /// <param name="monitor">The monitor that tracks configuration process.</param>
+        public virtual void Close( IActivityMonitor monitor )
         {
         }
 

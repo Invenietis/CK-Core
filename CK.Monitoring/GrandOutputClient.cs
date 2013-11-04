@@ -20,10 +20,10 @@ namespace CK.Monitoring
         readonly GrandOutput _central;
         IActivityMonitorImpl _monitorSource;
 
-        GrandOutputSource _source;
         IChannel _channel;
         LogFilter _currentMinimalFilter;
-        int _relativeDepth;
+        
+        int _currentGroupDepth;
         int _curVersion;
         int _version;
 
@@ -46,12 +46,7 @@ namespace CK.Monitoring
                 if( (_monitorSource = source) == null )
                 {
                     // Releases the channel if any.
-                    if( _channel != null )
-                    {
-                        _channel.ReleaseSource( _source );
-                        _source = null;
-                        _channel = null;
-                    }
+                    _channel = null;
                 }
                 else
                 {
@@ -90,21 +85,18 @@ namespace CK.Monitoring
                     if( _channel != null )
                     {
                         _channel.CancelPreHandleLock();
-                        if( _source != null )
-                        {
-                            _channel.ReleaseSource( _source );
-                            _source = null;
-                        }
                     }
                     // The Topic can be changed only in the 
                     // activity (and we are here inside the activity),
                     // we can safely call the property when needed.
+                    // When ObtainChannel retunrs null, it means that the GrandOutput has been disposed.
                     _channel = _central.ObtainChannel( _monitorSource.Topic );
+                    if( _channel == null ) return null;
                 }
                 while( _version != _curVersion );
             }
-            _source = _channel.CreateSource( _monitorSource, _monitorSource.Topic );
-            _relativeDepth = 0;
+            var g = _monitorSource.CurrentGroup;
+            _currentGroupDepth = g != null ? g.Depth : 0;
             if( _currentMinimalFilter != _channel.MinimalFilter )
             {
                 var prev = _currentMinimalFilter;
@@ -116,15 +108,23 @@ namespace CK.Monitoring
 
         void IActivityMonitorClient.OnUnfilteredLog( ActivityMonitorLogData data )
         {
-            ILogEntry e = Impl.LogEntry.CreateLog( data.Text, data.LogTimeUtc, data.Level, data.FileName, data.LineNumber, data.Tags );
-            EnsureChannel().Handle( new GrandOutputEventInfo( _source, e, _relativeDepth )  );
+            var h = EnsureChannel();
+            if( h != null )
+            {
+                IMulticastLogEntry e = LogEntry.CreateMulticastLog( _monitorSource.UniqueId, _currentGroupDepth, data.Text, data.LogTimeUtc, data.Level, data.FileName, data.LineNumber, data.Tags, data.EnsureExceptionData() );
+                h.Handle( new GrandOutputEventInfo( e, _monitorSource.Topic ) );
+            }
         }
 
         public void OnOpenGroup( IActivityLogGroup group )
         {
-            ++_relativeDepth;
-            ILogEntry e = Impl.LogEntry.CreateOpenGroup( group.GroupText, group.LogTimeUtc, group.GroupLevel, group.FileName, group.LineNumber, group.GroupTags, group.EnsureExceptionData() );
-            EnsureChannel().Handle( new GrandOutputEventInfo( _source, e, _relativeDepth ) );
+            var h = EnsureChannel();
+            if( h != null )
+            {
+                ++_currentGroupDepth;
+                IMulticastLogEntry e = LogEntry.CreateMulticastOpenGroup( _monitorSource.UniqueId, _currentGroupDepth, group.GroupText, group.LogTimeUtc, group.GroupLevel, group.FileName, group.LineNumber, group.GroupTags, group.EnsureExceptionData() );
+                h.Handle( new GrandOutputEventInfo( e, _monitorSource.Topic ) );
+            }
         }
 
         public void OnGroupClosing( IActivityLogGroup group, ref List<ActivityLogGroupConclusion> conclusions )
@@ -133,9 +133,13 @@ namespace CK.Monitoring
 
         public void OnGroupClosed( IActivityLogGroup group, IReadOnlyList<ActivityLogGroupConclusion> conclusions )
         {
-            ILogEntry e = Impl.LogEntry.CreateCloseGroup( group.CloseLogTimeUtc, group.GroupLevel, conclusions );
-            EnsureChannel().Handle( new GrandOutputEventInfo( _source, e, _relativeDepth ) );
-            --_relativeDepth;
+            var h = EnsureChannel();
+            if( h != null )
+            {
+                IMulticastLogEntry e = LogEntry.CreateMulticastCloseGroup( _monitorSource.UniqueId, _currentGroupDepth, group.CloseLogTimeUtc, group.GroupLevel, conclusions );
+                h.Handle( new GrandOutputEventInfo( e, _monitorSource.Topic ) );
+                --_currentGroupDepth;
+            }
         }
 
         void IActivityMonitorClient.OnAutoTagsChanged( CKTrait newTrait )

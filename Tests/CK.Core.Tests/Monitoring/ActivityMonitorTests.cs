@@ -186,11 +186,11 @@ namespace CK.Core.Tests.Monitoring
             ActivityMonitor monitor = new ActivityMonitor();
             using( monitor.OpenTrace().Send( "G1" ) )
             {
-                monitor.AutoTags = ActivityMonitor.RegisteredTags.FindOrCreate( "Tag" );
+                monitor.AutoTags = ActivityMonitor.Tags.Register( "Tag" );
                 monitor.MinimalFilter = LogFilter.Monitor;
                 using( monitor.OpenWarn().Send( "G2" ) )
                 {
-                    monitor.AutoTags = ActivityMonitor.RegisteredTags.FindOrCreate( "A|B|C" );
+                    monitor.AutoTags = ActivityMonitor.Tags.Register( "A|B|C" );
                     monitor.MinimalFilter = LogFilter.Release;
                     Assert.That( monitor.AutoTags.ToString(), Is.EqualTo( "A|B|C" ) );
                     Assert.That( monitor.MinimalFilter, Is.EqualTo( LogFilter.Release ) );
@@ -198,7 +198,7 @@ namespace CK.Core.Tests.Monitoring
                 Assert.That( monitor.AutoTags.ToString(), Is.EqualTo( "Tag" ) );
                 Assert.That( monitor.MinimalFilter, Is.EqualTo( LogFilter.Monitor ) );
             }
-            Assert.That( monitor.AutoTags, Is.SameAs( ActivityMonitor.EmptyTag ) );
+            Assert.That( monitor.AutoTags, Is.SameAs( ActivityMonitor.Tags.Empty ) );
             Assert.That( monitor.MinimalFilter, Is.EqualTo( LogFilter.Undefined ) );
         }
 
@@ -212,9 +212,9 @@ namespace CK.Core.Tests.Monitoring
                 monitor.Output.RegisterClients( new StupidStringClient(), new StupidXmlClient( new StringWriter() ) );
                 Assert.That( monitor.Output.Clients.Count, Is.EqualTo( 3 ) );
 
-                var tag1 = ActivityMonitor.RegisteredTags.FindOrCreate( "Product" );
-                var tag2 = ActivityMonitor.RegisteredTags.FindOrCreate( "Sql" );
-                var tag3 = ActivityMonitor.RegisteredTags.FindOrCreate( "Combined Tag|Sql|Engine V2|Product" );
+                var tag1 = ActivityMonitor.Tags.Register( "Product" );
+                var tag2 = ActivityMonitor.Tags.Register( "Sql" );
+                var tag3 = ActivityMonitor.Tags.Register( "Combined Tag|Sql|Engine V2|Product" );
 
                 using( monitor.OpenError().Send( "MainGroupError" ).ConcludeWith( () => "EndMainGroupError" ) )
                 {
@@ -509,8 +509,8 @@ namespace CK.Core.Tests.Monitoring
             IActivityMonitor l = new ActivityMonitor();
             using( l.Output.CreateBridgeTo( TestHelper.ConsoleMonitor.Output.BridgeTarget ) )
             {
-                Assert.Throws<ArgumentException>( () => l.UnfilteredLog( ActivityMonitor.EmptyTag, LogLevel.Error, "Text may be null", DateTime.Now, null ), "DateTime must be Utc." );
-                Assert.Throws<ArgumentException>( () => l.UnfilteredOpenGroup( ActivityMonitor.EmptyTag, LogLevel.Error, null, "Text may be null", DateTime.Now, null ), "DateTime must be Utc." );
+                Assert.Throws<ArgumentException>( () => l.UnfilteredLog( ActivityMonitor.Tags.Empty, LogLevel.Error, "Text may be null", DateTime.Now, null ), "DateTime must be Utc." );
+                Assert.Throws<ArgumentException>( () => l.UnfilteredOpenGroup( ActivityMonitor.Tags.Empty, LogLevel.Error, null, "Text may be null", DateTime.Now, null ), "DateTime must be Utc." );
             }
         }
 
@@ -905,7 +905,7 @@ namespace CK.Core.Tests.Monitoring
             var collector = new ActivityMonitorSimpleCollector() { MinimalFilter = LogLevelFilter.Trace, Capacity = 1 };
             d.Output.RegisterClients( collector, new CheckAlwaysFilteredClient() );
 
-            // d.UnfilteredLog( ActivityMonitor.EmptyTag, LogLevel.Trace, "CheckAlwaysFilteredClient works", DateTime.UtcNow, null );
+            // d.UnfilteredLog( ActivityMonitor.Tags.Empty, LogLevel.Trace, "CheckAlwaysFilteredClient works", DateTime.UtcNow, null );
 
             d.Trace().Send( fmt0 ); Assert.That( collector.Entries.Last().Text, Is.EqualTo( "fmt" ) );
             d.Trace().Send( fmt1, p1 ); Assert.That( collector.Entries.Last().Text, Is.EqualTo( "fmtp1" ) );
@@ -1046,7 +1046,7 @@ namespace CK.Core.Tests.Monitoring
             var collector = new ActivityMonitorSimpleCollector() { MinimalFilter = LogLevelFilter.Trace, Capacity = 1 };
             d.Output.RegisterClients( collector, new CheckAlwaysFilteredClient() );
 
-            CKTrait tag = ActivityMonitor.RegisteredTags.FindOrCreate( "TAG" );
+            CKTrait tag = ActivityMonitor.Tags.Register( "TAG" );
 
             d.Trace().Send( tag, fmt0 ); Assert.That( collector.Entries.Last().Text, Is.EqualTo( "fmt" ) ); Assert.That( collector.Entries.Last().Tags, Is.SameAs( tag ) );
             d.Trace().Send( tag, fmt1, p1 ); Assert.That( collector.Entries.Last().Text, Is.EqualTo( "fmtp1" ) ); Assert.That( collector.Entries.Last().Tags, Is.SameAs( tag ) );

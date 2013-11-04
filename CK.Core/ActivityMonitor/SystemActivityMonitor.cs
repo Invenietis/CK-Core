@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Configuration;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -203,11 +204,12 @@ namespace CK.Core
                         }
                         catch( Exception ex )
                         {
-                            throw new CKException( ex, "CK.Core.SystemActivityMonitor.LogPath = '{0}' is invalid: unable to create a test file in '{1}'.", value, SubDirectoryName );
+                            throw new CKException( ex, "{2} = '{0}' is invalid: unable to create a test file in '{1}'.", value, SubDirectoryName, AppSettingsKey );
                         }
                     }
                     _logPath = value;
                 }
+
             }
         }
 
@@ -222,19 +224,15 @@ namespace CK.Core
 
         static void HandleError( string s )
         {
-            // Atomically captures the LogPath to use.
             string fullLogFilePath = null;
-
             Exception errorWhileWritingFile = null;
+            // Atomically captures the LogPath to use.
             string logPath = _logPath;
             if( logPath != null )
             {
-                string p = RootLogPath + SubDirectoryName + DateTime.UtcNow.ToString( "O" ).Replace( ':', '-' ) + ".txt";
-                if( File.Exists( p ) ) p = p.Insert( p.Length - 4, Guid.NewGuid().ToString( "N" ) );
                 try
                 {
-                    File.AppendAllText( p, s );
-                    fullLogFilePath = p;
+                    fullLogFilePath = FileUtil.WriteUniqueTimedFile( logPath + SubDirectoryName, ".txt", DateTime.UtcNow, Encoding.UTF8.GetBytes( s ), true );
                 }
                 catch( Exception ex )
                 {

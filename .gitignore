@@ -35,3 +35,4 @@ _ReSharper*/
 CK-Core.Tests.VisualState.xml
 *.nuspec
 *.nupkg
+Tests/CK.Core.Tests/TestDir/
