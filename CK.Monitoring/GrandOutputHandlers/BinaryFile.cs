@@ -37,11 +37,16 @@ namespace CK.Monitoring.GrandOutputHandlers
                 if( (_path = ComputePath( m )) == null ) return;
                 _initializedTime = DateTime.UtcNow;
                 Directory.CreateDirectory( _path );
-                _output = FileUtil.CreateAndOpenUniqueTimedFile( _path, ".ckmon", _initializedTime );
-                _writer = new BinaryWriter( _output );
+                OpenFile();
                 _countRemainder = _maxCountPerFile;
                 m.Trace().Send( "File with MaxCountPerFile = {0} is '{1}'.", _maxCountPerFile, _output.Name );
             }
+        }
+
+        private void OpenFile()
+        {
+            _output = FileUtil.CreateAndOpenUniqueTimedFile( _path, ".ckmon", _initializedTime, FileAccess.Write, FileShare.Read, 8, FileOptions.SequentialScan|FileOptions.WriteThrough );
+            _writer = new BinaryWriter( _output );
         }
 
         public override void Handle( GrandOutputEventInfo logEvent, bool parrallelCall )
@@ -50,8 +55,7 @@ namespace CK.Monitoring.GrandOutputHandlers
             {
                 _countRemainder = _maxCountPerFile;
                 _writer.Dispose();
-                _output = FileUtil.CreateAndOpenUniqueTimedFile( _path, ".ckmon", _initializedTime );
-                _writer = new BinaryWriter( _output );
+                OpenFile();
             }
             logEvent.Entry.WriteMultiCastLogEntry( _writer );
         }

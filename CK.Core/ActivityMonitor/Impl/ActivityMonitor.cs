@@ -63,6 +63,16 @@ namespace CK.Core
             static public readonly CKTrait Empty;
 
             /// <summary>
+            /// Creation of dependent activities are marked with "dep:CreateActivity".
+            /// </summary>
+            static public readonly CKTrait CreateDependentActivity;
+
+            /// <summary>
+            /// Start of dependent activities are marked with "dep:StartActivity".
+            /// </summary>
+            static public readonly CKTrait StartDependentActivity;
+
+            /// <summary>
             /// Conlusions provided to IActivityMonitor.Close(string) are marked with "c:User".
             /// </summary>
             static public readonly CKTrait UserConclusion;
@@ -94,39 +104,10 @@ namespace CK.Core
                 UserConclusion = Context.FindOrCreate( "c:User" );
                 GetTextConclusion = Context.FindOrCreate( "c:GetText" );
                 MonitorTopicChanged = Context.FindOrCreate( "MonitorTopicChanged" );
+                CreateDependentActivity = Context.FindOrCreate( "dep:CreateActivity" );
+                StartDependentActivity = Context.FindOrCreate( "dep:StartActivity" );
             }
         }
-
-        /*
-        /// <summary>
-        /// Thread-safe contexts for traits used to categorize log entries and group conclusions.
-        /// All traits used in logging must be registered here.
-        /// </summary>
-        /// <remarks>
-        /// Tags used for conclusions should start with "c:".
-        /// </remarks>
-        static public readonly CKTraitContext RegisteredTags;
-        
-        /// <summary>
-        /// Shortcut to <see cref="CKTraitContext.EmptyTrait"/> of <see cref="RegisteredTags"/>.
-        /// </summary>
-        static public readonly CKTrait EmptyTag;
-
-        /// <summary>
-        /// Conlusions provided to IActivityMonitor.Close(string) are marked with "c:User".
-        /// </summary>
-        static public readonly CKTrait TagUserConclusion;
-
-        /// <summary>
-        /// Conlusions returned by the optional function when a group is opened (see <see cref="IActivityMonitor.UnfilteredOpenGroup"/>) are marked with "c:GetText".
-        /// </summary>
-        static public readonly CKTrait TagGetTextConclusion;
-
-        /// <summary>
-        /// Whenever <see cref="Topic"/> changed, a <see cref="LogLevel.Info"/> is emitted marked with "MonitorTopicChanged".
-        /// </summary>
-        static public readonly CKTrait TagMonitorTopicChanged;
-        */
 
         /// <summary>
         /// The monitoring error collector. 
@@ -248,7 +229,7 @@ namespace CK.Core
             Debug.Assert( Tags.Context.Separator == '|', "Separator must be the |." );
             _output = output;
             _groups = new Group[8];
-            for( int i = 0; i < _groups.Length; ++i ) _groups[i] = CreateGroup( i );
+            for( int i = 0; i < _groups.Length; ++i ) _groups[i] = new Group( this, i );
             _currentTag = tags ?? Tags.Empty;
             _uniqueId = Guid.NewGuid();
             _topic = String.Empty;
@@ -257,6 +238,11 @@ namespace CK.Core
         }
 
         Guid IUniqueId.UniqueId
+        {
+            get { return _uniqueId; }
+        }
+
+        protected Guid UniqueId
         {
             get { return _uniqueId; }
         }
@@ -328,7 +314,7 @@ namespace CK.Core
             _topic = newTopic;
             _output.BridgeTarget.TargetTopicChanged( newTopic, fileName, lineNumber );
             MonoParameterSafeCall( ( client, topic ) => client.OnTopicChanged( topic, fileName, lineNumber ), newTopic );
-            DoUnfilteredLog( new ActivityMonitorLogData( LogLevel.Info, null, Tags.MonitorTopicChanged, "Topic:" + newTopic, DateTime.UtcNow, fileName, lineNumber ) );
+            DoUnfilteredLog( new ActivityMonitorLogData( LogLevel.Info, null, Tags.MonitorTopicChanged, "Topic: " + newTopic, DateTime.UtcNow, fileName, lineNumber ) );
         }
 
         /// <summary>
@@ -370,7 +356,7 @@ namespace CK.Core
 
         /// <summary>
         /// Called by IActivityMonitorBoundClient clients to initialize Topic and AutoTag from 
-        /// inside their SetMonitor or any other methods provided that a reentrancy and concurrent lock 
+        /// inside their SetMonitor or any other methods provided that a reentrant and concurrent lock 
         /// has been obtained (otherwise an InvalidOperationException is thrown).
         /// </summary>
         void IActivityMonitorImpl.InitializeTopicAndAutoTags( string newTopic, CKTrait newTags, string fileName, int lineNumber )
@@ -646,7 +632,7 @@ namespace CK.Core
             if( idxNext == _groups.Length )
             {
                 Array.Resize( ref _groups, _groups.Length * 2 );
-                for( int i = idxNext; i < _groups.Length; ++i ) _groups[i] = CreateGroup( i );
+                for( int i = idxNext; i < _groups.Length; ++i ) _groups[i] = new Group( this, i );
             }
             _current = _groups[idxNext];
             if( data.Level == LogLevel.None )
@@ -829,6 +815,15 @@ namespace CK.Core
         }
 
         IDisposable IActivityMonitorImpl.ReentrancyAndConcurrencyLock()
+        {
+            return new RAndCChecker( this );
+        }
+
+        /// <summary>
+        /// Gets a disposable object that checks for reentrant and concurrent calls.
+        /// </summary>
+        /// <returns>A disposable object (that must be disposed).</returns>
+        protected IDisposable ReentrancyAndConcurrencyLock()
         {
             return new RAndCChecker( this );
         }

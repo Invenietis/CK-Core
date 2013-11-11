@@ -32,11 +32,11 @@ using CK.Core.Impl;
 namespace CK.Core
 {
     /// <summary>
-    /// Count fatal, error or warn that occured. 
+    /// Count fatal, error or warn that occurred. 
     /// Can automatically adds a conclusion of groups that summarizes
     /// the number of fatals, errors and warnings.
     /// </summary>
-    public class ActivityMonitorErrorCounter : ActivityMonitorClient, IActivityMonitorBoundClient
+    public sealed class ActivityMonitorErrorCounter : ActivityMonitorClient, IActivityMonitorBoundClient
     {
         static readonly string DefaultFatalConclusionFormat = "1 Fatal error";
         static readonly string DefaultFatalsConclusionFormat = "{0} Fatal errors";
@@ -274,7 +274,7 @@ namespace CK.Core
         /// <param name="conclusions">
         /// Mutable conclusions associated to the closing group. 
         /// This can be null if no conclusions have been added yet. 
-        /// It is up to the first client that wants to add a conclusion to instanciate a new List object to carry the conclusions.
+        /// It is up to the first client that wants to add a conclusion to instantiate a new List object to carry the conclusions.
         /// </param>
         protected override void OnGroupClosing( IActivityLogGroup group, ref List<ActivityLogGroupConclusion> conclusions )
         {

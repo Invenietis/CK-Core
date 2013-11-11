@@ -9,7 +9,7 @@ namespace CK.Monitoring.GrandOutputHandlers
         readonly LogFilter _minimalFilter;
 
         /// <summary>
-        /// Internal ctor used by Sequence and Parrallel.
+        /// Internal constructor used by Sequence and Parallel.
         /// </summary>
         /// <param name="config">Parallel or sequence configuration.</param>
         internal HandlerBase( CK.RouteConfig.Impl.ActionCompositeConfiguration config )

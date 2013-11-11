@@ -47,7 +47,7 @@ namespace CK.Monitoring.Tests
             _console = _monitor.Output.RegisterClient( new ActivityMonitorConsoleClient() );
         }
 
-        public static IActivityMonitor Monitor
+        public static IActivityMonitor ConsoleMonitor
         {
             get { return _monitor; }
         }

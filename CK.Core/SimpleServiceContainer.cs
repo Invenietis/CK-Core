@@ -37,10 +37,10 @@ namespace CK.Core
     /// </summary>
     /// <remarks>
     /// This container is registered as the service associated to <see cref="IServiceProvider"/> and <see cref="ISimpleServiceContainer"/>
-    /// thanks to the overridable <see cref="GetDirectService"/>. This method may be overriden to return other built-in services: these services
+    /// thanks to the overridable <see cref="GetDirectService"/>. This method may be overridden to return other built-in services: these services
     /// take precedence over the registered services.
     /// </remarks>
-	public class SimpleServiceContainer : ISimpleServiceContainer, IDisposable
+    public class SimpleServiceContainer : ISimpleServiceContainer, IDisposable
 	{
         struct ServiceEntry
         {
@@ -97,7 +97,7 @@ namespace CK.Core
         /// <param name="serviceType">Service type to register. It must not already exist in this container otherwise an exception is thrown.</param>
         /// <param name="serviceInstance">Delegate to call when needed. Can not be null.</param>
         /// <param name="onRemove">Optional action that will be called whenever <see cref="Remove"/>, <see cref="Clear"/> or <see cref="IDisposable.Dispose"/>
-        /// is called and a service as been successfuly obtained.</param>
+        /// is called and a service as been successfully obtained.</param>
         /// <returns>This object to enable fluent syntax.</returns>
         public ISimpleServiceContainer Add( Type serviceType, Func<Object> serviceInstance, Action<Object> onRemove )
         {
@@ -203,10 +203,10 @@ namespace CK.Core
                         if( result != null )
                         {
                             if( !serviceType.IsAssignableFrom( result.GetType() ) ) throw new CKException( R.ServiceImplCallbackTypeMismatch, serviceType.FullName, result.GetType().FullName );
-                            // Release Creator reference to miminize (subtle) leaks.
+                            // Release Creator reference to minimize (subtle) leaks.
                             e.Creator = null;
                             e.Instance = result;
-                            // Since ServiceEntry is a struct: we need to update it back.
+                            // Since ServiceEntry is a value type: we need to update it back.
                             _services[serviceType] = e;
                         }
                         // If result is still null, we fallback (and Creator will be called again the next time).
@@ -229,13 +229,26 @@ namespace CK.Core
             return null;
         }
 
+        ~SimpleServiceContainer()
+        {
+            Dispose( false );
+        }
+
         /// <summary>
         /// Disposing calls <see cref="Clear"/> to unregister all services. Any "on remove" actions are executed.
         /// </summary>
-        [SuppressMessage( "Microsoft.Design", "CA1063:Implement IDisposable correctly", Justification = "Dispose is correctly implemented, because there is no resource to dispose, only a call to Clear method." )]
-        public virtual void Dispose()
+        public void Dispose()
         {
-            Clear();
+            Dispose( true );
+        }
+
+        /// <summary>
+        /// When <paramref name="disposing"/> is true, calls <see cref="Clear"/> to unregister all services. 
+        /// Any "on remove" actions are executed.
+        /// <param name="disposing">Whether <see cref="Dispose()"/> has been called.</param>
+        protected virtual void Dispose( bool disposing )
+        {
+            if( disposing ) Clear();
         }
 
         /// <summary>

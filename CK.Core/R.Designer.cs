@@ -133,6 +133,15 @@ namespace CK.Core {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Dependent token created by Monitor &apos;{0}&apos; at {1} expect at most {2} dependent activitiy(es)..
+        /// </summary>
+        internal static string ActivityMonitorTooMuchDependentStart {
+            get {
+                return ResourceManager.GetString("ActivityMonitorTooMuchDependentStart", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to AggregatedExceptions must contain at least one exception..
         /// </summary>
         internal static string AggregatedExceptionsMustContainAtLeastOne {
@@ -273,6 +282,24 @@ namespace CK.Core {
         internal static string FIFOBufferEmpty {
             get {
                 return ResourceManager.GetString("FIFOBufferEmpty", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Access set to FileAccess.Read is stupid when creating a file..
+        /// </summary>
+        internal static string FileUtilNoReadOnlyWhenCreateFile {
+            get {
+                return ResourceManager.GetString("FileUtilNoReadOnlyWhenCreateFile", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Unable to create a unique timed file..
+        /// </summary>
+        internal static string FileUtilUnableToCreateUniqueTimedFile {
+            get {
+                return ResourceManager.GetString("FileUtilUnableToCreateUniqueTimedFile", resourceCulture);
             }
         }
         

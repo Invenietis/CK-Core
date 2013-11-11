@@ -53,9 +53,11 @@
     <Compile Include="Configuration\GrandOutputChannelConfigData.cs" />
     <Compile Include="Configuration\GrandOutputConfiguration.cs" />
     <Compile Include="Configuration\XmlMonitoringExtensions.cs" />
+    <Compile Include="IGrandOutputDispatcherStrategy.cs" />
     <Compile Include="GrandOutputEventInfo.cs" />
     <Compile Include="GrandOutputHandlers\HandlerConfiguration.cs" />
     <Compile Include="Impl\EventDispatcher.cs" />
+    <Compile Include="Impl\EventDispatcherBasicStrategy.cs" />
     <Compile Include="Persistence\MultiLogReader.ActivityMap.cs" />
     <Compile Include="Persistence\Impl\LEMCOpenGroup.cs" />
     <Compile Include="Persistence\Impl\LEMCLog.cs" />

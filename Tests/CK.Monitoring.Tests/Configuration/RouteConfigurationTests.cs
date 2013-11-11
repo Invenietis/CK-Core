@@ -12,7 +12,7 @@ using System.Diagnostics;
 namespace CK.Monitoring.Tests.Configuration
 {
     [TestFixture]
-    [Category("Monitor")]
+    [Category("ConsoleMonitor")]
     public class RouteConfigurationTests
     {
         class TestActionConfiguration : ActionConfiguration
@@ -52,7 +52,7 @@ namespace CK.Monitoring.Tests.Configuration
                             .DeclareRoute(
                                 new SubRouteConfiguration( "NoBugInRequest", name => name.Contains( "/BugFree/" ) ) { ImportParentActions = false } ) );
             
-            var resolved = c.Resolve( TestHelper.Monitor );
+            var resolved = c.Resolve( TestHelper.ConsoleMonitor );
             Assert.That( resolved, Is.Not.Null );
             Assert.That( resolved.SubRoutes.Count, Is.EqualTo( 3 ) );
 
@@ -82,13 +82,13 @@ namespace CK.Monitoring.Tests.Configuration
                 c = new RouteConfiguration()
                         .DeclareRoute( new SubRouteConfiguration( "Name", x => true ) )
                         .DeclareRoute( new SubRouteConfiguration( "Name", x => true ) );
-                Assert.That( c.Resolve( TestHelper.Monitor ), Is.Null );
+                Assert.That( c.Resolve( TestHelper.ConsoleMonitor ), Is.Null );
             }
             {
                 c = new RouteConfiguration()
                         .DeclareRoute( new SubRouteConfiguration( "Name", x => true )
                             .DeclareRoute( new SubRouteConfiguration( "Name", x => true ) ) );
-                Assert.That( c.Resolve( TestHelper.Monitor ), Is.Null );
+                Assert.That( c.Resolve( TestHelper.ConsoleMonitor ), Is.Null );
             }
         }
 
@@ -104,22 +104,22 @@ namespace CK.Monitoring.Tests.Configuration
                 c = new RouteConfiguration()
                         .DeclareRoute( new SubRouteConfiguration( "", x => true )
                             .DeclareRoute( new SubRouteConfiguration( "", x => true ) ) );
-                Assert.That( c.Resolve( TestHelper.Monitor ), Is.Null, "A route name can be empty but not 2 can be empty at the same time. The name of the root RouteConfiguration is always the empty string." );
+                Assert.That( c.Resolve( TestHelper.ConsoleMonitor ), Is.Null, "A route name can be empty but not 2 can be empty at the same time. The name of the root RouteConfiguration is always the empty string." );
             }
             {
                 c = new RouteConfiguration()
                         .AddAction( new TestActionConfiguration( "" ) );
-                Assert.That( c.Resolve( TestHelper.Monitor ), Is.Null );
+                Assert.That( c.Resolve( TestHelper.ConsoleMonitor ), Is.Null );
             }
             {
                 c = new RouteConfiguration()
                         .AddAction( new TestActionConfiguration( "/" ) );
-                Assert.That( c.Resolve( TestHelper.Monitor ), Is.Null );
+                Assert.That( c.Resolve( TestHelper.ConsoleMonitor ), Is.Null );
             }
             {
                 c = new RouteConfiguration()
                         .AddAction( new TestActionConfiguration( "A/B" ) );
-                Assert.That( c.Resolve( TestHelper.Monitor ), Is.Null );
+                Assert.That( c.Resolve( TestHelper.ConsoleMonitor ), Is.Null );
             }
         }
 
@@ -131,28 +131,28 @@ namespace CK.Monitoring.Tests.Configuration
                 c = new RouteConfiguration()
                         .AddAction( new TestActionConfiguration( "Name" ) )
                         .AddAction( new TestActionConfiguration( "Name" ) );
-                Assert.That( c.Resolve( TestHelper.Monitor ), Is.Null );
+                Assert.That( c.Resolve( TestHelper.ConsoleMonitor ), Is.Null );
             }
             {
                 c = new RouteConfiguration()
                         .AddAction( new ActionParallelConfiguration( "Parallel" )
                             .AddAction( new TestActionConfiguration( "Name" ) )
                             .AddAction( new TestActionConfiguration( "Name" ) ) );
-                Assert.That( c.Resolve( TestHelper.Monitor ), Is.Null );
+                Assert.That( c.Resolve( TestHelper.ConsoleMonitor ), Is.Null );
             }
             {
                 c = new RouteConfiguration()
                         .AddAction( new ActionSequenceConfiguration( "Sequence" )
                             .AddAction( new TestActionConfiguration( "Name" ) )
                             .AddAction( new TestActionConfiguration( "Name" ) ) );
-                Assert.That( c.Resolve( TestHelper.Monitor ), Is.Null );
+                Assert.That( c.Resolve( TestHelper.ConsoleMonitor ), Is.Null );
             }
             {
                 c = new RouteConfiguration()
                         .AddAction( new TestActionConfiguration( "Name" ) )
                         .AddAction( new ActionSequenceConfiguration( "FirstGroup" )
                             .AddAction( new TestActionConfiguration( "Name" ) ) );
-                Assert.That( c.Resolve( TestHelper.Monitor ), Is.Not.Null, "Sequence acts as a namespace." );
+                Assert.That( c.Resolve( TestHelper.ConsoleMonitor ), Is.Not.Null, "Sequence acts as a namespace." );
             }
             {
                 c = new RouteConfiguration()
@@ -160,7 +160,7 @@ namespace CK.Monitoring.Tests.Configuration
                             .AddAction( new TestActionConfiguration( "Name" ) ) )
                         .AddAction( new ActionSequenceConfiguration( "G2" )
                             .AddAction( new TestActionConfiguration( "Name" ) ) );
-                Assert.That( c.Resolve( TestHelper.Monitor ), Is.Not.Null, "Sequence hide names below them." );
+                Assert.That( c.Resolve( TestHelper.ConsoleMonitor ), Is.Not.Null, "Sequence hide names below them." );
             }
             {
                 c = new RouteConfiguration()
@@ -172,7 +172,7 @@ namespace CK.Monitoring.Tests.Configuration
                             .AddAction( new TestActionConfiguration( "Name" ) ) )
                         .AddAction( new ActionSequenceConfiguration( "G2" )
                             .AddAction( new TestActionConfiguration( "Name" ) ) );
-                Assert.That( c.Resolve( TestHelper.Monitor ), Is.Not.Null, "Parallels also hide names below them." );
+                Assert.That( c.Resolve( TestHelper.ConsoleMonitor ), Is.Not.Null, "Parallels also hide names below them." );
             }
         }
 

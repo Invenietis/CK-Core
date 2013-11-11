@@ -36,7 +36,7 @@ namespace CK.Core
     /// A <see cref="IActivityMonitorClient"/> that relays what happens in a monitor to another monitor.
     /// Automatically supports logs crossing Application Domains. See <see cref="ActivityMonitorBridgeTarget"/>.
     /// </summary>
-    public class ActivityMonitorBridge : IActivityMonitorBoundClient, IActivityMonitorBridgeCallback
+    public sealed class ActivityMonitorBridge : IActivityMonitorBoundClient, IActivityMonitorBridgeCallback
     {
         readonly ActivityMonitorBridgeTarget _bridgeTarget;
         // When the bridge is in the same domain, we relay 

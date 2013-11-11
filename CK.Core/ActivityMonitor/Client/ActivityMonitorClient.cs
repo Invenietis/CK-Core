@@ -80,7 +80,7 @@ namespace CK.Core
         /// <param name="conclusions">
         /// Mutable conclusions associated to the closing group. 
         /// This can be null if no conclusions have been added yet. 
-        /// It is up to the first client that wants to add a conclusion to instanciate a new List object to carry the conclusions.
+        /// It is up to the first client that wants to add a conclusion to instantiate a new List object to carry the conclusions.
         /// </param>
         protected virtual void OnGroupClosing( IActivityLogGroup group, ref List<ActivityLogGroupConclusion> conclusions )
         {

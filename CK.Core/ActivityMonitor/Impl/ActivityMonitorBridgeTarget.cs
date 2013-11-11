@@ -47,7 +47,7 @@ namespace CK.Core
     /// transfer the ActivityMonitorBridgeTarget to the other AppDomain for instance).
     /// </para>
     /// </remarks>
-    public class ActivityMonitorBridgeTarget : MarshalByRefObject, ISponsor
+    public sealed class ActivityMonitorBridgeTarget : MarshalByRefObject, ISponsor
     {
         readonly IActivityMonitorImpl _monitor;
         IActivityMonitorBridgeCallback[] _callbacks;

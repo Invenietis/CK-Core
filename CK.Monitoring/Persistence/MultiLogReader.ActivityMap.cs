@@ -17,6 +17,8 @@ namespace CK.Monitoring
             readonly IReadOnlyCollection<LogFile> _validFiles;
             readonly IReadOnlyCollection<Monitor> _monitorList;
             readonly Dictionary<Guid,Monitor> _monitors;
+            readonly DateTime _firstEntryDate;
+            readonly DateTime _lastEntryDate;
 
             internal ActivityMap( MultiLogReader reader )
             {
@@ -25,7 +27,13 @@ namespace CK.Monitoring
                 _validFiles = _allFiles.Where( f => f.Error == null && f.TotalEntryCount > 0 ).ToReadOnlyList();
                 _monitors = reader._monitors.ToDictionary( e => e.Key, e => new Monitor( e.Value ) );
                 _monitorList = new CKReadOnlyCollectionOnICollection<Monitor>( _monitors.Values );
+                _firstEntryDate = reader._globalFirstEntryTime;
+                _lastEntryDate = reader._globalLastEntryTime;
             }
+
+            public DateTime FirstEntryDate { get { return _firstEntryDate; } }
+
+            public DateTime LastEntryDate { get { return _lastEntryDate; } }
 
             public IReadOnlyCollection<LogFile> ValidFiles { get { return _validFiles; } }
 

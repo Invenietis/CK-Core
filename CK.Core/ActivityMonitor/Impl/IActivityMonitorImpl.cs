@@ -19,7 +19,7 @@ namespace CK.Core.Impl
         IActivityLogGroup CurrentGroup { get; }
 
         /// <summary>
-        /// Gets a disposable object that checks for reentrancy and concurrent calls.
+        /// Gets a disposable object that checks for reentrant and concurrent calls.
         /// </summary>
         /// <returns>A disposable object (that must be disposed).</returns>
         IDisposable ReentrancyAndConcurrencyLock();
@@ -37,7 +37,7 @@ namespace CK.Core.Impl
 
         /// <summary>
         /// Signals the monitor that one of the <see cref="IActivityMonitorBoundClient.MinimalFilter"/> has changed:
-        /// the <see cref="IActivityMonitor.ActualFilter"/> is marked as needing a recomputation in a thread-safe manner.
+        /// the <see cref="IActivityMonitor.ActualFilter"/> is marked as needing a re computation in a thread-safe manner.
         /// This can be called by bound clients on any thread at any time as opposed to <see cref="OnClientMinimalFilterChanged"/>
         /// that can only be called non-concurrently (typically from inside client methods).
         /// </summary>
@@ -46,7 +46,7 @@ namespace CK.Core.Impl
         /// <summary>
         /// Enables <see cref="IActivityMonitorBoundClient"/> clients to initialize Topic and AutoTag typically from 
         /// inside their <see cref="IActivityMonitorBoundClient.SetMonitor"/> method or any other methods provided 
-        /// that a reentrancy and concurrent lock has been obtained (otherwise an <see cref="InvalidOperationException"/> is thrown).
+        /// that a reentrant and concurrent lock has been obtained (otherwise an <see cref="InvalidOperationException"/> is thrown).
         /// </summary>
         /// <param name="newTopic">New topic to set. When null, it is ignored.</param>
         /// <param name="newTags">new tags to set. When null, it is ignored.</param>

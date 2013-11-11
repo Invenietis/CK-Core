@@ -27,16 +27,19 @@ namespace CK.Monitoring
         void IGrandOutputSink.Handle( GrandOutputEventInfo logEvent, bool parrallelCall )
         {
             var sinks = _sinks;
-            foreach( var l in sinks )
+            if( sinks != null )
             {
-                try
+                foreach( var l in sinks )
                 {
-                    l.Handle( logEvent, parrallelCall );
-                }
-                catch( Exception exCall )
-                {
-                    ActivityMonitor.MonitoringError.Add( exCall, l.GetType().FullName );
-                    Util.InterlockedRemove( ref _sinks, l );
+                    try
+                    {
+                        l.Handle( logEvent, parrallelCall );
+                    }
+                    catch( Exception exCall )
+                    {
+                        ActivityMonitor.MonitoringError.Add( exCall, l.GetType().FullName );
+                        Util.InterlockedRemove( ref _sinks, l );
+                    }
                 }
             }
         }

@@ -22,7 +22,7 @@ namespace CK.Monitoring.GrandOutputHandlers
         public BinaryFileConfiguration( string name )
             : base( name )
         {
-            MaxCountPerFile = 10000;
+            MaxCountPerFile = 20000;
         }
 
         /// <summary>
@@ -34,7 +34,7 @@ namespace CK.Monitoring.GrandOutputHandlers
 
         /// <summary>
         /// Gets or sets the maximal count of entries per file.
-        /// Defaults to 10000.
+        /// Defaults to 20000.
         /// </summary>
         public int MaxCountPerFile { get; set; }
 

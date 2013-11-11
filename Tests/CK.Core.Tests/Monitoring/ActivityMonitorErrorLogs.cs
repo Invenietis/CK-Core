@@ -246,7 +246,8 @@ namespace CK.Core.Tests.Monitoring
             _probBuggyOnErrorHandlerFailure = probBuggyOnErrorHandlerFailure;
             _buggyOnErrorHandlerFailCount = 0;
             _buggyOnErrorHandlerReceivedCount = 0;
-            _nbNotCleared = 0;
+            _nbClearedWhileRaised = 0;
+            _nbNotClearedWhileRaised = 0;
         }
 
         internal BuggyClient NewBuggyClient( ThreadContext c ) 
@@ -283,13 +284,15 @@ namespace CK.Core.Tests.Monitoring
             OptimizedDispatchQueuedWorkItemCount: {2}
             Errors handled: {3}
             Errors from Error handler: {4}
-            Error not Cleared while raised: {5}", 
+            Errors Cleared while raised: {5}
+            Errors not Cleared while raised: {6}", 
                 threadCount, 
                 ActivityMonitor.MonitoringError.DispatchQueuedWorkItemCount, 
                 ActivityMonitor.MonitoringError.OptimizedDispatchQueuedWorkItemCount,
                 ActivityMonitor.MonitoringError.NextSequenceNumber - nextSeq,
                 _buggyOnErrorHandlerReceivedCount,
-                _nbNotCleared );
+                _nbClearedWhileRaised,
+                _nbNotClearedWhileRaised );
 
             CollectionAssert.IsEmpty( _errorsFromBackground );
             var buggyClientMismatch = _buggyClients.Where( c => c.Failed != c.FailureHasBeenReceivedThroughEvent ).ToArray();
@@ -301,8 +304,8 @@ namespace CK.Core.Tests.Monitoring
 
             Assert.That( ActivityMonitor.MonitoringError.DispatchQueuedWorkItemCount, Is.GreaterThan( 0 ), "Of course, events have been raised..." );
             Assert.That( ActivityMonitor.MonitoringError.OptimizedDispatchQueuedWorkItemCount, Is.GreaterThan( 0 ), "Optimizations must have saved us some works." );
-            Assert.That( _nbNotCleared, Is.GreaterThan( 0 ), "Clear is called from SafeOnErrorHandler each 20 errors." );
             Assert.That( ActivityMonitor.MonitoringError.Capacity, Is.EqualTo( 500 ), "Changed in SafeOnErrorHandler." );
+            Assert.That( _nbClearedWhileRaised, Is.GreaterThan( 0 ), "Clear is called from SafeOnErrorHandler each 20 errors." );
 
             ActivityMonitor.MonitoringError.Clear();
         }
@@ -311,7 +314,8 @@ namespace CK.Core.Tests.Monitoring
         bool _inSafeErrorHandler;
         int _maxNumberOfErrorReceivedAtOnce;
         int _lastSequenceNumberReceived;
-        int _nbNotCleared;
+        int _nbClearedWhileRaised;
+        int _nbNotClearedWhileRaised;
         // One can not use Assert.That from a background thread since it throws... an exception that we handle :-).
         // Instead we collect strings.
         ConcurrentBag<string> _errorsFromBackground;
@@ -333,7 +337,14 @@ namespace CK.Core.Tests.Monitoring
             _maxNumberOfErrorReceivedAtOnce = Math.Max( _maxNumberOfErrorReceivedAtOnce, e.LoggingErrors.Count );
             foreach( var error in e.LoggingErrors )
             {
-                if( error.SequenceNumber % 10 == 0 ) _nbNotCleared += ActivityMonitor.MonitoringError.Clear();
+                if( error.SequenceNumber % 10 == 0 )
+                {
+                    int clearedErrors;
+                    int notYetRaisedErrors;
+                    ActivityMonitor.MonitoringError.Clear( out clearedErrors, out notYetRaisedErrors );
+                    _nbClearedWhileRaised += clearedErrors;
+                    _nbNotClearedWhileRaised += notYetRaisedErrors;
+                }
                 if( _lastSequenceNumberReceived != error.SequenceNumber - 1 )
                 {
                     _errorsFromBackground.Add( String.Format( "Received {0}, expected {1}.", error.SequenceNumber - 1, _lastSequenceNumberReceived ) );
@@ -374,7 +385,7 @@ namespace CK.Core.Tests.Monitoring
 
         void BuggyOnErrorHandler( object source, CriticalErrorCollector.ErrorEventArgs e )
         {
-            // Force at least one error regardless of the probablity.
+            // Force at least one error regardless of the probability.
             if( _buggyOnErrorHandlerFailCount == 0 || _random.NextDouble() < _probBuggyOnErrorHandlerFailure )
             {
                 // Subscribe again to this buggy event.
@@ -400,14 +411,7 @@ namespace CK.Core.Tests.Monitoring
             Task.WaitAll( tasks );
             for( int i = 0; i < threads.Length; i++ ) threads[i].Join();
 
-            // Note: 
-            // Thread.Sleep(0): yields to any thread of same or higher priority on any processor.
-            // Thread.Sleep(1): yields to any thread on any processor.
-            // Here we want to let any thread run.
-            //
-            // When using Sleep(0), this pooling sometimes never terminates (the background thread did 
-            // not have the opportunity to decrease the ActivityMonitor._waitingRaiseCount internal counter).
-            // This indicates that the background thread had a lower priority than this Test thread.
+            // Instead of:
             //
             // while( ActivityMonitor.LoggingError.OnErrorFromBackgroundThreadsPending ) Thread.Sleep( 1 );
             //

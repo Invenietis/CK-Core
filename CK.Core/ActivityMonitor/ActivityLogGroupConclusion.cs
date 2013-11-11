@@ -84,6 +84,28 @@ namespace CK.Core
         }
 
         /// <summary>
+        /// Equality operator definition.
+        /// </summary>
+        /// <param name="x">First value type.</param>
+        /// <param name="y">Second value type.</param>
+        /// <returns>True if and only if Tag and Text are equals.</returns>
+        public static bool operator ==( ActivityLogGroupConclusion x, ActivityLogGroupConclusion y )
+        {
+            return x.Tag == y.Tag && x.Text == y.Text;
+        }
+
+        /// <summary>
+        /// Inequality operator definition.
+        /// </summary>
+        /// <param name="x">First value type.</param>
+        /// <param name="y">Second value type.</param>
+        /// <returns>True if Tag or Text differ.</returns>
+        public static bool operator !=( ActivityLogGroupConclusion x, ActivityLogGroupConclusion y )
+        {
+            return !(x == y);
+        }
+
+        /// <summary>
         /// Computes the hash code.
         /// </summary>
         /// <returns>The hash code.</returns>

@@ -35,7 +35,6 @@ namespace CK.Monitoring.Impl
                     try
                     {
                         CommonSink.Handle( e, false );
-                        foreach( var h in Handlers ) h.Handle( e, false );
                     }
                     catch( Exception ex )
                     {
@@ -71,46 +70,106 @@ namespace CK.Monitoring.Impl
             public bool MustStop { get { return Receiver == null; } }
         }
 
-        static readonly TimeSpan _delayBetweenCapacityError = TimeSpan.FromMinutes( 1 );
+        static readonly TimeSpan _delayBetweenCapacityError = TimeSpan.FromMinutes( 2 );
 
         readonly ConcurrentQueue<EventItem> _queue;
         readonly object _dispatchLock;
-        readonly int _maxCapacity;
+        readonly Thread _thread;
+        IGrandOutputDispatcherStrategy  _strat;
+        int _maxQueuedCount;
         int _eventLostCount;
         DateTime _nextCapacityError;
-        bool _disposed;
+        object _overloadLock;
+        bool _overloadedErrorWaiting;
 
-        public EventDispatcher()
+        public EventDispatcher( IGrandOutputDispatcherStrategy strategy )
         {
+            Debug.Assert( strategy != null );
             _queue = new ConcurrentQueue<EventItem>();
             _dispatchLock = new object();
-            _maxCapacity = 10000;
-            new Thread( Run ).Start();
+            _strat = strategy;
+            _overloadLock = new object();
+            _thread = new Thread( Run );
+            _strat.Initialize( () => _queue.Count, _thread );
+            _thread.Start();
         }
 
         ~EventDispatcher()
         {
-            if( !_disposed ) Add( new GrandOutputEventInfo(), null );
+            // Since the Queue is a managed object, we can not use it
+            // to send the MustStop message.
+            // The only thing to do here is to abort the thread.
+            _thread.Abort();
         }
 
-        public void Add( GrandOutputEventInfo e, FinalReceiver receiver )
+        public int LostEventCount { get { return _eventLostCount; } }
+
+        public int MaxQueuedCount { get { return _maxQueuedCount; } }
+
+        public bool Add( GrandOutputEventInfo e, FinalReceiver receiver )
         {
+            if( receiver == null ) throw new ArgumentNullException();
+            return DoAdd( e, receiver );
+        }
+
+        bool DoAdd( GrandOutputEventInfo e, FinalReceiver receiver )
+        {
+            bool result = true;
             Debug.Assert( e.Entry != null || receiver == null, "Only the MustStop item has null everywhere." );
-            if( _queue.Count > _maxCapacity )
+            if( receiver == null )
             {
-                int nbLost = Interlocked.Increment( ref _eventLostCount );
-                var now = DateTime.UtcNow;
-                if( now > _nextCapacityError )
-                {
-                    ActivityMonitor.MonitoringError.Add( new CKException( "GrandOutput dispatcher overload. Lost {0} total events.", nbLost ), null );
-                    _nextCapacityError = now.Add( _delayBetweenCapacityError );
-                }
+                // This is the MustStop message.
+                _queue.Enqueue( new EventItem( e, null ) );
+                lock( _dispatchLock ) Monitor.Pulse( _dispatchLock );
+                // Ensures that if _overloadedErrorWaiting is true, a final "Lost Event" monitoring error is sent.
+                _nextCapacityError = DateTime.MinValue;
+                Thread.MemoryBarrier();
             }
             else
             {
-                _queue.Enqueue( new EventItem( e, receiver ) );
-                lock( _dispatchLock ) Monitor.Pulse( _dispatchLock );
+                // Normal message.
+                Thread.MemoryBarrier();
+                var strat = _strat;
+                if( strat == null ) return false;
+                if( strat.IsOpened( ref _maxQueuedCount ) )
+                {
+                    // Normal message and no queue overload detected.
+                    _queue.Enqueue( new EventItem( e, receiver ) );
+                    lock( _dispatchLock ) Monitor.Pulse( _dispatchLock );
+                }
+                else
+                {
+                    // Overload has been detected.
+                    // Unlock the configuration: the message will not be handled.
+                    if( receiver.ConfigLock != null ) receiver.ConfigLock.Unlock();
+                    Interlocked.Increment( ref _eventLostCount );
+                    // A new "Lost Event" monitoring error must be sent once.
+                    _overloadedErrorWaiting = true;
+                    result = false;
+                }
+                Thread.MemoryBarrier();
             }
+            // Whatever happens, if a "Lost Event" monitoring error must be send once, 
+            // checks to see if we must send it now.
+            Thread.MemoryBarrier();
+            if( _overloadedErrorWaiting )
+            {
+                var now = receiver != null ? e.Entry.LogTimeUtc : DateTime.MaxValue;
+                if( now > _nextCapacityError )
+                {
+                    // Double check locking.
+                    lock( _overloadLock )
+                    {
+                        if( _overloadedErrorWaiting && now > _nextCapacityError )
+                        {
+                            ActivityMonitor.MonitoringError.Add( new CKException( "GrandOutput dispatcher overload. Lost {0} total events.", _eventLostCount ), null );
+                            if( receiver != null ) _nextCapacityError = now.Add( _delayBetweenCapacityError );
+                            _overloadedErrorWaiting = false;
+                        }
+                    }
+                }
+            }
+            return result;
         }
 
         void Run()
@@ -124,22 +183,30 @@ namespace CK.Monitoring.Impl
                     e.Receiver.Dispatch( e.EventInfo );
                 }
                 lock( _dispatchLock )
-                    while( _queue.Count == 0 )
+                    while( _queue.IsEmpty )
                         Monitor.Wait( _dispatchLock );
             }
         }
 
-        public bool IsDisposed { get { return _disposed; } }
+        public bool IsDisposed { get { return _strat == null; } }
 
         public void Dispose()
         {
-            if( !_disposed )
+            Thread.MemoryBarrier();
+            var strat = _strat;
+            if( strat != null )
             {
-                _disposed = true;
+                _strat = null;
+                Thread.MemoryBarrier();
+                DoAdd( new GrandOutputEventInfo(), null );
                 GC.SuppressFinalize( this );
-                Add( new GrandOutputEventInfo(), null );
             }
         }
 
+
+        public int SampleReentrantCount
+        {
+            get { return _strat.SampleReentrantCount; }
+        }
     }
 }

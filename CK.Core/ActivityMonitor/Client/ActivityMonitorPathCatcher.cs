@@ -35,7 +35,7 @@ namespace CK.Core
     /// The "Path Catcher" captures the current path of the log (<see cref="DynamicPath"/>),
     /// and two specific paths, the <see cref="LastErrorPath"/> and the <see cref="LastWarnOrErrorPath"/>.
     /// </summary>
-    public class ActivityMonitorPathCatcher : ActivityMonitorClient, IActivityMonitorBoundClient
+    public sealed class ActivityMonitorPathCatcher : ActivityMonitorClient, IActivityMonitorBoundClient
     {
         /// <summary>
         /// Element of the <see cref="ActivityMonitorPathCatcher.DynamicPath">DynamicPath</see>, <see cref="ActivityMonitorPathCatcher.LastErrorPath">LastErrorPath</see>,
@@ -61,7 +61,7 @@ namespace CK.Core
             public IReadOnlyList<ActivityLogGroupConclusion> GroupConclusion { get; internal set; }
 
             /// <summary>
-            /// Overriden to return the <see cref="Text"/> of this element.
+            /// Overridden to return the <see cref="Text"/> of this element.
             /// </summary>
             /// <returns>This <see cref="Text"/> property.</returns>
             public override string ToString()

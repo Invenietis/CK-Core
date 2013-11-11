@@ -115,8 +115,8 @@ namespace CK.Core
         }
 
         /// <summary>
-        /// Touches this type to ensure that its static information is initalized.
-        /// This does nothing except that, since the Type is sollicited, the type constructor is called if needed.
+        /// Touches this type to ensure that its static information is initialized.
+        /// This does nothing except that, since the Type is solicited, the type constructor is called if needed.
         /// </summary>
         /// <returns>Always true.</returns>
         static public bool EnsureStaticInitialization()

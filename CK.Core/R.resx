@@ -222,4 +222,13 @@
   <data name="ActivityMonitorInvalidLogLevel" xml:space="preserve">
     <value>The level must be a valid level (Trace, Info, Warn, Error or Fatal).</value>
   </data>
+  <data name="ActivityMonitorTooMuchDependentStart" xml:space="preserve">
+    <value>Dependent token created by Monitor '{0}' at {1} expect at most {2} dependent activitiy(es).</value>
+  </data>
+  <data name="FileUtilNoReadOnlyWhenCreateFile" xml:space="preserve">
+    <value>Access set to FileAccess.Read is stupid when creating a file.</value>
+  </data>
+  <data name="FileUtilUnableToCreateUniqueTimedFile" xml:space="preserve">
+    <value>Unable to create a unique timed file.</value>
+  </data>
 </root>

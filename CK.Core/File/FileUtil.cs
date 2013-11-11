@@ -119,6 +119,12 @@ namespace CK.Core
         public static readonly string AltDirectorySeparatorString = new String( Path.AltDirectorySeparatorChar, 1 );
 
         /// <summary>
+        /// A display format for <see cref="DateTime"/> that supports round-trips, is readable and can be used in path 
+        /// or url (the DateTime should be in UTC since <see cref="DateTime.Kind"/> is ignored).
+        /// </summary>
+        public static readonly string FileNameUniqueTimeUtcFormat = @"yyyy-MM-dd HH\hmm.ss.fffffff";
+
+        /// <summary>
         /// Finds the first character index of any characters that are invalid in a path.
         /// This method (and <see cref="IndexOfInvalidFileNameChars"/>) avoid the allocation of 
         /// the array each time <see cref="Path.GetInvalidPathChars"/> is called.
@@ -156,7 +162,7 @@ namespace CK.Core
         public static string WriteUniqueTimedFile( string pathPrefix, string fileSuffix, DateTime time, byte[] content, bool withUTF8Bom, int maxTryBeforeGuid = 3 )
         {
             string fullLogFilePath;
-            using( var f = CreateAndOpenUniqueTimedFile( pathPrefix, fileSuffix, time, maxTryBeforeGuid ) )
+            using( var f = CreateAndOpenUniqueTimedFile( pathPrefix, fileSuffix, time, FileAccess.Write, FileShare.Read, 8, FileOptions.SequentialScan | FileOptions.WriteThrough, maxTryBeforeGuid ) )
             {
                 Debug.Assert( Encoding.UTF8.GetPreamble().Length == 3 );
                 if( withUTF8Bom ) f.Write( Encoding.UTF8.GetPreamble(), 0, 3 );
@@ -174,46 +180,69 @@ namespace CK.Core
         /// <param name="pathPrefix">The path prefix. Must not be null. Must be a valid path and may ends with a prefix for the file name itself.</param>
         /// <param name="fileSuffix">Suffix for the file name. Must not be null. Typically an extension (like ".txt").</param>
         /// <param name="time">The time that will be used to create the file name. It should be an UTC time.</param>
-        /// <param name="maxTryBeforeGuid">Maximum value for short hexa uniquifier before using a base 64 guid suffix. Must between 0 and 15 (included).</param>
+        /// <param name="access">
+        /// A constant that determines how the file can be accessed by the FileStream object. 
+        /// It can only be <see cref="FileAccess.Write"/> or <see cref="FileAccess.ReadWrite"/> (when set to <see cref="FileAccess.Read"/> a <see cref=""/>
+        /// This sets the CanRead and CanWrite properties of the FileStream object. 
+        /// CanSeek is true if path specifies a disk file.
+        /// </param>
+        /// <param name="share">
+        /// A constant that determines how the file will be shared by processes.
+        /// </param>
+        /// <param name="bufferSize">
+        /// A positive Int32 value greater than 0 indicating the buffer size. For bufferSize values between one and eight, the actual buffer size is set to eight bytes.
+        /// </param>
+        /// <param name="options">Specifies additional file options.</param>
+        /// <param name="maxTryBeforeGuid">Maximum value for short hexadecimal uniquifier before using a base 64 guid suffix. Must between 0 and 15 (included).</param>
         /// <returns>An opened <see cref="FileStream"/>.</returns>
-        public static FileStream CreateAndOpenUniqueTimedFile( string pathPrefix, string fileSuffix, DateTime time, int maxTryBeforeGuid = 3 )
+        public static FileStream CreateAndOpenUniqueTimedFile( string pathPrefix, string fileSuffix, DateTime time, FileAccess access, FileShare share, int bufferSize, FileOptions options, int maxTryBeforeGuid = 3 )
         {
             if( pathPrefix == null ) throw new ArgumentNullException( "pathPrefix" );
             if( fileSuffix == null ) throw new ArgumentNullException( "fileSuffix" );
             if( maxTryBeforeGuid < 0 || maxTryBeforeGuid > 15 ) throw new ArgumentOutOfRangeException( "maxTryBeforeGuid" );
-            FileStream f = null;
-            string pOrigin = pathPrefix + time.ToString( @"yyyy-MM-dd HH\hmm.ss.fffffff" ) + fileSuffix;
+            if( access == FileAccess.Read ) throw new ArgumentException( R.FileUtilNoReadOnlyWhenCreateFile, "access" );
+            FileStream f;
+            string pOrigin = pathPrefix + time.ToString( FileNameUniqueTimeUtcFormat ) + fileSuffix;
             string p = pOrigin;
             int counter = 0;
             for( ; ; )
             {
-                try
+                if( TryCreateNew( p, access, share, bufferSize, options, out f ) ) break;
+                if( counter >= maxTryBeforeGuid )
                 {
-                    f = new FileStream( p, FileMode.CreateNew, FileAccess.Write, FileShare.Read, 8, FileOptions.SequentialScan | FileOptions.WriteThrough );
-                    break;
-                }
-                catch( IOException ex )
-                {
-                    if( ex is PathTooLongException || ex is DirectoryNotFoundException ) throw;
-                    if( counter >= maxTryBeforeGuid )
+                    if( counter == maxTryBeforeGuid+1 ) throw new CKException( R.FileUtilUnableToCreateUniqueTimedFile );
+                    if( counter == maxTryBeforeGuid )
                     {
-                        if( counter == maxTryBeforeGuid+1 ) throw;
-                        if( counter == maxTryBeforeGuid )
-                        {
-                            Debug.Assert( Convert.ToBase64String( Guid.NewGuid().ToByteArray() ).Length == 24 );
-                            Debug.Assert( Convert.ToBase64String( Guid.NewGuid().ToByteArray() ).EndsWith( "==" ) );
-                            // Use http://en.wikipedia.org/wiki/Base64#URL_applications encoding.
-                            string dedup = Convert.ToBase64String( Guid.NewGuid().ToByteArray() ).Remove( 22 ).Replace( '+', '-' ).Replace( '/', '_' );
-                            p = pOrigin.Insert( pOrigin.Length - fileSuffix.Length, "-" + dedup );
-                        }
+                        Debug.Assert( Convert.ToBase64String( Guid.NewGuid().ToByteArray() ).Length == 24 );
+                        Debug.Assert( Convert.ToBase64String( Guid.NewGuid().ToByteArray() ).EndsWith( "==" ) );
+                        // Use http://en.wikipedia.org/wiki/Base64#URL_applications encoding.
+                        string dedup = Convert.ToBase64String( Guid.NewGuid().ToByteArray() ).Remove( 22 ).Replace( '+', '-' ).Replace( '/', '_' );
+                        p = pOrigin.Insert( pOrigin.Length - fileSuffix.Length, "-" + dedup );
                     }
-                    else p = pOrigin.Insert( pOrigin.Length - fileSuffix.Length, "-" + Util.Converter.HexChars[counter] );
-                    ++counter;
                 }
+                else p = pOrigin.Insert( pOrigin.Length - fileSuffix.Length, "-" + Util.Converter.HexChars[counter] );
+                ++counter;
             }
             return f;
         }
-        
+
+        static bool TryCreateNew( string path, FileAccess access, FileShare share, int bufferSize, FileOptions options, out FileStream f )
+        {
+            f = null;
+            try
+            {
+                if( File.Exists( path ) ) return false;
+                f = new FileStream( path, FileMode.CreateNew, access, share, bufferSize, options );
+                return true;
+            }
+            catch( IOException ex )
+            {
+                if( ex is PathTooLongException || ex is DirectoryNotFoundException ) throw;
+            }
+            return false;
+        }
+
+
         /// <summary>
         /// Recursively copy a directory. 
         /// Throws an IOException, if a same file exists in the target directory.

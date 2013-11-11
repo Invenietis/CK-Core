@@ -10,7 +10,7 @@ namespace CK.Core
     /// Simple collector of log entries which level is greater or equal to <see cref="MinimalFilter"/>.
     /// Its <see cref="Capacity"/> defaults to 50 (no more than Capacity entries are kept).
     /// </summary>
-    public class ActivityMonitorSimpleCollector : IActivityMonitorClient
+    public sealed class ActivityMonitorSimpleCollector : IActivityMonitorClient
     {
         readonly FIFOBuffer<Entry> _entries;
         LogLevelFilter _filter;

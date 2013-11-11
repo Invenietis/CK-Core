@@ -13,7 +13,7 @@ namespace CK.Monitoring
     /// A GrandOutput collects activity of multiple <see cref="IActivityMonitor"/>. It routes log events to 
     /// multiple channels based on <see cref="IActivityMonitor.Topic"/>.
     /// 
-    /// It is usually useless to explicitely create an instance of GrandOutput: the <see cref="Default"/> one is 
+    /// It is usually useless to explicitly create an instance of GrandOutput: the <see cref="Default"/> one is 
     /// available as soon as <see cref="EnsureActiveDefault"/> is called and will be automatically used by new <see cref="ActivityMonitor"/>.
     /// </summary>
     public partial class GrandOutput : IDisposable
@@ -52,7 +52,7 @@ namespace CK.Monitoring
             lock( _defaultLock )
             {
                 SystemActivityMonitor.EnsureStaticInitialization();
-                _default = new GrandOutput();
+                _default = new GrandOutput( null );
                 ActivityMonitor.AutoConfiguration += m => Default.Register( m );
             }
             return _default;
@@ -61,10 +61,11 @@ namespace CK.Monitoring
         /// <summary>
         /// Initializes a new <see cref="GrandOutput"/>. 
         /// </summary>
-        public GrandOutput()
+        /// <param name="dispatcherStrategy">Strategy to use to handle the throughput.</param>
+        public GrandOutput( IGrandOutputDispatcherStrategy dispatcherStrategy = null )
         {
             _clients = new List<WeakRef<GrandOutputClient>>();
-            _dispatcher = new EventDispatcher();
+            _dispatcher = new EventDispatcher( dispatcherStrategy ?? new EventDispatcherBasicStrategy() );
             _commonSink = new GrandOutputCompositeSink();
             var factory = new ChannelFactory( _commonSink, _dispatcher );
             _channelHost = new ChannelHost( factory, OnConfigurationReady );
@@ -91,6 +92,27 @@ namespace CK.Monitoring
             return monitor.Output.RegisterUniqueClient( b => b.Central == this, reg );
         }
 
+        /// <summary>
+        /// Gets the number of lost events since this <see cref="GrandOutput"/> has been created.
+        /// </summary>
+        public int LostEventCount 
+        { 
+            get { return _dispatcher.LostEventCount; } 
+        }
+
+        /// <summary>
+        /// Maximal queue size that has been used.
+        /// </summary>
+        public int MaxQueuedCount
+        {
+            get { return _dispatcher.MaxQueuedCount; }
+        }
+
+        public int SampleReentrantCount
+        {
+            get { return _dispatcher.SampleReentrantCount; }
+        }
+        
         /// <summary>
         /// Registers a <see cref="IGrandOutputSink"/>.
         /// </summary>
@@ -119,7 +141,7 @@ namespace CK.Monitoring
         /// <param name="config">The configuration that must be set.</param>
         /// <param name="monitor">Optional monitor.</param>
         /// <param name="millisecondsBeforeForceClose">Optional timeout to wait before forcing the close of the currently active configuration.</param>
-        /// <returns>True on succees.</returns>
+        /// <returns>True on success.</returns>
         public bool SetConfiguration( GrandOutputConfiguration config, IActivityMonitor monitor = null, int millisecondsBeforeForceClose = Timeout.Infinite )
         {
             if( config == null ) throw new ArgumentNullException( "config" );

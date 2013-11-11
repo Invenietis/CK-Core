@@ -16,6 +16,10 @@ namespace CK.Monitoring
         readonly ConcurrentDictionary<string,LogFile> _files;
         readonly ReaderWriterLockSlim _lockWriteRead;
 
+        readonly object _globalInfoLock;
+        DateTime _globalFirstEntryTime;
+        DateTime _globalLastEntryTime;
+
         internal class LiveIndexedMonitor
         {
             readonly MultiLogReader _reader;
@@ -119,6 +123,7 @@ namespace CK.Monitoring
             {
                 _fileName = fileName;
                 InitializerLock = new object();
+                _firstEntryTime = DateTime.MaxValue;
             }
 
             internal void Initialize( MultiLogReader reader )
@@ -194,6 +199,9 @@ namespace CK.Monitoring
             _monitors = new ConcurrentDictionary<Guid, LiveIndexedMonitor>();
             _files = new ConcurrentDictionary<string, LogFile>( StringComparer.InvariantCultureIgnoreCase );
             _lockWriteRead = new ReaderWriterLockSlim();
+            _globalInfoLock = new object();
+            _globalFirstEntryTime = DateTime.MaxValue;
+            _globalLastEntryTime = DateTime.MinValue;
             BucketSize = 200;
         }
 
@@ -236,6 +244,11 @@ namespace CK.Monitoring
                         f.InitializerLock = null;
                     }
                 }
+            }
+            lock( _globalInfoLock )
+            {
+                if( _globalFirstEntryTime > f.FirstEntryTime ) _globalFirstEntryTime = f.FirstEntryTime;
+                if( _globalLastEntryTime > f.LastEntryTime ) _globalLastEntryTime = f.LastEntryTime;
             }
             _lockWriteRead.ExitReadLock();
             return f;

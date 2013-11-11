@@ -39,7 +39,7 @@ namespace CK.Core
         /// Groups are bound to an <see cref="ActivityMonitor"/> and are linked together from 
         /// the current one to the very first one (a kind of stack).
         /// </summary>
-        protected class Group : IActivityLogGroup, IDisposableGroup
+        protected sealed class Group : IActivityLogGroup, IDisposableGroup
         {
             /// <summary>
             /// The monitor that owns this group.
@@ -61,7 +61,7 @@ namespace CK.Core
             /// </summary>
             /// <param name="monitor">Monitor.</param>
             /// <param name="index">Index of the group.</param>
-            internal protected Group( ActivityMonitor monitor, int index )
+            internal Group( ActivityMonitor monitor, int index )
             {
                 Monitor = monitor;
                 Index = index;
@@ -70,7 +70,7 @@ namespace CK.Core
             /// <summary>
             /// Initializes or reinitializes this group (if it has been disposed). 
             /// </summary>
-            internal protected virtual void Initialize( ActivityMonitorGroupData data )
+            internal void Initialize( ActivityMonitorGroupData data )
             {
                 SavedMonitorFilter = Monitor._configuredFilter;
                 SavedMonitorTags = Monitor._currentTag;
@@ -86,7 +86,7 @@ namespace CK.Core
             /// <summary>
             /// Initializes or reinitializes this group (if it has been disposed) as a filtered group. 
             /// </summary>
-            internal protected virtual void InitializeRejectedGroup( ActivityMonitorGroupData data )
+            internal void InitializeRejectedGroup( ActivityMonitorGroupData data )
             {
                 SavedMonitorFilter = Monitor._configuredFilter;
                 SavedMonitorTags = Monitor._currentTag;
@@ -168,13 +168,13 @@ namespace CK.Core
             /// Gets or sets the <see cref="IActivityMonitor.MinimalFilter"/> that will be restored when group will be closed.
             /// Initialized with the current value of IActivityMonitor.Filter when the group has been opened.
             /// </summary>
-            public LogFilter SavedMonitorFilter { get; protected set; }
+            public LogFilter SavedMonitorFilter { get; private set; }
 
             /// <summary>
             /// Gets or sets the <see cref="IActivityMonitor.AutoTags"/> that will be restored when group will be closed.
             /// Initialized with the current value of IActivityMonitor.Tags when the group has been opened.
             /// </summary>
-            public CKTrait SavedMonitorTags { get; protected set; }
+            public CKTrait SavedMonitorTags { get; private set; }
 
             /// <summary>
             /// Gets whether the <see cref="GroupText"/> is actually the <see cref="Exception"/> message.
@@ -193,15 +193,6 @@ namespace CK.Core
             /// Gets the line number of the <see cref="FileName"/> that issued the log.
             /// </summary>
             public int LineNumber { get { return _data.LineNumber; } }
-
-            /// <summary>
-            /// Gets or sets the optional function that will be called on group closing. 
-            /// </summary>
-            protected Func<string> GetConclusionText 
-            { 
-                get { return _data.GetConclusionText; }
-                set { _data.GetConclusionText = value; } 
-            }
       
             IDisposable IDisposableGroup.ConcludeWith( Func<string> getConclusionText )
             {
@@ -244,15 +235,12 @@ namespace CK.Core
         }
 
         /// <summary>
-        /// Factory method for <see cref="Group"/> (or any specialized class).
-        /// This is may be overriden in advanced scenario where groups may offer different 
-        /// behaviors than the default ones.
+        /// Gets the currently opened group.
+        /// Null when no group is currently opened.
         /// </summary>
-        /// <param name="index">The index (zero based depth) of the group.</param>
-        /// <returns>A new group.</returns>
-        protected virtual Group CreateGroup( int index )
+        protected IActivityLogGroup CurrentGroup
         {
-            return new Group( this, index );
+            get { return _current; }
         }
 
     }

@@ -247,6 +247,7 @@ namespace CK.Core
         /// </summary>
         /// <param name="index">Zero based position of the item in this list.</param>
         /// <returns>The item.</returns>
+        [System.Diagnostics.CodeAnalysis.SuppressMessage( "Microsoft.Design", "CA1065:DoNotRaiseExceptionsInUnexpectedLocations", Justification="This is a the right location to raise this exception!" )]
         public T this[int index]
         {
             get
@@ -286,7 +287,7 @@ namespace CK.Core
         /// <summary>
         /// Adds the item at its right position depending on the comparison function and returns true.
         /// May return false if, for any reason, the item has not been added. At this level (but this 
-        /// may be overriden), if <see cref="AllowDuplicates"/> is false and the item already exists,
+        /// may be overridden), if <see cref="AllowDuplicates"/> is false and the item already exists,
         /// false is returned and the item is not added.
         /// </summary>
         /// <param name="value">Item to add.</param>

@@ -337,7 +337,7 @@ namespace CK.Monitoring.Tests
             Assert.That( _host.ObtainRoute( "" ), Is.SameAs( FinalRoute.Empty ) );
             
             Assert.That( _host.ConfigurationAttemptCount, Is.EqualTo( 0 ) );
-            Assert.That( _host.SetConfiguration( TestHelper.Monitor, c ) );
+            Assert.That( _host.SetConfiguration( TestHelper.ConsoleMonitor, c ) );
             Assert.That( _host.SuccessfulConfigurationCount, Is.EqualTo( 1 ) );
 
             _defaultRoute = _host.ObtainRoute( null );
@@ -359,7 +359,7 @@ namespace CK.Monitoring.Tests
             var c2 = new RouteConfiguration()
                     .AddAction( new WriteActionConfiguration( "n°1" ) { FileName = @"File n°1" } );
 
-            Assert.That( _host.SetConfiguration( TestHelper.Monitor, c2 ) );
+            Assert.That( _host.SetConfiguration( TestHelper.ConsoleMonitor, c2 ) );
             Assert.That( _host.ConfigurationAttemptCount, Is.EqualTo( 2 ) );
             Assert.That( _host.SuccessfulConfigurationCount, Is.EqualTo( 2 ) );
 

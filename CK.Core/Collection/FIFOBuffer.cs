@@ -153,6 +153,7 @@ namespace CK.Core
         /// </summary>
         /// <param name="index">Index must be positive and less than <see cref="Count"/>.</param>
         /// <returns>The indexed element.</returns>
+        [System.Diagnostics.CodeAnalysis.SuppressMessage( "Microsoft.Design", "CA1065:DoNotRaiseExceptionsInUnexpectedLocations", Justification="This is the right location to raise this exception!" )]
         public T this[int index]
         {
             get
