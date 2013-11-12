@@ -16,7 +16,7 @@ namespace CK.Monitoring
     /// It is usually useless to explicitly create an instance of GrandOutput: the <see cref="Default"/> one is 
     /// available as soon as <see cref="EnsureActiveDefault"/> is called and will be automatically used by new <see cref="ActivityMonitor"/>.
     /// </summary>
-    public partial class GrandOutput : IDisposable
+    public sealed partial class GrandOutput : IDisposable
     {
         readonly List<WeakRef<GrandOutputClient>> _clients;
         readonly GrandOutputCompositeSink _commonSink;
@@ -27,7 +27,6 @@ namespace CK.Monitoring
 
         static GrandOutput _default;
         static readonly object _defaultLock = new object();
-
 
         /// <summary>
         /// Gets the default <see cref="GrandOutput"/> for the current Application Domain.
@@ -247,7 +246,9 @@ namespace CK.Monitoring
 
         int DoGarbageDeadClients( DateTime utcNow )
         {
+            #if !net40
             Debug.Assert( Monitor.IsEntered( _clients ) );
+            #endif
             _nextDeadClientGarbage = utcNow.AddMinutes( 5 );
             int count = 0;
             for( int i = 0; i < _clients.Count; ++i )
@@ -280,6 +281,8 @@ namespace CK.Monitoring
             if( !_channelHost.IsDisposed )
             {
                 _channelHost.Dispose( monitor, millisecondsBeforeForceClose );
+                _dispatcher.Dispose();
+                _bufferingChannel.Dispose();
             }
         }
 

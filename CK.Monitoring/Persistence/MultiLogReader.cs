@@ -10,7 +10,7 @@ using CK.Core;
 
 namespace CK.Monitoring
 {
-    public partial class MultiLogReader : IDisposable
+    public sealed partial class MultiLogReader : IDisposable
     {
         readonly ConcurrentDictionary<Guid,LiveIndexedMonitor> _monitors;
         readonly ConcurrentDictionary<string,LogFile> _files;

@@ -12,7 +12,7 @@ using CK.RouteConfig;
 
 namespace CK.Monitoring.Impl
 {
-    internal class EventDispatcher : IDisposable
+    internal sealed class EventDispatcher : IDisposable
     {
         public class FinalReceiver
         {

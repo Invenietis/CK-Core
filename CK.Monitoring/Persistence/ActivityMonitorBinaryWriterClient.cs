@@ -9,12 +9,21 @@ using CK.Monitoring.Impl;
 
 namespace CK.Monitoring
 {
-    public class ActivityMonitorBinaryWriterClient : IActivityMonitorClient, IDisposable
+    public sealed class ActivityMonitorBinaryWriterClient : IActivityMonitorClient, IDisposable
     {
         Stream _stream;
         BinaryWriter _binaryWriter;
         bool _writeVersion;
 
+#if net40
+        public ActivityMonitorBinaryWriterClient( Stream stream, bool writeVersion )
+        {
+            _stream = stream;
+            _binaryWriter = new BinaryWriter( stream, Encoding.UTF8 );
+            _writeVersion = writeVersion;
+            if( writeVersion ) _binaryWriter.Write( LogReader.CurrentStreamVersion );
+        }
+#else
         public ActivityMonitorBinaryWriterClient( Stream stream, bool writeVersion, bool mustClose = true )
         {
             _stream = stream;
@@ -22,7 +31,7 @@ namespace CK.Monitoring
             _writeVersion = writeVersion;
             if( writeVersion ) _binaryWriter.Write( LogReader.CurrentStreamVersion );
         }
-
+#endif
         public static ActivityMonitorBinaryWriterClient Create( string fileDirectory, string autoNameFile = "CK.Monitor-{0:u}.ckmon", bool writeVersion = true )
         {
             if( autoNameFile == null ) autoNameFile = "CK.Monitor-{0:u}.ckmon";
@@ -61,7 +70,7 @@ namespace CK.Monitoring
         }
 
         /// <summary>
-        /// Close the log by optionnaly writing a zero terminal byte into the inner stream.
+        /// Close the log by optionally writing a zero terminal byte into the inner stream.
         /// The stream itself will be closed only if this writer has been asked to do so (thanks to constructors' parameter mustClose sets to true).
         /// </summary>
         /// <param name="writeEndMarker">True to write an end byte marker in the inner stream.</param>

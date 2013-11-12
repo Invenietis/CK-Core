@@ -15,7 +15,7 @@ namespace CK.Monitoring
     /// A GrandOutputClient is a <see cref="IActivityMonitorClient"/> that can only be obtained and registered
     /// through <see cref="GrandOutput.Register"/>.
     /// </summary>
-    public class GrandOutputClient : IActivityMonitorBoundClient
+    public sealed class GrandOutputClient : IActivityMonitorBoundClient
     {
         readonly GrandOutput _central;
         IActivityMonitorImpl _monitorSource;

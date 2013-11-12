@@ -53,6 +53,7 @@
     <Compile Include="Configuration\GrandOutputChannelConfigData.cs" />
     <Compile Include="Configuration\GrandOutputConfiguration.cs" />
     <Compile Include="Configuration\XmlMonitoringExtensions.cs" />
+    <Compile Include="GlobalSuppressions.cs" />
     <Compile Include="IGrandOutputDispatcherStrategy.cs" />
     <Compile Include="GrandOutputEventInfo.cs" />
     <Compile Include="GrandOutputHandlers\HandlerConfiguration.cs" />

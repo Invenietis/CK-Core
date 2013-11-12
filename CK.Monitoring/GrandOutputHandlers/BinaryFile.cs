@@ -12,7 +12,7 @@ namespace CK.Monitoring.GrandOutputHandlers
     /// <summary>
     /// 
     /// </summary>
-    public class BinaryFile : HandlerBase
+    public sealed class BinaryFile : HandlerBase, IDisposable
     {
         readonly string _configPath;
         readonly int _maxCountPerFile;
@@ -62,10 +62,19 @@ namespace CK.Monitoring.GrandOutputHandlers
 
         public override void Close( IActivityMonitor m )
         {
-            using( m.OpenTrace().Send( "Closing binary output file for configuration '{0}'.", Name ) )
+            if( _writer != null )
             {
-                _writer.Dispose();
+                using( m.OpenTrace().Send( "Closing binary output file for configuration '{0}'.", Name ) )
+                {
+                    _writer.Dispose();
+                    _writer = null;
+                }
             }
+        }
+
+        void IDisposable.Dispose()
+        {
+            Close( new SystemActivityMonitor() );
         }
 
         private string ComputePath( IActivityMonitor m )

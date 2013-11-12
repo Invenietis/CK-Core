@@ -125,8 +125,8 @@ namespace CK.RouteConfig
 
         /// <summary>
         /// Returns the <typeparamref name="TRoute"/> for a full name.
-        /// This obtention locks the configuration: it must be unlocked when not used anymore.
-        /// When null, it means that a configuration is waiting to be applied (a route that buffers its work should be substituded)
+        /// Obtaining a route locks the configuration: it must be unlocked when not used anymore.
+        /// When null, it means that a configuration is waiting to be applied (a route that buffers its work should be substituted)
         /// or that this host <see cref="IsDisposed"/>.
         /// </summary>
         /// <param name="route">The full route that will be matched.</param>
@@ -152,7 +152,7 @@ namespace CK.RouteConfig
         }
 
         /// <summary>
-        /// Gets the total number of succesful calls to <see cref="ApplyPendingConfiguration"/>.
+        /// Gets the total number of successful calls to <see cref="ApplyPendingConfiguration"/>.
         /// </summary>
         public int SuccessfulConfigurationCount
         {
@@ -278,17 +278,17 @@ namespace CK.RouteConfig
         /// <list type="number">
         /// <item>If the new routes can not be created, false is returned and current configuration remains active.</item>
         /// <item><see cref="ObtainRoute"/> starts returning null and <see cref="ConfigurationClosing"/> event is raised.</item>
-        /// <item>Waiting for previous routes termination (unititialization).</item>
+        /// <item>Waiting for previous routes termination (uninitialization).</item>
         /// <item>Initializing the new routes (starter function when provided to the constructor is called for each actions).</item>
         /// <item>Calling ConfigurationReady callback: new routes can be initialized.</item>
-        /// <item>If the new configuration has not been applied by the ConfigurationReady callback, it is automaticaly applied.</item>
+        /// <item>If the new configuration has not been applied by the ConfigurationReady callback, it is automatically applied.</item>
         /// </list>
         /// If an error occurs while starting the new routes, false is returned and routes are empty.
         /// </summary>
-        /// <param name="monitor">Monitor that wil receive explanations and errors.</param>
+        /// <param name="monitor">Monitor that will receive explanations and errors.</param>
         /// <param name="configuration">The configuration to achieve.</param>
         /// <param name="millisecondsBeforeForceClose">Maximal time to wait for current routes to be unlocked (see <see cref="IRouteConfigurationLock"/>).</param>
-        /// <returns>True if the new configuration has been succesfully applied, false if an error occured.</returns>
+        /// <returns>True if the new configuration has been successfully applied, false if an error occurred.</returns>
         public bool SetConfiguration( IActivityMonitor monitor, RouteConfiguration configuration, int millisecondsBeforeForceClose = Timeout.Infinite )
         {
             if( monitor == null ) throw new ArgumentNullException( "monitor" );
@@ -512,7 +512,25 @@ namespace CK.RouteConfig
         /// </summary>
         public void Dispose()
         {
-            Dispose( new SystemActivityMonitor(), Timeout.Infinite );
+            Dispose( true );
+        }
+
+        /// <summary>
+        /// Calls <see cref="Dispose(IActivityMonitor,int)"/> with a <see cref="SystemActivityMonitor"/> and no closing time limit.
+        /// </summary>
+        /// <param name="disposing">True when called from code (managed and unmanaged resources must be disposed), false when called from the Garbage collector (only unmanaged resources should be closed in such case).</param>
+        protected virtual void Dispose( bool disposing )
+        {
+            if( disposing )
+            {
+                Dispose( new SystemActivityMonitor(), Timeout.Infinite );
+                GC.SuppressFinalize( this );
+            }
+        }
+
+        ~ConfiguredRouteHost()
+        {
+            Dispose( false );
         }
 
         void CloseActions( IActivityMonitor monitor, TAction[] toClose )

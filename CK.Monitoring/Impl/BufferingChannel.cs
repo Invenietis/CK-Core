@@ -17,7 +17,7 @@ namespace CK.Monitoring.Impl
     /// This kind of channel is bound to a <see cref="GrandOutputClient"/>. It is returned by <see cref="GrandOutput.ObtainChannel"/>
     /// when a configuration is being applied.
     /// </summary>
-    class BufferingChannel : IChannel
+    internal sealed class BufferingChannel : IChannel, IDisposable
     {
         readonly EventDispatcher _dispatcher;
         readonly EventDispatcher.FinalReceiver _receiver;
@@ -46,9 +46,15 @@ namespace CK.Monitoring.Impl
         public void Handle( GrandOutputEventInfo logEvent, bool sendToCommonSink )
         {
             Debug.Assert( sendToCommonSink == true );
-            _dispatcher.Add( logEvent, _receiver );
-            _buffer.Enqueue( logEvent );
-            _useLock.Signal();
+            try
+            {
+                _dispatcher.Add( logEvent, _receiver );
+                _buffer.Enqueue( logEvent );
+            }
+            finally
+            {
+                _useLock.Signal();
+            }
         }
         
         public void PreHandleLock()
@@ -67,7 +73,9 @@ namespace CK.Monitoring.Impl
         /// </summary>
         internal void EnsureActive()
         {
+            #if !net40
             Debug.Assert( Monitor.IsEntered( _flushLock ) );
+            #endif
             if( _useLock.CurrentCount == 0 ) _useLock.Reset( 1 );
         }
 
@@ -80,13 +88,16 @@ namespace CK.Monitoring.Impl
         /// Flushes all buffered GrandOutputEventInfo into appropriate channels.
         /// It is called by the GrandOutput.OnConfigurationReady method to transfer buffered log events
         /// into the appropriate new routes.
-        /// This is the only step during wich a lock blocks GrandOutput.ObtainChannel calls.
+        /// This is the only step during which a lock blocks GrandOutput.ObtainChannel calls.
         /// </summary>
         /// <param name="newChannels">Function that knows how to return the channel to uses based on the topic string.</param>
         internal void FlushBuffer( Func<string,IChannel> newChannels )
         {
+            #if !net40
             Debug.Assert( Monitor.IsEntered( _flushLock ) );
+            #endif
             Debug.Assert( _useLock.CurrentCount >= 1 );
+
             _useLock.Signal();
             _useLock.Wait();
             if( newChannels == null )
@@ -106,5 +117,10 @@ namespace CK.Monitoring.Impl
             Debug.Assert( _useLock.CurrentCount == 0 );
         }
 
+
+        public void Dispose()
+        {
+            _useLock.Dispose();
+        }
     }
 }

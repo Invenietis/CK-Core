@@ -9,7 +9,7 @@ using CK.Core;
 
 namespace CK.Monitoring
 {
-    public partial class MultiLogReader : IDisposable
+    public sealed partial class MultiLogReader : IDisposable
     {
         public class ActivityMap
         {

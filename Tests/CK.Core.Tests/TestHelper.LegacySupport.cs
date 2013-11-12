@@ -1,6 +1,6 @@
-﻿#region LGPL License
+#region LGPL License
 /*----------------------------------------------------------------------------
-* This file (CK.Core\LegacySupport\CallerMemberNameAttribute.cs) is part of CiviKey. 
+* This file (Tests\CK.Core.Tests\TestHelper.cs) is part of CiviKey. 
 *  
 * CiviKey is free software: you can redistribute it and/or modify 
 * it under the terms of the GNU Lesser General Public License as published 
@@ -21,23 +21,30 @@
 *-----------------------------------------------------------------------------*/
 #endregion
 
-#if net40
-
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
+using System.IO;
 using System.Linq;
 using System.Text;
+using CK.Core;
+using NUnit.Framework;
 
-namespace System.Runtime.CompilerServices
+namespace CK.Core.Tests
 {
-    /// <summary>
-    /// This attribute is used to enable the CallerMemberName feature on a .NET 4.0 solution.
-    /// Make sure you are using VS 2012 or higher. If not, CallerMemberName will not inject the name of the caller where it is used. 
-    /// </summary>
-    [AttributeUsage( AttributeTargets.Parameter, AllowMultiple = false, Inherited = true )]
-    public sealed class CallerMemberNameAttribute : Attribute
+    static partial class TestHelper
     {
+        static public void ForceGCFullCollect()
+        {
+#if net40
+            GC.Collect( GC.MaxGeneration, GCCollectionMode.Forced );
+#else
+            GC.Collect( GC.MaxGeneration, GCCollectionMode.Forced, true );
+#endif
+        }
+
+
     }
+
 }
 
-#endif

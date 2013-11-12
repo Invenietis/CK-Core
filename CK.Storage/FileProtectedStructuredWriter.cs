@@ -9,7 +9,7 @@ namespace CK.Storage
     /// <summary>
     /// Implementation of <see cref="IProtectedStructuredWriter"/> for files.
     /// </summary>
-    public class FileProtectedStructuredWriter : IProtectedStructuredWriter
+    public sealed class FileProtectedStructuredWriter : IProtectedStructuredWriter
     {
         string _path;
         string _pathNew;
@@ -47,7 +47,11 @@ namespace CK.Storage
             }
         }
 
-        void IDisposable.Dispose()
+        /// <summary>
+        /// Close the currently opened file if required.
+        /// If <see cref="SaveChanges"/> has not been called, the original file is left unchanged.
+        /// </summary>
+        public void Dispose()
         {
             if( StructuredWriter != null ) StructuredWriter.Dispose();
         }

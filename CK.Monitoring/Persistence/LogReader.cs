@@ -14,7 +14,7 @@ namespace CK.Monitoring
     /// <summary>
     /// A log reader acts as an enumerator of <see cref="ILogEntry"/> that are stored in a <see cref="Stream"/>.
     /// </summary>
-    public class LogReader : IEnumerator<ILogEntry>
+    public sealed class LogReader : IEnumerator<ILogEntry>
     {
         Stream _stream;
         BinaryReader _binaryReader;
@@ -24,13 +24,40 @@ namespace CK.Monitoring
 
         public const int CurrentStreamVersion = 5;
 
+        #if net40
+
+        /// <summary>
+        /// Initializes a new <see cref="LogReader"/> on a stream that must start with the version number.
+        /// </summary>
+        /// <param name="stream">Stream to read logs from.</param>
+        public LogReader( Stream stream )
+            : this( stream, -1 )
+        {
+        }
+
+        /// <summary>
+        /// Initializes a new <see cref="LogReader"/> on a stream with an explicit version number.
+        /// </summary>
+        /// <param name="stream">Stream to read logs from.</param>
+        /// <param name="streamVersion">Version of the log stream. Use -1 to read the version if the stream starts with it.</param>
+        public LogReader( Stream stream, int streamVersion )
+        {
+            if( streamVersion < 4 && streamVersion != -1 ) 
+                throw new ArgumentException( "Must be -1 or greater or equal to 4 (the first version).", "streamVersion" );
+            _stream = stream;
+            _binaryReader = new BinaryReader( stream, Encoding.UTF8 );
+            _streamVersion = streamVersion;
+        }
+
+        #else 
+
         /// <summary>
         /// Initializes a new <see cref="LogReader"/> on a stream that must start with the version number.
         /// </summary>
         /// <param name="stream">Stream to read logs from.</param>
         /// <param name="mustClose">
-        /// Defaults to true (the stream wil be automaticaaly closed).
-        /// False to let the stream opened once this reader is disposed, the end of the log data is reached or an error is encoutered.
+        /// Defaults to true (the stream will be automatically closed).
+        /// False to let the stream opened once this reader is disposed, the end of the log data is reached or an error is encountered.
         /// </param>
         public LogReader( Stream stream, bool mustClose = true )
             : this( stream, -1, mustClose )
@@ -43,8 +70,8 @@ namespace CK.Monitoring
         /// <param name="stream">Stream to read logs from.</param>
         /// <param name="streamVersion">Version of the log stream. Use -1 to read the version if the stream starts with it.</param>
         /// <param name="mustClose">
-        /// Defaults to true (the stream wil be automaticaaly closed).
-        /// False to let the stream opened once this reader is disposed, the end of the log data is reached or an error is encoutered.
+        /// Defaults to true (the stream will be automatically closed).
+        /// False to let the stream opened once this reader is disposed, the end of the log data is reached or an error is encountered.
         /// </param>
         public LogReader( Stream stream, int streamVersion, bool mustClose = true )
         {
@@ -54,7 +81,7 @@ namespace CK.Monitoring
             _binaryReader = new BinaryReader( stream, Encoding.UTF8, !mustClose );
             _streamVersion = streamVersion;
         }
-
+        #endif
         /// <summary>
         /// Opens a <see cref="LogReader"/> to read the content of a file.
         /// The file will be closed when <see cref="LogReader.Dispose"/> will be called.

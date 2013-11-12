@@ -138,7 +138,7 @@ namespace CK.Core.Tests
             Assert.That( TheServer.LeaseCreationCount, Is.EqualTo( 4 ), "Server created 2 ILease objects for 2 AppDomains." );
 
             Thread.Sleep( 150 );
-            GC.Collect( GC.MaxGeneration, GCCollectionMode.Forced, true );
+            TestHelper.ForceGCFullCollect();
             Assert.That( origin.Server.IsAlive, Is.False, "Server has been GCed." );
         }
 
@@ -181,7 +181,7 @@ namespace CK.Core.Tests
                     Assert.That( o.IsAlive );
                     so = null;
                 }
-                GC.Collect( GC.MaxGeneration, GCCollectionMode.Forced, true );
+                TestHelper.ForceGCFullCollect();
                 Assert.That( o.IsAlive, Is.False, "GC just works..." );
             }
             // A MarshalByRefObject without proxies is an object like the others. 
@@ -190,7 +190,7 @@ namespace CK.Core.Tests
                 var s = origin.CreateServer();
                 Assert.That( origin.Server.IsAlive );
                 s = null;
-                GC.Collect( GC.MaxGeneration, GCCollectionMode.Forced, true );
+                TestHelper.ForceGCFullCollect();
                 Assert.That( origin.Server.IsAlive, Is.False, "A MBR is an object like the others (when there is no proxies)." );
             }
             TestHelper.SetRemotingLeaseManagerVeryShortPollTime();
@@ -208,7 +208,7 @@ namespace CK.Core.Tests
                 Assert.That( _serverInClientAppDomain, Is.Null, "The not null static _serverInClientAppDomain is in the Client AppDomain, here in the Server's one, it is null." );
                 Assert.That( origin.Server.IsAlive );
 
-                GC.Collect( GC.MaxGeneration, GCCollectionMode.Forced, true );
+                TestHelper.ForceGCFullCollect();
                 Assert.That( origin.Server.IsAlive, "The static _serverInClientAppDomain still references it." );
 
                 // Without client sponsorship.
@@ -226,7 +226,7 @@ namespace CK.Core.Tests
                     Assert.Throws<RemotingException>( () => appDomain.DoCallBack( new CrossAppDomainDelegate( ClientAppDomainClientCallsServer ) ) );
                     
                     // Server is dead.
-                    GC.Collect( GC.MaxGeneration, GCCollectionMode.Forced, true );
+                    TestHelper.ForceGCFullCollect();
                     GC.WaitForPendingFinalizers();
                     Assert.That( origin.Server.IsAlive, Is.False, "No more strong references to the proxy." );
 
@@ -247,7 +247,7 @@ namespace CK.Core.Tests
                     appDomain.DoCallBack( new CrossAppDomainDelegate( ClientAppDomainClientCallsServer ) );
                     
                     // Server is NOT dead.
-                    GC.Collect( GC.MaxGeneration, GCCollectionMode.Forced, true );
+                    TestHelper.ForceGCFullCollect();
                     GC.WaitForPendingFinalizers();
                     Assert.That( origin.Server.IsAlive );
                     
@@ -256,7 +256,7 @@ namespace CK.Core.Tests
                     Assert.DoesNotThrow( () => appDomain.DoCallBack( new CrossAppDomainDelegate( ClientAppDomainClientCallsServer ) ) );
                     
                     // Server is NOT dead.
-                    GC.Collect( GC.MaxGeneration, GCCollectionMode.Forced, true );
+                    TestHelper.ForceGCFullCollect();
                     GC.WaitForPendingFinalizers();
                     Assert.That( origin.Server.IsAlive );
 
@@ -266,7 +266,7 @@ namespace CK.Core.Tests
                     Assert.Throws<RemotingException>( () => appDomain.DoCallBack( new CrossAppDomainDelegate( ClientAppDomainClientCallsServer ) ) );
 
                     // Server is dead.
-                    GC.Collect( GC.MaxGeneration, GCCollectionMode.Forced, true );
+                    TestHelper.ForceGCFullCollect();
                     GC.WaitForPendingFinalizers();
                     Assert.That( origin.Server.IsAlive, Is.False, "No more strong references to the proxy." );
                 }

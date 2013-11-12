@@ -162,14 +162,14 @@ namespace CK.Core.Tests.Collection
             Assert.That( countCalled, "Count property on the concrete type logs the calls." ); countCalled = false;
 
             Assert.That( c.Count() == 1, "Use Linq extension methods (on the concrete type)." );
-            Assert.That( !countCalled, "The Linq extension method dit NOT call our Count." );
+            Assert.That( !countCalled, "The Linq extension method did NOT call our Count." );
 
             IEnumerable<int> cLinq = c;
 
             Assert.That( cLinq.Count() == 1, "Linq can not use our implementation..." );
-            Assert.That( !countCalled, "...it dit not call our Count property." );
+            Assert.That( !countCalled, "...it did not call our Count property." );
 
-            // Adressing the concrete type: it is our method that is called.
+            // Addressing the concrete type: it is our method that is called.
             Assert.That( c.Contains( 2 ) );
             Assert.That( containsCalled, "It is our Contains method that is called (not the Linq one)." ); containsCalled = false;
             Assert.That( !c.Contains( 56 ) );
@@ -177,7 +177,7 @@ namespace CK.Core.Tests.Collection
             Assert.That( !c.Contains( null ), "Contains should accept ANY object without any error." );
             Assert.That( containsCalled, "It is our Contains method that is called." ); containsCalled = false;
 
-            // Unfortunately, adressing the IEnumerable base type, Linq has no way to use our methods...
+            // Unfortunately, addressing the IEnumerable base type, Linq has no way to use our methods...
             Assert.That( cLinq.Contains( 2 ) );
             Assert.That( !containsCalled, "Linq use the enumerator to do the job." );
             Assert.That( !cLinq.Contains( 56 ) );
@@ -363,7 +363,7 @@ namespace CK.Core.Tests.Collection
             }
 #if net40
             r = netList.AsReadOnlyList();
-            Assert.That( r, Is.SameAs( CKReadOnlyListEmpty<int>.Empty ), "In Net40, the List<T> is NOT a IReadOnlyList." );
+            Assert.That( r, Is.Not.SameAs( CKReadOnlyListEmpty<int>.Empty ), "In Net40, the List<T> is NOT a IReadOnlyList." );
             r = ckList.AsReadOnlyList();
             Assert.That( r, Is.SameAs( ckList ), "Lists from CK.Core are already IReadOnlyList<T>." );
             
