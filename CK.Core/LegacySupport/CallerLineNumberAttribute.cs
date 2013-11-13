@@ -1,6 +1,6 @@
 ﻿#region LGPL License
 /*----------------------------------------------------------------------------
-* This file (SharedAssemblyInfo.cs) is part of CiviKey. 
+* This file (CK.Core\LegacySupport\CallerLineNumberAttribute.cs) is part of CiviKey. 
 *  
 * CiviKey is free software: you can redistribute it and/or modify 
 * it under the terms of the GNU Lesser General Public License as published 
@@ -21,20 +21,23 @@
 *-----------------------------------------------------------------------------*/
 #endregion
 
+#if net40
+
 using System;
-using System.Reflection;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
 
-[assembly: AssemblyCompany( "Invenietis" )]
-[assembly: AssemblyProduct( "Civikey" )]
-[assembly: AssemblyCopyright( "Copyright © Invenietis - In’Tech INFO 2007-2013" )]
-[assembly: AssemblyTrademark( "" )]
-[assembly: CLSCompliant( true )]
-[assembly: AssemblyVersion( "3.0.0" )]
-[assembly: AssemblyFileVersion( "3.0.0" )]
-[assembly: AssemblyInformationalVersion( "3.0.0-debug" )]
+namespace System.Runtime.CompilerServices
+{
+    /// <summary>
+    /// This attribute is used to enable the CallerLineNumberAttribute feature on a .NET 4.0 solution.
+    /// Make sure you are using VS 2012 or higher. If not, CallerLineNumber will not inject the line number of the caller where it is used. 
+    /// </summary>
+    [AttributeUsage( AttributeTargets.Parameter, AllowMultiple = false, Inherited = true )]
+    public sealed class CallerLineNumberAttribute : Attribute
+    {
+    }
+}
 
-#if DEBUG
-    [assembly: AssemblyConfiguration("Debug")]
-#else
-    [assembly: AssemblyConfiguration( "Release" )]
 #endif

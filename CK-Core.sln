@@ -25,14 +25,12 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Shared Items", "Shared Items", "{E3559EF9-ED4A-4169-9287-6F94CFBD09FA}"
 	ProjectSection(SolutionItems) = preProject
 		Release Note 3.0.txt = Release Note 3.0.txt
+		SharedAssemblyInfo.cs = SharedAssemblyInfo.cs
 		SharedKey.snk = SharedKey.snk
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".nuget", ".nuget", "{DE733FE1-85BC-4140-AD82-30C7745CAD7F}"
 	ProjectSection(SolutionItems) = preProject
-		.nuget\NuGet.Config = .nuget\NuGet.Config
-		.nuget\NuGet.exe = .nuget\NuGet.exe
-		.nuget\NuGet.targets = .nuget\NuGet.targets
 		.nuget\packages.config = .nuget\packages.config
 	EndProjectSection
 EndProject

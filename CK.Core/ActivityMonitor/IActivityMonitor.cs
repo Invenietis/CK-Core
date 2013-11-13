@@ -35,7 +35,7 @@ namespace CK.Core
     /// This is not the same as a classical logging framework: the "activity" captures by an activity monitor is structured. 
     /// It can be seen as a "Story Writer": its output can be displayed to an end user (even if some structured information 
     /// can easily be injected).
-    /// Furthemore, activities can be tracked (with the help of the developper of course) accross threads, tasks or application domain.
+    /// Furthermore, activities can be tracked (with the help of the developer of course) across threads, tasks or application domain.
     /// </remarks>
     public interface IActivityMonitor
     {
@@ -73,7 +73,7 @@ namespace CK.Core
         /// </summary>
         /// <remarks>
         /// Clients are warned of the change thanks to <see cref="IActivityMonitorClient.OnTopicChanged"/> and an unfiltered <see cref="LogLevel.Info"/> log 
-        /// with the new topic preficed with "Topic:" and tagged with <see cref="ActivityMonitor.Tags.MonitorTopicChanged"/> is emitted.
+        /// with the new topic prefixed with "Topic:" and tagged with <see cref="ActivityMonitor.Tags.MonitorTopicChanged"/> is emitted.
         /// </remarks>
         string Topic { get; }
 
@@ -117,14 +117,14 @@ namespace CK.Core
 
         /// <summary>
         /// Closes the current Group. Optional parameter is polymorphic. It can be a string, a <see cref="ActivityLogGroupConclusion"/>, 
-        /// a <see cref="List{T}"/> or an <see cref="IEnumerable{T}"/> of ActivityLogGroupConclusion, or any object with an overriden <see cref="Object.ToString"/> method. 
+        /// a <see cref="List{T}"/> or an <see cref="IEnumerable{T}"/> of ActivityLogGroupConclusion, or any object with an overridden <see cref="Object.ToString"/> method. 
         /// See remarks (especially for List&lt;ActivityLogGroupConclusion&gt;).
         /// </summary>
         /// <param name="userConclusion">Optional string, ActivityLogGroupConclusion object, enumerable of ActivityLogGroupConclusion or object to conclude the group. See remarks.</param>
-        /// <param name="logTimeUtc">Timestamp of the closing of the group.</param>
+        /// <param name="logTimeUtc">Time stamp of the closing of the group.</param>
         /// <remarks>
-        /// An untyped object is used here to easily and efficiently accomodate both string and already existing ActivityLogGroupConclusion.
-        /// When a List&lt;ActivityLogGroupConclusion&gt; is used, it will be direclty used to collect conclusion objects (new conclusions will be added to it). This is an optimization.
+        /// An untyped object is used here to easily and efficiently accommodate both string and already existing ActivityLogGroupConclusion.
+        /// When a List&lt;ActivityLogGroupConclusion&gt; is used, it will be directly used to collect conclusion objects (new conclusions will be added to it). This is an optimization.
         /// </remarks>
         void CloseGroup( DateTime logTimeUtc, object userConclusion = null );
 
