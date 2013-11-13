@@ -58,6 +58,7 @@
     <AssemblyOriginatorKeyFile>..\SharedKey.snk</AssemblyOriginatorKeyFile>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Microsoft.CSharp" />
     <Reference Include="System" />
     <Reference Include="System.Core">
       <RequiredTargetFramework>3.5</RequiredTargetFramework>
@@ -145,6 +146,7 @@
     <Compile Include="UniqueId\SimpleVersionedUniqueId.cs" />
     <Compile Include="Uri\UriExtension.cs" />
     <Compile Include="Uri\UriHelper.cs" />
+    <Compile Include="Util.String.cs" />
     <Compile Include="Util.Converter.cs" />
     <Compile Include="Util.cs" />
     <Compile Include="Collection\CKReadOnlyExtension.cs" />
