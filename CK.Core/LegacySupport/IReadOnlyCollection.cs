@@ -29,7 +29,7 @@ namespace System.Collections.Generic
     /// Represents a generic read only collections of objects.
     /// This interface is only defined for framework 3.5 or 4.0. The same System.Collections.Generic.IReadOnlyCollection
     /// has been defined in the .Net framework 4.5.
-    /// Previous versions exposed a "contravariant" Contains( object ) method now transfered to ICKReadOnlyCollectio.
+    /// Previous versions exposed a "contravariant" Contains( object ) method now transfered to ICKReadOnlyCollection.
     /// It has been removed in order to fit the 4.5 definition.
     /// </summary>
     /// <typeparam name="T">The type of the elements in the collection.</typeparam>
