@@ -27,7 +27,7 @@ using System.Text;
 using System.Collections;
 using System.Text.RegularExpressions;
 using System.Dynamic;
-using Microsoft.CSharp.RuntimeBinder;
+using System.ComponentModel;
 
 namespace CK.Core
 {
@@ -53,7 +53,7 @@ namespace CK.Core
             /// <param name="format">The format string</param>
             /// <param name="values">An object that will give named parameters values</param>
             /// <returns>Formatted string</returns>
-            public static string NamedFormat( string format, dynamic values )
+            public static string NamedFormat( string format, object values )
             {
                 if( string.IsNullOrEmpty( format ) )
                     throw new ArgumentNullException( "format" );
@@ -63,6 +63,8 @@ namespace CK.Core
                 int lastIdx = 0;
                 StringBuilder result = new StringBuilder();
                 var match = _namedFormatRegex.Match( format );
+                var valuesObjectProperties = TypeDescriptor.GetProperties( values );
+
                 while( match.Success )
                 {
                     Group token = match.Groups["token"];
@@ -74,14 +76,12 @@ namespace CK.Core
 
                     result.Append( format.Substring( lastIdx, tokenIdx - lastIdx ) );
 
-                    try
-                    {
-                        result.Append( values.GetType().GetProperty( token.Value ).GetValue( values, null ) );
-                    }
-                    catch( RuntimeBinderException ex )
-                    {
-                        throw new ArgumentException( string.Format( "Unable to find the property '{0}' on the given value object", token.Value ), ex );
-                    }
+                    var propDescriptor = valuesObjectProperties.Find( token.Value, false );
+                    if( propDescriptor == null )
+                        throw new ArgumentException( string.Format( "Unable to find the property '{0}' on the given value object", token.Value ) );
+
+                    result.Append( propDescriptor.GetValue( values ) );
+                    
 
                     lastIdx = tokenIdx + tokenLength;
 
