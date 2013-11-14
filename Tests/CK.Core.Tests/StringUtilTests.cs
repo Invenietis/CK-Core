@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -59,6 +60,41 @@ namespace CK.Core.Tests
             {
                 Util.String.NamedFormat( "Hi {{name}}", new { propName = "toto" } );
             } );
+        }
+
+        [Test]
+        public void PerfTest()
+        {
+            Stopwatch sw = new Stopwatch();
+
+            string namedFormat = "aaa {{x}} bbb {{y}} ccc {{x}} ddd";
+            string format = "aaa {0} bbb {1} ccc {0} ddd";
+            object values = new { x = "XXX", y = "YYY" };
+
+            long normalTime = 0;
+            long namedTime = 0;
+            
+            // first run not measured
+            string.Format( format, "XXX", "YYY" );
+            Util.String.NamedFormat( namedFormat, values );
+
+            sw.Start();
+            for( int i = 0; i < 100000; i++ )
+            {
+                string.Format( format, "XXX", "YYY" );
+            }
+            sw.Stop();
+            normalTime = sw.ElapsedMilliseconds;
+            Console.WriteLine( "Normal format time : {0} ms", normalTime );
+            
+            sw.Restart();
+            for( int i = 0; i < 100000; i++ )
+            {
+                Util.String.NamedFormat( namedFormat, values );
+            }
+            sw.Stop();
+            namedTime = sw.ElapsedMilliseconds;
+            Console.WriteLine( "Named format time : {0} ms", namedTime );
         }
     }
 }
