@@ -37,7 +37,7 @@ namespace CK.Core
     /// <typeparam name="T">The type of the object that is referenced.</typeparam>
     /// <remarks>
     /// An implicit cast exists from <typeparamref name="T"/> to <see cref="WeakRef{T}"/> 
-    /// BUT NOT the opposite, and it is asolutely normal!
+    /// BUT NOT the opposite, and it is absolutely normal!
     /// </remarks>
     [Serializable]
     public class WeakRef<T> : WeakReference

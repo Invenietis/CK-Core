@@ -210,6 +210,7 @@
     <None Include="..\SharedKey.snk">
       <Link>Properties\SharedKey.snk</Link>
     </None>
+    <None Include="ActivityMonitor\ActivityMonitorOverview.cd" />
     <None Include="ActivityMonitor\Impl\ActivityMonitorExtension-Gen.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
       <LastGenOutput>ActivityMonitorExtension-Gen.cs</LastGenOutput>
