@@ -833,10 +833,10 @@ namespace CK.Core.Tests.Monitoring
                 d.Fatal().Send( "Two" );
             }
 
-            using( d.CatchCounter( e => Assert.Fail( "No Error occured." ) ) )
-            using( d.CatchCounter( ( f, e ) => Assert.Fail( "No Error occured." ) ) )
+            using( d.CatchCounter( e => Assert.Fail( "No Error occurred." ) ) )
+            using( d.CatchCounter( ( f, e ) => Assert.Fail( "No Error occurred." ) ) )
             using( d.CatchCounter( ( f, e, w ) => Assert.That( f == 0 && e == 0 && w == 1 ) ) )
-            using( d.Catch( e => Assert.Fail( "No Error occured." ) ) )
+            using( d.Catch( e => Assert.Fail( "No Error occurred." ) ) )
             {
                 d.Trace().Send( "One" );
                 d.Warn().Send( "Warn" );
@@ -845,7 +845,7 @@ namespace CK.Core.Tests.Monitoring
             using( d.CatchCounter( e => Assert.That( e == 1  ) ) )
             using( d.CatchCounter( ( f, e ) => Assert.That( f == 0 && e == 1 ) ) )
             using( d.CatchCounter( ( f, e, w ) => Assert.That( f == 0 && e == 1 && w == 1 ) ) )
-            using( d.Catch( e => Assert.Fail( "No Fatal occured." ), LogLevelFilter.Fatal ) )
+            using( d.Catch( e => Assert.Fail( "No Fatal occurred." ), LogLevelFilter.Fatal ) )
             {
                 d.Error().Send( "One" );
                 d.Warn().Send( "Warn" );

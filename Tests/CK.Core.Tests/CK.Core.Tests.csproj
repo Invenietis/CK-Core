@@ -68,6 +68,7 @@
     </Compile>
     <Compile Include="AppSettingsTests.cs" />
     <Compile Include="CKExceptionTests.cs" />
+    <Compile Include="Monitoring\DocumentationCodeSnippets.cs" />
     <Compile Include="TestHelper.LegacySupport.cs" />
     <Compile Include="Monitoring\ActivityMonitorClientTester.cs" />
     <Compile Include="Monitoring\ActivityMonitorCrossAppDomain.cs" />
