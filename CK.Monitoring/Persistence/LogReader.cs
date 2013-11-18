@@ -174,7 +174,7 @@ namespace CK.Monitoring
         }
 
         /// <summary>
-        /// Replays multiple activities. Unicast entries (<see cref="ILogeEntry"/> that are not <see cref="IMulticastLogEntry"/>) are ignored.
+        /// Replays multiple activities. Unicast entries (<see cref="ILogEntry"/> that are not <see cref="IMulticastLogEntry"/>) are ignored.
         /// </summary>
         /// <param name="destinations">
         /// Must provide a <see cref="IActivityMonitor"/> for each identifier. 

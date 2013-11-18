@@ -8,7 +8,7 @@ namespace CK.RouteConfig
 {
     /// <summary>
     /// Factory for actual actions from <see cref="ActionConfiguration"/> objects that enables
-    /// the <see cref="ConfiguredRouteHost"/> to create new actions and new final routes whenever its configuration changed.
+    /// the <see cref="ConfiguredRouteHost{TAction,TRoute}"/> to create new actions and new final routes whenever its configuration changed.
     /// </summary>
     /// <typeparam name="TAction">Actual type of the actions. The only constraint is that it must be a reference type.</typeparam>
     /// <typeparam name="TRoute">Route class that encapsulates actions.</typeparam>

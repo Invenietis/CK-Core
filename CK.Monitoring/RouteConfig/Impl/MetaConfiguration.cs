@@ -24,7 +24,7 @@ namespace CK.RouteConfig.Impl
         /// Applies the configuration.
         /// By default, adds this meta configuration to the context for <see cref="Apply(IRouteConfigurationContext)"/> to be called.
         /// </summary>
-        /// <param name="context">Enables context lookup and manipulation, exposes a <see cref="IActivityMonitor"/> to use.</param>
+        /// <param name="protoContext">Enables context lookup and manipulation, exposes a <see cref="IActivityMonitor"/> to use.</param>
         protected internal virtual void Apply( IProtoRouteConfigurationContext protoContext )
         {
             protoContext.AddMeta( this );

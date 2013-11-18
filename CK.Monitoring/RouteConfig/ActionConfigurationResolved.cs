@@ -30,7 +30,7 @@ namespace CK.RouteConfig
         public string Name { get { return _action.Name; } }
 
         /// <summary>
-        /// Gets the full name of the action (this <see cref="Path"/>/<see cref="ActionConfiguration.Name">Name</see>).
+        /// Gets the full name of the action (this <see cref="Path"/>/<see cref="Name"/>).
         /// </summary>
         public string FullName { get { return _fullName; } }
 
@@ -45,7 +45,7 @@ namespace CK.RouteConfig
         public int Index { get { return _index; } }
 
         /// <summary>
-        /// Gets the action configuration instance (possibly shared by multiple routes if the <see cref="ActionConfiguration.IsCloneable"/> is false).
+        /// Gets the action configuration instance (possibly shared by multiple routes if the <see cref="ActionConfiguration"/>.<see cref="P:ActionConfiguration.IsCloneable"/> is false).
         /// </summary>
         public ActionConfiguration ActionConfiguration { get { return _action; } }
 

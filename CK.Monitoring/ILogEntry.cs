@@ -21,7 +21,7 @@ namespace CK.Monitoring
         LogEntryType LogType { get; }
 
         /// <summary>
-        /// Get the log level (between <see cref="LogLevel.Trace"/> and <see cref="LogLevel.Fatal"/>).
+        /// Get the log level (between LogLevel.Trace and LogLevel.Fatal).
         /// This is available whatever <see cref="LogType"/> is.
         /// </summary>
         LogLevel LogLevel { get; }

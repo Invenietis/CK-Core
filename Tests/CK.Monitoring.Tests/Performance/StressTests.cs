@@ -150,7 +150,7 @@ namespace CK.Monitoring.Tests
                     Assert.That( nbCalls, Is.EqualTo( nbThreads * p.LoopCount ) );
                     nbLost = c.GrandOutput.LostEventCount;
                     maxQueuedCount = c.GrandOutput.MaxQueuedCount;
-                    sampleReentrantCount = c.GrandOutput.SampleReentrantCount;
+                    sampleReentrantCount = c.GrandOutput.IgnoredConcurrentCallCount;
                 }
                 ActivityMonitor.MonitoringError.WaitOnErrorFromBackgroundThreadsPending();
             }
@@ -160,7 +160,7 @@ namespace CK.Monitoring.Tests
             }
             int theoricalTotal = nbThreads * p.LoopCount * 3;
             int receivedTotal = CK.Monitoring.GrandOutputHandlers.FakeHandler.TotalHandleCount;
-            TestHelper.ConsoleMonitor.Info().Send( "Local Test Strategy:{6} - Total should be {0}, Total received = {1}, Binary size = {2},  MaxQueuedCount={3}, Number of lost messages={4}, SampleReentrantCount={7}, Number of Critical Errors={5}.",
+            TestHelper.ConsoleMonitor.Info().Send( "Local Test Strategy:{6} - Total should be {0}, Total received = {1}, Binary size = {2},  MaxQueuedCount={3}, Number of lost messages={4}, IgnoredConcurrentCallCount={7}, Number of Critical Errors={5}.",
                 theoricalTotal,
                 receivedTotal,
                 CK.Monitoring.GrandOutputHandlers.FakeHandler.SizeHandled,

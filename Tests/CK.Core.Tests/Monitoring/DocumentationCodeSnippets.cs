@@ -40,7 +40,7 @@ namespace CK.Core.Tests.Monitoring
         [Test]
         public void SimpleUsage()
         {
-            var f = new FileInfo( Path.Combine( TestHelper.TestFolder, @"..\Animals.cs" ) );
+            var f = new FileInfo( Path.Combine( TestHelper.SolutionFolder, @"Tests\CK.Core.Tests\Animals.cs" ) );
             DemoLogs( TestHelper.ConsoleMonitor, f, new Exception() );
             DemoOpenGroupFarFromPerfect( TestHelper.ConsoleMonitor );
             DemoOpenGroupBetter( TestHelper.ConsoleMonitor );

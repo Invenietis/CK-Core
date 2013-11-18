@@ -229,6 +229,9 @@ namespace CK.Core
             return null;
         }
 
+        /// <summary>
+        /// Ensures that potential unmanaged resources are correctly released by calling <see cref="Dispose(bool)"/> with false.
+        /// </summary>
         ~SimpleServiceContainer()
         {
             Dispose( false );
@@ -246,6 +249,7 @@ namespace CK.Core
         /// When <paramref name="disposing"/> is true, calls <see cref="Clear"/> to unregister all services. 
         /// Any "on remove" actions are executed.
         /// <param name="disposing">Whether <see cref="Dispose()"/> has been called.</param>
+        /// </summary>
         protected virtual void Dispose( bool disposing )
         {
             if( disposing ) Clear();

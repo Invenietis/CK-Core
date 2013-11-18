@@ -203,10 +203,13 @@ namespace CK.Monitoring.Impl
             }
         }
 
-
-        public int SampleReentrantCount
+        /// <summary>
+        /// Gets the count of concurrent sampling: each time <see cref="IsOpened"/> has been
+        /// called while it was already called by another thread.
+        /// </summary>
+        public int IgnoredConcurrentCallCount
         {
-            get { return _strat.SampleReentrantCount; }
+            get { return _strat.IgnoredConcurrentCallCount; }
         }
     }
 }

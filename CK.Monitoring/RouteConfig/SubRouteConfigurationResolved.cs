@@ -8,6 +8,9 @@ using CK.RouteConfig.Impl;
 
 namespace CK.RouteConfig
 {
+    /// <summary>
+    /// Describes the configuration of a subordinated route once configuration is resolved.
+    /// </summary>
     public class SubRouteConfigurationResolved : RouteConfigurationResolved
     {
         readonly Func<string,bool> _routePredicate;

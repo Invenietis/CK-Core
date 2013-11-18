@@ -39,7 +39,7 @@ namespace CK.Monitoring
 
         /// <summary>
         /// Ensures that the <see cref="Default"/> GrandOutput is created and that any <see cref="ActivityMonitor"/> that will be created in this
-        /// application domain will automatically have a <see cref="GrandOutpuClient"/> registered for this Default GrandOutput.
+        /// application domain will automatically have a <see cref="GrandOutputClient"/> registered for this Default GrandOutput.
         /// </summary>
         /// <returns>The Default GrandOutput.</returns>
         /// <remarks>
@@ -107,9 +107,9 @@ namespace CK.Monitoring
             get { return _dispatcher.MaxQueuedCount; }
         }
 
-        public int SampleReentrantCount
+        public int IgnoredConcurrentCallCount
         {
-            get { return _dispatcher.SampleReentrantCount; }
+            get { return _dispatcher.IgnoredConcurrentCallCount; }
         }
         
         /// <summary>

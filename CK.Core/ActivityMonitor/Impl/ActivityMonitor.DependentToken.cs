@@ -39,7 +39,7 @@ namespace CK.Core
     public partial class ActivityMonitor
     {
         /// <summary>
-        /// Describes the origin of a dependent activity: it is created by <see cref="ActivityMonitorExtension.CreateDependentToken">IActivityMonitor.CreateDependentToken</see> 
+        /// Describes the origin of a dependent activity: it is created by <see cref="ActivityMonitorExtension.DependentActivity">IActivityMonitor.DependentActivity</see> 
         /// (extension methods).
         /// </summary>
         [Serializable]
@@ -86,7 +86,7 @@ namespace CK.Core
             }
 
             /// <summary>
-            /// Gets the creation date. This is the log time of the unfiltered <see cref="Info"/> log that has 
+            /// Gets the creation date. This is the log time of the unfiltered Info log that has 
             /// been emitted in the originator monitor.
             /// </summary>
             public DateTime CreationDate
@@ -105,7 +105,7 @@ namespace CK.Core
 
             /// <summary>
             /// Gets the topic that must be set on the dependent activity.
-            /// When null, the current <see cref="IActivityTopic.Topic"/> of the dependent monitor is not changed.
+            /// When null, the current <see cref="IActivityMonitor.Topic"/> of the dependent monitor is not changed.
             /// </summary>
             public string Topic
             {
@@ -216,7 +216,7 @@ namespace CK.Core
             /// <summary>
             /// Attempts to parse the start message of a dependent activity (tagged with <see cref="ActivityMonitor.Tags.StartDependentActivity"/>).
             /// </summary>
-            /// <param name="s">The start message to parse.</param>
+            /// <param name="startMessage">The start message to parse.</param>
             /// <param name="id">The originator monitor identifier.</param>
             /// <param name="time">The creation time of the dependent activity.</param>
             /// <param name="uniquifier">The uniquifier (different than zero on time clash).</param>

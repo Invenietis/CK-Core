@@ -1,6 +1,6 @@
 ﻿#region LGPL License
 /*----------------------------------------------------------------------------
-* This file (CK.Core\LegacySupport\CallerLineNumberAttribute.cs) is part of CiviKey. 
+* This file (net40\CK.Reflection\Properties\AssemblyInfo.cs) is part of CiviKey. 
 *  
 * CiviKey is free software: you can redistribute it and/or modify 
 * it under the terms of the GNU Lesser General Public License as published 
@@ -21,23 +21,13 @@
 *-----------------------------------------------------------------------------*/
 #endregion
 
-#if net40
+using System.Reflection;
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+[assembly: AssemblyTitle( "CK.Reflection" )]
+[assembly: AssemblyDescription( "" )]
+[assembly: AssemblyCulture( "" )]
+[assembly: ComVisible( false )]
+[assembly: Guid("94beb3e0-046b-4460-9eb4-f684de068aa8")]
 
-namespace System.Runtime.CompilerServices
-{
-    /// <summary>
-    /// This attribute is used to enable the CallerLineNumberAttribute feature on a .NET 4.0 solution.
-    /// Make sure you are using VS 2012 or higher. If not, CallerLineNumber will not inject the line number of the caller where it is used. 
-    /// </summary>
-    [AttributeUsage( AttributeTargets.Parameter, AllowMultiple = false, Inherited = true )]
-    public sealed class CallerLineNumberAttribute : Attribute
-    {
-    }
-}
-
-#endif

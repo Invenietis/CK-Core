@@ -11,8 +11,7 @@ using CK.Monitoring.Impl;
 namespace CK.Monitoring
 {
     /// <summary>
-    /// Abstraction of a Channel: it knows how to <see cref="Handle"/> log events
-    /// and creates a <see cref="GrandOutputSource"/> for each monitor bound to it.
+    /// Abstraction of a Channel: it knows how to <see cref="Handle"/> log events.
     /// </summary>
     internal interface IChannel
     {
@@ -29,14 +28,14 @@ namespace CK.Monitoring
 
         /// <summary>
         /// Locks the channel: a call to <see cref="Handle"/> is pending.
-        /// This is required to avoid a race condition between obtention of the Channel by a GrandOutputClient 
+        /// This is required to avoid a race condition between Channel is obtained by a GrandOutputClient 
         /// and the call to Handle.
         /// </summary>
         void PreHandleLock();
 
         /// <summary>
         /// Cancels a previous call to <see cref="PreHandleLock"/>.
-        /// This is used when the Channel to use must be changed during its obtention by a GrandOutputClient. 
+        /// This is used when the Channel to use must be changed while being obtained by a GrandOutputClient. 
         /// </summary>
         void CancelPreHandleLock();
 

@@ -48,7 +48,7 @@ namespace CK.Core
         void OnOpenGroup( IActivityLogGroup group );
 
         /// <summary>
-        /// Called once the user conclusions and the <see cref="ActivityMonitor.Group.GetConclusionText"/> are known at the group level but before 
+        /// Called once the user conclusions are known at the group level but before 
         /// the group is actually closed: clients can update the conclusions for the group.
         /// Does nothing by default.
         /// </summary>
@@ -56,7 +56,7 @@ namespace CK.Core
         /// <param name="conclusions">
         /// Mutable conclusions associated to the closing group. 
         /// This can be null if no conclusions have been added yet. 
-        /// It is up to the first client that wants to add a conclusion to instanciate a new List object to carry the conclusions.
+        /// It is up to the first client that wants to add a conclusion to instantiate a new List object to carry the conclusions.
         /// </param>
         void OnGroupClosing( IActivityLogGroup group, ref List<ActivityLogGroupConclusion> conclusions );
 

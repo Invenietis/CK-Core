@@ -72,7 +72,7 @@ namespace CK.Core
         }
 
         /// <summary>
-        /// Called once the user conclusions and the <see cref="ActivityMonitor.Group.GetConclusionText"/> are known at the group level but before 
+        /// Called once the user conclusions are known at the group level but before 
         /// the group is actually closed: clients can update the conclusions for the group.
         /// Does nothing by default.
         /// </summary>

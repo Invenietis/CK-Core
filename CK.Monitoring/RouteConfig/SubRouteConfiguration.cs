@@ -13,7 +13,7 @@ namespace CK.RouteConfig
         bool _importParentActions;
         bool _importParentDeclaredActionsAbove;
 
-        public SubRouteConfiguration( string name, Func<string,bool> routePredicate )
+        internal SubRouteConfiguration( string name, Func<string, bool> routePredicate )
             : base( name )
         {
             _routePredicate = routePredicate;
@@ -41,7 +41,7 @@ namespace CK.RouteConfig
         }
 
         /// <summary>
-        /// Gets or sets whether actions declared by parent routes before this one are available to this route: <see cref="Insert"/> can reference
+        /// Gets or sets whether actions declared by parent routes before this one are available to this route: <see cref="InsertAction"/> can reference
         /// any action declared before (and above).
         /// Defaults to true: by default a sub route can reuse action declared before and above. Setting this to false implies that <see cref="ImportParentActions"/>
         /// is also false.
@@ -52,36 +52,72 @@ namespace CK.RouteConfig
             set { _importParentDeclaredActionsAbove = value; }
         }
 
+        /// <summary>
+        /// Adds one or more actions.
+        /// </summary>
+        /// <param name="a">Action to add.</param>
+        /// <param name="otherActions">Optional other actions to add.</param>
+        /// <returns>This <see cref="SubRouteConfiguration"/> to enable fluent syntax.</returns>
         public new SubRouteConfiguration AddAction( ActionConfiguration a, params ActionConfiguration[] otherActions )
         {
             base.AddAction( a, otherActions );
             return this;
         }
 
+        /// <summary>
+        /// Declares one or more actions.
+        /// </summary>
+        /// <param name="a">Action to declare.</param>
+        /// <param name="otherActions">Optional other actions to declare.</param>
+        /// <returns>This <see cref="SubRouteConfiguration"/> to enable fluent syntax.</returns>
         public new SubRouteConfiguration DeclareAction( ActionConfiguration a, params ActionConfiguration[] otherActions )
         {
             base.DeclareAction( a, otherActions );
             return this;
         }
 
+        /// <summary>
+        /// Overrides one or more existing actions.
+        /// <see cref="ActionConfiguration.Name"/> is the key.
+        /// </summary>
+        /// <param name="a">Action to to override.</param>
+        /// <param name="otherActions">Optional other actions to override.</param>
+        /// <returns>This <see cref="SubRouteConfiguration"/> to enable fluent syntax.</returns>
         public new SubRouteConfiguration OverrideAction( ActionConfiguration a, params ActionConfiguration[] otherActions )
         {
             base.OverrideAction( a, otherActions );
             return this;
         }
 
+        /// <summary>
+        /// Removes one or more actions by name.
+        /// </summary>
+        /// <param name="name">Name of the action to remove.</param>
+        /// <param name="otherNames">Optional other actions' name to remove.</param>
+        /// <returns>This <see cref="SubRouteConfiguration"/> to enable fluent syntax.</returns>
         public new SubRouteConfiguration RemoveAction( string name, params string[] otherNames )
         {
             base.RemoveAction( name, otherNames );
             return this;
         }
 
+        /// <summary>
+        /// Inserts one action that have been previously <see cref="DeclareAction">declared</see>.
+        /// </summary>
+        /// <param name="name">Name of the action to insert.</param>
+        /// <param name="declarationName">Name of the declared action.</param>
+        /// <returns>This <see cref="SubRouteConfiguration"/> to enable fluent syntax.</returns>
         public new SubRouteConfiguration InsertAction( string name, string declarationName )
         {
             base.InsertAction( name, declarationName );
             return this;
         }
 
+        /// <summary>
+        /// Declares a subordinated route.
+        /// </summary>
+        /// <param name="channel">Configuration of the route.</param>
+        /// <returns>This <see cref="SubRouteConfiguration"/> to enable fluent syntax.</returns>
         public new SubRouteConfiguration DeclareRoute( SubRouteConfiguration channel )
         {
             base.DeclareRoute( channel );

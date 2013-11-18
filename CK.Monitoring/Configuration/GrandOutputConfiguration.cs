@@ -59,7 +59,7 @@ namespace CK.Monitoring
 
         /// <summary>
         /// Gets the default filter for the application domain. 
-        /// This value is set on the static <see cref="ActivityMonitor.DefaultFilter"/> by <see cref="GrandOutputConfiguration.SetConfiguration"/>
+        /// This value is set on the static <see cref="ActivityMonitor.DefaultFilter"/> by <see cref="GrandOutput.SetConfiguration"/>
         /// if and only if the configured GrandOutput is the <see cref="GrandOutput.Default"/>.
         /// </summary>
         public LogFilter? AppDomainDefaultFilter { get { return _appDomainDefaultFilter; } }

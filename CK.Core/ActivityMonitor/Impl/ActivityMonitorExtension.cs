@@ -112,7 +112,7 @@ namespace CK.Core
         /// </param>
         /// <param name="level">Log level. Must not be <see cref="LogLevel.None"/>.</param>
         /// <param name="text">Text to log. Must not be null or empty.</param>
-        /// <param name="logTimeUtc">Timestamp of the log entry (must be UTC).</param>
+        /// <param name="logTimeUtc">Time-stamp of the log entry (must be UTC).</param>
         /// <param name="ex">Optional exception associated to the log. When not null, a Group is automatically created.</param>
         /// <param name="fileName">The source code file name from which the log is emitted.</param>
         /// <param name="lineNumber">The line number in the source from which the log is emitted.</param>
@@ -477,11 +477,11 @@ namespace CK.Core
         #endregion
 
         /// <summary>
-        /// Gets this Group conclusions as a readeable string.
+        /// Gets this Group conclusions as a readable string.
         /// </summary>
         /// <param name="this">This group conclusion. Can be null.</param>
         /// <param name="conclusionSeparator">Conclusion separator.</param>
-        /// <returns>A lovely concatened string of conclusions.</returns>
+        /// <returns>A lovely concatenated string of conclusions.</returns>
         public static string ToStringGroupConclusion( this IEnumerable<ActivityLogGroupConclusion> @this, string conclusionSeparator = " - " )
         {
             if( @this == null ) return String.Empty;

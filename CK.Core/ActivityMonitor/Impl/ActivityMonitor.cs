@@ -242,6 +242,9 @@ namespace CK.Core
             get { return _uniqueId; }
         }
 
+        /// <summary>
+        /// Unique identifier for this monitor.
+        /// </summary>
         protected Guid UniqueId
         {
             get { return _uniqueId; }

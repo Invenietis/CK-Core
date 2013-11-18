@@ -9,12 +9,12 @@ using System.Threading.Tasks;
 namespace CK.Core
 {
     /// <summary>
-    /// Very simple façade for simple application settings.
+    /// Very simple facade for simple application settings.
     /// This does not handle multiple configurations per key (like ConfigurationManager.AppSettings can do since it is a NameValueCollection) but
     /// can expose potentially complex configuration objects instead of only strings.
     /// It can be initialized only once, before any other access, and when not initialized tries to automatically use the standard ConfigurationManager.AppSettings 
     /// through late binding. However, it supports multiple overriding and reverting to the original configuration. 
-    /// (Override support and restoration is mainly designed for tests but the override functionnality alone can be a useful feature in real life application.)
+    /// (Override support and restoration is mainly designed for tests but the override functionality alone can be a useful feature in real life application.)
     /// </summary>
     public class AppSettings
     {
@@ -33,7 +33,7 @@ namespace CK.Core
         /// prior to any use of this object.
         /// When not called before the first access, the .Net ConfigurationManager.AppSettings is used if possible (late binding).
         /// </summary>
-        /// <param name="getConfigurationObject">The fucntion that ultimately </param>
+        /// <param name="getConfigurationObject">The function that ultimately </param>
         public void Initialize( Func<string, object> getConfigurationObject )
         {
             if( getConfigurationObject == null ) throw new ArgumentNullException( "getConfigurationObject" );
@@ -50,7 +50,7 @@ namespace CK.Core
         /// or directly: any access to the configuration since any access triggers a call to DefaultInitialize.
         /// The function that overrides the current configuration is called with the previously active function to enable chaining (filtering, alteration of the keys and or the values).
         /// </summary>
-        /// <param name="filterConfigurationObject">The fucntion that ultimately </param>
+        /// <param name="filterConfigurationObject">The function that ultimately </param>
         public void Override( Func<Func<string, object>,string, object> filterConfigurationObject )
         {
             if( filterConfigurationObject == null ) throw new ArgumentNullException( "filterConfigurationObject" );

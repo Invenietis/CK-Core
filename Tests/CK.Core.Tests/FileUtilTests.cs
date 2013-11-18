@@ -77,7 +77,7 @@ namespace CK.Core.Tests
         [Test]
         public void WriteUniqueTimedFileClash()
         {
-            TestHelper.CleanupTestDir();
+            TestHelper.CleanupTestFolder();
 
             DateTime now = DateTime.UtcNow;
             var content = Encoding.UTF8.GetBytes( String.Format( "Clash @{0}...", now ) );
@@ -115,7 +115,7 @@ namespace CK.Core.Tests
         [Test]
         public void WriteUniqueTimedFileClashQuick()
         {
-            TestHelper.CleanupTestDir();
+            TestHelper.CleanupTestFolder();
             DateTime now = DateTime.UtcNow;
             string prefix = Path.Combine( TestHelper.TestFolder, "Clash " );
             List<string> files = new List<string>();
@@ -136,7 +136,7 @@ namespace CK.Core.Tests
         [Test]
         public void CopyDirectoryTest()
         {
-            TestHelper.CleanupTestDir();
+            TestHelper.CleanupTestFolder();
             DirectoryInfo copyDir = new DirectoryInfo( Path.Combine( TestHelper.TestFolder, "Cpy" ) );
             DirectoryInfo testDir = new DirectoryInfo( Path.Combine( TestHelper.TestFolder, "Src" ) );
 
@@ -204,7 +204,7 @@ namespace CK.Core.Tests
             Assert.Throws<ArgumentNullException>( () => FileUtil.CopyDirectory( null, testDir ) );
             Assert.Throws<ArgumentNullException>( () => FileUtil.CopyDirectory( testDir, null) );
 
-            TestHelper.CleanupTestDir();
+            TestHelper.CleanupTestFolder();
         }
 
         static void CleanupDir( string path )
@@ -216,8 +216,8 @@ namespace CK.Core.Tests
         [Test]
         public void GetFilesTest()
         {
-            TestHelper.CleanupTestDir();
-            DirectoryInfo testFolder = TestHelper.TestFolderDir;
+            TestHelper.CleanupTestFolder();
+            DirectoryInfo testFolder = new DirectoryInfo( TestHelper.TestFolder );
 
             CreateFiles( testFolder.FullName, "azerty.gif", "azerty.jpg", "azerty.png" );
             AssertContains( testFolder.FullName, FileUtil.GetFiles( testFolder.FullName, "*.png;*.jpg;*.gif" ), "azerty.gif", "azerty.jpg", "azerty.png" );
@@ -244,7 +244,7 @@ namespace CK.Core.Tests
             AssertContains( testFolder.FullName, FileUtil.GetFiles( testFolder.FullName, "a.z" ) );
             AssertContains( testFolder.FullName, FileUtil.GetFiles( testFolder.FullName, "" ) );
 
-            TestHelper.CleanupTestDir();
+            TestHelper.CleanupTestFolder();
 
             CreateFiles( testFolder.FullName, "az.gif", "rty.jpg", "arty.gif", "raz.png" );
             AssertContains( testFolder.FullName, FileUtil.GetFiles( testFolder.FullName, "*.jpg;*.gif" ), "az.gif", "rty.jpg", "arty.gif" );
@@ -253,7 +253,7 @@ namespace CK.Core.Tests
             AssertContains( testFolder.FullName, FileUtil.GetFiles( testFolder.FullName, "r*.*;a*.gif" ), "raz.png", "az.gif", "rty.jpg", "arty.gif" );
             AssertContains( testFolder.FullName, FileUtil.GetFiles( testFolder.FullName, "r*.png" ), "raz.png" );
 
-            TestHelper.CleanupTestDir();
+            TestHelper.CleanupTestFolder();
         }
 
         [Test]
@@ -261,7 +261,7 @@ namespace CK.Core.Tests
         {
             Assert.Throws<ArgumentNullException>( () => FileUtil.WaitForWriteAcccess( null, 0 ) );
 
-            TestHelper.CleanupTestDir();
+            TestHelper.CleanupTestFolder();
 
             string path = Path.Combine( TestHelper.TestFolder, "Locked.txt" );
             Assert.That( FileUtil.WaitForWriteAcccess( path, 1 ), Is.True );
@@ -279,7 +279,7 @@ namespace CK.Core.Tests
             Assert.That( FileUtil.WaitForWriteAcccess( path, 0 ), Is.False );
             Assert.That( FileUtil.WaitForWriteAcccess( path, 2 ), Is.True );
 
-            TestHelper.CleanupTestDir();
+            TestHelper.CleanupTestFolder();
         }
 
         [Test]

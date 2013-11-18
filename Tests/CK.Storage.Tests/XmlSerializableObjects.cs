@@ -119,7 +119,7 @@ namespace Storage
         [TearDown]
         public void Setup()
         {
-            TestHelper.CleanupTestDir();
+            TestHelper.CleanupTestFolder();
         }
 
         [Test]

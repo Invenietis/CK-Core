@@ -182,7 +182,7 @@ namespace CK.Core
         /// <param name="time">The time that will be used to create the file name. It should be an UTC time.</param>
         /// <param name="access">
         /// A constant that determines how the file can be accessed by the FileStream object. 
-        /// It can only be <see cref="FileAccess.Write"/> or <see cref="FileAccess.ReadWrite"/> (when set to <see cref="FileAccess.Read"/> a <see cref=""/>
+        /// It can only be <see cref="FileAccess.Write"/> or <see cref="FileAccess.ReadWrite"/> (when set to <see cref="FileAccess.Read"/> a <see cref="ArgumentException"/> is thrown).
         /// This sets the CanRead and CanWrite properties of the FileStream object. 
         /// CanSeek is true if path specifies a disk file.
         /// </param>

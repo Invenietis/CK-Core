@@ -7,6 +7,9 @@ using CK.Core;
 
 namespace CK.RouteConfig
 {
+    /// <summary>
+    /// Describes the configuration of a route once configuration is resolved (actions and subordinate routes are known).
+    /// </summary>
     public class RouteConfigurationResolved
     {
         readonly string _name;

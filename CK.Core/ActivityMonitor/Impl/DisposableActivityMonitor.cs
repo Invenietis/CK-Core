@@ -8,12 +8,15 @@ namespace CK.Core.Impl
 {
     /// <summary>
     /// Trivial implementation of <see cref="IDisposableActivityMonitor"/>.
-    /// <see cref="Dispose"/> simply closes all opened groups.
+    /// <see cref="Dispose()"/> simply closes all opened groups.
     /// </summary>
     public class DisposableActivityMonitor : ActivityMonitor, IDisposableActivityMonitor
     {
         bool _disposed;
 
+        /// <summary>
+        /// Ensures that potential unmanaged resources are correctly released by calling <see cref="Dispose(bool)"/> with false.
+        /// </summary>
         ~DisposableActivityMonitor()
         {
             Dispose( false );
@@ -27,6 +30,7 @@ namespace CK.Core.Impl
         {
             if( !_disposed ) Dispose( true );
         }
+
         /// <summary>
         /// Automatically close any opened groups.
         /// Can be called multiple times.

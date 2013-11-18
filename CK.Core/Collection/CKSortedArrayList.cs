@@ -121,7 +121,7 @@ namespace CK.Core
         /// Locates an element (one of the occurences when duplicates are allowed) in this list (logarithmic). 
         /// </summary>
         /// <param name="value">The element.</param>
-        /// <returns>The result of the <see cref="Util.BinarySearch{T}"/> in the internal array.</returns>
+        /// <returns>The result of the <see cref="G:Util.BinarySearch{T}"/> in the internal array.</returns>
         public virtual int IndexOf( T value )
         {
             if( value == null ) throw new ArgumentNullException();

@@ -102,7 +102,7 @@ namespace CK.RouteConfig
         bool _disposed;
 
         /// <summary>
-        /// Initializes a new <see cref="ConfiguredRouteHost"/> initially <see cref="IsEmpty">empty</see>.
+        /// Initializes a new <see cref="ConfiguredRouteHost{TAction,TRoute}"/> initially <see cref="IsEmpty">empty</see>.
         /// </summary>
         /// <param name="actionFactory">Factory for <typeparamref name="TAction"/> based on an <see cref="ActionConfiguration"/> for final <typeparamref name="TRoute"/>.</param>
         /// <param name="readyCallback">Optional callback that will be called right before applying a new configuration.</param>
@@ -152,7 +152,7 @@ namespace CK.RouteConfig
         }
 
         /// <summary>
-        /// Gets the total number of successful calls to <see cref="ApplyPendingConfiguration"/>.
+        /// Gets the total number of successful calls to <see cref="SetConfiguration"/>.
         /// </summary>
         public int SuccessfulConfigurationCount
         {

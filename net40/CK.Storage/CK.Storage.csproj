@@ -1,0 +1,165 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{556791B8-EF36-4323-81BE-018BBC811CBE}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>CK.Storage</RootNamespace>
+    <AssemblyName>CK.Storage</AssemblyName>
+    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <TargetFrameworkProfile>Client</TargetFrameworkProfile>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <DocumentationFile>bin\Release\CK.Storage.xml</DocumentationFile>
+  </PropertyGroup>
+  <PropertyGroup>
+    <SignAssembly>true</SignAssembly>
+  </PropertyGroup>
+  <PropertyGroup>
+    <AssemblyOriginatorKeyFile>..\..\SharedKey.snk</AssemblyOriginatorKeyFile>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.IO">
+      <HintPath>..\..\packages\Microsoft.Bcl.1.1.6\lib\net40\System.IO.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Runtime">
+      <HintPath>..\..\packages\Microsoft.Bcl.1.1.6\lib\net40\System.Runtime.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Threading.Tasks">
+      <HintPath>..\..\packages\Microsoft.Bcl.1.1.6\lib\net40\System.Threading.Tasks.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="..\..\CK.Storage\ActionSequence\ActionSequence.cs">
+      <Link>ActionSequence.cs</Link>
+    </Compile>
+    <Compile Include="..\..\CK.Storage\ActionSequence\ActionSequenceExtension.cs">
+      <Link>ActionSequenceExtension.cs</Link>
+    </Compile>
+    <Compile Include="..\..\CK.Storage\ActionSequence\IActionSequence.cs">
+      <Link>IActionSequence.cs</Link>
+    </Compile>
+    <Compile Include="..\..\CK.Storage\FileProtectedStructuredWriter.cs">
+      <Link>FileProtectedStructuredWriter.cs</Link>
+    </Compile>
+    <Compile Include="..\..\CK.Storage\Impl\PureXml-2.5.5\ReaderBase.cs">
+      <Link>ReaderBase.cs</Link>
+    </Compile>
+    <Compile Include="..\..\CK.Storage\Impl\PureXml-2.5.5\ReaderBookmark.cs">
+      <Link>ReaderBookmark.cs</Link>
+    </Compile>
+    <Compile Include="..\..\CK.Storage\Impl\PureXml-2.5.5\ReaderImpl.cs">
+      <Link>ReaderImpl.cs</Link>
+    </Compile>
+    <Compile Include="..\..\CK.Storage\Impl\PureXml-2.5.5\ReaderImplSub.cs">
+      <Link>ReaderImplSub.cs</Link>
+    </Compile>
+    <Compile Include="..\..\CK.Storage\Impl\PureXml-2.5.5\WriterBase.cs">
+      <Link>WriterBase.cs</Link>
+    </Compile>
+    <Compile Include="..\..\CK.Storage\Impl\PureXml-2.5.5\WriterImpl.cs">
+      <Link>WriterImpl.cs</Link>
+    </Compile>
+    <Compile Include="..\..\CK.Storage\Impl\PureXml-2.5.5\WriterImplSub.cs">
+      <Link>WriterImplSub.cs</Link>
+    </Compile>
+    <Compile Include="..\..\CK.Storage\IProtectedStructuredWriter.cs">
+      <Link>IProtectedStructuredWriter.cs</Link>
+    </Compile>
+    <Compile Include="..\..\CK.Storage\IStructuredReader.cs">
+      <Link>IStructuredReader.cs</Link>
+    </Compile>
+    <Compile Include="..\..\CK.Storage\IStructuredReaderBookmark.cs">
+      <Link>IStructuredReaderBookmark.cs</Link>
+    </Compile>
+    <Compile Include="..\..\CK.Storage\IStructuredSerializable.cs">
+      <Link>IStructuredSerializable.cs</Link>
+    </Compile>
+    <Compile Include="..\..\CK.Storage\IStructuredSerializer.cs">
+      <Link>IStructuredSerializer.cs</Link>
+    </Compile>
+    <Compile Include="..\..\CK.Storage\IStructuredWriter.cs">
+      <Link>IStructuredWriter.cs</Link>
+    </Compile>
+    <Compile Include="..\..\CK.Storage\ISubStructuredReader.cs">
+      <Link>ISubStructuredReader.cs</Link>
+    </Compile>
+    <Compile Include="..\..\CK.Storage\ISubStructuredWriter.cs">
+      <Link>ISubStructuredWriter.cs</Link>
+    </Compile>
+    <Compile Include="..\..\CK.Storage\ObjectReadExDataEventArgs.cs">
+      <Link>ObjectReadExDataEventArgs.cs</Link>
+    </Compile>
+    <Compile Include="..\..\CK.Storage\ObjectWriteExDataEventArgs.cs">
+      <Link>ObjectWriteExDataEventArgs.cs</Link>
+    </Compile>
+    <Compile Include="..\..\CK.Storage\R.Designer.cs">
+      <Link>R.Designer.cs</Link>
+    </Compile>
+    <Compile Include="..\..\CK.Storage\SimpleStructuredReader.cs">
+      <Link>SimpleStructuredReader.cs</Link>
+    </Compile>
+    <Compile Include="..\..\CK.Storage\SimpleStructuredWriter.cs">
+      <Link>SimpleStructuredWriter.cs</Link>
+    </Compile>
+    <Compile Include="..\..\CK.Storage\StandardReadStatus.cs">
+      <Link>StandardReadStatus.cs</Link>
+    </Compile>
+    <Compile Include="..\..\CK.Storage\StructuredReaderAndWriterExtension.cs">
+      <Link>StructuredReaderAndWriterExtension.cs</Link>
+    </Compile>
+    <Compile Include="..\..\SharedAssemblyInfo.cs">
+      <Link>Properties\SharedAssemblyInfo.cs</Link>
+    </Compile>
+    <Compile Include="Properties\AssemblyInfo.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="..\..\CK.Storage\R.resx">
+      <Link>R.resx</Link>
+    </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\CK.Core\CK.Core.csproj">
+      <Project>{56511bee-6107-4cb6-bf05-0fb9c2c88c88}</Project>
+      <Name>CK.Core %28net40\CK.Core%29</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <Import Project="..\..\packages\Microsoft.Bcl.Build.1.0.13\tools\Microsoft.Bcl.Build.targets" Condition="Exists('..\..\packages\Microsoft.Bcl.Build.1.0.13\tools\Microsoft.Bcl.Build.targets')" />
+  <Target Name="EnsureBclBuildImported" BeforeTargets="BeforeBuild" Condition="'$(BclBuildImported)' == ''">
+    <Error Condition="!Exists('..\..\packages\Microsoft.Bcl.Build.1.0.13\tools\Microsoft.Bcl.Build.targets')" Text="This project references NuGet package(s) that are missing on this computer. Enable NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=317567." HelpKeyword="BCLBUILD2001" />
+    <Error Condition="Exists('..\..\packages\Microsoft.Bcl.Build.1.0.13\tools\Microsoft.Bcl.Build.targets')" Text="The build restored NuGet packages. Build the project again to include these packages in the build. For more information, see http://go.microsoft.com/fwlink/?LinkID=317568." HelpKeyword="BCLBUILD2002" />
+  </Target>
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>

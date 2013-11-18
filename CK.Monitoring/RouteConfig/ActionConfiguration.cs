@@ -30,7 +30,7 @@ namespace CK.RouteConfig
         /// </summary>
         /// <remarks>
         /// Whether this name is a valid one or not is not checked by the configuration itself
-        /// but by the <see cref="MetaConfiguration"/> that "covers" it: different rules may be 
+        /// but by the <see cref="Impl.MetaConfiguration"/> that "covers" it: different rules may be 
         /// implemented for the name of a configuration depending of the way it is used, this is 
         /// the role of the meta configuration.
         /// </remarks>
@@ -56,7 +56,7 @@ namespace CK.RouteConfig
         }
 
         /// <summary>
-        /// Gets whether this configuration is cloneable.
+        /// Gets whether this configuration is clone-able.
         /// Defaults to false.
         /// </summary>
         public virtual bool IsCloneable

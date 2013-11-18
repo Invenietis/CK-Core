@@ -16,7 +16,7 @@ namespace CK.Monitoring
     public interface IGrandOutputDispatcherStrategy
     {
         /// <summary>
-        /// Called once and only once during <see cref="GrandOuput"/> initialization.
+        /// Called once and only once during <see cref="GrandOutput"/> initialization.
         /// </summary>
         /// <param name="instantLoad">Offers access to the number of items waiting to be processed.</param>
         /// <param name="dispatcher">The dispatcher thread.</param>
@@ -29,7 +29,10 @@ namespace CK.Monitoring
         /// <returns>True to accept the event, false to reject it.</returns>
         bool IsOpened( ref int maxQueuedCount );
 
-
-        int SampleReentrantCount { get; }
+        /// <summary>
+        /// Gets the count of concurrent sampling: each time <see cref="IsOpened"/> has been
+        /// called while it was already called by another thread.
+        /// </summary>
+        int IgnoredConcurrentCallCount { get; }
     }
 }

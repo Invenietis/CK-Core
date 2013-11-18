@@ -16,7 +16,7 @@ namespace CK.Monitoring.Impl
         Func<int> _count;
         int _sample;
         int _sampleReentrantFlag;
-        int _sampleReentrantCount;
+        int _ignoredConcurrentCallCount;
         bool _opened;
 
         public EventDispatcherLocalTestStrategy( int maxCapacity = 64*1024, int reenableCapacity = 0, int samplingCount = 0 )
@@ -35,16 +35,16 @@ namespace CK.Monitoring.Impl
             dispatcher.Priority = ThreadPriority.Normal;
         }
 
-        public int SampleReentrantCount
+        public int IgnoredConcurrentCallCount
         {
-            get { return _sampleReentrantCount; }
+            get { return _ignoredConcurrentCallCount; }
         }
         
         public bool IsOpened( ref int maxQueuedCount )
         {
             if( Interlocked.Decrement( ref _sample ) == 0 )
             {
-                if( Interlocked.CompareExchange( ref _sampleReentrantFlag, 1, 0 ) == 1 ) Interlocked.Increment( ref _sampleReentrantCount );
+                if( Interlocked.CompareExchange( ref _sampleReentrantFlag, 1, 0 ) == 1 ) Interlocked.Increment( ref _ignoredConcurrentCallCount );
                 else
                 {
                     int waitingCount = _count();

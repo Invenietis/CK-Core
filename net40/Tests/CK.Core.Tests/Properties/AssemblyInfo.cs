@@ -1,6 +1,6 @@
 ﻿#region LGPL License
 /*----------------------------------------------------------------------------
-* This file (CK.Core\LegacySupport\CallerFilePathAttribute.cs) is part of CiviKey. 
+* This file (net40\Tests\CK.Core.Tests\Properties\AssemblyInfo.cs) is part of CiviKey. 
 *  
 * CiviKey is free software: you can redistribute it and/or modify 
 * it under the terms of the GNU Lesser General Public License as published 
@@ -21,23 +21,13 @@
 *-----------------------------------------------------------------------------*/
 #endregion
 
-#if net40
+using System.Reflection;
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+[assembly: AssemblyTitle( "CK.Core.Tests" )]
+[assembly: AssemblyDescription( "" )]
+[assembly: AssemblyCulture( "" )]
+[assembly: ComVisible( false )]
+[assembly: Guid("f41b906f-9b29-4d24-9e83-142148b38305")]
 
-namespace System.Runtime.CompilerServices
-{
-    /// <summary>
-    /// This attribute is used to enable the CallerFilePathAttribute feature on a .NET 4.0 solution.
-    /// Make sure you are using VS 2012 or higher. If not, CallerFilePath will not inject the file of the caller where it is used. 
-    /// </summary>
-    [AttributeUsage( AttributeTargets.Parameter, AllowMultiple = false, Inherited = true )]
-    public sealed class CallerFilePathAttribute : Attribute
-    {
-    }
-}
-
-#endif

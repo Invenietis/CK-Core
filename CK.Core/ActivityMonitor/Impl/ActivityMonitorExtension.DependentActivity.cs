@@ -37,6 +37,9 @@ namespace CK.Core
     public static partial class ActivityMonitorExtension
     {
 
+        /// <summary>
+        /// Offers dependent token creation, launching and start.
+        /// </summary>
         public struct DependentSender
         {
             readonly IActivityMonitor _monitor;
@@ -115,10 +118,7 @@ namespace CK.Core
             /// Starts a dependent activity. This sets the <see cref="ActivityMonitor.DependentToken.Topic"/> if it is not null and opens a group
             /// tagged with <see cref="ActivityMonitor.Tags.StartDependentActivity"/> with a message that can be parsed back thanks to <see cref="ActivityMonitor.DependentToken.TryParse"/>.
             /// </summary>
-            /// <param name="this">This <see cref="IActivityMonitor"/>.</param>
             /// <param name="token">Token that describes the origin of the activity.</param>
-            /// <param name="fileName">Source file name of the emitter (automatically injected by C# compiler but can be explicitly set).</param>
-            /// <param name="lineNumber">Line number in the source file (automatically injected by C# compiler but can be explicitly set).</param>
             /// <returns>A disposable object. It must be disposed at the end of the activity.</returns>
             public IDisposable StartDependentActivity( ActivityMonitor.DependentToken token )
             {

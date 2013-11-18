@@ -1,6 +1,6 @@
 ﻿#region LGPL License
 /*----------------------------------------------------------------------------
-* This file (CK.Core\LegacySupport\CallerMemberNameAttribute.cs) is part of CiviKey. 
+* This file (net40\CK.Storage\Properties\AssemblyInfo.cs) is part of CiviKey. 
 *  
 * CiviKey is free software: you can redistribute it and/or modify 
 * it under the terms of the GNU Lesser General Public License as published 
@@ -21,23 +21,15 @@
 *-----------------------------------------------------------------------------*/
 #endregion
 
-#if net40
-
+using System.Reflection;
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 
-namespace System.Runtime.CompilerServices
-{
-    /// <summary>
-    /// This attribute is used to enable the CallerMemberName feature on a .NET 4.0 solution.
-    /// Make sure you are using VS 2012 or higher. If not, CallerMemberName will not inject the name of the caller where it is used. 
-    /// </summary>
-    [AttributeUsage( AttributeTargets.Parameter, AllowMultiple = false, Inherited = true )]
-    public sealed class CallerMemberNameAttribute : Attribute
-    {
-    }
-}
+[assembly: AssemblyTitle( "CK.Storage" )]
+[assembly: AssemblyDescription( "Low-level Storage layer that supports composite/modular Xml data." )]
+[assembly: AssemblyCulture( "" )]
+[assembly: ComVisible( false )]
 
-#endif
+[assembly: Guid("c7f9872e-bd76-4fd3-ab9f-d46f0efb0dbe")]
+

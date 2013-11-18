@@ -36,7 +36,7 @@ namespace CK.Monitoring.Tests
     static class TestHelper
     {
         static string _testFolder;
-        static DirectoryInfo _testFolderDir;
+        static string _solutionFolder;
         
         static IActivityMonitor _monitor;
         static ActivityMonitorConsoleClient _console;
@@ -82,7 +82,7 @@ namespace CK.Monitoring.Tests
                 }
             }
         }
-        
+
         public static string TestFolder
         {
             get
@@ -92,39 +92,57 @@ namespace CK.Monitoring.Tests
             }
         }
 
-        public static DirectoryInfo TestFolderDir
+        public static string SolutionFolder
         {
-            get { return _testFolderDir ?? (_testFolderDir = new DirectoryInfo( TestFolder )); }
+            get
+            {
+                if( _solutionFolder == null ) InitalizePaths();
+                return _solutionFolder;
+            }
         }
 
-        public static void CleanupTestDir()
+        public static void CleanupTestFolder()
         {
-            if( TestFolderDir.Exists ) TestFolderDir.Delete( true );
-            TestFolderDir.Create();
+            int tryCount = 0;
+            for( ; ; )
+            {
+                try
+                {
+                    if( Directory.Exists( TestFolder ) ) Directory.Delete( TestFolder, true );
+                    Directory.CreateDirectory( TestFolder );
+                    File.WriteAllText( Path.Combine( TestFolder, "TestWrite.txt" ), "Test write works." );
+                    File.Delete( Path.Combine( TestFolder, "TestWrite.txt" ) );
+                    return;
+                }
+                catch( Exception ex )
+                {
+                    if( ++tryCount == 20 ) throw;
+                    ConsoleMonitor.Info().Send( ex, "While cleaning up test directory. Retrying." );
+                    System.Threading.Thread.Sleep( 100 );
+                }
+            }
         }
 
         private static void InitalizePaths()
         {
             string p = new Uri( System.Reflection.Assembly.GetExecutingAssembly().CodeBase ).LocalPath;
-            // => CK.Monitoring.Tests/bin/Debug/net45
+            // => CK.XXX.Tests/bin/Debug/
             p = Path.GetDirectoryName( p );
-            // => CK.Monitoring.Tests/bin/Debug/
+            // => CK.XXX.Tests/bin/
             p = Path.GetDirectoryName( p );
-            // => CK.Monitoring.Tests/bin/
+            // => CK.XXX.Tests/
             p = Path.GetDirectoryName( p );
-            // => CK.Monitoring.Tests/
-            p = Path.GetDirectoryName( p );
-            // ==> CK.Monitoring.Tests/TestFolder
-            _testFolder = Path.Combine( p, "TestFolder" );
-            if( Directory.Exists( _testFolder ) )
+            // ==> CK.XXX.Tests/TestDir
+            _testFolder = Path.Combine( p, "TestDir" );
+            do
             {
-                try
-                {
-                    Directory.Delete( _testFolder, true );
-                }
-                catch {}
+                p = Path.GetDirectoryName( p );
             }
-            Directory.CreateDirectory( _testFolder );
+            while( !File.Exists( Path.Combine( p, "CK-Core.sln" ) ) );
+            _solutionFolder = p;
+
+            ConsoleMonitor.Info().Send( "SolutionFolder is: {1}\r\nTestFolder is: {0}", _testFolder, _solutionFolder );
+            CleanupTestFolder();
         }
 
     }
