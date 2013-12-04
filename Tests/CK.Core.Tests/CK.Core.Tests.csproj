@@ -83,6 +83,7 @@
     <Compile Include="Collection\ReadOnlyTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SimpleSinks.cs" />
+    <Compile Include="StringUtilTests.cs" />
     <Compile Include="TemporaryFileTests.cs" />
     <Compile Include="TestHelper.cs" />
     <Compile Include="Traits.cs" />

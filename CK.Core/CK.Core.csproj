@@ -145,6 +145,7 @@
     <Compile Include="UniqueId\SimpleVersionedUniqueId.cs" />
     <Compile Include="Uri\UriExtension.cs" />
     <Compile Include="Uri\UriHelper.cs" />
+    <Compile Include="Util.String.cs" />
     <Compile Include="Util.Converter.cs" />
     <Compile Include="Util.cs" />
     <Compile Include="Collection\CKReadOnlyExtension.cs" />

@@ -64,7 +64,7 @@ namespace CK.Core
                     r[++j] = chars[(b >> 4) & 0x0F];
                     r[++j] = chars[b & 0x0F];
                 }
-                return new String( r );
+                return new System.String( r );
             }
         }
     }
