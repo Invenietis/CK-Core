@@ -41,14 +41,14 @@ namespace CK.Core
         /// </summary>
         static public class String
         {
-            const string OpenTag = "{{";
-            const string CloseTag = "}}";
+            const string OpenTag = "{";
+            const string CloseTag = "}";
 
             static Regex _namedFormatRegex = new Regex( string.Format( "{0}(?<token>.*?){1}", OpenTag, CloseTag ) );
-            static Regex _validPlaceHolderName = new Regex( "^([a-zA-Z0-9])+$" );
+            static Regex _validPlaceHolderName = new Regex( "^{(?<propertyName>[a-zA-Z0-9]+)((,|:).*)*}$" );
 
             /// <summary>
-            /// String.Format that works with named place holders like {{hello}} instead of {0}
+            /// String.Format that works with named place holders like {name} instead of {0}
             /// </summary>
             /// <param name="format">The format string</param>
             /// <param name="values">An object that will give named parameters values</param>
@@ -60,38 +60,49 @@ namespace CK.Core
                 if( values == null )
                     throw new ArgumentNullException( "values" );
 
-                int lastIdx = 0;
-                StringBuilder result = new StringBuilder();
                 var match = _namedFormatRegex.Match( format );
                 var valuesObjectProperties = TypeDescriptor.GetProperties( values );
 
-                while( match.Success )
+                List<string> placeholders = new List<string>();
+                List<object> placeholdersValues = new List<object>();
+
+                return _namedFormatRegex.Replace( format, token =>
                 {
-                    Group token = match.Groups["token"];
-                    if( !_validPlaceHolderName.IsMatch( token.Value ) )
+                    Match propertyName = _validPlaceHolderName.Match( token.Value );
+                    if( !propertyName.Success )
                         throw new ArgumentException( string.Format( "The value '{0}' is not a valid named placeholder", token.Value ) );
 
-                    int tokenIdx = token.Index - OpenTag.Length;
-                    int tokenLength = token.Length + (OpenTag.Length + CloseTag.Length);
+                    string placeholderName = propertyName.Groups["propertyName"].Value;
+                    int placeholderIdx = placeholders.IndexOf( placeholderName );
+                    if( placeholderIdx == -1 )
+                    {
+                        var propDescriptor = valuesObjectProperties.Find( placeholderName, false );
+                        if( propDescriptor == null )
+                            throw new ArgumentException( string.Format( "Unable to find the property '{0}' on the given value object", token.Value ) );
 
-                    result.Append( format.Substring( lastIdx, tokenIdx - lastIdx ) );
+                        placeholders.Add( placeholderName );
+                        placeholdersValues.Add( propDescriptor.GetValue( values ) );
+                        placeholderIdx = placeholdersValues.Count - 1;
+                    }
 
-                    var propDescriptor = valuesObjectProperties.Find( token.Value, false );
-                    if( propDescriptor == null )
-                        throw new ArgumentException( string.Format( "Unable to find the property '{0}' on the given value object", token.Value ) );
+                    return placeholdersValues[placeholderIdx].ToString();
+                } );
 
-                    result.Append( propDescriptor.GetValue( values ) );
-                    
+                //while( match.Success )
+                //{
+                //    Group token = match.Groups["token"];
+                //    if( !_validPlaceHolderName.IsMatch( token.Value ) )
+                //        throw new ArgumentException( string.Format( "The value '{0}' is not a valid named placeholder", token.Value ) );
 
-                    lastIdx = tokenIdx + tokenLength;
 
-                    match = match.NextMatch();
-                }
 
-                if( lastIdx < format.Length )
-                    result.Append( format.Substring( lastIdx ) );
+                //    match = match.NextMatch();
+                //}
 
-                return result.ToString();
+                //for( int i = 0; i < placeholders.Count; i++ )
+                //    result = result.Replace( placeholders[i], i.ToString() );
+
+                //return string.Format( result.ToString(), placeholdersValues.ToArray() );
             }
         }
     }
