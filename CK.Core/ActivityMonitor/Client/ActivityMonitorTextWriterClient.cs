@@ -36,7 +36,8 @@ namespace CK.Core
     /// </summary>
     public class ActivityMonitorTextWriterClient : ActivityMonitorTextHelperClient
     {
-        Func<TextWriter> _writer;
+        Action<string> _writer;
+        StringBuilder _buffer;
         string _prefix;
         string _prefixLevel;
         CKTrait _currentTags;
@@ -45,20 +46,10 @@ namespace CK.Core
         /// Initializes a new <see cref="ActivityMonitorTextWriterClient"/> bound to a 
         /// function that must return the <see cref="TextWriter"/> to use when needed.
         /// </summary>
-        public ActivityMonitorTextWriterClient( Func<TextWriter> writer )
+        public ActivityMonitorTextWriterClient( Action<string> writer )
         {
             _writer = writer;
-            _prefixLevel = _prefix = String.Empty;
-            _currentTags = ActivityMonitor.Tags.Empty;
-        }
-
-        /// <summary>
-        /// Initializes a new <see cref="ActivityMonitorTextWriterClient"/> bound to
-        /// a <see cref="TextWriter"/>.
-        /// </summary>
-        public ActivityMonitorTextWriterClient( TextWriter writer )
-        {
-            _writer = () => writer;
+            _buffer = new StringBuilder();
             _prefixLevel = _prefix = String.Empty;
             _currentTags = ActivityMonitor.Tags.Empty;
         }
@@ -69,22 +60,24 @@ namespace CK.Core
         /// <param name="data">Log data.</param>
         protected override void OnEnterLevel( ActivityMonitorLogData data )
         {
-            TextWriter w = _writer();
+            var w = _buffer.Clear();
             _prefixLevel = _prefix + new String( ' ', data.MaskedLevel.ToString().Length + 4 );
             string text = data.Text.Replace( Environment.NewLine, Environment.NewLine + _prefixLevel );
             if( _currentTags != data.Tags )
             {
-                w.WriteLine( "{0}- {1}: {2} -[{3}]", _prefix, data.MaskedLevel.ToString(), text, data.Tags );
+                w.AppendLine( string.Format( "{0}- {1}: {2} -[{3}]", _prefix, data.MaskedLevel.ToString(), text, data.Tags ) );
                 _currentTags = data.Tags;
             }
             else
             {
-                w.WriteLine( "{0}- {1}: {2}", _prefix, data.MaskedLevel.ToString(), text );
+                w.AppendLine( string.Format( "{0}- {1}: {2}", _prefix, data.MaskedLevel.ToString(), text ) );
             }
             if( data.Exception != null )
             {
                 DumpException( w, _prefix, !data.IsTextTheExceptionMessage, data.Exception );
             }
+
+            _writer( w.ToString() );
         }
 
         /// <summary>
@@ -93,18 +86,20 @@ namespace CK.Core
         /// <param name="data">Log data.</param>
         protected override void OnContinueOnSameLevel( ActivityMonitorLogData data )
         {
-            TextWriter w = _writer();
+            var w = _buffer.Clear();
             string text = data.Text.Replace( Environment.NewLine, Environment.NewLine + _prefixLevel );
             if( _currentTags != data.Tags )
             {
-                w.WriteLine( "{0}{1} -[{2}]", _prefixLevel, text, data.Tags );
+                w.AppendLine( string.Format( "{0}{1} -[{2}]", _prefixLevel, text, data.Tags ) );
                 _currentTags = data.Tags;
             }
-            else w.WriteLine( _prefixLevel + text );
+            else w.AppendLine( _prefixLevel + text );
             if( data.Exception != null )
             {
                 DumpException( w, _prefix, !data.IsTextTheExceptionMessage, data.Exception );
             }
+
+            _writer( _buffer.ToString() );
         }
 
         /// <summary>
@@ -123,7 +118,7 @@ namespace CK.Core
         /// <param name="g">Group information.</param>
         protected override void OnGroupOpen( IActivityLogGroup g )
         {
-            TextWriter w = _writer();
+            var w = _buffer.Clear();
             string start = String.Format( "{0}> {1}: ", _prefix, g.MaskedGroupLevel.ToString() );
             _prefix += "|  ";
             _prefixLevel = _prefix;
@@ -131,16 +126,18 @@ namespace CK.Core
             if( _currentTags != g.GroupTags )
             {
                 _currentTags = g.GroupTags;
-                w.WriteLine( "{0}{1} -[{2}]", start, text, _currentTags );
+                w.AppendLine( string.Format( "{0}{1} -[{2}]", start, text, _currentTags ) );
             }
             else
             {
-                w.WriteLine( start + text );
+                w.AppendLine( start + text );
             }
             if( g.Exception != null )
             {
                 DumpException( w, _prefix, !g.IsGroupTextTheExceptionMessage, g.Exception );
             }
+
+            _writer( _buffer.ToString() );
         }
 
         /// <summary>
@@ -150,16 +147,18 @@ namespace CK.Core
         /// <param name="conclusions">Conclusions for the group.</param>
         protected override void OnGroupClose( IActivityLogGroup g, IReadOnlyList<ActivityLogGroupConclusion> conclusions )
         {
-            TextWriter w = _writer();
+            var w = _buffer.Clear();
             _prefixLevel = _prefix = _prefix.Remove( _prefix.Length - 3 );
 
-            w.WriteLine( "{0}< {1}", _prefixLevel, conclusions.Where( c => !c.Text.Contains( Environment.NewLine ) ).ToStringGroupConclusion() );
+            w.AppendLine( string.Format( "{0}< {1}", _prefixLevel, conclusions.Where( c => !c.Text.Contains( Environment.NewLine ) ).ToStringGroupConclusion() ) );
 
             foreach( var c in conclusions.Where( c => c.Text.Contains( Environment.NewLine ) ) )
             {
                 string text = "< " + c.Text;
-                w.WriteLine( _prefixLevel + "  " + c.Text.Replace( Environment.NewLine, Environment.NewLine + _prefixLevel + "   " ) );
+                w.AppendLine( _prefixLevel + "  " + c.Text.Replace( Environment.NewLine, Environment.NewLine + _prefixLevel + "   " ) );
             }
+
+            _writer( _buffer.ToString() );
         }
 
         /// <summary>
@@ -169,42 +168,42 @@ namespace CK.Core
         /// <param name="prefix">Prefix that will start all lines.</param>
         /// <param name="displayMessage">Whether the exception message must be displayed or skip.</param>
         /// <param name="ex">The exception to display.</param>
-        static public void DumpException( TextWriter w, string prefix, bool displayMessage, Exception ex )
+        static public void DumpException( StringBuilder w, string prefix, bool displayMessage, Exception ex )
         {
             CKException ckEx = ex as CKException;
             if( ckEx != null && ckEx.ExceptionData != null )
             {
-                ckEx.ExceptionData.ToTextWriter( w, prefix );
+                ckEx.ExceptionData.ToStringBuilder( w, prefix );
                 return;
             }
 
             string header = String.Format( " ┌──────────────────────────■ Exception : {0} ■──────────────────────────", ex.GetType().Name );
 
             string p;
-            w.WriteLine( prefix + header );
+            w.AppendLine( prefix + header );
             string localPrefix = prefix + " | ";
             string start;
             if( displayMessage && ex.Message != null )
             {
                 start = localPrefix + "Message: ";
                 p = Environment.NewLine + localPrefix + "         ";
-                w.WriteLine( start + ex.Message.Replace( Environment.NewLine, p ) );
+                w.AppendLine( start + ex.Message.Replace( Environment.NewLine, p ) );
             }
             if( ex.StackTrace != null )
             {
                 start = localPrefix + "Stack: ";
                 p = Environment.NewLine + localPrefix + "       ";
-                w.WriteLine( start + ex.StackTrace.Replace( Environment.NewLine, p ) );
+                w.AppendLine( start + ex.StackTrace.Replace( Environment.NewLine, p ) );
             }
             var fileNFEx = ex as System.IO.FileNotFoundException;
             if( fileNFEx != null )
             {
-                if( !String.IsNullOrEmpty( fileNFEx.FileName ) ) w.WriteLine( localPrefix + "FileName: " + fileNFEx.FileName );
+                if( !String.IsNullOrEmpty( fileNFEx.FileName ) ) w.AppendLine( localPrefix + "FileName: " + fileNFEx.FileName );
                 if( fileNFEx.FusionLog != null )
                 {
                     start = localPrefix + "FusionLog: ";
                     p = Environment.NewLine + localPrefix + "         ";
-                    w.WriteLine( start + fileNFEx.FusionLog.Replace( Environment.NewLine, p ) );
+                    w.AppendLine( start + fileNFEx.FusionLog.Replace( Environment.NewLine, p ) );
                 }
             }
             else
@@ -212,32 +211,32 @@ namespace CK.Core
                 var loadFileEx = ex as System.IO.FileLoadException;
                 if( loadFileEx != null )
                 {
-                    if( !String.IsNullOrEmpty( loadFileEx.FileName ) ) w.WriteLine( localPrefix + "FileName: " + loadFileEx.FileName );
+                    if( !String.IsNullOrEmpty( loadFileEx.FileName ) ) w.AppendLine( localPrefix + "FileName: " + loadFileEx.FileName );
                     if( loadFileEx.FusionLog != null )
                     {
                         start = localPrefix + "FusionLog: ";
                         p = Environment.NewLine + localPrefix + "         ";
-                        w.WriteLine( start + loadFileEx.FusionLog.Replace( Environment.NewLine, p ) );
+                        w.AppendLine( start + loadFileEx.FusionLog.Replace( Environment.NewLine, p ) );
                     }
                     else
                     {
                         var typeLoadEx = ex as ReflectionTypeLoadException;
                         if( typeLoadEx != null )
                         {
-                            w.WriteLine( localPrefix + " ┌──────────────────────────■ [Loader Exceptions] ■──────────────────────────" );
+                            w.AppendLine( localPrefix + " ┌──────────────────────────■ [Loader Exceptions] ■──────────────────────────" );
                             p = localPrefix + " | ";
                             foreach( var item in typeLoadEx.LoaderExceptions )
                             {
                                 DumpException( w, p, true, item );
                             }
-                            w.WriteLine( localPrefix + " └─────────────────────────────────────────────────────────────────────────" );
+                            w.AppendLine( localPrefix + " └─────────────────────────────────────────────────────────────────────────" );
                         }
                         else
                         {
                             var configEx = ex as System.Configuration.ConfigurationException;
                             if( configEx != null )
                             {
-                                if( !String.IsNullOrEmpty( configEx.Filename ) ) w.WriteLine( localPrefix + "FileName: " + configEx.Filename );
+                                if( !String.IsNullOrEmpty( configEx.Filename ) ) w.AppendLine( localPrefix + "FileName: " + configEx.Filename );
                             }
                         }
                     }
@@ -249,22 +248,22 @@ namespace CK.Core
             var aggrex = ex as AggregateException;
             if( aggrex != null && aggrex.InnerExceptions.Count > 0 )
             {
-                w.WriteLine( localPrefix + " ┌──────────────────────────■ [Aggregated Exceptions] ■──────────────────────────" );
+                w.AppendLine( localPrefix + " ┌──────────────────────────■ [Aggregated Exceptions] ■──────────────────────────" );
                 p = localPrefix + " | ";
                 foreach( var item in aggrex.InnerExceptions )
                 {
                     DumpException( w, p, true, item );
                 }
-                w.WriteLine( localPrefix + " └─────────────────────────────────────────────────────────────────────────" );
+                w.AppendLine( localPrefix + " └─────────────────────────────────────────────────────────────────────────" );
             }
             else if( ex.InnerException != null )
             {
-                w.WriteLine( localPrefix + " ┌──────────────────────────■ [Inner Exception] ■──────────────────────────" );
+                w.AppendLine( localPrefix + " ┌──────────────────────────■ [Inner Exception] ■──────────────────────────" );
                 p = localPrefix + " | ";
                 DumpException( w, p, true, ex.InnerException );
-                w.WriteLine( localPrefix + " └─────────────────────────────────────────────────────────────────────────" );
+                w.AppendLine( localPrefix + " └─────────────────────────────────────────────────────────────────────────" );
             }
-            w.WriteLine( prefix + " └" + new String( '─', header.Length - 2 ) );
+            w.AppendLine( prefix + " └" + new String( '─', header.Length - 2 ) );
         }
 
     }

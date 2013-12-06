@@ -268,7 +268,7 @@ namespace CK.Core
             StringBuilder buffer = CreateHeader( logTimeUtc, text, level, tags );
             if( ex != null )
             {
-                ActivityMonitorTextWriterClient.DumpException( new StringWriter( buffer ), String.Empty, !ReferenceEquals( text, ex.Message ), ex );
+                ActivityMonitorTextWriterClient.DumpException( buffer, String.Empty, !ReferenceEquals( text, ex.Message ), ex );
             }
             WriteFooter( level, buffer );
             return buffer.ToString();

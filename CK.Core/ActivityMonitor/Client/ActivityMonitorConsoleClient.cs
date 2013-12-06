@@ -37,7 +37,7 @@ namespace CK.Core
         /// Initializes a new <see cref="ActivityMonitorConsoleClient"/>.
         /// </summary>
         public ActivityMonitorConsoleClient()
-            : base( () => Console.Out )
+            : base( ( s ) => Console.Out.Write( s ) )
         {
         }
 
