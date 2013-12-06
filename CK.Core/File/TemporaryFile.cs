@@ -114,12 +114,7 @@ namespace CK.Core
         /// </summary>
         public bool IsDetached
         {
-            get 
-            { 
-                var p = _path;
-                if( p == null ) throw new ObjectDisposedException( "TemporaryFile" );
-                return p.Length == 0; 
-            }
+            get { return Path.Length == 0; }
         }
 
         /// <summary>
@@ -137,11 +132,10 @@ namespace CK.Core
         /// </summary>
 		public void Dispose()
 		{
-			DeleteFile();
-			if( _path == null ) GC.SuppressFinalize(this);
+			if( DeleteFile() ) GC.SuppressFinalize(this);
 		}
 
-		private void DeleteFile()
+		private bool DeleteFile()
 		{
             var p = _path;
 			if( p != null )
@@ -150,9 +144,11 @@ namespace CK.Core
                 else
                 {
                     try { File.Delete( p ); _path = null; }
-                    catch { }
+                    catch { return false; }
                 }
+                return true;
 			}
+            return false;
 		}
 	}
 }
