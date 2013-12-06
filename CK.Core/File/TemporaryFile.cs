@@ -34,7 +34,7 @@ namespace CK.Core
 	/// </summary>
 	public sealed class TemporaryFile : IDisposable
 	{
-		private string _path;
+		string _path;
 
         /// <summary>
         /// Initializes a new short lived <see cref="TemporaryFile"/>.
@@ -96,19 +96,40 @@ namespace CK.Core
 
         /// <summary>
         /// Gets the complete file path of the temporary file.
-        /// The file is not opened but exists, initiall
+        /// It is <see cref="String.Empty"/> when the file has been <see cref="Detach"/>ed.
+        /// The file is not opened but exists, initially empty.
         /// </summary>
 		public string Path
 		{
-			get { return _path; }
+			get 
+            {
+                var p = _path;
+                if( p == null ) throw new ObjectDisposedException( "TemporaryFile" );
+                return p; 
+            }
 		}
 
         /// <summary>
-        /// Detachs the temporary file: it will no more be automatically destroyed.
+        /// Gets whether the temporary file is detached (its <see cref="Path"/> is <see cref="String.Empty"/>).
+        /// </summary>
+        public bool IsDetached
+        {
+            get 
+            { 
+                var p = _path;
+                if( p == null ) throw new ObjectDisposedException( "TemporaryFile" );
+                return p.Length == 0; 
+            }
+        }
+
+        /// <summary>
+        /// Detaches the temporary file: it will no more be automatically destroyed.
         /// </summary>
 		public void Detach()
 		{
-			_path = null;
+            var p = _path;
+            if( p == null ) throw new ObjectDisposedException( "TemporaryFile" );
+            _path = String.Empty;
 		}
 
         /// <summary>
@@ -122,10 +143,15 @@ namespace CK.Core
 
 		private void DeleteFile()
 		{
-			if( _path != null )
+            var p = _path;
+			if( p != null )
 			{
-				try { File.Delete( _path ); _path = null; }
-				catch {}
+                if( p.Length == 0 ) _path = null;
+                else
+                {
+                    try { File.Delete( p ); _path = null; }
+                    catch { }
+                }
 			}
 		}
 	}
