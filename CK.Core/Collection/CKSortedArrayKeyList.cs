@@ -140,11 +140,11 @@ namespace CK.Core
         }
 
         /// <summary>
-        /// Gets an independant collection of the items that 
+        /// Gets an independent collection of the items that 
         /// are associated to the given key value.
         /// </summary>
         /// <param name="key">The key to find.</param>
-        /// <returns>An independant collection of <typeparamref name="T"/>.</returns>
+        /// <returns>An independent collection of <typeparamref name="T"/>.</returns>
         public IReadOnlyCollection<T> GetAllByKey( TKey key )
         {
             int idx = Util.BinarySearch( Store, 0, Count, key, ComparisonKey );

@@ -459,6 +459,17 @@ namespace CK.Core
         }
 
         /// <summary>
+        /// Registers a unique client for a type that must have a public default constructor. 
+        /// <see cref="Activator.CreateInstance{T}()"/> is called if necessary.
+        /// </summary>
+        /// <returns>The found or newly created client.</returns>
+        public static T RegisterUniqueClient<T>( this IActivityMonitorOutput @this ) 
+            where T : IActivityMonitorClient, new()
+        {
+            return @this.RegisterUniqueClient( c => true, () => Activator.CreateInstance<T>() );
+        }
+
+        /// <summary>
         /// Unregisters the first <see cref="IActivityMonitorClient"/> from the <see cref="IActivityMonitorOutput.Clients"/> list
         /// that satisfies the predicate.
         /// </summary>

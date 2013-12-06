@@ -177,9 +177,10 @@ namespace CK.Core
         }
 
         /// <summary>
-        /// Gets or sets the log folder to use. When setting it, the path must be valid: the directory "SystemActivityMonitor" is created (if not already here) and 
-        /// a test file is created (and deleted) inside it to ensure that (at least at configuration time), no security configuration prevents us to create log files:
-        /// all errors files will be created in this sub directory.
+        /// Gets or sets the log folder to use. When setting it, the path must be valid (when it is not an absolute path, it is combined 
+        /// with the <see cref="AppDomain.BaseDirectory">AppDomain.CurrentDomain.BaseDirectory</see>): the sub directory "SystemActivityMonitor" 
+        /// is created (if not already here) and a test file is created (and deleted) inside it to ensure that (at least at configuration time), 
+        /// no security configuration prevents us to create log files: all errors files will be created in this sub directory.
         /// When not null, it necessarily ends with a <see cref="Path.DirectorySeparatorChar"/>.
         /// Defaults to the value of <see cref="AppSettingsKey"/> in <see cref="AppSettings.Default"/> or null.
         /// </summary>
@@ -195,6 +196,7 @@ namespace CK.Core
                     {
                         try
                         {
+                            if( !Path.IsPathRooted( value ) ) value = Path.Combine( AppDomain.CurrentDomain.BaseDirectory, value );
                             value = FileUtil.NormalizePathSeparator( value, true );
                             string dirName = value + SubDirectoryName;
                             if( !Directory.Exists( dirName ) ) Directory.CreateDirectory( dirName );

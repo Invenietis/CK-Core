@@ -69,6 +69,7 @@ namespace CK.Core.Tests
             Assert.That( Util.Math.Log2( 536870912 ) == 29 );
             Assert.That( Util.Math.Log2( 1073741824 ) == 30 );
             Assert.That( Util.Math.Log2( 2147483648 ) == 31 );
+            Assert.That( Util.Math.Log2( 2147483648 + 50 ) == 31 );
 
             Assert.That( Util.Math.Log2( 4 + 2 + 1 ) == 2 );
             Assert.That( Util.Math.Log2( 64 + 25 ) == 6 );

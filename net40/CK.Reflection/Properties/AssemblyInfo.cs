@@ -22,12 +22,15 @@
 #endregion
 
 using System.Reflection;
+using System.Resources;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
 [assembly: AssemblyTitle( "CK.Reflection" )]
 [assembly: AssemblyDescription( "" )]
 [assembly: AssemblyCulture( "" )]
+[assembly: NeutralResourcesLanguage( "en-US" )]
+
 [assembly: ComVisible( false )]
 [assembly: Guid("94beb3e0-046b-4460-9eb4-f684de068aa8")]
 

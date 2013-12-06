@@ -112,7 +112,7 @@ namespace CK.Core
         /// </summary>
         public bool IsEmpty
         {
-            get { return _trait == String.Empty; }
+            get { return _trait.Length == 0; }
         }
 
         /// <summary>

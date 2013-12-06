@@ -105,21 +105,29 @@ namespace CK.Core.Tests
 
         public static void CleanupTestFolder()
         {
+            DeleteFolder( TestFolder, true );
+        }
+
+        public static void DeleteFolder( string directoryPath, bool recreate = false )
+        {
             int tryCount = 0;
             for( ; ; )
             {
                 try
                 {
-                    if( Directory.Exists( TestFolder ) ) Directory.Delete( TestFolder, true );
-                    Directory.CreateDirectory( TestFolder );
-                    File.WriteAllText( Path.Combine( TestFolder, "TestWrite.txt" ), "Test write works." );
-                    File.Delete( Path.Combine( TestFolder, "TestWrite.txt" ) );
+                    if( Directory.Exists( directoryPath ) ) Directory.Delete( directoryPath, true );
+                    if( recreate )
+                    {
+                        Directory.CreateDirectory( directoryPath );
+                        File.WriteAllText( Path.Combine( directoryPath, "TestWrite.txt" ), "Test write works." );
+                        File.Delete( Path.Combine( directoryPath, "TestWrite.txt" ) );
+                    }
                     return;
                 }
                 catch( Exception ex )
                 {
                     if( ++tryCount == 20 ) throw;
-                    ConsoleMonitor.Info().Send( ex, "While cleaning up test directory. Retrying." );
+                    ConsoleMonitor.Info().Send( ex, "While cleaning up directory '{0}'. Retrying.", directoryPath );
                     System.Threading.Thread.Sleep( 100 );
                 }
             }

@@ -28,7 +28,12 @@ namespace CK.Core.Impl
         /// </summary>
         public void Dispose()
         {
-            if( !_disposed ) Dispose( true );
+            if( !_disposed )
+            {
+                Dispose( true );
+                GC.SuppressFinalize( this );
+                _disposed = true;
+            }
         }
 
         /// <summary>
@@ -40,8 +45,6 @@ namespace CK.Core.Impl
         {
             if( disposing )
             {
-                _disposed = true;
-                GC.SuppressFinalize( this );
                 while( CurrentGroup != null ) CloseGroup( DateTime.UtcNow );
             }
         }

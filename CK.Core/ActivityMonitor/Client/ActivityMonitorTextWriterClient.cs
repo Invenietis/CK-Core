@@ -167,7 +167,7 @@ namespace CK.Core
         /// </summary>
         /// <param name="w">The TextWriter to write to.</param>
         /// <param name="prefix">Prefix that will start all lines.</param>
-        /// <param name="displayMessage">Wether the exception message must be displayed or skip.</param>
+        /// <param name="displayMessage">Whether the exception message must be displayed or skip.</param>
         /// <param name="ex">The exception to display.</param>
         static public void DumpException( TextWriter w, string prefix, bool displayMessage, Exception ex )
         {
