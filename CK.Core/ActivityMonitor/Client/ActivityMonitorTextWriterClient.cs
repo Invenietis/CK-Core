@@ -32,22 +32,24 @@ using System.Diagnostics;
 namespace CK.Core
 {
     /// <summary>
-    /// Sinks the logs to a <see cref="TextWriter"/>.
+    /// Sinks the logs to an <see cref="Action{T}"/> where T is a string.
     /// </summary>
     public class ActivityMonitorTextWriterClient : ActivityMonitorTextHelperClient
     {
-        Action<string> _writer;
-        StringBuilder _buffer;
+        readonly Action<string> _writer;
+        readonly StringBuilder _buffer;
         string _prefix;
         string _prefixLevel;
         CKTrait _currentTags;
 
         /// <summary>
         /// Initializes a new <see cref="ActivityMonitorTextWriterClient"/> bound to a 
-        /// function that must return the <see cref="TextWriter"/> to use when needed.
+        /// function that must write a string.
         /// </summary>
+        /// <param name="writer">Function that writes the content.</param>
         public ActivityMonitorTextWriterClient( Action<string> writer )
         {
+            if( writer == null ) throw new ArgumentNullException( "writer" );
             _writer = writer;
             _buffer = new StringBuilder();
             _prefixLevel = _prefix = String.Empty;
@@ -76,7 +78,6 @@ namespace CK.Core
             {
                 DumpException( w, _prefix, !data.IsTextTheExceptionMessage, data.Exception );
             }
-
             _writer( w.ToString() );
         }
 
@@ -141,7 +142,7 @@ namespace CK.Core
         }
 
         /// <summary>
-        /// Wtites group conclusion and updates internally managed line prefix.
+        /// Writes group conclusion and updates internally managed line prefix.
         /// </summary>
         /// <param name="g">Group that must be closed.</param>
         /// <param name="conclusions">Conclusions for the group.</param>
