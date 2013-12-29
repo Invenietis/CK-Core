@@ -1,6 +1,6 @@
 #region LGPL License
 /*----------------------------------------------------------------------------
-* This file (CK.Core\IObservableReadOnlyCollection.cs) is part of CiviKey. 
+* This file (CK.Core\ICKObservableReadOnlyList.cs) is part of CiviKey. 
 *  
 * CiviKey is free software: you can redistribute it and/or modify 
 * it under the terms of the GNU Lesser General Public License as published 
@@ -31,12 +31,12 @@ using System.ComponentModel;
 namespace CK.Core
 {
     /// <summary>
-    /// Definition of a <see cref="IObservableReadOnlyCollection{T}"/> that extends <see cref="ICKReadOnlyCollection{T}"/> (for the 
-    /// contravariant <see cref="ICKReadOnlyCollection{T}.Contains"/> method).
-    /// It has no properties nor methods by itself: it is only here to federate its 2 base interfaces.
+    /// Definition of an <see cref="IObservableReadOnlyCollection{T}"/> that is <see cref="IReadOnlyList{T}"/> (the index of the elements makes sense).
+    /// This interface is "compatible" with the standard .Net <see cref="System.Collections.ObjectModel.ObservableCollection{T}"/>: a specialization of ObservableCollection 
+    /// that supports this interface does not need any extra code to be exposed as a true read only observable list.
     /// </summary>
-    /// <typeparam name="T">The type of elements in the collection.</typeparam>
-    public interface ICKObservableReadOnlyCollection<out T> : IObservableReadOnlyCollection<T>, ICKReadOnlyCollection<T> 
+    /// <typeparam name="T">The type of elements in the list.</typeparam>
+    public interface IObservableReadOnlyList<out T> : IObservableReadOnlyCollection<T>, IReadOnlyList<T>
     {
     }
 

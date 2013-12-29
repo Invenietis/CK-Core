@@ -31,12 +31,13 @@ using System.ComponentModel;
 namespace CK.Core
 {
     /// <summary>
-    /// Definition of a <see cref="IObservableReadOnlyCollection{T}"/> that extends <see cref="ICKReadOnlyCollection{T}"/> (for the 
-    /// contravariant <see cref="ICKReadOnlyCollection{T}.Contains"/> method).
-    /// It has no properties nor methods by itself: it is only here to federate its 2 base interfaces.
+    /// Definition of a <see cref="IReadOnlyCollection{T}"/> that is observable through <see cref="INotifyCollectionChanged"/> and <see cref="INotifyPropertyChanged"/>.
+    /// It has no properties nor methods by itself: it is only here to federate its 3 base interfaces.
+    /// This interface is "compatible" with the standard .Net <see cref="System.Collections.ObjectModel.ObservableCollection{T}"/>: a specialization of ObservableCollection 
+    /// that supports this interface does not need any extra code to be exposed as a true read only observable collection.
     /// </summary>
     /// <typeparam name="T">The type of elements in the collection.</typeparam>
-    public interface ICKObservableReadOnlyCollection<out T> : IObservableReadOnlyCollection<T>, ICKReadOnlyCollection<T> 
+    public interface IObservableReadOnlyCollection<out T> : IReadOnlyCollection<T>, INotifyCollectionChanged, INotifyPropertyChanged
     {
     }
 

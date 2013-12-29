@@ -126,7 +126,7 @@ namespace CK.Reflection
         /// and the compiler generates one automatically.
         /// </summary>
         /// <typeparam name="TProperty">Property type.</typeparam>
-        /// <param name="propertyLambda">A lambda function that selects a property (from the current syntaxic context).</param>
+        /// <param name="propertyLambda">A lambda function that selects a property (from the current syntactic context).</param>
         /// <returns>Corresponding property information.</returns>
         public static PropertyInfo GetPropertyInfo<TProperty>( Expression<Func<TProperty>> propertyLambda )
         {

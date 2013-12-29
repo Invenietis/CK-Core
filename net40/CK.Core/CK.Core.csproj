@@ -280,6 +280,12 @@
     <Compile Include="..\..\CK.Core\IMergeable.cs">
       <Link>IMergeable.cs</Link>
     </Compile>
+    <Compile Include="..\..\CK.Core\IObservableReadOnlyCollection.cs">
+      <Link>IObservableReadOnlyCollection.cs</Link>
+    </Compile>
+    <Compile Include="..\..\CK.Core\IObservableReadOnlyList.cs">
+      <Link>IObservableReadOnlyList.cs</Link>
+    </Compile>
     <Compile Include="..\..\CK.Core\ISimpleServiceContainer.cs">
       <Link>ISimpleServiceContainer.cs</Link>
     </Compile>

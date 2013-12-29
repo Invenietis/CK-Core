@@ -119,6 +119,8 @@
     <Compile Include="AppSettings.cs" />
     <Compile Include="CKException.cs" />
     <Compile Include="CKExceptionData.cs" />
+    <Compile Include="IObservableReadOnlyCollection.cs" />
+    <Compile Include="IObservableReadOnlyList.cs" />
     <Compile Include="GlobalSuppressions.cs" />
     <Compile Include="LegacySupport\IReadOnlyCollection.cs">
       <SubType>Code</SubType>
