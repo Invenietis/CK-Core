@@ -25,6 +25,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Globalization;
 using System.IO;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -38,7 +39,7 @@ namespace CK.Core
     {
         /// <summary>
         /// Combination of <see cref="FileAttributes"/> that can not exist: it can be used to 
-        /// tag inexisting files among other existing (i.e. valid) file attributes.
+        /// tag non existing files among other existing (i.e. valid) file attributes.
         /// </summary>
         static readonly public FileAttributes InexistingFile = FileAttributes.Normal | FileAttributes.Offline;
 
@@ -121,8 +122,20 @@ namespace CK.Core
         /// <summary>
         /// A display format for <see cref="DateTime"/> that supports round-trips, is readable and can be used in path 
         /// or url (the DateTime should be in UTC since <see cref="DateTime.Kind"/> is ignored).
+        /// Use <see cref="TryParseFileNameUniqueTimeUtcFormat"/> to parse it (it uses the correct <see cref="DateTimeStyles"/>).
         /// </summary>
         public static readonly string FileNameUniqueTimeUtcFormat = @"yyyy-MM-dd HH\hmm.ss.fffffff";
+
+        /// <summary>
+        /// Tries to parse a string formatted with the <see cref="FileNameUniqueTimeUtcFormat"/>.
+        /// </summary>
+        /// <param name="s">The string to parse.</param>
+        /// <param name="time">Result time on success.</param>
+        /// <returns>True if the string has been successfully parsed.</returns>
+        public static bool TryParseFileNameUniqueTimeUtcFormat( string s, out DateTime time )
+        {
+            return DateTime.TryParseExact( s, FileUtil.FileNameUniqueTimeUtcFormat, CultureInfo.InvariantCulture, DateTimeStyles.AdjustToUniversal | DateTimeStyles.AssumeUniversal, out time );
+        }
 
         /// <summary>
         /// Finds the first character index of any characters that are invalid in a path.

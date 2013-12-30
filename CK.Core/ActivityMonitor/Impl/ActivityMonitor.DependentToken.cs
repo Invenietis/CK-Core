@@ -258,7 +258,7 @@ namespace CK.Core
                 if( remainder < 38 + 4 + 27 
                     || String.CompareOrdinal( s, iIdBracket+38, " at ", 0, 4 ) != 0
                     || !Guid.TryParseExact( s.Substring( iIdBracket, 38 ), "B", out id ) ) return false;
-                if( !DateTime.TryParseExact( s.Substring( iIdBracket+38+4, 27 ), FileUtil.FileNameUniqueTimeUtcFormat, CultureInfo.InvariantCulture, DateTimeStyles.AdjustToUniversal | DateTimeStyles.AssumeUniversal, out time ) ) return false;
+                if( !FileUtil.TryParseFileNameUniqueTimeUtcFormat( s.Substring( iIdBracket + 38 + 4, 27 ), out time ) ) return false;
                 int iOpenB = iIdBracket + 38 + 4 + 27;
                 if( remainder > 38 + 4 + 27 && s[iOpenB] == '(' )
                 {

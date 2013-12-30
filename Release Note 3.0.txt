@@ -18,6 +18,8 @@ CK.Core 3.0 - Release Notes
 		- It supports multiple overriding and reverting to the original configuration. (Override support and restoration is mainly designed for tests but the override 
 		  functionnality alone can be a useful feature in real life application.)
 
+	- New IObservableReadOnlyList<out T> and IObservableReadOnlyCollection<out T> interfaces.  
+
 	- ActivityMonitor
 		- "Logging is cool, Monitoring is better"
 		- Clear and enforced definition of threading issues:
@@ -50,6 +52,7 @@ CK.Core 3.0 - Release Notes
 		- New SystemActivityMonitor whose main goal is to be internally used by the Monitor framework to report errors in the monitoring itself) but can be used as a "normal" 
 		  monitor (this should be avoided: activity must go to the GrandOutput as much as possible).
 		  SystemActivityMonitor logs the errors it receives into a configurable folder (static RootLogPath property) as small and independent text files.
+
 			
 - Disparition:
 	- No more Predicate<T> anywhere. ONLY Func<T,bool> exists and must be used.
