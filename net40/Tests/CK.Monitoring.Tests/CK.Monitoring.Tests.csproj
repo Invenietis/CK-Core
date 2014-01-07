@@ -82,6 +82,9 @@
     <Compile Include="..\..\..\Tests\CK.Monitoring.Tests\Performance\StressTests.cs">
       <Link>StressTests.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\Tests\CK.Monitoring.Tests\Persistence\ReadWriteTests.cs">
+      <Link>ReadWriteTests.cs</Link>
+    </Compile>
     <Compile Include="..\..\..\Tests\CK.Monitoring.Tests\StupidStringClient.cs">
       <Link>StupidStringClient.cs</Link>
     </Compile>

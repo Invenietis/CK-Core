@@ -295,7 +295,6 @@ namespace CK.Monitoring
                     AppDomain.CurrentDomain.ProcessExit -= h;
                     _dispatcher.Dispose();
                     _bufferingChannel.Dispose();
-
                 }
             }
         }

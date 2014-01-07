@@ -152,7 +152,7 @@ namespace CK.Monitoring
             if( (t & StreamLogType.HasException) != 0 )
             {
                 ex = new CKExceptionData( r );
-                if( (t & StreamLogType.IsTextTheExceptionMessage) == 0 ) text = ex.Message;
+                if( (t & StreamLogType.IsTextTheExceptionMessage) != 0 ) text = ex.Message;
             }
             if( text == null ) text = r.ReadString();
 
