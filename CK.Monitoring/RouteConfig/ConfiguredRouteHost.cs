@@ -469,12 +469,13 @@ namespace CK.RouteConfig
         /// </summary>
         /// <param name="monitor">Monitor that will be used. Must not be null.</param>
         /// <param name="millisecondsBeforeForceClose">Maximal time to wait for current routes to be unlocked (see <see cref="IRouteConfigurationLock"/>).</param>
-        public void Dispose( IActivityMonitor monitor, int millisecondsBeforeForceClose = Timeout.Infinite )
+        /// <returns>Returns true if this host has actually been disposed, false if it has already been disposed.</returns>
+        public bool Dispose( IActivityMonitor monitor, int millisecondsBeforeForceClose = Timeout.Infinite )
         {
             if( monitor == null ) throw new ArgumentNullException( "monitor" );
             lock( _initializeLock )
             {
-                if( _disposed ) return;
+                if( _disposed ) return false;
                 _disposed = true;
                 _futureRoot = _emptyHost;
                 _allActionsDying = _allActions;
@@ -505,6 +506,7 @@ namespace CK.RouteConfig
                 _futureAllActions = null;
                 lock( _waitLock ) Monitor.PulseAll( _waitLock );
             }
+            return true;
         }
 
         /// <summary>

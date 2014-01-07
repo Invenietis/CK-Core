@@ -71,6 +71,14 @@ namespace CK.Monitoring
             _channelHost.ConfigurationClosing += OnConfigurationClosing;
             _bufferingChannel = new BufferingChannel( _commonSink, _dispatcher, factory.CommonSinkOnlyReceiver );
             _nextDeadClientGarbage = DateTime.UtcNow.AddMinutes( 5 );
+            var h = new EventHandler( OnDomainTermination );
+            AppDomain.CurrentDomain.DomainUnload += h;
+            AppDomain.CurrentDomain.ProcessExit += h;
+        }
+
+        void OnDomainTermination( object sender, EventArgs e )
+        {
+            Dispose();
         }
 
         /// <summary>
@@ -280,9 +288,15 @@ namespace CK.Monitoring
             if( monitor == null ) throw new ArgumentNullException( "monitor" );
             if( !_channelHost.IsDisposed )
             {
-                _channelHost.Dispose( monitor, millisecondsBeforeForceClose );
-                _dispatcher.Dispose();
-                _bufferingChannel.Dispose();
+                if( _channelHost.Dispose( monitor, millisecondsBeforeForceClose ) )
+                {
+                    var h = new EventHandler( OnDomainTermination );
+                    AppDomain.CurrentDomain.DomainUnload -= h;
+                    AppDomain.CurrentDomain.ProcessExit -= h;
+                    _dispatcher.Dispose();
+                    _bufferingChannel.Dispose();
+
+                }
             }
         }
 
