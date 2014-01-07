@@ -45,7 +45,7 @@ namespace CK.Monitoring.GrandOutputHandlers
 
         private void OpenFile()
         {
-            _output = FileUtil.CreateAndOpenUniqueTimedFile( _path, ".ckmon", _initializedTime, FileAccess.Write, FileShare.Read, 8, FileOptions.SequentialScan|FileOptions.WriteThrough );
+            _output = FileUtil.CreateAndOpenUniqueTimedFile( _path, ".ckmon.tmp", _initializedTime, FileAccess.Write, FileShare.Read, 8, FileOptions.SequentialScan|FileOptions.WriteThrough );
             _writer = new BinaryWriter( _output );
             _writer.Write( LogReader.CurrentStreamVersion );
         }
@@ -55,8 +55,7 @@ namespace CK.Monitoring.GrandOutputHandlers
             if( --_countRemainder == 0 )
             {
                 _countRemainder = _maxCountPerFile;
-                _writer.Write( (byte)0 );
-                _writer.Dispose();
+                CloseCurrentFile();
                 OpenFile();
             }
             logEvent.Entry.WriteMultiCastLogEntry( _writer );
@@ -68,11 +67,18 @@ namespace CK.Monitoring.GrandOutputHandlers
             {
                 using( m.OpenTrace().Send( "Closing binary output file for configuration '{0}'.", Name ) )
                 {
-                    _writer.Write( (byte)0 );
-                    _writer.Dispose();
-                    _writer = null;
+                    CloseCurrentFile();
                 }
             }
+        }
+
+        void CloseCurrentFile()
+        {
+            _writer.Write( (byte)0 );
+            string fName = _output.Name;
+            _writer.Dispose();
+            File.Move( fName, fName.Substring( 0, fName.Length - 4 ) );
+            _writer = null;
         }
 
         void IDisposable.Dispose()
