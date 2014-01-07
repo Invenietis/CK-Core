@@ -53,7 +53,12 @@ namespace CK.Monitoring.Tests.Configuration
         public void ApplyConfigSimple()
         {
             GrandOutputConfiguration c = new GrandOutputConfiguration();
-            Assert.That( c.Load( XDocument.Parse( @"<GrandOutputConfiguration AppDomainDefaultFilter=""Release"" ><Add Type=""BinaryFile"" Name=""GlobalCatch"" Path=""Configuration/ApplyConfig"" /></GrandOutputConfiguration>" ).Root, TestHelper.ConsoleMonitor ) );
+
+            Assert.That( c.Load( XDocument.Parse( @"
+<GrandOutputConfiguration AppDomainDefaultFilter=""Release"" >
+    <Add Type=""BinaryFile"" Name=""GlobalCatch"" Path=""Configuration/ApplyConfig"" />
+</GrandOutputConfiguration>" ).Root, TestHelper.ConsoleMonitor ) );
+
             Assert.That( c.RouteConfiguration.Configurations.Count, Is.EqualTo( 1 ) );
 
             SystemActivityMonitor.RootLogPath = TestHelper.TestFolder;

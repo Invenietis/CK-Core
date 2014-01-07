@@ -47,6 +47,7 @@ namespace CK.Monitoring.GrandOutputHandlers
         {
             _output = FileUtil.CreateAndOpenUniqueTimedFile( _path, ".ckmon", _initializedTime, FileAccess.Write, FileShare.Read, 8, FileOptions.SequentialScan|FileOptions.WriteThrough );
             _writer = new BinaryWriter( _output );
+            _writer.Write( LogReader.CurrentStreamVersion );
         }
 
         public override void Handle( GrandOutputEventInfo logEvent, bool parrallelCall )

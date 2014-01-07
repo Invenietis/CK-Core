@@ -100,7 +100,7 @@ namespace CK.Core
         }
 
         /// <summary>
-        /// Explicitely implemented since our <see cref="Add"/> method
+        /// Explicitly implemented since our <see cref="Add"/> method
         /// returns a boolean.
         /// </summary>
         /// <param name="item">Item to add.</param>
@@ -118,7 +118,7 @@ namespace CK.Core
         }
 
         /// <summary>
-        /// Locates an element (one of the occurences when duplicates are allowed) in this list (logarithmic). 
+        /// Locates an element (one of the occurrences when duplicates are allowed) in this list (logarithmic). 
         /// </summary>
         /// <param name="value">The element.</param>
         /// <returns>The result of the <see cref="G:Util.BinarySearch{T}"/> in the internal array.</returns>
