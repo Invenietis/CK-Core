@@ -142,11 +142,11 @@ namespace CK.Monitoring
             }
             _currentPosition = _stream.Position;
             _current = LogEntry.Read( _binaryReader );
-            return true;
+            return _current != null;
         }
 
         /// <summary>
-        /// Replays mono activity. Multicast entries (<see cref="IMulticastLogEntry"/>) are ignored.
+        /// Replays mono activity. Multi-cast entries (<see cref="IMulticastLogEntry"/>) are ignored.
         /// </summary>
         /// <param name="destination">Target <see cref="IActivityMonitor"/>.</param>
         public void ReplayUnicast( IActivityMonitor destination )
