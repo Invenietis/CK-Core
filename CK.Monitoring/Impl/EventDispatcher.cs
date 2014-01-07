@@ -90,6 +90,7 @@ namespace CK.Monitoring.Impl
             _strat = strategy;
             _overloadLock = new object();
             _thread = new Thread( Run );
+            _thread.IsBackground = true;
             _strat.Initialize( () => _queue.Count, _thread );
             _thread.Start();
         }
