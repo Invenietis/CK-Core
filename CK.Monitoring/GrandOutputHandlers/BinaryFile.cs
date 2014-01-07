@@ -55,6 +55,7 @@ namespace CK.Monitoring.GrandOutputHandlers
             if( --_countRemainder == 0 )
             {
                 _countRemainder = _maxCountPerFile;
+                _writer.Write( (byte)0 );
                 _writer.Dispose();
                 OpenFile();
             }
@@ -67,6 +68,7 @@ namespace CK.Monitoring.GrandOutputHandlers
             {
                 using( m.OpenTrace().Send( "Closing binary output file for configuration '{0}'.", Name ) )
                 {
+                    _writer.Write( (byte)0 );
                     _writer.Dispose();
                     _writer = null;
                 }
