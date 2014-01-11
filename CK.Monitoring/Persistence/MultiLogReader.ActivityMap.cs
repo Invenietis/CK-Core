@@ -294,6 +294,12 @@ namespace CK.Monitoring
                 }
 
                 public IReadOnlyList<ILogEntry> Entries { get { return _entries; } }
+                
+                /// <summary>
+                /// Gets the current path. First entries may be null: they correspond to <see cref="Monitor.FirstDepth"/>: we know
+                /// that we are dealing with subordinate entries but we do not have in any of the available files the opening of these groups.
+                /// </summary>
+                public IReadOnlyList<ILogEntry> CurrentPath { get { return _path.AsReadOnlyList(); } }
 
                 public int PageLength { get { return _pageLength; } }
 
