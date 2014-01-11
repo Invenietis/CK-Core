@@ -122,19 +122,46 @@ namespace CK.Core
         /// <summary>
         /// A display format for <see cref="DateTime"/> that supports round-trips, is readable and can be used in path 
         /// or url (the DateTime should be in UTC since <see cref="DateTime.Kind"/> is ignored).
-        /// Use <see cref="TryParseFileNameUniqueTimeUtcFormat"/> to parse it (it uses the correct <see cref="DateTimeStyles"/>).
+        /// Use <see cref="MatchFileNameUniqueTimeUtcFormat"/> or <see cref="TryParseFileNameUniqueTimeUtcFormat"/> to parse it (it uses the correct <see cref="DateTimeStyles"/>).
+        /// It is: @"yyyy-MM-dd HH\hmm.ss.fffffff"
         /// </summary>
         public static readonly string FileNameUniqueTimeUtcFormat = @"yyyy-MM-dd HH\hmm.ss.fffffff";
 
         /// <summary>
+        /// Tries to match a DateTime that follows the <see cref="FileNameUniqueTimeUtcFormat"/> in a string at a given position.
+        /// </summary>
+        /// <param name="s">The string to match.</param>
+        /// <param name="startAt">Index where the match must start. On success, index of the end of the match.</param>
+        /// <param name="time">Result time.</param>
+        /// <returns>True if the time has been matched.</returns>
+        public static bool MatchFileNameUniqueTimeUtcFormat( string s, ref int startAt, out DateTime time )
+        {
+            if( s == null ) throw new ArgumentNullException( "s" );
+            if( startAt >= s.Length ) throw new IndexOutOfRangeException();
+
+            Debug.Assert( FileNameUniqueTimeUtcFormat.Replace( "\\", "" ).Length == 27 );
+            time = Util.UtcMinValue;
+            if( s.Length < startAt - 27 ) return false;
+            if( DateTime.TryParseExact( s.Substring( startAt, 27 ), FileUtil.FileNameUniqueTimeUtcFormat, CultureInfo.InvariantCulture, DateTimeStyles.AdjustToUniversal | DateTimeStyles.AssumeUniversal, out time ) )
+            {
+                startAt += 27;
+                return true;
+            }
+            return false;
+        }
+
+        /// <summary>
         /// Tries to parse a string formatted with the <see cref="FileNameUniqueTimeUtcFormat"/>.
+        /// The string must contain only the time unless <paramref name="allowSuffix"/> is true.
         /// </summary>
         /// <param name="s">The string to parse.</param>
         /// <param name="time">Result time on success.</param>
+        /// <param name="allowSuffix">True to accept a string that starts with the time and contains more text.</param>
         /// <returns>True if the string has been successfully parsed.</returns>
-        public static bool TryParseFileNameUniqueTimeUtcFormat( string s, out DateTime time )
+        public static bool TryParseFileNameUniqueTimeUtcFormat( string s, out DateTime time, bool allowSuffix = false )
         {
-            return DateTime.TryParseExact( s, FileUtil.FileNameUniqueTimeUtcFormat, CultureInfo.InvariantCulture, DateTimeStyles.AdjustToUniversal | DateTimeStyles.AssumeUniversal, out time );
+            int startAt = 0;
+            return MatchFileNameUniqueTimeUtcFormat( s, ref startAt, out time ) && (allowSuffix || startAt == s.Length);
         }
 
         /// <summary>

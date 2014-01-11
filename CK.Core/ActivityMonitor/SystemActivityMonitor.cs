@@ -39,7 +39,7 @@ namespace CK.Core
                 var level = data.Level & LogLevel.Mask;
                 if( level >= LogLevel.Error )
                 {
-                    string s = DumpErrorText( data.LogTimeUtc, data.Text, data.Level, null, data.Tags );
+                    string s = DumpErrorText( data.LogTime, data.Text, data.Level, null, data.Tags );
                     SystemActivityMonitor.HandleError( s );
                 }
             }
@@ -48,7 +48,7 @@ namespace CK.Core
             {
                 if( group.MaskedGroupLevel >= LogLevel.Error )
                 {
-                    string s = DumpErrorText( group.LogTimeUtc, group.GroupText, group.MaskedGroupLevel, group.GroupTags, group.EnsureExceptionData() );
+                    string s = DumpErrorText( group.LogTime, group.GroupText, group.MaskedGroupLevel, group.GroupTags, group.EnsureExceptionData() );
                     SystemActivityMonitor.HandleError( s );
                 }
             }
@@ -128,7 +128,7 @@ namespace CK.Core
         {
             foreach( var error in e.LoggingErrors )
             {
-                string s = DumpErrorText( DateTime.UtcNow, error.Comment, LogLevel.Error, error.Exception, null );
+                string s = DumpErrorText( LogTimestamp.UtcNow, error.Comment, LogLevel.Error, error.Exception, null );
                 HandleError( s );
             }
         }
@@ -245,7 +245,7 @@ namespace CK.Core
             if( h != null )
             {
                 LowLevelErrorEventArgs e = new LowLevelErrorEventArgs( s, fullLogFilePath, errorWhileWritingFile );
-                // h.GetInvocationList() creates an independant copy of Delegate[].
+                // h.GetInvocationList() creates an independent copy of Delegate[].
                 foreach( EventHandler<LowLevelErrorEventArgs> d in h.GetInvocationList() )
                 {
                     try
@@ -263,9 +263,9 @@ namespace CK.Core
 
         #region Generate text from errors methods.
 
-        static string DumpErrorText( DateTime logTimeUtc, string text, LogLevel level, Exception ex, CKTrait tags )
+        static string DumpErrorText( LogTimestamp logTime, string text, LogLevel level, Exception ex, CKTrait tags )
         {
-            StringBuilder buffer = CreateHeader( logTimeUtc, text, level, tags );
+            StringBuilder buffer = CreateHeader( logTime, text, level, tags );
             if( ex != null )
             {
                 ActivityMonitorTextWriterClient.DumpException( buffer, String.Empty, !ReferenceEquals( text, ex.Message ), ex );
@@ -274,18 +274,18 @@ namespace CK.Core
             return buffer.ToString();
         }
 
-        static string DumpErrorText( DateTime logTimeUtc, string text, LogLevel level, CKTrait tags, CKExceptionData exData )
+        static string DumpErrorText( LogTimestamp logTime, string text, LogLevel level, CKTrait tags, CKExceptionData exData )
         {
-            StringBuilder buffer = CreateHeader( logTimeUtc, text, level, tags );
+            StringBuilder buffer = CreateHeader( logTime, text, level, tags );
             if( exData != null ) exData.ToStringBuilder( buffer, String.Empty );
             WriteFooter( level, buffer );
             return buffer.ToString();
         }
 
-        static StringBuilder CreateHeader( DateTime logTimeUtc, string text, LogLevel level, CKTrait tags )
+        static StringBuilder CreateHeader( LogTimestamp logTime, string text, LogLevel level, CKTrait tags )
         {
             StringBuilder buffer = new StringBuilder();
-            buffer.Append( '<' ).Append( level.ToString() ).Append( '>' ).Append( '@' ).AppendFormat( "{0:O}", logTimeUtc );
+            buffer.Append( '<' ).Append( level.ToString() ).Append( '>' ).Append( '@' ).Append( logTime.ToString() );
             if( tags != null && !tags.IsEmpty ) buffer.Append( " - " ).Append( tags.ToString() );
             buffer.AppendLine();
             if( text != null && text.Length > 0 ) buffer.Append( text ).AppendLine();

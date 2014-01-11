@@ -46,35 +46,16 @@ namespace CK.Core
         public class DependentToken
         {
             readonly Guid _originatorId;
-            readonly DateTime _creationDate;
+            readonly LogTimestamp _creationDate;
             readonly string _topic;
-            readonly int _uniquifier;
 
-            static object _lockTimeClash = new object();
-            static DateTime _lastLogTimeUtc;
-            static int _uniqueCounter;
+            static readonly string _format = "{0:B} at {1}";
 
-            static readonly string _format = "{0:B} at {1:" + FileUtil.FileNameUniqueTimeUtcFormat + "}";
-            static readonly string _formatWithU = "{0:B} at {1:" + FileUtil.FileNameUniqueTimeUtcFormat + "}({2})";
-
-            internal DependentToken( Guid monitorId, DateTime logTimeUtc, string topic )
+            internal DependentToken( Guid monitorId, LogTimestamp logTime, string topic )
             {
-                Debug.Assert( logTimeUtc.Kind == DateTimeKind.Utc );
                 _originatorId = monitorId;
-                _creationDate = logTimeUtc;
+                _creationDate = logTime;
                 _topic = topic;
-                lock( _lockTimeClash )
-                {
-                    if( _lastLogTimeUtc == logTimeUtc )
-                    {
-                        _uniquifier = ++_uniqueCounter;
-                    }
-                    else
-                    {
-                        _lastLogTimeUtc = logTimeUtc;
-                        _uniqueCounter = 0;
-                    }
-                }
             }
 
             /// <summary>
@@ -89,18 +70,9 @@ namespace CK.Core
             /// Gets the creation date. This is the log time of the unfiltered Info log that has 
             /// been emitted in the originator monitor.
             /// </summary>
-            public DateTime CreationDate
+            public LogTimestamp CreationDate
             {
                 get { return _creationDate; }
-            }
-
-            /// <summary>
-            /// Gets a unique number that is used when two or more <see cref="CreationDate"/> collides. 
-            /// (It is quite always zero.)
-            /// </summary>
-            public int Uniquifier
-            {
-                get { return _uniquifier; }
             }
 
             /// <summary>
@@ -115,10 +87,10 @@ namespace CK.Core
             /// <summary>
             /// Overridden to give a readable description (without Topic) that can be parsed with <see cref="TryParse"/>.
             /// </summary>
-            /// <returns></returns>
+            /// <returns>A readable string.</returns>
             public override string ToString()
             {
-                return _uniquifier != 0 ? String.Format( _formatWithU, _originatorId, _creationDate, _uniquifier ) : String.Format( _format, _originatorId, _creationDate );
+                return String.Format( _format, _originatorId, _creationDate );
             }
 
             /// <summary>
@@ -144,15 +116,13 @@ namespace CK.Core
             /// <param name="launched">True if the activity has been launched or the token has only be created.</param>
             /// <param name="withTopic">True if an explicit topic has been associated to the dependent activity.</param>
             /// <param name="dependentTopic">When <paramref name="withTopic"/> is true, this contains the explicitly set topic.</param>
-            /// <param name="uniquifier">The uniquifier that has been generated on time collision.</param>
             /// <returns>True on success.</returns>
-            public static bool TryParseLaunchOrCreateMessage( string message, out bool launched, out bool withTopic, out string dependentTopic, out int uniquifier )
+            public static bool TryParseLaunchOrCreateMessage( string message, out bool launched, out bool withTopic, out string dependentTopic )
             {
                 if( message == null ) throw new ArgumentNullException();
                 launched = false;
                 withTopic = false;
                 dependentTopic = null;
-                uniquifier = 0;
 
                 if( message.Length < 10 ) return false;
                 if( message.StartsWith( _prefixLaunchWithTopic ) ) 
@@ -173,12 +143,6 @@ namespace CK.Core
                     launched = true;
                 }
                 else if( !message.StartsWith( _prefixCreate ) ) return false;
-                if( message[message.Length-2] == ')' )
-                {
-                    int idxOpen = message.LastIndexOf( '(', message.Length-3 );
-                    if( idxOpen < 0 ) return false;
-                    if( !Int32.TryParse( message.Substring( idxOpen + 1, message.Length - 3 - idxOpen ), out uniquifier ) ) return false;
-                }
                 return true;
             }
 
@@ -219,55 +183,30 @@ namespace CK.Core
             /// <param name="startMessage">The start message to parse.</param>
             /// <param name="id">The originator monitor identifier.</param>
             /// <param name="time">The creation time of the dependent activity.</param>
-            /// <param name="uniquifier">The uniquifier (different than zero on time clash).</param>
             /// <returns>True on success.</returns>
-            static public bool TryParseStartMessage( string startMessage, out Guid id, out DateTime time, out int uniquifier )
-            {
-                return TryParse( startMessage, out id, out time, out uniquifier );
-            }
-
-            /// <summary>
-            /// Attempts to parse the dependent token expressed as a string: this method looks for the first occurrence of the <see cref="ToString"/> pattern in the string.
-            /// </summary>
-            /// <param name="s">The string to parse.</param>
-            /// <param name="id">The originator monitor identifier.</param>
-            /// <param name="time">The creation time of the dependent activity.</param>
-            /// <param name="uniquifier">The uniquifier (different than zero on time clash).</param>
-            /// <returns>True on success.</returns>
-            static public bool TryParse( string s, out Guid id, out DateTime time, out int uniquifier )
+            static public bool TryParseStartMessage( string startMessage, out Guid id, out LogTimestamp time )
             {
                 id = Guid.Empty;
-                time = DateTime.MinValue;
-                uniquifier = 0;
-
+                time = LogTimestamp.MinValue;
                 int iIdBracket = -1;
-                while( (iIdBracket = s.IndexOf( '{', iIdBracket + 1 )) >= 0 )
+                while( (iIdBracket = startMessage.IndexOf( '{', iIdBracket + 1 )) >= 0 )
                 {
-                    if( TryParseAt( s, iIdBracket, ref id, ref time, ref uniquifier ) ) return true; 
+                    if( TryParseAt( startMessage, iIdBracket, ref id, ref time ) ) return true; 
                 }
                 return false; 
             }
 
-            static bool TryParseAt( string s, int iIdBracket, ref Guid id, ref DateTime time, ref int uniquifier )
+            static bool TryParseAt( string s, int iIdBracket, ref Guid id, ref LogTimestamp time )
             {
                 Debug.Assert( iIdBracket >= 0 );
                 
-                Debug.Assert( FileUtil.FileNameUniqueTimeUtcFormat.Replace( "\\", "" ).Length == 27 );
                 Debug.Assert( Guid.Empty.ToString( "B" ).Length == 38 );
+                int timeIdx = iIdBracket + 38 + 4;
+                if( timeIdx >= s.Length ) return false;
+                if( !LogTimestamp.Match( s, ref timeIdx, out time ) ) return false;
+                
                 int remainder = s.Length - iIdBracket;
-                if( remainder < 38 + 4 + 27 
-                    || String.CompareOrdinal( s, iIdBracket+38, " at ", 0, 4 ) != 0
-                    || !Guid.TryParseExact( s.Substring( iIdBracket, 38 ), "B", out id ) ) return false;
-                if( !FileUtil.TryParseFileNameUniqueTimeUtcFormat( s.Substring( iIdBracket + 38 + 4, 27 ), out time ) ) return false;
-                int iOpenB = iIdBracket + 38 + 4 + 27;
-                if( remainder > 38 + 4 + 27 && s[iOpenB] == '(' )
-                {
-                    int iCloseB = s.IndexOf( ')', ++iOpenB );
-                    if( iCloseB > 0 ) 
-                    {
-                        Int32.TryParse( s.Substring( iOpenB, iCloseB - iOpenB  ), out uniquifier );
-                    }
-                }
+                if( String.CompareOrdinal( s, iIdBracket+38, " at ", 0, 4 ) != 0 || !Guid.TryParseExact( s.Substring( iIdBracket, 38 ), "B", out id ) ) return false;
                 return true;
             }
 
@@ -287,9 +226,8 @@ namespace CK.Core
             internal static DependentToken CreateWithMonitorTopic( IActivityMonitor m, bool launchActivity, out string msg )
             {
                 msg = launchActivity ? _prefixLaunch : _prefixCreate;
-                DependentToken t = new DependentToken( ((IUniqueId)m).UniqueId, DateTime.UtcNow, m.Topic );
-                if( t._uniquifier != 0 ) msg += String.Format( CultureInfo.InvariantCulture, " ({0}).", t._uniquifier );
-                else msg += ".";
+                DependentToken t = new DependentToken( ((IUniqueId)m).UniqueId, m.NextLogTime(), m.Topic );
+                msg += '.';
                 return t;
             }
 
@@ -303,9 +241,8 @@ namespace CK.Core
                     msg += _suffixEmptyTopic;
                 }
                 else msg += _suffixWithTopic + dependentTopic + '\'';
-                DependentToken t = new DependentToken( ((IUniqueId)m).UniqueId, DateTime.UtcNow, dependentTopic );
-                if( t._uniquifier != 0 ) msg += String.Format( CultureInfo.InvariantCulture, " ({0}).", t._uniquifier );
-                else msg += ".";
+                DependentToken t = new DependentToken( ((IUniqueId)m).UniqueId, m.NextLogTime(), dependentTopic );
+                msg += '.';
                 return t;
             }
 
@@ -316,10 +253,10 @@ namespace CK.Core
                 {
                     string currentTopic = token.Topic;
                     monitor.SetTopic( token.Topic, fileName, lineNumber );
-                    var g = monitor.UnfilteredOpenGroup( ActivityMonitor.Tags.StartDependentActivity, LogLevel.Info, null, msg, DateTime.UtcNow, null, fileName, lineNumber );
+                    var g = monitor.UnfilteredOpenGroup( ActivityMonitor.Tags.StartDependentActivity, LogLevel.Info, null, msg, monitor.NextLogTime(), null, fileName, lineNumber );
                     return Util.CreateDisposableAction( () => { g.Dispose(); monitor.SetTopic( currentTopic, fileName, lineNumber ); } );
                 }
-                return monitor.UnfilteredOpenGroup( ActivityMonitor.Tags.StartDependentActivity, LogLevel.Info, null, msg, DateTime.UtcNow, null, fileName, lineNumber );
+                return monitor.UnfilteredOpenGroup( ActivityMonitor.Tags.StartDependentActivity, LogLevel.Info, null, msg, monitor.NextLogTime(), null, fileName, lineNumber );
             }
         }
     }

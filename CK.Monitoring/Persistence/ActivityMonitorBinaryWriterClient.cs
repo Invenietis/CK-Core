@@ -43,17 +43,17 @@ namespace CK.Monitoring
 
         void IActivityMonitorClient.OnUnfilteredLog( ActivityMonitorLogData data )
         {
-            LogEntry.WriteLog( _binaryWriter, false, data.Level, data.LogTimeUtc, data.Text, data.Tags, data.EnsureExceptionData(), data.FileName, data.LineNumber );
+            LogEntry.WriteLog( _binaryWriter, false, data.Level, data.LogTime, data.Text, data.Tags, data.EnsureExceptionData(), data.FileName, data.LineNumber );
         }
 
         void IActivityMonitorClient.OnOpenGroup( IActivityLogGroup group )
         {
-            LogEntry.WriteLog( _binaryWriter, true, group.GroupLevel, group.LogTimeUtc, group.GroupText, group.GroupTags, group.EnsureExceptionData(), group.FileName, group.LineNumber );
+            LogEntry.WriteLog( _binaryWriter, true, group.GroupLevel, group.LogTime, group.GroupText, group.GroupTags, group.EnsureExceptionData(), group.FileName, group.LineNumber );
         }
 
         void IActivityMonitorClient.OnGroupClosed( IActivityLogGroup group, IReadOnlyList<ActivityLogGroupConclusion> conclusions )
         {
-            LogEntry.WriteCloseGroup( _binaryWriter, group.GroupLevel, group.CloseLogTimeUtc, conclusions );
+            LogEntry.WriteCloseGroup( _binaryWriter, group.GroupLevel, group.CloseLogTime, conclusions );
         }
 
         void IActivityMonitorClient.OnGroupClosing( IActivityLogGroup group, ref List<ActivityLogGroupConclusion> conclusions )

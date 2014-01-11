@@ -33,10 +33,10 @@ namespace CK.Core
             get { return _monitor == null; }
         }
 
-        internal void InitializeAndSend( Exception exception, CKTrait tags, string text, DateTime logTimeUtc )
+        internal void InitializeAndSend( Exception exception, CKTrait tags, string text )
         {
             Debug.Assert( !IsRejected );
-            Initialize( text, exception, tags, logTimeUtc );
+            Initialize( text, exception, tags, _monitor.NextLogTime() );
             _monitor.UnfilteredLog( this );
         }
     }

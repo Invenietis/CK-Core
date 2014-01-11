@@ -39,8 +39,8 @@ namespace CK.Core
     public class FIFOBuffer<T> : ICKReadOnlyList<T>, ICKWritableCollector<T>
     {
         int _count;
-        int _head;
-        int _tail;
+        int _first;
+        int _next;
         T[] _buffer;
 
         /// <summary>
@@ -53,8 +53,8 @@ namespace CK.Core
                 throw new ArgumentException( "Capacity must be greater than or equal to zero.", "capacity" );
             _buffer = new T[capacity];
             _count = 0;
-            _head = 0;
-            _tail = 0;
+            _first = 0;
+            _next = 0;
         }
 
         /// <summary>
@@ -72,13 +72,13 @@ namespace CK.Core
 
                 var dst = new T[value];
                 if( _count > 0 ) CopyTo( dst );
-                _head = 0;
+                _first = 0;
                 if( _count > value )
                 {
                     _count = value;
-                    _tail = 0;
+                    _next = 0;
                 }
-                else _tail = _count;
+                else _next = _count;
                 _buffer = dst;
             }
         }
@@ -102,8 +102,8 @@ namespace CK.Core
             if( newCount == 0 ) Clear();
             else while( _count > newCount )
                 {
-                    _buffer[_head] = default( T );
-                    if( ++_head == _buffer.Length ) _head = 0;
+                    _buffer[_first] = default( T );
+                    if( ++_first == _buffer.Length ) _first = 0;
                     _count--;
                 }
         }
@@ -139,7 +139,7 @@ namespace CK.Core
         public int IndexOf( T item )
         {
             var comparer = EqualityComparer<T>.Default;
-            int bufferIndex = _head;
+            int bufferIndex = _first;
             for( int i = 0; i < _count; i++, bufferIndex++ )
             {
                 if( bufferIndex == _buffer.Length ) bufferIndex = 0;
@@ -159,9 +159,77 @@ namespace CK.Core
             get
             {
                 if( index < 0 || index >= _count ) throw new IndexOutOfRangeException();
-                index += _head;
-                int roll = index - _buffer.Length;
-                return _buffer[roll >= 0 ? roll : index];
+                index += _first;
+                int rollIdx = index - _buffer.Length;
+                return _buffer[rollIdx >= 0 ? rollIdx : index];
+            }
+        }
+
+        /// <summary>
+        /// Removes the element by index. Index 0 is the oldest item, the one returned by <see cref="Peek"/> and <see cref="Pop"/>.
+        /// </summary>
+        /// <param name="index">Index must be positive and less than <see cref="Count"/>.</param>
+        public void RemoveAt( int index )
+        {
+            if( index < 0 || index >= _count ) throw new IndexOutOfRangeException();
+            --_count;
+            if( index == 0 )
+            {
+                _buffer[_first] = default( T );
+                if( ++_first == _buffer.Length ) _first = 0;
+                return;
+            }
+            index += _first;
+            int len;
+            int rollIdx = index - _buffer.Length;
+            if( rollIdx < 0 ) 
+            {
+                len = _next - index;
+                Debug.Assert( len != 0, "We do not RemoveAt( _count )." );
+                if( len > 0 )
+                {
+                    Debug.Assert( _next > 0 );
+                    Array.Copy( _buffer, index + 1, _buffer, index, len );
+                    _buffer[_next] = default( T );
+                    --_next;
+                }
+                else
+                {
+                    Debug.Assert( _next < index && index > _first && _next <= _first );
+                    len = _buffer.Length - index - 1;
+                    if( len > 0 ) Array.Copy( _buffer, index + 1, _buffer, index, len );
+                    if( _next > 0 )
+                    {
+                        _buffer[_buffer.Length - 1] = _buffer[0];
+                        Array.Copy( _buffer, 1, _buffer, 0, _next );
+                        if( _next != _first ) _buffer[_next] = default( T );
+                        --_next;
+                    }
+                    else
+                    {
+                        if( _first != 0 ) _buffer[0] = default( T );
+                        _next = _buffer.Length - 1;
+                    }
+                }
+            }
+            else
+            {
+                len = _next - rollIdx;
+                Debug.Assert( len != 0, "We do not RemoveAt( _count )." );
+                if( len > 0 )
+                {
+                    Array.Copy( _buffer, rollIdx + 1, _buffer, rollIdx, len );
+                    --_next;
+                    Debug.Assert( _next >= 0 );
+                }
+                else
+                {
+                    len = _buffer.Length - rollIdx;
+                    if( len > 0 ) Array.Copy( _buffer, rollIdx + 1, _buffer, rollIdx, len );
+                    _buffer[_buffer.Length - 1] = _buffer[0];
+                    if( _next > 0 ) Array.Copy( _buffer, 1, _buffer, 0, _next-- );
+                    else _next = _buffer.Length - 1;
+                }
             }
         }
 
@@ -171,8 +239,8 @@ namespace CK.Core
         public void Clear()
         {
             _count = 0;
-            _head = 0;
-            _tail = 0;
+            _first = 0;
+            _next = 0;
             Array.Clear( _buffer, 0, _buffer.Length );
         }
 
@@ -185,11 +253,11 @@ namespace CK.Core
             Debug.Assert( _count <= _buffer.Length );
             if( _buffer.Length > 0 )
             {
-                _buffer[_tail++] = item;
-                if( _tail == _buffer.Length ) _tail = 0;
+                _buffer[_next++] = item;
+                if( _next == _buffer.Length ) _next = 0;
                 if( _count == _buffer.Length )
                 {
-                    if( ++_head == _buffer.Length ) _head = 0;
+                    if( ++_first == _buffer.Length ) _first = 0;
                 }
                 else _count++;
             }
@@ -203,9 +271,9 @@ namespace CK.Core
         public T Pop()
         {
             if( _count == 0 ) throw new InvalidOperationException( R.FIFOBufferEmpty );
-            var item = _buffer[_head];
-            _buffer[_head] = default( T );
-            if( ++_head == _buffer.Length ) _head = 0;
+            var item = _buffer[_first];
+            _buffer[_first] = default( T );
+            if( ++_first == _buffer.Length ) _first = 0;
             _count--;
             return item;
         }
@@ -218,9 +286,9 @@ namespace CK.Core
         public T PopLast()
         {
             if( _count == 0 ) throw new InvalidOperationException( R.FIFOBufferEmpty );
-            if( --_tail < 0 ) _tail = _head + _count - 1;
-            var item = _buffer[_tail];
-            _buffer[_tail] = default( T );
+            if( --_next < 0 ) _next = _first + _count - 1;
+            var item = _buffer[_next];
+            _buffer[_next] = default( T );
             _count--;
             return item;
         }
@@ -233,7 +301,7 @@ namespace CK.Core
         public T Peek()
         {
             if( _count == 0 ) throw new InvalidOperationException( R.FIFOBufferEmpty );
-            return _buffer[_head];
+            return _buffer[_first];
         }
 
         /// <summary>
@@ -244,8 +312,8 @@ namespace CK.Core
         public T PeekLast()
         {
             if( _count == 0 ) throw new InvalidOperationException( R.FIFOBufferEmpty );
-            int t = _tail-1;
-            if( t < 0 ) t = _head + _count - 1;
+            int t = _next-1;
+            if( t < 0 ) t = _first + _count - 1;
             return _buffer[t];
         }
 
@@ -299,21 +367,21 @@ namespace CK.Core
             // Number of item to copy: 
             // if there is enough available space, we copy the whole buffer (_count items) from head to tail.
             // if we need to copy less, we want to copy the count last items (and not the first ones).
-            int head = _head;
+            int head = _first;
             int toBeSkipped = _count - count;
             if( toBeSkipped > 0 )
             {
                 Debug.Assert( _count > count, "We must copy less items than what we have." );
                 head += toBeSkipped;
                 if( head > _buffer.Length ) head -= _buffer.Length;
-                Debug.Assert( head != _head, "The head for the copy is not the current head." );
+                Debug.Assert( head != _first, "The head for the copy is not the current head." );
             }
             else
             {
                 Debug.Assert( count >= _count, "We are asked to copy all items (or more than we have)." );
                 // Copy all existing items.
                 count = _count;
-                Debug.Assert( head == _head, "The head for the copy is the current head." );
+                Debug.Assert( head == _first, "The head for the copy is the current head." );
             }
             // Detects whether we need 2 or only one copy.
             int afterHead = _buffer.Length - head;
@@ -328,7 +396,7 @@ namespace CK.Core
                 // 1 - From head to the end.
                 Array.Copy( _buffer, head, array, arrayIndex, afterHead );
                 // 2 - From start to tail.
-                Array.Copy( _buffer, 0, array, arrayIndex + afterHead, _tail );
+                Array.Copy( _buffer, 0, array, arrayIndex + afterHead, _next );
             }
             return count;
         }
@@ -339,7 +407,7 @@ namespace CK.Core
         /// <returns>An enumerator.</returns>
         public IEnumerator<T> GetEnumerator()
         {
-            int bufferIndex = _head;
+            int bufferIndex = _first;
             for( int i = 0; i < _count; i++, bufferIndex++ )
             {
                 if( bufferIndex == _buffer.Length ) bufferIndex = 0;
@@ -348,7 +416,7 @@ namespace CK.Core
         }
 
         /// <summary>
-        /// Creates an array that contains <see cref="Count"/> items.
+        /// Creates an array that contains <see cref="Count"/> items from oldest to newest.
         /// </summary>
         /// <returns>An array with the contained items. Never null.</returns>
         public T[] ToArray()
@@ -368,7 +436,7 @@ namespace CK.Core
         }
 
         /// <summary>
-        /// Overriden to display the current count of items and capacity for this buffer.
+        /// Overridden to display the current count of items and capacity for this buffer.
         /// </summary>
         /// <returns>Current count and capacity.</returns>
         public override string ToString()

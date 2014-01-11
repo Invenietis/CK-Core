@@ -52,7 +52,7 @@ namespace CK.Core
             public readonly int Index;
 
             ActivityMonitorGroupData _data;
-            DateTime _closeLogTime;
+            LogTimestamp _closeLogTime;
             Group _unfilteredParent;
             int _depth;
 
@@ -79,7 +79,7 @@ namespace CK.Core
                 // Logs everything when a Group is an error: we then have full details without
                 // logging all with Error or Fatal.
                 if( data.MaskedLevel >= LogLevel.Error && Monitor._configuredFilter != LogFilter.Debug ) Monitor.DoSetConfiguredFilter( LogFilter.Debug );
-                _closeLogTime = DateTime.MinValue;
+                _closeLogTime = LogTimestamp.MinValue;
                 _data = data;
             }
 
@@ -103,13 +103,13 @@ namespace CK.Core
             /// <summary>
             /// Gets the log time for the log.
             /// </summary>
-            public DateTime LogTimeUtc { get { return _data.LogTimeUtc; } }
+            public LogTimestamp LogTime { get { return _data.LogTime; } }
 
             /// <summary>
             /// Gets the log time of the group closing.
-            /// It is <see cref="DateTime.MinValue"/> when the group is not closed yet.
+            /// It is <see cref="LogTime.MinValue"/> when the group is not closed yet.
             /// </summary>
-            public DateTime CloseLogTimeUtc 
+            public LogTimestamp CloseLogTime 
             { 
                 get { return _closeLogTime; } 
                 internal set { _closeLogTime = value; } 
@@ -208,7 +208,7 @@ namespace CK.Core
                 if( _data != null )
                 {
                     while( Monitor._current != this ) ((IDisposable)Monitor._current).Dispose();
-                    Monitor.CloseGroup( DateTime.UtcNow, null );
+                    Monitor.CloseGroup( Monitor.NextLogTime(), null );
                 }
             }           
 

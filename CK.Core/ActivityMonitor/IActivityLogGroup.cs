@@ -40,13 +40,13 @@ namespace CK.Core
         /// <summary>
         /// Gets the log time for the log.
         /// </summary>
-        DateTime LogTimeUtc { get; }
+        LogTimestamp LogTime { get; }
 
         /// <summary>
         /// Gets the log time of the group closing.
-        /// It is <see cref="DateTime.MinValue"/> when the group is not closed yet.
+        /// It is <see cref="LogTime.MinValue"/> when the group is not closed yet.
         /// </summary>
-        DateTime CloseLogTimeUtc { get; }
+        LogTimestamp CloseLogTime { get; }
 
         /// <summary>
         /// Get the previous group in its origin monitor. Null if this group is a top level group.

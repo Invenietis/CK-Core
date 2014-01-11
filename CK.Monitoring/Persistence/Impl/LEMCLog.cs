@@ -10,7 +10,7 @@ namespace CK.Monitoring.Impl
         readonly Guid _monitorId;
         readonly int _depth;
 
-        public LEMCLog( Guid monitorId, int depth, string text, DateTime t, string fileName, int lineNumber, LogLevel l, CKTrait tags, CKExceptionData ex )
+        public LEMCLog( Guid monitorId, int depth, string text, LogTimestamp t, string fileName, int lineNumber, LogLevel l, CKTrait tags, CKExceptionData ex )
             : base( text, t, fileName, lineNumber, l, tags, ex )
         {
             _monitorId = monitorId;
@@ -23,7 +23,13 @@ namespace CK.Monitoring.Impl
 
         public void WriteMultiCastLogEntry( BinaryWriter w )
         {
-            LogEntry.WriteLog( w, _monitorId, _depth, false, LogLevel, LogTimeUtc, Text, Tags, Exception, FileName, LineNumber );
+            LogEntry.WriteLog( w, _monitorId, _depth, false, LogLevel, LogTime, Text, Tags, Exception, FileName, LineNumber );
         }
+        
+        public ILogEntry CreateUnicastLogEntry()
+        {
+            return new LELog( this );
+        }
+
     }
 }

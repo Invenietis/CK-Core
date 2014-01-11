@@ -42,7 +42,7 @@ namespace CK.Monitoring
         /// Gets the log time.
         /// This is available whatever <see cref="LogType"/> is.
         /// </summary>
-        DateTime LogTimeUtc { get; }
+        LogTimestamp LogTime { get; }
 
         /// <summary>
         /// Gets the exception data if any (can be not null only when <see cref="LogType"/> is <see cref="LogEntryType.OpenGroup"/>: exceptions are exclusively carried by groups).

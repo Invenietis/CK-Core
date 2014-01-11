@@ -63,7 +63,7 @@ namespace CK.Core
 			#>if( arg0 is Exception ) throw new ArgumentException( R.PossibleWrongOverloadUseWithException, "arg0" );
 			<#
 			}
-			#>return s.InitializeAndSend( <# StateCall(); #>, <# TextCall( nbArg ); #>, DateTime.UtcNow );
+			#>return s.InitializeAndSend( <# StateCall(); #>, <# TextCall( nbArg ); #> );
         }
 		<#	
 				} 
@@ -78,7 +78,7 @@ namespace CK.Core
         public static IDisposableGroup <#= MethodName() #>( this IActivityMonitorGroupSender @this<# StateArgumentSignature(); #>, Func<string> text )
         {
 			ActivityMonitorGroupSender s = (ActivityMonitorGroupSender)@this;
-            return s.IsRejected ? s.Monitor.UnfilteredOpenGroup( s ) : s.InitializeAndSend( <# StateCall(); #>, text(), DateTime.UtcNow );
+            return s.IsRejected ? s.Monitor.UnfilteredOpenGroup( s ) : s.InitializeAndSend( <# StateCall(); #>, text() );
         }
 
 		/// <summary>
@@ -92,7 +92,7 @@ namespace CK.Core
         public static IDisposableGroup <#= MethodName() #><T>( this IActivityMonitorGroupSender @this<# StateArgumentSignature(); #>, Func<T,string> text, T param )
         {
 			ActivityMonitorGroupSender s = (ActivityMonitorGroupSender)@this;
-            return s.IsRejected ? s.Monitor.UnfilteredOpenGroup( s ) : s.InitializeAndSend( <# StateCall(); #>, text(param), DateTime.UtcNow );
+            return s.IsRejected ? s.Monitor.UnfilteredOpenGroup( s ) : s.InitializeAndSend( <# StateCall(); #>, text(param) );
         }
 
 		/// <summary>
@@ -108,7 +108,7 @@ namespace CK.Core
         public static IDisposableGroup <#= MethodName() #><T1,T2>( this IActivityMonitorGroupSender @this<# StateArgumentSignature(); #>, Func<T1,T2,string> text, T1 param1, T2 param2 )
         {
 			ActivityMonitorGroupSender s = (ActivityMonitorGroupSender)@this;
-            return s.IsRejected ? s.Monitor.UnfilteredOpenGroup( s ) : s.InitializeAndSend( <# StateCall(); #>, text(param1,param2), DateTime.UtcNow );
+            return s.IsRejected ? s.Monitor.UnfilteredOpenGroup( s ) : s.InitializeAndSend( <# StateCall(); #>, text(param1,param2) );
         }
 
 		/// <summary>
@@ -126,7 +126,7 @@ namespace CK.Core
         public static IDisposableGroup <#= MethodName() #><T1,T2,T3>( this IActivityMonitorGroupSender @this<# StateArgumentSignature(); #>, Func<T1,T2,T3,string> text, T1 param1, T2 param2, T3 param3 )
         {
 			ActivityMonitorGroupSender s = (ActivityMonitorGroupSender)@this;
-            return s.IsRejected ? s.Monitor.UnfilteredOpenGroup( s ) : s.InitializeAndSend( <# StateCall(); #>, text(param1,param2,param3), DateTime.UtcNow );
+            return s.IsRejected ? s.Monitor.UnfilteredOpenGroup( s ) : s.InitializeAndSend( <# StateCall(); #>, text(param1,param2,param3) );
         }
 
 		#endregion <#= MethodNameRegion #> 

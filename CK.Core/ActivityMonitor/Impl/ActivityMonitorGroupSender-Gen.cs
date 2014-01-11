@@ -44,7 +44,7 @@ namespace CK.Core
         {
 			ActivityMonitorGroupSender s = (ActivityMonitorGroupSender)@this;
             if( s.IsRejected ) return s.Monitor.UnfilteredOpenGroup( s );
-			return s.InitializeAndSend( null, ActivityMonitor.Tags.Empty, text, DateTime.UtcNow );
+			return s.InitializeAndSend( null, ActivityMonitor.Tags.Empty, text );
         }
 		 
 		/// <summary>
@@ -58,7 +58,7 @@ namespace CK.Core
 			ActivityMonitorGroupSender s = (ActivityMonitorGroupSender)@this;
             if( s.IsRejected ) return s.Monitor.UnfilteredOpenGroup( s );
 			if( arg0 is Exception ) throw new ArgumentException( R.PossibleWrongOverloadUseWithException, "arg0" );
-			return s.InitializeAndSend( null, ActivityMonitor.Tags.Empty, String.Format( format, arg0 ), DateTime.UtcNow );
+			return s.InitializeAndSend( null, ActivityMonitor.Tags.Empty, String.Format( format, arg0 ) );
         }
 		 
 		/// <summary>
@@ -72,7 +72,7 @@ namespace CK.Core
         {
 			ActivityMonitorGroupSender s = (ActivityMonitorGroupSender)@this;
             if( s.IsRejected ) return s.Monitor.UnfilteredOpenGroup( s );
-			return s.InitializeAndSend( null, ActivityMonitor.Tags.Empty, String.Format( format, arg0, arg1 ), DateTime.UtcNow );
+			return s.InitializeAndSend( null, ActivityMonitor.Tags.Empty, String.Format( format, arg0, arg1 ) );
         }
 		 
 		/// <summary>
@@ -87,7 +87,7 @@ namespace CK.Core
         {
 			ActivityMonitorGroupSender s = (ActivityMonitorGroupSender)@this;
             if( s.IsRejected ) return s.Monitor.UnfilteredOpenGroup( s );
-			return s.InitializeAndSend( null, ActivityMonitor.Tags.Empty, String.Format( format, arg0, arg1, arg2 ), DateTime.UtcNow );
+			return s.InitializeAndSend( null, ActivityMonitor.Tags.Empty, String.Format( format, arg0, arg1, arg2 ) );
         }
 		 
 		/// <summary>
@@ -103,7 +103,7 @@ namespace CK.Core
         {
 			ActivityMonitorGroupSender s = (ActivityMonitorGroupSender)@this;
             if( s.IsRejected ) return s.Monitor.UnfilteredOpenGroup( s );
-			return s.InitializeAndSend( null, ActivityMonitor.Tags.Empty, String.Format( format, arg0, arg1, arg2, arg3 ), DateTime.UtcNow );
+			return s.InitializeAndSend( null, ActivityMonitor.Tags.Empty, String.Format( format, arg0, arg1, arg2, arg3 ) );
         }
 		 
 		/// <summary>
@@ -116,7 +116,7 @@ namespace CK.Core
         {
 			ActivityMonitorGroupSender s = (ActivityMonitorGroupSender)@this;
             if( s.IsRejected ) return s.Monitor.UnfilteredOpenGroup( s );
-			return s.InitializeAndSend( null, ActivityMonitor.Tags.Empty, String.Format( format, arguments ), DateTime.UtcNow );
+			return s.InitializeAndSend( null, ActivityMonitor.Tags.Empty, String.Format( format, arguments ) );
         }
 		 
 		/// <summary>
@@ -128,7 +128,7 @@ namespace CK.Core
         public static IDisposableGroup Send( this IActivityMonitorGroupSender @this, Func<string> text )
         {
 			ActivityMonitorGroupSender s = (ActivityMonitorGroupSender)@this;
-            return s.IsRejected ? s.Monitor.UnfilteredOpenGroup( s ) : s.InitializeAndSend( null, ActivityMonitor.Tags.Empty, text(), DateTime.UtcNow );
+            return s.IsRejected ? s.Monitor.UnfilteredOpenGroup( s ) : s.InitializeAndSend( null, ActivityMonitor.Tags.Empty, text() );
         }
 
 		/// <summary>
@@ -142,7 +142,7 @@ namespace CK.Core
         public static IDisposableGroup Send<T>( this IActivityMonitorGroupSender @this, Func<T,string> text, T param )
         {
 			ActivityMonitorGroupSender s = (ActivityMonitorGroupSender)@this;
-            return s.IsRejected ? s.Monitor.UnfilteredOpenGroup( s ) : s.InitializeAndSend( null, ActivityMonitor.Tags.Empty, text(param), DateTime.UtcNow );
+            return s.IsRejected ? s.Monitor.UnfilteredOpenGroup( s ) : s.InitializeAndSend( null, ActivityMonitor.Tags.Empty, text(param) );
         }
 
 		/// <summary>
@@ -158,7 +158,7 @@ namespace CK.Core
         public static IDisposableGroup Send<T1,T2>( this IActivityMonitorGroupSender @this, Func<T1,T2,string> text, T1 param1, T2 param2 )
         {
 			ActivityMonitorGroupSender s = (ActivityMonitorGroupSender)@this;
-            return s.IsRejected ? s.Monitor.UnfilteredOpenGroup( s ) : s.InitializeAndSend( null, ActivityMonitor.Tags.Empty, text(param1,param2), DateTime.UtcNow );
+            return s.IsRejected ? s.Monitor.UnfilteredOpenGroup( s ) : s.InitializeAndSend( null, ActivityMonitor.Tags.Empty, text(param1,param2) );
         }
 
 		/// <summary>
@@ -176,7 +176,7 @@ namespace CK.Core
         public static IDisposableGroup Send<T1,T2,T3>( this IActivityMonitorGroupSender @this, Func<T1,T2,T3,string> text, T1 param1, T2 param2, T3 param3 )
         {
 			ActivityMonitorGroupSender s = (ActivityMonitorGroupSender)@this;
-            return s.IsRejected ? s.Monitor.UnfilteredOpenGroup( s ) : s.InitializeAndSend( null, ActivityMonitor.Tags.Empty, text(param1,param2,param3), DateTime.UtcNow );
+            return s.IsRejected ? s.Monitor.UnfilteredOpenGroup( s ) : s.InitializeAndSend( null, ActivityMonitor.Tags.Empty, text(param1,param2,param3) );
         }
 
 		#endregion Send 
@@ -193,7 +193,7 @@ namespace CK.Core
         {
 			ActivityMonitorGroupSender s = (ActivityMonitorGroupSender)@this;
             if( s.IsRejected ) return s.Monitor.UnfilteredOpenGroup( s );
-			return s.InitializeAndSend( null, tags, text, DateTime.UtcNow );
+			return s.InitializeAndSend( null, tags, text );
         }
 		 
 		/// <summary>
@@ -208,7 +208,7 @@ namespace CK.Core
 			ActivityMonitorGroupSender s = (ActivityMonitorGroupSender)@this;
             if( s.IsRejected ) return s.Monitor.UnfilteredOpenGroup( s );
 			if( arg0 is Exception ) throw new ArgumentException( R.PossibleWrongOverloadUseWithException, "arg0" );
-			return s.InitializeAndSend( null, tags, String.Format( format, arg0 ), DateTime.UtcNow );
+			return s.InitializeAndSend( null, tags, String.Format( format, arg0 ) );
         }
 		 
 		/// <summary>
@@ -223,7 +223,7 @@ namespace CK.Core
         {
 			ActivityMonitorGroupSender s = (ActivityMonitorGroupSender)@this;
             if( s.IsRejected ) return s.Monitor.UnfilteredOpenGroup( s );
-			return s.InitializeAndSend( null, tags, String.Format( format, arg0, arg1 ), DateTime.UtcNow );
+			return s.InitializeAndSend( null, tags, String.Format( format, arg0, arg1 ) );
         }
 		 
 		/// <summary>
@@ -239,7 +239,7 @@ namespace CK.Core
         {
 			ActivityMonitorGroupSender s = (ActivityMonitorGroupSender)@this;
             if( s.IsRejected ) return s.Monitor.UnfilteredOpenGroup( s );
-			return s.InitializeAndSend( null, tags, String.Format( format, arg0, arg1, arg2 ), DateTime.UtcNow );
+			return s.InitializeAndSend( null, tags, String.Format( format, arg0, arg1, arg2 ) );
         }
 		 
 		/// <summary>
@@ -256,7 +256,7 @@ namespace CK.Core
         {
 			ActivityMonitorGroupSender s = (ActivityMonitorGroupSender)@this;
             if( s.IsRejected ) return s.Monitor.UnfilteredOpenGroup( s );
-			return s.InitializeAndSend( null, tags, String.Format( format, arg0, arg1, arg2, arg3 ), DateTime.UtcNow );
+			return s.InitializeAndSend( null, tags, String.Format( format, arg0, arg1, arg2, arg3 ) );
         }
 		 
 		/// <summary>
@@ -270,7 +270,7 @@ namespace CK.Core
         {
 			ActivityMonitorGroupSender s = (ActivityMonitorGroupSender)@this;
             if( s.IsRejected ) return s.Monitor.UnfilteredOpenGroup( s );
-			return s.InitializeAndSend( null, tags, String.Format( format, arguments ), DateTime.UtcNow );
+			return s.InitializeAndSend( null, tags, String.Format( format, arguments ) );
         }
 		 
 		/// <summary>
@@ -283,7 +283,7 @@ namespace CK.Core
         public static IDisposableGroup Send( this IActivityMonitorGroupSender @this, CKTrait tags, Func<string> text )
         {
 			ActivityMonitorGroupSender s = (ActivityMonitorGroupSender)@this;
-            return s.IsRejected ? s.Monitor.UnfilteredOpenGroup( s ) : s.InitializeAndSend( null, tags, text(), DateTime.UtcNow );
+            return s.IsRejected ? s.Monitor.UnfilteredOpenGroup( s ) : s.InitializeAndSend( null, tags, text() );
         }
 
 		/// <summary>
@@ -298,7 +298,7 @@ namespace CK.Core
         public static IDisposableGroup Send<T>( this IActivityMonitorGroupSender @this, CKTrait tags, Func<T,string> text, T param )
         {
 			ActivityMonitorGroupSender s = (ActivityMonitorGroupSender)@this;
-            return s.IsRejected ? s.Monitor.UnfilteredOpenGroup( s ) : s.InitializeAndSend( null, tags, text(param), DateTime.UtcNow );
+            return s.IsRejected ? s.Monitor.UnfilteredOpenGroup( s ) : s.InitializeAndSend( null, tags, text(param) );
         }
 
 		/// <summary>
@@ -315,7 +315,7 @@ namespace CK.Core
         public static IDisposableGroup Send<T1,T2>( this IActivityMonitorGroupSender @this, CKTrait tags, Func<T1,T2,string> text, T1 param1, T2 param2 )
         {
 			ActivityMonitorGroupSender s = (ActivityMonitorGroupSender)@this;
-            return s.IsRejected ? s.Monitor.UnfilteredOpenGroup( s ) : s.InitializeAndSend( null, tags, text(param1,param2), DateTime.UtcNow );
+            return s.IsRejected ? s.Monitor.UnfilteredOpenGroup( s ) : s.InitializeAndSend( null, tags, text(param1,param2) );
         }
 
 		/// <summary>
@@ -334,7 +334,7 @@ namespace CK.Core
         public static IDisposableGroup Send<T1,T2,T3>( this IActivityMonitorGroupSender @this, CKTrait tags, Func<T1,T2,T3,string> text, T1 param1, T2 param2, T3 param3 )
         {
 			ActivityMonitorGroupSender s = (ActivityMonitorGroupSender)@this;
-            return s.IsRejected ? s.Monitor.UnfilteredOpenGroup( s ) : s.InitializeAndSend( null, tags, text(param1,param2,param3), DateTime.UtcNow );
+            return s.IsRejected ? s.Monitor.UnfilteredOpenGroup( s ) : s.InitializeAndSend( null, tags, text(param1,param2,param3) );
         }
 
 		#endregion SendTagged 
@@ -350,7 +350,7 @@ namespace CK.Core
         {
 			ActivityMonitorGroupSender s = (ActivityMonitorGroupSender)@this;
             if( s.IsRejected ) return s.Monitor.UnfilteredOpenGroup( s );
-			return s.InitializeAndSend( ex, ActivityMonitor.Tags.Empty, null, DateTime.UtcNow );
+			return s.InitializeAndSend( ex, ActivityMonitor.Tags.Empty, null );
         }
 		 
 		/// <summary>
@@ -363,7 +363,7 @@ namespace CK.Core
         {
 			ActivityMonitorGroupSender s = (ActivityMonitorGroupSender)@this;
             if( s.IsRejected ) return s.Monitor.UnfilteredOpenGroup( s );
-			return s.InitializeAndSend( ex, ActivityMonitor.Tags.Empty, text, DateTime.UtcNow );
+			return s.InitializeAndSend( ex, ActivityMonitor.Tags.Empty, text );
         }
 		 
 		/// <summary>
@@ -377,7 +377,7 @@ namespace CK.Core
         {
 			ActivityMonitorGroupSender s = (ActivityMonitorGroupSender)@this;
             if( s.IsRejected ) return s.Monitor.UnfilteredOpenGroup( s );
-			return s.InitializeAndSend( ex, ActivityMonitor.Tags.Empty, String.Format( format, arg0 ), DateTime.UtcNow );
+			return s.InitializeAndSend( ex, ActivityMonitor.Tags.Empty, String.Format( format, arg0 ) );
         }
 		 
 		/// <summary>
@@ -392,7 +392,7 @@ namespace CK.Core
         {
 			ActivityMonitorGroupSender s = (ActivityMonitorGroupSender)@this;
             if( s.IsRejected ) return s.Monitor.UnfilteredOpenGroup( s );
-			return s.InitializeAndSend( ex, ActivityMonitor.Tags.Empty, String.Format( format, arg0, arg1 ), DateTime.UtcNow );
+			return s.InitializeAndSend( ex, ActivityMonitor.Tags.Empty, String.Format( format, arg0, arg1 ) );
         }
 		 
 		/// <summary>
@@ -408,7 +408,7 @@ namespace CK.Core
         {
 			ActivityMonitorGroupSender s = (ActivityMonitorGroupSender)@this;
             if( s.IsRejected ) return s.Monitor.UnfilteredOpenGroup( s );
-			return s.InitializeAndSend( ex, ActivityMonitor.Tags.Empty, String.Format( format, arg0, arg1, arg2 ), DateTime.UtcNow );
+			return s.InitializeAndSend( ex, ActivityMonitor.Tags.Empty, String.Format( format, arg0, arg1, arg2 ) );
         }
 		 
 		/// <summary>
@@ -425,7 +425,7 @@ namespace CK.Core
         {
 			ActivityMonitorGroupSender s = (ActivityMonitorGroupSender)@this;
             if( s.IsRejected ) return s.Monitor.UnfilteredOpenGroup( s );
-			return s.InitializeAndSend( ex, ActivityMonitor.Tags.Empty, String.Format( format, arg0, arg1, arg2, arg3 ), DateTime.UtcNow );
+			return s.InitializeAndSend( ex, ActivityMonitor.Tags.Empty, String.Format( format, arg0, arg1, arg2, arg3 ) );
         }
 		 
 		/// <summary>
@@ -439,7 +439,7 @@ namespace CK.Core
         {
 			ActivityMonitorGroupSender s = (ActivityMonitorGroupSender)@this;
             if( s.IsRejected ) return s.Monitor.UnfilteredOpenGroup( s );
-			return s.InitializeAndSend( ex, ActivityMonitor.Tags.Empty, String.Format( format, arguments ), DateTime.UtcNow );
+			return s.InitializeAndSend( ex, ActivityMonitor.Tags.Empty, String.Format( format, arguments ) );
         }
 		 
 		/// <summary>
@@ -452,7 +452,7 @@ namespace CK.Core
         public static IDisposableGroup Send( this IActivityMonitorGroupSender @this, Exception ex, Func<string> text )
         {
 			ActivityMonitorGroupSender s = (ActivityMonitorGroupSender)@this;
-            return s.IsRejected ? s.Monitor.UnfilteredOpenGroup( s ) : s.InitializeAndSend( ex, ActivityMonitor.Tags.Empty, text(), DateTime.UtcNow );
+            return s.IsRejected ? s.Monitor.UnfilteredOpenGroup( s ) : s.InitializeAndSend( ex, ActivityMonitor.Tags.Empty, text() );
         }
 
 		/// <summary>
@@ -467,7 +467,7 @@ namespace CK.Core
         public static IDisposableGroup Send<T>( this IActivityMonitorGroupSender @this, Exception ex, Func<T,string> text, T param )
         {
 			ActivityMonitorGroupSender s = (ActivityMonitorGroupSender)@this;
-            return s.IsRejected ? s.Monitor.UnfilteredOpenGroup( s ) : s.InitializeAndSend( ex, ActivityMonitor.Tags.Empty, text(param), DateTime.UtcNow );
+            return s.IsRejected ? s.Monitor.UnfilteredOpenGroup( s ) : s.InitializeAndSend( ex, ActivityMonitor.Tags.Empty, text(param) );
         }
 
 		/// <summary>
@@ -484,7 +484,7 @@ namespace CK.Core
         public static IDisposableGroup Send<T1,T2>( this IActivityMonitorGroupSender @this, Exception ex, Func<T1,T2,string> text, T1 param1, T2 param2 )
         {
 			ActivityMonitorGroupSender s = (ActivityMonitorGroupSender)@this;
-            return s.IsRejected ? s.Monitor.UnfilteredOpenGroup( s ) : s.InitializeAndSend( ex, ActivityMonitor.Tags.Empty, text(param1,param2), DateTime.UtcNow );
+            return s.IsRejected ? s.Monitor.UnfilteredOpenGroup( s ) : s.InitializeAndSend( ex, ActivityMonitor.Tags.Empty, text(param1,param2) );
         }
 
 		/// <summary>
@@ -503,7 +503,7 @@ namespace CK.Core
         public static IDisposableGroup Send<T1,T2,T3>( this IActivityMonitorGroupSender @this, Exception ex, Func<T1,T2,T3,string> text, T1 param1, T2 param2, T3 param3 )
         {
 			ActivityMonitorGroupSender s = (ActivityMonitorGroupSender)@this;
-            return s.IsRejected ? s.Monitor.UnfilteredOpenGroup( s ) : s.InitializeAndSend( ex, ActivityMonitor.Tags.Empty, text(param1,param2,param3), DateTime.UtcNow );
+            return s.IsRejected ? s.Monitor.UnfilteredOpenGroup( s ) : s.InitializeAndSend( ex, ActivityMonitor.Tags.Empty, text(param1,param2,param3) );
         }
 
 		#endregion SendException 
@@ -520,7 +520,7 @@ namespace CK.Core
         {
 			ActivityMonitorGroupSender s = (ActivityMonitorGroupSender)@this;
             if( s.IsRejected ) return s.Monitor.UnfilteredOpenGroup( s );
-			return s.InitializeAndSend( ex, tags, null, DateTime.UtcNow );
+			return s.InitializeAndSend( ex, tags, null );
         }
 		 
 		/// <summary>
@@ -534,7 +534,7 @@ namespace CK.Core
         {
 			ActivityMonitorGroupSender s = (ActivityMonitorGroupSender)@this;
             if( s.IsRejected ) return s.Monitor.UnfilteredOpenGroup( s );
-			return s.InitializeAndSend( ex, tags, text, DateTime.UtcNow );
+			return s.InitializeAndSend( ex, tags, text );
         }
 		 
 		/// <summary>
@@ -549,7 +549,7 @@ namespace CK.Core
         {
 			ActivityMonitorGroupSender s = (ActivityMonitorGroupSender)@this;
             if( s.IsRejected ) return s.Monitor.UnfilteredOpenGroup( s );
-			return s.InitializeAndSend( ex, tags, String.Format( format, arg0 ), DateTime.UtcNow );
+			return s.InitializeAndSend( ex, tags, String.Format( format, arg0 ) );
         }
 		 
 		/// <summary>
@@ -565,7 +565,7 @@ namespace CK.Core
         {
 			ActivityMonitorGroupSender s = (ActivityMonitorGroupSender)@this;
             if( s.IsRejected ) return s.Monitor.UnfilteredOpenGroup( s );
-			return s.InitializeAndSend( ex, tags, String.Format( format, arg0, arg1 ), DateTime.UtcNow );
+			return s.InitializeAndSend( ex, tags, String.Format( format, arg0, arg1 ) );
         }
 		 
 		/// <summary>
@@ -582,7 +582,7 @@ namespace CK.Core
         {
 			ActivityMonitorGroupSender s = (ActivityMonitorGroupSender)@this;
             if( s.IsRejected ) return s.Monitor.UnfilteredOpenGroup( s );
-			return s.InitializeAndSend( ex, tags, String.Format( format, arg0, arg1, arg2 ), DateTime.UtcNow );
+			return s.InitializeAndSend( ex, tags, String.Format( format, arg0, arg1, arg2 ) );
         }
 		 
 		/// <summary>
@@ -600,7 +600,7 @@ namespace CK.Core
         {
 			ActivityMonitorGroupSender s = (ActivityMonitorGroupSender)@this;
             if( s.IsRejected ) return s.Monitor.UnfilteredOpenGroup( s );
-			return s.InitializeAndSend( ex, tags, String.Format( format, arg0, arg1, arg2, arg3 ), DateTime.UtcNow );
+			return s.InitializeAndSend( ex, tags, String.Format( format, arg0, arg1, arg2, arg3 ) );
         }
 		 
 		/// <summary>
@@ -615,7 +615,7 @@ namespace CK.Core
         {
 			ActivityMonitorGroupSender s = (ActivityMonitorGroupSender)@this;
             if( s.IsRejected ) return s.Monitor.UnfilteredOpenGroup( s );
-			return s.InitializeAndSend( ex, tags, String.Format( format, arguments ), DateTime.UtcNow );
+			return s.InitializeAndSend( ex, tags, String.Format( format, arguments ) );
         }
 		 
 		/// <summary>
@@ -629,7 +629,7 @@ namespace CK.Core
         public static IDisposableGroup Send( this IActivityMonitorGroupSender @this, Exception ex, CKTrait tags, Func<string> text )
         {
 			ActivityMonitorGroupSender s = (ActivityMonitorGroupSender)@this;
-            return s.IsRejected ? s.Monitor.UnfilteredOpenGroup( s ) : s.InitializeAndSend( ex, tags, text(), DateTime.UtcNow );
+            return s.IsRejected ? s.Monitor.UnfilteredOpenGroup( s ) : s.InitializeAndSend( ex, tags, text() );
         }
 
 		/// <summary>
@@ -645,7 +645,7 @@ namespace CK.Core
         public static IDisposableGroup Send<T>( this IActivityMonitorGroupSender @this, Exception ex, CKTrait tags, Func<T,string> text, T param )
         {
 			ActivityMonitorGroupSender s = (ActivityMonitorGroupSender)@this;
-            return s.IsRejected ? s.Monitor.UnfilteredOpenGroup( s ) : s.InitializeAndSend( ex, tags, text(param), DateTime.UtcNow );
+            return s.IsRejected ? s.Monitor.UnfilteredOpenGroup( s ) : s.InitializeAndSend( ex, tags, text(param) );
         }
 
 		/// <summary>
@@ -663,7 +663,7 @@ namespace CK.Core
         public static IDisposableGroup Send<T1,T2>( this IActivityMonitorGroupSender @this, Exception ex, CKTrait tags, Func<T1,T2,string> text, T1 param1, T2 param2 )
         {
 			ActivityMonitorGroupSender s = (ActivityMonitorGroupSender)@this;
-            return s.IsRejected ? s.Monitor.UnfilteredOpenGroup( s ) : s.InitializeAndSend( ex, tags, text(param1,param2), DateTime.UtcNow );
+            return s.IsRejected ? s.Monitor.UnfilteredOpenGroup( s ) : s.InitializeAndSend( ex, tags, text(param1,param2) );
         }
 
 		/// <summary>
@@ -683,7 +683,7 @@ namespace CK.Core
         public static IDisposableGroup Send<T1,T2,T3>( this IActivityMonitorGroupSender @this, Exception ex, CKTrait tags, Func<T1,T2,T3,string> text, T1 param1, T2 param2, T3 param3 )
         {
 			ActivityMonitorGroupSender s = (ActivityMonitorGroupSender)@this;
-            return s.IsRejected ? s.Monitor.UnfilteredOpenGroup( s ) : s.InitializeAndSend( ex, tags, text(param1,param2,param3), DateTime.UtcNow );
+            return s.IsRejected ? s.Monitor.UnfilteredOpenGroup( s ) : s.InitializeAndSend( ex, tags, text(param1,param2,param3) );
         }
 
 		#endregion SendExceptionTagged 

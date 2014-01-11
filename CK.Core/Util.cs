@@ -38,16 +38,27 @@ namespace CK.Core
     static public partial class Util
 	{
         /// <summary>
-        /// Gets 1900, january the 1st. This is the 'zero' of Sql Server datetime and smalldatetime
+        /// Gets 1900, January the 1st. This is the 'zero' of Sql Server datetime and smalldatetime
         /// types.
         /// </summary>
         static public readonly DateTime SqlServerEpoch = new DateTime( 1900, 1, 1, 0, 0, 0, DateTimeKind.Utc );
 
         /// <summary>
-        /// Gets 1970, january the 1st. This is the 'zero' of numerous date/time system
+        /// Gets 1970, January the 1st. This is the 'zero' of numerous date/time system
         /// like Unix file system or javascript.
         /// </summary>
         static public readonly DateTime UnixEpoch = new DateTime( 1970, 1, 1, 0, 0, 0, DateTimeKind.Utc );
+
+        /// <summary>
+        /// Represents the smallest possible value for a <see cref="DateTime"/> in <see cref="DateTimeKind.Utc"/>.         
+        /// </summary>
+        static public readonly DateTime UtcMinValue = new DateTime( 0L, DateTimeKind.Utc );
+
+        /// <summary>
+        /// Represents the largest possible value for a <see cref="DateTime"/> in <see cref="DateTimeKind.Utc"/>.         
+        /// </summary>
+        static public readonly DateTime UtcMaxValue = new DateTime( 0x2bca2875f4373fffL, DateTimeKind.Utc );
+
 
         /// <summary>
         /// Centralized <see cref="IDisposable.Dispose"/> action call: it adapts an <see cref="IDisposable"/> interface to an <see cref="Action"/>.

@@ -33,5 +33,11 @@ namespace CK.Monitoring
         /// </summary>
         /// <param name="w">The binary writer.</param>
         void WriteMultiCastLogEntry( BinaryWriter w );
+
+        /// <summary>
+        /// Creates a unicast entry from this multi-cast one.
+        /// The <see cref="MonitorId"/> and <see cref="GroupDepth"/> are lost (but less memory is used).
+        /// </summary>
+        ILogEntry CreateUnicastLogEntry();
     }
 }

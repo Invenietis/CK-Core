@@ -104,7 +104,7 @@ namespace CK.Core
         /// True if this list contains at least one item with the given key.
         /// </summary>
         /// <param name="key">The key to find.</param>
-        /// <returns>True if an item is foud, false otherwise.</returns>
+        /// <returns>True if an item is found, false otherwise.</returns>
         public bool Contains( TKey key )
         {
             return Util.BinarySearch( Store, 0, Count, key, ComparisonKey ) >= 0;

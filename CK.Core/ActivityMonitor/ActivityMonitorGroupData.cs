@@ -23,15 +23,18 @@ namespace CK.Core
         /// Initializes a new <see cref="ActivityMonitorGroupData"/>.
         /// </summary>
         /// <param name="level">Log level. Can not be <see cref="LogLevel.None"/>.</param>
-        /// <param name="tags">Tags (from <see cref="ActivityMonitor.Tags"/>) to associate to the log. It will be unioned with the current <see cref="IActivityMonitor.AutoTags"/>.</param>
+        /// <param name="tags">Tags (from <see cref="ActivityMonitor.Tags"/>) to associate to the log. It will be union-ed with the current <see cref="IActivityMonitor.AutoTags"/>.</param>
         /// <param name="text">Text of the log. Can be null or empty only if <paramref name="exception"/> is not null: the <see cref="Exception.Message"/> is the text.</param>
-        /// <param name="logTimeUtc">Date and time of the log. Must be in UTC.</param>
+        /// <param name="logTimeUtc">
+        /// Time of the log.
+        /// You can use <see cref="LogTime.UtcNow"/> or <see cref="ActivityMonitorExtension.NextLogTime">IActivityMonitor.NextLogTime()</see> extension method.</param>
+        /// </param>
         /// <param name="exception">Exception of the log. Can be null.</param>
         /// <param name="getConclusionText">Optional function that provides delayed obtention of the group conclusion: will be called on group closing.</param>
         /// <param name="fileName">Name of the source file that emitted the log. Can be null.</param>
-        /// <param name="lineNumber">Line number in the source filethat emitted the log. Can be null.</param>
-        public ActivityMonitorGroupData( LogLevel level, CKTrait tags, string text, DateTime logTimeUtc, Exception exception, Func<string> getConclusionText, string fileName, int lineNumber )
-            : base( level, exception, tags, text, logTimeUtc, fileName, lineNumber )
+        /// <param name="lineNumber">Line number in the source file that emitted the log. Can be null.</param>
+        public ActivityMonitorGroupData( LogLevel level, CKTrait tags, string text, LogTimestamp logTime, Exception exception, Func<string> getConclusionText, string fileName, int lineNumber )
+            : base( level, exception, tags, text, logTime, fileName, lineNumber )
         {
             _getConclusion = getConclusionText;
         }
@@ -48,9 +51,9 @@ namespace CK.Core
         {
         }
 
-        internal void Initialize( string text, Exception exception, CKTrait tags, DateTime logTimeUtc, Func<string> getConclusionText )
+        internal void Initialize( string text, Exception exception, CKTrait tags, LogTimestamp logTime, Func<string> getConclusionText )
         {
-            base.Initialize( text, exception, tags, logTimeUtc );
+            base.Initialize( text, exception, tags, logTime );
             _getConclusion = getConclusionText;
         }
 

@@ -2,7 +2,6 @@
 <Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
-    
     <TargetFrameworkVersion Condition=" '$(TargetFrameworkVersion)' == '' ">v4.5</TargetFrameworkVersion>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProductVersion>8.0.30703</ProductVersion>
@@ -62,6 +61,7 @@
     </Compile>
     <Compile Include="AppSettingsTests.cs" />
     <Compile Include="CKExceptionTests.cs" />
+    <Compile Include="Monitoring\ActivityMonitorTimestamp.cs" />
     <Compile Include="Monitoring\DocumentationCodeSnippets.cs" />
     <Compile Include="TestHelper.LegacySupport.cs" />
     <Compile Include="Monitoring\ActivityMonitorClientTester.cs" />

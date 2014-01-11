@@ -9,6 +9,7 @@ using CK.Core.PowershellExtensions.Impl;
 namespace CK.Core.PowershellExtensions.Cmdlets
 {
     [Cmdlet( VerbsCommon.New, "ActivityMonitor" )]
+    [CLSCompliant( false )]
     public class NewActivityMonitorCmdlet : Cmdlet
     {
         [Parameter( Position = 0 )]

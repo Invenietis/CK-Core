@@ -155,7 +155,7 @@ namespace CK.Monitoring.Impl
             Thread.MemoryBarrier();
             if( _overloadedErrorWaiting )
             {
-                var now = receiver != null ? e.Entry.LogTimeUtc : DateTime.MaxValue;
+                var now = receiver != null ? e.Entry.LogTime.TimeUtc : DateTime.MaxValue;
                 if( now > _nextCapacityError )
                 {
                     // Double check locking.

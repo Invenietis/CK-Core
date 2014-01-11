@@ -288,7 +288,7 @@ namespace CK.Core
                 if( _targetMonitor != null ) _targetMonitor.UnfilteredLog( data );
                 else
                 {
-                    _bridgeTarget.UnfilteredLog( data.Tags.ToString(), level, data.Text, data.EnsureExceptionData(), data.LogTimeUtc, data.FileName, data.LineNumber );
+                    _bridgeTarget.UnfilteredLog( data.Tags.ToString(), level, data.Text, data.EnsureExceptionData(), data.LogTime, data.FileName, data.LineNumber );
                 }
             }
         }
@@ -304,16 +304,16 @@ namespace CK.Core
             while( idx > _openedGroups.Count ) _openedGroups.Add( false );
 
             // By using here our array of boolean to track filtered opened groups against the target, we avoid useless 
-            // sollicitation (and marshalling when crossing application domains).
+            // solicitation (and marshaling when crossing application domains).
             // Note: If the group has already been filtered out by extension methods (group.GroupLevel == LogLevel.None),
             // we do not see it here. Checking the LogLevelFilter is ok.
             if( ( (group.GroupLevel&LogLevel.IsFiltered) == 0 && !_applyTargetFilterToUnfilteredLogs) || (int)GetActualTargetFilter().Group <= (int)group.MaskedGroupLevel )
             {
                 if( _targetMonitor != null )
-                    _targetMonitor.UnfilteredOpenGroup( group.GroupTags, group.GroupLevel, null, group.GroupText, group.LogTimeUtc, group.Exception, group.FileName, group.LineNumber );
+                    _targetMonitor.UnfilteredOpenGroup( group.GroupTags, group.GroupLevel, null, group.GroupText, group.LogTime, group.Exception, group.FileName, group.LineNumber );
                 else
                 {
-                    _bridgeTarget.UnfilteredOpenGroup( group.GroupTags.ToString(), group.GroupLevel, group.EnsureExceptionData(), group.GroupText, group.FileName, group.LineNumber, group.LogTimeUtc );
+                    _bridgeTarget.UnfilteredOpenGroup( group.GroupTags.ToString(), group.GroupLevel, group.EnsureExceptionData(), group.GroupText, group.FileName, group.LineNumber, group.LogTime );
                 }
                 _openedGroups[idx - 1] = true;
             }

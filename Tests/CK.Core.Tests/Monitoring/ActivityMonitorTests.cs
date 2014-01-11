@@ -505,17 +505,6 @@ namespace CK.Core.Tests.Monitoring
         }
 
         [Test]
-        public void ErrorAgurments()
-        {
-            IActivityMonitor l = new ActivityMonitor();
-            using( l.Output.CreateBridgeTo( TestHelper.ConsoleMonitor.Output.BridgeTarget ) )
-            {
-                Assert.Throws<ArgumentException>( () => l.UnfilteredLog( ActivityMonitor.Tags.Empty, LogLevel.Error, "Text may be null", DateTime.Now, null ), "DateTime must be Utc." );
-                Assert.Throws<ArgumentException>( () => l.UnfilteredOpenGroup( ActivityMonitor.Tags.Empty, LogLevel.Error, null, "Text may be null", DateTime.Now, null ), "DateTime must be Utc." );
-            }
-        }
-
-        [Test]
         public void PathCatcherToStringPath()
         {
             var monitor = new ActivityMonitor();

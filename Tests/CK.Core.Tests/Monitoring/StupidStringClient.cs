@@ -40,7 +40,7 @@ namespace CK.Core.Tests.Monitoring
             public readonly CKTrait Tags;
             public readonly string Text;
             public readonly Exception Exception;
-            public readonly DateTime LogTimeUtc;
+            public readonly LogTimestamp LogTime;
 
             public Entry( ActivityMonitorLogData d )
             {
@@ -48,7 +48,7 @@ namespace CK.Core.Tests.Monitoring
                 Tags = d.Tags;
                 Text = d.Text;
                 Exception = d.Exception;
-                LogTimeUtc = d.LogTimeUtc;
+                LogTime = d.LogTime;
             }
             
             public Entry( IActivityLogGroup d )
@@ -57,7 +57,7 @@ namespace CK.Core.Tests.Monitoring
                 Tags = d.GroupTags;
                 Text = d.GroupText;
                 Exception = d.Exception;
-                LogTimeUtc = d.LogTimeUtc;
+                LogTime = d.LogTime;
             }
         }
         public readonly List<Entry> Entries;

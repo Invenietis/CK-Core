@@ -120,6 +120,9 @@
     <Compile Include="..\..\..\Tests\CK.Core.Tests\Monitoring\ActivityMonitorTests.cs">
       <Link>ActivityMonitorTests.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\Tests\CK.Core.Tests\Monitoring\ActivityMonitorTimestamp.cs">
+      <Link>ActivityMonitorTimestamp.cs</Link>
+    </Compile>
     <Compile Include="..\..\..\Tests\CK.Core.Tests\Monitoring\DependentActivityTests.cs">
       <Link>DependentActivityTests.cs</Link>
     </Compile>

@@ -6,15 +6,15 @@ namespace CK.Monitoring.Impl
 {
     class LELog : ILogEntry
     {
-        readonly DateTime _time;
         readonly string _text;
         readonly CKTrait _tags;
         readonly string _fileName;
         readonly int _lineNumber;
         readonly LogLevel _level;
         readonly CKExceptionData _ex;
+        readonly LogTimestamp _time;
 
-        public LELog( string text, DateTime t, string fileName, int lineNumber, LogLevel l, CKTrait tags, CKExceptionData ex )
+        public LELog( string text, LogTimestamp t, string fileName, int lineNumber, LogLevel l, CKTrait tags, CKExceptionData ex )
         {
             _text = text;
             _time = t;
@@ -25,6 +25,17 @@ namespace CK.Monitoring.Impl
             _ex = ex;
         }
 
+        public LELog( LEMCLog e )
+        {
+            _text = e.Text;
+            _time = e.LogTime;
+            _fileName = e.FileName;
+            _lineNumber = e.LineNumber;
+            _level = e.LogLevel;
+            _tags = e.Tags;
+            _ex = e.Exception;
+        }
+
         public LogEntryType LogType { get { return LogEntryType.Line; } }
 
         public LogLevel LogLevel { get { return _level; } }
@@ -33,7 +44,7 @@ namespace CK.Monitoring.Impl
 
         public CKTrait Tags { get { return _tags; } }
 
-        public DateTime LogTimeUtc { get { return _time; } }
+        public LogTimestamp LogTime { get { return _time; } }
 
         public string FileName { get { return _fileName; } }
 

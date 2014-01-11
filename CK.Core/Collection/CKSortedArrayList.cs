@@ -29,20 +29,27 @@ using System.Diagnostics;
 namespace CK.Core
 {
     /// <summary>
-    /// Simple sorted array list implementation that supports covariance through <see cref="IReadOnlyList{T}"/> and contravariance 
-    /// with <see cref="ICKWritableCollection{T}"/>.
+    /// Simple sorted array list implementation that supports covariance through <see cref="IReadOnlyList{T}"/> and contra-variance 
+    /// with <see cref="ICKWritableCollection{T}"/>. This is a "dangerous" class since to keep the correct ordering, <see cref="CheckPosition"/> 
+    /// must be explicitly called whenever something changes on any item that impacts the <see cref="Comparator"/> result.
+    /// See the remarks for other caveats.
     /// </summary>
     /// <remarks>
+    /// <para>
     /// This class implements <see cref="IList{T}"/> both for performance (unfortunately Linq relies -too much- on it) and for interoperability reasons: this
     /// interface should NOT be used. Accessors of the <see cref="IList{T}"/> that defeats the invariant of this class (the fact that elements are sorted, such 
-    /// as <see cref="IList{T}.Insert"/>) are explicitely implemented to hide them as much as possible.
+    /// as <see cref="IList{T}.Insert"/>) are explicitly implemented to hide them as much as possible.
+    /// </para>
+    /// <para>
+    /// This is the base class for <see cref="CKSortedArrayKeyList{T,TKey}"/> but also for their observable versions: <see cref="CKObservableSortedArrayList{T}"/> 
+    /// and <see cref="CKObservableSortedArrayKeyList{T,TKey}"/>.
+    /// </para>
     /// </remarks>
     [DebuggerTypeProxy( typeof( Impl.CKReadOnlyCollectionDebuggerView<> ) ), DebuggerDisplay( "Count = {Count}" )]
     public class CKSortedArrayList<T> : IList<T>, ICKReadOnlyList<T>, ICKWritableCollection<T>
     {
         const int _defaultCapacity = 4;
 
-        static T[] _empty = new T[0];
         T[] _tab;
         int _count;
         int _version;
@@ -58,7 +65,7 @@ namespace CK.Core
         /// </summary>
         /// <remarks>
         /// A default constructor is a parameterless constructor, it is not the same as a constructor with default parameter values.
-        /// This is why it is explicitely defined.
+        /// This is why it is explicitly defined.
         /// </remarks>
         public CKSortedArrayList()
             : this( Comparer<T>.Default.Compare, false )
@@ -94,7 +101,7 @@ namespace CK.Core
         /// <param name="allowDuplicates">True to allow duplicate elements.</param>
         public CKSortedArrayList( Comparison<T> comparison, bool allowDuplicates = false )
         {
-            _tab = _empty;
+            _tab = Util.EmptyArray<T>.Empty;
             Comparator = comparison;
             if( allowDuplicates ) _version = 1;
         }
@@ -231,7 +238,7 @@ namespace CK.Core
                 if( _tab.Length != value )
                 {
                     if( value < _count ) throw new ArgumentException( "Capacity less than Count." );
-                    if( value == 0 ) _tab = _empty;
+                    if( value == 0 ) _tab = Util.EmptyArray<T>.Empty;
                     else 
                     {
                         T[] tempValues = new T[value];
@@ -334,7 +341,7 @@ namespace CK.Core
         /// </summary>
         /// <param name="index">Index of the element to check.</param>
         /// <returns>
-        /// The new positive index if the position has been successfuly updated, or a negative value
+        /// The new positive index if the position has been successfully updated, or a negative value
         /// if a duplicate exists (and <see cref="AllowDuplicates"/> is false).
         /// </returns>
         public int CheckPosition( int index )

@@ -37,10 +37,10 @@ namespace CK.Core
             Monitor = monitor;
         }
 
-        internal IDisposableGroup InitializeAndSend( Exception exception, CKTrait tags, string text, DateTime logTimeUtc )
+        internal IDisposableGroup InitializeAndSend( Exception exception, CKTrait tags, string text )
         {
             Debug.Assert( !IsRejected );
-            Initialize( text, exception, tags, logTimeUtc );
+            Initialize( text, exception, tags, Monitor.NextLogTime() );
             return Monitor.UnfilteredOpenGroup( this );
         }
 

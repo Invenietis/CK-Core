@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 namespace CK.Core.PowershellExtensions.Cmdlets
 {
     [Cmdlet( VerbsCommon.Add, "ActivityMonitorClient" )]
+    [CLSCompliant( false )]
     public class AddActivityMonitorClientCmdlet : Cmdlet
     {
         [Parameter( Position = 0, Mandatory = true )]

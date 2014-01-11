@@ -121,17 +121,24 @@ namespace CK.Core
         /// See remarks (especially for List&lt;ActivityLogGroupConclusion&gt;).
         /// </summary>
         /// <param name="userConclusion">Optional string, ActivityLogGroupConclusion object, enumerable of ActivityLogGroupConclusion or object to conclude the group. See remarks.</param>
-        /// <param name="logTimeUtc">Time stamp of the closing of the group.</param>
+        /// <param name="logTime">
+        /// Log time of the closing of the group. 
+        /// You can use <see cref="LogTimestamp.UtcNow"/> or <see cref="ActivityMonitorExtension.NextLogTime">IActivityMonitor.NextLogTime()</see> extension method.</param>
         /// <remarks>
         /// An untyped object is used here to easily and efficiently accommodate both string and already existing ActivityLogGroupConclusion.
         /// When a List&lt;ActivityLogGroupConclusion&gt; is used, it will be directly used to collect conclusion objects (new conclusions will be added to it). This is an optimization.
         /// </remarks>
-        void CloseGroup( DateTime logTimeUtc, object userConclusion = null );
+        void CloseGroup( LogTimestamp logTime, object userConclusion = null );
 
         /// <summary>
         /// Gets the <see cref="IActivityMonitorOutput"/> for this monitor.
         /// </summary>
         IActivityMonitorOutput Output { get; }
+
+        /// <summary>
+        /// Gets the last <see cref="LogTimestamp"/> for this monitor.
+        /// </summary>
+        LogTimestamp LastLogTime { get; }
     }
 
 }

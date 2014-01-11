@@ -14,7 +14,7 @@ namespace CK.Core
     {
         string _text;
         CKTrait _tags;
-        DateTime _logTimeUtc;
+        LogTimestamp _logTime;
         Exception _exception;
         CKExceptionData _exceptionData;
 
@@ -41,7 +41,7 @@ namespace CK.Core
         public readonly int LineNumber;
 
         /// <summary>
-        /// Gets whether this log data has been successfuly filtered (otherwise it is an unfiltered log).
+        /// Gets whether this log data has been successfully filtered (otherwise it is an unfiltered log).
         /// </summary>
         public bool IsFilteredLog
         {
@@ -50,7 +50,7 @@ namespace CK.Core
 
         /// <summary>
         /// Tags (from <see cref="ActivityMonitor.Tags"/>) associated to the log. 
-        /// It will be unioned with the current <see cref="IActivityMonitor.AutoTags"/>.
+        /// It will be union-ed with the current <see cref="IActivityMonitor.AutoTags"/>.
         /// </summary>
         public CKTrait Tags
         {
@@ -66,11 +66,11 @@ namespace CK.Core
         }
 
         /// <summary>
-        /// Date and time of the log.
+        /// Gets the time of the log.
         /// </summary>
-        public DateTime LogTimeUtc
+        public LogTimestamp LogTime
         {
-            get { return _logTimeUtc; }
+            get { return _logTime; }
         }
 
         /// <summary>
@@ -124,16 +124,19 @@ namespace CK.Core
         /// </summary>
         /// <param name="level">Log level. Can not be <see cref="LogLevel.None"/>.</param>
         /// <param name="exception">Exception of the log. Can be null.</param>
-        /// <param name="tags">Tags (from <see cref="ActivityMonitor.Tags"/>) to associate to the log. It will be unioned with the current <see cref="IActivityMonitor.AutoTags"/>.</param>
+        /// <param name="tags">Tags (from <see cref="ActivityMonitor.Tags"/>) to associate to the log. It will be union-ed with the current <see cref="IActivityMonitor.AutoTags"/>.</param>
         /// <param name="text">Text of the log. Can be null or empty only if <paramref name="exception"/> is not null: the <see cref="T:Exception.Message"/> is the text.</param>
-        /// <param name="logTimeUtc">Date and time of the log. Must be in UTC.</param>
+        /// <param name="logTime">
+        /// Time of the log. 
+        /// You can use <see cref="LogTime.UtcNow"/> or <see cref="ActivityMonitorExtension.NextLogTime">IActivityMonitor.NextLogTime()</see> extension method.</param>
+        /// </param>
         /// <param name="fileName">Name of the source file that emitted the log. Can be null.</param>
-        /// <param name="lineNumber">Line number in the source filethat emitted the log. Can be null.</param>
-        public ActivityMonitorLogData( LogLevel level, Exception exception, CKTrait tags, string text, DateTime logTimeUtc, string fileName, int lineNumber )
+        /// <param name="lineNumber">Line number in the source file that emitted the log. Can be null.</param>
+        public ActivityMonitorLogData( LogLevel level, Exception exception, CKTrait tags, string text, LogTimestamp logTime, string fileName, int lineNumber )
             : this( level, fileName, lineNumber )
         {
             if( MaskedLevel == LogLevel.None || MaskedLevel == LogLevel.Mask ) throw new ArgumentException( R.ActivityMonitorInvalidLogLevel, "level" );
-            Initialize( text, exception, tags, logTimeUtc );
+            Initialize( text, exception, tags, logTime );
         }
 
         internal ActivityMonitorLogData( LogLevel level, string fileName, int lineNumber )
@@ -153,9 +156,8 @@ namespace CK.Core
             Debug.Assert( Level == LogLevel.None );
         }
 
-        internal void Initialize( string text, Exception exception, CKTrait tags, DateTime logTimeUtc )
+        internal void Initialize( string text, Exception exception, CKTrait tags, LogTimestamp logTime )
         {
-            if( logTimeUtc.Kind != DateTimeKind.Utc ) throw new ArgumentException( R.DateTimeMustBeUtc, "logTimeUtc" );
             if( String.IsNullOrEmpty( (_text = text) ) )
             {
                 if( exception == null ) throw new ArgumentNullException( "text" );
@@ -163,13 +165,14 @@ namespace CK.Core
             }
             _exception = exception;
             _tags = tags ?? ActivityMonitor.Tags.Empty;
-            _logTimeUtc = logTimeUtc;
+            _logTime = logTime;
         }
 
-        internal void CombineTags( CKTrait tags )
+        internal LogTimestamp CombineTagsAndAdjustLogTime( CKTrait tags, LogTimestamp lastLogTime )
         {
             if( _tags.IsEmpty ) _tags = tags;
             else _tags = _tags.Union( tags );
+            return _logTime = new LogTimestamp( lastLogTime, _logTime.IsDefined ? _logTime : LogTimestamp.UtcNow );
         }
     }
 }

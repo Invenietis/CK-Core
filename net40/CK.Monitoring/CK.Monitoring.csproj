@@ -158,6 +158,9 @@
     <Compile Include="..\..\CK.Monitoring\Persistence\Impl\LEOpenGroup.cs">
       <Link>LEOpenGroup.cs</Link>
     </Compile>
+    <Compile Include="..\..\CK.Monitoring\Persistence\Impl\LogEntryWithOffset.cs">
+      <Link>LogEntryWithOffset.cs</Link>
+    </Compile>
     <Compile Include="..\..\CK.Monitoring\Persistence\Impl\StreamLogType.cs">
       <Link>StreamLogType.cs</Link>
     </Compile>

@@ -19,6 +19,8 @@ namespace CK.Monitoring.Impl
         IsTextTheExceptionMessage = 32,
         HasConclusions = 64,
 
-        IsMultiCast = 128
+        IsMultiCast = 128,
+
+        HasUniquifier = 256
     }
 }

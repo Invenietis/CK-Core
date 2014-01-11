@@ -45,7 +45,7 @@ namespace CK.Core.Impl
         {
             if( disposing )
             {
-                while( CurrentGroup != null ) CloseGroup( DateTime.UtcNow );
+                while( CurrentGroup != null ) CloseGroup( this.NextLogTime() );
             }
         }
     }

@@ -21,7 +21,7 @@ namespace CK.Core.Tests.Monitoring
             // Generates a token with time collision.
             int loopNeeded = 0;
             ActivityMonitor.DependentToken token;
-            while( (token = m.DependentActivity().CreateTokenWithTopic( "Test..." )).Uniquifier == 0 ) ++loopNeeded;
+            while( (token = m.DependentActivity().CreateTokenWithTopic( "Test..." )).CreationDate.Uniquifier == 0 ) ++loopNeeded;
             Assert.That( token.Topic, Is.EqualTo( "Test..." ) );
             m.Trace().Send( "Generating time collision required {0} loops.", loopNeeded );
 
@@ -30,24 +30,20 @@ namespace CK.Core.Tests.Monitoring
                 bool launched;
                 bool launchWithTopic;
                 string launchDependentTopic;
-                int launchUniquifier;
-                Assert.That( ActivityMonitor.DependentToken.TryParseLaunchOrCreateMessage( launchMessage, out launched, out launchWithTopic, out launchDependentTopic, out launchUniquifier ) );
+                Assert.That( ActivityMonitor.DependentToken.TryParseLaunchOrCreateMessage( launchMessage, out launched, out launchWithTopic, out launchDependentTopic ) );
                 Assert.That( !launched, "We used CreateToken." );
                 Assert.That( launchWithTopic );
                 Assert.That( launchDependentTopic, Is.EqualTo( "Test..." ) );
-                Assert.That( launchUniquifier, Is.EqualTo( token.Uniquifier ) );
             }
 
             StupidStringClient.Entry[] logs = RunDependentActivity( token );
             {
                 Assert.That( logs[0].Text, Is.EqualTo( "Topic: Test..." ) );
                 Guid id;
-                DateTime time;
-                int uniquifier;
-                Assert.That( ActivityMonitor.DependentToken.TryParseStartMessage( logs[1].Text, out id, out time, out uniquifier ) );
+                LogTimestamp time;
+                Assert.That( ActivityMonitor.DependentToken.TryParseStartMessage( logs[1].Text, out id, out time ) );
                 Assert.That( id, Is.EqualTo( ((IUniqueId)m).UniqueId ) );
-                Assert.That( time, Is.EqualTo( cLaunch.Entries[loopNeeded].LogTimeUtc ) );
-                Assert.That( uniquifier, Is.EqualTo( token.Uniquifier ) );
+                Assert.That( time, Is.EqualTo( cLaunch.Entries[loopNeeded].LogTime ) );
             }
         }
 
@@ -72,21 +68,17 @@ namespace CK.Core.Tests.Monitoring
             bool launched;
             bool launchWithTopic;
             string launchDependentTopic;
-            int launchUniquifier;
-            Assert.That( ActivityMonitor.DependentToken.TryParseLaunchOrCreateMessage( launchMessage, out launched, out launchWithTopic, out launchDependentTopic, out launchUniquifier ) );
+            Assert.That( ActivityMonitor.DependentToken.TryParseLaunchOrCreateMessage( launchMessage, out launched, out launchWithTopic, out launchDependentTopic ) );
             Assert.That( launched );
             Assert.That( launchWithTopic );
             Assert.That( launchDependentTopic, Is.EqualTo( dependentTopic ) );
-            Assert.That( launchUniquifier, Is.EqualTo( 0 ) );
 
             Assert.That( startMessage, Is.StringStarting( "Starting dependent activity" ) );
             Guid id;
-            DateTime time;
-            int uniquifier;
-            Assert.That( ActivityMonitor.DependentToken.TryParseStartMessage( startMessage, out id, out time, out uniquifier ) );
+            LogTimestamp time;
+            Assert.That( ActivityMonitor.DependentToken.TryParseStartMessage( startMessage, out id, out time ) );
             Assert.That( id, Is.EqualTo( ((IUniqueId)m).UniqueId ) );
-            Assert.That( time, Is.EqualTo( cLaunch.Entries[0].LogTimeUtc ) );
-            Assert.That( uniquifier, Is.EqualTo( 0 ) );
+            Assert.That( time, Is.EqualTo( cLaunch.Entries[0].LogTime ) );
         }
 
         private static StupidStringClient.Entry[] LaunchAndRunDependentActivityWithTopic( ActivityMonitor m, string dependentTopic )

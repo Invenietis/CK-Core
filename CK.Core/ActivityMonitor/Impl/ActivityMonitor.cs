@@ -73,12 +73,12 @@ namespace CK.Core
             static public readonly CKTrait StartDependentActivity;
 
             /// <summary>
-            /// Conlusions provided to IActivityMonitor.Close(string) are marked with "c:User".
+            /// Conclusions provided to IActivityMonitor.Close(string) are marked with "c:User".
             /// </summary>
             static public readonly CKTrait UserConclusion;
 
             /// <summary>
-            /// Conlusions returned by the optional function when a group is opened (see <see cref="IActivityMonitor.UnfilteredOpenGroup"/>) are marked with "c:GetText".
+            /// Conclusions returned by the optional function when a group is opened (see <see cref="IActivityMonitor.UnfilteredOpenGroup"/>) are marked with "c:GetText".
             /// </summary>
             static public readonly CKTrait GetTextConclusion;
 
@@ -111,7 +111,7 @@ namespace CK.Core
 
         /// <summary>
         /// The monitoring error collector. 
-        /// Any error that occurs while dispathing logs to <see cref="IActivityMonitorClient"/>
+        /// Any error that occurs while dispatching logs to <see cref="IActivityMonitorClient"/>
         /// are collected and the culprit is removed from <see cref="Output"/>.
         /// See <see cref="CriticalErrorCollector"/>.
         /// </summary>
@@ -200,7 +200,7 @@ namespace CK.Core
         int _enteredThreadId;
         Guid _uniqueId;
         string _topic;
-
+        LogTimestamp _lastLogTime;
         bool _actualFilterIsDirty;
 
         /// <summary>
@@ -233,6 +233,7 @@ namespace CK.Core
             _currentTag = tags ?? Tags.Empty;
             _uniqueId = Guid.NewGuid();
             _topic = String.Empty;
+            _lastLogTime = LogTimestamp.MinValue;
             var autoConf = AutoConfiguration;
             if( autoConf != null && applyAutoConfigurations ) autoConf( this );
         }
@@ -280,6 +281,14 @@ namespace CK.Core
         }
 
         /// <summary>
+        /// Gets the last <see cref="LogTimestamp"/> for this monitor.
+        /// </summary>
+        public LogTimestamp LastLogTime 
+        {
+            get { return _lastLogTime; } 
+        }
+        
+        /// <summary>
         /// Gets the current topic for this monitor. This can be any non null string (null topic is mapped to the empty string) that describes
         /// the current activity. It must be set with <see cref="SetTopic"/> and unlike <see cref="MinimalFilter"/> and <see cref="AutoTags"/>, 
         /// the topic is not reseted when groups are closed.
@@ -317,7 +326,7 @@ namespace CK.Core
             _topic = newTopic;
             _output.BridgeTarget.TargetTopicChanged( newTopic, fileName, lineNumber );
             MonoParameterSafeCall( ( client, topic ) => client.OnTopicChanged( topic, fileName, lineNumber ), newTopic );
-            DoUnfilteredLog( new ActivityMonitorLogData( LogLevel.Info, null, Tags.MonitorTopicChanged, "Topic: " + newTopic, DateTime.UtcNow, fileName, lineNumber ) );
+            DoUnfilteredLog( new ActivityMonitorLogData( LogLevel.Info, null, Tags.MonitorTopicChanged, "Topic: " + newTopic, new LogTimestamp( _lastLogTime, DateTime.UtcNow ), fileName, lineNumber ) );
         }
 
         /// <summary>
@@ -567,7 +576,7 @@ namespace CK.Core
             Debug.Assert( data.Level != LogLevel.None );
             Debug.Assert( !String.IsNullOrEmpty( data.Text ) );
 
-            data.CombineTags( _currentTag );
+            _lastLogTime = data.CombineTagsAndAdjustLogTime( _currentTag, _lastLogTime );
             List<IActivityMonitorClient> buggyClients = null;
             foreach( var l in _output.Clients )
             {
@@ -644,7 +653,7 @@ namespace CK.Core
             }
             else
             {
-                data.CombineTags( _currentTag );
+                _lastLogTime = data.CombineTagsAndAdjustLogTime( _currentTag, _lastLogTime );
                 _current.Initialize( data );
                 _currentUnfiltered = _current;
                 MonoParameterSafeCall( ( client, group ) => client.OnOpenGroup( group ), _current ); 
@@ -658,18 +667,17 @@ namespace CK.Core
         /// See remarks (especially for List&lt;ActivityLogGroupConclusion&gt;).
         /// </summary>
         /// <param name="userConclusion">Optional string, enumerable of <see cref="ActivityLogGroupConclusion"/>) or object to conclude the group. See remarks.</param>
-        /// <param name="logTimeUtc">Times-tamp of the group closing.</param>
+        /// <param name="logTime">Times-tamp of the group closing.</param>
         /// <remarks>
         /// An untyped object is used here to easily and efficiently accommodate both string and already existing ActivityLogGroupConclusion.
         /// When a List&lt;ActivityLogGroupConclusion&gt; is used, it will be directly used to collect conclusion objects (new conclusions will be added to it). This is an optimization.
         /// </remarks>
-        public virtual void CloseGroup( DateTime logTimeUtc, object userConclusion = null )
+        public virtual void CloseGroup( LogTimestamp logTime, object userConclusion = null )
         {
-            if( logTimeUtc.Kind != DateTimeKind.Utc ) throw new ArgumentException( R.DateTimeMustBeUtc, "logTimeUtc" );
             ReentrantAndConcurrentCheck();
             try
             {
-                DoCloseGroup( logTimeUtc, userConclusion );
+                DoCloseGroup( logTime, userConclusion );
             }
             finally
             {
@@ -677,10 +685,9 @@ namespace CK.Core
             }
         }
 
-        void DoCloseGroup( DateTime logTimeUtc, object userConclusion = null )
+        void DoCloseGroup( LogTimestamp logTime, object userConclusion = null )
         {
             Debug.Assert( _enteredThreadId == Thread.CurrentThread.ManagedThreadId );
-            Debug.Assert( logTimeUtc.Kind == DateTimeKind.Utc );
             Group g = _current;
             if( g != null )
             {
@@ -694,7 +701,7 @@ namespace CK.Core
                 }
                 else
                 {
-                    g.CloseLogTimeUtc = logTimeUtc;
+                    g.CloseLogTime = _lastLogTime = new LogTimestamp( _lastLogTime, logTime.IsDefined ? logTime : LogTimestamp.UtcNow );
                     var conclusions = userConclusion as List<ActivityLogGroupConclusion>;
                     if( conclusions == null && userConclusion != null )
                     {

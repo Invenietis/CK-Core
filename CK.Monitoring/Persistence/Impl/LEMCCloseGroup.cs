@@ -13,7 +13,7 @@ namespace CK.Monitoring.Impl
         readonly Guid _monitorId;
         readonly int _depth;
 
-        public LEMCCloseGroup( Guid monitorId, int depth, DateTime t, LogLevel level, IReadOnlyList<ActivityLogGroupConclusion> c )
+        public LEMCCloseGroup( Guid monitorId, int depth, LogTimestamp t, LogLevel level, IReadOnlyList<ActivityLogGroupConclusion> c )
             : base( t, level, c )
         {
             _monitorId = monitorId;
@@ -26,7 +26,13 @@ namespace CK.Monitoring.Impl
 
         public void WriteMultiCastLogEntry( BinaryWriter w )
         {
-            LogEntry.WriteCloseGroup( w, _monitorId, _depth, LogLevel, LogTimeUtc, Conclusions );
+            LogEntry.WriteCloseGroup( w, _monitorId, _depth, LogLevel, LogTime, Conclusions );
         }
+
+        public ILogEntry CreateUnicastLogEntry()
+        {
+            return new LECloseGroup( this );
+        }
+
     }
 }

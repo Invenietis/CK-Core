@@ -234,13 +234,13 @@ namespace CK.Core
         public string FusionLog { get { return _fusionLog; } }
 
         /// <summary>
-        /// Gets all the the exceptions that occured while dynamically loading a type or an assembly if the exception is a <see cref="System.Reflection.ReflectionTypeLoadException"/>.
+        /// Gets all the the exceptions that occurred while dynamically loading a type or an assembly if the exception is a <see cref="System.Reflection.ReflectionTypeLoadException"/>.
         /// Null otherwise.
         /// </summary>
         public IReadOnlyList<CKExceptionData> LoaderExceptions { get { return _loaderExceptions; } }
 
         /// <summary>
-        /// Gets all the the aggrgated exceptions if the exception is a <see cref="System.AggregateException"/>.
+        /// Gets all the the aggregated exceptions if the exception is a <see cref="System.AggregateException"/>.
         /// This corresponds to the <see cref="System.AggregateException.InnerExceptions"/> property.
         /// Null if this exception is not a an AggregatedException.
         /// </summary>

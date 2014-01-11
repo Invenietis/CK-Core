@@ -91,7 +91,7 @@ namespace CK.Core
                 using( _monitor.UnfilteredOpenGroup( ActivityMonitor.Tags.CreateDependentActivity, LogLevel.Info, null, msg, t.CreationDate, null, _fileName, _lineNumber ) )
                 {
                     dependentLauncher( t );
-                    _monitor.CloseGroup( DateTime.UtcNow, "Success." );
+                    _monitor.CloseGroup( _monitor.NextLogTime(), "Success." );
                 }
             }
 
@@ -109,7 +109,7 @@ namespace CK.Core
                 using( _monitor.UnfilteredOpenGroup( ActivityMonitor.Tags.CreateDependentActivity, LogLevel.Info, null, msg, t.CreationDate, null, _fileName, _lineNumber ) )
                 {
                     dependentLauncher( t );
-                    _monitor.CloseGroup( DateTime.UtcNow, "Success." );
+                    _monitor.CloseGroup( _monitor.NextLogTime(), "Success." );
                 }
             }
 

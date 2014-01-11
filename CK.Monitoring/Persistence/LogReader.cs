@@ -20,6 +20,7 @@ namespace CK.Monitoring
         BinaryReader _binaryReader;
         ILogEntry _current;
         int _streamVersion;
+        int _multiCastCurrentGroupDepth;
         long _currentPosition;
 
         public const int CurrentStreamVersion = 5;
@@ -47,9 +48,10 @@ namespace CK.Monitoring
             _stream = stream;
             _binaryReader = new BinaryReader( stream, Encoding.UTF8 );
             _streamVersion = streamVersion;
+            _multiCastCurrentGroupDepth  = -1;
         }
 
-        #else 
+#else
 
         /// <summary>
         /// Initializes a new <see cref="LogReader"/> on a stream that must start with the version number.
@@ -75,11 +77,12 @@ namespace CK.Monitoring
         /// </param>
         public LogReader( Stream stream, int streamVersion, bool mustClose = true )
         {
-            if( streamVersion < 4 && streamVersion != -1 ) 
-                throw new ArgumentException( "Must be -1 or greater or equal to 4 (the first version).", "streamVersion" );
+            if( streamVersion < 5 && streamVersion != -1 ) 
+                throw new ArgumentException( "Must be -1 or greater or equal to 5 (the first version).", "streamVersion" );
             _stream = stream;
             _binaryReader = new BinaryReader( stream, Encoding.UTF8, !mustClose );
             _streamVersion = streamVersion;
+            _multiCastCurrentGroupDepth = -1;
         }
         #endif
         /// <summary>
@@ -90,7 +93,7 @@ namespace CK.Monitoring
         /// <returns>A <see cref="LogReader"/> that will close the file when disposed.</returns>
         public static LogReader Open( string path )
         {
-            return new LogReader( File.OpenRead( path ) );
+            return Open( path, -1 );
         }
 
         /// <summary>
@@ -101,8 +104,77 @@ namespace CK.Monitoring
         /// <returns>A <see cref="LogReader"/> that will close the file when disposed.</returns>
         public static LogReader Open( string path, int version )
         {
-            return new LogReader( File.OpenRead( path ), version );
+            return new LogReader( new FileStream( path, FileMode.Open, FileAccess.Read, FileShare.Read, 8, FileOptions.SequentialScan ), version );
         }
+
+        /// <summary>
+        /// Opens a <see cref="LogReader"/> to read the content of a file starting at the specified offset. 
+        /// The file version must known since the header of the file will not be read.
+        /// </summary>
+        /// <param name="path">Path of the log file.</param>
+        /// <param name="offset">Offset where the stream position must be initially set.</param>
+        /// <param name="version">Version of the log data.</param>
+        /// <param name="filter">An optional <see cref="MulticastFilter"/>.</param>
+        /// <returns>A <see cref="LogReader"/> that will close the file when disposed.</returns>
+        public static LogReader Open( string path, long offset, int version, MulticastFilter filter = null )
+        {
+            FileStream s = new FileStream( path, FileMode.Open, FileAccess.Read, FileShare.Read, 8, FileOptions.SequentialScan );
+            try
+            {
+                s.Position = offset;
+            }
+            catch
+            {
+                s.Dispose();
+                throw;
+            }
+            var r = new LogReader( s, version );
+            r.CurrentFilter = filter;
+            return r;
+        }
+
+        /// <summary>
+        /// Enables filtering of a multi-cast stream: only entries from the specified monitor will be read. 
+        /// </summary>
+        public class MulticastFilter
+        {
+            /// <summary>
+            /// The filtered monitor identifier.
+            /// </summary>
+            public readonly Guid MonitorId;
+
+            /// <summary>
+            /// The offset of the last entry in the stream (see <see cref="LogReader.StreamOffset"/>).
+            /// <see cref="Int64.MaxValue"/> when unknown.
+            /// </summary>
+            public readonly long KnownLastMonitorEntryOffset;
+
+            /// <summary>
+            /// Initializes a new <see cref="MulticastFilter"/>.
+            /// </summary>
+            /// <param name="monitorId">Monitor identifier to filter.</param>
+            /// <param name="knownLastMonitorEntryOffset">Offset of the last entry in the stream (when known this enables to stop processing as soon as possible).</param>
+            public MulticastFilter( Guid monitorId, long knownLastMonitorEntryOffset = Int64.MaxValue )
+            {
+                MonitorId = monitorId;
+                KnownLastMonitorEntryOffset = knownLastMonitorEntryOffset;
+            }
+        }
+
+        /// <summary>
+        /// Gets or sets a <see cref="MulticastFilter"/> that will be taken into account during the next <see cref="MoveNext"/>.
+        /// Only entries from this monitor will be extracted when reading a <see cref="IMulticastLogEntry"/> (pure unicast <see cref="ILogEntry"/> will be ignored).
+        /// </summary>
+        /// <remarks>
+        /// Note that the <see cref="Current"/> will be <see cref="ILogEntry"/> objects: multi-cast entry properties (<see cref="IMulticastLogEntry.MonitorId"/> 
+        /// and <see cref="IMulticastLogEntry.GroupDepth"/>) are no more available when a filter is set.
+        /// </remarks>
+        public MulticastFilter CurrentFilter { get; set; }
+
+        /// <summary>
+        /// Gets the stream version. It is available only after the first call to <see cref="MoveNext"/>.
+        /// </summary>
+        public int StreamVersion { get { return _streamVersion; } }
 
         /// <summary>
         /// Current <see cref="ILogEntry"/> that can be a <see cref="IMulticastLogEntry"/>.
@@ -110,11 +182,37 @@ namespace CK.Monitoring
         /// </summary>
         public ILogEntry Current
         {
-            get 
-            { 
+            get
+            {
                 if( _current == null ) throw new InvalidOperationException();
-                return _current; 
+                return _current;
             }
+        }
+
+        /// <summary>
+        /// Current <see cref="ILogEntry"/> with its associated position in the stream.
+        /// As usual, <see cref="MoveNext"/> must be called before getting the first entry.
+        /// </summary>
+        public LogEntryWithOffset CurrentWithOffset
+        {
+            get { return new LogEntryWithOffset( Current, _currentPosition ); }
+        }
+
+        /// <summary>
+        /// Gets the group depth of the <see cref="Current"/> entry if the underlying entry is a <see cref="IMulticastLogEntry"/>, -1 otherwise.
+        /// This captures the group depth when a <see cref="CurrentFilter"/> is set (Current is then a mere Unicast entry).
+        /// </summary>
+        public int MultiCastCurrentGroupDepth 
+        { 
+            get { return _multiCastCurrentGroupDepth; } 
+        }
+
+        /// <summary>
+        /// Gets whether the current entry was, in the stream, a <see cref="IMulticastLogEntry"/>.
+        /// </summary>
+        public bool IsCurrentUnderlyingEntryMulticast
+        { 
+            get { return _multiCastCurrentGroupDepth >= 0; } 
         }
 
         /// <summary>
@@ -141,7 +239,35 @@ namespace CK.Monitoring
                 }
             }
             _currentPosition = _stream.Position;
-            _current = LogEntry.Read( _binaryReader );
+            // The API is designed for performance: we can here skip unicast entries and multi-cast entries from 
+            // other monitors when a CurrentFilter is set. To efficiently skip data, we need a:
+            //
+            // _current = LogEntry.ReadNextFiltered( _binaryReader, _streamVersion, CurrentFilter, out _multiCastCurrentGroupDepth );
+            //
+            // This method should use an enhanced binary reader that should be able to skip strings and other serialized objects 
+            // as much as possible.
+            // It will return a mere ILogEntry and not a multi-cast one.
+            // 
+            // For the moment, I use CreateUnicastLogEntry to remove the Guid and the group depth from memory.
+            // For better performance, what is described above should be implemented once...
+            //
+            _current = LogEntry.Read( _binaryReader, _streamVersion );
+            IMulticastLogEntry m = _current as IMulticastLogEntry;
+            var f = CurrentFilter;
+            if( f != null )
+            {
+                while( _current != null && (m == null || m.MonitorId != f.MonitorId) )
+                {
+                    if( _currentPosition > f.KnownLastMonitorEntryOffset )
+                    {
+                        m = null;
+                        break;
+                    }
+                    _current = LogEntry.Read( _binaryReader, _streamVersion );
+                }
+                _current = m == null ? null : m.CreateUnicastLogEntry();
+            }
+            _multiCastCurrentGroupDepth = m != null ? m.GroupDepth : -1;
             return _current != null;
         }
 
@@ -160,13 +286,13 @@ namespace CK.Monitoring
                     switch( log.LogType )
                     {
                         case LogEntryType.Line:
-                            destination.UnfilteredLog( log.Tags, log.LogLevel, log.Text, log.LogTimeUtc, CKException.CreateFrom( log.Exception ), log.FileName, log.LineNumber );
+                            destination.UnfilteredLog( log.Tags, log.LogLevel, log.Text, log.LogTime, CKException.CreateFrom( log.Exception ), log.FileName, log.LineNumber );
                             break;
                         case LogEntryType.OpenGroup:
-                            destination.UnfilteredOpenGroup( log.Tags, log.LogLevel, null, log.Text, log.LogTimeUtc, CKException.CreateFrom( log.Exception ), log.FileName, log.LineNumber );
+                            destination.UnfilteredOpenGroup( log.Tags, log.LogLevel, null, log.Text, log.LogTime, CKException.CreateFrom( log.Exception ), log.FileName, log.LineNumber );
                             break;
                         case LogEntryType.CloseGroup:
-                            destination.CloseGroup( log.LogTimeUtc, log.Conclusions );
+                            destination.CloseGroup( log.LogTime, log.Conclusions );
                             break;
                     }
                 }
@@ -194,13 +320,13 @@ namespace CK.Monitoring
                         switch( this.Current.LogType )
                         {
                             case LogEntryType.Line:
-                                d.UnfilteredLog( log.Tags, log.LogLevel, log.Text, log.LogTimeUtc, CKException.CreateFrom( log.Exception ), log.FileName, log.LineNumber );
+                                d.UnfilteredLog( log.Tags, log.LogLevel, log.Text, log.LogTime, CKException.CreateFrom( log.Exception ), log.FileName, log.LineNumber );
                                 break;
                             case LogEntryType.OpenGroup:
-                                d.UnfilteredOpenGroup( log.Tags, log.LogLevel, null, log.Text, log.LogTimeUtc, CKException.CreateFrom( log.Exception ), log.FileName, log.LineNumber );
+                                d.UnfilteredOpenGroup( log.Tags, log.LogLevel, null, log.Text, log.LogTime, CKException.CreateFrom( log.Exception ), log.FileName, log.LineNumber );
                                 break;
                             case LogEntryType.CloseGroup:
-                                d.CloseGroup( log.LogTimeUtc, log.Conclusions );
+                                d.CloseGroup( log.LogTime, log.Conclusions );
                                 break;
                         }
                     }

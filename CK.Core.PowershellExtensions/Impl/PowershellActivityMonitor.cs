@@ -18,12 +18,9 @@ namespace CK.Core.PowershellExtensions.Impl
             _underlyingFile = new TemporaryFile();
 
             if( createConsoleClient )
-                _monitor.Output.RegisterUniqueClient( ( c ) => true, () => new ActivityMonitorConsoleClient() );
+                _monitor.Output.RegisterClient( new ActivityMonitorConsoleClient() );
 
-            _monitor.Output.RegisterClient( new ActivityMonitorTextWriterClient( ( s ) =>
-            {
-                File.AppendAllText( _underlyingFile.Path, s );
-            } ) );
+            _monitor.Output.RegisterClient( new ActivityMonitorTextWriterClient( s => File.AppendAllText( _underlyingFile.Path, s ) ) );
         }
 
         #region IPowershellActivityMonitor members
@@ -79,7 +76,7 @@ namespace CK.Core.PowershellExtensions.Impl
             set { _monitor.AutoTags = value; }
         }
 
-        public void CloseGroup( DateTime logTimeUtc, object userConclusion = null )
+        public void CloseGroup( LogTimestamp logTimeUtc, object userConclusion = null )
         {
             _monitor.CloseGroup( logTimeUtc, userConclusion );
         }
@@ -113,6 +110,11 @@ namespace CK.Core.PowershellExtensions.Impl
         public IDisposableGroup UnfilteredOpenGroup( ActivityMonitorGroupData data )
         {
             return _monitor.UnfilteredOpenGroup( data );
+        }
+
+        public LogTimestamp LastLogTime
+        {
+            get { return _monitor.LastLogTime; }
         }
 
         #endregion

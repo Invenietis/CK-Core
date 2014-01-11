@@ -111,7 +111,7 @@ namespace CK.Monitoring
             var h = EnsureChannel();
             if( h != null )
             {
-                IMulticastLogEntry e = LogEntry.CreateMulticastLog( _monitorSource.UniqueId, _currentGroupDepth, data.Text, data.LogTimeUtc, data.Level, data.FileName, data.LineNumber, data.Tags, data.EnsureExceptionData() );
+                IMulticastLogEntry e = LogEntry.CreateMulticastLog( _monitorSource.UniqueId, _currentGroupDepth, data.Text, data.LogTime, data.Level, data.FileName, data.LineNumber, data.Tags, data.EnsureExceptionData() );
                 h.Handle( new GrandOutputEventInfo( e, _monitorSource.Topic ) );
             }
         }
@@ -122,7 +122,7 @@ namespace CK.Monitoring
             if( h != null )
             {
                 ++_currentGroupDepth;
-                IMulticastLogEntry e = LogEntry.CreateMulticastOpenGroup( _monitorSource.UniqueId, _currentGroupDepth, group.GroupText, group.LogTimeUtc, group.GroupLevel, group.FileName, group.LineNumber, group.GroupTags, group.EnsureExceptionData() );
+                IMulticastLogEntry e = LogEntry.CreateMulticastOpenGroup( _monitorSource.UniqueId, _currentGroupDepth, group.GroupText, group.LogTime, group.GroupLevel, group.FileName, group.LineNumber, group.GroupTags, group.EnsureExceptionData() );
                 h.Handle( new GrandOutputEventInfo( e, _monitorSource.Topic ) );
             }
         }
@@ -136,7 +136,7 @@ namespace CK.Monitoring
             var h = EnsureChannel();
             if( h != null )
             {
-                IMulticastLogEntry e = LogEntry.CreateMulticastCloseGroup( _monitorSource.UniqueId, _currentGroupDepth, group.CloseLogTimeUtc, group.GroupLevel, conclusions );
+                IMulticastLogEntry e = LogEntry.CreateMulticastCloseGroup( _monitorSource.UniqueId, _currentGroupDepth, group.CloseLogTime, group.GroupLevel, conclusions );
                 h.Handle( new GrandOutputEventInfo( e, _monitorSource.Topic ) );
                 --_currentGroupDepth;
             }

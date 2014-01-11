@@ -36,14 +36,27 @@ namespace CK.Core
     /// </summary>
     public static partial class ActivityMonitorExtension
     {
+
         /// <summary>
-        /// Challenges FileName/LineNumber filters, <see cref="IActivityMonitor.ActualFilter">this monitors'filter</see> and application 
+        /// Returns a valid <see cref="LogTimestamp"/> that will be used for a log: it is based on <see cref="DateTime.UtcNow"/> and has 
+        /// a <see cref="LogTimestamp.Uniquifier"/> that will not be changed when emitting the next log.
+        /// </summary>
+        /// <param name="this">This <see cref="IActivityMonitor"/>.</param>
+        /// <returns>The next log time for the monitor.</returns>
+        public static LogTimestamp NextLogTime( this IActivityMonitor @this )
+        {
+            return new LogTimestamp( @this.LastLogTime, DateTime.UtcNow );
+        }
+
+
+        /// <summary>
+        /// Challenges FileName/LineNumber filters, <see cref="IActivityMonitor.ActualFilter">this monitors' filter</see> and application 
         /// domain's <see cref="ActivityMonitor.DefaultFilter"/> filters to test whether a log line should actually be emitted.
         /// </summary>
         /// <param name="this">This <see cref="IActivityMonitor"/>.</param>
         /// <param name="level">Log level.</param>
-        /// <param name="fileName">Source file name of the emitter (automatically injected by C# compiler but can be explicitely set).</param>
-        /// <param name="lineNumber">Line number in the source file (automatically injected by C# compiler but can be explicitely set).</param>
+        /// <param name="fileName">Source file name of the emitter (automatically injected by C# compiler but can be explicitly set).</param>
+        /// <param name="lineNumber">Line number in the source file (automatically injected by C# compiler but can be explicitly set).</param>
         /// <returns>True if the log should be emitted.</returns>
         public static bool ShouldLogLine( this IActivityMonitor @this, LogLevel level, [CallerFilePath]string fileName = null, [CallerLineNumber]int lineNumber = 0 )
         {
@@ -60,8 +73,8 @@ namespace CK.Core
         /// </summary>
         /// <param name="this">This <see cref="IActivityMonitor"/>.</param>
         /// <param name="level">Log level.</param>
-        /// <param name="fileName">Source file name of the emitter (automatically injected by C# compiler but can be explicitely set).</param>
-        /// <param name="lineNumber">Line number in the source file (automatically injected by C# compiler but can be explicitely set).</param>
+        /// <param name="fileName">Source file name of the emitter (automatically injected by C# compiler but can be explicitly set).</param>
+        /// <param name="lineNumber">Line number in the source file (automatically injected by C# compiler but can be explicitly set).</param>
         /// <returns>True if the log should be emitted.</returns>
         public static bool ShouldLogGroup( this IActivityMonitor @this, LogLevel level, [CallerFilePath]string fileName = null, [CallerLineNumber]int lineNumber = 0 )
         {
@@ -112,7 +125,10 @@ namespace CK.Core
         /// </param>
         /// <param name="level">Log level. Must not be <see cref="LogLevel.None"/>.</param>
         /// <param name="text">Text to log. Must not be null or empty.</param>
-        /// <param name="logTimeUtc">Time-stamp of the log entry (must be UTC).</param>
+        /// <param name="logTime">
+        /// Time-stamp of the log entry.
+        /// You can use <see cref="LogTime.UtcNow"/> or <see cref="ActivityMonitorExtension.NextLogTime">IActivityMonitor.NextLogTime()</see> extension method.</param>
+        /// </param>
         /// <param name="ex">Optional exception associated to the log. When not null, a Group is automatically created.</param>
         /// <param name="fileName">The source code file name from which the log is emitted.</param>
         /// <param name="lineNumber">The line number in the source from which the log is emitted.</param>
@@ -128,9 +144,9 @@ namespace CK.Core
         /// treated as if a different LogLevel is used.
         /// </para>
         /// </remarks>
-        static public void UnfilteredLog( this IActivityMonitor @this, CKTrait tags, LogLevel level, string text, DateTime logTimeUtc, Exception ex, [CallerFilePath]string fileName = null, [CallerLineNumber]int lineNumber = 0 )
+        static public void UnfilteredLog( this IActivityMonitor @this, CKTrait tags, LogLevel level, string text, LogTimestamp logTime, Exception ex, [CallerFilePath]string fileName = null, [CallerLineNumber]int lineNumber = 0 )
         {
-            @this.UnfilteredLog( new ActivityMonitorLogData( level, ex, tags, text, logTimeUtc, fileName, lineNumber ) );
+            @this.UnfilteredLog( new ActivityMonitorLogData( level, ex, tags, text, logTime, fileName, lineNumber ) );
         }
 
         /// <summary>
@@ -143,7 +159,10 @@ namespace CK.Core
         /// <param name="level">Log level. The <see cref="LogLevel.None"/> level is used to open a filtered group. See remarks.</param>
         /// <param name="getConclusionText">Optional function that will be called on group closing.</param>
         /// <param name="text">Text to log (the title of the group). Null text is valid and considered as <see cref="String.Empty"/> or assigned to the <see cref="Exception.Message"/> if it exists.</param>
-        /// <param name="logTimeUtc">Timestamp of the log entry (must be UTC).</param>
+        /// <param name="logTime">
+        /// Time of the log entry.
+        /// You can use <see cref="LogTime.UtcNow"/> or <see cref="ActivityMonitorExtension.NextLogTime">IActivityMonitor.NextLogTime()</see> extension method.</param>
+        /// </param>
         /// <param name="ex">Optional exception associated to the group.</param>
         /// <param name="fileName">The source code file name from which the group is opened.</param>
         /// <param name="lineNumber">The line number in the source from which the group is opened.</param>
@@ -163,26 +182,26 @@ namespace CK.Core
         /// Note that this automatic configuration restoration works even if the group is filtered (when the <paramref name="level"/> is None).
         /// </para>
         /// </remarks>
-        static public IDisposable UnfilteredOpenGroup( this IActivityMonitor @this, CKTrait tags, LogLevel level, Func<string> getConclusionText, string text, DateTime logTimeUtc, Exception ex, [CallerFilePath]string fileName = null, [CallerLineNumber]int lineNumber = 0 )
+        static public IDisposable UnfilteredOpenGroup( this IActivityMonitor @this, CKTrait tags, LogLevel level, Func<string> getConclusionText, string text, LogTimestamp logTime, Exception ex, [CallerFilePath]string fileName = null, [CallerLineNumber]int lineNumber = 0 )
         {
-            return @this.UnfilteredOpenGroup( new ActivityMonitorGroupData( level, tags, text, logTimeUtc, ex, getConclusionText, fileName, lineNumber ) );
+            return @this.UnfilteredOpenGroup( new ActivityMonitorGroupData( level, tags, text, logTime, ex, getConclusionText, fileName, lineNumber ) );
         }
 
         /// <summary>
         /// Closes the current Group. Optional parameter is polymorphic. It can be a string, a <see cref="ActivityLogGroupConclusion"/>, 
-        /// a <see cref="List{T}"/> or an <see cref="IEnumerable{T}"/> of ActivityLogGroupConclusion, or any object with an overriden <see cref="Object.ToString"/> method. 
+        /// a <see cref="List{T}"/> or an <see cref="IEnumerable{T}"/> of ActivityLogGroupConclusion, or any object with an overridden <see cref="Object.ToString"/> method. 
         /// See remarks (especially for List&lt;ActivityLogGroupConclusion&gt;).
         /// </summary>
         /// <param name="this">This <see cref="IActivityMonitor"/>.</param>
         /// <param name="userConclusion">Optional string, ActivityLogGroupConclusion object, enumerable of ActivityLogGroupConclusion or object to conclude the group. See remarks.</param>
         /// <remarks>
-        /// An untyped object is used here to easily and efficiently accomodate both string and already existing ActivityLogGroupConclusion.
-        /// When a List&lt;ActivityLogGroupConclusion&gt; is used, it will be direclty used to collect conclusion objects (new conclusions will be added to it). This is an optimization.
+        /// An untyped object is used here to easily and efficiently accommodate both string and already existing ActivityLogGroupConclusion.
+        /// When a List&lt;ActivityLogGroupConclusion&gt; is used, it will be directly used to collect conclusion objects (new conclusions will be added to it). This is an optimization.
         /// </remarks>
         public static void CloseGroup( this IActivityMonitor @this, object userConclusion = null )
         {
             if( @this == null ) throw new NullReferenceException( "this" );
-            @this.CloseGroup( DateTime.UtcNow, userConclusion );
+            @this.CloseGroup( NextLogTime( @this ), userConclusion );
         }
         
         #region Bridge: FindBridgeTo, CreateBridgeTo and UnbridgeTo.

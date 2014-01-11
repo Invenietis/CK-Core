@@ -10,15 +10,22 @@ namespace CK.Monitoring.Impl
 {
     class LECloseGroup: ILogEntry
     {
-        readonly DateTime _time;
         readonly LogLevel _level;
         readonly IReadOnlyList<ActivityLogGroupConclusion> _conclusions;
+        readonly LogTimestamp _time;
 
-        public LECloseGroup( DateTime t, LogLevel level, IReadOnlyList<ActivityLogGroupConclusion> c ) 
+        public LECloseGroup( LogTimestamp t, LogLevel level, IReadOnlyList<ActivityLogGroupConclusion> c ) 
         {
             _time = t;
             _conclusions = c;
             _level = level;
+        }
+
+        public LECloseGroup( LEMCCloseGroup e ) 
+        {
+            _time = e.LogTime;
+            _conclusions = e.Conclusions;
+            _level = e.LogLevel;
         }
 
         public LogEntryType LogType { get { return LogEntryType.CloseGroup; } }
@@ -27,7 +34,7 @@ namespace CK.Monitoring.Impl
 
         public LogLevel LogLevel { get { return _level; } }
 
-        public DateTime LogTimeUtc { get { return _time; } }
+        public LogTimestamp LogTime { get { return _time; } }
 
         public CKExceptionData Exception { get { return null; } }
 

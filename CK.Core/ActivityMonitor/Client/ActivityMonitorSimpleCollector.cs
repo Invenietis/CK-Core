@@ -31,9 +31,9 @@ namespace CK.Core
             public readonly LogLevel MaskedLevel;
 
             /// <summary>
-            /// Timestamp of the log entry.
+            /// Time of the log entry.
             /// </summary>
-            public readonly DateTime LogTimeUtc;
+            public readonly LogTimestamp LogTime;
 
             /// <summary>
             /// The text of the log entry.
@@ -45,12 +45,12 @@ namespace CK.Core
             /// </summary>
             public readonly Exception Exception;
 
-            internal Entry( CKTrait tags, LogLevel level, string text, DateTime logTimeUtc, Exception ex )
+            internal Entry( CKTrait tags, LogLevel level, string text, LogTimestamp logTime, Exception ex )
             {
                 Debug.Assert( (level & LogLevel.IsFiltered) == 0 );
                 Tags = tags;
                 MaskedLevel = level;
-                LogTimeUtc = logTimeUtc;
+                LogTime = logTime;
                 Text = text;
                 Exception = ex;
             }
@@ -133,7 +133,7 @@ namespace CK.Core
             var level = data.Level & LogLevel.Mask;
             if( (int)level >= (int)_filter )
             {
-                _entries.Push( new Entry( data.Tags, level, data.Text, data.LogTimeUtc, data.Exception ) );
+                _entries.Push( new Entry( data.Tags, level, data.Text, data.LogTime, data.Exception ) );
             }
         }
 
@@ -145,7 +145,7 @@ namespace CK.Core
         {
             if( (int)group.MaskedGroupLevel >= (int)_filter )
             {
-                _entries.Push( new Entry( group.GroupTags, group.MaskedGroupLevel, group.GroupText, group.LogTimeUtc, group.Exception ) );
+                _entries.Push( new Entry( group.GroupTags, group.MaskedGroupLevel, group.GroupText, group.LogTime, group.Exception ) );
             }
         }
 

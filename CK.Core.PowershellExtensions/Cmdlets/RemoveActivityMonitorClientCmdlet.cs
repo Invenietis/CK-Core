@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 namespace CK.Core.PowershellExtensions.Cmdlets
 {
     [Cmdlet( VerbsCommon.Remove, "ActivityMonitorClient" )]
+    [CLSCompliant(false)]
     public class RemoveActivityMonitorClientCmdlet : Cmdlet
     {
         [Parameter( Position = 0, Mandatory = true )]

@@ -32,7 +32,7 @@ namespace CK.Monitoring
 
         /// <summary>
         /// Group is closed. 
-        /// Note that the only available information are <see cref="ILogEntry.Conclusions"/>, <see cref="ILogEntry.LogLevel"/> and <see cref="ILogEntry.LogTimeUtc"/>.
+        /// Note that the only available information are <see cref="ILogEntry.Conclusions"/>, <see cref="ILogEntry.LogLevel"/> and <see cref="ILogEntry.LogTime"/>.
         /// All other properties are set to their default: <see cref="ILogEntry.Text"/> for instance is empty.
         /// </summary>
         CloseGroup
