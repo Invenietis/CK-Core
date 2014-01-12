@@ -273,7 +273,7 @@ namespace CK.Monitoring
                             else if( e.LogType == LogEntryType.OpenGroup ) path.Add( e );
                             if( !r.MoveNext() ) break;
                         }
-                        Count = i;
+                        Count = i + 1;
                     }
                 }
 
