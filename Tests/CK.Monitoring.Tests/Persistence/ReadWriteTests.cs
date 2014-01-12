@@ -20,8 +20,8 @@ namespace CK.Monitoring.Tests.Persistence
             var exL = new CKExceptionData( "loader-message", "typeof(loader-exception)", "loader-assemblyQualifiedName", "loader-stackTrace", null, "loader-fileName", "loader-fusionLog", null, null );
             var exAgg = new CKExceptionData( "agg-message", "typeof(agg-exception)", "agg-assemblyQualifiedName", "agg-stackTrace", ex2, "fileName", "fusionLog", null, new[]{ ex2, exL } );
 
-            ILogEntry e1 = LogEntry.CreateLog( "Text1", LogTimestamp.UtcNow, LogLevel.Info, "c:\\test.cs", 3712, ActivityMonitor.Tags.CreateDependentActivity, exAgg );
-            ILogEntry e2 = LogEntry.CreateMulticastLog( Guid.Empty, 5, "Text2", LogTimestamp.UtcNow, LogLevel.Info, "c:\\test.cs", 3712, ActivityMonitor.Tags.CreateDependentActivity, exAgg );
+            ILogEntry e1 = LogEntry.CreateLog( "Text1", new LogTimestamp( DateTime.UtcNow, 42 ), LogLevel.Info, "c:\\test.cs", 3712, ActivityMonitor.Tags.CreateDependentActivity, exAgg );
+            ILogEntry e2 = LogEntry.CreateMulticastLog( Guid.Empty, 5, "Text2", LogTimestamp.UtcNow, LogLevel.Fatal, null, 3712, ActivityMonitor.Tags.CreateDependentActivity, exAgg );
 
             using( var mem = new MemoryStream() )
             using( var w = new BinaryWriter( mem ) )
@@ -36,12 +36,21 @@ namespace CK.Monitoring.Tests.Persistence
                 {
                     Assert.That( reader.MoveNext() );
                     Assert.That( reader.Current.Text, Is.EqualTo( e1.Text ) );
+                    Assert.That( reader.Current.LogLevel, Is.EqualTo( e1.LogLevel ) );
                     Assert.That( reader.Current.LogTime, Is.EqualTo( e1.LogTime ) );
+                    Assert.That( reader.Current.FileName, Is.EqualTo( e1.FileName ) );
+                    Assert.That( reader.Current.LineNumber, Is.EqualTo( e1.LineNumber ) );
                     Assert.That( reader.Current.Exception.ExceptionTypeAssemblyQualifiedName, Is.EqualTo( e1.Exception.ExceptionTypeAssemblyQualifiedName ) );
+                    Assert.That( reader.Current.Exception.ToString(), Is.EqualTo( e1.Exception.ToString() ) );
+
                     Assert.That( reader.MoveNext() );
                     Assert.That( reader.Current.Text, Is.EqualTo( e2.Text ) );
                     Assert.That( reader.Current.LogTime, Is.EqualTo( e2.LogTime ) );
+                    Assert.That( reader.Current.FileName, Is.Null );
+                    Assert.That( reader.Current.LineNumber, Is.EqualTo( 0 ), "Since no file name is set, line number is 0." );
                     Assert.That( reader.Current.Exception.ExceptionTypeAssemblyQualifiedName, Is.EqualTo( e2.Exception.ExceptionTypeAssemblyQualifiedName ) );
+                    Assert.That( reader.Current.Exception.ToString(), Is.EqualTo( e2.Exception.ToString() ) );
+                    
                     Assert.That( reader.MoveNext(), Is.False );
                 }
             }

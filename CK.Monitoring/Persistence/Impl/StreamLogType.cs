@@ -3,7 +3,7 @@
 namespace CK.Monitoring.Impl
 {
     [Flags]
-    enum StreamLogType
+    enum StreamLogType : ushort
     {
         EndOfStream = 0,
 
@@ -21,6 +21,8 @@ namespace CK.Monitoring.Impl
 
         IsMultiCast = 128,
 
-        HasUniquifier = 256
+        HasUniquifier = 256,
+
+        MaxFlag = 256
     }
 }

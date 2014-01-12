@@ -75,8 +75,7 @@ namespace CK.Monitoring
             if( fileName != null ) t |= StreamLogType.HasFileName;
             if( logTime.Uniquifier != 0 ) t |= StreamLogType.HasUniquifier;
 
-            w.Write( (byte)t );
-            w.Write( (byte)level );
+            WriteLogTypeAndLevel( w, t, level );
             w.Write( logTime.TimeUtc.ToBinary() );
             if( logTime.Uniquifier != 0 ) w.Write( logTime.Uniquifier );
             if( (t & StreamLogType.HasTags) != 0 ) w.Write( tags.ToString() );
@@ -107,8 +106,7 @@ namespace CK.Monitoring
         {
             if( conclusions != null && conclusions.Count > 0 ) t |= StreamLogType.HasConclusions;
             if( closeTime.Uniquifier != 0 ) t |= StreamLogType.HasUniquifier;
-            w.Write( (byte)t );
-            w.Write( (byte)level );
+            WriteLogTypeAndLevel( w, t, level );
             w.Write( closeTime.TimeUtc.ToBinary() );
             if( closeTime.Uniquifier != 0 ) w.Write( closeTime.Uniquifier );
             if( (t & StreamLogType.HasConclusions) != 0 )
@@ -135,9 +133,10 @@ namespace CK.Monitoring
         {
             if( r == null ) throw new ArgumentNullException( "r" );
             StreamLogType t = StreamLogType.EndOfStream;
+            LogLevel logLevel = LogLevel.None;
             try
             {
-                t = (StreamLogType)r.ReadByte();
+                ReadLogTypeAndLevel( r, out t, out logLevel ); 
             }
             catch( System.IO.EndOfStreamException )
             {
@@ -145,7 +144,6 @@ namespace CK.Monitoring
                 // kindly handles the lack of terminating 0 byte.
             }
             if( t == StreamLogType.EndOfStream ) return null;
-            var logLevel = (LogLevel)r.ReadByte();
             
             if( (t & StreamLogType.TypeMask) == StreamLogType.TypeGroupClosed )
             {
@@ -215,5 +213,24 @@ namespace CK.Monitoring
             int depth = r.ReadInt32();
             return new LEMCCloseGroup( mId, depth, time, logLevel, conclusions.AsReadOnlyList() );
         }
+
+        static void WriteLogTypeAndLevel( BinaryWriter w, StreamLogType t, LogLevel level )
+        {
+            Debug.Assert( (int)StreamLogType.MaxFlag < (1 << (16 - (int)LogLevel.NumberOfBits)) ); 
+            int u = (int)level;
+            u += (int)t << (int)LogLevel.NumberOfBits;
+            Debug.Assert( u <= UInt16.MaxValue );
+            w.Write( (UInt16)u );
+        }
+
+        static void ReadLogTypeAndLevel( BinaryReader r, out StreamLogType t, out LogLevel level )
+        {
+            Debug.Assert( (int)LogLevel.NumberOfBits == 6 );
+            Debug.Assert( (1 << (int)LogLevel.NumberOfBits) - 1 == 63 );
+            int u = r.ReadUInt16();
+            level = (LogLevel)(u & 63);
+            t = (StreamLogType)(u >> 6);
+        }
+
     }
 }

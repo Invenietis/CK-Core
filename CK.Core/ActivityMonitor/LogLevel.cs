@@ -70,7 +70,12 @@ namespace CK.Core
         /// called directly. When set, the log has typically been emitted through the extension methods that challenge the 
         /// monitor's <see cref="IActivityMonitor.ActualFilter">actual filter</see> and <see cref="ActivityMonitor.DefaultFilter"/> static configuration.
         /// </summary>
-        IsFiltered = 32
+        IsFiltered = 32,
+
+        /// <summary>
+        /// Number of bits actually covered by this bit flag.
+        /// </summary>
+        NumberOfBits = 6
     }
 
 }
