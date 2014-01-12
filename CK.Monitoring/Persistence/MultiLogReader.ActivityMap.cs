@@ -261,19 +261,19 @@ namespace CK.Monitoring
 
                     internal void FillPage( MultiFileReader r, List<ILogEntry> path )
                     {
-                        int i;
-                        for( i = 0; i < Entries.Length; ++i )
+                        int i = 0;
+                        do
                         {
                             var e = r.Current;
-                            Entries[i] = e;
+                            Entries[i++] = e;
                             if( e.LogType == LogEntryType.CloseGroup )
                             {
                                 if( path.Count > 0 ) path.RemoveAt( path.Count - 1 );
                             }
                             else if( e.LogType == LogEntryType.OpenGroup ) path.Add( e );
-                            if( !r.MoveNext() ) break;
                         }
-                        Count = i + 1;
+                        while( i < Entries.Length && r.MoveNext() );
+                        Count = i;
                     }
                 }
 
