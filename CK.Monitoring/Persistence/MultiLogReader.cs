@@ -277,7 +277,7 @@ namespace CK.Monitoring
                 lock( _globalInfoLock )
                 {
                     if( _globalFirstEntryTime > f.FirstEntryTime.TimeUtc ) _globalFirstEntryTime = f.FirstEntryTime.TimeUtc;
-                    if( _globalLastEntryTime > f.LastEntryTime.TimeUtc ) _globalLastEntryTime = f.LastEntryTime.TimeUtc;
+                    if( _globalLastEntryTime < f.LastEntryTime.TimeUtc ) _globalLastEntryTime = f.LastEntryTime.TimeUtc;
                 }
             }
             _lockWriteRead.ExitReadLock();
