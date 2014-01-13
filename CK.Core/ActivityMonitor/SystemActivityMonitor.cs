@@ -128,7 +128,7 @@ namespace CK.Core
         {
             foreach( var error in e.LoggingErrors )
             {
-                string s = DumpErrorText( LogTimestamp.UtcNow, error.Comment, LogLevel.Error, error.Exception, null );
+                string s = DumpErrorText( DateTimeStamp.UtcNow, error.Comment, LogLevel.Error, error.Exception, null );
                 HandleError( s );
             }
         }
@@ -263,7 +263,7 @@ namespace CK.Core
 
         #region Generate text from errors methods.
 
-        static string DumpErrorText( LogTimestamp logTime, string text, LogLevel level, Exception ex, CKTrait tags )
+        static string DumpErrorText( DateTimeStamp logTime, string text, LogLevel level, Exception ex, CKTrait tags )
         {
             StringBuilder buffer = CreateHeader( logTime, text, level, tags );
             if( ex != null )
@@ -274,7 +274,7 @@ namespace CK.Core
             return buffer.ToString();
         }
 
-        static string DumpErrorText( LogTimestamp logTime, string text, LogLevel level, CKTrait tags, CKExceptionData exData )
+        static string DumpErrorText( DateTimeStamp logTime, string text, LogLevel level, CKTrait tags, CKExceptionData exData )
         {
             StringBuilder buffer = CreateHeader( logTime, text, level, tags );
             if( exData != null ) exData.ToStringBuilder( buffer, String.Empty );
@@ -282,7 +282,7 @@ namespace CK.Core
             return buffer.ToString();
         }
 
-        static StringBuilder CreateHeader( LogTimestamp logTime, string text, LogLevel level, CKTrait tags )
+        static StringBuilder CreateHeader( DateTimeStamp logTime, string text, LogLevel level, CKTrait tags )
         {
             StringBuilder buffer = new StringBuilder();
             buffer.Append( '<' ).Append( level.ToString() ).Append( '>' ).Append( '@' ).Append( logTime.ToString() );

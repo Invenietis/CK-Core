@@ -46,12 +46,12 @@ namespace CK.Core
         public class DependentToken
         {
             readonly Guid _originatorId;
-            readonly LogTimestamp _creationDate;
+            readonly DateTimeStamp _creationDate;
             readonly string _topic;
 
             static readonly string _format = "{0:B} at {1}";
 
-            internal DependentToken( Guid monitorId, LogTimestamp logTime, string topic )
+            internal DependentToken( Guid monitorId, DateTimeStamp logTime, string topic )
             {
                 _originatorId = monitorId;
                 _creationDate = logTime;
@@ -70,7 +70,7 @@ namespace CK.Core
             /// Gets the creation date. This is the log time of the unfiltered Info log that has 
             /// been emitted in the originator monitor.
             /// </summary>
-            public LogTimestamp CreationDate
+            public DateTimeStamp CreationDate
             {
                 get { return _creationDate; }
             }
@@ -184,10 +184,10 @@ namespace CK.Core
             /// <param name="id">The originator monitor identifier.</param>
             /// <param name="time">The creation time of the dependent activity.</param>
             /// <returns>True on success.</returns>
-            static public bool TryParseStartMessage( string startMessage, out Guid id, out LogTimestamp time )
+            static public bool TryParseStartMessage( string startMessage, out Guid id, out DateTimeStamp time )
             {
                 id = Guid.Empty;
-                time = LogTimestamp.MinValue;
+                time = DateTimeStamp.MinValue;
                 int iIdBracket = -1;
                 while( (iIdBracket = startMessage.IndexOf( '{', iIdBracket + 1 )) >= 0 )
                 {
@@ -196,14 +196,14 @@ namespace CK.Core
                 return false; 
             }
 
-            static bool TryParseAt( string s, int iIdBracket, ref Guid id, ref LogTimestamp time )
+            static bool TryParseAt( string s, int iIdBracket, ref Guid id, ref DateTimeStamp time )
             {
                 Debug.Assert( iIdBracket >= 0 );
                 
                 Debug.Assert( Guid.Empty.ToString( "B" ).Length == 38 );
                 int timeIdx = iIdBracket + 38 + 4;
                 if( timeIdx >= s.Length ) return false;
-                if( !LogTimestamp.Match( s, ref timeIdx, out time ) ) return false;
+                if( !DateTimeStamp.Match( s, ref timeIdx, out time ) ) return false;
                 
                 int remainder = s.Length - iIdBracket;
                 if( String.CompareOrdinal( s, iIdBracket+38, " at ", 0, 4 ) != 0 || !Guid.TryParseExact( s.Substring( iIdBracket, 38 ), "B", out id ) ) return false;

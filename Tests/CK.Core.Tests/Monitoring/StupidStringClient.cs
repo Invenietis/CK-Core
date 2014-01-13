@@ -40,7 +40,7 @@ namespace CK.Core.Tests.Monitoring
             public readonly CKTrait Tags;
             public readonly string Text;
             public readonly Exception Exception;
-            public readonly LogTimestamp LogTime;
+            public readonly DateTimeStamp LogTime;
 
             public Entry( ActivityMonitorLogData d )
             {

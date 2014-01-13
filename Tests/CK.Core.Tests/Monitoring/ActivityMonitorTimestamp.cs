@@ -12,7 +12,7 @@ namespace CK.Core.Tests.Monitoring
     {
         class DateCollision : IActivityMonitorClient
         {
-            LogTimestamp _lastOne;
+            DateTimeStamp _lastOne;
             
             public int NbClash;
 
@@ -55,7 +55,7 @@ namespace CK.Core.Tests.Monitoring
             m.Output.RegisterClient( detect );
             for( int i = 0; i < 10; ++i )
             {
-                m.UnfilteredLog( ActivityMonitor.Tags.Empty, LogLevel.Info, "This should clash!", LogTimestamp.UtcNow, null );
+                m.UnfilteredLog( ActivityMonitor.Tags.Empty, LogLevel.Info, "This should clash!", DateTimeStamp.UtcNow, null );
             }
             for( int i = 0; i < 10; ++i )
             {
@@ -77,13 +77,13 @@ namespace CK.Core.Tests.Monitoring
             var detect = new DateCollision();
             m.Output.RegisterClient( detect );
 
-            LogTimestamp now = LogTimestamp.UtcNow;
+            DateTimeStamp now = DateTimeStamp.UtcNow;
             m.UnfilteredLog( ActivityMonitor.Tags.Empty, LogLevel.Info, "This should clash!", now, null );
             m.UnfilteredLog( ActivityMonitor.Tags.Empty, LogLevel.Info, "This should clash!", now, null );
-            m.UnfilteredLog( ActivityMonitor.Tags.Empty, LogLevel.Info, "This should clash!", new LogTimestamp( now.TimeUtc.AddDays( -1 ) ), null );
+            m.UnfilteredLog( ActivityMonitor.Tags.Empty, LogLevel.Info, "This should clash!", new DateTimeStamp( now.TimeUtc.AddDays( -1 ) ), null );
             m.UnfilteredOpenGroup( ActivityMonitor.Tags.Empty, LogLevel.Info, null, "This should clash!", now, null );
-            m.UnfilteredOpenGroup( ActivityMonitor.Tags.Empty, LogLevel.Info, null, "This should clash!", new LogTimestamp( now.TimeUtc.AddTicks( -1 ) ), null );
-            m.CloseGroup( new LogTimestamp( now.TimeUtc.AddTicks( -1 ) ) );
+            m.UnfilteredOpenGroup( ActivityMonitor.Tags.Empty, LogLevel.Info, null, "This should clash!", new DateTimeStamp( now.TimeUtc.AddTicks( -1 ) ), null );
+            m.CloseGroup( new DateTimeStamp( now.TimeUtc.AddTicks( -1 ) ) );
             m.CloseGroup( now );
 
             Assert.That( detect.NbClash, Is.EqualTo( 0 ) );

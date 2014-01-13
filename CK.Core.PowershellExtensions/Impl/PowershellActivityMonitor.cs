@@ -76,7 +76,7 @@ namespace CK.Core.PowershellExtensions.Impl
             set { _monitor.AutoTags = value; }
         }
 
-        public void CloseGroup( LogTimestamp logTimeUtc, object userConclusion = null )
+        public void CloseGroup( DateTimeStamp logTimeUtc, object userConclusion = null )
         {
             _monitor.CloseGroup( logTimeUtc, userConclusion );
         }
@@ -112,7 +112,7 @@ namespace CK.Core.PowershellExtensions.Impl
             return _monitor.UnfilteredOpenGroup( data );
         }
 
-        public LogTimestamp LastLogTime
+        public DateTimeStamp LastLogTime
         {
             get { return _monitor.LastLogTime; }
         }

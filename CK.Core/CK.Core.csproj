@@ -34,7 +34,7 @@
     <DocumentationFile>
     </DocumentationFile>
     <Prefer32Bit>false</Prefer32Bit>
-    <CodeAnalysisRuleSet>BasicCorrectnessRules.ruleset</CodeAnalysisRuleSet>
+    <CodeAnalysisRuleSet>BasicDesignGuidelineRules.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -68,7 +68,7 @@
     <Compile Include="ActivityMonitor\ActivityLogGroupConclusion.cs" />
     <Compile Include="ActivityMonitor\ActivityMonitorLogData.cs" />
     <Compile Include="ActivityMonitor\ActivityMonitorGroupData.cs" />
-    <Compile Include="ActivityMonitor\LogTimestamp.cs" />
+    <Compile Include="DateTimeStamp.cs" />
     <Compile Include="ActivityMonitor\IDisposableActivityMonitor.cs" />
     <Compile Include="ActivityMonitor\IActivityMonitorGroupSender.cs" />
     <Compile Include="ActivityMonitor\IActivityMonitorLineSender.cs" />

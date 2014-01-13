@@ -27,6 +27,7 @@ using System.Diagnostics;
 using System.Linq;
 using CK.Core;
 using System.Threading;
+using System.ComponentModel;
 
 namespace CK.Core
 {
@@ -40,7 +41,8 @@ namespace CK.Core
     /// a static object that exists in the origin application domain. A CKTrait must be serialized as its <see cref="ToString"/> representation and it is up to the 
     /// code to call <see cref="CKTraitContext.FindOrCreate(string)"/> on the appropriate context when deserializing it.
     /// </remarks>
-    public sealed class CKTrait : IComparable<CKTrait>
+    [ImmutableObject( true )]
+    public sealed class CKTrait : IComparable<CKTrait>, IEquatable<CKTrait>
     {
         readonly CKTraitContext _context;
         readonly string _trait;
@@ -140,6 +142,16 @@ namespace CK.Core
             int cmp = _traits.Count - other.AtomicTraits.Count;
             if( cmp == 0 ) cmp = StringComparer.Ordinal.Compare( other._trait, _trait );
             return cmp;
+        }
+
+        /// <summary>
+        /// Checks equality of this trait with another one.
+        /// </summary>
+        /// <param name="other">The trait to compare to.</param>
+        /// <returns>True on equality.</returns>
+        public bool Equals( CKTrait other )
+        {
+            return ReferenceEquals( this, other );
         }
 
         /// <summary>

@@ -53,9 +53,9 @@ namespace CK.Monitoring
         {
             readonly Guid _monitorId;
             readonly IReadOnlyList<RawLogFileMonitorOccurence> _files;
-            readonly LogTimestamp _firstEntryTime;
+            readonly DateTimeStamp _firstEntryTime;
             readonly int _firstDepth;
-            readonly LogTimestamp _lastEntryTime;
+            readonly DateTimeStamp _lastEntryTime;
             readonly int _lastDepth;
 
             internal Monitor( LiveIndexedMonitor m )
@@ -72,21 +72,21 @@ namespace CK.Monitoring
 
             public IReadOnlyList<RawLogFileMonitorOccurence> Files { get { return _files; } }
 
-            public LogTimestamp FirstEntryTime { get { return _firstEntryTime; } }
+            public DateTimeStamp FirstEntryTime { get { return _firstEntryTime; } }
 
             public int FirstDepth { get { return _firstDepth; } }
 
-            public LogTimestamp LastEntryTime { get { return _lastEntryTime; } }
+            public DateTimeStamp LastEntryTime { get { return _lastEntryTime; } }
 
             public int LastDepth { get { return _lastDepth; } }
 
             internal class MultiFileReader : IDisposable
             {
-                readonly LogTimestamp _firstLogTime;
+                readonly DateTimeStamp _firstLogTime;
                 readonly IReadOnlyList<RawLogFileMonitorOccurence> _files;
                 CKSortedArrayList<OneLogReader> _readers;
 
-                public MultiFileReader( LogTimestamp firstLogTime, IReadOnlyList<RawLogFileMonitorOccurence> files )
+                public MultiFileReader( DateTimeStamp firstLogTime, IReadOnlyList<RawLogFileMonitorOccurence> files )
                 {
                     _firstLogTime = firstLogTime;
                     _files = files;
@@ -101,7 +101,7 @@ namespace CK.Monitoring
                     public readonly RawLogFileMonitorOccurence File;
                     public readonly int FirstGroupDepth;
 
-                    public OneLogReader( RawLogFileMonitorOccurence file, LogTimestamp firstLogTime )
+                    public OneLogReader( RawLogFileMonitorOccurence file, DateTimeStamp firstLogTime )
                     {
                         File = file;
                         _reader = file.CreateFilteredReaderAndMoveTo( firstLogTime );
@@ -227,6 +227,11 @@ namespace CK.Monitoring
                 }
             }
 
+            /// <summary>
+            /// A page gives access to <see cref="Entries"/> and <see cref="CurrentPath"/> by unifying
+            /// all the raw log files and removing duplicates from them.
+            /// Pages are sequentially accessed from a first page (obtained by <see cref="Monitor.ReadFirstPage"/>) and the by calling <see cref="ForwardPage"/>.
+            /// </summary>
             public class LivePage : IDisposable
             {
                 class WrappedList : IReadOnlyList<ILogEntry>
@@ -293,6 +298,9 @@ namespace CK.Monitoring
                     if( _r != null ) _entries.FillPage( _r, _path );
                 }
 
+                /// <summary>
+                /// Gets the log entries of the current page.
+                /// </summary>
                 public IReadOnlyList<ILogEntry> Entries { get { return _entries; } }
                 
                 /// <summary>
@@ -301,25 +309,41 @@ namespace CK.Monitoring
                 /// </summary>
                 public IReadOnlyList<ILogEntry> CurrentPath { get { return _path.AsReadOnlyList(); } }
 
+                /// <summary>
+                /// Gets the page length. 
+                /// </summary>
                 public int PageLength { get { return _pageLength; } }
 
+                /// <summary>
+                /// Loads the next page.
+                /// </summary>
+                /// <returns>The number of entries.</returns>
                 public int ForwardPage()
                 {
+                    _entries.Count = 0;
                     if( _r != null )
                     {
-                        _entries.Count = 0;
                         if( _r.MoveNext() ) _entries.FillPage( _r, _path );
                     }
                     return Entries.Count;
                 }
 
+                /// <summary>
+                /// Closes all resources.
+                /// </summary>
                 public void Dispose()
                 {
                     if( _r != null ) _r.Dispose();
                 }
             }
 
-            public LivePage ReadFirstPage( LogTimestamp firstLogTime, int pageLength )
+            /// <summary>
+            /// Loads the first available entries starting at a given time.
+            /// </summary>
+            /// <param name="firstLogTime">The first log time.</param>
+            /// <param name="pageLength">The length of pages. Must be greater than 0.</param>
+            /// <returns>The first <see cref="LivePage"/> from which next pages can be retrieved.</returns>
+            public LivePage ReadFirstPage( DateTimeStamp firstLogTime, int pageLength )
             {
                 if( pageLength < 1 ) throw new ArgumentOutOfRangeException( "pageLength" );
                 MultiFileReader r = new MultiFileReader( firstLogTime, _files );

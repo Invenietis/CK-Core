@@ -200,7 +200,7 @@ namespace CK.Core
         int _enteredThreadId;
         Guid _uniqueId;
         string _topic;
-        LogTimestamp _lastLogTime;
+        DateTimeStamp _lastLogTime;
         bool _actualFilterIsDirty;
 
         /// <summary>
@@ -233,7 +233,7 @@ namespace CK.Core
             _currentTag = tags ?? Tags.Empty;
             _uniqueId = Guid.NewGuid();
             _topic = String.Empty;
-            _lastLogTime = LogTimestamp.MinValue;
+            _lastLogTime = DateTimeStamp.MinValue;
             var autoConf = AutoConfiguration;
             if( autoConf != null && applyAutoConfigurations ) autoConf( this );
         }
@@ -281,9 +281,9 @@ namespace CK.Core
         }
 
         /// <summary>
-        /// Gets the last <see cref="LogTimestamp"/> for this monitor.
+        /// Gets the last <see cref="DateTimeStamp"/> for this monitor.
         /// </summary>
-        public LogTimestamp LastLogTime 
+        public DateTimeStamp LastLogTime 
         {
             get { return _lastLogTime; } 
         }
@@ -326,7 +326,7 @@ namespace CK.Core
             _topic = newTopic;
             _output.BridgeTarget.TargetTopicChanged( newTopic, fileName, lineNumber );
             MonoParameterSafeCall( ( client, topic ) => client.OnTopicChanged( topic, fileName, lineNumber ), newTopic );
-            DoUnfilteredLog( new ActivityMonitorLogData( LogLevel.Info, null, Tags.MonitorTopicChanged, "Topic: " + newTopic, new LogTimestamp( _lastLogTime, DateTime.UtcNow ), fileName, lineNumber ) );
+            DoUnfilteredLog( new ActivityMonitorLogData( LogLevel.Info, null, Tags.MonitorTopicChanged, "Topic: " + newTopic, new DateTimeStamp( _lastLogTime, DateTime.UtcNow ), fileName, lineNumber ) );
         }
 
         /// <summary>
@@ -672,7 +672,7 @@ namespace CK.Core
         /// An untyped object is used here to easily and efficiently accommodate both string and already existing ActivityLogGroupConclusion.
         /// When a List&lt;ActivityLogGroupConclusion&gt; is used, it will be directly used to collect conclusion objects (new conclusions will be added to it). This is an optimization.
         /// </remarks>
-        public virtual void CloseGroup( LogTimestamp logTime, object userConclusion = null )
+        public virtual void CloseGroup( DateTimeStamp logTime, object userConclusion = null )
         {
             ReentrantAndConcurrentCheck();
             try
@@ -685,7 +685,7 @@ namespace CK.Core
             }
         }
 
-        void DoCloseGroup( LogTimestamp logTime, object userConclusion = null )
+        void DoCloseGroup( DateTimeStamp logTime, object userConclusion = null )
         {
             Debug.Assert( _enteredThreadId == Thread.CurrentThread.ManagedThreadId );
             Group g = _current;
@@ -701,7 +701,7 @@ namespace CK.Core
                 }
                 else
                 {
-                    g.CloseLogTime = _lastLogTime = new LogTimestamp( _lastLogTime, logTime.IsDefined ? logTime : LogTimestamp.UtcNow );
+                    g.CloseLogTime = _lastLogTime = new DateTimeStamp( _lastLogTime, logTime.IsValid ? logTime : DateTimeStamp.UtcNow );
                     var conclusions = userConclusion as List<ActivityLogGroupConclusion>;
                     if( conclusions == null && userConclusion != null )
                     {

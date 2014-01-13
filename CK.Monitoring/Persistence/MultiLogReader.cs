@@ -25,9 +25,9 @@ namespace CK.Monitoring
             readonly MultiLogReader _reader;
             internal readonly Guid MonitorId;
             internal readonly List<RawLogFileMonitorOccurence> _files;
-            internal LogTimestamp _firstEntryTime;
+            internal DateTimeStamp _firstEntryTime;
             internal int _firstDepth;
-            internal LogTimestamp _lastEntryTime;
+            internal DateTimeStamp _lastEntryTime;
             internal int _lastDepth;
 
             internal LiveIndexedMonitor( Guid monitorId, MultiLogReader reader )
@@ -35,8 +35,8 @@ namespace CK.Monitoring
                 MonitorId = monitorId;
                 _reader = reader;
                 _files = new List<RawLogFileMonitorOccurence>();
-                _firstEntryTime = LogTimestamp.MaxValue;
-                _lastEntryTime = LogTimestamp.MinValue;
+                _firstEntryTime = DateTimeStamp.MaxValue;
+                _lastEntryTime = DateTimeStamp.MinValue;
             }
 
             internal void Register( RawLogFileMonitorOccurence fileOccurence, bool newOccurence, IMulticastLogEntry log )
@@ -68,8 +68,8 @@ namespace CK.Monitoring
             public readonly Guid MonitorId;
             public readonly long FirstOffset;
             public long LastOffset { get; internal set; }
-            public LogTimestamp FirstEntryTime { get; internal set; }
-            public LogTimestamp LastEntryTime { get; internal set; }
+            public DateTimeStamp FirstEntryTime { get; internal set; }
+            public DateTimeStamp LastEntryTime { get; internal set; }
 
             /// <summary>
             /// Creates and opens a <see cref="LogReader"/> that reads unicast entries only from this monitor.
@@ -88,7 +88,7 @@ namespace CK.Monitoring
             /// </summary>
             /// <param name="logTime">Log time. Must exist in the stream otherwise an exception is thrown.</param>
             /// <returns>A log reader that will read only entries from this monitor.</returns>
-            public LogReader CreateFilteredReaderAndMoveTo( LogTimestamp logTime )
+            public LogReader CreateFilteredReaderAndMoveTo( DateTimeStamp logTime )
             {
                 var r = LogReader.Open( LogFile.FileName, FirstOffset, LogFile.FileVersion, new LogReader.MulticastFilter( MonitorId, LastOffset ) );
                 while( r.MoveNext() && r.Current.LogTime < logTime ) ;
@@ -100,8 +100,8 @@ namespace CK.Monitoring
                 LogFile = f;
                 MonitorId = monitorId;
                 FirstOffset = streamOffset;
-                FirstEntryTime = LogTimestamp.MaxValue;
-                LastEntryTime = LogTimestamp.MinValue;
+                FirstEntryTime = DateTimeStamp.MaxValue;
+                LastEntryTime = DateTimeStamp.MinValue;
             }
         }
 
@@ -112,8 +112,8 @@ namespace CK.Monitoring
         {
             readonly string _fileName;
             int _fileVersion;
-            LogTimestamp _firstEntryTime;
-            LogTimestamp _lastEntryTime;
+            DateTimeStamp _firstEntryTime;
+            DateTimeStamp _lastEntryTime;
             int _totalEntryCount;
             int _unfilteredEntryCount;
             int _fatalCount;
@@ -125,8 +125,8 @@ namespace CK.Monitoring
             Exception _error;
 
             public string FileName { get { return _fileName; } }
-            public LogTimestamp FirstEntryTime { get { return _firstEntryTime; } }
-            public LogTimestamp LastEntryTime { get { return _lastEntryTime; } }
+            public DateTimeStamp FirstEntryTime { get { return _firstEntryTime; } }
+            public DateTimeStamp LastEntryTime { get { return _lastEntryTime; } }
             public int FileVersion { get { return _fileVersion; } }
             public int TotalEntryCount { get { return _totalEntryCount; } }
             public int UnfilteredEntryCount { get { return _unfilteredEntryCount; } }
@@ -145,8 +145,8 @@ namespace CK.Monitoring
             {
                 _fileName = fileName;
                 InitializerLock = new object();
-                _firstEntryTime = LogTimestamp.MaxValue;
-                _lastEntryTime = LogTimestamp.MinValue;
+                _firstEntryTime = DateTimeStamp.MaxValue;
+                _lastEntryTime = DateTimeStamp.MinValue;
             }
 
             internal void Initialize( MultiLogReader reader )

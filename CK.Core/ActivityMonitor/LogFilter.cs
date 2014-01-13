@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -12,6 +13,7 @@ namespace CK.Core
     /// <see cref="Terse"/>, <see cref="Release"/> and <see cref="Off"/> (no log at all).
     /// </summary>
     [Serializable]
+    [ImmutableObject(true)]
     public struct LogFilter
     {
         /// <summary>

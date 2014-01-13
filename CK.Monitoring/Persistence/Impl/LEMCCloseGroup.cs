@@ -13,7 +13,7 @@ namespace CK.Monitoring.Impl
         readonly Guid _monitorId;
         readonly int _depth;
 
-        public LEMCCloseGroup( Guid monitorId, int depth, LogTimestamp t, LogLevel level, IReadOnlyList<ActivityLogGroupConclusion> c )
+        public LEMCCloseGroup( Guid monitorId, int depth, DateTimeStamp t, LogLevel level, IReadOnlyList<ActivityLogGroupConclusion> c )
             : base( t, level, c )
         {
             _monitorId = monitorId;

@@ -33,7 +33,7 @@ namespace CK.Core
             /// <summary>
             /// Time of the log entry.
             /// </summary>
-            public readonly LogTimestamp LogTime;
+            public readonly DateTimeStamp LogTime;
 
             /// <summary>
             /// The text of the log entry.
@@ -45,7 +45,7 @@ namespace CK.Core
             /// </summary>
             public readonly Exception Exception;
 
-            internal Entry( CKTrait tags, LogLevel level, string text, LogTimestamp logTime, Exception ex )
+            internal Entry( CKTrait tags, LogLevel level, string text, DateTimeStamp logTime, Exception ex )
             {
                 Debug.Assert( (level & LogLevel.IsFiltered) == 0 );
                 Tags = tags;

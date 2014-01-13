@@ -14,7 +14,7 @@ namespace CK.Core
     {
         string _text;
         CKTrait _tags;
-        LogTimestamp _logTime;
+        DateTimeStamp _logTime;
         Exception _exception;
         CKExceptionData _exceptionData;
 
@@ -68,7 +68,7 @@ namespace CK.Core
         /// <summary>
         /// Gets the time of the log.
         /// </summary>
-        public LogTimestamp LogTime
+        public DateTimeStamp LogTime
         {
             get { return _logTime; }
         }
@@ -132,7 +132,7 @@ namespace CK.Core
         /// </param>
         /// <param name="fileName">Name of the source file that emitted the log. Can be null.</param>
         /// <param name="lineNumber">Line number in the source file that emitted the log. Can be null.</param>
-        public ActivityMonitorLogData( LogLevel level, Exception exception, CKTrait tags, string text, LogTimestamp logTime, string fileName, int lineNumber )
+        public ActivityMonitorLogData( LogLevel level, Exception exception, CKTrait tags, string text, DateTimeStamp logTime, string fileName, int lineNumber )
             : this( level, fileName, lineNumber )
         {
             if( MaskedLevel == LogLevel.None || MaskedLevel == LogLevel.Mask ) throw new ArgumentException( R.ActivityMonitorInvalidLogLevel, "level" );
@@ -156,7 +156,7 @@ namespace CK.Core
             Debug.Assert( Level == LogLevel.None );
         }
 
-        internal void Initialize( string text, Exception exception, CKTrait tags, LogTimestamp logTime )
+        internal void Initialize( string text, Exception exception, CKTrait tags, DateTimeStamp logTime )
         {
             if( String.IsNullOrEmpty( (_text = text) ) )
             {
@@ -168,11 +168,11 @@ namespace CK.Core
             _logTime = logTime;
         }
 
-        internal LogTimestamp CombineTagsAndAdjustLogTime( CKTrait tags, LogTimestamp lastLogTime )
+        internal DateTimeStamp CombineTagsAndAdjustLogTime( CKTrait tags, DateTimeStamp lastLogTime )
         {
             if( _tags.IsEmpty ) _tags = tags;
             else _tags = _tags.Union( tags );
-            return _logTime = new LogTimestamp( lastLogTime, _logTime.IsDefined ? _logTime : LogTimestamp.UtcNow );
+            return _logTime = new DateTimeStamp( lastLogTime, _logTime.IsValid ? _logTime : DateTimeStamp.UtcNow );
         }
     }
 }

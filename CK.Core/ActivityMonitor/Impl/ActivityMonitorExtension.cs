@@ -38,14 +38,14 @@ namespace CK.Core
     {
 
         /// <summary>
-        /// Returns a valid <see cref="LogTimestamp"/> that will be used for a log: it is based on <see cref="DateTime.UtcNow"/> and has 
-        /// a <see cref="LogTimestamp.Uniquifier"/> that will not be changed when emitting the next log.
+        /// Returns a valid <see cref="DateTimeStamp"/> that will be used for a log: it is based on <see cref="DateTime.UtcNow"/> and has 
+        /// a <see cref="DateTimeStamp.Uniquifier"/> that will not be changed when emitting the next log.
         /// </summary>
         /// <param name="this">This <see cref="IActivityMonitor"/>.</param>
         /// <returns>The next log time for the monitor.</returns>
-        public static LogTimestamp NextLogTime( this IActivityMonitor @this )
+        public static DateTimeStamp NextLogTime( this IActivityMonitor @this )
         {
-            return new LogTimestamp( @this.LastLogTime, DateTime.UtcNow );
+            return new DateTimeStamp( @this.LastLogTime, DateTime.UtcNow );
         }
 
 
@@ -144,7 +144,7 @@ namespace CK.Core
         /// treated as if a different LogLevel is used.
         /// </para>
         /// </remarks>
-        static public void UnfilteredLog( this IActivityMonitor @this, CKTrait tags, LogLevel level, string text, LogTimestamp logTime, Exception ex, [CallerFilePath]string fileName = null, [CallerLineNumber]int lineNumber = 0 )
+        static public void UnfilteredLog( this IActivityMonitor @this, CKTrait tags, LogLevel level, string text, DateTimeStamp logTime, Exception ex, [CallerFilePath]string fileName = null, [CallerLineNumber]int lineNumber = 0 )
         {
             @this.UnfilteredLog( new ActivityMonitorLogData( level, ex, tags, text, logTime, fileName, lineNumber ) );
         }
@@ -182,7 +182,7 @@ namespace CK.Core
         /// Note that this automatic configuration restoration works even if the group is filtered (when the <paramref name="level"/> is None).
         /// </para>
         /// </remarks>
-        static public IDisposable UnfilteredOpenGroup( this IActivityMonitor @this, CKTrait tags, LogLevel level, Func<string> getConclusionText, string text, LogTimestamp logTime, Exception ex, [CallerFilePath]string fileName = null, [CallerLineNumber]int lineNumber = 0 )
+        static public IDisposable UnfilteredOpenGroup( this IActivityMonitor @this, CKTrait tags, LogLevel level, Func<string> getConclusionText, string text, DateTimeStamp logTime, Exception ex, [CallerFilePath]string fileName = null, [CallerLineNumber]int lineNumber = 0 )
         {
             return @this.UnfilteredOpenGroup( new ActivityMonitorGroupData( level, tags, text, logTime, ex, getConclusionText, fileName, lineNumber ) );
         }

@@ -40,7 +40,7 @@ namespace CK.Core.Tests.Monitoring
             {
                 Assert.That( logs[0].Text, Is.EqualTo( "Topic: Test..." ) );
                 Guid id;
-                LogTimestamp time;
+                DateTimeStamp time;
                 Assert.That( ActivityMonitor.DependentToken.TryParseStartMessage( logs[1].Text, out id, out time ) );
                 Assert.That( id, Is.EqualTo( ((IUniqueId)m).UniqueId ) );
                 Assert.That( time, Is.EqualTo( cLaunch.Entries[loopNeeded].LogTime ) );
@@ -75,7 +75,7 @@ namespace CK.Core.Tests.Monitoring
 
             Assert.That( startMessage, Is.StringStarting( "Starting dependent activity" ) );
             Guid id;
-            LogTimestamp time;
+            DateTimeStamp time;
             Assert.That( ActivityMonitor.DependentToken.TryParseStartMessage( startMessage, out id, out time ) );
             Assert.That( id, Is.EqualTo( ((IUniqueId)m).UniqueId ) );
             Assert.That( time, Is.EqualTo( cLaunch.Entries[0].LogTime ) );

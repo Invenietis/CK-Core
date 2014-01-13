@@ -22,30 +22,31 @@
 #endregion
 
 using System;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.Globalization;
 
 namespace CK.Core
 {
     /// <summary>
-    /// Log time are built by <see cref="IActivityMonitor.CreateLogTime"/>.
-    /// They are unique per monitor.
+    /// A date & time stamp encapsulates a <see cref="TimeUtc"/> (<see cref="DaetTime"/> guaranteed to be in Utc) and a <see cref="Uniquifier"/>.
     /// </summary>
     [Serializable]
-    public struct LogTimestamp : IComparable<LogTimestamp>, IEquatable<LogTimestamp>
+    [ImmutableObject( true )]
+    public struct DateTimeStamp : IComparable<DateTimeStamp>, IEquatable<DateTimeStamp>
     {
         /// <summary>
-        /// Represents the smallest possible value for a LogTime object.         
+        /// Represents the smallest possible value for a DateTimeStamp object.         
         /// </summary>
-        static public readonly LogTimestamp MinValue = new LogTimestamp( Util.UtcMinValue, 0 );
+        static public readonly DateTimeStamp MinValue = new DateTimeStamp( Util.UtcMinValue, 0 );
         
         /// <summary>
-        /// Represents the largest possible value for a LogTime object.         
+        /// Represents the largest possible value for a DateTimeStamp object.         
         /// </summary>
-        static public readonly LogTimestamp MaxValue = new LogTimestamp( Util.UtcMaxValue, Byte.MaxValue );
+        static public readonly DateTimeStamp MaxValue = new DateTimeStamp( Util.UtcMaxValue, Byte.MaxValue );
 
         /// <summary>
-        /// DateTime of the log entry.
+        /// DateTime in Utc.
         /// </summary>
         public readonly DateTime TimeUtc;
 
@@ -55,25 +56,25 @@ namespace CK.Core
         public readonly Byte Uniquifier;
 
         /// <summary>
-        /// Initializes a new <see cref="LogTimestamp"/>.
+        /// Initializes a new <see cref="DateTimeStamp"/>.
         /// </summary>
-        /// <param name="logTimeUtc">The log time. <see cref="DateTime.Kind"/> must be <see cref="DateTimeKind.Utc"/>.</param>
+        /// <param name="timeUtc">The log time. <see cref="DateTime.Kind"/> must be <see cref="DateTimeKind.Utc"/>.</param>
         /// <param name="uniquifier">Optional non zero uniquifier.</param>
-        public LogTimestamp( DateTime logTimeUtc, Byte uniquifier = 0 )
+        public DateTimeStamp( DateTime timeUtc, Byte uniquifier = 0 )
         {
-            if( logTimeUtc.Kind != DateTimeKind.Utc ) throw new ArgumentException( R.DateTimeMustBeUtc, "logTimeUtc" );
-            TimeUtc = logTimeUtc;
+            if( timeUtc.Kind != DateTimeKind.Utc ) throw new ArgumentException( R.DateTimeMustBeUtc, "timeUtc" );
+            TimeUtc = timeUtc;
             Uniquifier = uniquifier;
         }
 
         /// <summary>
-        /// Initializes a new <see cref="LogTimestamp"/> that is that is guaranteed to be unique and ascending (unless <paramref name="ensureGreaterThanLastOne"/> 
+        /// Initializes a new <see cref="DateTimeStamp"/> that is that is guaranteed to be unique and ascending (unless <paramref name="ensureGreaterThanLastOne"/> 
         /// is false) regarding <paramref name="lastOne"/>.
         /// </summary>
-        /// <param name="lastOne">Last log time.</param>
-        /// <param name="time">Time of the log.</param>
+        /// <param name="lastOne">Last time stamp.</param>
+        /// <param name="time">Time (generally current <see cref="DateTime.UtcNow"/>).</param>
         /// <param name="ensureGreaterThanLastOne">False to only check for time equality collision instead of guarantying ascending log time.</param>
-        public LogTimestamp( LogTimestamp lastOne, DateTime time, bool ensureGreaterThanLastOne = true )
+        public DateTimeStamp( DateTimeStamp lastOne, DateTime time, bool ensureGreaterThanLastOne = true )
         {
             if( time.Kind != DateTimeKind.Utc ) throw new ArgumentException( R.DateTimeMustBeUtc, "time" );
             if( ensureGreaterThanLastOne ? time <= lastOne.TimeUtc : time != lastOne.TimeUtc )
@@ -97,44 +98,44 @@ namespace CK.Core
         }
 
         /// <summary>
-        /// Initializes a new <see cref="LogTimestamp"/> that is that is guaranteed to be unique and ascending regarding <paramref name="lastOne"/>.
+        /// Initializes a new <see cref="DateTimeStamp"/> that is that is guaranteed to be unique and ascending regarding <paramref name="lastOne"/>.
         /// </summary>
         /// <remarks>
-        /// The <see cref="Uniquifier"/> is optimized if possible (this simply calls <see cref="LogTime(LogTimestamp,DateTime)"/>).
+        /// The <see cref="Uniquifier"/> is optimized if possible (this simply calls <see cref="LogTime(DateTimeStamp,DateTime,bool)"/>).
         /// </remarks>
-        /// <param name="lastOne">Last log time.</param>
-        /// <param name="newTime">Time of the log.</param>
-        public LogTimestamp( LogTimestamp lastOne, LogTimestamp newTime )
+        /// <param name="lastOne">Last time stamp.</param>
+        /// <param name="newTime">DateTimeStamp to combine.</param>
+        public DateTimeStamp( DateTimeStamp lastOne, DateTimeStamp newTime )
             : this( lastOne, newTime.TimeUtc )
         {
         }
 
         /// <summary>
-        /// Gets whether this <see cref="LogTimestamp"/> is initialized.
+        /// Gets whether this <see cref="DateTimeStamp"/> is initialized.
         /// The default constructor of a struct can not be defined and it initializes the <see cref="TimeUtc"/> with a zero that is <see cref="DateTime.MinValue"/>
         /// with a <see cref="DateTime.Kind"/> set to <see cref="DateTimeKind.Unspecified"/>.
         /// </summary>
-        public bool IsDefined
+        public bool IsValid
         {
             get { return TimeUtc.Kind == DateTimeKind.Utc; }
         }
 
         /// <summary>
-        /// Gets the current <see cref="DateTime.UtcNow"/> as a LogTime.
+        /// Gets the current <see cref="DateTime.UtcNow"/> as a DateTimeStamp.
         /// </summary>
-        public static LogTimestamp UtcNow
+        public static DateTimeStamp UtcNow
         {
-            get { return new LogTimestamp( DateTime.UtcNow ); }
+            get { return new DateTimeStamp( DateTime.UtcNow ); }
         }
 
         /// <summary>
-        /// Tries to match a <see cref="LogTimestamp"/> at a given index in the string.
+        /// Tries to match a <see cref="DateTimeStamp"/> at a given index in the string.
         /// </summary>
         /// <param name="s">The string to parse.</param>
         /// <param name="startAt">Index where the match must start. On success, index of the end of the match.</param>
         /// <param name="time">Result time.</param>
         /// <returns>True if the time has been matched.</returns>
-        static public bool Match( string s, ref int startAt, out LogTimestamp time )
+        static public bool Match( string s, ref int startAt, out DateTimeStamp time )
         {
             bool ret = false;
             DateTime t;
@@ -155,16 +156,16 @@ namespace CK.Core
                 }
                 ret = true;
             }
-            time = new LogTimestamp( t, uniquifier );
+            time = new DateTimeStamp( t, uniquifier );
             return ret;
         }
 
         /// <summary>
-        /// Compares this <see cref="LogTimestamp"/> to another one.
+        /// Compares this <see cref="DateTimeStamp"/> to another one.
         /// </summary>
-        /// <param name="other">The other log time to compare.</param>
+        /// <param name="other">The other DateTimeStamp to compare.</param>
         /// <returns>Positive value when this is greater than other, 0 when they are equal, a negative value otherwise.</returns>
-        public int CompareTo( LogTimestamp other )
+        public int CompareTo( DateTimeStamp other )
         {
             int cmp = TimeUtc.CompareTo( other.TimeUtc );
             if( cmp == 0 ) cmp = Uniquifier.CompareTo( other.Uniquifier );
@@ -174,23 +175,23 @@ namespace CK.Core
         /// <summary>
         /// Checks equality.
         /// </summary>
-        /// <param name="other">Other log file time.</param>
+        /// <param name="other">Other DateTimeStamp.</param>
         /// <returns>True when this is equal to other.</returns>
-        public bool Equals( LogTimestamp other )
+        public bool Equals( DateTimeStamp other )
         {
             return TimeUtc == other.TimeUtc && Uniquifier == other.Uniquifier;
         }
 
         /// <summary>
-        /// Compares this log time to another one.
+        /// Compares this DateTimeStamp to another object that must also be a stamp.
         /// </summary>
-        /// <param name="value"></param>
-        /// <returns></returns>
+        /// <param name="value">The object to compare.</param>
+        /// <returns>Positive value when this is greater than other, 0 when they are equal, a negative value otherwise.</returns>
         public int CompareTo( object value )
         {
             if( value == null ) return 1;
-            if( !(value is LogTimestamp) ) throw new ArgumentException();
-            return CompareTo( (LogTimestamp)value );
+            if( !(value is DateTimeStamp) ) throw new ArgumentException();
+            return CompareTo( (DateTimeStamp)value );
         }
 
         /// <summary>
@@ -200,7 +201,7 @@ namespace CK.Core
         /// <returns>True when this is equal to other.</returns>
         public override bool Equals( object obj )
         {
-            return (obj is LogTimestamp) && Equals( (LogTimestamp)obj );
+            return (obj is DateTimeStamp) && Equals( (DateTimeStamp)obj );
         }
 
         /// <summary>
@@ -227,32 +228,44 @@ namespace CK.Core
             return Uniquifier != 0 ? String.Format( FormatWhenUniquifier, TimeUtc, Uniquifier ) : TimeUtc.ToString( FileUtil.FileNameUniqueTimeUtcFormat, CultureInfo.InvariantCulture );
         }
 
-        public static bool operator ==( LogTimestamp d1, LogTimestamp d2 )
+        /// <summary>
+        /// Checks equality.
+        /// </summary>
+        /// <param name="d1">First stamp.</param>
+        /// <param name="d2">Second stamp.</param>
+        /// <returns>True when stamps are equals.</returns>
+        public static bool operator ==( DateTimeStamp d1, DateTimeStamp d2 )
         {
             return d1.Equals( d2 );
         }
 
-        public static bool operator >( LogTimestamp t1, LogTimestamp t2 )
-        {
-            return t1.CompareTo( t2 ) > 0;
-        }
-
-        public static bool operator >=( LogTimestamp t1, LogTimestamp t2 )
-        {
-            return t1.CompareTo( t2 ) >= 0;
-        }
-
-        public static bool operator !=( LogTimestamp d1, LogTimestamp d2 )
+        /// <summary>
+        /// Checks inequality.
+        /// </summary>
+        /// <param name="d1">First stamp.</param>
+        /// <param name="d2">Second stamp.</param>
+        /// <returns>True when stamps are different.</returns>
+        public static bool operator !=( DateTimeStamp d1, DateTimeStamp d2 )
         {
             return !d1.Equals( d2 );
         }
 
-        public static bool operator <( LogTimestamp t1, LogTimestamp t2 )
+        public static bool operator >( DateTimeStamp t1, DateTimeStamp t2 )
+        {
+            return t1.CompareTo( t2 ) > 0;
+        }
+
+        public static bool operator >=( DateTimeStamp t1, DateTimeStamp t2 )
+        {
+            return t1.CompareTo( t2 ) >= 0;
+        }
+
+        public static bool operator <( DateTimeStamp t1, DateTimeStamp t2 )
         {
             return t1.CompareTo( t2 ) < 0;
         }
 
-        public static bool operator <=( LogTimestamp t1, LogTimestamp t2 )
+        public static bool operator <=( DateTimeStamp t1, DateTimeStamp t2 )
         {
             return t1.CompareTo( t2 ) <= 0;
         }

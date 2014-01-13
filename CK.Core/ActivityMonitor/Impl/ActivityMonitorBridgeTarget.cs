@@ -191,13 +191,13 @@ namespace CK.Core
 
         #region Cross AppDomain interface.
 
-        internal void UnfilteredLog( string tags, LogLevel level, string text, CKExceptionData exceptionData, LogTimestamp logTime, string fileName, int lineNumber )
+        internal void UnfilteredLog( string tags, LogLevel level, string text, CKExceptionData exceptionData, DateTimeStamp logTime, string fileName, int lineNumber )
         {
             CKException ckEx = exceptionData != null ? new CKException( exceptionData ) : null;
             _monitor.UnfilteredLog( new ActivityMonitorLogData( level, ckEx, ActivityMonitor.Tags.Register( tags ), text, logTime, fileName, lineNumber ) );
         }
 
-        internal void UnfilteredOpenGroup( string tags, LogLevel level, CKExceptionData exceptionData, string groupText, string fileName, int lineNumber, LogTimestamp logTime )
+        internal void UnfilteredOpenGroup( string tags, LogLevel level, CKExceptionData exceptionData, string groupText, string fileName, int lineNumber, DateTimeStamp logTime )
         {
             CKException ckEx = exceptionData != null ? new CKException( exceptionData ) : null;
             _monitor.UnfilteredOpenGroup( ActivityMonitor.Tags.Register( tags ), level, null, groupText, logTime, ckEx, fileName, lineNumber );

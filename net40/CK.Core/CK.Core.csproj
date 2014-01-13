@@ -169,9 +169,6 @@
     <Compile Include="..\..\CK.Core\ActivityMonitor\LogLevelFilter.cs">
       <Link>LogLevelFilter.cs</Link>
     </Compile>
-    <Compile Include="..\..\CK.Core\ActivityMonitor\LogTimestamp.cs">
-      <Link>LogTimestamp.cs</Link>
-    </Compile>
     <Compile Include="..\..\CK.Core\ActivityMonitor\SystemActivityMonitor.cs">
       <Link>SystemActivityMonitor.cs</Link>
     </Compile>
@@ -370,6 +367,7 @@
     <Compile Include="..\..\SharedAssemblyInfo.cs">
       <Link>Properties\SharedAssemblyInfo.cs</Link>
     </Compile>
+    <Compile Include="DateTimeStamp.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

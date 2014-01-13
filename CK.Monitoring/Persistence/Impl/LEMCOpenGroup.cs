@@ -13,7 +13,7 @@ namespace CK.Monitoring.Impl
         readonly Guid _monitorId;
         readonly int _depth;
 
-        public LEMCOpenGroup( Guid monitorId, int depth, string text, LogTimestamp t, string fileName, int lineNumber, LogLevel l, CKTrait tags, CKExceptionData ex )
+        public LEMCOpenGroup( Guid monitorId, int depth, string text, DateTimeStamp t, string fileName, int lineNumber, LogLevel l, CKTrait tags, CKExceptionData ex )
             : base( text, t, fileName, lineNumber, l, tags, ex )
         {
             _monitorId = monitorId;

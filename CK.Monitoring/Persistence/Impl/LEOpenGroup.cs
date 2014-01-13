@@ -15,9 +15,9 @@ namespace CK.Monitoring.Impl
         readonly int _lineNumber;
         readonly LogLevel _level;
         readonly CKExceptionData _ex;
-        readonly LogTimestamp _time;
+        readonly DateTimeStamp _time;
 
-        public LEOpenGroup( string text, LogTimestamp t, string fileName, int lineNumber, LogLevel l, CKTrait tags, CKExceptionData ex )
+        public LEOpenGroup( string text, DateTimeStamp t, string fileName, int lineNumber, LogLevel l, CKTrait tags, CKExceptionData ex )
         {
             _text = text;
             _time = t;
@@ -47,7 +47,7 @@ namespace CK.Monitoring.Impl
 
         public CKTrait Tags { get { return _tags; } }
 
-        public LogTimestamp LogTime { get { return _time; } }
+        public DateTimeStamp LogTime { get { return _time; } }
 
         public CKExceptionData Exception { get { return _ex; } }
 

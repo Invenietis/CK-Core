@@ -12,9 +12,9 @@ namespace CK.Monitoring.Impl
     {
         readonly LogLevel _level;
         readonly IReadOnlyList<ActivityLogGroupConclusion> _conclusions;
-        readonly LogTimestamp _time;
+        readonly DateTimeStamp _time;
 
-        public LECloseGroup( LogTimestamp t, LogLevel level, IReadOnlyList<ActivityLogGroupConclusion> c ) 
+        public LECloseGroup( DateTimeStamp t, LogLevel level, IReadOnlyList<ActivityLogGroupConclusion> c ) 
         {
             _time = t;
             _conclusions = c;
@@ -34,7 +34,7 @@ namespace CK.Monitoring.Impl
 
         public LogLevel LogLevel { get { return _level; } }
 
-        public LogTimestamp LogTime { get { return _time; } }
+        public DateTimeStamp LogTime { get { return _time; } }
 
         public CKExceptionData Exception { get { return null; } }
 
