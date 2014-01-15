@@ -408,7 +408,7 @@ namespace CK.Core.Tests.Collection
         {
             var john = new Mammal( "John" );
             List<Mammal> m = new List<Mammal>() { john, new Mammal( "Paul" ) };
-            var a = new ReadOnlyListOnIList<Animal, Mammal>( m );
+            var a = new CKReadOnlyListOnIList<Animal, Mammal>( m );
             Assert.That( a.Count, Is.EqualTo( 2 ) );
             Assert.That( a[0].Name, Is.EqualTo( "John" ) );
             Assert.That( a.IndexOf( john ), Is.EqualTo( 0 ) );

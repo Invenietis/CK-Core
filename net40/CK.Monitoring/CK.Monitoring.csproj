@@ -158,9 +158,6 @@
     <Compile Include="..\..\CK.Monitoring\Persistence\Impl\LEOpenGroup.cs">
       <Link>LEOpenGroup.cs</Link>
     </Compile>
-    <Compile Include="..\..\CK.Monitoring\Persistence\Impl\LogEntryWithOffset.cs">
-      <Link>LogEntryWithOffset.cs</Link>
-    </Compile>
     <Compile Include="..\..\CK.Monitoring\Persistence\Impl\StreamLogType.cs">
       <Link>StreamLogType.cs</Link>
     </Compile>
@@ -170,11 +167,17 @@
     <Compile Include="..\..\CK.Monitoring\Persistence\LogReader.cs">
       <Link>LogReader.cs</Link>
     </Compile>
+    <Compile Include="..\..\CK.Monitoring\Persistence\MulticastLogEntryWithOffset.cs">
+      <Link>MulticastLogEntryWithOffset.cs</Link>
+    </Compile>
     <Compile Include="..\..\CK.Monitoring\Persistence\MultiLogReader.ActivityMap.cs">
       <Link>MultiLogReader.ActivityMap.cs</Link>
     </Compile>
     <Compile Include="..\..\CK.Monitoring\Persistence\MultiLogReader.cs">
       <Link>MultiLogReader.cs</Link>
+    </Compile>
+    <Compile Include="..\..\CK.Monitoring\Persistence\ParentedLogEntry.cs">
+      <Link>ParentedLogEntry.cs</Link>
     </Compile>
     <Compile Include="..\..\CK.Monitoring\RouteConfig\ActionConfiguration.cs">
       <Link>ActionConfiguration.cs</Link>

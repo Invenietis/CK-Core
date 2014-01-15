@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using CK.Core;
 
 namespace CK.Monitoring.Impl
@@ -54,7 +55,7 @@ namespace CK.Monitoring.Impl
 
         public IReadOnlyList<ActivityLogGroupConclusion> Conclusions { get { return null; } }
 
-        public void WriteLogEntry( System.IO.BinaryWriter w )
+        public virtual void WriteLogEntry( BinaryWriter w )
         {
             LogEntry.WriteLog( w, false, _level, _time, _text, _tags, _ex, _fileName, _lineNumber );
         }

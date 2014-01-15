@@ -62,7 +62,7 @@
     <Compile Include="GrandOutputHandlers\HandlerConfiguration.cs" />
     <Compile Include="Impl\EventDispatcher.cs" />
     <Compile Include="Impl\EventDispatcherBasicStrategy.cs" />
-    <Compile Include="Persistence\Impl\LogEntryWithOffset.cs" />
+    <Compile Include="Persistence\MulticastLogEntryWithOffset.cs" />
     <Compile Include="Persistence\MultiLogReader.ActivityMap.cs" />
     <Compile Include="Persistence\Impl\LEMCOpenGroup.cs" />
     <Compile Include="Persistence\Impl\LEMCLog.cs" />
@@ -70,6 +70,7 @@
     <Compile Include="IMulticastLogEntry.cs" />
     <Compile Include="Persistence\Impl\LELog.cs" />
     <Compile Include="Persistence\MultiLogReader.cs" />
+    <Compile Include="Persistence\ParentedLogEntry.cs" />
     <Compile Include="RouteConfig\ActionConfigurationResolved.cs" />
     <Compile Include="RouteConfig\ConfiguredRouteHost.cs" />
     <Compile Include="RouteConfig\Impl\IProtoRoute.cs" />

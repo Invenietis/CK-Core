@@ -6,12 +6,12 @@ using System.Threading.Tasks;
 
 namespace CK.Monitoring
 {
-    public struct LogEntryWithOffset
+    public struct MulticastLogEntryWithOffset
     {
-        public readonly ILogEntry Entry;
+        public readonly IMulticastLogEntry Entry;
         public readonly long Offset;
 
-        public LogEntryWithOffset( ILogEntry e, long o )
+        public MulticastLogEntryWithOffset( IMulticastLogEntry e, long o )
         {
             Entry = e;
             Offset = o;

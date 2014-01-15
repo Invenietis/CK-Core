@@ -92,11 +92,11 @@ namespace CK.Monitoring
                     _files = files;
                 }
 
-                public ILogEntry Current { get { return _readers[0].Head.Entry; } }
+                public IMulticastLogEntry Current { get { return _readers[0].Head.Entry; } }
 
                 class OneLogReader : IDisposable
                 {
-                    public LogEntryWithOffset Head;
+                    public MulticastLogEntryWithOffset Head;
                     LogReader _reader;
                     public readonly RawLogFileMonitorOccurence File;
                     public readonly int FirstGroupDepth;
@@ -105,16 +105,16 @@ namespace CK.Monitoring
                     {
                         File = file;
                         _reader = file.CreateFilteredReaderAndMoveTo( firstLogTime );
-                        FirstGroupDepth = _reader.MultiCastCurrentGroupDepth;
-                        Head = _reader.CurrentWithOffset;
+                        FirstGroupDepth = _reader.CurrentMulticast.GroupDepth;
+                        Head = _reader.CurrentMulticastWithOffset;
                     }
 
                     public OneLogReader( RawLogFileMonitorOccurence file, long offset )
                     {
                         _reader = file.CreateFilteredReader( offset );
                         _reader.MoveNext();
-                        FirstGroupDepth = _reader.MultiCastCurrentGroupDepth;
-                        Head = _reader.CurrentWithOffset;
+                        FirstGroupDepth = _reader.CurrentMulticast.GroupDepth;
+                        Head = _reader.CurrentMulticastWithOffset;
                     }
 
                     public bool Forward()
@@ -122,7 +122,7 @@ namespace CK.Monitoring
                         Debug.Assert( _reader != null );
                         if( _reader.MoveNext() )
                         {
-                            Head = _reader.CurrentWithOffset;
+                            Head = _reader.CurrentMulticastWithOffset;
                             return true;
                         }
                         _reader.Dispose();
@@ -234,16 +234,16 @@ namespace CK.Monitoring
             /// </summary>
             public class LivePage : IDisposable
             {
-                class WrappedList : IReadOnlyList<ILogEntry>
+                class WrappedList : IReadOnlyList<ParentedLogEntry>
                 {
-                    public readonly ILogEntry[] Entries;
+                    public readonly ParentedLogEntry[] Entries;
 
-                    public WrappedList( ILogEntry[] entries )
+                    public WrappedList( ParentedLogEntry[] entries )
                     {
                         Entries = entries;
                     }
 
-                    public ILogEntry this[int index]
+                    public ParentedLogEntry this[int index]
                     {
                         get
                         {
@@ -254,7 +254,7 @@ namespace CK.Monitoring
 
                     public int Count { get; set; }
 
-                    public IEnumerator<ILogEntry> GetEnumerator()
+                    public IEnumerator<ParentedLogEntry> GetEnumerator()
                     {
                         return Entries.Take( Count ).GetEnumerator();
                     }
@@ -264,51 +264,120 @@ namespace CK.Monitoring
                         return GetEnumerator();
                     }
 
-                    internal void FillPage( MultiFileReader r, List<ILogEntry> path )
+                    internal void FillPage( MultiFileReader r, List<ParentedLogEntry> path )
                     {
+                        ILogEntry lastPrevEntry = Count > 0 ? Entries[Count - 1].Entry : null;
+                        Count = DoFillPage( r, path, lastPrevEntry );
+                    }
+
+                    int DoFillPage( MultiFileReader r, List<ParentedLogEntry> path, ILogEntry lastPrevEntry )
+                    {
+                        ParentedLogEntry parent = path.Count > 0 ? path[path.Count - 1] : null;
                         int i = 0;
                         do
                         {
-                            var e = r.Current;
-                            Entries[i++] = e;
-                            if( e.LogType == LogEntryType.CloseGroup )
+                            var entry = r.Current;
+                            if( entry.GroupDepth < path.Count )
                             {
-                                if( path.Count > 0 ) path.RemoveAt( path.Count - 1 );
+                                // Adds a MissingCloseGroup with an unknown time for tail groups: handles the 
+                                // last closing group specifically.
+                                while( entry.GroupDepth < path.Count-1 )
+                                {
+                                    if( AppendEntry( path, ref parent, ref i, LogEntry.CreateMissingCloseGroup( DateTimeStamp.Unknown ) ) ) return i;
+                                }
+                                // Handles the last auto-close group: we may know its time thanks to our current entry (if its previous type is a CloseGroup).
+                                Debug.Assert( entry.GroupDepth == path.Count-1, "We are on the last group to auto-close." );
+                                DateTimeStamp prevTime = entry.PreviousEntryType == LogEntryType.CloseGroup ? entry.PreviousLogTime : DateTimeStamp.Unknown;
+                                if( AppendEntry( path, ref parent, ref i, LogEntry.CreateMissingCloseGroup( prevTime ) ) ) return i;
                             }
-                            else if( e.LogType == LogEntryType.OpenGroup ) path.Add( e );
+                            else if( entry.GroupDepth > path.Count )
+                            {
+                                // Adds a MissingOpenGroup with an unknown time for head groups: handles the 
+                                // last opening group specifically.
+                                while( entry.GroupDepth > path.Count + 1 )
+                                {
+                                    if( AppendEntry( path, ref parent, ref i, LogEntry.CreateMissingOpenGroup( DateTimeStamp.Unknown ) ) ) return i;
+                                }
+                                // Handles the last auto-open group: we may know its time thanks to our current entry (if its previous type is a OpenGroup).
+                                Debug.Assert( entry.GroupDepth == path.Count+1, "We are on the last group to auto-open." );
+                                DateTimeStamp prevTime = entry.PreviousEntryType == LogEntryType.OpenGroup ? entry.PreviousLogTime : DateTimeStamp.Unknown;
+                                if( AppendEntry( path, ref parent, ref i, LogEntry.CreateMissingOpenGroup( prevTime ) ) ) return i;
+                            }
+                            // If we know the the time and type of the previous entry and this does not correspond to 
+                            // our predecessor, we inject a missing line.
+                            // This is necessarily a line that we inject here thanks to the open/close adjustment above.
+                            // If the log type of the known previous entry is Open or Close group, it means that there are incoherent group depths... and 
+                            // we ignore this pathological case.
+                            if( entry.PreviousEntryType != LogEntryType.None )
+                            {
+                                ILogEntry prevEntry = i > 0 ? Entries[i].Entry : lastPrevEntry;
+                                if( prevEntry == null || prevEntry.LogTime != entry.PreviousLogTime )
+                                {
+                                    if( AppendEntry( path, ref parent, ref i, LogEntry.CreateMissingLine( entry.PreviousLogTime ) ) ) return i;
+                                }
+                            }
+                            // Now that missing data has been handled, appends the line itself.
+                            if( AppendEntry( path, ref parent, ref i, entry.CreateUnicastLogEntry() ) ) return i;
                         }
-                        while( i < Entries.Length && r.MoveNext() );
-                        Count = i;
+                        while( r.MoveNext() );
+                        return i;
+                    }
+
+                    bool AppendEntry( List<ParentedLogEntry> path, ref ParentedLogEntry parent, ref int i, ILogEntry e )
+                    {
+                        Debug.Assert( e.LogType != LogEntryType.None );
+                        if( e.LogType == LogEntryType.CloseGroup )
+                        {
+                            // Take no risk here: ignores the case where a close occurs while we are already 
+                            // at the root. This SHOULD never happen unless there is a mismatch between FirstInitialGroupDepth
+                            // and actual log file content.
+                            if( path.Count > 0 )
+                            {
+                                Entries[i++] = new ParentedLogEntry( parent, e );
+                                path.RemoveAt( path.Count - 1 );
+                                if( i == Entries.Length ) return true;
+                                parent = path.Count > 0 ? path[path.Count - 1] : null;
+                            }
+                            return false;
+                        }
+                        var pE = new ParentedLogEntry( parent, e );
+                        Entries[i++] = pE;
+                        if( e.LogType == LogEntryType.OpenGroup )
+                        {
+                            path.Add( pE );
+                            parent = pE;
+                        }
+                        return i == Entries.Length;
                     }
                 }
 
                 readonly WrappedList _entries;
                 readonly MultiFileReader _r;
                 readonly int _pageLength;
-                readonly List<ILogEntry> _path;
+                readonly List<ParentedLogEntry> _currentPath;
 
-                internal LivePage( int initialGroupDepth, ILogEntry[] entries, MultiFileReader r, int pageLength )
+                internal LivePage( int initialGroupDepth, ParentedLogEntry[] entries, MultiFileReader r, int pageLength )
                 {
                     Debug.Assert( pageLength == entries.Length || entries.Length == 0 );
                     _r = r;
                     _pageLength = pageLength;
-                    _path = new List<ILogEntry>();
-                    for( int i = 0; i < initialGroupDepth; ++i ) _path.Add( null );
+                    _currentPath = new List<ParentedLogEntry>();
+                    ParentedLogEntry e = null;
+                    for( int i = 0; i < initialGroupDepth; ++i ) 
+                    {
+                        ParentedLogEntry g = new ParentedLogEntry( e, LogEntry.CreateMissingOpenGroup( DateTimeStamp.Unknown ) ); 
+                        _currentPath.Add( g );
+                        e = g;
+                    }
                     _entries = new WrappedList( entries );
-                    if( _r != null ) _entries.FillPage( _r, _path );
+                    if( _r != null ) _entries.FillPage( _r, _currentPath );
                 }
 
                 /// <summary>
                 /// Gets the log entries of the current page.
                 /// </summary>
-                public IReadOnlyList<ILogEntry> Entries { get { return _entries; } }
+                public IReadOnlyList<ParentedLogEntry> Entries { get { return _entries; } }
                 
-                /// <summary>
-                /// Gets the current path. First entries may be null: they correspond to <see cref="Monitor.FirstDepth"/>: we know
-                /// that we are dealing with subordinate entries but we do not have in any of the available files the opening of these groups.
-                /// </summary>
-                public IReadOnlyList<ILogEntry> CurrentPath { get { return _path.AsReadOnlyList(); } }
-
                 /// <summary>
                 /// Gets the page length. 
                 /// </summary>
@@ -323,7 +392,7 @@ namespace CK.Monitoring
                     _entries.Count = 0;
                     if( _r != null )
                     {
-                        if( _r.MoveNext() ) _entries.FillPage( _r, _path );
+                        if( _r.MoveNext() ) _entries.FillPage( _r, _currentPath );
                     }
                     return Entries.Count;
                 }
@@ -349,12 +418,11 @@ namespace CK.Monitoring
                 MultiFileReader r = new MultiFileReader( firstLogTime, _files );
                 if( r.MoveNext() )
                 {
-                    return new LivePage( _firstDepth, new ILogEntry[pageLength], r, pageLength );
+                    return new LivePage( _firstDepth, new ParentedLogEntry[pageLength], r, pageLength );
                 }
-                return new LivePage( _firstDepth, Util.EmptyArray<ILogEntry>.Empty, null, pageLength );
+                return new LivePage( _firstDepth, Util.EmptyArray<ParentedLogEntry>.Empty, null, pageLength );
             }
         }
-
 
         public ActivityMap GetActivityMap()
         {

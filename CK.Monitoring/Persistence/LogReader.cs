@@ -19,8 +19,8 @@ namespace CK.Monitoring
         Stream _stream;
         BinaryReader _binaryReader;
         ILogEntry _current;
+        IMulticastLogEntry _currentMulticast;
         int _streamVersion;
-        int _multiCastCurrentGroupDepth;
         long _currentPosition;
 
         public const int CurrentStreamVersion = 5;
@@ -48,10 +48,9 @@ namespace CK.Monitoring
             _stream = stream;
             _binaryReader = new BinaryReader( stream, Encoding.UTF8 );
             _streamVersion = streamVersion;
-            _multiCastCurrentGroupDepth  = -1;
         }
 
-#else
+        #else
 
         /// <summary>
         /// Initializes a new <see cref="LogReader"/> on a stream that must start with the version number.
@@ -82,7 +81,6 @@ namespace CK.Monitoring
             _stream = stream;
             _binaryReader = new BinaryReader( stream, Encoding.UTF8, !mustClose );
             _streamVersion = streamVersion;
-            _multiCastCurrentGroupDepth = -1;
         }
         #endif
         /// <summary>
@@ -190,29 +188,29 @@ namespace CK.Monitoring
         }
 
         /// <summary>
-        /// Current <see cref="ILogEntry"/> with its associated position in the stream.
-        /// As usual, <see cref="MoveNext"/> must be called before getting the first entry.
+        /// Gets the <see cref="Current"/> entry if the underlying entry is a <see cref="IMulticastLogEntry"/>, null otherwise.
+        /// This captures the actual entry when a <see cref="CurrentFilter"/> is set (Current is then a mere Unicast entry).
         /// </summary>
-        public LogEntryWithOffset CurrentWithOffset
+        public IMulticastLogEntry CurrentMulticast
         {
-            get { return new LogEntryWithOffset( Current, _currentPosition ); }
+            get
+            {
+                if( _current == null ) throw new InvalidOperationException();
+                return _currentMulticast;
+            }
         }
 
         /// <summary>
-        /// Gets the group depth of the <see cref="Current"/> entry if the underlying entry is a <see cref="IMulticastLogEntry"/>, -1 otherwise.
-        /// This captures the group depth when a <see cref="CurrentFilter"/> is set (Current is then a mere Unicast entry).
+        /// Current <see cref="IMulticastLogEntry"/> with its associated position in the stream.
+        /// The current entry must be a multi-cast one and, as usual, <see cref="MoveNext"/> must be called before getting the first entry.
         /// </summary>
-        public int MultiCastCurrentGroupDepth 
-        { 
-            get { return _multiCastCurrentGroupDepth; } 
-        }
-
-        /// <summary>
-        /// Gets whether the current entry was, in the stream, a <see cref="IMulticastLogEntry"/>.
-        /// </summary>
-        public bool IsCurrentUnderlyingEntryMulticast
-        { 
-            get { return _multiCastCurrentGroupDepth >= 0; } 
+        public MulticastLogEntryWithOffset CurrentMulticastWithOffset
+        {
+            get 
+            {                 
+                if( _currentMulticast == null ) throw new InvalidOperationException();
+                return new MulticastLogEntryWithOffset( _currentMulticast, _currentPosition ); 
+            }
         }
 
         /// <summary>
@@ -239,103 +237,27 @@ namespace CK.Monitoring
                 }
             }
             _currentPosition = _stream.Position;
-            // The API is designed for performance: we can here skip unicast entries and multi-cast entries from 
-            // other monitors when a CurrentFilter is set. To efficiently skip data, we need a:
-            //
-            // _current = LogEntry.ReadNextFiltered( _binaryReader, _streamVersion, CurrentFilter, out _multiCastCurrentGroupDepth );
-            //
-            // This method should use an enhanced binary reader that should be able to skip strings and other serialized objects 
-            // as much as possible.
-            // It will return a mere ILogEntry and not a multi-cast one.
-            // 
-            // For the moment, I use CreateUnicastLogEntry to remove the Guid and the group depth from memory.
-            // For better performance, what is described above should be implemented once...
-            //
             _current = LogEntry.Read( _binaryReader, _streamVersion );
-            IMulticastLogEntry m = _current as IMulticastLogEntry;
+            _currentMulticast = _current as IMulticastLogEntry;
             var f = CurrentFilter;
             if( f != null )
             {
-                while( _current != null && (m == null || m.MonitorId != f.MonitorId) )
+                while( _current != null && (_currentMulticast == null || _currentMulticast.MonitorId != f.MonitorId) )
                 {
                     if( _currentPosition > f.KnownLastMonitorEntryOffset )
                     {
-                        m = null;
+                        _current = _currentMulticast = null;
                         break;
                     }
                     _current = LogEntry.Read( _binaryReader, _streamVersion );
+                    _currentMulticast = _current as IMulticastLogEntry;
                 }
-                _current = m == null ? null : m.CreateUnicastLogEntry();
             }
-            _multiCastCurrentGroupDepth = m != null ? m.GroupDepth : -1;
             return _current != null;
         }
 
         /// <summary>
-        /// Replays mono activity. Multi-cast entries (<see cref="IMulticastLogEntry"/>) are ignored.
-        /// </summary>
-        /// <param name="destination">Target <see cref="IActivityMonitor"/>.</param>
-        public void ReplayUnicast( IActivityMonitor destination )
-        {
-            if( destination == null ) throw new ArgumentNullException( "destinations" );
-            while( this.MoveNext() )
-            {
-                var log = this.Current;
-                if( !(log is IMulticastLogEntry) )
-                {
-                    switch( log.LogType )
-                    {
-                        case LogEntryType.Line:
-                            destination.UnfilteredLog( log.Tags, log.LogLevel, log.Text, log.LogTime, CKException.CreateFrom( log.Exception ), log.FileName, log.LineNumber );
-                            break;
-                        case LogEntryType.OpenGroup:
-                            destination.UnfilteredOpenGroup( log.Tags, log.LogLevel, null, log.Text, log.LogTime, CKException.CreateFrom( log.Exception ), log.FileName, log.LineNumber );
-                            break;
-                        case LogEntryType.CloseGroup:
-                            destination.CloseGroup( log.LogTime, log.Conclusions );
-                            break;
-                    }
-                }
-            }
-        }
-
-        /// <summary>
-        /// Replays multiple activities. Unicast entries (<see cref="ILogEntry"/> that are not <see cref="IMulticastLogEntry"/>) are ignored.
-        /// </summary>
-        /// <param name="destinations">
-        /// Must provide a <see cref="IActivityMonitor"/> for each identifier. 
-        /// The <see cref="IMulticastLogEntry.GroupDepth"/> is provided for each entry.
-        /// </param>
-        public void ReplayMulticast( Func<Guid,int,IActivityMonitor> destinations )
-        {
-            if( destinations == null ) throw new ArgumentNullException( "destinations" );
-            while( this.MoveNext() )
-            {
-                var log = this.Current as IMulticastLogEntry;
-                if( log != null )
-                {
-                    IActivityMonitor d = destinations( log.MonitorId, log.GroupDepth );
-                    if( d != null )
-                    {
-                        switch( this.Current.LogType )
-                        {
-                            case LogEntryType.Line:
-                                d.UnfilteredLog( log.Tags, log.LogLevel, log.Text, log.LogTime, CKException.CreateFrom( log.Exception ), log.FileName, log.LineNumber );
-                                break;
-                            case LogEntryType.OpenGroup:
-                                d.UnfilteredOpenGroup( log.Tags, log.LogLevel, null, log.Text, log.LogTime, CKException.CreateFrom( log.Exception ), log.FileName, log.LineNumber );
-                                break;
-                            case LogEntryType.CloseGroup:
-                                d.CloseGroup( log.LogTime, log.Conclusions );
-                                break;
-                        }
-                    }
-                }
-            }
-        }
-
-        /// <summary>
-        /// Close the inner stream if this reader has been asked to do so (thanks to constructors' parameter mustClose sets to true).
+        /// Close the inner stream (.Net 4.5 only: if this reader has been asked to do so thanks to constructors' parameter mustClose sets to true).
         /// </summary>
         public void Dispose()
         {

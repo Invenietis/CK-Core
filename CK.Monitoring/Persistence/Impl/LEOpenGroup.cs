@@ -57,7 +57,7 @@ namespace CK.Monitoring.Impl
 
         public IReadOnlyList<ActivityLogGroupConclusion> Conclusions { get { return null; } }
 
-        public void WriteLogEntry( System.IO.BinaryWriter w )
+        public virtual void WriteLogEntry( System.IO.BinaryWriter w )
         {
             LogEntry.WriteLog( w, true, _level, _time, _text, _tags, _ex, _fileName, _lineNumber );
         }

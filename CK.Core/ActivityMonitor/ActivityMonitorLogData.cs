@@ -172,7 +172,7 @@ namespace CK.Core
         {
             if( _tags.IsEmpty ) _tags = tags;
             else _tags = _tags.Union( tags );
-            return _logTime = new DateTimeStamp( lastLogTime, _logTime.IsValid ? _logTime : DateTimeStamp.UtcNow );
+            return _logTime = new DateTimeStamp( lastLogTime, _logTime.IsKnown ? _logTime : DateTimeStamp.UtcNow );
         }
     }
 }

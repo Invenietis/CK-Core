@@ -23,6 +23,9 @@ namespace CK.Monitoring.Impl
 
         HasUniquifier = 256,
 
-        MaxFlag = 256
+        IsPreviousKnown = 512,
+        IsPreviousKnownHasUniquifier = 1024,
+
+        MaxFlag = 1024
     }
 }

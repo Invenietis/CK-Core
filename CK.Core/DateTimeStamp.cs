@@ -41,9 +41,20 @@ namespace CK.Core
         static public readonly DateTimeStamp MinValue = new DateTimeStamp( Util.UtcMinValue, 0 );
         
         /// <summary>
+        /// Represents an unknown, default, DateTimeStamp object.
+        /// This is available to have a more expressive code than <c>new DateTimeStamp()</c>.
+        /// </summary>
+        static public readonly DateTimeStamp Unknown = new DateTimeStamp();
+        
+        /// <summary>
         /// Represents the largest possible value for a DateTimeStamp object.         
         /// </summary>
         static public readonly DateTimeStamp MaxValue = new DateTimeStamp( Util.UtcMaxValue, Byte.MaxValue );
+
+        /// <summary>
+        /// Represents an invalid DateTimeStamp object. See <see cref="IsInvalid"/>.
+        /// </summary>
+        static public readonly DateTimeStamp Invalid = new DateTimeStamp( 0 );
 
         /// <summary>
         /// DateTime in Utc.
@@ -54,6 +65,12 @@ namespace CK.Core
         /// Uniquifier: non zero when <see cref="TimeUtc"/> collides.
         /// </summary>
         public readonly Byte Uniquifier;
+
+        DateTimeStamp( int justForInvalidOne )
+        {
+            TimeUtc = new DateTime( DateTime.MinValue.Ticks, DateTimeKind.Local );
+            Uniquifier = 0;
+        }
 
         /// <summary>
         /// Initializes a new <see cref="DateTimeStamp"/>.
@@ -112,12 +129,21 @@ namespace CK.Core
 
         /// <summary>
         /// Gets whether this <see cref="DateTimeStamp"/> is initialized.
-        /// The default constructor of a struct can not be defined and it initializes the <see cref="TimeUtc"/> with a zero that is <see cref="DateTime.MinValue"/>
+        /// The default constructor of a structure can not be defined and it initializes the <see cref="TimeUtc"/> with a zero that is <see cref="DateTime.MinValue"/>
         /// with a <see cref="DateTime.Kind"/> set to <see cref="DateTimeKind.Unspecified"/>.
         /// </summary>
-        public bool IsValid
+        public bool IsKnown
         {
             get { return TimeUtc.Kind == DateTimeKind.Utc; }
+        }
+
+        /// <summary>
+        /// Gets whether this <see cref="DateTimeStamp"/> is the <see cref="Invalid"/> one.
+        /// <see cref="TimeUtc"/> has a <see cref="DateTime.Kind"/> set to <see cref="DateTimeKind.Local"/>.
+        /// </summary>
+        public bool IsInvalid
+        {
+            get { return TimeUtc.Kind == DateTimeKind.Local; }
         }
 
         /// <summary>

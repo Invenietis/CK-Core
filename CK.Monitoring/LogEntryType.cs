@@ -15,26 +15,25 @@ namespace CK.Monitoring
         /// <summary>
         /// Non applicable.
         /// </summary>
-        None,
+        None = 0,
 
         /// <summary>
         /// A standard log entry.
-        /// Except <see cref="ILogEntry.Conclusions"/> (reserved to <see cref="CloseGroup"/>) and <see cref="ILogEntry.Exception"/> (only <see cref="OpenGroup"/> can carry
-        /// an exception), all other properties of the <see cref="ILogEntry"/> may be set.
+        /// Except <see cref="ILogEntry.Conclusions"/> (reserved to <see cref="CloseGroup"/>), all other properties of the <see cref="ILogEntry"/> may be set.
         /// </summary>
-        Line,
+        Line = 1,
 
         /// <summary>
         /// Group is opened.
-        /// Except <see cref="ILogEntry.Conclusions"/>, all other properties of the <see cref="ILogEntry"/> may be set.
+        /// Except <see cref="ILogEntry.Conclusions"/> (reserved to <see cref="CloseGroup"/>), all other properties of the <see cref="ILogEntry"/> may be set.
         /// </summary>
-        OpenGroup,
+        OpenGroup = 2,
 
         /// <summary>
         /// Group is closed. 
         /// Note that the only available information are <see cref="ILogEntry.Conclusions"/>, <see cref="ILogEntry.LogLevel"/> and <see cref="ILogEntry.LogTime"/>.
-        /// All other properties are set to their default: <see cref="ILogEntry.Text"/> for instance is empty.
+        /// All other properties are set to their default: <see cref="ILogEntry.Text"/> for instance is null.
         /// </summary>
-        CloseGroup
+        CloseGroup = 3
     }
 }

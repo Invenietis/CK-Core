@@ -244,6 +244,9 @@
     <Compile Include="..\..\CK.Core\CriticalErrorCollector.cs">
       <Link>CriticalErrorCollector.cs</Link>
     </Compile>
+    <Compile Include="..\..\CK.Core\DateTimeStamp.cs">
+      <Link>DateTimeStamp.cs</Link>
+    </Compile>
     <Compile Include="..\..\CK.Core\File\FileUtil.cs">
       <Link>FileUtil.cs</Link>
     </Compile>
@@ -367,7 +370,6 @@
     <Compile Include="..\..\SharedAssemblyInfo.cs">
       <Link>Properties\SharedAssemblyInfo.cs</Link>
     </Compile>
-    <Compile Include="DateTimeStamp.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

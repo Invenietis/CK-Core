@@ -35,7 +35,7 @@ namespace CK.Monitoring.GrandOutputHandlers
             using( MemoryStream m = new MemoryStream() )
             using( BinaryWriter w = new BinaryWriter( m ) )
             {
-                logEvent.Entry.WriteMultiCastLogEntry( w );
+                logEvent.Entry.WriteLogEntry( w );
                 if( increment ) Interlocked.Add( ref SizeHandled, (int)m.Position );
             }
         }

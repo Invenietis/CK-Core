@@ -38,6 +38,11 @@ namespace CK.Core
     public partial class ActivityMonitor : IActivityMonitorImpl
     {
         /// <summary>
+        /// Prefix used by <see cref="IActivityMonitor.SetTopic"/> is "Topic: ".
+        /// </summary>
+        static public readonly string SetTopicPrefix = "Topic: ";
+
+        /// <summary>
         /// String to use to break the current <see cref="LogLevel"/> (as if a different <see cref="LogLevel"/> was used).
         /// </summary>
         static public readonly string ParkLevel = "PARK-LEVEL";
@@ -326,7 +331,7 @@ namespace CK.Core
             _topic = newTopic;
             _output.BridgeTarget.TargetTopicChanged( newTopic, fileName, lineNumber );
             MonoParameterSafeCall( ( client, topic ) => client.OnTopicChanged( topic, fileName, lineNumber ), newTopic );
-            DoUnfilteredLog( new ActivityMonitorLogData( LogLevel.Info, null, Tags.MonitorTopicChanged, "Topic: " + newTopic, new DateTimeStamp( _lastLogTime, DateTime.UtcNow ), fileName, lineNumber ) );
+            DoUnfilteredLog( new ActivityMonitorLogData( LogLevel.Info, null, Tags.MonitorTopicChanged, SetTopicPrefix + newTopic, new DateTimeStamp( _lastLogTime, DateTime.UtcNow ), fileName, lineNumber ) );
         }
 
         /// <summary>
@@ -701,7 +706,7 @@ namespace CK.Core
                 }
                 else
                 {
-                    g.CloseLogTime = _lastLogTime = new DateTimeStamp( _lastLogTime, logTime.IsValid ? logTime : DateTimeStamp.UtcNow );
+                    g.CloseLogTime = _lastLogTime = new DateTimeStamp( _lastLogTime, logTime.IsKnown ? logTime : DateTimeStamp.UtcNow );
                     var conclusions = userConclusion as List<ActivityLogGroupConclusion>;
                     if( conclusions == null && userConclusion != null )
                     {

@@ -38,7 +38,7 @@ namespace CK.Core.Tests.Monitoring
 
             StupidStringClient.Entry[] logs = RunDependentActivity( token );
             {
-                Assert.That( logs[0].Text, Is.EqualTo( "Topic: Test..." ) );
+                Assert.That( logs[0].Text, Is.EqualTo( ActivityMonitor.SetTopicPrefix + "Test..." ) );
                 Guid id;
                 DateTimeStamp time;
                 Assert.That( ActivityMonitor.DependentToken.TryParseStartMessage( logs[1].Text, out id, out time ) );
@@ -61,7 +61,7 @@ namespace CK.Core.Tests.Monitoring
             string topicSetMessage = dependentLogs[0].Text;
             string startMessage = dependentLogs[1].Text;
 
-            Assert.That( topicSetMessage, Is.EqualTo( "Topic: "+dependentTopic ) );
+            Assert.That( topicSetMessage, Is.EqualTo( ActivityMonitor.SetTopicPrefix + dependentTopic ) );
             Assert.That( dependentLogs[2].Text, Is.EqualTo( "Hello!" ) );
 
             Assert.That( launchMessage, Is.StringStarting( "Launching dependent activity" ) );

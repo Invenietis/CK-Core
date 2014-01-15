@@ -33,29 +33,30 @@ namespace CK.Monitoring
 
         #region Multi-cast
 
-        public static IMulticastLogEntry CreateMulticastLog( Guid monitorId, int depth, string text, DateTimeStamp t, LogLevel level, string fileName, int lineNumber, CKTrait tags, CKExceptionData ex )
+        public static IMulticastLogEntry CreateMulticastLog( Guid monitorId, LogEntryType previousEntryType, DateTimeStamp previousLogTime, int depth, string text, DateTimeStamp t, LogLevel level, string fileName, int lineNumber, CKTrait tags, CKExceptionData ex )
         {
-            return new LEMCLog( monitorId, depth, text, t, fileName, lineNumber, level, tags, ex );
+            return new LEMCLog( monitorId, depth, previousLogTime, previousEntryType, text, t, fileName, lineNumber, level, tags, ex );
         }
 
-        public static IMulticastLogEntry CreateMulticastOpenGroup( Guid monitorId, int depth, string text, DateTimeStamp t, LogLevel level, string fileName, int lineNumber, CKTrait tags, CKExceptionData ex )
+        public static IMulticastLogEntry CreateMulticastOpenGroup( Guid monitorId, LogEntryType previousEntryType, DateTimeStamp previousLogTime, int depth, string text, DateTimeStamp t, LogLevel level, string fileName, int lineNumber, CKTrait tags, CKExceptionData ex )
         {
-            return new LEMCOpenGroup( monitorId, depth, text, t, fileName, lineNumber, level, tags, ex );
+            return new LEMCOpenGroup( monitorId, depth, previousLogTime, previousEntryType, text, t, fileName, lineNumber, level, tags, ex );
         }
 
-        public static IMulticastLogEntry CreateMulticastCloseGroup( Guid monitorId, int depth, DateTimeStamp t, LogLevel level, IReadOnlyList<ActivityLogGroupConclusion> c )
+        public static IMulticastLogEntry CreateMulticastCloseGroup( Guid monitorId, LogEntryType previousEntryType, DateTimeStamp previousLogTime, int depth, DateTimeStamp t, LogLevel level, IReadOnlyList<ActivityLogGroupConclusion> c )
         {
-            return new LEMCCloseGroup( monitorId, depth, t, level, c );
+            return new LEMCCloseGroup( monitorId, depth, previousLogTime, previousEntryType, t, level, c );
         }
 
         #endregion
 
-        static public void WriteLog( BinaryWriter w, Guid monitorId, int depth, bool isOpenGroup, LogLevel level, DateTimeStamp logTime, string text, CKTrait tags, CKExceptionData ex, string fileName, int lineNumber )
+        static public void WriteLog( BinaryWriter w, Guid monitorId, LogEntryType previousEntryType, DateTimeStamp previousStamp, int depth, bool isOpenGroup, LogLevel level, DateTimeStamp logTime, string text, CKTrait tags, CKExceptionData ex, string fileName, int lineNumber )
         {
             if( w == null ) throw new ArgumentNullException( "w" );
-            DoWriteLog( w, StreamLogType.IsMultiCast | (isOpenGroup ? StreamLogType.TypeOpenGroup : StreamLogType.TypeLine), level, logTime, text, tags, ex, fileName, lineNumber );
-            w.Write( monitorId.ToByteArray() );
-            w.Write( depth );
+            StreamLogType type = StreamLogType.IsMultiCast | (isOpenGroup ? StreamLogType.TypeOpenGroup : StreamLogType.TypeLine);
+            type = UpdateTypeWithPrevious( type, previousEntryType, ref previousStamp );
+            DoWriteLog( w, type, level, logTime, text, tags, ex, fileName, lineNumber );
+            WriteMulticastFooter( w, monitorId, previousEntryType, previousStamp, depth );
         }
 
         static public void WriteLog( BinaryWriter w, bool isOpenGroup, LogLevel level, DateTimeStamp logTime, string text, CKTrait tags, CKExceptionData ex, string fileName, int lineNumber )
@@ -94,15 +95,39 @@ namespace CK.Monitoring
             DoWriteCloseGroup( w, StreamLogType.TypeGroupClosed, level, closeTime, conclusions );
         }
 
-        static public void WriteCloseGroup( BinaryWriter w, Guid monitorId, int depth, LogLevel level, DateTimeStamp closeTime, IReadOnlyList<ActivityLogGroupConclusion> conclusions )
+        static public void WriteCloseGroup( BinaryWriter w, Guid monitorId, LogEntryType previousEntryType, DateTimeStamp previousStamp, int depth, LogLevel level, DateTimeStamp closeTime, IReadOnlyList<ActivityLogGroupConclusion> conclusions )
         {
             if( w == null ) throw new ArgumentNullException( "w" );
-            DoWriteCloseGroup( w, StreamLogType.TypeGroupClosed|StreamLogType.IsMultiCast, level, closeTime, conclusions );
-            w.Write( monitorId.ToByteArray() );
-            w.Write( depth );
+            StreamLogType type = StreamLogType.TypeGroupClosed | StreamLogType.IsMultiCast;
+            type = UpdateTypeWithPrevious( type, previousEntryType, ref previousStamp );
+            DoWriteCloseGroup( w, type, level, closeTime, conclusions );
+            WriteMulticastFooter( w, monitorId, previousEntryType, previousStamp, depth );
         }
 
-        private static void DoWriteCloseGroup( BinaryWriter w, StreamLogType t, LogLevel level, DateTimeStamp closeTime, IReadOnlyList<ActivityLogGroupConclusion> conclusions )
+        static StreamLogType UpdateTypeWithPrevious( StreamLogType type, LogEntryType previousEntryType, ref DateTimeStamp previousStamp )
+        {
+            if( previousStamp.IsKnown )
+            {
+                type |= StreamLogType.IsPreviousKnown;
+                if( previousEntryType == LogEntryType.None ) throw new ArgumentException( "Must not be None since previousStamp is known.", "previousEntryType" );
+                if( previousStamp.Uniquifier != 0 ) type |= StreamLogType.IsPreviousKnownHasUniquifier;
+            }
+            return type;
+        }
+
+        static void WriteMulticastFooter( BinaryWriter w, Guid monitorId, LogEntryType previousEntryType, DateTimeStamp previousStamp, int depth )
+        {
+            w.Write( monitorId.ToByteArray() );
+            w.Write( depth );
+            if( previousStamp.IsKnown )
+            {
+                w.Write( previousStamp.TimeUtc.ToBinary() );
+                if( previousStamp.Uniquifier != 0 ) w.Write( previousStamp.Uniquifier );
+                w.Write( (byte)previousEntryType );
+            }
+        }
+
+        static void DoWriteCloseGroup( BinaryWriter w, StreamLogType t, LogLevel level, DateTimeStamp closeTime, IReadOnlyList<ActivityLogGroupConclusion> conclusions )
         {
             if( conclusions != null && conclusions.Count > 0 ) t |= StreamLogType.HasConclusions;
             if( closeTime.Uniquifier != 0 ) t |= StreamLogType.HasUniquifier;
@@ -169,27 +194,45 @@ namespace CK.Monitoring
             }
             if( text == null ) text = r.ReadString();
 
+            Guid mId;
+            int depth;
+            LogEntryType prevType;
+            DateTimeStamp prevTime;
+
             if( (t & StreamLogType.TypeMask) == StreamLogType.TypeLine )
             {
                 if( (t & StreamLogType.IsMultiCast) == 0 )
                 {
                     return new LELog( text, time, fileName, lineNumber, logLevel, tags, ex );
                 }
-                Guid mId1 = new Guid( r.ReadBytes( 16 ) );
-                int depth1 = r.ReadInt32();
-                return new LEMCLog( mId1, depth1, text, time, fileName, lineNumber, logLevel, tags, ex );
+                ReadMulticastFooter( r, t, out mId, out depth, out prevType, out prevTime );
+                return new LEMCLog( mId, depth, prevTime, prevType, text, time, fileName, lineNumber, logLevel, tags, ex );
             }
             if( (t & StreamLogType.TypeMask) != StreamLogType.TypeOpenGroup ) throw new InvalidDataException();
             if( (t & StreamLogType.IsMultiCast) == 0 )
             {
                 return new LEOpenGroup( text, time, fileName, lineNumber, logLevel, tags, ex );
             }
-            Guid mId = new Guid( r.ReadBytes( 16 ) );
-            int depth = r.ReadInt32();
-            return new LEMCOpenGroup( mId, depth, text, time, fileName, lineNumber, logLevel, tags, ex );
+            ReadMulticastFooter( r, t, out mId, out depth, out prevType, out prevTime );
+            return new LEMCOpenGroup( mId, depth, prevTime, prevType, text, time, fileName, lineNumber, logLevel, tags, ex );
         }
 
-        private static ILogEntry ReadGroupClosed( BinaryReader r, StreamLogType t, LogLevel logLevel )
+        static void ReadMulticastFooter( BinaryReader r, StreamLogType t, out Guid mId, out int depth, out LogEntryType prevType, out DateTimeStamp prevTime )
+        {
+            Debug.Assert( Guid.Empty.ToByteArray().Length == 16 );
+            mId = new Guid( r.ReadBytes( 16 ) );
+            depth = r.ReadInt32();
+            if( depth < 0 ) throw new InvalidDataException();
+            prevType = LogEntryType.None;
+            prevTime = DateTimeStamp.Unknown;
+            if( (t & StreamLogType.IsPreviousKnown) != 0 )
+            {
+                prevTime = new DateTimeStamp( DateTime.FromBinary( r.ReadInt64() ), (t & StreamLogType.IsPreviousKnownHasUniquifier) != 0 ? r.ReadByte() : (Byte)0 );
+                prevType = (LogEntryType)r.ReadByte();
+            }
+        }
+
+        static ILogEntry ReadGroupClosed( BinaryReader r, StreamLogType t, LogLevel logLevel )
         {
             DateTimeStamp time = new DateTimeStamp( DateTime.FromBinary( r.ReadInt64() ), (t & StreamLogType.HasUniquifier) != 0 ? r.ReadByte() : (Byte)0 );
             ActivityLogGroupConclusion[] conclusions = Util.EmptyArray<ActivityLogGroupConclusion>.Empty;
@@ -208,29 +251,61 @@ namespace CK.Monitoring
             {
                 return new LECloseGroup( time, logLevel, conclusions.AsReadOnlyList() );
             }
-            Debug.Assert( Guid.Empty.ToByteArray().Length == 16 );
-            Guid mId = new Guid( r.ReadBytes( 16 ) );
-            int depth = r.ReadInt32();
-            return new LEMCCloseGroup( mId, depth, time, logLevel, conclusions.AsReadOnlyList() );
+            Guid mId;
+            int depth;
+            LogEntryType prevType;
+            DateTimeStamp prevTime;
+            ReadMulticastFooter( r, t, out mId, out depth, out prevType, out prevTime );
+
+            return new LEMCCloseGroup( mId, depth, prevTime, prevType, time, logLevel, conclusions.AsReadOnlyList() );
         }
 
         static void WriteLogTypeAndLevel( BinaryWriter w, StreamLogType t, LogLevel level )
         {
-            Debug.Assert( (int)StreamLogType.MaxFlag < (1 << (16 - (int)LogLevel.NumberOfBits)) ); 
-            int u = (int)level;
-            u += (int)t << (int)LogLevel.NumberOfBits;
-            Debug.Assert( u <= UInt16.MaxValue );
-            w.Write( (UInt16)u );
+            Debug.Assert( (int)StreamLogType.MaxFlag < (1 << 16) );
+            Debug.Assert( (int)LogLevel.NumberOfBits < 8 );
+            w.Write( (UInt16)t );
+            w.Write( (Byte)level );
         }
 
         static void ReadLogTypeAndLevel( BinaryReader r, out StreamLogType t, out LogLevel level )
         {
-            Debug.Assert( (int)LogLevel.NumberOfBits == 6 );
-            Debug.Assert( (1 << (int)LogLevel.NumberOfBits) - 1 == 63 );
-            int u = r.ReadUInt16();
-            level = (LogLevel)(u & 63);
-            t = (StreamLogType)(u >> 6);
+            Debug.Assert( (int)StreamLogType.MaxFlag < (1 << 16) );
+            Debug.Assert( (int)LogLevel.NumberOfBits < 8 );
+            t = (StreamLogType)r.ReadUInt16();
+            level = (LogLevel)r.ReadByte();
         }
 
+        static readonly string _missingLineText = "<Missing log data>";
+        static readonly string _missingGroupText = "<Missing group>";
+        static readonly IReadOnlyList<ActivityLogGroupConclusion> _missingConclusions = new CKReadOnlyListOnIList<ActivityLogGroupConclusion>( Util.EmptyArray<ActivityLogGroupConclusion>.Empty );
+
+        static internal ILogEntry CreateMissingLine( DateTimeStamp knownTime )
+        {
+            Debug.Assert( !knownTime.IsInvalid );
+            return new LELog( _missingLineText, knownTime, null, 0, LogLevel.None, ActivityMonitor.Tags.Empty, null );
+        }
+
+        static internal ILogEntry CreateMissingOpenGroup( DateTimeStamp knownTime )
+        {
+            Debug.Assert( !knownTime.IsInvalid );
+            return new LEOpenGroup( _missingGroupText, knownTime, null, 0, LogLevel.None, ActivityMonitor.Tags.Empty, null );
+        }
+
+        static internal ILogEntry CreateMissingCloseGroup( DateTimeStamp knownTime )
+        {
+            Debug.Assert( !knownTime.IsInvalid );
+            return new LECloseGroup( knownTime, LogLevel.None, _missingConclusions );
+        }
+
+        internal static bool IsMissingLogEntry( ILogEntry entry )
+        {
+            Debug.Assert( entry != null );
+            return ReferenceEquals( entry.Text, _missingGroupText ) || ReferenceEquals( entry.Text, _missingLineText ) || entry.Conclusions == _missingConclusions;
+        }
+
+        public static Guid mId { get; set; }
+
+        public static int depth { get; set; }
     }
 }

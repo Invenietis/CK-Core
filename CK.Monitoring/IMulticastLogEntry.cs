@@ -28,11 +28,14 @@ namespace CK.Monitoring
         int GroupDepth { get; }
 
         /// <summary>
-        /// Writes the multi-cast entry in a <see cref="BinaryWriter"/>.
-        /// Use <see cref="LogEntry.Read"/> to read it back.
+        /// Gets the previous entry type. <see cref="LogEntryType.None"/> when unknown.
         /// </summary>
-        /// <param name="w">The binary writer.</param>
-        void WriteMultiCastLogEntry( BinaryWriter w );
+        LogEntryType PreviousEntryType { get; }
+
+        /// <summary>
+        /// Gets the previous log time. <see cref="DateTimeStamp.Unknown"/> when unknown.
+        /// </summary>
+        DateTimeStamp PreviousLogTime { get; }
 
         /// <summary>
         /// Creates a unicast entry from this multi-cast one.

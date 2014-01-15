@@ -24,6 +24,8 @@ namespace CK.Monitoring
         LogFilter _currentMinimalFilter;
         
         int _currentGroupDepth;
+        LogEntryType _prevLogType;
+        DateTimeStamp _prevlogTime;
         int _curVersion;
         int _version;
 
@@ -42,6 +44,8 @@ namespace CK.Monitoring
             if( source != _monitorSource )
             {
                 _currentMinimalFilter = LogFilter.Undefined;
+                _prevLogType = LogEntryType.None;
+                _prevlogTime = DateTimeStamp.Unknown;
                 Debug.Assert( (source == null) != (_monitorSource == null) );
                 if( (_monitorSource = source) == null )
                 {
@@ -50,6 +54,8 @@ namespace CK.Monitoring
                 }
                 else
                 {
+                    var g = _monitorSource.CurrentGroup;
+                    _currentGroupDepth = g != null ? g.Depth : 0;
                     Interlocked.Increment( ref _version );
                 }
             }
@@ -89,19 +95,17 @@ namespace CK.Monitoring
                     // The Topic can be changed only in the 
                     // activity (and we are here inside the activity),
                     // we can safely call the property when needed.
-                    // When ObtainChannel retunrs null, it means that the GrandOutput has been disposed.
+                    // When ObtainChannel returns null, it means that the GrandOutput has been disposed.
                     _channel = _central.ObtainChannel( _monitorSource.Topic );
                     if( _channel == null ) return null;
                 }
                 while( _version != _curVersion );
-            }
-            var g = _monitorSource.CurrentGroup;
-            _currentGroupDepth = g != null ? g.Depth : 0;
-            if( _currentMinimalFilter != _channel.MinimalFilter )
-            {
-                var prev = _currentMinimalFilter;
-                _currentMinimalFilter = _channel.MinimalFilter;
-                _monitorSource.OnClientMinimalFilterChanged( prev, _channel.MinimalFilter );
+                if( _currentMinimalFilter != _channel.MinimalFilter )
+                {
+                    var prev = _currentMinimalFilter;
+                    _currentMinimalFilter = _channel.MinimalFilter;
+                    _monitorSource.OnClientMinimalFilterChanged( prev, _channel.MinimalFilter );
+                }
             }
             return _channel;
         }
@@ -111,8 +115,10 @@ namespace CK.Monitoring
             var h = EnsureChannel();
             if( h != null )
             {
-                IMulticastLogEntry e = LogEntry.CreateMulticastLog( _monitorSource.UniqueId, _currentGroupDepth, data.Text, data.LogTime, data.Level, data.FileName, data.LineNumber, data.Tags, data.EnsureExceptionData() );
+                IMulticastLogEntry e = LogEntry.CreateMulticastLog( _monitorSource.UniqueId, _prevLogType, _prevlogTime, _currentGroupDepth, data.Text, data.LogTime, data.Level, data.FileName, data.LineNumber, data.Tags, data.EnsureExceptionData() );
                 h.Handle( new GrandOutputEventInfo( e, _monitorSource.Topic ) );
+                _prevlogTime = data.LogTime;
+                _prevLogType = LogEntryType.Line;
             }
         }
 
@@ -122,8 +128,10 @@ namespace CK.Monitoring
             if( h != null )
             {
                 ++_currentGroupDepth;
-                IMulticastLogEntry e = LogEntry.CreateMulticastOpenGroup( _monitorSource.UniqueId, _currentGroupDepth, group.GroupText, group.LogTime, group.GroupLevel, group.FileName, group.LineNumber, group.GroupTags, group.EnsureExceptionData() );
+                IMulticastLogEntry e = LogEntry.CreateMulticastOpenGroup( _monitorSource.UniqueId, _prevLogType, _prevlogTime, _currentGroupDepth, group.GroupText, group.LogTime, group.GroupLevel, group.FileName, group.LineNumber, group.GroupTags, group.EnsureExceptionData() );
                 h.Handle( new GrandOutputEventInfo( e, _monitorSource.Topic ) );
+                _prevlogTime = group.LogTime;
+                _prevLogType = LogEntryType.OpenGroup;
             }
         }
 
@@ -136,9 +144,11 @@ namespace CK.Monitoring
             var h = EnsureChannel();
             if( h != null )
             {
-                IMulticastLogEntry e = LogEntry.CreateMulticastCloseGroup( _monitorSource.UniqueId, _currentGroupDepth, group.CloseLogTime, group.GroupLevel, conclusions );
+                IMulticastLogEntry e = LogEntry.CreateMulticastCloseGroup( _monitorSource.UniqueId, _prevLogType, _prevlogTime, _currentGroupDepth, group.CloseLogTime, group.GroupLevel, conclusions );
                 h.Handle( new GrandOutputEventInfo( e, _monitorSource.Topic ) );
                 --_currentGroupDepth;
+                _prevlogTime = group.CloseLogTime;
+                _prevLogType = LogEntryType.CloseGroup;
             }
         }
 

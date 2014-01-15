@@ -58,7 +58,7 @@ namespace CK.Monitoring.GrandOutputHandlers
                 CloseCurrentFile();
                 OpenFile();
             }
-            logEvent.Entry.WriteMultiCastLogEntry( _writer );
+            logEvent.Entry.WriteLogEntry( _writer );
         }
 
         public override void Close( IActivityMonitor m )
