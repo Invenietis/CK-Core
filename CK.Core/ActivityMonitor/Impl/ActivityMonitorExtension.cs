@@ -388,7 +388,7 @@ namespace CK.Core
         public static IDisposable SetFilter( this IActivityMonitor @this, LogLevelFilter filterLineLevel, LogLevelFilter filterGroupLevel )
         {
             if( @this == null ) throw new NullReferenceException( "this" );
-            return new LogFilterSentinel( @this, new LogFilter( filterLineLevel, filterGroupLevel ) );
+            return new LogFilterSentinel( @this, new LogFilter( filterGroupLevel, filterLineLevel ) );
         }
 
         /// <summary>

@@ -147,9 +147,9 @@ namespace CK.Core
         static object _lockDefaultFilterLevel;
 
         /// <summary>
-        /// Gets or sets the default filter that should be used when the <see cref="IActivityMonitor.ActualFilter"/> is <see cref="LogLevelFilter.None"/>.
+        /// Gets or sets the default filter that should be used when the <see cref="IActivityMonitor.ActualFilter"/> is <see cref="LogFilter.Undefined"/>.
         /// This configuration is per application domain (the backing field is static).
-        /// It defaults to <see cref="LogLevelFilter.None"/>: it has the same effect as setting it to <see cref="LogLevelFilter.Trace"/> (ie. logging everything) when
+        /// It defaults to <see cref="LogFilter.Undefined"/>: it has the same effect as setting it to <see cref="LogFilter.Debug"/> (i.e. sending everything) when
         /// no other configuration exists.
         /// </summary>
         public static LogFilter DefaultFilter

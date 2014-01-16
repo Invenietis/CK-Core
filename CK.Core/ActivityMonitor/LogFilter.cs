@@ -29,17 +29,17 @@ namespace CK.Core
         /// <summary>
         /// Verbose <see cref="LogLevelFilter.Trace"/> all <see cref="Group"/>s but limits <see cref="Line"/> to <see cref="LogLevelFilter.Info"/> level.
         /// </summary>
-        static public readonly LogFilter Verbose = new LogFilter( LogLevelFilter.Info, LogLevelFilter.Trace );
+        static public readonly LogFilter Verbose = new LogFilter( LogLevelFilter.Trace, LogLevelFilter.Info );
 
         /// <summary>
         /// While monitoring, only errors and warnings are captured, whereas all <see cref="Group"/>s appear to get the detailed structure of the activity.
         /// </summary>
-        static public readonly LogFilter Monitor = new LogFilter( LogLevelFilter.Warn, LogLevelFilter.Trace );
+        static public readonly LogFilter Monitor = new LogFilter( LogLevelFilter.Trace, LogLevelFilter.Warn );
 
         /// <summary>
         /// Terse filter captures only errors for <see cref="Line"/> and limits <see cref="Group"/>s to <see cref="LogLevelFilter.Info"/> level.
         /// </summary>
-        static public readonly LogFilter Terse = new LogFilter( LogLevelFilter.Error, LogLevelFilter.Info );
+        static public readonly LogFilter Terse = new LogFilter( LogLevelFilter.Info, LogLevelFilter.Error );
         
         /// <summary>
         /// Release filter captures only <see cref="LogLevelFilter.Error"/>s for both <see cref="Line"/> and <see cref="Group"/>.
@@ -57,21 +57,21 @@ namespace CK.Core
         static public readonly LogFilter Invalid = new LogFilter( LogLevelFilter.Invalid, LogLevelFilter.Invalid );
 
         /// <summary>
-        /// The filter that applies to log lines (Trace, Info, Warn, Error and Fatal). 
-        /// </summary>
-        public readonly LogLevelFilter Line;
-
-        /// <summary>
         /// The filter that applies to groups. 
         /// </summary>
         public readonly LogLevelFilter Group;
 
         /// <summary>
-        /// Initializes a new <see cref="LogFilter"/> with a level for <see cref="Line"/> logs and <see cref="Group"/>s.
+        /// The filter that applies to log lines (Trace, Info, Warn, Error and Fatal). 
         /// </summary>
-        /// <param name="line">Filter for lines.</param>
+        public readonly LogLevelFilter Line;
+
+        /// <summary>
+        /// Initializes a new <see cref="LogFilter"/> with a level for <see cref="Group"/>s and <see cref="Line"/> logs.
+        /// </summary>
         /// <param name="group">Filter for groups.</param>
-        public LogFilter( LogLevelFilter line, LogLevelFilter group )
+        /// <param name="line">Filter for lines.</param>
+        public LogFilter( LogLevelFilter group, LogLevelFilter line )
         {
             Line = line;
             Group = group;
@@ -85,7 +85,7 @@ namespace CK.Core
         /// <returns>The resulting filter.</returns>
         public LogFilter Combine( LogFilter other )
         {
-            return new LogFilter( Combine( Line, other.Line ), Combine( Group, other.Group ) );
+            return new LogFilter( Combine( Group, other.Group ), Combine( Line, other.Line ) );
         }
 
         /// <summary>
@@ -97,7 +97,7 @@ namespace CK.Core
         {
             var l = Line == LogLevelFilter.None ? other.Line : Line;
             var g = Group == LogLevelFilter.None ? other.Group : Group;
-            return new LogFilter( l, g );
+            return new LogFilter( g, l );
         }
 
         /// <summary>
@@ -107,7 +107,7 @@ namespace CK.Core
         /// <returns>The filter with the line level.</returns>
         public LogFilter SetLine( LogLevelFilter line )
         {
-            return new LogFilter( line, Group );
+            return new LogFilter( Group, line );
         }
 
         /// <summary>
@@ -117,7 +117,7 @@ namespace CK.Core
         /// <returns>The filter with the group level.</returns>
         public LogFilter SetGroup( LogLevelFilter group )
         {
-            return new LogFilter( Line, group );
+            return new LogFilter( group, Line );
         }
 
         /// <summary>
@@ -171,12 +171,12 @@ namespace CK.Core
         }
 
         /// <summary>
-        /// Overridden to show the line and the group level.
+        /// Overridden to show the group and the line level.
         /// </summary>
-        /// <returns>A detailed string.</returns>
+        /// <returns>A {group,line} string.</returns>
         public override string ToString()
         {
-            return String.Format( "LogFilter: Line={0}, Group={1}.", Line, Group );
+            return String.Format( "{{{0},{1}}}", Group, Line );
         }
 
         /// <summary>
@@ -203,7 +203,7 @@ namespace CK.Core
 
         /// <summary>
         /// Parses the filter: it can be a predefined filter as ("Undefined", "Debug", "Verbose", etc.) 
-        /// or as {LineLogLevelFilter,GroupLogLevelFilter} pairs like "{None,None}", "{Error,Trace}".
+        /// or as {GroupLogLevelFilter,LineLogLevelFilter} pairs like "{None,None}", "{Error,Trace}".
         /// </summary>
         /// <param name="filter">Predefined filter as (Undefined, Debug, Verbose, etc.) or as {LineLogLevelFilter,GroupLogLevelFilter} like {None,None}, {Error,Trace}.</param>
         /// <returns>The filter.</returns>
@@ -216,37 +216,130 @@ namespace CK.Core
         }
 
         /// <summary>
-        /// Try to parse the filter: it can be a predefined filter as ("Undefined", "Debug", "Verbose", etc.)  
-        /// or as {LineLogLevelFilter,GroupLogLevelFilter} pairs like "{None,None}", "{Error,Trace}".
+        /// Tries to parse a <see cref="LogFilter"/>: it can be a predefined filter as ("Undefined", "Debug", "Verbose", etc.)  
+        /// or as {GroupLogLevelFilter,LineLogLevelFilter} pairs like "{None,None}", "{Error,Trace}".
         /// </summary>
-        /// <param name="filter">Filter to parse.</param>
+        /// <param name="s">Filter to parse.</param>
         /// <param name="f">Resulting filter.</param>
         /// <returns>True on success, false on error.</returns>
-        public static bool TryParse( string filter, out LogFilter f )
+        public static bool TryParse( string s, out LogFilter f )
         {
-            f = Undefined;
-            if( String.IsNullOrWhiteSpace( filter ) ) return false;
-            if( StringComparer.InvariantCultureIgnoreCase.Equals( filter, "Undefined" ) ) return true;
-            
-            if( StringComparer.InvariantCultureIgnoreCase.Equals( filter, "Debug" ) ) f = Debug;
-            else if( StringComparer.InvariantCultureIgnoreCase.Equals( filter, "Verbose" ) ) f = Verbose;
-            else if( StringComparer.InvariantCultureIgnoreCase.Equals( filter, "Monitor" ) ) f = Monitor;
-            else if( StringComparer.InvariantCultureIgnoreCase.Equals( filter, "Terse" ) ) f = Terse;
-            else if( StringComparer.InvariantCultureIgnoreCase.Equals( filter, "Release" ) ) f = Release;
-            else if( StringComparer.InvariantCultureIgnoreCase.Equals( filter, "Off" ) ) f = Off;
-            else
-            {
-                if( filter[0] != '{' ) return false;
-                if( filter[filter.Length-1] != '}' ) return false;
-                int idx = filter.IndexOf( ',' );
-                if( idx < 0 ) return false;
-                // Ensures that no comma exists after the first one.
-                if( filter.IndexOf( ',', idx+1 ) >= 0 ) return false;
+            int startAt = 0;
+            return Match( s, ref startAt, out f ) && startAt == s.Length;
+        }
 
-                LogLevelFilter line, group;
-                if( !Enum.TryParse<LogLevelFilter>( filter.Substring( 1, idx - 1 ), true, out line ) ) return false;
-                if( !Enum.TryParse<LogLevelFilter>( filter.Substring( idx+1, filter.Length - idx - 2 ), true, out group ) ) return false;
-                f = new LogFilter( line, group );
+        /// <summary>
+        /// Tries to parse a <see cref="LogFilter"/>: it can be a predefined filter as ("Undefined", "Debug", "Verbose", etc.)  
+        /// or as {GroupLogLevelFilter,LineLogLevelFilter} pairs like "{None,None}", "{Error,Trace}".
+        /// </summary>
+        /// <param name="s">Filter to parse.</param>
+        /// <param name="startAt">
+        /// Index where the match must start (can be equal to or greater than the length of the string: the match fails).
+        /// On success, index of the end of the match.
+        /// </param>
+        /// <param name="f">Resulting filter.</param>
+        /// <returns>True on success, false on error.</returns>
+        public static bool Match( string s, ref int startAt, out LogFilter f )
+        {
+            if( s == null ) throw new ArgumentNullException( "s" );
+            f = Undefined;
+            if( startAt >= s.Length ) return false;
+            if( !Util.Matcher.Match( s, ref startAt, "Undefined" ) )
+            {
+                if( Util.Matcher.Match( s, ref startAt, "Debug" ) )
+                {
+                    f = Debug;
+                }
+                else if( Util.Matcher.Match( s, ref startAt, "Verbose" ) )
+                {
+                    f = Verbose;
+                }
+                else if( Util.Matcher.Match( s, ref startAt, "Monitor" ) )
+                {
+                    f = Monitor;
+                }
+                else if( Util.Matcher.Match( s, ref startAt, "Terse" ) )
+                {
+                    f = Terse;
+                }
+                else if( Util.Matcher.Match( s, ref startAt, "Release" ) )
+                {
+                    f = Release;
+                }
+                else if( Util.Matcher.Match( s, ref startAt, "Off" ) )
+                {
+                    f = Off;
+                }
+                else
+                {
+                    if( s[startAt] != '{' || startAt > s.Length - 9 ) return false;
+                    int idx = startAt + 1;
+                    LogLevelFilter group, line;
+                    
+                    Util.Matcher.MatchWhiteSpaces( s, ref idx );
+                    if( !Match( s, ref idx, out group ) ) return false;
+
+                    Util.Matcher.MatchWhiteSpaces( s, ref idx );
+                    if( idx == s.Length || s[idx++] != ',' ) return false;
+
+                    Util.Matcher.MatchWhiteSpaces( s, ref idx );
+                    if( !Match( s, ref idx, out line ) ) return false;
+                    Util.Matcher.MatchWhiteSpaces( s, ref idx );
+                    
+                    if( idx == s.Length || s[idx++] != '}' ) return false;
+                    startAt = idx;
+                    f = new LogFilter( group, line );
+                }
+            }
+            return true;
+        }
+
+        /// <summary>
+        /// Try to parse a <see cref="LogLevelFilter"/>.
+        /// </summary>
+        /// <param name="s">Filter level to parse.</param>
+        /// <param name="startAt">
+        /// Index where the match must start (can be equal to or greater than the length of the string: the match fails).
+        /// On success, index of the end of the match.
+        /// </param>
+        /// <param name="level">Resulting level.</param>
+        /// <returns>True on success, false on error.</returns>
+        public static bool Match( string s, ref int startAt, out LogLevelFilter level )
+        {
+            if( s == null ) throw new ArgumentNullException( "s" );
+            level = LogLevelFilter.None;
+            if( startAt >= s.Length ) return false;
+            if( !Util.Matcher.Match( s, ref startAt, "None" ) )
+            {
+                if( Util.Matcher.Match( s, ref startAt, "Trace" ) )
+                {
+                    level = LogLevelFilter.Trace;
+                }
+                else if( Util.Matcher.Match( s, ref startAt, "Info" ) )
+                {
+                    level = LogLevelFilter.Info;
+                }
+                else if( Util.Matcher.Match( s, ref startAt, "Warn" ) )
+                {
+                    level = LogLevelFilter.Warn;
+                }
+                else if( Util.Matcher.Match( s, ref startAt, "Error" ) )
+                {
+                    level = LogLevelFilter.Error;
+                }
+                else if( Util.Matcher.Match( s, ref startAt, "Fatal" ) )
+                {
+                    level = LogLevelFilter.Fatal;
+                }
+                else if( Util.Matcher.Match( s, ref startAt, "Off" ) )
+                {
+                    level = LogLevelFilter.Off;
+                }
+                else if( Util.Matcher.Match( s, ref startAt, "Invalid" ) )
+                {
+                    level = LogLevelFilter.Invalid;
+                }
+                else return false;
             }
             return true;
         }

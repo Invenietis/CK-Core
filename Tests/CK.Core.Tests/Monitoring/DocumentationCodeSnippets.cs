@@ -95,6 +95,67 @@ namespace CK.Core.Tests.Monitoring
             m.Fatal().Send( ex, "This will cancel the whole operation." );
         }
 
+        void Create()
+        {
+            {
+                var m = new ActivityMonitor();
+            }
+            {
+                var m = new ActivityMonitor( applyAutoConfigurations: false );
+            }
+            {
+                IActivityMonitor m = new ActivityMonitor();
+                var counter = new ActivityMonitorErrorCounter();
+                m.Output.RegisterClient( counter );
+
+                m.Fatal().Send( "An horrible error occurred." );
+
+                Assert.That( counter.Current.FatalCount == 1 );
+                m.Output.UnregisterClient( counter );
+            }
+            {
+                IActivityMonitor m = new ActivityMonitor();
+
+                int errorCount = 0;
+                using( m.CatchCounter( fatalOrErrorCount => errorCount = fatalOrErrorCount ) )
+                {
+                    m.Fatal().Send( "An horrible error occurred." );
+                }
+                Assert.That( errorCount == 1 );
+            }
+            {
+                IActivityMonitor m = new ActivityMonitor();
+                m.MinimalFilter = LogFilter.Off;
+                // ...
+                m.MinimalFilter = LogFilter.Debug;
+            }
+            {
+                IActivityMonitor m = new ActivityMonitor();
+                m.MinimalFilter = LogFilter.Off;
+                // ...
+                using( m.SetFilter( LogFilter.Debug ) )
+                {
+                    Assert.That( m.ActualFilter == LogFilter.Debug );
+                    // ...
+                }
+                Assert.That( m.ActualFilter == LogFilter.Off, "Filter has been restored to previous value." );
+            }
+            {
+                IActivityMonitor m = new ActivityMonitor();
+                m.MinimalFilter = LogFilter.Off;
+                // ...
+                using( m.OpenWarn().Send( "Ouch..." ) )
+                {
+                    Assert.That( m.ActualFilter == LogFilter.Off );
+                    m.MinimalFilter = LogFilter.Debug;
+                    // ... in debug filter ...
+                }
+                Assert.That( m.ActualFilter == LogFilter.Off, "Back to Off." );
+
+                var strange = new LogFilter( LogLevelFilter.Fatal, LogLevelFilter.Trace );
+            }
+        }
+
         bool DoSomething( IActivityMonitor m, FileInfo file )
         {
             using( m.OpenInfo().Send( "Do something important on file '{0}'.", file.Name ) )

@@ -68,6 +68,7 @@
     <Compile Include="ActivityMonitor\ActivityLogGroupConclusion.cs" />
     <Compile Include="ActivityMonitor\ActivityMonitorLogData.cs" />
     <Compile Include="ActivityMonitor\ActivityMonitorGroupData.cs" />
+    <Compile Include="Util.Matcher.cs" />
     <Compile Include="DateTimeStamp.cs" />
     <Compile Include="ActivityMonitor\IDisposableActivityMonitor.cs" />
     <Compile Include="ActivityMonitor\IActivityMonitorGroupSender.cs" />

@@ -131,16 +131,19 @@ namespace CK.Core
         /// Tries to match a DateTime that follows the <see cref="FileNameUniqueTimeUtcFormat"/> in a string at a given position.
         /// </summary>
         /// <param name="s">The string to match.</param>
-        /// <param name="startAt">Index where the match must start. On success, index of the end of the match.</param>
+        /// <param name="startAt">
+        /// Index where the match must start (can be equal to or greater than the length of the string: the match fails).
+        /// On success, index of the end of the match.
+        /// </param>
         /// <param name="time">Result time.</param>
         /// <returns>True if the time has been matched.</returns>
         public static bool MatchFileNameUniqueTimeUtcFormat( string s, ref int startAt, out DateTime time )
         {
             if( s == null ) throw new ArgumentNullException( "s" );
-            if( startAt >= s.Length ) throw new IndexOutOfRangeException();
+            time = Util.UtcMinValue;
+            if( startAt >= s.Length ) return false;
 
             Debug.Assert( FileNameUniqueTimeUtcFormat.Replace( "\\", "" ).Length == 27 );
-            time = Util.UtcMinValue;
             if( s.Length < startAt - 27 ) return false;
             if( DateTime.TryParseExact( s.Substring( startAt, 27 ), FileUtil.FileNameUniqueTimeUtcFormat, CultureInfo.InvariantCulture, DateTimeStyles.AdjustToUniversal | DateTimeStyles.AssumeUniversal, out time ) )
             {

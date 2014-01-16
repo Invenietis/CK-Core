@@ -358,6 +358,9 @@
     <Compile Include="..\..\CK.Core\Util.Hash.cs">
       <Link>Util.Hash.cs</Link>
     </Compile>
+    <Compile Include="..\..\CK.Core\Util.Matcher.cs">
+      <Link>Util.Matcher.cs</Link>
+    </Compile>
     <Compile Include="..\..\CK.Core\Util.Math.cs">
       <Link>Util.Math.cs</Link>
     </Compile>

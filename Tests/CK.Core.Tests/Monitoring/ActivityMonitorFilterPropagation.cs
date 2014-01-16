@@ -15,7 +15,7 @@ namespace CK.Core.Tests.Monitoring
         {
             var monitor = new ActivityMonitor( false );
             var c = monitor.Output.RegisterClient( new ActivityMonitorClientTester() );
-            Parallel.For( 0, 20, i => c.AsyncSetMinimalFilterBlock( new LogFilter( (LogLevelFilter)(i%5 + 1), LogLevelFilter.Info ), 1 ) );
+            Parallel.For( 0, 20, i => c.AsyncSetMinimalFilterBlock( new LogFilter( LogLevelFilter.Info, (LogLevelFilter)(i % 5 + 1) ), 1 ) );
 
         }
 

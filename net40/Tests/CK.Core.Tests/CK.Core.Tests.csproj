@@ -162,6 +162,9 @@
     <Compile Include="..\..\..\Tests\CK.Core.Tests\UtilInterlockedTests.cs">
       <Link>UtilInterlockedTests.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\Tests\CK.Core.Tests\UtilMatcherTests.cs">
+      <Link>UtilMatcherTests.cs</Link>
+    </Compile>
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
