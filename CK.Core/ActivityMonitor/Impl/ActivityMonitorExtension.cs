@@ -63,7 +63,7 @@ namespace CK.Core
             if( @this == null ) throw new NullReferenceException( "this" );
             level &= LogLevel.Mask;
             int filter;
-            if( (filter = ActivityMonitor.SourceFilterLine( ref fileName, lineNumber )) == 0 ) filter = (int)@this.ActualFilter.Line;
+            if( (filter = ActivityMonitor.SourceFilter.SourceFilterLine( ref fileName, lineNumber )) == 0 ) filter = (int)@this.ActualFilter.Line;
             return filter <= 0 ? (int)ActivityMonitor.DefaultFilter.Line <= (int)level : filter <= (int)level;
         }
 
@@ -81,7 +81,7 @@ namespace CK.Core
             if( @this == null ) throw new NullReferenceException( "this" );
             level &= LogLevel.Mask;
             int filter;
-            if( (filter = ActivityMonitor.SourceFilterGroup( ref fileName, lineNumber )) == 0 ) filter = (int)@this.ActualFilter.Group;
+            if( (filter = ActivityMonitor.SourceFilter.SourceFilterGroup( ref fileName, lineNumber )) == 0 ) filter = (int)@this.ActualFilter.Group;
             return filter <= 0 ? (int)ActivityMonitor.DefaultFilter.Group <= (int)level : filter <= (int)level;
         }
 
@@ -92,7 +92,7 @@ namespace CK.Core
         {
             if( @this == null ) throw new NullReferenceException( "this" );
             int filter;
-            if( (filter = ActivityMonitor.SourceFilterLine( ref fileName, lineNumber )) == 0 ) filter = (int)@this.ActualFilter.Line;
+            if( (filter = ActivityMonitor.SourceFilter.SourceFilterLine( ref fileName, lineNumber )) == 0 ) filter = (int)@this.ActualFilter.Line;
             if( filter <= 0 ? (int)ActivityMonitor.DefaultFilter.Line <= (int)level : filter <= (int)level )
             {
                 return new ActivityMonitorLineSender( @this, level | LogLevel.IsFiltered, fileName, lineNumber );
@@ -107,7 +107,7 @@ namespace CK.Core
         {
             Debug.Assert( (level & LogLevel.IsFiltered) == 0 );
             int filter;
-            if( (filter = ActivityMonitor.SourceFilterGroup( ref fileName, lineNumber )) == 0 ) filter = (int)@this.ActualFilter.Group;
+            if( (filter = ActivityMonitor.SourceFilter.SourceFilterGroup( ref fileName, lineNumber )) == 0 ) filter = (int)@this.ActualFilter.Group;
             if( filter <= 0 ? (int)ActivityMonitor.DefaultFilter.Group <= (int)level : filter <= (int)level )
             {
                 return new ActivityMonitorGroupSender( @this, level | LogLevel.IsFiltered, fileName, lineNumber );
@@ -121,7 +121,7 @@ namespace CK.Core
         /// <param name="this">This <see cref="IActivityMonitor"/>.</param>
         /// <param name="tags">
         /// Tags (from <see cref="ActivityMonitor.Tags"/>) to associate to the log. 
-        /// These tags will be unioned with the current <see cref="IActivityMonitor.AutoTags">AutoTags</see>.
+        /// These tags will be union-ed with the current <see cref="IActivityMonitor.AutoTags">AutoTags</see>.
         /// </param>
         /// <param name="level">Log level. Must not be <see cref="LogLevel.None"/>.</param>
         /// <param name="text">Text to log. Must not be null or empty.</param>

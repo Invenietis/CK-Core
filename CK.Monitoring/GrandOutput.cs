@@ -155,9 +155,18 @@ namespace CK.Monitoring
             if( monitor == null ) monitor = new SystemActivityMonitor();
             using( monitor.OpenInfo().Send( this == Default ? "Default GrandOutput configuration." : "GrandOutput configuration." ) )
             {
-                if( _channelHost.SetConfiguration( monitor, config.RouteConfiguration, millisecondsBeforeForceClose ) )
+                if( _channelHost.SetConfiguration( monitor, config.ChannelsConfiguration, millisecondsBeforeForceClose ) )
                 {
-                    if( this == _default && config.AppDomainDefaultFilter.HasValue ) ActivityMonitor.DefaultFilter = config.AppDomainDefaultFilter.Value;
+                    if( this == _default &&  config.AppDomainDefaultFilter.HasValue ) ActivityMonitor.DefaultFilter = config.AppDomainDefaultFilter.Value;
+
+                    if( config.SourceFilterApplicationMode == SourceFilterApplyMode.Clear || config.SourceFilterApplicationMode == SourceFilterApplyMode.ClearThenApply )
+                    {
+                        ActivityMonitor.SourceFilter.Clear();
+                    }
+                    if( config.SourceFilterApplicationMode == SourceFilterApplyMode.Apply || config.SourceFilterApplicationMode == SourceFilterApplyMode.ClearThenApply )
+                    {
+                        foreach( var k in config.SourceFilter ) ActivityMonitor.SourceFilter.SetFileFilter( k.Value, k.Key );
+                    }
                     monitor.CloseGroup( "Success." );
                     return true;
                 }

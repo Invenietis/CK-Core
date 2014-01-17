@@ -59,6 +59,9 @@
     <Compile Include="..\..\CK.Monitoring\Configuration\GrandOutputConfiguration.cs">
       <Link>GrandOutputConfiguration.cs</Link>
     </Compile>
+    <Compile Include="..\..\CK.Monitoring\Configuration\SourceFilterApplyMode.cs">
+      <Link>SourceFilterApplyMode.cs</Link>
+    </Compile>
     <Compile Include="..\..\CK.Monitoring\Configuration\XmlMonitoringExtensions.cs">
       <Link>XmlMonitoringExtensions.cs</Link>
     </Compile>

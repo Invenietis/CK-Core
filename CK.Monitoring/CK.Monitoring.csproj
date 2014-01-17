@@ -55,6 +55,7 @@
     </Compile>
     <Compile Include="Configuration\GrandOutputChannelConfigData.cs" />
     <Compile Include="Configuration\GrandOutputConfiguration.cs" />
+    <Compile Include="Configuration\SourceFilterApplyMode.cs" />
     <Compile Include="Configuration\XmlMonitoringExtensions.cs" />
     <Compile Include="GlobalSuppressions.cs" />
     <Compile Include="IGrandOutputDispatcherStrategy.cs" />

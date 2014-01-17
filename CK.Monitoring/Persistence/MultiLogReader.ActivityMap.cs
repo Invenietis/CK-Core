@@ -310,7 +310,7 @@ namespace CK.Monitoring
                             // we ignore this pathological case.
                             if( entry.PreviousEntryType != LogEntryType.None )
                             {
-                                ILogEntry prevEntry = i > 0 ? Entries[i].Entry : lastPrevEntry;
+                                ILogEntry prevEntry = i > 0 ? Entries[i-1].Entry : lastPrevEntry;
                                 if( prevEntry == null || prevEntry.LogTime != entry.PreviousLogTime )
                                 {
                                     if( AppendEntry( path, ref parent, ref i, LogEntry.CreateMissingLine( entry.PreviousLogTime ) ) ) return i;

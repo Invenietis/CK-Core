@@ -61,6 +61,7 @@
     </Compile>
     <Compile Include="AppSettingsTests.cs" />
     <Compile Include="CKExceptionTests.cs" />
+    <Compile Include="Monitoring\SourceFilteringTests.cs" />
     <Compile Include="UtilMatcherTests.cs" />
     <Compile Include="Monitoring\ActivityMonitorTimestamp.cs" />
     <Compile Include="Monitoring\DocumentationCodeSnippets.cs" />

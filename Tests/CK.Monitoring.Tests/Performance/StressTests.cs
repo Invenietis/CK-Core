@@ -95,7 +95,7 @@ namespace CK.Monitoring.Tests
                     + handlerExtralLoad.ToString()
                     + @""" /></GrandOutputConfiguration>";
                 Assert.That( c.Load( XDocument.Parse( textConfig ).Root, mLoad ) );
-                Assert.That( c.RouteConfiguration.Configurations.Count, Is.EqualTo( 1 ) );
+                Assert.That( c.ChannelsConfiguration.Configurations.Count, Is.EqualTo( 1 ) );
                 SystemActivityMonitor.RootLogPath = TestHelper.TestFolder;
 
                 IGrandOutputDispatcherStrategy strat;

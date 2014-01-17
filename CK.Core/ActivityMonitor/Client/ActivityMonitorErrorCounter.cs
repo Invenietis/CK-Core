@@ -33,7 +33,7 @@ namespace CK.Core
 {
     /// <summary>
     /// Count fatal, error or warn that occurred. 
-    /// Can automatically adds a conclusion of groups that summarizes
+    /// It can also automatically adds a conclusion to closed groups that summarizes
     /// the number of fatals, errors and warnings.
     /// </summary>
     public sealed class ActivityMonitorErrorCounter : ActivityMonitorClient, IActivityMonitorBoundClient

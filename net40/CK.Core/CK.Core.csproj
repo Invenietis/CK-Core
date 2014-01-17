@@ -121,6 +121,9 @@
     <Compile Include="..\..\CK.Core\ActivityMonitor\Impl\ActivityMonitor.Group.cs">
       <Link>ActivityMonitor.Group.cs</Link>
     </Compile>
+    <Compile Include="..\..\CK.Core\ActivityMonitor\Impl\ActivityMonitor.SourceFiltering.cs">
+      <Link>ActivityMonitor.SourceFiltering.cs</Link>
+    </Compile>
     <Compile Include="..\..\CK.Core\ActivityMonitor\Impl\ActivityMonitorBridge.cs">
       <Link>ActivityMonitorBridge.cs</Link>
     </Compile>

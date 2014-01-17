@@ -32,8 +32,9 @@ using CK.Core.Impl;
 namespace CK.Core
 {
     /// <summary>
-    /// The "Path Catcher" captures the current path of the log (<see cref="DynamicPath"/>),
-    /// and two specific paths, the <see cref="LastErrorPath"/> and the <see cref="LastWarnOrErrorPath"/>.
+    /// The "Path Catcher" captures the current path of the opened groups and the last, current, line and exposes it thanks to 
+    /// a read only list of <see cref="PathElement"/> (the <see cref="DynamicPath"/> property),
+    /// plus two other specific paths, the <see cref="LastErrorPath"/> and the <see cref="LastWarnOrErrorPath"/>.
     /// </summary>
     public sealed class ActivityMonitorPathCatcher : ActivityMonitorClient, IActivityMonitorBoundClient
     {
@@ -119,8 +120,8 @@ namespace CK.Core
         }
 
         /// <summary>
-        /// Gets the last <see cref="DynamicPath"/> where an <see cref="LogLevel.Error"/> or a <see cref="LogLevel.Fatal"/> occured.
-        /// Null if no error nor fatal occured.
+        /// Gets the last <see cref="DynamicPath"/> where an <see cref="LogLevel.Error"/> or a <see cref="LogLevel.Fatal"/> occurred.
+        /// Null if no error nor fatal occurred.
         /// Use the extension method <see cref="ActivityMonitorExtension.ToStringPath"/> to easily format this path.
         /// </summary>
         public IReadOnlyList<PathElement> LastErrorPath
@@ -138,7 +139,7 @@ namespace CK.Core
 
         /// <summary>
         /// Gets the last path with a <see cref="LogLevel.Fatal"/>, <see cref="LogLevel.Error"/> or a <see cref="LogLevel.Warn"/>.
-        /// Null if no error, fatal nor warn occured.
+        /// Null if no error, fatal nor warn occurred.
         /// Use the extension method <see cref="ActivityMonitorExtension.ToStringPath"/> to easily format this path.
         /// </summary>
         public IReadOnlyList<PathElement> LastWarnOrErrorPath
@@ -148,7 +149,7 @@ namespace CK.Core
 
         /// <summary>
         /// Clears current <see cref="LastWarnOrErrorPath"/> (sets it to null), and
-        /// optionnaly clears <see cref="LastErrorPath"/>.
+        /// optionally clears <see cref="LastErrorPath"/>.
         /// </summary>
         public void ClearLastWarnPath( bool clearLastErrorPath = false )
         {
@@ -240,7 +241,7 @@ namespace CK.Core
             if( _current.MaskedLevel >= LogLevel.Warn )
             {
                 // Clone the last element if it is not a group: since it is updated
-                // with levels, it has to be snapshoted.
+                // with levels, it has to be snapshotted.
                 _warnSnaphot = _path.Select( ( e, idx ) => _currentIsGroup || idx < _path.Count-1 ? e : new PathElement() { Tags = e.Tags, MaskedLevel = e.MaskedLevel, Text = e.Text } ).ToReadOnlyList();
                 if( _current.MaskedLevel >= LogLevel.Error )
                 {

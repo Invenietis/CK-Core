@@ -148,12 +148,14 @@ namespace CK.Monitoring
         /// <summary>
         /// Reads a <see cref="ILogEntry"/> from the binary reader that can be a <see cref="IMulticastLogEntry"/>.
         /// If the first read byte is 0, read stops and null is returned.
-        /// The 0 byte is the "end marker" that <see cref="ActivityMonitorBinaryWriterClient.Close(bool)"/> can write, but this
-        /// method can read non zero-terminated streams (it catches an EndOfStreamException when reading the first byte).
+        /// The 0 byte is the "end marker" that <see cref="ActivityMonitorBinaryWriterClient.Close(bool)"/> should write, but this
+        /// method can read non zero-terminated streams (it catches an EndOfStreamException when reading the first byte and handles it silently).
+        /// This method can throw any type of exception (<see cref="System.IO.EndOfStreamException"/> or <see cref="InvalidDataException"/> for instance) that
+        /// must be handled by the caller.
         /// </summary>
         /// <param name="r">The binary reader.</param>
         /// <param name="streamVersion">The version of the stream.</param>
-        /// <returns>The log entry or null if a zero byte (end marker) has been found or (worst case) if the end of stream has been reached.</returns>
+        /// <returns>The log entry or null if a zero byte (end marker) has been found.</returns>
         static public ILogEntry Read( BinaryReader r, int streamVersion )
         {
             if( r == null ) throw new ArgumentNullException( "r" );
@@ -161,7 +163,7 @@ namespace CK.Monitoring
             LogLevel logLevel = LogLevel.None;
             try
             {
-                ReadLogTypeAndLevel( r, out t, out logLevel ); 
+                ReadLogTypeAndLevel( r, out t, out logLevel );
             }
             catch( System.IO.EndOfStreamException )
             {
@@ -169,12 +171,13 @@ namespace CK.Monitoring
                 // kindly handles the lack of terminating 0 byte.
             }
             if( t == StreamLogType.EndOfStream ) return null;
-            
+
             if( (t & StreamLogType.TypeMask) == StreamLogType.TypeGroupClosed )
             {
                 return ReadGroupClosed( r, t, logLevel );
             }
             DateTimeStamp time = new DateTimeStamp( DateTime.FromBinary( r.ReadInt64() ), (t & StreamLogType.HasUniquifier) != 0 ? r.ReadByte() : (Byte)0 );
+            if( time.TimeUtc.Year < 2014 || time.TimeUtc.Year > 3000 ) throw new InvalidDataException( "Date year before 2014 or after 3000 are considered invalid." );
             CKTrait tags = ActivityMonitor.Tags.Empty;
             string fileName = null;
             int lineNumber = 0;
@@ -186,6 +189,7 @@ namespace CK.Monitoring
             {
                 fileName = r.ReadString();
                 lineNumber = r.ReadInt32();
+                if( lineNumber > 100*1000 ) throw new InvalidDataException( "LineNumber greater than 100K is considered invalid." );
             }
             if( (t & StreamLogType.HasException) != 0 )
             {
@@ -268,12 +272,17 @@ namespace CK.Monitoring
             w.Write( (Byte)level );
         }
 
-        static void ReadLogTypeAndLevel( BinaryReader r, out StreamLogType t, out LogLevel level )
+        static void ReadLogTypeAndLevel( BinaryReader r, out StreamLogType t, out LogLevel l )
         {
             Debug.Assert( (int)StreamLogType.MaxFlag < (1 << 16) );
             Debug.Assert( (int)LogLevel.NumberOfBits < 8 );
-            t = (StreamLogType)r.ReadUInt16();
-            level = (LogLevel)r.ReadByte();
+            UInt16 type = r.ReadUInt16();
+            if( type >= ((int)StreamLogType.MaxFlag*2 -1) ) throw new InvalidDataException();
+            t = (StreamLogType)type;
+
+            Byte level = r.ReadByte();
+            if( level >= (1 << (int)LogLevel.NumberOfBits) ) throw new InvalidDataException();
+            l = (LogLevel)level;
         }
 
         static readonly string _missingLineText = "<Missing log data>";

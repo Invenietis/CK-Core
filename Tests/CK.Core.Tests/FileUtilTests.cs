@@ -68,8 +68,6 @@ namespace CK.Core.Tests
             Assert.That( File.ReadAllText( f2 ), Is.EqualTo( "...World!" ) );
 
             Assert.Throws<ArgumentOutOfRangeException>( () => FileUtil.WriteUniqueTimedFile( prefix, String.Empty, DateTime.UtcNow, null, true, -1 ) );
-            Assert.Throws<ArgumentOutOfRangeException>( () => FileUtil.WriteUniqueTimedFile( prefix, String.Empty, DateTime.UtcNow, null, true, 16 ) );
-            Assert.Throws<ArgumentOutOfRangeException>( () => FileUtil.WriteUniqueTimedFile( prefix, String.Empty, DateTime.UtcNow, null, true, 17 ) );
             Assert.Throws<ArgumentNullException>( () => FileUtil.WriteUniqueTimedFile( prefix, null, DateTime.UtcNow, null, true ) );
             Assert.Throws<ArgumentNullException>( () => FileUtil.WriteUniqueTimedFile( null, String.Empty, DateTime.UtcNow, null, true ) );
         }
@@ -83,31 +81,22 @@ namespace CK.Core.Tests
             var content = Encoding.UTF8.GetBytes( String.Format( "Clash @{0}...", now ) );
             string prefix = Path.Combine( TestHelper.TestFolder, "Clash " );
             List<string> files = new List<string>();
-            for( int i = 0; i < 18; ++i )
+            for( int i = 0; i < 10; ++i )
             {
-                files.Add( FileUtil.WriteUniqueTimedFile( prefix, String.Empty, now, content, true, 15 ) );
+                files.Add( FileUtil.WriteUniqueTimedFile( prefix, String.Empty, now, content, true, 6 ) );
             }
-            Assert.That( files.Count, Is.EqualTo( 18 ) );
+            Assert.That( files.Count, Is.EqualTo( 10 ) );
             Assert.That( files.All( f => f.StartsWith( prefix ) ) );
             Assert.That( files.All( f => File.Exists( f ) ) );
-            Assert.That( files[1], Is.EqualTo( files[0] + "-0" ) );
-            Assert.That( files[2], Is.EqualTo( files[0] + "-1" ) );
-            Assert.That( files[3], Is.EqualTo( files[0] + "-2" ) );
-            Assert.That( files[4], Is.EqualTo( files[0] + "-3" ) );
-            Assert.That( files[5], Is.EqualTo( files[0] + "-4" ) );
-            Assert.That( files[6], Is.EqualTo( files[0] + "-5" ) );
-            Assert.That( files[7], Is.EqualTo( files[0] + "-6" ) );
-            Assert.That( files[8], Is.EqualTo( files[0] + "-7" ) );
-            Assert.That( files[9], Is.EqualTo( files[0] + "-8" ) );
-            Assert.That( files[10], Is.EqualTo( files[0] + "-9" ) );
-            Assert.That( files[11], Is.EqualTo( files[0] + "-A" ) );
-            Assert.That( files[12], Is.EqualTo( files[0] + "-B" ) );
-            Assert.That( files[13], Is.EqualTo( files[0] + "-C" ) );
-            Assert.That( files[14], Is.EqualTo( files[0] + "-D" ) );
-            Assert.That( files[15], Is.EqualTo( files[0] + "-E" ) );
-            for( int i = 16; i < 18; ++i )
+            Assert.That( files[1], Is.EqualTo( files[0] + "(1)" ) );
+            Assert.That( files[2], Is.EqualTo( files[0] + "(2)" ) );
+            Assert.That( files[3], Is.EqualTo( files[0] + "(3)" ) );
+            Assert.That( files[4], Is.EqualTo( files[0] + "(4)" ) );
+            Assert.That( files[5], Is.EqualTo( files[0] + "(5)" ) );
+            Assert.That( files[6], Is.EqualTo( files[0] + "(6)" ) );
+            for( int i = 7; i < 10; ++i )
             {
-                Assert.That( files[i].Length, Is.EqualTo( files[0].Length + 1 + 22 ) );
+                Assert.That( files[i].Length, Is.EqualTo( files[0].Length + 1 + 22 ), "Ends with Url compliant Base64 GUID." );
             }
             Assert.That( files.SequenceEqual( files.Distinct() ) );
         }
@@ -128,7 +117,7 @@ namespace CK.Core.Tests
             Assert.That( files.All( f => File.Exists( f ) ) );
             for( int i = 1; i < 10; ++i )
             {
-                Assert.That( files[i].Length, Is.EqualTo( files[0].Length + 1 + 22 ) );
+                Assert.That( files[i].Length, Is.EqualTo( files[0].Length + 1 + 22 ), "Ends with Url compliant Base64 GUID." );
             }
             Assert.That( files.SequenceEqual( files.Distinct() ) );
         }

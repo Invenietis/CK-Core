@@ -231,4 +231,10 @@
   <data name="FileUtilUnableToCreateUniqueTimedFile" xml:space="preserve">
     <value>Unable to create a unique timed file.</value>
   </data>
+  <data name="FileMustExist" xml:space="preserve">
+    <value>File must exist.</value>
+  </data>
+  <data name="SystemActivityMonitorRootLogPathSetOnlyOnce" xml:space="preserve">
+    <value>SystemActivityMonitor.RootLogPath must be set only once and before any access to it if defined in application config (in the AppSettings section).</value>
+  </data>
 </root>

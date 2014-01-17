@@ -13,6 +13,11 @@ namespace CK.Monitoring
     {
         public LogFilter MinimalFilter;
 
+        public GrandOutputChannelConfigData()
+        {
+            MinimalFilter = LogFilter.Undefined;
+        }
+
         public GrandOutputChannelConfigData( XElement xml )
         {
             MinimalFilter = xml.GetAttributeLogFilter( "MinimalFilter", true ).Value;

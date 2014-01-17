@@ -22,6 +22,7 @@ namespace CK.Monitoring
         IMulticastLogEntry _currentMulticast;
         int _streamVersion;
         long _currentPosition;
+        Exception _readException;
 
         public const int CurrentStreamVersion = 5;
 
@@ -201,6 +202,14 @@ namespace CK.Monitoring
         }
 
         /// <summary>
+        /// Gets the exception that may have been thrown when reading the file.
+        /// </summary>
+        public Exception ReadException
+        {
+            get { return _readException; }
+        }
+
+        /// <summary>
         /// Current <see cref="IMulticastLogEntry"/> with its associated position in the stream.
         /// The current entry must be a multi-cast one and, as usual, <see cref="MoveNext"/> must be called before getting the first entry.
         /// </summary>
@@ -237,7 +246,7 @@ namespace CK.Monitoring
                 }
             }
             _currentPosition = _stream.Position;
-            _current = LogEntry.Read( _binaryReader, _streamVersion );
+            ReadNextEntry();
             _currentMulticast = _current as IMulticastLogEntry;
             var f = CurrentFilter;
             if( f != null )
@@ -249,11 +258,24 @@ namespace CK.Monitoring
                         _current = _currentMulticast = null;
                         break;
                     }
-                    _current = LogEntry.Read( _binaryReader, _streamVersion );
+                    ReadNextEntry();
                     _currentMulticast = _current as IMulticastLogEntry;
                 }
             }
             return _current != null;
+        }
+
+        void ReadNextEntry()
+        {
+            try
+            {
+                _current = LogEntry.Read( _binaryReader, _streamVersion );
+            }
+            catch( Exception ex )
+            {
+                _current = null;
+                _readException = ex;
+            }
         }
 
         /// <summary>

@@ -102,6 +102,7 @@ namespace CK.Core
 
         static readonly IActivityMonitorClient _client;
         static string _logPath;
+        static string _appSettingslogPath;
         static int _activityMonitorErrorTracked;
 
         static SystemActivityMonitor()
@@ -109,7 +110,7 @@ namespace CK.Core
             AppSettingsKey = "CK.Core.SystemActivityMonitor.RootLogPath";
             SubDirectoryName = "SystemActivityMonitor/";
             _client = new SysClient();
-            RootLogPath = AppSettings.Default[ AppSettingsKey ];
+            _appSettingslogPath = AppSettings.Default[AppSettingsKey];
             _activityMonitorErrorTracked = 1;
             ActivityMonitor.MonitoringError.OnErrorFromBackgroundThreads += OnTrackActivityMonitorLoggingError;
         }
@@ -177,42 +178,74 @@ namespace CK.Core
         }
 
         /// <summary>
-        /// Gets or sets the log folder to use. When setting it, the path must be valid (when it is not an absolute path, it is combined 
-        /// with the <see cref="AppDomain.BaseDirectory">AppDomain.CurrentDomain.BaseDirectory</see>): the sub directory "SystemActivityMonitor" 
-        /// is created (if not already here) and a test file is created (and deleted) inside it to ensure that (at least at configuration time), 
-        /// no security configuration prevents us to create log files: all errors files will be created in this sub directory.
-        /// When not null, it necessarily ends with a <see cref="Path.DirectorySeparatorChar"/>.
-        /// Defaults to the value of <see cref="AppSettingsKey"/> in <see cref="AppSettings.Default"/> or null.
+        /// Gets the <see cref="RootLogPath"/> that is configured in application settings (null otherwise).
         /// </summary>
+        static public string AppSettingsRootLogPath
+        {
+            get { return _appSettingslogPath; }
+        }
+
+        /// <summary>
+        /// Gets or sets (only once if different) the log folder to use. See remarks.
+        /// </summary>
+        /// <remarks>
+        /// <para>
+        /// When setting it, the path must be valid (when it is not an absolute path, it is combined 
+        /// with the <see cref="AppDomain.BaseDirectory">AppDomain.CurrentDomain.BaseDirectory</see>).
+        /// </para>
+        /// <para>
+        /// The subordinate directory "SystemActivityMonitor" is created (if not already here) and a test file is created (and deleted) inside it 
+        /// to ensure that (at least at configuration time), no security configuration prevents us to create log files: all errors files will be created in this sub directory.
+        /// </para>
+        /// <para>
+        /// It is recommended to use this directory to store all other logs and/or files related to activity tracking.
+        /// </para>
+        /// <para>
+        /// When not null, it necessarily ends with a <see cref="Path.DirectorySeparatorChar"/>.
+        /// </para>
+        /// <para>
+        /// When not sets, the first get initializes it with the value of <see cref="AppSettingsKey"/> in <see cref="AppSettings.Default"/> if it exists.
+        /// </para>
+        /// </remarks>
         static public string RootLogPath
         {
-            get { return _logPath; }
+            get 
+            {
+                if( _logPath == null && _appSettingslogPath != null )
+                {
+                    RootLogPath = _appSettingslogPath;
+                }
+                return _logPath; 
+            }
             set 
             {
-                if( String.IsNullOrWhiteSpace( value ) ) value = null;
-                if( _logPath != value )
+                if( String.IsNullOrWhiteSpace( value ) ) throw new ArgumentNullException();
+                value = NormalizeRootLogPath( value );
+                if( _logPath != null && value != _logPath )
                 {
-                    if( value != null )
-                    {
-                        try
-                        {
-                            if( !Path.IsPathRooted( value ) ) value = Path.Combine( AppDomain.CurrentDomain.BaseDirectory, value );
-                            value = FileUtil.NormalizePathSeparator( value, true );
-                            string dirName = value + SubDirectoryName;
-                            if( !Directory.Exists( dirName ) ) Directory.CreateDirectory( dirName );
-                            string testWriteFile = Path.Combine( dirName, Guid.NewGuid().ToString() );
-                            File.AppendAllText( testWriteFile, AppSettingsKey );
-                            File.Delete( testWriteFile );
-                        }
-                        catch( Exception ex )
-                        {
-                            throw new CKException( ex, "{2} = '{0}' is invalid: unable to create a test file in '{1}'.", value, SubDirectoryName, AppSettingsKey );
-                        }
-                    }
+                    throw new CKException( R.SystemActivityMonitorRootLogPathSetOnlyOnce );
+                }
+                try
+                {
+                    string dirName = value + SubDirectoryName;
+                    if( !Directory.Exists( dirName ) ) Directory.CreateDirectory( dirName );
+                    string testWriteFile = Path.Combine( dirName, Guid.NewGuid().ToString() );
+                    File.AppendAllText( testWriteFile, AppSettingsKey );
+                    File.Delete( testWriteFile );
                     _logPath = value;
                 }
-
+                catch( Exception ex )
+                {
+                    throw new CKException( ex, "{2} = '{0}' is invalid: unable to create a test file in '{1}'.", value, SubDirectoryName, AppSettingsKey );
+                }
             }
+        }
+
+        static string NormalizeRootLogPath( string value )
+        {
+            if( !Path.IsPathRooted( value ) ) value = Path.Combine( AppDomain.CurrentDomain.BaseDirectory, value );
+            value = FileUtil.NormalizePathSeparator( value, true );
+            return value;
         }
 
         /// <summary>

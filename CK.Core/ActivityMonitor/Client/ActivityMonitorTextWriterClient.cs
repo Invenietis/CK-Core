@@ -32,7 +32,7 @@ using System.Diagnostics;
 namespace CK.Core
 {
     /// <summary>
-    /// Sinks the logs to an <see cref="Action{T}"/> where T is a string.
+    /// Formats the activity and pushes piece of texts to an <see cref="Action{T}"/> where T is a string.
     /// </summary>
     public class ActivityMonitorTextWriterClient : ActivityMonitorTextHelperClient
     {

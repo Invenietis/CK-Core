@@ -29,7 +29,7 @@ using System.Text;
 namespace CK.Core
 {
     /// <summary>
-    /// Sinks the logs to the console.
+    /// Displays the activity to the console.
     /// </summary>
     public class ActivityMonitorConsoleClient : ActivityMonitorTextWriterClient
     {

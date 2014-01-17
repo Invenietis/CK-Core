@@ -9,6 +9,7 @@ namespace CK.Core
     /// <summary>
     /// Simple collector of log entries which level is greater or equal to <see cref="MinimalFilter"/>.
     /// Its <see cref="Capacity"/> defaults to 50 (no more than Capacity entries are kept).
+    /// Used by the <see cref="ActivityMonitorExtension.Catch">Catch</see> extension method.
     /// </summary>
     public sealed class ActivityMonitorSimpleCollector : IActivityMonitorClient
     {
@@ -54,9 +55,9 @@ namespace CK.Core
                 Text = text;
                 Exception = ex;
             }
-            
+
             /// <summary>
-            /// Overriden to return the <see cref="Text"/> of this element.
+            /// Overridden to return the <see cref="Text"/> of this element.
             /// </summary>
             /// <returns>This <see cref="Text"/> property.</returns>
             public override string ToString()
@@ -90,7 +91,7 @@ namespace CK.Core
         public LogLevelFilter MinimalFilter
         {
             get { return _filter; }
-            set 
+            set
             {
                 if( value > _filter )
                 {
@@ -103,12 +104,12 @@ namespace CK.Core
                     }
                     else _entries.Clear();
                 }
-                _filter = value; 
+                _filter = value;
             }
         }
 
         /// <summary>
-        /// Gets a read only list of (at most) <see cref="Capacity"/> entries that occured since last 
+        /// Gets a read only list of (at most) <see cref="Capacity"/> entries that occurred since last 
         /// call to <see cref="Clear"/>.
         /// </summary>
         public IReadOnlyList<Entry> Entries

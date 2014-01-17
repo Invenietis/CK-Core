@@ -30,7 +30,7 @@ using System.Text;
 namespace CK.Core
 {
     /// <summary>
-    /// Base class that explicitely implements <see cref="IActivityMonitorClient"/> (to hide it from public interface, except its <see cref="MinimalFilter"/>).
+    /// Base class that explicitly implements <see cref="IActivityMonitorClient"/> (to hide it from public interface, except its <see cref="MinimalFilter"/>).
     /// </summary>
     [ExcludeFromCodeCoverage]
     public class ActivityMonitorClient : IActivityMonitorClient

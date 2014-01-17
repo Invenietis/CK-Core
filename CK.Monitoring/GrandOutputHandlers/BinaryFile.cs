@@ -20,6 +20,7 @@ namespace CK.Monitoring.GrandOutputHandlers
         DateTime _initializedTime;
         FileStream _output;
         BinaryWriter _writer;
+        DateTime _openedTimeUtc;
         int _countRemainder;
 
 
@@ -45,7 +46,8 @@ namespace CK.Monitoring.GrandOutputHandlers
 
         private void OpenFile()
         {
-            _output = FileUtil.CreateAndOpenUniqueTimedFile( _path, ".ckmon.tmp", _initializedTime, FileAccess.Write, FileShare.Read, 8, FileOptions.SequentialScan|FileOptions.WriteThrough );
+            _openedTimeUtc = DateTime.UtcNow;
+            _output = new FileStream( _path + Guid.NewGuid().ToString() + ".ckmon.tmp", FileMode.CreateNew, FileAccess.Write, FileShare.Read, 8, FileOptions.SequentialScan|FileOptions.WriteThrough );
             _writer = new BinaryWriter( _output );
             _writer.Write( LogReader.CurrentStreamVersion );
         }
@@ -77,7 +79,7 @@ namespace CK.Monitoring.GrandOutputHandlers
             _writer.Write( (byte)0 );
             string fName = _output.Name;
             _writer.Dispose();
-            File.Move( fName, fName.Substring( 0, fName.Length - 4 ) );
+            FileUtil.MoveToUniqueTimedFile( fName, _path, ".ckmon", _openedTimeUtc );
             _writer = null;
         }
 

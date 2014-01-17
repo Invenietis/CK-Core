@@ -286,6 +286,15 @@ namespace CK.Core {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to File must exist..
+        /// </summary>
+        internal static string FileMustExist {
+            get {
+                return ResourceManager.GetString("FileMustExist", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Access set to FileAccess.Read is stupid when creating a file..
         /// </summary>
         internal static string FileUtilNoReadOnlyWhenCreateFile {
@@ -381,6 +390,15 @@ namespace CK.Core {
         internal static string SimpleMultiActionNullAction {
             get {
                 return ResourceManager.GetString("SimpleMultiActionNullAction", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to SystemActivityMonitor.RootLogPath must be set only once and before any access to it if defined in application config (in the AppSettings section)..
+        /// </summary>
+        internal static string SystemActivityMonitorRootLogPathSetOnlyOnce {
+            get {
+                return ResourceManager.GetString("SystemActivityMonitorRootLogPathSetOnlyOnce", resourceCulture);
             }
         }
         

@@ -127,9 +127,9 @@ namespace CK.Monitoring
             var h = EnsureChannel();
             if( h != null )
             {
-                ++_currentGroupDepth;
                 IMulticastLogEntry e = LogEntry.CreateMulticastOpenGroup( _monitorSource.UniqueId, _prevLogType, _prevlogTime, _currentGroupDepth, group.GroupText, group.LogTime, group.GroupLevel, group.FileName, group.LineNumber, group.GroupTags, group.EnsureExceptionData() );
                 h.Handle( new GrandOutputEventInfo( e, _monitorSource.Topic ) );
+                ++_currentGroupDepth;
                 _prevlogTime = group.LogTime;
                 _prevLogType = LogEntryType.OpenGroup;
             }

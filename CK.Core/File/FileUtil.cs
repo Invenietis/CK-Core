@@ -222,7 +222,7 @@ namespace CK.Core
         /// </summary>
         /// <param name="pathPrefix">The path prefix. Must not be null. Must be a valid path and may ends with a prefix for the file name itself.</param>
         /// <param name="fileSuffix">Suffix for the file name. Must not be null. Typically an extension (like ".txt").</param>
-        /// <param name="time">The time that will be used to create the file name. It should be an UTC time.</param>
+        /// <param name="time">The time that will be used to create the file name. It must be an UTC time.</param>
         /// <param name="access">
         /// A constant that determines how the file can be accessed by the FileStream object. 
         /// It can only be <see cref="FileAccess.Write"/> or <see cref="FileAccess.ReadWrite"/> (when set to <see cref="FileAccess.Read"/> a <see cref="ArgumentException"/> is thrown).
@@ -236,46 +236,24 @@ namespace CK.Core
         /// A positive Int32 value greater than 0 indicating the buffer size. For bufferSize values between one and eight, the actual buffer size is set to eight bytes.
         /// </param>
         /// <param name="options">Specifies additional file options.</param>
-        /// <param name="maxTryBeforeGuid">Maximum value for short hexadecimal uniquifier before using a base 64 guid suffix. Must between 0 and 15 (included).</param>
+        /// <param name="maxTryBeforeGuid">
+        /// Maximum value for short hexadecimal uniquifier before using a base 64 guid suffix. Must greater than 0.</param>
         /// <returns>An opened <see cref="FileStream"/>.</returns>
-        public static FileStream CreateAndOpenUniqueTimedFile( string pathPrefix, string fileSuffix, DateTime time, FileAccess access, FileShare share, int bufferSize, FileOptions options, int maxTryBeforeGuid = 3 )
+        public static FileStream CreateAndOpenUniqueTimedFile( string pathPrefix, string fileSuffix, DateTime time, FileAccess access, FileShare share, int bufferSize, FileOptions options, int maxTryBeforeGuid = 512 )
         {
-            if( pathPrefix == null ) throw new ArgumentNullException( "pathPrefix" );
-            if( fileSuffix == null ) throw new ArgumentNullException( "fileSuffix" );
-            if( maxTryBeforeGuid < 0 || maxTryBeforeGuid > 15 ) throw new ArgumentOutOfRangeException( "maxTryBeforeGuid" );
             if( access == FileAccess.Read ) throw new ArgumentException( R.FileUtilNoReadOnlyWhenCreateFile, "access" );
-            FileStream f;
-            string pOrigin = pathPrefix + time.ToString( FileNameUniqueTimeUtcFormat ) + fileSuffix;
-            string p = pOrigin;
-            int counter = 0;
-            for( ; ; )
-            {
-                if( TryCreateNew( p, access, share, bufferSize, options, out f ) ) break;
-                if( counter >= maxTryBeforeGuid )
-                {
-                    if( counter == maxTryBeforeGuid+1 ) throw new CKException( R.FileUtilUnableToCreateUniqueTimedFile );
-                    if( counter == maxTryBeforeGuid )
-                    {
-                        Debug.Assert( Convert.ToBase64String( Guid.NewGuid().ToByteArray() ).Length == 24 );
-                        Debug.Assert( Convert.ToBase64String( Guid.NewGuid().ToByteArray() ).EndsWith( "==" ) );
-                        // Use http://en.wikipedia.org/wiki/Base64#URL_applications encoding.
-                        string dedup = Convert.ToBase64String( Guid.NewGuid().ToByteArray() ).Remove( 22 ).Replace( '+', '-' ).Replace( '/', '_' );
-                        p = pOrigin.Insert( pOrigin.Length - fileSuffix.Length, "-" + dedup );
-                    }
-                }
-                else p = pOrigin.Insert( pOrigin.Length - fileSuffix.Length, "-" + Util.Converter.HexChars[counter] );
-                ++counter;
-            }
+            FileStream f = null;
+            FindUniqueTimedFile( pathPrefix, fileSuffix, time, maxTryBeforeGuid, p => TryCreateNew( p, access, share, bufferSize, options, out f ) );
             return f;
         }
 
-        static bool TryCreateNew( string path, FileAccess access, FileShare share, int bufferSize, FileOptions options, out FileStream f )
+        static bool TryCreateNew( string timedPath, FileAccess access, FileShare share, int bufferSize, FileOptions options, out FileStream f )
         {
             f = null;
             try
             {
-                if( File.Exists( path ) ) return false;
-                f = new FileStream( path, FileMode.CreateNew, access, share, bufferSize, options );
+                if( File.Exists( timedPath ) ) return false;
+                f = new FileStream( timedPath, FileMode.CreateNew, access, share, bufferSize, options );
                 return true;
             }
             catch( IOException ex )
@@ -285,6 +263,73 @@ namespace CK.Core
             return false;
         }
 
+        /// <summary>
+        /// Moves (renames) a file to a necessarily unique named file.
+        /// The file name is based on a <see cref="DateTime"/>, with an eventual uniquifier if a file already exists with the same name.
+        /// </summary>
+        /// <param name="sourceFilePath">Path of the file to move.</param>
+        /// <param name="pathPrefix">The path prefix. Must not be null. Must be a valid path and may ends with a prefix for the file name itself.</param>
+        /// <param name="fileSuffix">Suffix for the file name. Must not be null. Typically an extension (like ".txt").</param>
+        /// <param name="time">The time that will be used to create the file name. It must be an UTC time.</param>
+        /// <param name="maxTryBeforeGuid">
+        /// Maximum value for short hexadecimal uniquifier before using a base 64 guid suffix. Must greater than 0.
+        /// </param>
+        /// <returns>An opened <see cref="FileStream"/>.</returns>
+        public static string MoveToUniqueTimedFile( string sourceFilePath, string pathPrefix, string fileSuffix, DateTime time, int maxTryBeforeGuid = 512 )
+        {
+            if( sourceFilePath == null ) throw new ArgumentNullException( "sourceFilePath" );
+            if( !File.Exists( sourceFilePath ) ) throw new FileNotFoundException( R.FileMustExist, sourceFilePath );
+            return FindUniqueTimedFile( pathPrefix, fileSuffix, time, maxTryBeforeGuid, p => TryMoveTo( sourceFilePath, p ) );
+        }
+
+        static bool TryMoveTo( string sourceFilePath, string timedPath )
+        {
+            try
+            {
+                if( File.Exists( timedPath ) ) return false;
+                File.Move( sourceFilePath, timedPath );
+                return true;
+            }
+            catch( IOException ex )
+            {
+                if( ex is PathTooLongException || ex is DirectoryNotFoundException ) throw;
+            }
+            return false;
+        }
+
+        static string FindUniqueTimedFile( string pathPrefix, string fileSuffix, DateTime time, int maxTryBeforeGuid, Func<string,bool> tester )
+        {
+            if( pathPrefix == null ) throw new ArgumentNullException( "pathPrefix" );
+            if( fileSuffix == null ) throw new ArgumentNullException( "fileSuffix" );
+            if( maxTryBeforeGuid < 0 ) throw new ArgumentOutOfRangeException( "maxTryBeforeGuid" );
+
+            DateTimeStamp timeStamp = new DateTimeStamp( time );
+            int counter = 0;
+            string result = pathPrefix + timeStamp.ToString() + fileSuffix;
+            for( ; ; )
+            {
+                if( tester( result ) ) break;
+                if( counter < maxTryBeforeGuid )
+                {
+                    timeStamp = new DateTimeStamp( timeStamp, timeStamp );
+                    result = pathPrefix + timeStamp.ToString() + fileSuffix;
+                }
+                else
+                {
+                    if( counter == maxTryBeforeGuid + 1 ) throw new CKException( R.FileUtilUnableToCreateUniqueTimedFile );
+                    if( counter == maxTryBeforeGuid )
+                    {
+                        Debug.Assert( Convert.ToBase64String( Guid.NewGuid().ToByteArray() ).Length == 24 );
+                        Debug.Assert( Convert.ToBase64String( Guid.NewGuid().ToByteArray() ).EndsWith( "==" ) );
+                        // Use http://en.wikipedia.org/wiki/Base64#URL_applications encoding.
+                        string dedup = Convert.ToBase64String( Guid.NewGuid().ToByteArray() ).Remove( 22 ).Replace( '+', '-' ).Replace( '/', '_' );
+                        result = pathPrefix + time.ToString( FileNameUniqueTimeUtcFormat, CultureInfo.InvariantCulture ) + "-" + dedup + fileSuffix;
+                    }
+                }
+                ++counter;
+            }
+            return result;
+        }
 
         /// <summary>
         /// Recursively copy a directory. 
