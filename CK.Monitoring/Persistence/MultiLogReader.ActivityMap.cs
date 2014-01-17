@@ -389,10 +389,16 @@ namespace CK.Monitoring
                 /// <returns>The number of entries.</returns>
                 public int ForwardPage()
                 {
-                    _entries.Count = 0;
                     if( _r != null )
                     {
-                        if( _r.MoveNext() ) _entries.FillPage( _r, _currentPath );
+                        if( _r.MoveNext() )
+                        {
+                            _entries.FillPage( _r, _currentPath );
+                        }
+                        else
+                        {
+                            _entries.Count = 0;
+                        }
                     }
                     return Entries.Count;
                 }
