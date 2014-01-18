@@ -54,13 +54,13 @@ namespace CK.Monitoring.GrandOutputHandlers
 
         public override void Handle( GrandOutputEventInfo logEvent, bool parrallelCall )
         {
+            logEvent.Entry.WriteLogEntry( _writer );
             if( --_countRemainder == 0 )
             {
-                _countRemainder = _maxCountPerFile;
                 CloseCurrentFile();
+                _countRemainder = _maxCountPerFile;
                 OpenFile();
             }
-            logEvent.Entry.WriteLogEntry( _writer );
         }
 
         public override void Close( IActivityMonitor m )
@@ -79,7 +79,14 @@ namespace CK.Monitoring.GrandOutputHandlers
             _writer.Write( (byte)0 );
             string fName = _output.Name;
             _writer.Dispose();
-            FileUtil.MoveToUniqueTimedFile( fName, _path, ".ckmon", _openedTimeUtc );
+            if( _countRemainder == _maxCountPerFile )
+            {
+                // No entries were written: Delete file.
+                File.Delete( fName );
+            }
+            else {
+                FileUtil.MoveToUniqueTimedFile( fName, _path, ".ckmon", _openedTimeUtc );
+            }
             _writer = null;
         }
 
