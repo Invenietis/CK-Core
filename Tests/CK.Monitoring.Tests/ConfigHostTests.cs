@@ -13,6 +13,11 @@ namespace CK.Monitoring.Tests
 {
     public class ConfigHostTests
     {
+        [SetUp]
+        public void Setup()
+        {
+            TestHelper.InitalizePaths();
+        }
 
         /// <summary>
         /// Mocks a stupid, non concurrent, file in append mode that appends strings into a list.

@@ -13,6 +13,11 @@ namespace CK.Monitoring.Tests
     [Fixture]
     public class StressTests
     {
+        [SetUp]
+        public void Setup()
+        {
+            TestHelper.InitalizePaths();
+        }
 
         class RunContextParam
         {
@@ -91,12 +96,11 @@ namespace CK.Monitoring.Tests
                 IActivityMonitor mLoad = new ActivityMonitor( false );
 
                 GrandOutputConfiguration c = new GrandOutputConfiguration();
-                var textConfig = @"<GrandOutputConfiguration><Add Type=""FakeHandler, CK.Monitoring.Tests"" Name=""GlobalCatch"" ExtraLoad="""
+                var textConfig = @"<GrandOutputConfiguration><Channel><Add Type=""FakeHandler, CK.Monitoring.Tests"" Name=""GlobalCatch"" ExtraLoad="""
                     + handlerExtralLoad.ToString()
-                    + @""" /></GrandOutputConfiguration>";
+                    + @""" /></Channel></GrandOutputConfiguration>";
                 Assert.That( c.Load( XDocument.Parse( textConfig ).Root, mLoad ) );
                 Assert.That( c.ChannelsConfiguration.Configurations.Count, Is.EqualTo( 1 ) );
-                SystemActivityMonitor.RootLogPath = TestHelper.TestFolder;
 
                 IGrandOutputDispatcherStrategy strat;
                 if( useAdaptive )
@@ -122,7 +126,6 @@ namespace CK.Monitoring.Tests
         static int RunStressTestAndGetLostMessageCount( RunContextParam p )
         {
             int nbThreads = p.PoolThreadCount + p.NewThreadCount;
-            SystemActivityMonitor.RootLogPath = null;
             int criticalErrorCount = 0;
             EventHandler<SystemActivityMonitor.LowLevelErrorEventArgs> h = ( sender, e ) => ++criticalErrorCount;
             SystemActivityMonitor.OnError += h;

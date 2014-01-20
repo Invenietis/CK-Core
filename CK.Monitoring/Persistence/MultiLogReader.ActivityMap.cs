@@ -190,9 +190,10 @@ namespace CK.Monitoring
 
                 void RemoveAllDuplicates()
                 {
-                    bool doItAgain = false;
+                    bool doItAgain;
                     do
                     {
+                        doItAgain = false;
                         for( int i = 0; i < _readers.Count - 1; ++i )
                         {
                             doItAgain |= RemoveDuplicate( i, i + 1 );
@@ -413,6 +414,16 @@ namespace CK.Monitoring
             }
 
             /// <summary>
+            /// Loads the first available entries.
+            /// </summary>
+            /// <param name="pageLength">The length of pages. Must be greater than 0.</param>
+            /// <returns>The first <see cref="LivePage"/> from which next pages can be retrieved.</returns>
+            public LivePage ReadFirstPage( int pageLength )
+            {
+                return ReadFirstPage( FirstEntryTime, pageLength );
+            }
+
+            /// <summary>
             /// Loads the first available entries starting at a given time.
             /// </summary>
             /// <param name="firstLogTime">The first log time.</param>
@@ -428,7 +439,7 @@ namespace CK.Monitoring
                 }
                 return new LivePage( _firstDepth, Util.EmptyArray<ParentedLogEntry>.Empty, null, pageLength );
             }
-        }
+       }
 
         public ActivityMap GetActivityMap()
         {

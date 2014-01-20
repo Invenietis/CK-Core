@@ -23,6 +23,7 @@ namespace CK.Monitoring
         int _streamVersion;
         long _currentPosition;
         Exception _readException;
+        bool _badEndOfFille;
 
         public const int CurrentStreamVersion = 5;
 
@@ -210,6 +211,14 @@ namespace CK.Monitoring
         }
 
         /// <summary>
+        /// Gets whether the end of file has been reached and the file is missing the final 0 byte marker.
+        /// </summary>
+        public bool BadEndOfFileMarker
+        {
+            get { return _badEndOfFille; }
+        }
+
+        /// <summary>
         /// Current <see cref="IMulticastLogEntry"/> with its associated position in the stream.
         /// The current entry must be a multi-cast one and, as usual, <see cref="MoveNext"/> must be called before getting the first entry.
         /// </summary>
@@ -269,7 +278,7 @@ namespace CK.Monitoring
         {
             try
             {
-                _current = LogEntry.Read( _binaryReader, _streamVersion );
+                _current = LogEntry.Read( _binaryReader, _streamVersion, out _badEndOfFille );
             }
             catch( Exception ex )
             {

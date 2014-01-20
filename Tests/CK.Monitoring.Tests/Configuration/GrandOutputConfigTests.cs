@@ -13,6 +13,11 @@ namespace CK.Monitoring.Tests.Configuration
     [TestFixture]
     public class GrandOutputConfigTests
     {
+        [SetUp]
+        public void Setup()
+        {
+            TestHelper.InitalizePaths();
+        }
 
         [Test]
         public void InvalidRootNode()
@@ -26,20 +31,24 @@ namespace CK.Monitoring.Tests.Configuration
         {
             GrandOutputConfiguration c = new GrandOutputConfiguration();
             Assert.That( c.Load( XDocument.Parse( @"<GrandOutputConfiguration><Add /></GrandOutputConfiguration>" ).Root, TestHelper.ConsoleMonitor ), Is.False );
-            Assert.That( c.Load( XDocument.Parse( @"<GrandOutputConfiguration><Add Type=""BinaryFile"" /></GrandOutputConfiguration>" ).Root, TestHelper.ConsoleMonitor ), Is.False );
-            Assert.That( c.Load( XDocument.Parse( @"<GrandOutputConfiguration><Add Type=""BinaryFile"" Name=""GlobalCatch"" /></GrandOutputConfiguration>" ).Root, TestHelper.ConsoleMonitor ), Is.False );
+            Assert.That( c.Load( XDocument.Parse( @"<GrandOutputConfiguration><Channel><Add Type=""BinaryFile"" /></Channel></GrandOutputConfiguration>" ).Root, TestHelper.ConsoleMonitor ), Is.False );
+            Assert.That( c.Load( XDocument.Parse( @"<GrandOutputConfiguration><Channel><Add Type=""BinaryFile"" Name=""GlobalCatch"" /></Channel></GrandOutputConfiguration>" ).Root, TestHelper.ConsoleMonitor ), Is.False );
             // This is okay: Type, Name and Path for BinaryFile.
-            Assert.That( c.Load( XDocument.Parse( @"<GrandOutputConfiguration><Add Type=""BinaryFile"" Name=""GlobalCatch"" Path=""In-Root-Log-Path"" /></GrandOutputConfiguration>" ).Root, TestHelper.ConsoleMonitor ) );
+            Assert.That( c.Load( XDocument.Parse( @"<GrandOutputConfiguration><Channel><Add Type=""BinaryFile"" Name=""GlobalCatch"" Path=""In-Root-Log-Path"" /></Channel></GrandOutputConfiguration>" ).Root, TestHelper.ConsoleMonitor ) );
         }
 
         [Test]
         public void ApplyConfigWithError()
         {
             GrandOutputConfiguration c = new GrandOutputConfiguration();
-            Assert.That( c.Load( XDocument.Parse( @"<GrandOutputConfiguration AppDomainDefaultFilter=""Release"" ><Add Type=""BinaryFile"" Name=""GlobalCatch"" Path=""Configuration/ApplyConfig"" /></GrandOutputConfiguration>" ).Root, TestHelper.ConsoleMonitor ) );
+            Assert.That( c.Load( XDocument.Parse( @"
+<GrandOutputConfiguration AppDomainDefaultFilter=""Release"" >
+    <Channel>
+        <Add Type=""BinaryFile"" Name=""GlobalCatch"" Path=""Configuration/ invalid path? (? is forbidden)"" />
+    </Channel>
+</GrandOutputConfiguration>"
+                ).Root, TestHelper.ConsoleMonitor ) );
             Assert.That( c.ChannelsConfiguration.Configurations.Count, Is.EqualTo( 1 ) );
-
-            SystemActivityMonitor.RootLogPath = null;
 
             GrandOutput g = new GrandOutput();
             Assert.That( g.SetConfiguration( c, TestHelper.ConsoleMonitor ), Is.False );
@@ -56,12 +65,13 @@ namespace CK.Monitoring.Tests.Configuration
 
             Assert.That( c.Load( XDocument.Parse( @"
 <GrandOutputConfiguration AppDomainDefaultFilter=""Release"" >
-    <Add Type=""BinaryFile"" Name=""GlobalCatch"" Path=""Configuration/ApplyConfig"" />
+    <Channel>
+        <Add Type=""BinaryFile"" Name=""GlobalCatch"" Path=""Configuration/ApplyConfig"" />
+    </Channel>
 </GrandOutputConfiguration>" ).Root, TestHelper.ConsoleMonitor ) );
 
             Assert.That( c.ChannelsConfiguration.Configurations.Count, Is.EqualTo( 1 ) );
 
-            SystemActivityMonitor.RootLogPath = TestHelper.TestFolder;
 
             ActivityMonitor m = new ActivityMonitor( false );
             using( GrandOutput g = new GrandOutput() )

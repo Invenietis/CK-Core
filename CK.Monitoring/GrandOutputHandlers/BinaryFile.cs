@@ -78,13 +78,22 @@ namespace CK.Monitoring.GrandOutputHandlers
         {
             _writer.Write( (byte)0 );
             string fName = _output.Name;
-            _writer.Dispose();
+            _writer.Close();
             if( _countRemainder == _maxCountPerFile )
             {
-                // No entries were written: Delete file.
-                File.Delete( fName );
+                // No entries were written: we try to delete file.
+                // If this fails, this is not an issue.
+                try
+                {
+                    File.Delete( fName );
+                }
+                catch( IOException )
+                {
+                    // Forget it.
+                }
             }
-            else {
+            else
+            {
                 FileUtil.MoveToUniqueTimedFile( fName, _path, ".ckmon", _openedTimeUtc );
             }
             _writer = null;
@@ -106,7 +115,7 @@ namespace CK.Monitoring.GrandOutputHandlers
                 if( !Path.IsPathRooted( path ) )
                 {
                     string logPath = SystemActivityMonitor.RootLogPath;
-                    if( String.IsNullOrWhiteSpace( logPath ) ) m.Error().Send( "The relative path '{0}' requires that {1} be specified (typically in the appsettings).", _configPath, SystemActivityMonitor.AppSettingsKey );
+                    if( String.IsNullOrWhiteSpace( logPath ) ) m.Error().Send( "The relative path '{0}' requires that {1} be specified (typically in the AppSettings).", _configPath, SystemActivityMonitor.AppSettingsKey );
                     else path = Path.Combine( logPath, _configPath );
                 }
             }

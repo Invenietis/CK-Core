@@ -115,29 +115,20 @@ namespace CK.Monitoring
             DateTimeStamp _firstEntryTime;
             DateTimeStamp _lastEntryTime;
             int _totalEntryCount;
-            int _unfilteredEntryCount;
-            int _fatalCount;
-            int _errorCount;
-            int _warnCount;
-            int _infoCount;
-            int _traceCount;
             IReadOnlyList<RawLogFileMonitorOccurence> _monitors;
             Exception _error;
+            bool _badEndOfFile;
 
             public string FileName { get { return _fileName; } }
             public DateTimeStamp FirstEntryTime { get { return _firstEntryTime; } }
             public DateTimeStamp LastEntryTime { get { return _lastEntryTime; } }
             public int FileVersion { get { return _fileVersion; } }
             public int TotalEntryCount { get { return _totalEntryCount; } }
-            public int UnfilteredEntryCount { get { return _unfilteredEntryCount; } }
-            public int FatalCount { get { return _fatalCount; } }
-            public int ErrorCount { get { return _errorCount; } }
-            public int WarnCount { get { return _warnCount; } }
-            public int InfoCount { get { return _infoCount; } }
-            public int TraceCount { get { return _traceCount; } }
-            public IReadOnlyList<RawLogFileMonitorOccurence> Monitors { get { return _monitors; } }
-
+            public bool BadEndOfFile { get { return _badEndOfFile; } }
+            public bool IsValdFile { get { return !_badEndOfFile && _error == null; } }
             public Exception Error { get { return _error; } }
+            
+            public IReadOnlyList<RawLogFileMonitorOccurence> Monitors { get { return _monitors; } }
 
             internal object InitializerLock;
 
@@ -165,12 +156,16 @@ namespace CK.Monitoring
                                 var log = r.Current as IMulticastLogEntry;
                                 if( log != null )
                                 {
-                                    UpdateLogFileStatistics( log );
+                                    ++_totalEntryCount;
+                                    if( _firstEntryTime > log.LogTime ) _firstEntryTime = log.LogTime;
+                                    if( _lastEntryTime < log.LogTime ) _lastEntryTime = log.LogTime;
                                     UpdateMonitor( reader, r.StreamOffset, monitorOccurences, monitorOccurenceList, log );
                                 }
                             }
                             while( r.MoveNext() );
                         }
+                        _badEndOfFile = r.BadEndOfFileMarker;
+                        _error = r.ReadException;
                     }
                     _monitors = monitorOccurenceList.ToReadOnlyList();
                 }
@@ -197,21 +192,6 @@ namespace CK.Monitoring
                 reader.RegisterOneLog( occ, newOccurence, streamOffset, log );
             }
 
-            void UpdateLogFileStatistics( IMulticastLogEntry log )
-            {
-                ++_totalEntryCount;
-                if( _firstEntryTime > log.LogTime ) _firstEntryTime = log.LogTime;
-                if( _lastEntryTime < log.LogTime ) _lastEntryTime = log.LogTime;
-                if( (log.LogLevel & LogLevel.IsFiltered) != 0 ) ++_unfilteredEntryCount;
-                switch( log.LogLevel & LogLevel.Mask )
-                {
-                    case LogLevel.Trace: ++_traceCount; break;
-                    case LogLevel.Info: ++_infoCount; break;
-                    case LogLevel.Warn: ++_warnCount; break;
-                    case LogLevel.Error: ++_errorCount; break;
-                    case LogLevel.Fatal: ++_fatalCount; break;
-                }
-            }
         }
 
         /// <summary>
@@ -235,8 +215,8 @@ namespace CK.Monitoring
         public List<RawLogFile> Add( IEnumerable<string> files )
         {
             List<RawLogFile> result = new List<RawLogFile>();
-            Parallel.ForEach( files, s => 
-            { 
+            Parallel.ForEach( files, s =>
+            {
                 bool newOne;
                 var f = Add( s, out newOne );
                 lock( result )

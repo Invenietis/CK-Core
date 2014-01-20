@@ -63,6 +63,7 @@
     <Compile Include="Performance\FakeHandler.cs" />
     <Compile Include="Performance\FakeHandlerConfiguration.cs" />
     <Compile Include="Performance\StressTests.cs" />
+    <Compile Include="Persistence\MultiFileReaderTests.cs" />
     <Compile Include="Persistence\ReadWriteTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Configuration\RouteConfigurationTests.cs" />

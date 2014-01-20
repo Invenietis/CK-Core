@@ -155,10 +155,12 @@ namespace CK.Monitoring
         /// </summary>
         /// <param name="r">The binary reader.</param>
         /// <param name="streamVersion">The version of the stream.</param>
+        /// <param name="badEndOfFile">True whenever the end of file is the result of an <see cref="EndOfStreamException"/>.</param>
         /// <returns>The log entry or null if a zero byte (end marker) has been found.</returns>
-        static public ILogEntry Read( BinaryReader r, int streamVersion )
+        static public ILogEntry Read( BinaryReader r, int streamVersion, out bool badEndOfFile )
         {
             if( r == null ) throw new ArgumentNullException( "r" );
+            badEndOfFile = false;
             StreamLogType t = StreamLogType.EndOfStream;
             LogLevel logLevel = LogLevel.None;
             try
@@ -167,6 +169,7 @@ namespace CK.Monitoring
             }
             catch( System.IO.EndOfStreamException )
             {
+                badEndOfFile = true;
                 // Silently ignores here reading beyond the stream: this
                 // kindly handles the lack of terminating 0 byte.
             }
@@ -268,21 +271,29 @@ namespace CK.Monitoring
         {
             Debug.Assert( (int)StreamLogType.MaxFlag < (1 << 16) );
             Debug.Assert( (int)LogLevel.NumberOfBits < 8 );
-            w.Write( (UInt16)t );
             w.Write( (Byte)level );
+            w.Write( (UInt16)t );
         }
 
         static void ReadLogTypeAndLevel( BinaryReader r, out StreamLogType t, out LogLevel l )
         {
             Debug.Assert( (int)StreamLogType.MaxFlag < (1 << 16) );
             Debug.Assert( (int)LogLevel.NumberOfBits < 8 );
-            UInt16 type = r.ReadUInt16();
-            if( type >= ((int)StreamLogType.MaxFlag*2 -1) ) throw new InvalidDataException();
-            t = (StreamLogType)type;
+
+            t = StreamLogType.EndOfStream;
+            l = LogLevel.Trace;
 
             Byte level = r.ReadByte();
-            if( level >= (1 << (int)LogLevel.NumberOfBits) ) throw new InvalidDataException();
-            l = (LogLevel)level;
+            // Found the 0 end marker?
+            if( level != 0 )
+            {
+                if( level >= (1 << (int)LogLevel.NumberOfBits) ) throw new InvalidDataException();
+                l = (LogLevel)level;
+
+                UInt16 type = r.ReadUInt16();
+                if( type >= ((int)StreamLogType.MaxFlag * 2 - 1) ) throw new InvalidDataException();
+                t = (StreamLogType)type;
+            }
         }
 
         static readonly string _missingLineText = "<Missing log data>";

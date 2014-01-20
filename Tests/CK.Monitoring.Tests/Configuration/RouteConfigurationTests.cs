@@ -15,6 +15,12 @@ namespace CK.Monitoring.Tests.Configuration
     [Category("ConsoleMonitor")]
     public class RouteConfigurationTests
     {
+        [SetUp]
+        public void Setup()
+        {
+            TestHelper.InitalizePaths();
+        }
+
         class TestActionConfiguration : ActionConfiguration
         {
             public TestActionConfiguration( string name )

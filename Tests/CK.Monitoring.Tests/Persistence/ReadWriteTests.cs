@@ -12,6 +12,12 @@ namespace CK.Monitoring.Tests.Persistence
     [TestFixture]
     public class ReadWriteTests
     {
+        [SetUp]
+        public void Setup()
+        {
+            TestHelper.InitalizePaths();
+        }
+
         [Test]
         public void LogEntryReadWrite()
         {
@@ -55,6 +61,7 @@ namespace CK.Monitoring.Tests.Persistence
                     Assert.That( reader.Current.Exception.ToString(), Is.EqualTo( e2.Exception.ToString() ) );
                     
                     Assert.That( reader.MoveNext(), Is.False );
+                    Assert.That( reader.BadEndOfFileMarker, Is.False );
                 }
             }
 

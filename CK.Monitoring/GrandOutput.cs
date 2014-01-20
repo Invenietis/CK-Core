@@ -143,6 +143,24 @@ namespace CK.Monitoring
         }
 
         /// <summary>
+        /// Attempts to set a new configuration from a file.
+        /// </summary>
+        /// <param name="configFilePath">The path of the configuration that must be set.</param>
+        /// <param name="monitor">Optional monitor.</param>
+        /// <param name="millisecondsBeforeForceClose">Optional timeout to wait before forcing the close of the currently active configuration.</param>
+        /// <returns>True on success.</returns>
+        public bool SetConfiguration( string configFilePath, IActivityMonitor monitor = null, int millisecondsBeforeForceClose = Timeout.Infinite )
+        {
+            if( monitor == null ) monitor = new SystemActivityMonitor();
+            using( monitor.OpenTrace().Send( "Loading configuration from file: '{0}'.", configFilePath ) )
+            {
+                GrandOutputConfiguration c = new GrandOutputConfiguration();
+                if( !c.LoadFromFile( configFilePath, monitor ) ) return false;
+                return SetConfiguration( c, monitor, millisecondsBeforeForceClose );
+            }
+        }
+
+        /// <summary>
         /// Attempts to set a new configuration.
         /// </summary>
         /// <param name="config">The configuration that must be set.</param>
@@ -153,7 +171,7 @@ namespace CK.Monitoring
         {
             if( config == null ) throw new ArgumentNullException( "config" );
             if( monitor == null ) monitor = new SystemActivityMonitor();
-            using( monitor.OpenInfo().Send( this == Default ? "Default GrandOutput configuration." : "GrandOutput configuration." ) )
+            using( monitor.OpenInfo().Send( this == Default ? "Applying Default GrandOutput configuration." : "Applying GrandOutput configuration." ) )
             {
                 if( _channelHost.SetConfiguration( monitor, config.ChannelsConfiguration, millisecondsBeforeForceClose ) )
                 {

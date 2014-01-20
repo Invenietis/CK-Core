@@ -103,15 +103,20 @@ namespace CK.Monitoring.Tests
 
         public static void CleanupTestFolder()
         {
+            CleanupFolder( TestFolder );
+        }
+
+        public static void CleanupFolder( string folder )
+        {
             int tryCount = 0;
             for( ; ; )
             {
                 try
                 {
-                    if( Directory.Exists( TestFolder ) ) Directory.Delete( TestFolder, true );
-                    Directory.CreateDirectory( TestFolder );
-                    File.WriteAllText( Path.Combine( TestFolder, "TestWrite.txt" ), "Test write works." );
-                    File.Delete( Path.Combine( TestFolder, "TestWrite.txt" ) );
+                    if( Directory.Exists( folder ) ) Directory.Delete( folder, true );
+                    Directory.CreateDirectory( folder );
+                    File.WriteAllText( Path.Combine( folder, "TestWrite.txt" ), "Test write works." );
+                    File.Delete( Path.Combine( folder, "TestWrite.txt" ) );
                     return;
                 }
                 catch( Exception ex )
@@ -123,8 +128,9 @@ namespace CK.Monitoring.Tests
             }
         }
 
-        private static void InitalizePaths()
+        public static void InitalizePaths()
         {
+            if( _testFolder != null ) return;
             string p = new Uri( System.Reflection.Assembly.GetExecutingAssembly().CodeBase ).LocalPath;
             // => CK.XXX.Tests/bin/Debug/
             p = Path.GetDirectoryName( p );
@@ -141,7 +147,9 @@ namespace CK.Monitoring.Tests
             while( !File.Exists( Path.Combine( p, "CK-Core.sln" ) ) );
             _solutionFolder = p;
 
-            ConsoleMonitor.Info().Send( "SolutionFolder is: {1}\r\nTestFolder is: {0}", _testFolder, _solutionFolder );
+            SystemActivityMonitor.RootLogPath = Path.Combine( TestHelper.TestFolder, "RootLogPath" );
+            ConsoleMonitor.Info().Send( "SolutionFolder is: {1}\r\nTestFolder is: {0}\r\nRootLogPath is: {2}", _testFolder, _solutionFolder, SystemActivityMonitor.RootLogPath );
+
             CleanupTestFolder();
         }
 
