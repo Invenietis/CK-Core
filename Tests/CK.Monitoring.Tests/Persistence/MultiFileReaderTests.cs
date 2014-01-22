@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -23,15 +24,18 @@ namespace CK.Monitoring.Tests.Persistence
         [Explicit( "This test is far too expensive because of GrandOutput disposing. This is to investigate." )]
         public void ReadDuplicates()
         {
+            Stopwatch sw = new Stopwatch();
             for( int nbEntries1 = 1; nbEntries1 < 8; ++nbEntries1 )
                 for( int nbEntries2 = 1; nbEntries2 < 8; ++nbEntries2 )
-                    for( int pageReadLength = 1; pageReadLength < 8; ++pageReadLength )
-                    {
-                        DuplicateTestWith6Entries( nbEntries1, nbEntries2, pageReadLength );
-                    }
+                {
+                    TestHelper.ConsoleMonitor.Trace().Send( "Start {0}/{1}.", nbEntries1, nbEntries2 );
+                    sw.Restart();
+                    DuplicateTestWith6Entries( nbEntries1, nbEntries2 );
+                    TestHelper.ConsoleMonitor.Trace().Send( "Done in {0}.", sw.Elapsed );
+                }
         }
 
-        private static void DuplicateTestWith6Entries( int nbEntries1, int nbEntries2, int pageReadLength )
+        private static void DuplicateTestWith6Entries( int nbEntries1, int nbEntries2 )
         {
             var folder = String.Format( "{0}\\ReadDuplicates", TestHelper.TestFolder );
             TestHelper.CleanupFolder( folder );
@@ -62,22 +66,25 @@ namespace CK.Monitoring.Tests.Persistence
                 m.Trace().Send( "Trace 2" );
             }
 
-            MultiLogReader reader = new MultiLogReader();
-            reader.Add( Directory.EnumerateFiles( folder ) );
-            var map = reader.GetActivityMap();
-            Assert.That( map.ValidFiles.All( rawFile => rawFile.IsValdFile ), Is.True, "All files are correctly closed with the final 0 byte and no exception occurred while reading them." );
-
-            var readMonitor = map.Monitors.Single();
-
-            List<ParentedLogEntry> allEntries = new List<ParentedLogEntry>();
-            var pageReader = readMonitor.ReadFirstPage( pageReadLength );
-            do
+            for( int pageReadLength = 1; pageReadLength < 10; ++pageReadLength )
             {
-                allEntries.AddRange( pageReader.Entries );
-            }
-            while( pageReader.ForwardPage() > 0 );
+                MultiLogReader reader = new MultiLogReader();
+                reader.Add( Directory.EnumerateFiles( folder ) );
+                var map = reader.GetActivityMap();
+                Assert.That( map.ValidFiles.All( rawFile => rawFile.IsValdFile ), Is.True, "All files are correctly closed with the final 0 byte and no exception occurred while reading them." );
 
-            CollectionAssert.AreEqual( allEntries.Select( e => e.Entry.Text ), new[] { "Trace 1", "OpenTrace 1", "Trace 1.1", "Trace 1.2", null, "Trace 2" }, StringComparer.Ordinal );
+                var readMonitor = map.Monitors.Single();
+
+                List<ParentedLogEntry> allEntries = new List<ParentedLogEntry>();
+                var pageReader = readMonitor.ReadFirstPage( pageReadLength );
+                do
+                {
+                    allEntries.AddRange( pageReader.Entries );
+                }
+                while( pageReader.ForwardPage() > 0 );
+
+                CollectionAssert.AreEqual( allEntries.Select( e => e.Entry.Text ), new[] { "Trace 1", "OpenTrace 1", "Trace 1.1", "Trace 1.2", null, "Trace 2" }, StringComparer.Ordinal );
+            }
         }
 
     }

@@ -331,6 +331,15 @@ namespace CK.Core {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to {2} = &apos;{0}&apos; is invalid: unable to create a test file in &apos;{1}&apos;..
+        /// </summary>
+        internal static string InvalidRootLogPath {
+            get {
+                return ResourceManager.GetString("InvalidRootLogPath", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to refObject Must be a MarshalByRefObject..
         /// </summary>
         internal static string MustBeAMarshalByRefObject {
@@ -345,6 +354,15 @@ namespace CK.Core {
         internal static string PossibleWrongOverloadUseWithException {
             get {
                 return ResourceManager.GetString("PossibleWrongOverloadUseWithException", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to {0} must be set to a valid, writeable, folder. You can set it programmatically at the start of your program or use the &lt;appSettings&gt; section of the application config file: &lt;configuration&gt;\r\n &lt;appSettings&gt;\r\n  &lt;add key=&quot;{0}&quot; value=&quot;(path)&quot; /&gt;\r\n &lt;/appSettings&gt;\r\n&lt;/configuration&gt;.
+        /// </summary>
+        internal static string RootLogPathMustBeSet {
+            get {
+                return ResourceManager.GetString("RootLogPathMustBeSet", resourceCulture);
             }
         }
         

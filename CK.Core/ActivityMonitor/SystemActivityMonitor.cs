@@ -15,12 +15,14 @@ namespace CK.Core
     /// This <see cref="ActivityMonitor"/> logs errors in a directory (if the static <see cref="RootLogPath"/> property is not null) and 
     /// raises <see cref="OnError"/> events.
     /// Its main goal is to be internally used by the Monitor framework but can be used as a "normal" monitor (if you believe it is a good idea).
-    /// The easiest way to configure it is to set an application settings with the key "CK.Core.SystemActivityMonitor.RootLogPath".
+    /// The easiest way to configure it is to set an application settings with the key "CK.Core.SystemActivityMonitor.RootLogPath" and the root path 
+    /// for logs as the value.
     /// </summary>
     public sealed class SystemActivityMonitor : ActivityMonitor
     {
         /// <summary>
         /// A client that can not be removed and is available as a singleton registered in every new SystemActivityMonitor.
+        /// Its MinimalFilter is set to Release ensuring that errors are always monitored but it stores in RootLogPath/SystemActivityMonitor only errors logs.
         /// </summary>
         class SysClient : IActivityMonitorBoundClient
         {
@@ -179,6 +181,7 @@ namespace CK.Core
 
         /// <summary>
         /// Gets the <see cref="RootLogPath"/> that is configured in application settings (null otherwise).
+        /// Getting this property ensures that this type's static information is initialized.
         /// </summary>
         static public string AppSettingsRootLogPath
         {
@@ -186,7 +189,9 @@ namespace CK.Core
         }
 
         /// <summary>
-        /// Gets or sets (only once if different) the log folder to use. See remarks.
+        /// Gets or sets (it can be set only once) the log folder to use (setting multiple time the same path is accepted). 
+        /// Once set, the path is <see cref="FileUtil.NormalizePathSeparator">normalized and ends with a path separator</see>.
+        /// See remarks.
         /// </summary>
         /// <remarks>
         /// <para>
@@ -236,7 +241,7 @@ namespace CK.Core
                 }
                 catch( Exception ex )
                 {
-                    throw new CKException( ex, "{2} = '{0}' is invalid: unable to create a test file in '{1}'.", value, SubDirectoryName, AppSettingsKey );
+                    throw new CKException( ex, R.InvalidRootLogPath, value, SubDirectoryName, AppSettingsKey );
                 }
             }
         }
@@ -249,11 +254,31 @@ namespace CK.Core
         }
 
         /// <summary>
+        /// Checks that <see cref="RootLogPath"/> is correctly configured by throwing a detailed exception if not. 
+        /// </summary>
+        public static void AssertRootLogPathIsSet()
+        {
+            if( RootLogPath == null ) throw new CKException( R.RootLogPathMustBeSet, AppSettingsKey );
+        }
+
+        /// <summary>
         /// Initializes a new <see cref="SystemActivityMonitor"/>.
         /// </summary>
         public SystemActivityMonitor()
-            : base( false )
+            : this( false, null )
         {
+        }
+
+        /// <summary>
+        /// Initializes a new <see cref="SystemActivityMonitor"/> that can behave as a standard monitor (when
+        /// automatic configurations applies).
+        /// </summary>
+        /// <param name="applyAutoConfigurations">True to apply automatic configurations and, hence, behave like any other <see cref="ActivityMonitor"/>.</param>
+        /// <param name="topic">Optional initial topic (can be null).</param>
+        public SystemActivityMonitor( bool applyAutoConfigurations, string topic )
+            : base( applyAutoConfigurations )
+        {
+            if( topic != null ) SetTopic( topic );
             Output.RegisterClient( _client );
         }
 

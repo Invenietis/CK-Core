@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Threading;
 using CK.Core;
 using CK.Monitoring.GrandOutputHandlers;
@@ -26,11 +27,12 @@ namespace CK.Monitoring
         DateTime _nextDeadClientGarbage;
 
         static GrandOutput _default;
+        static FileSystemWatcher _watcher;
         static readonly object _defaultLock = new object();
 
         /// <summary>
         /// Gets the default <see cref="GrandOutput"/> for the current Application Domain.
-        /// Note that <see cref="EnsureActiveDefault"/> must have been called, otherwise this static property is null.
+        /// Note that <see cref="EnsureActiveDefault()"/> must have been called, otherwise this static property is null.
         /// </summary>
         public static GrandOutput Default 
         { 
@@ -40,6 +42,7 @@ namespace CK.Monitoring
         /// <summary>
         /// Ensures that the <see cref="Default"/> GrandOutput is created and that any <see cref="ActivityMonitor"/> that will be created in this
         /// application domain will automatically have a <see cref="GrandOutputClient"/> registered for this Default GrandOutput.
+        /// Use <see cref="EnsureActiveDefaultWhithDefaultSettings"/> to initially configure this default.
         /// </summary>
         /// <returns>The Default GrandOutput.</returns>
         /// <remarks>
@@ -50,11 +53,103 @@ namespace CK.Monitoring
         {
             lock( _defaultLock )
             {
-                SystemActivityMonitor.EnsureStaticInitialization();
-                _default = new GrandOutput( null );
-                ActivityMonitor.AutoConfiguration += m => Default.Register( m );
+                if( _default != null )
+                {
+                    SystemActivityMonitor.EnsureStaticInitialization();
+                    _default = new GrandOutput();
+                    ActivityMonitor.AutoConfiguration += m => Default.Register( m );
+                }
             }
             return _default;
+        }
+
+        /// <summary>
+        /// Ensures that the <see cref="Default"/> GrandOutput is created (see <see cref="EnsureActiveDefault"/>) and configured with default settings.
+        /// The <see cref="SystemActivityMonitor.RootLogPath"/> must be valid and if a GrandOutput.config file exists inside, it is loaded as the configuration
+        /// that must be valid (otherwise an exception is thrown).
+        /// Once loaded, the file is monitored and any change that occurs to it dynamically triggers a <see cref="SetConfiguration"/> with the new file.
+        /// </summary>
+        /// <param name="monitor">An optional monitor.</param>
+        static public GrandOutput EnsureActiveDefaultWhithDefaultSettings( IActivityMonitor monitor = null )
+        {
+            lock( _defaultLock )
+            {
+                if( _default == null )
+                {
+                    if( monitor == null ) monitor = new SystemActivityMonitor( true, "GrandOutput" );
+                    using( monitor.OpenInfo().Send( "Attempting Default GrandOutput configuration." ) )
+                    {
+                        try
+                        {
+                            GrandOutputConfiguration def = CreateAndMonitorDefaultConfig( monitor );
+                            GrandOutput output = new GrandOutput();
+                            ActivityMonitor.AutoConfiguration += m => Default.Register( m );
+                            if( !output.SetConfiguration( def, monitor ) )
+                            {
+                                throw new CKException( "Failed to set Configuration." );
+                            }
+                            _default = output;
+                        }
+                        catch( Exception ex )
+                        {
+                            monitor.Fatal().Send( ex );
+                            throw;
+                        }
+                    }
+                }
+            }
+            return _default;
+        }
+
+        static GrandOutputConfiguration CreateAndMonitorDefaultConfig( IActivityMonitor monitor )
+        {
+            SystemActivityMonitor.AssertRootLogPathIsSet();
+
+            GrandOutputConfiguration def = new GrandOutputConfiguration();
+
+            string conventionalConfigPath = SystemActivityMonitor.RootLogPath + "GrandOutput.config";
+            if( File.Exists( conventionalConfigPath ) )
+            {
+                if( !def.LoadFromFile( conventionalConfigPath, monitor ) ) throw new CKException( "Unable to load Configuration file: '{0}'.", conventionalConfigPath );
+                StartMonitoring( conventionalConfigPath, monitor );
+            }
+            else
+            {
+                Debug.Assert( def.SourceFilterApplicationMode == SourceFilterApplyMode.None );
+                Debug.Assert( def.AppDomainDefaultFilter == null );
+                def.ChannelsConfiguration.ConfigData = new GrandOutputChannelConfigData();
+                def.ChannelsConfiguration.AddAction( new BinaryFileConfiguration( "All" ) { Path = SystemActivityMonitor.RootLogPath + "GrandOutputDefault" } );
+            }
+            return def;
+        }
+
+        static void StartMonitoring( string configPath, IActivityMonitor monitor )
+        {
+            if( _watcher != null ) _watcher.Dispose();
+            _watcher = new FileSystemWatcher();
+            _watcher.Path = configPath;
+            _watcher.NotifyFilter = NotifyFilters.LastWrite;
+            _watcher.Changed += _watcher_Changed;
+            _watcher.Error += _watcher_Error;
+            _watcher.EnableRaisingEvents = true;
+        }
+
+        static void _watcher_Error( object sender, ErrorEventArgs e )
+        {
+            ActivityMonitor.MonitoringError.Add( e.GetException(), String.Format( "While monitoring GrandOutput.Default configuration file '{0}'.", _watcher.Path ) );
+        }
+
+        static void _watcher_Changed( object sender, FileSystemEventArgs e )
+        {
+            if( (e.ChangeType | (WatcherChangeTypes.Created | WatcherChangeTypes.Changed)) != 0 )
+            {
+                // Uses here a normal SystemActivityMonitor so that this operation appears in the 
+                // activity logs (but unexpected errors are still considered as critical errors and are logged as such).
+                _default.SetConfiguration( e.FullPath, new SystemActivityMonitor( true, "GrandOutput" ) );
+
+            }
+            // WatcherChangeTypes.Deleted | WatcherChangeTypes.Renamed: 
+            // ==> Configuration file is removed or renamed: we ignore this and keep the current configuration.
         }
 
         /// <summary>
@@ -151,7 +246,7 @@ namespace CK.Monitoring
         /// <returns>True on success.</returns>
         public bool SetConfiguration( string configFilePath, IActivityMonitor monitor = null, int millisecondsBeforeForceClose = Timeout.Infinite )
         {
-            if( monitor == null ) monitor = new SystemActivityMonitor();
+            if( monitor == null ) monitor = new SystemActivityMonitor( true, "GrandOutput" );
             using( monitor.OpenTrace().Send( "Loading configuration from file: '{0}'.", configFilePath ) )
             {
                 GrandOutputConfiguration c = new GrandOutputConfiguration();
@@ -170,7 +265,7 @@ namespace CK.Monitoring
         public bool SetConfiguration( GrandOutputConfiguration config, IActivityMonitor monitor = null, int millisecondsBeforeForceClose = Timeout.Infinite )
         {
             if( config == null ) throw new ArgumentNullException( "config" );
-            if( monitor == null ) monitor = new SystemActivityMonitor();
+            if( monitor == null ) monitor = new SystemActivityMonitor( true, "GrandOutput" );
             using( monitor.OpenInfo().Send( this == Default ? "Applying Default GrandOutput configuration." : "Applying GrandOutput configuration." ) )
             {
                 if( _channelHost.SetConfiguration( monitor, config.ChannelsConfiguration, millisecondsBeforeForceClose ) )

@@ -48,7 +48,6 @@ namespace CK.Core
             return new DateTimeStamp( @this.LastLogTime, DateTime.UtcNow );
         }
 
-
         /// <summary>
         /// Challenges FileName/LineNumber filters, <see cref="IActivityMonitor.ActualFilter">this monitors' filter</see> and application 
         /// domain's <see cref="ActivityMonitor.DefaultFilter"/> filters to test whether a log line should actually be emitted.

@@ -12,7 +12,7 @@ namespace CK.Core
     public interface IActivityMonitorGroupSender
     {
         /// <summary>
-        /// Gets wether the log has been rejected.
+        /// Gets whether the log has been rejected.
         /// </summary>
         bool IsRejected { get; }
     }

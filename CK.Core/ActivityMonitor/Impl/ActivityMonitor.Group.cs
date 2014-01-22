@@ -53,6 +53,7 @@ namespace CK.Core
 
             ActivityMonitorGroupData _data;
             DateTimeStamp _closeLogTime;
+            string _previousTopic;
             Group _unfilteredParent;
             int _depth;
 
@@ -185,6 +186,14 @@ namespace CK.Core
             }
 
             /// <summary>
+            /// Gets the previous topic it it must be restored. Null otherwise.
+            /// </summary>
+            public string PreviousTopic
+            {
+                get { return _previousTopic; }
+            }
+
+            /// <summary>
             /// Gets the file name of the source code that issued the log.
             /// </summary>
             public string FileName { get { return _data.FileName; } }
@@ -193,10 +202,17 @@ namespace CK.Core
             /// Gets the line number of the <see cref="FileName"/> that issued the log.
             /// </summary>
             public int LineNumber { get { return _data.LineNumber; } }
-      
+
             IDisposable IDisposableGroup.ConcludeWith( Func<string> getConclusionText )
             {
                 _data.GetConclusionText = getConclusionText;
+                return this;
+            }
+
+            IDisposableGroup IDisposableGroup.SetTopic( string topicOtherThanGroupText )
+            {
+                _previousTopic = Monitor.Topic;
+                Monitor.SetTopic( topicOtherThanGroupText ?? _data.Text, _data.FileName, _data.LineNumber );
                 return this;
             }
 
@@ -225,6 +241,7 @@ namespace CK.Core
             internal void GroupClosed()
             {
                 _data = null;
+                _previousTopic = null;
             }
 
         }

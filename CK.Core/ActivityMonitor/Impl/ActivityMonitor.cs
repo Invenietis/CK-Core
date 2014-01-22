@@ -688,6 +688,7 @@ namespace CK.Core
                 }
                 else
                 {
+                    #region Closing the group
                     g.CloseLogTime = _lastLogTime = new DateTimeStamp( _lastLogTime, logTime.IsKnown ? logTime : DateTimeStamp.UtcNow );
                     var conclusions = userConclusion as List<ActivityLogGroupConclusion>;
                     if( conclusions == null && userConclusion != null )
@@ -761,6 +762,9 @@ namespace CK.Core
                         _clientFilter = DoGetBoundClientMinimalFilter();
                         UpdateActualFilter();
                     }
+                    #endregion
+                    string prevTopic = g.PreviousTopic;
+                    if( prevTopic != null ) DoSetTopic( prevTopic, g.FileName, g.LineNumber );
                     g.GroupClosed();
                 }
             }

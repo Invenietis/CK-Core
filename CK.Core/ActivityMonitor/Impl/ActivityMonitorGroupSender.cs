@@ -12,7 +12,7 @@ namespace CK.Core
         internal readonly IActivityMonitor Monitor;
 
         /// <summary>
-        /// Gets wether the log has been rejected.
+        /// Gets whether the log has been rejected.
         /// </summary>
         public bool IsRejected { get { return Level == LogLevel.None; } }
 
