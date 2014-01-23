@@ -20,17 +20,18 @@ namespace CK.Monitoring
         readonly string _configurationName;
         LogFilter _minimalFilter;
 
-        internal StandardChannel( IGrandOutputSink common, EventDispatcher dispatcher, IRouteConfigurationLock configLock, HandlerBase[] handlers, string configurationName )
+        internal StandardChannel( IGrandOutputSink common, EventDispatcher dispatcher, IRouteConfigurationLock configLock, HandlerBase[] handlers, string configurationName, GrandOutputChannelConfigData configData )
         {
             _dispatcher = dispatcher;
             _receiver = new EventDispatcher.FinalReceiver( common, handlers, configLock );
             _receiverNoCommonSink = new EventDispatcher.FinalReceiver( null, handlers, configLock );
             _configurationName = configurationName;
+            if( configData != null ) _minimalFilter = configData.MinimalFilter;
         }
 
         public void Initialize()
         {
-            ChannelOption option = new ChannelOption();
+            ChannelOption option = new ChannelOption( _minimalFilter );
             foreach( var s in _receiver.Handlers ) s.CollectChannelOption( option );
             _minimalFilter = option.CurrentMinimalFilter;
         }

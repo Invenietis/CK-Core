@@ -24,7 +24,7 @@ namespace CK.RouteConfig
         readonly Action<IActivityMonitor,TAction> _closer;
         readonly Action<ConfigurationReady> _readyCallback;
         readonly object _initializeLock = new Object();
-        readonly object _waitLock = new Object();
+        readonly object _configuredLock = new Object();
 
         internal class RouteHost
         {
@@ -144,7 +144,8 @@ namespace CK.RouteConfig
         }
 
         /// <summary>
-        /// Gets the total number of calls to <see cref="SetConfiguration"/>.
+        /// Gets the total number of calls to <see cref="SetConfiguration"/> (and to <see cref="Dispose"/> method).
+        /// This can be used to call <see cref="WaitForNextConfiguration"/>.
         /// </summary>
         public int ConfigurationAttemptCount
         {
@@ -295,10 +296,11 @@ namespace CK.RouteConfig
             if( configuration == null ) throw new ArgumentNullException( "configuration" );
             lock( _initializeLock )
             {
+                Interlocked.Increment( ref _configurationAttemptCount );
+                Monitor.PulseAll( _initializeLock );
                 if( _disposed ) throw new ObjectDisposedException( "ConfiguredRouteHost" );
                 using( monitor.OpenInfo().Send( "New route configuration initialization." ) )
                 {
-                    Interlocked.Increment( ref _configurationAttemptCount );
                     RouteConfigurationResult result = configuration.Resolve( monitor );
                     if( result == null ) return false;
                     RouteConfigurationLockShell shellLock = new RouteConfigurationLockShell( _configLock ); 
@@ -348,7 +350,7 @@ namespace CK.RouteConfig
                 _root = _futureRoot;
                 _futureAllActions = null;
                 _futureRoot = null;
-                lock( _waitLock ) Monitor.PulseAll( _waitLock );
+                lock( _configuredLock ) Monitor.PulseAll( _configuredLock );
             }
         }
 
@@ -419,7 +421,7 @@ namespace CK.RouteConfig
             if( failed == null )
             {
                 Interlocked.Increment( ref _succesfulConfigurationCount );
-                _configLock.Reset( 1 );
+                if( _futureRoot != _emptyHost ) _configLock.Reset( 1 );
                 return true;
             }
             if( _closer != null && _futureAllActions.Length > failed.Count )
@@ -455,12 +457,31 @@ namespace CK.RouteConfig
         /// <returns>False if specified timeout expired.</returns>
         public bool WaitForAppliedPendingConfiguration( int millisecondsTimeout = Timeout.Infinite )
         {
-            lock( _waitLock )
+            lock( _configuredLock )
             {
                 while( _futureAllActions != null )
-                    if( !Monitor.Wait( _waitLock, millisecondsTimeout ) ) return false;
+                    if( !Monitor.Wait( _configuredLock, millisecondsTimeout ) ) return false;
             }
             return true;
+        }
+
+        /// <summary>
+        /// Blocks the caller until the current <see cref="ConfigurationAttemptCount"/> is greater or equal to the given number and the last 
+        /// configuration has been applied (or this object is disposed).
+        /// </summary>
+        /// <param name="configurationAttemptCount">The number of configuration attempt count to wait for.</param>
+        /// <param name="millisecondsTimeout">Maximum number of milliseconds to wait. Use <see cref="Timeout.Infinite"/> or -1 for no limit.</param>
+        /// <returns>False if specified timeout expired.</returns>
+        public bool WaitForNextConfiguration( int configurationAttemptCount, int millisecondsTimeout )
+        {
+            lock( _initializeLock )
+            {
+                if( _disposed ) return true;
+                while( configurationAttemptCount > _configurationAttemptCount )
+                    if( !Monitor.Wait( _initializeLock, millisecondsTimeout ) ) return false;
+            }
+            // We can miss here a reconfiguration but we do not care.
+            return WaitForAppliedPendingConfiguration( millisecondsTimeout );
         }
 
         /// <summary>
@@ -475,6 +496,8 @@ namespace CK.RouteConfig
             if( monitor == null ) throw new ArgumentNullException( "monitor" );
             lock( _initializeLock )
             {
+                Interlocked.Increment( ref _configurationAttemptCount );
+                Monitor.PulseAll( _initializeLock );
                 if( _disposed ) return false;
                 _disposed = true;
                 _futureRoot = _emptyHost;
@@ -504,7 +527,7 @@ namespace CK.RouteConfig
                 // When disposed, _futureRoot is set to _emptyHost so that ObtainRoute returns null.
                 _futureRoot = _emptyHost;
                 _futureAllActions = null;
-                lock( _waitLock ) Monitor.PulseAll( _waitLock );
+                lock( _configuredLock ) Monitor.PulseAll( _configuredLock );
             }
             return true;
         }

@@ -21,7 +21,7 @@ namespace CK.Monitoring.Tests.Persistence
         }
 
         [Test]
-        [Explicit( "This test is far too expensive because of GrandOutput disposing. This is to investigate." )]
+        [Explicit( "This test is too expensive (the GrandOutput disposing). This is to investigate." )]
         public void ReadDuplicates()
         {
             Stopwatch sw = new Stopwatch();
@@ -71,19 +71,20 @@ namespace CK.Monitoring.Tests.Persistence
                 MultiLogReader reader = new MultiLogReader();
                 reader.Add( Directory.EnumerateFiles( folder ) );
                 var map = reader.GetActivityMap();
-                Assert.That( map.ValidFiles.All( rawFile => rawFile.IsValdFile ), Is.True, "All files are correctly closed with the final 0 byte and no exception occurred while reading them." );
+                Assert.That( map.ValidFiles.All( rawFile => rawFile.IsValidFile ), Is.True, "All files are correctly closed with the final 0 byte and no exception occurred while reading them." );
 
                 var readMonitor = map.Monitors.Single();
 
                 List<ParentedLogEntry> allEntries = new List<ParentedLogEntry>();
-                var pageReader = readMonitor.ReadFirstPage( pageReadLength );
-                do
+                using( var pageReader = readMonitor.ReadFirstPage( pageReadLength ) )
                 {
-                    allEntries.AddRange( pageReader.Entries );
+                    do
+                    {
+                        allEntries.AddRange( pageReader.Entries );
+                    }
+                    while( pageReader.ForwardPage() > 0 );
                 }
-                while( pageReader.ForwardPage() > 0 );
-
-                CollectionAssert.AreEqual( allEntries.Select( e => e.Entry.Text ), new[] { "Trace 1", "OpenTrace 1", "Trace 1.1", "Trace 1.2", null, "Trace 2" }, StringComparer.Ordinal );
+                CollectionAssert.AreEqual( new[] { "Trace 1", "OpenTrace 1", "Trace 1.1", "Trace 1.2", null, "Trace 2" }, allEntries.Select( e => e.Entry.Text ), StringComparer.Ordinal );
             }
         }
 

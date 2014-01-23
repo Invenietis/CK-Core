@@ -107,16 +107,17 @@ namespace CK.Monitoring
         }
 
         /// <summary>
-        /// Gets the source file filter mapping: if and only if the configured GrandOutput is the <see cref="GrandOutput.Default"/>, 
-        /// the <see cref="GrandOutput.SetConfiguration"/> method clears any existing source file filters and sets this ones.
+        /// Gets or sets the source file filter mapping: when not null and if <see cref="SourceFilterApplicationMode"/> is <see cref="SourceFilterApplyMode.Apply"/> 
+        /// or <see cref="SourceFilterApplyMode.ClearThenApply"/> the <see cref="GrandOutput.SetConfiguration"/> method clears any existing source file filters and sets this ones.
         /// </summary>
         public Dictionary<string, LogFilter> SourceFilter
         {
             get { return _sourceFilter; }
+            set { _sourceFilter = value; }
         }
 
         /// <summary>
-        /// Gets or sets the
+        /// Gets or sets how global source filter must be impacted.
         /// </summary>
         public SourceFilterApplyMode SourceFilterApplicationMode
         {
@@ -125,13 +126,18 @@ namespace CK.Monitoring
         }
 
         /// <summary>
-        /// Gets the channels configuration. 
-        /// This is not specific to GrandOutput channels: care must be taken when working directly with this object. 
-        /// Loading from xml should be used.
+        /// Gets or sets the channels configuration. 
+        /// <see cref="RouteConfiguration"/> is not a class specific to GrandOutput channels: care must be taken when working directly 
+        /// with this object (see remarks). Loading from xml should be used.
         /// </summary>
+        /// <remarks>
+        /// <see cref="RouteConfiguration.ConfigData"/> of the main route and all sub routes must be set to a <see cref="GrandOutputChannelConfigData"/> object.
+        /// All actions added to the routes must inherit from <see cref="CK.Monitoring.GrandOutputHandlers.HandlerConfiguration"/>.
+        /// </remarks>
         public RouteConfiguration ChannelsConfiguration
         {
             get { return _routeConfig; }
+            set { _routeConfig = value; }
         }
 
         static Dictionary<string, LogFilter> ReadSourceFilter( XElement e, out SourceFilterApplyMode apply, IActivityMonitor monitor )

@@ -1,11 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Xml.Linq;
 using CK.Core;
+using CK.Monitoring.GrandOutputHandlers;
+using CK.RouteConfig;
 using NUnit.Framework;
 
 namespace CK.Monitoring.Tests.Configuration
@@ -58,6 +61,7 @@ namespace CK.Monitoring.Tests.Configuration
 
         }
 
+
         [Test]
         public void ApplyConfigSimple()
         {
@@ -65,13 +69,12 @@ namespace CK.Monitoring.Tests.Configuration
 
             Assert.That( c.Load( XDocument.Parse( @"
 <GrandOutputConfiguration AppDomainDefaultFilter=""Release"" >
-    <Channel>
+    <Channel MinimalFilter=""{Trace,Info}"">
         <Add Type=""BinaryFile"" Name=""GlobalCatch"" Path=""Configuration/ApplyConfig"" />
     </Channel>
 </GrandOutputConfiguration>" ).Root, TestHelper.ConsoleMonitor ) );
 
             Assert.That( c.ChannelsConfiguration.Configurations.Count, Is.EqualTo( 1 ) );
-
 
             ActivityMonitor m = new ActivityMonitor( false );
             using( GrandOutput g = new GrandOutput() )
@@ -81,10 +84,18 @@ namespace CK.Monitoring.Tests.Configuration
                 m.Info().Send( "Before configuration - NOSHOW" );
                 Assert.That( g.SetConfiguration( c, TestHelper.ConsoleMonitor ) );
                 m.Info().Send( "After configuration. INFO1" );
-                m.Trace().Send( "TRACE1" );
+
+                Assert.That( m.ActualFilter, Is.EqualTo( new LogFilter( LogLevelFilter.Trace, LogLevelFilter.Info ) ) ); 
+                m.Trace().Send( "TRACE1-NOSHOW (MinimalFilter of the Channel)." );
+                
+                Assert.That( g.SetConfiguration( new GrandOutputConfiguration(), TestHelper.ConsoleMonitor ) );
                 g.Dispose( TestHelper.ConsoleMonitor );
+
                 m.Info().Send( "After disposing - NOSHOW." );
+
+                Assert.That( m.ActualFilter, Is.EqualTo( LogFilter.Undefined ) ); 
             }
+            
         }
 
     }

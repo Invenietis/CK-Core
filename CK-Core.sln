@@ -1,8 +1,6 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 2013
-VisualStudioVersion = 12.0.21005.1
-MinimumVisualStudioVersion = 10.0.40219.1
+# Visual Studio 2012
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CK.Core", "CK.Core\CK.Core.csproj", "{97578828-71EC-46B3-BD9A-44E58292386F}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{A87208F3-D73C-4AD4-9FF5-0314968EDD74}"
@@ -42,31 +40,36 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CK.Monitoring.Tests", "Test
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "net40", "net40", "{8823BEFF-B976-4EA9-8DF3-06FF62482555}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CK.Core", "net40\CK.Core\CK.Core.csproj", "{56511BEE-6107-4CB6-BF05-0FB9C2C88C88}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CK.Core.Net40", "net40\CK.Core\CK.Core.Net40.csproj", "{56511BEE-6107-4CB6-BF05-0FB9C2C88C88}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CK.Interop", "net40\CK.Interop\CK.Interop.csproj", "{74C7AADF-A2AC-4DB2-9056-5F394E9D7B48}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CK.Interop.Net40", "net40\CK.Interop\CK.Interop.Net40.csproj", "{74C7AADF-A2AC-4DB2-9056-5F394E9D7B48}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CK.Reflection", "net40\CK.Reflection\CK.Reflection.csproj", "{2E4BA3D2-3017-4940-8CFF-8D97EF8A4FA6}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CK.Reflection.Net40", "net40\CK.Reflection\CK.Reflection.Net40.csproj", "{2E4BA3D2-3017-4940-8CFF-8D97EF8A4FA6}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CK.Storage", "net40\CK.Storage\CK.Storage.csproj", "{556791B8-EF36-4323-81BE-018BBC811CBE}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CK.Storage.Net40", "net40\CK.Storage\CK.Storage.Net40.csproj", "{556791B8-EF36-4323-81BE-018BBC811CBE}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CK.Monitoring", "net40\CK.Monitoring\CK.Monitoring.csproj", "{2B933AC0-CFC3-4B2A-91AF-9A6F6EF7184B}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CK.Monitoring.Net40", "net40\CK.Monitoring\CK.Monitoring.Net40.csproj", "{2B933AC0-CFC3-4B2A-91AF-9A6F6EF7184B}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{A81C75FA-AC13-45A7-908A-00770E64820F}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CK.Core.Tests", "net40\Tests\CK.Core.Tests\CK.Core.Tests.csproj", "{1828F147-8286-4D78-8FE2-31F40023B345}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CK.Core.Tests.Net40", "net40\Tests\CK.Core.Tests\CK.Core.Tests.Net40.csproj", "{1828F147-8286-4D78-8FE2-31F40023B345}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CK.Monitoring.Tests", "net40\Tests\CK.Monitoring.Tests\CK.Monitoring.Tests.csproj", "{C1C7E8AA-8009-4D2C-B090-266FE32956C6}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CK.Monitoring.Tests.Net40", "net40\Tests\CK.Monitoring.Tests\CK.Monitoring.Tests.Net40.csproj", "{C1C7E8AA-8009-4D2C-B090-266FE32956C6}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CK.Storage.Tests", "net40\Tests\CK.Storage.Tests\CK.Storage.Tests.csproj", "{8360EEE7-88E3-44B2-8BD5-DAA8C65DE11E}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CK.Storage.Tests.Net40", "net40\Tests\CK.Storage.Tests\CK.Storage.Tests.Net40.csproj", "{8360EEE7-88E3-44B2-8BD5-DAA8C65DE11E}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CK.Reflection.Tests", "net40\Tests\CK.Reflection.Tests\CK.Reflection.Tests.csproj", "{CF6E9739-697B-4427-88FF-67230813F66F}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CK.Reflection.Tests.Net40", "net40\Tests\CK.Reflection.Tests\CK.Reflection.Tests.Net40.csproj", "{CF6E9739-697B-4427-88FF-67230813F66F}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CK.Storage.Tests.ExternalDll", "net40\Tests\CK.Storage.Tests\ExternalDll\CK.Storage.Tests.ExternalDll.csproj", "{AA3C527E-BE40-497C-8CC9-70C2F55B822C}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CK.Storage.Tests.ExternalDll.Net40", "net40\Tests\CK.Storage.Tests\ExternalDll\CK.Storage.Tests.ExternalDll.Net40.csproj", "{AA3C527E-BE40-497C-8CC9-70C2F55B822C}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CK.Core.PowershellExtensions", "CK.Core.PowershellExtensions\CK.Core.PowershellExtensions.csproj", "{24CBDC5E-A39B-4437-833E-27616760A2E0}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CK.Core.PowershellExtentions", "net40\CK.Core.PowershellExtentions\CK.Core.PowershellExtentions.csproj", "{1FAF21B8-4505-4BF7-BC29-78591B257035}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CK.Core.PowershellExtentions.Net40", "net40\CK.Core.PowershellExtentions\CK.Core.PowershellExtentions.Net40.csproj", "{1FAF21B8-4505-4BF7-BC29-78591B257035}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{D1A81824-098F-4E50-897F-10273965B9B5}"
+	ProjectSection(SolutionItems) = preProject
+		Performance1.psess = Performance1.psess
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

@@ -131,15 +131,7 @@ namespace CK.Monitoring.Tests
         public static void InitalizePaths()
         {
             if( _testFolder != null ) return;
-            string p = new Uri( System.Reflection.Assembly.GetExecutingAssembly().CodeBase ).LocalPath;
-            // => CK.XXX.Tests/bin/Debug/
-            p = Path.GetDirectoryName( p );
-            // => CK.XXX.Tests/bin/
-            p = Path.GetDirectoryName( p );
-            // => CK.XXX.Tests/
-            p = Path.GetDirectoryName( p );
-            // ==> CK.XXX.Tests/TestDir
-            _testFolder = Path.Combine( p, "TestDir" );
+            var p = _testFolder = GetTestFolder();
             do
             {
                 p = Path.GetDirectoryName( p );
@@ -151,6 +143,23 @@ namespace CK.Monitoring.Tests
             ConsoleMonitor.Info().Send( "SolutionFolder is: {1}\r\nTestFolder is: {0}\r\nRootLogPath is: {2}", _testFolder, _solutionFolder, SystemActivityMonitor.RootLogPath );
 
             CleanupTestFolder();
+        }
+
+        /// <summary>
+        /// Can be called from another application domain (does not set SystemActivityMonitor.RootLogPath not initialize statics).
+        /// </summary>
+        /// <returns>The /TestFolder for this project.</returns>
+        public static string GetTestFolder()
+        {
+            string p = new Uri( System.Reflection.Assembly.GetExecutingAssembly().CodeBase ).LocalPath;
+            // => CK.XXX.Tests/bin/Debug/
+            p = Path.GetDirectoryName( p );
+            // => CK.XXX.Tests/bin/
+            p = Path.GetDirectoryName( p );
+            // => CK.XXX.Tests/
+            p = Path.GetDirectoryName( p );
+            // ==> CK.XXX.Tests/TestDir
+            return Path.Combine( p, "TestFolder" );
         }
 
     }

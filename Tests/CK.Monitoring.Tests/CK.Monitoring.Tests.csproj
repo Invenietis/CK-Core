@@ -59,6 +59,7 @@
     <Compile Include="ConfigHostTests.cs" />
     <Compile Include="Configuration\GrandOutputConfigTests.cs" />
     <Compile Include="Fixture.cs" />
+    <Compile Include="GrandOutputTests.cs" />
     <Compile Include="Performance\EventDispatcherAdaptiveStrategy.cs" />
     <Compile Include="Performance\FakeHandler.cs" />
     <Compile Include="Performance\FakeHandlerConfiguration.cs" />

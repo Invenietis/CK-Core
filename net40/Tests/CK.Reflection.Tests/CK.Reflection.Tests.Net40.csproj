@@ -67,9 +67,9 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\CK.Reflection\CK.Reflection.csproj">
+    <ProjectReference Include="..\..\CK.Reflection\CK.Reflection.Net40.csproj">
       <Project>{2e4ba3d2-3017-4940-8cff-8d97ef8a4fa6}</Project>
-      <Name>CK.Reflection %28net40\CK.Reflection%29</Name>
+      <Name>CK.Reflection.Net40</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>

@@ -83,8 +83,9 @@ namespace CK.Core
         /// <summary>
         /// Initializes a new <see cref="CKException"/> with an <see cref="ExceptionData"/>.
         /// The message of this exception is the <see cref="CKExceptionData.Message"/>.
+        /// Use the static <see cref="CreateFrom"/> to handle null data (a null CKException will be returned).
         /// </summary>
-        /// <param name="data"></param>
+        /// <param name="data">The exception data. Must not be null.</param>
         public CKException( CKExceptionData data )
             : this( data.Message )
         {

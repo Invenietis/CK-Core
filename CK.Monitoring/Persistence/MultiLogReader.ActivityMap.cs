@@ -16,7 +16,7 @@ namespace CK.Monitoring
         {
             readonly IReadOnlyCollection<RawLogFile> _allFiles;
             readonly IReadOnlyCollection<RawLogFile> _validFiles;
-            readonly IReadOnlyCollection<Monitor> _monitorList;
+            readonly IReadOnlyList<Monitor> _monitorList;
             readonly Dictionary<Guid,Monitor> _monitors;
             readonly DateTime _firstEntryDate;
             readonly DateTime _lastEntryDate;
@@ -28,7 +28,7 @@ namespace CK.Monitoring
                 _allFiles = new CKReadOnlyCollectionOnICollection<RawLogFile>( reader._files.Values );
                 _validFiles = _allFiles.Where( f => f.Error == null && f.TotalEntryCount > 0 ).ToReadOnlyList();
                 _monitors = reader._monitors.ToDictionary( e => e.Key, e => new Monitor( e.Value ) );
-                _monitorList = new CKReadOnlyCollectionOnICollection<Monitor>( _monitors.Values );
+                _monitorList = _monitors.Values.OrderBy( m => m.FirstEntryTime ).ToReadOnlyList();
                 _firstEntryDate = reader._globalFirstEntryTime;
                 _lastEntryDate = reader._globalLastEntryTime;
             }
@@ -41,7 +41,10 @@ namespace CK.Monitoring
 
             public IReadOnlyCollection<RawLogFile> AllFiles { get { return _allFiles; } }
 
-            public IReadOnlyCollection<Monitor> Monitors { get { return _monitorList; } }
+            /// <summary>
+            /// Gets all the monitors that this ActivityMap contains ordered by their <see cref="Monitor.FirstEntryTime"/>.
+            /// </summary>
+            public IReadOnlyList<Monitor> Monitors { get { return _monitorList; } }
 
             public Monitor FindMonitor( Guid monitorId )
             {
@@ -438,6 +441,47 @@ namespace CK.Monitoring
                     return new LivePage( _firstDepth, new ParentedLogEntry[pageLength], r, pageLength );
                 }
                 return new LivePage( _firstDepth, Util.EmptyArray<ParentedLogEntry>.Empty, null, pageLength );
+            }
+
+            /// <summary>
+            /// Replays this monitor's content into another monitor.
+            /// </summary>
+            /// <param name="replay">The target monitor. Can not be null.</param>
+            /// <param name="m">Optional monitor (nothing is logged when null).</param>
+            public void Replay( IActivityMonitor replay, IActivityMonitor m = null )
+            {
+                using( m != null ? m.OpenInfo().Send( "Replaying activity from '{0}'.", MonitorId ) : null )
+                {
+                    int nbMissing = 0;
+                    int nbTotal = 0;
+                    using( var page = ReadFirstPage( 1024 ) )
+                    {
+                        foreach( ParentedLogEntry e in page.Entries )
+                        {
+                            ++nbTotal;
+                            LogLevel level = e.Entry.LogLevel;
+                            if( e.IsMissing )
+                            {
+                                ++nbMissing;
+                                level = LogLevel.Trace;
+                            }
+                            switch( e.Entry.LogType )
+                            {
+                                case LogEntryType.Line:
+                                    replay.UnfilteredLog( e.Entry.Tags, level, e.Entry.Text, e.Entry.LogTime, CKException.CreateFrom( e.Entry.Exception ), e.Entry.FileName, e.Entry.LineNumber );
+                                    break;
+                                case LogEntryType.OpenGroup:
+                                    replay.UnfilteredOpenGroup( e.Entry.Tags, level, null, e.Entry.Text, e.Entry.LogTime, CKException.CreateFrom( e.Entry.Exception ), e.Entry.FileName, e.Entry.LineNumber );
+                                    break;
+                                case LogEntryType.CloseGroup:
+                                    replay.CloseGroup( e.Entry.LogTime, e.Entry.Conclusions );
+                                    break;
+                            }
+                        }
+                        page.ForwardPage();
+                    }
+                    if( m != null ) m.CloseGroup( String.Format( "Replayed {0} entries ({1} missing).", nbTotal, nbMissing ) );
+                }
             }
        }
 

@@ -201,6 +201,7 @@ namespace CK.Monitoring.Impl
                 Thread.MemoryBarrier();
                 DoAdd( new GrandOutputEventInfo(), null );
                 GC.SuppressFinalize( this );
+                _thread.Join();
             }
         }
 

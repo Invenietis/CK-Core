@@ -14,6 +14,11 @@ namespace CK.Monitoring.GrandOutputHandlers
     {
         LogFilter _currentFilter;
 
+        internal ChannelOption( LogFilter mainRouteFilter )
+        {
+            _currentFilter = mainRouteFilter;
+        }
+
         /// <summary>
         /// Enables any handler to publish the minimal filter level it requires (if any).
         /// </summary>

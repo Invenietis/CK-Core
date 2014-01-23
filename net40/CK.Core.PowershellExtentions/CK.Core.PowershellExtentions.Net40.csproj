@@ -69,9 +69,9 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\CK.Core\CK.Core.csproj">
+    <ProjectReference Include="..\CK.Core\CK.Core.Net40.csproj">
       <Project>{56511bee-6107-4cb6-bf05-0fb9c2c88c88}</Project>
-      <Name>CK.Core (net40\CK.Core)</Name>
+      <Name>CK.Core.Net40</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>

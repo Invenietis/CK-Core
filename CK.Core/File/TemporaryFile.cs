@@ -69,7 +69,7 @@ namespace CK.Core
         /// The file will have a name looking like : xxxx.tmp.extension
         /// </summary>
         /// <param name="shortLived">True to set the <see cref="FileAttributes.Temporary"/> on the file.</param>
-        /// <param name="extension">The extension of the file (example : '.png' and 'png' would both work).</param>
+        /// <param name="extension">Optional extension of the file (example : '.png' and 'png' would both work).</param>
         /// <remarks>
         /// When extension is ".", the final path will end with a ".".
         /// </remarks>

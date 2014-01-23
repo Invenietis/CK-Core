@@ -93,7 +93,7 @@ namespace CK.Core
         }
 
         /// <summary>
-        /// Gest the target monitor directly when used in the same AppDomain.
+        /// Gets the target monitor directly when used in the same AppDomain.
         /// </summary>
         internal IActivityMonitorImpl TargetMonitor { get { return _monitor; } }
 

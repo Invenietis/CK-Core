@@ -125,7 +125,7 @@ namespace CK.Monitoring
             public int FileVersion { get { return _fileVersion; } }
             public int TotalEntryCount { get { return _totalEntryCount; } }
             public bool BadEndOfFile { get { return _badEndOfFile; } }
-            public bool IsValdFile { get { return !_badEndOfFile && _error == null; } }
+            public bool IsValidFile { get { return !_badEndOfFile && _error == null; } }
             public Exception Error { get { return _error; } }
             
             public IReadOnlyList<RawLogFileMonitorOccurence> Monitors { get { return _monitors; } }
@@ -192,6 +192,10 @@ namespace CK.Monitoring
                 reader.RegisterOneLog( occ, newOccurence, streamOffset, log );
             }
 
+            public override string ToString()
+            {
+                return String.Format( "File: '{0}' ({1}), from {2} for {3}, Error={4}", FileName, TotalEntryCount, _firstEntryTime, _lastEntryTime.TimeUtc-_firstEntryTime.TimeUtc, _error != null ? _error.ToString() : "None" );
+            }
         }
 
         /// <summary>
@@ -211,7 +215,7 @@ namespace CK.Monitoring
         /// Adds a bunch of log files.
         /// </summary>
         /// <param name="files">Set of files to add.</param>
-        /// <returns>List of newly added files (already existing files are skipped).</returns>
+        /// <returns>List of newly added files (already known files are skipped).</returns>
         public List<RawLogFile> Add( IEnumerable<string> files )
         {
             List<RawLogFile> result = new List<RawLogFile>();

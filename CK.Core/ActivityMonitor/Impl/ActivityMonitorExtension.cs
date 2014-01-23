@@ -236,10 +236,10 @@ namespace CK.Core
         }
 
         /// <summary>
-        /// Creates a string bridge to another monitor's <see cref="ActivityMonitorBridgeTarget"/>. 
+        /// Creates a strong bridge to another monitor's <see cref="ActivityMonitorBridgeTarget"/>. 
         /// Only one bridge to the same monitor can exist at a time: if <see cref="FindBridgeTo"/> is not null, 
         /// this throws a <see cref="InvalidOperationException"/>.
-        /// A string bridge synchronizes <see cref="IActivityMonitor.AutoTags"/> and <see cref="IActivityMonitor.Topic"/> between the two monitors. When created, the 2 properties
+        /// A strong bridge synchronizes <see cref="IActivityMonitor.AutoTags"/> and <see cref="IActivityMonitor.Topic"/> between the two monitors. When created, the 2 properties
         /// of the local monitor are set to the ones of the target monitor. 
         /// </summary>
         /// <param name="this">This <see cref="IActivityMonitorOutput"/>.</param>

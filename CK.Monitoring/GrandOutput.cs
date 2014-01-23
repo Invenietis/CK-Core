@@ -42,7 +42,7 @@ namespace CK.Monitoring
         /// <summary>
         /// Ensures that the <see cref="Default"/> GrandOutput is created and that any <see cref="ActivityMonitor"/> that will be created in this
         /// application domain will automatically have a <see cref="GrandOutputClient"/> registered for this Default GrandOutput.
-        /// Use <see cref="EnsureActiveDefaultWhithDefaultSettings"/> to initially configure this default.
+        /// Use <see cref="EnsureActiveDefaultWithDefaultSettings"/> to initially configure this default.
         /// </summary>
         /// <returns>The Default GrandOutput.</returns>
         /// <remarks>
@@ -70,7 +70,7 @@ namespace CK.Monitoring
         /// Once loaded, the file is monitored and any change that occurs to it dynamically triggers a <see cref="SetConfiguration"/> with the new file.
         /// </summary>
         /// <param name="monitor">An optional monitor.</param>
-        static public GrandOutput EnsureActiveDefaultWhithDefaultSettings( IActivityMonitor monitor = null )
+        static public GrandOutput EnsureActiveDefaultWithDefaultSettings( IActivityMonitor monitor = null )
         {
             lock( _defaultLock )
             {
@@ -81,13 +81,20 @@ namespace CK.Monitoring
                     {
                         try
                         {
-                            GrandOutputConfiguration def = CreateAndMonitorDefaultConfig( monitor );
+                            SystemActivityMonitor.AssertRootLogPathIsSet();
+                            string conventionalConfigPath = SystemActivityMonitor.RootLogPath + "GrandOutput.config";
+                            GrandOutputConfiguration def = CreateDefaultConfig();
+                            if( File.Exists( conventionalConfigPath ) && !def.LoadFromFile( conventionalConfigPath, monitor ) ) 
+                            {
+                                throw new CKException( "Unable to load Configuration file: '{0}'.", conventionalConfigPath );
+                            }
                             GrandOutput output = new GrandOutput();
                             ActivityMonitor.AutoConfiguration += m => Default.Register( m );
                             if( !output.SetConfiguration( def, monitor ) )
                             {
                                 throw new CKException( "Failed to set Configuration." );
                             }
+                            StartMonitoring( monitor );
                             _default = output;
                         }
                         catch( Exception ex )
@@ -101,34 +108,25 @@ namespace CK.Monitoring
             return _default;
         }
 
-        static GrandOutputConfiguration CreateAndMonitorDefaultConfig( IActivityMonitor monitor )
+        static GrandOutputConfiguration CreateDefaultConfig()
         {
-            SystemActivityMonitor.AssertRootLogPathIsSet();
-
             GrandOutputConfiguration def = new GrandOutputConfiguration();
-
-            string conventionalConfigPath = SystemActivityMonitor.RootLogPath + "GrandOutput.config";
-            if( File.Exists( conventionalConfigPath ) )
-            {
-                if( !def.LoadFromFile( conventionalConfigPath, monitor ) ) throw new CKException( "Unable to load Configuration file: '{0}'.", conventionalConfigPath );
-                StartMonitoring( conventionalConfigPath, monitor );
-            }
-            else
-            {
-                Debug.Assert( def.SourceFilterApplicationMode == SourceFilterApplyMode.None );
-                Debug.Assert( def.AppDomainDefaultFilter == null );
-                def.ChannelsConfiguration.ConfigData = new GrandOutputChannelConfigData();
-                def.ChannelsConfiguration.AddAction( new BinaryFileConfiguration( "All" ) { Path = SystemActivityMonitor.RootLogPath + "GrandOutputDefault" } );
-            }
+            Debug.Assert( def.SourceFilterApplicationMode == SourceFilterApplyMode.None );
+            Debug.Assert( def.AppDomainDefaultFilter == null );
+            var route = new RouteConfiguration();
+            route.ConfigData = new GrandOutputChannelConfigData();
+            route.AddAction( new BinaryFileConfiguration( "All" ) { Path = SystemActivityMonitor.RootLogPath + "GrandOutputDefault" } );
+            def.ChannelsConfiguration = route;
             return def;
         }
 
-        static void StartMonitoring( string configPath, IActivityMonitor monitor )
+        static void StartMonitoring( IActivityMonitor monitor )
         {
             if( _watcher != null ) _watcher.Dispose();
             _watcher = new FileSystemWatcher();
-            _watcher.Path = configPath;
-            _watcher.NotifyFilter = NotifyFilters.LastWrite;
+            _watcher.Path = SystemActivityMonitor.RootLogPath;
+            _watcher.NotifyFilter = NotifyFilters.LastWrite | NotifyFilters.FileName | NotifyFilters.DirectoryName;
+            _watcher.Filter = "GrandOutput.config";
             _watcher.Changed += _watcher_Changed;
             _watcher.Error += _watcher_Error;
             _watcher.EnableRaisingEvents = true;
@@ -141,15 +139,20 @@ namespace CK.Monitoring
 
         static void _watcher_Changed( object sender, FileSystemEventArgs e )
         {
-            if( (e.ChangeType | (WatcherChangeTypes.Created | WatcherChangeTypes.Changed)) != 0 )
+            if( _watcher == null ) return;
+            string conventionalConfigPath = SystemActivityMonitor.RootLogPath + "GrandOutput.config";
+            var monitor = new SystemActivityMonitor( true, "GrandOutput" );
+            monitor.MinimalFilter = LogFilter.Debug;
+            using( monitor.OpenInfo().Send( "AppDomain '{0}',  file '{1}' changed.", AppDomain.CurrentDomain.FriendlyName, conventionalConfigPath ) )
             {
-                // Uses here a normal SystemActivityMonitor so that this operation appears in the 
-                // activity logs (but unexpected errors are still considered as critical errors and are logged as such).
-                _default.SetConfiguration( e.FullPath, new SystemActivityMonitor( true, "GrandOutput" ) );
-
+                var def = CreateDefaultConfig();
+                if( File.Exists( conventionalConfigPath ) )
+                {
+                    def.LoadFromFile( conventionalConfigPath, monitor );
+                }
+                else monitor.Trace().Send( "File missing: applying catch-all default configuration." );
+                if( !_default._channelHost.IsDisposed ) _default.SetConfiguration( def, monitor );
             }
-            // WatcherChangeTypes.Deleted | WatcherChangeTypes.Renamed: 
-            // ==> Configuration file is removed or renamed: we ignore this and keep the current configuration.
         }
 
         /// <summary>
@@ -173,7 +176,13 @@ namespace CK.Monitoring
 
         void OnDomainTermination( object sender, EventArgs e )
         {
-            Dispose();
+            var w = _watcher;
+            if( w != null )
+            {
+                _watcher = null;
+                w.Dispose();
+            }
+            Dispose( new SystemActivityMonitor(), 10 );
         }
 
         /// <summary>
@@ -237,22 +246,31 @@ namespace CK.Monitoring
             _commonSink.Remove( sink );
         }
 
+        ///// <summary>
+        ///// Attempts to set a new configuration from a file.
+        ///// </summary>
+        ///// <param name="configFilePath">The path of the configuration that must be set.</param>
+        ///// <param name="monitor">Optional monitor.</param>
+        ///// <param name="millisecondsBeforeForceClose">Optional timeout to wait before forcing the close of the currently active configuration.</param>
+        ///// <returns>True on success.</returns>
+        //public bool SetConfiguration( string configFilePath, IActivityMonitor monitor = null, int millisecondsBeforeForceClose = Timeout.Infinite )
+        //{
+        //    if( monitor == null ) monitor = new SystemActivityMonitor( true, "GrandOutput" );
+        //    using( monitor.OpenTrace().Send( "Loading configuration from file: '{0}'.", configFilePath ) )
+        //    {
+        //        GrandOutputConfiguration c = new GrandOutputConfiguration();
+        //        if( !c.LoadFromFile( configFilePath, monitor ) ) return false;
+        //        return SetConfiguration( c, monitor, millisecondsBeforeForceClose );
+        //    }
+        //}
+
         /// <summary>
-        /// Attempts to set a new configuration from a file.
+        /// Gets the total number of calls to <see cref="SetConfiguration"/> (and to <see cref="Dispose"/> method).
+        /// This can be used to call <see cref="WaitForNextConfiguration"/>.
         /// </summary>
-        /// <param name="configFilePath">The path of the configuration that must be set.</param>
-        /// <param name="monitor">Optional monitor.</param>
-        /// <param name="millisecondsBeforeForceClose">Optional timeout to wait before forcing the close of the currently active configuration.</param>
-        /// <returns>True on success.</returns>
-        public bool SetConfiguration( string configFilePath, IActivityMonitor monitor = null, int millisecondsBeforeForceClose = Timeout.Infinite )
+        public int ConfigurationAttemptCount
         {
-            if( monitor == null ) monitor = new SystemActivityMonitor( true, "GrandOutput" );
-            using( monitor.OpenTrace().Send( "Loading configuration from file: '{0}'.", configFilePath ) )
-            {
-                GrandOutputConfiguration c = new GrandOutputConfiguration();
-                if( !c.LoadFromFile( configFilePath, monitor ) ) return false;
-                return SetConfiguration( c, monitor, millisecondsBeforeForceClose );
-            }
+            get { return _channelHost.ConfigurationAttemptCount; }
         }
 
         /// <summary>
@@ -268,7 +286,7 @@ namespace CK.Monitoring
             if( monitor == null ) monitor = new SystemActivityMonitor( true, "GrandOutput" );
             using( monitor.OpenInfo().Send( this == Default ? "Applying Default GrandOutput configuration." : "Applying GrandOutput configuration." ) )
             {
-                if( _channelHost.SetConfiguration( monitor, config.ChannelsConfiguration, millisecondsBeforeForceClose ) )
+                if( _channelHost.SetConfiguration( monitor, config.ChannelsConfiguration ?? new RouteConfiguration(), millisecondsBeforeForceClose ) )
                 {
                     if( this == _default &&  config.AppDomainDefaultFilter.HasValue ) ActivityMonitor.DefaultFilter = config.AppDomainDefaultFilter.Value;
 
@@ -276,7 +294,7 @@ namespace CK.Monitoring
                     {
                         ActivityMonitor.SourceFilter.Clear();
                     }
-                    if( config.SourceFilterApplicationMode == SourceFilterApplyMode.Apply || config.SourceFilterApplicationMode == SourceFilterApplyMode.ClearThenApply )
+                    if( config.SourceFilter != null && (config.SourceFilterApplicationMode == SourceFilterApplyMode.Apply || config.SourceFilterApplicationMode == SourceFilterApplyMode.ClearThenApply) )
                     {
                         foreach( var k in config.SourceFilter ) ActivityMonitor.SourceFilter.SetFileFilter( k.Value, k.Key );
                     }
@@ -285,6 +303,18 @@ namespace CK.Monitoring
                 }
                 return false;
             }
+        }
+
+        /// <summary>
+        /// Blocks the caller until the current <see cref="ConfigurationAttemptCount"/> is greater or equal to the given number and the last 
+        /// configuration has been applied (or this object is disposed).
+        /// </summary>
+        /// <param name="configurationAttemptCount">The number of configuration attempt count to wait for.</param>
+        /// <param name="millisecondsTimeout">Maximum number of milliseconds to wait. Use <see cref="Timeout.Infinite"/> or -1 for no limit.</param>
+        /// <returns>False if specified timeout expired.</returns>
+        public bool WaitForNextConfiguration( int configurationAttemptCount, int millisecondsTimeout )
+        {
+            return _channelHost.WaitForNextConfiguration( configurationAttemptCount, millisecondsTimeout );
         }
 
         /// <summary>
