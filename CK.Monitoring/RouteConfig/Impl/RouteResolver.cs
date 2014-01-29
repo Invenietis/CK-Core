@@ -100,7 +100,7 @@ namespace CK.RouteConfig.Impl
                             var preRoute = new PreRoute( monitor, sub );
                             NamedSubRoutes.Add( sub.FullName, new SubRouteConfigurationResolved( sub, preRoute.FinalizeActions().AsReadOnlyList() ) );
                         }
-                        Root.SubRoutes = protoResolver.NamedSubRoutes.Values.Select( p => NamedSubRoutes[p.FullName] ).ToArray().AsReadOnlyList();
+                        Root.SubRoutes = protoResolver.Root.SubRoutes.Select( p => NamedSubRoutes[p.FullName] ).ToArray().AsReadOnlyList();
                         foreach( IProtoSubRoute sub in protoResolver.NamedSubRoutes.Values )
                         {
                             NamedSubRoutes[sub.FullName].SubRoutes = sub.SubRoutes.Select( p => NamedSubRoutes[p.FullName] ).ToArray().AsReadOnlyList();

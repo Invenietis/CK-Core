@@ -71,6 +71,7 @@ namespace CK.Monitoring
             // Next log will obtain a new channel: The Info with the TopiChanged
             // will appear in the new channel.
             Interlocked.Increment( ref _version );
+            _monitorSource.SetClientMinimalFilterDirty();
         }
 
         LogFilter IActivityMonitorBoundClient.MinimalFilter 

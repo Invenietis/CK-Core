@@ -42,7 +42,7 @@ namespace CK.Monitoring.Tests
             }
             var replayed = new ActivityMonitor( false );
             var c = replayed.Output.RegisterClient( new StupidStringClient() );
-            Replay( new DirectoryInfo( SystemActivityMonitor.RootLogPath + "ApplyEmptyAndDefaultConfig" ), true, mon => replayed, TestHelper.ConsoleMonitor );
+            TestHelper.ReplayLogs( new DirectoryInfo( SystemActivityMonitor.RootLogPath + "ApplyEmptyAndDefaultConfig" ), true, mon => replayed, TestHelper.ConsoleMonitor );
             CollectionAssert.AreEqual( new[] { "<Missing log data>", "Show-1" }, c.Entries.Select( e => e.Text ), StringComparer.OrdinalIgnoreCase );
         }
 
@@ -53,7 +53,7 @@ namespace CK.Monitoring.Tests
             Debug.Assert( def.AppDomainDefaultFilter == null );
             var route = new RouteConfiguration();
             route.ConfigData = new GrandOutputChannelConfigData();
-            route.AddAction( new BinaryFileConfiguration( "All" ) { Path = SystemActivityMonitor.RootLogPath + subFolder } );
+            route.AddAction( new BinaryFileConfiguration( "All" ) { Path = subFolder } );
             def.ChannelsConfiguration = route;
             return def;
         }
@@ -142,11 +142,6 @@ namespace CK.Monitoring.Tests
         }
 
         [Test]
-        public void WhenConfigurationDisapears()
-        {
-        }
-
-        [Test]
         public void DefaultConfiguration()
         {
             TestHelper.CleanupFolder( RunInAnotherAppDomain.DomainRootLogPath );
@@ -226,13 +221,7 @@ namespace CK.Monitoring.Tests
                 AppDomain.Unload( domain );
             }
 
-            List<StupidStringClient> logs = new List<StupidStringClient>();
-            Replay( new DirectoryInfo( RunInAnotherAppDomain.DomainRootLogPath + "GrandOutputDefault" ), false, mon =>
-                {
-                    var m = new ActivityMonitor( false );
-                    logs.Add( m.Output.RegisterClient( new StupidStringClient() ) );
-                    return m;
-                }, TestHelper.ConsoleMonitor );
+            List<StupidStringClient> logs = TestHelper.ReadAllLogs( new DirectoryInfo( RunInAnotherAppDomain.DomainRootLogPath + "GrandOutputDefault" ), false );
 
             Assert.That( logs.Count, Is.EqualTo( 6 ), "It contains the test monitor but also the monitoring of the reconfiguration due to the 5 file changes." );
             CollectionAssert.AreEqual(
@@ -265,42 +254,6 @@ namespace CK.Monitoring.Tests
             }
             else File.Delete( RunInAnotherAppDomain.DomainGrandOutputConfig );
         }
-
-        static void Replay( DirectoryInfo directory, bool recurse, Func<MultiLogReader.Monitor, ActivityMonitor> monitorProvider, IActivityMonitor m = null )
-        {
-            var reader = new MultiLogReader();
-            using( m != null ? m.OpenTrace().Send( "Reading files from '{0}' {1}.", directory.FullName, recurse ? "(recursive)" : null ) : null )
-            {
-                var files = reader.Add( directory.EnumerateFiles( "*.ckmon", recurse ? SearchOption.AllDirectories : SearchOption.TopDirectoryOnly ).Select( f => f.FullName ) );
-                if( files.Count == 0 )
-                {
-                    if( m != null ) m.Warn().Send( "No *.ckmon files found!" );
-                }
-                else
-                {
-                    var monitors = reader.GetActivityMap().Monitors;
-                    if( m != null )
-                    {
-                        m.Trace().Send( String.Join( Environment.NewLine, files ) );
-                        m.CloseGroup( String.Format( "Found {0} file(s) containing {1} monitor(s).", files.Count, monitors.Count ) );
-                        m.OpenTrace().Send( "Extracting entries." );
-                    }
-                    foreach( var mon in monitors )
-                    {
-                        var replay = monitorProvider( mon );
-                        if( replay == null )
-                        {
-                            if( m != null ) m.Info().Send( "Skipping activity from '{0}'.", mon.MonitorId );
-                        }
-                        else
-                        {
-                            mon.Replay( replay, m );
-                        }
-                    }
-                }
-            }
-        }
-
 
     }
 }

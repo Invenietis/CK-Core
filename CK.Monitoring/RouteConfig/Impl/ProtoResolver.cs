@@ -80,6 +80,7 @@ namespace CK.RouteConfig.Impl
                 using( Monitor.OpenInfo().Send( "Preprocessing route '{0}'.", newSub._fullName ) )
                 {
                     newSub.ExecuteMetaConfigurations();
+                    _subRoutes.Add( newSub );
                 }
                 return true;
             }

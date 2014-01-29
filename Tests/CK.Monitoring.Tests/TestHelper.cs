@@ -101,6 +101,53 @@ namespace CK.Monitoring.Tests
             }
         }
 
+        public static List<StupidStringClient> ReadAllLogs( DirectoryInfo folder, bool recurse )
+        {
+            List<StupidStringClient> logs = new List<StupidStringClient>();
+            ReplayLogs( folder, recurse, mon =>
+            {
+                var m = new ActivityMonitor( false );
+                logs.Add( m.Output.RegisterClient( new StupidStringClient() ) );
+                return m;
+            }, TestHelper.ConsoleMonitor );
+            return logs;
+        }
+
+        public static void ReplayLogs( DirectoryInfo directory, bool recurse, Func<MultiLogReader.Monitor, ActivityMonitor> monitorProvider, IActivityMonitor m = null )
+        {
+            var reader = new MultiLogReader();
+            using( m != null ? m.OpenTrace().Send( "Reading files from '{0}' {1}.", directory.FullName, recurse ? "(recursive)" : null ) : null )
+            {
+                var files = reader.Add( directory.EnumerateFiles( "*.ckmon", recurse ? SearchOption.AllDirectories : SearchOption.TopDirectoryOnly ).Select( f => f.FullName ) );
+                if( files.Count == 0 )
+                {
+                    if( m != null ) m.Warn().Send( "No *.ckmon files found!" );
+                }
+                else
+                {
+                    var monitors = reader.GetActivityMap().Monitors;
+                    if( m != null )
+                    {
+                        m.Trace().Send( String.Join( Environment.NewLine, files ) );
+                        m.CloseGroup( String.Format( "Found {0} file(s) containing {1} monitor(s).", files.Count, monitors.Count ) );
+                        m.OpenTrace().Send( "Extracting entries." );
+                    }
+                    foreach( var mon in monitors )
+                    {
+                        var replay = monitorProvider( mon );
+                        if( replay == null )
+                        {
+                            if( m != null ) m.Info().Send( "Skipping activity from '{0}'.", mon.MonitorId );
+                        }
+                        else
+                        {
+                            mon.Replay( replay, m );
+                        }
+                    }
+                }
+            }
+        }
+
         public static void CleanupTestFolder()
         {
             CleanupFolder( TestFolder );

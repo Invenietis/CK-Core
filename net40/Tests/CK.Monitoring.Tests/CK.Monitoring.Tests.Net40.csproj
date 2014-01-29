@@ -58,6 +58,9 @@
     <Compile Include="..\..\..\SharedAssemblyInfo.cs">
       <Link>Properties\SharedAssemblyInfo.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\Tests\CK.Monitoring.Tests\ChannelAndSourceFilterTests.cs">
+      <Link>ChannelAndSourceFilterTests.cs</Link>
+    </Compile>
     <Compile Include="..\..\..\Tests\CK.Monitoring.Tests\ConfigHostTests.cs">
       <Link>ConfigHostTests.cs</Link>
     </Compile>

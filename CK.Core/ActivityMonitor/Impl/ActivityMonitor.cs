@@ -313,6 +313,7 @@ namespace CK.Core
             _topic = newTopic;
             _output.BridgeTarget.TargetTopicChanged( newTopic, fileName, lineNumber );
             MonoParameterSafeCall( ( client, topic ) => client.OnTopicChanged( topic, fileName, lineNumber ), newTopic );
+            if( _actualFilterIsDirty ) DoResyncActualFilter();
             DoUnfilteredLog( new ActivityMonitorLogData( LogLevel.Info, null, Tags.MonitorTopicChanged, SetTopicPrefix + newTopic, new DateTimeStamp( _lastLogTime, DateTime.UtcNow ), fileName, lineNumber ) );
         }
 
@@ -413,20 +414,25 @@ namespace CK.Core
             ReentrantAndConcurrentCheck();
             try
             {
-                do
-                {
-                    Thread.MemoryBarrier();
-                    _actualFilterIsDirty = false;
-                    _clientFilter = DoGetBoundClientMinimalFilter();
-                    Thread.MemoryBarrier();
-                }
-                while( _actualFilterIsDirty );
-                UpdateActualFilter();
+                DoResyncActualFilter();
             }
             finally
             {
                 ReentrantAndConcurrentRelease();
             }
+        }
+
+        void DoResyncActualFilter()
+        {
+            do
+            {
+                Thread.MemoryBarrier();
+                _actualFilterIsDirty = false;
+                _clientFilter = DoGetBoundClientMinimalFilter();
+                Thread.MemoryBarrier();
+            }
+            while( _actualFilterIsDirty );
+            UpdateActualFilter();
         }
 
         internal void DoSetConfiguredFilter( LogFilter value )
@@ -546,7 +552,6 @@ namespace CK.Core
         public void UnfilteredLog( ActivityMonitorLogData data )
         {
             if( data == null ) throw new ArgumentNullException( "data" );
-            if( _actualFilterIsDirty ) ResyncActualFilter();
             ReentrantAndConcurrentCheck();
             try
             {
@@ -564,7 +569,12 @@ namespace CK.Core
             Debug.Assert( data.Level != LogLevel.None );
             Debug.Assert( !String.IsNullOrEmpty( data.Text ) );
 
-            if( _actualFilter.Line == LogLevelFilter.Off ) return;
+            if( !data.IsFilteredLog )
+            {
+                if( _actualFilterIsDirty ) DoResyncActualFilter();
+                if( _actualFilter.Line == LogLevelFilter.Off ) return;
+            }
+
             _lastLogTime = data.CombineTagsAndAdjustLogTime( _currentTag, _lastLogTime );
             List<IActivityMonitorClient> buggyClients = null;
             foreach( var l in _output.Clients )
@@ -613,7 +623,6 @@ namespace CK.Core
         public virtual IDisposableGroup UnfilteredOpenGroup( ActivityMonitorGroupData data )
         {
             if( data == null ) throw new ArgumentNullException( "data" );
-            if( _actualFilterIsDirty ) ResyncActualFilter();
             ReentrantAndConcurrentCheck();
             try
             {
@@ -636,17 +645,19 @@ namespace CK.Core
                 for( int i = idxNext; i < _groups.Length; ++i ) _groups[i] = new Group( this, i );
             }
             _current = _groups[idxNext];
-            if( _actualFilter.Group == LogLevelFilter.Off || data.Level == LogLevel.None )
+            if( !data.IsFilteredLog )
             {
-                _current.InitializeRejectedGroup( data );
+                if( _actualFilterIsDirty ) DoResyncActualFilter();
+                if( _actualFilter.Group == LogLevelFilter.Off || data.Level == LogLevel.None )
+                {
+                    _current.InitializeRejectedGroup( data );
+                    return _current;
+                }
             }
-            else
-            {
-                _lastLogTime = data.CombineTagsAndAdjustLogTime( _currentTag, _lastLogTime );
-                _current.Initialize( data );
-                _currentUnfiltered = _current;
-                MonoParameterSafeCall( ( client, group ) => client.OnOpenGroup( group ), _current ); 
-            }
+            _lastLogTime = data.CombineTagsAndAdjustLogTime( _currentTag, _lastLogTime );
+            _current.Initialize( data );
+            _currentUnfiltered = _current;
+            MonoParameterSafeCall( ( client, group ) => client.OnOpenGroup( group ), _current ); 
             return _current;
         }
 

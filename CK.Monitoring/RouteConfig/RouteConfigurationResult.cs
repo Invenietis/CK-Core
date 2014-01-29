@@ -34,7 +34,7 @@ namespace CK.RouteConfig
         /// <summary>
         /// Gets all the subordinated routes.
         /// </summary>
-        public IReadOnlyCollection<SubRouteConfigurationResolved> SubRoutes
+        public IReadOnlyCollection<SubRouteConfigurationResolved> AllSubRoutes
         {
             get { return _namedSubRoutesEx; }
         }

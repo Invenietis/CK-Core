@@ -111,7 +111,7 @@ namespace CK.RouteConfig
         }
 
         /// <summary>
-        /// Attempts to resolve the configuration. Null if an error occured.
+        /// Attempts to resolve the configuration. Null if an error occurred.
         /// </summary>
         /// <param name="monitor">Monitor to use. Must not be null nor the empty monitor.</param>
         /// <returns>Null or a set of resolved route configuration.</returns>

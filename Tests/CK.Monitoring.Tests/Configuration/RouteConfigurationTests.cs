@@ -38,10 +38,10 @@ namespace CK.Monitoring.Tests.Configuration
                         new ActionSequenceConfiguration( "FirstGroup" )
                             .AddAction( new TestActionConfiguration( "Sink1" ) )
                             .AddAction( new TestActionConfiguration( "Sink2" ) )
-                            .AddAction( new ActionParallelConfiguration( "Parrallel n°1" )
+                            .AddAction( new ActionParallelConfiguration( "Parallel n°1" )
                                 .AddAction( new TestActionConfiguration( "Sink3" ) )
                                 .AddAction( new TestActionConfiguration( "Sink4" ) ) )
-                            .AddAction( new ActionParallelConfiguration( "Parrallel n°2" )
+                            .AddAction( new ActionParallelConfiguration( "Parallel n°2" )
                                 .AddAction( new TestActionConfiguration( "Sink3" ) )
                                 .AddAction( new TestActionConfiguration( "Sink4" ) ) ) )
                     .AddAction( new TestActionConfiguration( "SecondGlobal" ) )
@@ -60,7 +60,7 @@ namespace CK.Monitoring.Tests.Configuration
             
             var resolved = c.Resolve( TestHelper.ConsoleMonitor );
             Assert.That( resolved, Is.Not.Null );
-            Assert.That( resolved.SubRoutes.Count, Is.EqualTo( 3 ) );
+            Assert.That( resolved.AllSubRoutes.Count, Is.EqualTo( 3 ) );
 
             var root = resolved.Root;
             Assert.That( root, Is.Not.Null );

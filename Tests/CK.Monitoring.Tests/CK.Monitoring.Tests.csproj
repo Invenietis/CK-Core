@@ -58,6 +58,7 @@
     </Compile>
     <Compile Include="ConfigHostTests.cs" />
     <Compile Include="Configuration\GrandOutputConfigTests.cs" />
+    <Compile Include="ChannelAndSourceFilterTests.cs" />
     <Compile Include="DocumentationCodeSnippets.cs" />
     <Compile Include="GrandOutputTests.cs" />
     <Compile Include="Performance\EventDispatcherAdaptiveStrategy.cs" />

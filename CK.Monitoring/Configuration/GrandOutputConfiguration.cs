@@ -57,30 +57,33 @@ namespace CK.Monitoring
         /// <summary>
         /// Loads this configuration from a <see cref="XElement"/>.
         /// </summary>
-        /// <param name="xmlGrandOutputConfiguration">The xml element.</param>
+        /// <param name="e">The xml element: its name must be GrandOutputConfiguration.</param>
         /// <param name="monitor">Monitor that will be used.</param>
         /// <returns>True on success, false if the configuration can not be read.</returns>
-        public bool Load( XElement xmlGrandOutputConfiguration, IActivityMonitor monitor )
+        public bool Load( XElement e, IActivityMonitor monitor )
         {
-            if( xmlGrandOutputConfiguration == null ) throw new ArgumentNullException( "xmlGrandOutputConfiguration" );
+            if( e == null ) throw new ArgumentNullException( "e" );
             if( monitor == null ) throw new ArgumentNullException( "monitor" );
             try
             {
-                if( xmlGrandOutputConfiguration.Name != "GrandOutputConfiguration" ) throw new XmlException( "Element name must be <GrandOutputConfiguration>." );
-                LogFilter? appDomainFilter = xmlGrandOutputConfiguration.GetAttributeLogFilter( "AppDomainDefaultFilter", false );
+                if( e.Name != "GrandOutputConfiguration" ) throw new XmlException( "Element name must be <GrandOutputConfiguration>." + e.GetLineColumString() );
+                LogFilter? appDomainFilter = e.GetAttributeLogFilter( "AppDomainDefaultFilter", false );
 
-                XElement channelElement = xmlGrandOutputConfiguration.Element( "Channel" );
-                if( channelElement == null )
-                {
-                    monitor.Error().Send( "Missing <Channel /> element." );
-                    return false;
-                }
                 SourceFilterApplyMode applyMode;
-                Dictionary<string, LogFilter> sourceFilter = ReadSourceFilter( xmlGrandOutputConfiguration, out applyMode, monitor );
+                Dictionary<string, LogFilter> sourceFilter = ReadSourceFilter( e, out applyMode, monitor );
                 if( sourceFilter == null ) return false;
 
-                RouteConfiguration routeConfig = FillRoute( monitor, channelElement, new RouteConfiguration() );
-
+                RouteConfiguration routeConfig;
+                using( monitor.OpenTrace().Send( "Reading root Channel." ) )
+                {
+                    XElement channelElement = e.Element( "Channel" );
+                    if( channelElement == null )
+                    {
+                        monitor.Error().Send( "Missing <Channel /> element." + e.GetLineColumString() );
+                        return false;
+                    }
+                    routeConfig = FillRoute( monitor, channelElement, new RouteConfiguration() );
+                }
                 // No error: set the new values.
                 _routeConfig = routeConfig;
                 _sourceFilter = sourceFilter;
@@ -143,33 +146,42 @@ namespace CK.Monitoring
         static Dictionary<string, LogFilter> ReadSourceFilter( XElement e, out SourceFilterApplyMode apply, IActivityMonitor monitor )
         {
             apply = SourceFilterApplyMode.None;
-            try
+            using( monitor.OpenTrace().Send( "Reading SourceFilter elements." ) )
             {
-                var s = e.Element( "SourceFilter" );
-                if( s == null ) return new Dictionary<string, LogFilter>();
-                apply = s.GetAttributeEnum( "ApplyMode", SourceFilterApplyMode.Apply );
-
-                var stranger =  e.Elements( "SourceFilter" ).Elements().FirstOrDefault( f => f.Name != "Add" && f.Name != "Remove" );
-                if( stranger != null )
+                try
                 {
-                    throw new XmlException( "SourceFilter element must contain only Add and Remove elements." + stranger.GetLineColumString() );
+                    var s = e.Element( "SourceFilter" );
+                    if( s == null )
+                    {
+                        monitor.CloseGroup( "No source filtering (ApplyMode is None)." );
+                        return new Dictionary<string, LogFilter>();
+                    }
+                    apply = s.GetAttributeEnum( "ApplyMode", SourceFilterApplyMode.Apply );
+
+                    var stranger =  e.Elements( "SourceFilter" ).Elements().FirstOrDefault( f => f.Name != "Add" && f.Name != "Remove" );
+                    if( stranger != null )
+                    {
+                        throw new XmlException( "SourceFilter element must contain only Add and Remove elements." + stranger.GetLineColumString() );
+                    }
+                    var result = e.Elements( "SourceFilter" )
+                                    .Elements()
+                                    .Select( f => new
+                                                    {
+                                                        File = f.AttributeRequired( "File" ),
+                                                        Filter = f.Name == "Add"
+                                                                    ? f.GetRequiredAttributeLogFilter( "Filter" )
+                                                                    : (LogFilter?)LogFilter.Undefined
+                                                    } )
+                                    .Where( f => !String.IsNullOrWhiteSpace( f.File.Value ) )
+                                    .ToDictionary( f => f.File.Value, f => f.Filter.Value );
+                    monitor.CloseGroup( String.Format( "{0} source files, ApplyMode is {1}.", result.Count, apply ) );
+                    return result;
                 }
-                return e.Elements( "SourceFilter" )
-                        .Elements()
-                        .Select( f => new 
-                                        { 
-                                            File = f.AttributeRequired( "File" ), 
-                                            Filter = f.Name == "Add" 
-                                                        ? f.GetRequiredAttributeLogFilter( "Filter" ) 
-                                                        : (LogFilter?)LogFilter.Undefined 
-                                        } )
-                        .Where( f => !String.IsNullOrWhiteSpace( f.File.Value ) )
-                        .ToDictionary( f => f.File.Value, f => f.Filter.Value );
-            }
-            catch( Exception ex )
-            {
-                monitor.Error().Send( ex, "Unable to read SourceFilter element." );
-                return null;
+                catch( Exception ex )
+                {
+                    monitor.Error().Send( ex, "Error while reading SourceFilter element." );
+                    return null;
+                }
             }
         }
 
@@ -187,7 +199,7 @@ namespace CK.Monitoring
                     case "Sequence":
                     case "Add": DoSequenceOrParallelOrAdd( monitor, a => route.AddAction( a ), e );
                         break;
-                    default: throw new XmlException( "Element name must be <Add>, <Parallel>, <Sequence> or <Channel>." );
+                    default: throw new XmlException( "Element name must be <Add>, <Parallel>, <Sequence> or <Channel>." + e.GetLineColumString() );
                 }
             }
             return route;
@@ -195,9 +207,32 @@ namespace CK.Monitoring
 
         SubRouteConfiguration FillSubRoute( IActivityMonitor monitor, XElement xml, SubRouteConfiguration sub )
         {
-            FillRoute( monitor, xml, sub );
-            sub.RoutePredicate = CreatePredicate( xml.AttributeRequired( "TopicFilter" ).Value );
-            return sub;
+            using( monitor.OpenTrace().Send( "Reading subordinated channel '{0}'.", sub.Name ) )
+            {
+                var matchOptions = xml.GetAttribute( "MatchOptions", null );
+                var filter = xml.GetAttribute( "TopicFilter", null );
+                var regex = xml.GetAttribute( "TopicRegex", null );
+                if( (filter == null) == (regex == null) )
+                {
+                    throw new XmlException( "Subordinated Channel must define one TopicFilter or TopicRegex attribute (and not both)." + xml.GetLineColumString() );
+                }
+                RegexOptions opt = RegexOptions.IgnoreCase | RegexOptions.CultureInvariant | RegexOptions.Multiline;
+                if( !String.IsNullOrWhiteSpace( matchOptions ) )
+                {
+                    if( !Enum.TryParse( matchOptions, true, out opt ) )
+                    {
+                        var expected = String.Join( ", ", Enum.GetNames( typeof( RegexOptions ) ).Where( n => n != "None" ) );
+                        throw new XmlException( "MatchOptions value must be a subset of: " + expected + xml.GetLineColumString() );
+                    }
+                    monitor.Trace().Send( "MatchOptions for Channel '{0}' is: {1}.", sub.Name, opt );
+                }
+                else monitor.Trace().Send( "MatchOptions for Channel '{0}' defaults to: IgnoreCase, CultureInvariant, Multiline.", sub.Name );
+
+                sub.RoutePredicate = filter != null ? CreatePredicateFromWildcards( filter, opt ) : CreatePredicateRegex( regex, opt );
+
+                FillRoute( monitor, xml, sub );
+                return sub;
+            }
         }
 
         void DoSequenceOrParallelOrAdd( IActivityMonitor monitor, Action<ActionConfiguration> collector, XElement xml )
@@ -230,11 +265,16 @@ namespace CK.Monitoring
             }
         }
 
-        static Func<string, bool> CreatePredicate( string pattern )
+        static Func<string, bool> CreatePredicateFromWildcards( string pattern, RegexOptions opt )
         {
             string r = "^" + Regex.Escape( pattern ).Replace( @"\*", ".*" ).Replace( @"\?", "." ) + "$";
-            Regex re = new Regex( r, RegexOptions.IgnoreCase | RegexOptions.CultureInvariant | RegexOptions.Multiline );
+            Regex re = new Regex( r, opt );
             return re.IsMatch;
+        }
+
+        static Func<string, bool> CreatePredicateRegex( string regex, RegexOptions opt )
+        {
+            return new Regex( regex, opt ).IsMatch;
         }
 
         static Type FindConfigurationType( string type )
