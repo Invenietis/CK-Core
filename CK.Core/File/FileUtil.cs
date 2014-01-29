@@ -128,6 +128,12 @@ namespace CK.Core
         public static readonly string FileNameUniqueTimeUtcFormat = @"yyyy-MM-dd HH\hmm.ss.fffffff";
 
         /// <summary>
+        /// The time returned by <see cref="File.GetLastWriteTimeUtc"/> when the file does not exist.
+        /// From MSDN: If the file described in the path parameter does not exist, this method returns 12:00 midnight, January 1, 1601 A.D. (C.E.) Coordinated Universal Time (UTC).
+        /// </summary>
+        public static readonly DateTime MissingFileLastWriteTimeUtc = new DateTime( 1601, 1, 1, 0, 0, 0, DateTimeKind.Utc );
+        
+        /// <summary>
         /// Tries to match a DateTime that follows the <see cref="FileNameUniqueTimeUtcFormat"/> in a string at a given position.
         /// </summary>
         /// <param name="s">The string to match.</param>
@@ -391,6 +397,7 @@ namespace CK.Core
                 }
             }
         }
+
     }
 
 }

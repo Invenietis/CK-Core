@@ -35,8 +35,11 @@ namespace CK.Core.Tests.Monitoring
         [Test]
         public void ToStringTests()
         {
-            Assert.That( LogFilter.Undefined.ToString(), Is.EqualTo( "{None,None}" ) );
-            Assert.That( LogFilter.Terse.ToString(), Is.EqualTo( "{Info,Error}" ) );
+            Assert.That( LogFilter.Undefined.ToString(), Is.EqualTo( "Undefined" ) );
+            Assert.That( LogFilter.Terse.ToString(), Is.EqualTo( "Terse" ) );
+            Assert.That( LogFilter.Off.ToString(), Is.EqualTo( "Off" ) );
+            Assert.That( LogFilter.Debug.ToString(), Is.EqualTo( "Debug" ) );
+            Assert.That( LogFilter.Invalid.ToString(), Is.EqualTo( "Invalid" ) );
             Assert.That( new LogFilter( LogLevelFilter.Warn, LogLevelFilter.Error ).ToString(), Is.EqualTo( "{Warn,Error}" ) );
         }
 

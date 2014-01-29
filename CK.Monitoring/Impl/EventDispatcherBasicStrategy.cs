@@ -7,6 +7,9 @@ using System.Threading.Tasks;
 
 namespace CK.Monitoring.Impl
 {
+    /// <summary>
+    /// Implements a basic strategy that handles activities logging overloads.
+    /// </summary>
     public sealed class EventDispatcherBasicStrategy : IGrandOutputDispatcherStrategy
     {
         readonly int _maxCapacity;
@@ -18,7 +21,14 @@ namespace CK.Monitoring.Impl
         int _ignoredConcurrentCallCount;
         bool _opened;
 
-        public EventDispatcherBasicStrategy( int maxCapacity = 64*1024, int reenableCapacity = 0, int samplingCount = 0 )
+        /// <summary>
+        /// Initializes a new basic strategy. 
+        /// Default parameters should be used.
+        /// </summary>
+        /// <param name="maxCapacity">Maximum capacity.</param>
+        /// <param name="reenableCapacity">Defaults to 4/5 of the maximum capacity.</param>
+        /// <param name="samplingCount">Actual check of the queue count is done by default each 1/10 of the maximum capacity.</param>
+        public EventDispatcherBasicStrategy( int maxCapacity = 128*1024, int reenableCapacity = 0, int samplingCount = 0 )
         {
             if( maxCapacity < 1000 || (reenableCapacity > 0 && maxCapacity < reenableCapacity) ) throw new ArgumentException();
             _maxCapacity = maxCapacity;
@@ -26,6 +36,9 @@ namespace CK.Monitoring.Impl
             _samplingCount = samplingCount > 0 ? samplingCount : maxCapacity / 10;
         }
 
+        /// <summary>
+        /// Gets the count of concurrent sampling (when this strategy has been called while it was already called by another thread).
+        /// </summary>
         public int IgnoredConcurrentCallCount
         {
             get { return _ignoredConcurrentCallCount; }
@@ -39,7 +52,7 @@ namespace CK.Monitoring.Impl
             dispatcher.Priority = ThreadPriority.Normal;
         }
 
-        public bool IsOpened( ref int maxQueuedCount )
+        bool IGrandOutputDispatcherStrategy.IsOpened( ref int maxQueuedCount )
         {
             if( Interlocked.Decrement( ref _sample ) == 0 )
             {

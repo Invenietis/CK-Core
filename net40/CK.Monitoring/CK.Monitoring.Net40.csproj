@@ -71,6 +71,12 @@
     <Compile Include="..\..\CK.Monitoring\GrandOutput.cs">
       <Link>GrandOutput.cs</Link>
     </Compile>
+    <Compile Include="..\..\CK.Monitoring\GrandOutput.DefaultConfig.cs">
+      <Link>GrandOutput.DefaultConfig.cs</Link>
+    </Compile>
+    <Compile Include="..\..\CK.Monitoring\GrandOutput.XAppDomain.cs">
+      <Link>GrandOutput.XAppDomain.cs</Link>
+    </Compile>
     <Compile Include="..\..\CK.Monitoring\GrandOutputClient.cs">
       <Link>GrandOutputClient.cs</Link>
     </Compile>

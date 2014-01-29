@@ -176,6 +176,14 @@ namespace CK.Core
         /// <returns>A {group,line} string.</returns>
         public override string ToString()
         {
+            if( this == LogFilter.Undefined ) return "Undefined";
+            if( this == LogFilter.Debug ) return "Debug";
+            if( this == LogFilter.Verbose ) return "Verbose";
+            if( this == LogFilter.Monitor ) return "Monitor";
+            if( this == LogFilter.Terse ) return "Terse";
+            if( this == LogFilter.Release ) return "Release";
+            if( this == LogFilter.Off ) return "Off";
+            if( this == LogFilter.Invalid ) return "Invalid";
             return String.Format( "{{{0},{1}}}", Group, Line );
         }
 
@@ -270,6 +278,10 @@ namespace CK.Core
                 {
                     f = Off;
                 }
+                else if( Util.Matcher.Match( s, ref startAt, "Invalid" ) )
+                {
+                    f = Invalid;
+                }
                 else
                 {
                     if( s[startAt] != '{' || startAt > s.Length - 9 ) return false;
@@ -295,7 +307,7 @@ namespace CK.Core
         }
 
         /// <summary>
-        /// Try to parse a <see cref="LogLevelFilter"/>.
+        /// Tries to parse a <see cref="LogLevelFilter"/>.
         /// </summary>
         /// <param name="s">Filter level to parse.</param>
         /// <param name="startAt">

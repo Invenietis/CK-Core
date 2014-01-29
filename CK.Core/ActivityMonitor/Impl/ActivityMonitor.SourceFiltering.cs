@@ -33,6 +33,9 @@ namespace CK.Core
 {
     public partial class ActivityMonitor
     {
+        /// <summary>
+        /// Manages source filters.
+        /// </summary>
         public static class SourceFilter
         {
             static readonly ConcurrentDictionary<string,LogFilter> _filters;

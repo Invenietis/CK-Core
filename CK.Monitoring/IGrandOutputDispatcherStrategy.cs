@@ -18,7 +18,7 @@ namespace CK.Monitoring
         /// <summary>
         /// Called once and only once during <see cref="GrandOutput"/> initialization.
         /// </summary>
-        /// <param name="instantLoad">Offers access to the number of items waiting to be processed.</param>
+        /// <param name="instantLoad">Gets the number of items waiting to be processed.</param>
         /// <param name="dispatcher">The dispatcher thread.</param>
         void Initialize( Func<int> instantLoad, Thread dispatcher );
 

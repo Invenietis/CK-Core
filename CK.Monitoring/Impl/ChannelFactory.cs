@@ -12,54 +12,48 @@ using CK.Monitoring.GrandOutputHandlers;
 
 namespace CK.Monitoring.Impl
 {
-    internal sealed class ChannelFactory : RouteActionFactory<HandlerBase,IChannel>
+    internal sealed class ChannelFactory : RouteActionFactory<HandlerBase, IChannel>, IChannel
     {
-        readonly IGrandOutputSink _commonSink;
-        readonly EventDispatcher _dispatcher;
+        public readonly GrandOutput _grandOutput;
+        public readonly EventDispatcher _dispatcher;
         public readonly EventDispatcher.FinalReceiver CommonSinkOnlyReceiver;
 
-        sealed class EmptyChannel : IChannel
+        #region EmptyChannel direct implementation
+
+        void IChannel.Initialize()
         {
-            readonly ChannelFactory _factory;
-
-            public EmptyChannel( ChannelFactory f )
-            {
-                _factory = f;
-            }
-
-            public void Initialize()
-            {
-            }
-
-            public void Handle( GrandOutputEventInfo logEvent, bool sendToCommonSink )
-            {
-                if( sendToCommonSink ) _factory._dispatcher.Add( logEvent, _factory.CommonSinkOnlyReceiver );
-            }
-
-            public LogFilter MinimalFilter
-            {
-                get { return LogFilter.Undefined; }
-            }
-
-            public void PreHandleLock()
-            {
-            }
-
-            public void CancelPreHandleLock()
-            {
-            }
         }
 
-        internal ChannelFactory( IGrandOutputSink commonSink, EventDispatcher dispatcher )
+        void IChannel.Handle( GrandOutputEventInfo logEvent, bool sendToCommonSink )
         {
-            _commonSink = commonSink;
+            if( sendToCommonSink ) _dispatcher.Add( logEvent, CommonSinkOnlyReceiver );
+        }
+
+        LogFilter IChannel.MinimalFilter
+        {
+            get { return LogFilter.Undefined; }
+        }
+
+        void IChannel.PreHandleLock()
+        {
+        }
+
+        void IChannel.CancelPreHandleLock()
+        {
+        }
+
+        #endregion
+
+        internal ChannelFactory( GrandOutput grandOutput, EventDispatcher dispatcher )
+        {
+            _grandOutput = grandOutput;
             _dispatcher = dispatcher;
-            CommonSinkOnlyReceiver = new EventDispatcher.FinalReceiver( commonSink, Util.EmptyArray<HandlerBase>.Empty, null );
+            CommonSinkOnlyReceiver = new EventDispatcher.FinalReceiver( grandOutput.CommonSink, Util.EmptyArray<HandlerBase>.Empty, null );
         }
 
         protected internal override IChannel DoCreateEmptyFinalRoute()
         {
-            return new EmptyChannel( this );
+            return this;
         }
 
         protected override HandlerBase DoCreate( IActivityMonitor monitor, IRouteConfigurationLock configLock, ActionConfiguration c )
@@ -81,7 +75,7 @@ namespace CK.Monitoring.Impl
 
         protected internal override IChannel DoCreateFinalRoute( IActivityMonitor monitor, IRouteConfigurationLock configLock, HandlerBase[] actions, string configurationName, object configData, IReadOnlyList<IChannel> routePath )
         {
-            return new StandardChannel( _commonSink, _dispatcher, configLock, actions, configurationName, (GrandOutputChannelConfigData)configData );
+            return new StandardChannel( _grandOutput.CommonSink, _dispatcher, configLock, actions, configurationName, (GrandOutputChannelConfigData)configData );
         }
     }
 }

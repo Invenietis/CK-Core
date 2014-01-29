@@ -204,6 +204,28 @@ namespace CK.Core.Tests.Monitoring
         }
 
         [Test]
+        public void OffLevelPreventsUnfilteredLogs()
+        {
+            var m = new ActivityMonitor( false );
+            var c = m.Output.RegisterClient( new StupidStringClient() );
+            m.Trace().Send( "Trace1" );
+            m.MinimalFilter = LogFilter.Off;
+            m.UnfilteredLog( ActivityMonitor.Tags.Empty, LogLevel.Fatal, "NOSHOW-1", m.NextLogTime(), null );
+            m.UnfilteredOpenGroup( ActivityMonitor.Tags.Empty, LogLevel.Fatal, null, "NOSHOW-2", m.NextLogTime(), null );
+            m.UnfilteredLog( ActivityMonitor.Tags.Empty, LogLevel.Error, "NOSHOW-3", m.NextLogTime(), null );
+            // Off will be restored by the group closing.
+            m.MinimalFilter = LogFilter.Debug;
+            m.CloseGroup( "NOSHOW-4" );
+            m.MinimalFilter = LogFilter.Debug;
+            m.Trace().Send( "Trace2" );
+
+            var s = c.ToString();
+            Assert.That( s, Is.StringContaining( "Trace1" ).And.StringContaining( "Trace2" ) );
+            Assert.That( s, Is.Not.StringContaining( "NOSHOW" ) );
+        }
+
+
+        [Test]
         [Category( "Console" )]
         public void DefaultImpl()
         {

@@ -75,6 +75,7 @@ namespace CK.Monitoring.Impl
         readonly ConcurrentQueue<EventItem> _queue;
         readonly object _dispatchLock;
         readonly Thread _thread;
+        int _nonBlockingCount;
         IGrandOutputDispatcherStrategy  _strat;
         int _maxQueuedCount;
         int _eventLostCount;
@@ -91,7 +92,7 @@ namespace CK.Monitoring.Impl
             _overloadLock = new object();
             _thread = new Thread( Run );
             _thread.IsBackground = true;
-            _strat.Initialize( () => _queue.Count, _thread );
+            _strat.Initialize( () => _nonBlockingCount, _thread );
             _thread.Start();
         }
 
@@ -135,6 +136,7 @@ namespace CK.Monitoring.Impl
                 if( strat.IsOpened( ref _maxQueuedCount ) )
                 {
                     // Normal message and no queue overload detected.
+                    Interlocked.Increment( ref _nonBlockingCount );
                     _queue.Enqueue( new EventItem( e, receiver ) );
                     lock( _dispatchLock ) Monitor.Pulse( _dispatchLock );
                 }
@@ -180,6 +182,7 @@ namespace CK.Monitoring.Impl
                 EventItem e;
                 while( _queue.TryDequeue( out e ) )
                 {
+                    Interlocked.Decrement( ref _nonBlockingCount );
                     if( e.MustStop ) return;
                     e.Receiver.Dispatch( e.EventInfo );
                 }
@@ -203,15 +206,6 @@ namespace CK.Monitoring.Impl
                 GC.SuppressFinalize( this );
                 _thread.Join();
             }
-        }
-
-        /// <summary>
-        /// Gets the count of concurrent sampling: each time <see cref="IsOpened"/> has been
-        /// called while it was already called by another thread.
-        /// </summary>
-        public int IgnoredConcurrentCallCount
-        {
-            get { return _strat.IgnoredConcurrentCallCount; }
         }
     }
 }

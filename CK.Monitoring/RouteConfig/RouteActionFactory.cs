@@ -79,7 +79,7 @@ namespace CK.RouteConfig
 
         /// <summary>
         /// Must be implemented to return an empty final route.
-        /// This empty final route is used when no configuration exists or if an error occured while 
+        /// This empty final route is used when no configuration exists or if an error occurred while 
         /// setting a new configuration.
         /// </summary>
         /// <returns>An empty route. Can be a static shared (immutable) object.</returns>

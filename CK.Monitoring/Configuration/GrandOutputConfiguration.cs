@@ -147,11 +147,23 @@ namespace CK.Monitoring
             {
                 var s = e.Element( "SourceFilter" );
                 if( s == null ) return new Dictionary<string, LogFilter>();
-                apply = s.GetAttributeEnum( "ApplyMode", SourceFilterApplyMode.ClearThenApply );
+                apply = s.GetAttributeEnum( "ApplyMode", SourceFilterApplyMode.Apply );
+
+                var stranger =  e.Elements( "SourceFilter" ).Elements().FirstOrDefault( f => f.Name != "Add" && f.Name != "Remove" );
+                if( stranger != null )
+                {
+                    throw new XmlException( "SourceFilter element must contain only Add and Remove elements." + stranger.GetLineColumString() );
+                }
                 return e.Elements( "SourceFilter" )
-                        .Elements( "File" )
-                        .Select( f => new { File = f.Attribute( "File" ), Filter = f.GetAttributeLogFilter( "Filter", true ) } )
-                        .Where( f => f.File != null && !String.IsNullOrWhiteSpace( f.File.Value ) && f.Filter != LogFilter.Undefined )
+                        .Elements()
+                        .Select( f => new 
+                                        { 
+                                            File = f.AttributeRequired( "File" ), 
+                                            Filter = f.Name == "Add" 
+                                                        ? f.GetRequiredAttributeLogFilter( "Filter" ) 
+                                                        : (LogFilter?)LogFilter.Undefined 
+                                        } )
+                        .Where( f => !String.IsNullOrWhiteSpace( f.File.Value ) )
                         .ToDictionary( f => f.File.Value, f => f.Filter.Value );
             }
             catch( Exception ex )

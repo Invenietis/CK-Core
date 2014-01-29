@@ -10,7 +10,7 @@ using NUnit.Framework;
 
 namespace CK.Monitoring.Tests
 {
-    [Fixture]
+    [TestFixture]
     public class StressTests
     {
         [SetUp]
@@ -125,13 +125,13 @@ namespace CK.Monitoring.Tests
 
         static int RunStressTestAndGetLostMessageCount( RunContextParam p )
         {
+            TestHelper.ConsoleMonitor.Info().Send( "Prob to sleep: {0}", p.SendingThreadProbToSleep );
             int nbThreads = p.PoolThreadCount + p.NewThreadCount;
             int criticalErrorCount = 0;
             EventHandler<SystemActivityMonitor.LowLevelErrorEventArgs> h = ( sender, e ) => ++criticalErrorCount;
             SystemActivityMonitor.OnError += h;
             int nbLost = 0;
             int maxQueuedCount = 0;
-            int sampleReentrantCount = 0;
             try
             {
                 int nbCalls = 0;
@@ -153,7 +153,6 @@ namespace CK.Monitoring.Tests
                     Assert.That( nbCalls, Is.EqualTo( nbThreads * p.LoopCount ) );
                     nbLost = c.GrandOutput.LostEventCount;
                     maxQueuedCount = c.GrandOutput.MaxQueuedCount;
-                    sampleReentrantCount = c.GrandOutput.IgnoredConcurrentCallCount;
                 }
                 ActivityMonitor.MonitoringError.WaitOnErrorFromBackgroundThreadsPending();
             }
@@ -163,15 +162,14 @@ namespace CK.Monitoring.Tests
             }
             int theoricalTotal = nbThreads * p.LoopCount * 3;
             int receivedTotal = CK.Monitoring.GrandOutputHandlers.FakeHandler.TotalHandleCount;
-            TestHelper.ConsoleMonitor.Info().Send( "Local Test Strategy:{6} - Total should be {0}, Total received = {1}, Binary size = {2},  MaxQueuedCount={3}, Number of lost messages={4}, IgnoredConcurrentCallCount={7}, Number of Critical Errors={5}.",
+            TestHelper.ConsoleMonitor.Info().Send( "Local Test Strategy:{6} - Total should be {0}, Total received = {1}, Binary size = {2},  MaxQueuedCount={3}, Number of lost messages={4}, Number of Critical Errors={5}.",
                 theoricalTotal,
                 receivedTotal,
                 CK.Monitoring.GrandOutputHandlers.FakeHandler.SizeHandled,
                 maxQueuedCount,
                 nbLost,
                 criticalErrorCount,
-                p.UseLocalTestStrategy,
-                sampleReentrantCount );
+                p.UseLocalTestStrategy );
             if( receivedTotal == theoricalTotal )
             {
                 Assert.That( CK.Monitoring.GrandOutputHandlers.FakeHandler.HandlePerfTraceCount, Is.EqualTo( nbThreads * p.LoopCount ) );
@@ -194,12 +192,11 @@ namespace CK.Monitoring.Tests
             Assert.That( p.SendingThreadProbToSleep == 0 );
 
             RunStressTestAndGetLostMessageCount( p );            
-            p.SendingThreadProbToSleep = 0.05;
+            p.SendingThreadProbToSleep = 0.1;
             do
             {
                 p.SendingThreadProbToSleep += 0.1;
                 if( p.SendingThreadProbToSleep > 1.0 ) break;
-                TestHelper.ConsoleMonitor.Info().Send( "Prob to sleep: {0}", p.SendingThreadProbToSleep );
             }
             while( RunStressTestAndGetLostMessageCount( p ) > 0 );
         }

@@ -77,7 +77,7 @@ namespace CK.Core
                 SavedMonitorTags = Monitor._currentTag;
                 if( (_unfilteredParent = Monitor._currentUnfiltered) != null ) _depth = _unfilteredParent._depth + 1;
                 else _depth = 1;
-                // Logs everything when a Group is an error: we then have full details without
+                // Logs everything when a Group is an error: we then have full details available without
                 // logging all with Error or Fatal.
                 if( data.MaskedLevel >= LogLevel.Error && Monitor._configuredFilter != LogFilter.Debug ) Monitor.DoSetConfiguredFilter( LogFilter.Debug );
                 _closeLogTime = DateTimeStamp.MinValue;
@@ -94,6 +94,15 @@ namespace CK.Core
                 _unfilteredParent = Monitor._currentUnfiltered;
                 _depth = 0;
                 _data = data;
+            }
+
+            /// <summary>
+            /// Gets whether the group is rejected: Depth is 0 when ActualFilter is Off or the GroupLevel 
+            /// is None (the OpenGroup has been filtered).
+            /// </summary>
+            internal bool IsRejectedGroup
+            {
+                get { return _depth == 0 || _data.Level == LogLevel.None; }
             }
 
             /// <summary>

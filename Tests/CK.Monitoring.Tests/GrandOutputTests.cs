@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Runtime.Remoting.Lifetime;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -57,7 +58,7 @@ namespace CK.Monitoring.Tests
             return def;
         }
 
-        class RunInAnotherAppDomain : MarshalByRefObject
+        class RunInAnotherAppDomain : MarshalByRefObject, ISponsor
         {
             static ActivityMonitor _callerMonitor;
             static IDisposable _bridgeToCallerMonitor;
@@ -77,11 +78,11 @@ namespace CK.Monitoring.Tests
                 _localMonitor = new ActivityMonitor();
             }
 
-            public void RunNoConfigFile()
+            public void RunNoConfigFileDefaultsToTerse()
             {
-                _localMonitor.Trace().Send( "NoConfigFile1" );
-                _localMonitor.Info().Send( "NoConfigFile2" );
-                _localMonitor.Warn().Send( "NoConfigFile3" );
+                _localMonitor.Trace().Send( "NoConfigFile1-NOSHOW" );
+                _localMonitor.Info().Send( "NoConfigFile2-NOSHOW" );
+                _localMonitor.Warn().Send( "NoConfigFile3-NOSHOW" );
                 _localMonitor.Error().Send( "NoConfigFile4" );
                 _localMonitor.Fatal().Send( "NoConfigFile5" );
             }
@@ -101,9 +102,9 @@ namespace CK.Monitoring.Tests
                 GrandOutput.Default.WaitForNextConfiguration( configurationAttemptCount, -1 );
             }
 
-            internal void Trace( string msg )
+            internal void SendLine( LogLevel level, string msg )
             {
-                _localMonitor.Trace().Send( msg );
+                if( _localMonitor.ShouldLogLine( level ) ) _localMonitor.UnfilteredLog( ActivityMonitor.Tags.Empty, level|LogLevel.IsFiltered, msg, _localMonitor.NextLogTime(), null );
             }
 
             public void RunWithConfigFileMonitorFilter()
@@ -117,9 +118,32 @@ namespace CK.Monitoring.Tests
 
             public void Close()
             {
-                _bridgeToCallerMonitor.Dispose();
+                if( _bridgeToCallerMonitor != null )
+                {
+                    _bridgeToCallerMonitor.Dispose();
+                    _bridgeToCallerMonitor = null;
+                }
             }
 
+            public override object InitializeLifetimeService()
+            {
+                ILease lease = (ILease)base.InitializeLifetimeService();
+                if( lease.CurrentState == LeaseState.Initial )
+                {
+                    lease.Register( this );
+                }
+                return lease;
+            }
+
+            public TimeSpan Renewal( ILease lease )
+            {
+                return _bridgeToCallerMonitor != null ? lease.InitialLeaseTime : TimeSpan.Zero;
+            }
+        }
+
+        [Test]
+        public void WhenConfigurationDisapears()
+        {
         }
 
         [Test]
@@ -135,30 +159,66 @@ namespace CK.Monitoring.Tests
             {
                 exec.Initialize( TestHelper.ConsoleMonitor.Output.BridgeTarget );
 
-                exec.RunNoConfigFile();
+                Assert.That( exec.GetLocalMonitorActualFilter(), Is.EqualTo( LogFilter.Terse ) );
+
+                exec.RunNoConfigFileDefaultsToTerse();
 
                 int confCount = exec.GetConfigurationAttemptCount();
 
-                SetDomainConfigAndWaitForChanged( String.Format( @"
-<GrandOutputConfiguration >
+                SetDomainConfigTextFile( @"
+<GrandOutputConfiguration>
     <Channel MinimalFilter=""Monitor"">
-        <Add Type=""BinaryFile"" Name=""AllFromConfig""  Path=""{0}GrandOutputDefault"" />
+        <Add Type=""BinaryFile"" Name=""AllFromConfig""  Path=""GrandOutputDefault"" />
     </Channel>
-</GrandOutputConfiguration>", RunInAnotherAppDomain.DomainRootLogPath ) );
-
+</GrandOutputConfiguration>" );
 
                 exec.WaitForNextConfiguration( confCount + 1 );
 
-                Assert.That( exec.GetLocalMonitorActualFilter(), Is.EqualTo( LogFilter.Undefined ) );
-                
-                // This call triggers the update of the MinimalFilter.
-                // For performance reason, changes to the GrandOutput are not synchronously propagated to the Monitor by the GrandOutputClient.
-                // Changes (MinimalFilter or new Route obtention) are delayed until the next time the monitor is solicited.
-                exec.Trace( "UpdateMinimalFilter" );
+                Assert.That( exec.GetConfigurationAttemptCount(), Is.EqualTo( confCount + 1 ) );
 
                 Assert.That( exec.GetLocalMonitorActualFilter(), Is.EqualTo( LogFilter.Monitor ) );
                 
                 exec.RunWithConfigFileMonitorFilter();
+
+                SetDomainConfigTextFile( null );
+                
+                exec.WaitForNextConfiguration( confCount + 2 );
+                Assert.That( exec.GetConfigurationAttemptCount(), Is.EqualTo( confCount + 2 ) );
+
+                Assert.That( exec.GetLocalMonitorActualFilter(), Is.EqualTo( LogFilter.Terse ) );
+                exec.SendLine( LogLevel.Warn, "NOSHOW (since it now defaults to Terse filter)" );
+                exec.SendLine( LogLevel.Error, "ErrorWithTerseFilter" );
+
+                SetDomainConfigTextFile( @"
+<GrandOutputConfiguration>
+    <Channel MinimalFilter=""Debug"">
+        <Add Type=""BinaryFile"" Name=""AllFromConfig""  Path=""GrandOutputDefault"" />
+    </Channel>
+</GrandOutputConfiguration>" );
+
+                exec.WaitForNextConfiguration( confCount + 3 );
+                Assert.That( exec.GetConfigurationAttemptCount(), Is.EqualTo( confCount + 3 ) );
+
+                Assert.That( exec.GetLocalMonitorActualFilter(), Is.EqualTo( LogFilter.Debug ) );
+                exec.SendLine( LogLevel.Trace, "TraceSinceDebug" );
+
+                SetDomainConfigTextFile( "rename" );
+                
+                exec.WaitForNextConfiguration( confCount + 4 );
+                Assert.That( exec.GetConfigurationAttemptCount(), Is.EqualTo( confCount + 4 ) );
+
+                Assert.That( exec.GetLocalMonitorActualFilter(), Is.EqualTo( LogFilter.Terse ) );
+                exec.SendLine( LogLevel.Warn, "NOSHOW (since it now defaults to Terse filter)" );
+                exec.SendLine( LogLevel.Error, "ErrorWithTerseFilter2" );
+
+                SetDomainConfigTextFile( "renameBack" );
+                
+                exec.WaitForNextConfiguration( confCount + 5 );
+                Assert.That( exec.GetConfigurationAttemptCount(), Is.EqualTo( confCount + 5 ) );
+
+                Assert.That( exec.GetLocalMonitorActualFilter(), Is.EqualTo( LogFilter.Debug ) );
+                exec.SendLine( LogLevel.Trace, "TraceSinceDebug2" );
+
             }
             finally
             {
@@ -174,9 +234,9 @@ namespace CK.Monitoring.Tests
                     return m;
                 }, TestHelper.ConsoleMonitor );
 
-            Assert.That( logs.Count, Is.EqualTo( 2 ), "It contains the test monitor but also the monitoring of the reconfiguration due to the file changed." );
+            Assert.That( logs.Count, Is.EqualTo( 6 ), "It contains the test monitor but also the monitoring of the reconfiguration due to the 5 file changes." );
             CollectionAssert.AreEqual(
-                new[] { "NoConfigFile1", "NoConfigFile2", "NoConfigFile3", "NoConfigFile4", "NoConfigFile5", "UpdateMinimalFilter", "ConfigFileMonitorFilter1", "ConfigFileMonitorFilter2", "ConfigFileMonitorFilter3" }, 
+                new[] { "NoConfigFile4", "NoConfigFile5", "ConfigFileMonitorFilter1", "ConfigFileMonitorFilter2", "ConfigFileMonitorFilter3", "ErrorWithTerseFilter", "TraceSinceDebug", "ErrorWithTerseFilter2", "TraceSinceDebug2" }, 
                 logs[0].Entries.Select( e => e.Text ), StringComparer.OrdinalIgnoreCase );
         }
 
@@ -191,11 +251,16 @@ namespace CK.Monitoring.Tests
             exec = (RunInAnotherAppDomain)domain.CreateInstanceAndUnwrap( typeof( RunInAnotherAppDomain ).Assembly.FullName, typeof( RunInAnotherAppDomain ).FullName );
         }
 
-        private static void SetDomainConfigAndWaitForChanged( string config )
+        private static void SetDomainConfigTextFile( string config )
         {
             if( config != null )
             {
-                if( config == "rename" ) File.Move( RunInAnotherAppDomain.DomainGrandOutputConfig, RunInAnotherAppDomain.DomainRootLogPath + Guid.NewGuid().ToString() );
+                if( config.StartsWith( "rename" ) )
+                {
+                    if( config == "rename" )
+                        File.Move( RunInAnotherAppDomain.DomainGrandOutputConfig, RunInAnotherAppDomain.DomainRootLogPath + "rename" );
+                    else File.Move( RunInAnotherAppDomain.DomainRootLogPath + "rename", RunInAnotherAppDomain.DomainGrandOutputConfig );
+                }
                 else File.WriteAllText( RunInAnotherAppDomain.DomainGrandOutputConfig, config );
             }
             else File.Delete( RunInAnotherAppDomain.DomainGrandOutputConfig );

@@ -57,7 +57,10 @@
     <Compile Include="Configuration\GrandOutputConfiguration.cs" />
     <Compile Include="Configuration\SourceFilterApplyMode.cs" />
     <Compile Include="Configuration\XmlMonitoringExtensions.cs" />
+    <Compile Include="GrandOutput.DefaultConfig.cs" />
     <Compile Include="GlobalSuppressions.cs" />
+    <Compile Include="GrandOutput.XAppDomain.cs" />
+    <Compile Include="IGrandOutputBridgeTarget.cs" />
     <Compile Include="IGrandOutputDispatcherStrategy.cs" />
     <Compile Include="GrandOutputEventInfo.cs" />
     <Compile Include="GrandOutputHandlers\HandlerConfiguration.cs" />

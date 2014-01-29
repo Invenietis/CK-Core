@@ -87,7 +87,7 @@ namespace CK.Core.Impl
                 if( bound != null )
                 {
                     // Calling SetMonitor before adding it to the client first
-                    // enables the monitor to initialize itself before beeing sollicited.
+                    // enables the monitor to initialize itself before being solicited.
                     // And if SetMonitor method calls InitializeTopicAndAutoTags, it does not
                     // receive a "stupid" OnTopic/AutoTagsChanged. 
                     bound.SetMonitor( _monitor, false );
@@ -155,8 +155,8 @@ namespace CK.Core.Impl
                     IActivityMonitorBoundClient bound = client as IActivityMonitorBoundClient;
                     if( bound != null )
                     {
-                        bound.SetMonitor( null, false );
                         filter = bound.MinimalFilter;
+                        bound.SetMonitor( null, false );
                     }
                     var newArray = new IActivityMonitorClient[_clients.Length - 1];
                     Array.Copy( _clients, 0, newArray, 0, idx );

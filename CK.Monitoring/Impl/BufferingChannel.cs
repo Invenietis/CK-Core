@@ -25,7 +25,7 @@ namespace CK.Monitoring.Impl
         readonly ConcurrentQueue<GrandOutputEventInfo> _buffer;
         readonly object _flushLock;
 
-        internal BufferingChannel( IGrandOutputSink commonSink, EventDispatcher dispatcher, EventDispatcher.FinalReceiver commonSinkOnly )
+        internal BufferingChannel( EventDispatcher dispatcher, EventDispatcher.FinalReceiver commonSinkOnly )
         {
             _dispatcher = dispatcher;
             _receiver = commonSinkOnly;

@@ -203,6 +203,14 @@ namespace CK.Core.Tests
         }
 
         [Test]
+        public void GetLastWriteTimeUtcTest()
+        {
+            // From MSDN: If the file described in the path parameter does not exist, this method returns 12:00 midnight, January 1, 1601 A.D. (C.E.) Coordinated Universal Time (UTC).
+            Assert.That( File.GetLastWriteTimeUtc( Path.Combine( TestHelper.TestFolder, "KExistePAS.txt" ) ), Is.EqualTo( new DateTime( 1601, 1, 1, 0, 0, 0, DateTimeKind.Utc ) ) );
+            Assert.That( File.GetLastWriteTimeUtc( "I:\\KExistePAS.txt" ), Is.EqualTo( FileUtil.MissingFileLastWriteTimeUtc ) );
+        }
+
+        [Test]
         public void GetFilesTest()
         {
             TestHelper.CleanupTestFolder();

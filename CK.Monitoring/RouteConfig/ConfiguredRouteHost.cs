@@ -144,7 +144,7 @@ namespace CK.RouteConfig
         }
 
         /// <summary>
-        /// Gets the total number of calls to <see cref="SetConfiguration"/> (and to <see cref="Dispose"/> method).
+        /// Gets the total number of calls to <see cref="SetConfiguration"/> (and to <see cref="Dispose()"/> method).
         /// This can be used to call <see cref="WaitForNextConfiguration"/>.
         /// </summary>
         public int ConfigurationAttemptCount
@@ -260,7 +260,7 @@ namespace CK.RouteConfig
 
             /// <summary>
             /// Applies pending configuration: new routes are set on the host, <see cref="ConfiguredRouteHost{TAction,TRoute}.ObtainRoute"/> now returns the new ones.
-            /// If this method is not called during the call back, it is automaticcaly called before leaving <see cref="ConfiguredRouteHost{TAction,TRoute}.SetConfiguration">SetConfiguration</see>.
+            /// If this method is not called during the call back, it is automatically called before leaving <see cref="ConfiguredRouteHost{TAction,TRoute}.SetConfiguration">SetConfiguration</see>.
             /// </summary>
             public void ApplyConfiguration()
             {

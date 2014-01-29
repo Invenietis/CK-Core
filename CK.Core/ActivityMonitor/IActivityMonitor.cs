@@ -87,13 +87,13 @@ namespace CK.Core
         void SetTopic( string newTopic, [CallerFilePath]string fileName = null, [CallerLineNumber]int lineNumber = 0 );
 
         /// <summary>
-        /// Logs a line regardless of <see cref="ActualFilter"/> level. 
+        /// Logs a line regardless of <see cref="ActualFilter"/> level (except for <see cref="LogLevelFilter.Off"/>). 
         /// </summary>
         /// <param name="data">Data that describes the log. Can not be null.</param>
         void UnfilteredLog( ActivityMonitorLogData data );
 
         /// <summary>
-        /// Opens a group regardless of <see cref="ActualFilter"/> level. 
+        /// Opens a group regardless of <see cref="ActualFilter"/> level (except for <see cref="LogLevelFilter.Off"/>). 
         /// <see cref="CloseGroup"/> must be called in order to close the group, and/or the returned object must be disposed (both safely can be called: 
         /// the group is closed on the first action, the second one is ignored).
         /// </summary>

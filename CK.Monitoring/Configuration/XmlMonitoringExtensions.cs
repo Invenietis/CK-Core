@@ -12,7 +12,12 @@ namespace CK.Monitoring
     public static class XmlMonitoringExtensions
     {
 
-        static public LogFilter? GetAttributeLogFilter( this XElement @this,  string name, bool fallbackToUndefined )
+        static public LogFilter GetRequiredAttributeLogFilter( this XElement @this, string name )
+        {
+            return LogFilter.Parse( @this.AttributeRequired( name ).Value );
+        }
+
+        static public LogFilter? GetAttributeLogFilter( this XElement @this, string name, bool fallbackToUndefined )
         {
             XAttribute a = @this.Attribute( name );
             return a != null ? LogFilter.Parse( a.Value ) : (fallbackToUndefined ? LogFilter.Undefined : (LogFilter?)null);

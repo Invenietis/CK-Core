@@ -20,11 +20,11 @@ namespace CK.Monitoring
     public sealed partial class GrandOutput : IDisposable
     {
         readonly List<WeakRef<GrandOutputClient>> _clients;
-        readonly GrandOutputCompositeSink _commonSink;
         readonly ChannelHost _channelHost;
         readonly BufferingChannel _bufferingChannel;
         readonly EventDispatcher _dispatcher;
         DateTime _nextDeadClientGarbage;
+        internal readonly GrandOutputCompositeSink CommonSink;
 
         static GrandOutput _default;
         static FileSystemWatcher _watcher;
@@ -64,98 +64,6 @@ namespace CK.Monitoring
         }
 
         /// <summary>
-        /// Ensures that the <see cref="Default"/> GrandOutput is created (see <see cref="EnsureActiveDefault"/>) and configured with default settings.
-        /// The <see cref="SystemActivityMonitor.RootLogPath"/> must be valid and if a GrandOutput.config file exists inside, it is loaded as the configuration
-        /// that must be valid (otherwise an exception is thrown).
-        /// Once loaded, the file is monitored and any change that occurs to it dynamically triggers a <see cref="SetConfiguration"/> with the new file.
-        /// </summary>
-        /// <param name="monitor">An optional monitor.</param>
-        static public GrandOutput EnsureActiveDefaultWithDefaultSettings( IActivityMonitor monitor = null )
-        {
-            lock( _defaultLock )
-            {
-                if( _default == null )
-                {
-                    if( monitor == null ) monitor = new SystemActivityMonitor( true, "GrandOutput" );
-                    using( monitor.OpenInfo().Send( "Attempting Default GrandOutput configuration." ) )
-                    {
-                        try
-                        {
-                            SystemActivityMonitor.AssertRootLogPathIsSet();
-                            string conventionalConfigPath = SystemActivityMonitor.RootLogPath + "GrandOutput.config";
-                            GrandOutputConfiguration def = CreateDefaultConfig();
-                            if( File.Exists( conventionalConfigPath ) && !def.LoadFromFile( conventionalConfigPath, monitor ) ) 
-                            {
-                                throw new CKException( "Unable to load Configuration file: '{0}'.", conventionalConfigPath );
-                            }
-                            GrandOutput output = new GrandOutput();
-                            ActivityMonitor.AutoConfiguration += m => Default.Register( m );
-                            if( !output.SetConfiguration( def, monitor ) )
-                            {
-                                throw new CKException( "Failed to set Configuration." );
-                            }
-                            StartMonitoring( monitor );
-                            _default = output;
-                        }
-                        catch( Exception ex )
-                        {
-                            monitor.Fatal().Send( ex );
-                            throw;
-                        }
-                    }
-                }
-            }
-            return _default;
-        }
-
-        static GrandOutputConfiguration CreateDefaultConfig()
-        {
-            GrandOutputConfiguration def = new GrandOutputConfiguration();
-            Debug.Assert( def.SourceFilterApplicationMode == SourceFilterApplyMode.None );
-            Debug.Assert( def.AppDomainDefaultFilter == null );
-            var route = new RouteConfiguration();
-            route.ConfigData = new GrandOutputChannelConfigData();
-            route.AddAction( new BinaryFileConfiguration( "All" ) { Path = SystemActivityMonitor.RootLogPath + "GrandOutputDefault" } );
-            def.ChannelsConfiguration = route;
-            return def;
-        }
-
-        static void StartMonitoring( IActivityMonitor monitor )
-        {
-            if( _watcher != null ) _watcher.Dispose();
-            _watcher = new FileSystemWatcher();
-            _watcher.Path = SystemActivityMonitor.RootLogPath;
-            _watcher.NotifyFilter = NotifyFilters.LastWrite | NotifyFilters.FileName | NotifyFilters.DirectoryName;
-            _watcher.Filter = "GrandOutput.config";
-            _watcher.Changed += _watcher_Changed;
-            _watcher.Error += _watcher_Error;
-            _watcher.EnableRaisingEvents = true;
-        }
-
-        static void _watcher_Error( object sender, ErrorEventArgs e )
-        {
-            ActivityMonitor.MonitoringError.Add( e.GetException(), String.Format( "While monitoring GrandOutput.Default configuration file '{0}'.", _watcher.Path ) );
-        }
-
-        static void _watcher_Changed( object sender, FileSystemEventArgs e )
-        {
-            if( _watcher == null ) return;
-            string conventionalConfigPath = SystemActivityMonitor.RootLogPath + "GrandOutput.config";
-            var monitor = new SystemActivityMonitor( true, "GrandOutput" );
-            monitor.MinimalFilter = LogFilter.Debug;
-            using( monitor.OpenInfo().Send( "AppDomain '{0}',  file '{1}' changed.", AppDomain.CurrentDomain.FriendlyName, conventionalConfigPath ) )
-            {
-                var def = CreateDefaultConfig();
-                if( File.Exists( conventionalConfigPath ) )
-                {
-                    def.LoadFromFile( conventionalConfigPath, monitor );
-                }
-                else monitor.Trace().Send( "File missing: applying catch-all default configuration." );
-                if( !_default._channelHost.IsDisposed ) _default.SetConfiguration( def, monitor );
-            }
-        }
-
-        /// <summary>
         /// Initializes a new <see cref="GrandOutput"/>. 
         /// </summary>
         /// <param name="dispatcherStrategy">Strategy to use to handle the throughput.</param>
@@ -163,11 +71,11 @@ namespace CK.Monitoring
         {
             _clients = new List<WeakRef<GrandOutputClient>>();
             _dispatcher = new EventDispatcher( dispatcherStrategy ?? new EventDispatcherBasicStrategy() );
-            _commonSink = new GrandOutputCompositeSink();
-            var factory = new ChannelFactory( _commonSink, _dispatcher );
+            CommonSink = new GrandOutputCompositeSink();
+            var factory = new ChannelFactory( this, _dispatcher );
             _channelHost = new ChannelHost( factory, OnConfigurationReady );
             _channelHost.ConfigurationClosing += OnConfigurationClosing;
-            _bufferingChannel = new BufferingChannel( _commonSink, _dispatcher, factory.CommonSinkOnlyReceiver );
+            _bufferingChannel = new BufferingChannel( _dispatcher, factory.CommonSinkOnlyReceiver );
             _nextDeadClientGarbage = DateTime.UtcNow.AddMinutes( 5 );
             var h = new EventHandler( OnDomainTermination );
             AppDomain.CurrentDomain.DomainUnload += h;
@@ -218,11 +126,6 @@ namespace CK.Monitoring
         {
             get { return _dispatcher.MaxQueuedCount; }
         }
-
-        public int IgnoredConcurrentCallCount
-        {
-            get { return _dispatcher.IgnoredConcurrentCallCount; }
-        }
         
         /// <summary>
         /// Registers a <see cref="IGrandOutputSink"/>.
@@ -232,7 +135,7 @@ namespace CK.Monitoring
         {
             if( sink == null ) throw new ArgumentNullException( "sink" );
             AttemptGarbageDeadClients();
-            _commonSink.Add( sink );
+            CommonSink.Add( sink );
         }
 
         /// <summary>
@@ -243,29 +146,11 @@ namespace CK.Monitoring
         {
             if( sink == null ) throw new ArgumentNullException( "sink" );
             AttemptGarbageDeadClients();
-            _commonSink.Remove( sink );
+            CommonSink.Remove( sink );
         }
 
-        ///// <summary>
-        ///// Attempts to set a new configuration from a file.
-        ///// </summary>
-        ///// <param name="configFilePath">The path of the configuration that must be set.</param>
-        ///// <param name="monitor">Optional monitor.</param>
-        ///// <param name="millisecondsBeforeForceClose">Optional timeout to wait before forcing the close of the currently active configuration.</param>
-        ///// <returns>True on success.</returns>
-        //public bool SetConfiguration( string configFilePath, IActivityMonitor monitor = null, int millisecondsBeforeForceClose = Timeout.Infinite )
-        //{
-        //    if( monitor == null ) monitor = new SystemActivityMonitor( true, "GrandOutput" );
-        //    using( monitor.OpenTrace().Send( "Loading configuration from file: '{0}'.", configFilePath ) )
-        //    {
-        //        GrandOutputConfiguration c = new GrandOutputConfiguration();
-        //        if( !c.LoadFromFile( configFilePath, monitor ) ) return false;
-        //        return SetConfiguration( c, monitor, millisecondsBeforeForceClose );
-        //    }
-        //}
-
         /// <summary>
-        /// Gets the total number of calls to <see cref="SetConfiguration"/> (and to <see cref="Dispose"/> method).
+        /// Gets the total number of calls to <see cref="SetConfiguration"/> (and to <see cref="Dispose()"/> method).
         /// This can be used to call <see cref="WaitForNextConfiguration"/>.
         /// </summary>
         public int ConfigurationAttemptCount
@@ -392,7 +277,7 @@ namespace CK.Monitoring
             foreach( var cw in current )
             {
                 GrandOutputClient c = cw.Target;
-                if( c != null ) c.OnChannelConfigurationChanged();
+                if( c != null ) hasDeadClients |= !c.OnChannelConfigurationChanged();
                 else hasDeadClients = true;
             }
             return hasDeadClients;
@@ -401,7 +286,8 @@ namespace CK.Monitoring
         void AttemptGarbageDeadClients()
         {
             DateTime t = DateTime.UtcNow;
-            if( t > _nextDeadClientGarbage ) DoGarbageDeadClients( t );
+            if( t > _nextDeadClientGarbage ) 
+                lock( _clients ) DoGarbageDeadClients( t );
         }
 
         int DoGarbageDeadClients( DateTime utcNow )
@@ -413,7 +299,8 @@ namespace CK.Monitoring
             int count = 0;
             for( int i = 0; i < _clients.Count; ++i )
             {
-                if( !_clients[i].IsAlive )
+                var cw = _clients[i].Target;
+                if( cw == null || !cw.IsBoundToMonitor )
                 {
                     _clients.RemoveAt( i-- );
                     ++count;
@@ -458,5 +345,7 @@ namespace CK.Monitoring
         {
             Dispose( new SystemActivityMonitor(), Timeout.Infinite );
         }
+
+
     }
 }

@@ -72,15 +72,35 @@ namespace CK.Monitoring
             // will appear in the new channel.
             Interlocked.Increment( ref _version );
         }
-        
-        public LogFilter MinimalFilter { get { return _currentMinimalFilter; } }
 
-        internal void OnChannelConfigurationChanged()
-        {
-            Interlocked.Increment( ref _version );
+        LogFilter IActivityMonitorBoundClient.MinimalFilter 
+        { 
+            get 
+            {
+                if( _version != _curVersion ) 
+                { 
+                    var c = EnsureChannel( false );
+                    if( c != null ) c.CancelPreHandleLock();
+                }
+                return _currentMinimalFilter; 
+            } 
         }
 
-        IChannel EnsureChannel()
+        internal bool IsBoundToMonitor
+        {
+            get { return _monitorSource != null; }
+        }
+
+        internal bool OnChannelConfigurationChanged()
+        {
+            Interlocked.Increment( ref _version );
+            var m = _monitorSource;
+            if( m == null ) return false;
+            m.SetClientMinimalFilterDirty();
+            return true;
+        }
+
+        IChannel EnsureChannel( bool callOnClientMinimalFilterChanged = true )
         {
             if( _channel != null ) _channel.PreHandleLock();
             if( _version != _curVersion )
@@ -97,17 +117,26 @@ namespace CK.Monitoring
                     // we can safely call the property when needed.
                     // When ObtainChannel returns null, it means that the GrandOutput has been disposed.
                     _channel = _central.ObtainChannel( _monitorSource.Topic );
-                    if( _channel == null ) return null;
+                    if( _channel == null )
+                    {
+                        CheckFilter( callOnClientMinimalFilterChanged, LogFilter.Undefined );
+                        return null;
+                    }
                 }
                 while( _version != _curVersion );
-                if( _currentMinimalFilter != _channel.MinimalFilter )
-                {
-                    var prev = _currentMinimalFilter;
-                    _currentMinimalFilter = _channel.MinimalFilter;
-                    _monitorSource.OnClientMinimalFilterChanged( prev, _channel.MinimalFilter );
-                }
+                CheckFilter( callOnClientMinimalFilterChanged, _channel.MinimalFilter );
             }
             return _channel;
+        }
+
+        void CheckFilter( bool callOnClientMinimalFilterChanged, LogFilter f )
+        {
+            if( _currentMinimalFilter != f )
+            {
+                var prev = _currentMinimalFilter;
+                _currentMinimalFilter = f;
+                if( callOnClientMinimalFilterChanged ) _monitorSource.OnClientMinimalFilterChanged( prev, f );
+            }
         }
 
         void IActivityMonitorClient.OnUnfilteredLog( ActivityMonitorLogData data )

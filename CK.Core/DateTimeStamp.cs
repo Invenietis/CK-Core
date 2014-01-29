@@ -276,21 +276,45 @@ namespace CK.Core
             return !d1.Equals( d2 );
         }
 
+        /// <summary>
+        /// Strict greater than operator.
+        /// </summary>
+        /// <param name="d1">First stamp.</param>
+        /// <param name="d2">Second stamp.</param>
+        /// <returns>True when stamps first is greater than second.</returns>
         public static bool operator >( DateTimeStamp t1, DateTimeStamp t2 )
         {
             return t1.CompareTo( t2 ) > 0;
         }
 
+        /// <summary>
+        /// Large greater than operator.
+        /// </summary>
+        /// <param name="d1">First stamp.</param>
+        /// <param name="d2">Second stamp.</param>
+        /// <returns>True when stamps first is greater than or equal to second.</returns>
         public static bool operator >=( DateTimeStamp t1, DateTimeStamp t2 )
         {
             return t1.CompareTo( t2 ) >= 0;
         }
 
+        /// <summary>
+        /// Strict lower than operator.
+        /// </summary>
+        /// <param name="d1">First stamp.</param>
+        /// <param name="d2">Second stamp.</param>
+        /// <returns>True when stamps first is lower than second.</returns>
         public static bool operator <( DateTimeStamp t1, DateTimeStamp t2 )
         {
             return t1.CompareTo( t2 ) < 0;
         }
 
+        /// <summary>
+        /// Large lower than operator.
+        /// </summary>
+        /// <param name="d1">First stamp.</param>
+        /// <param name="d2">Second stamp.</param>
+        /// <returns>True when stamps first is lower than or equal to second.</returns>
         public static bool operator <=( DateTimeStamp t1, DateTimeStamp t2 )
         {
             return t1.CompareTo( t2 ) <= 0;

@@ -232,9 +232,8 @@ namespace CK.Monitoring
             }
 
             /// <summary>
-            /// A page gives access to <see cref="Entries"/> and <see cref="CurrentPath"/> by unifying
-            /// all the raw log files and removing duplicates from them.
-            /// Pages are sequentially accessed from a first page (obtained by <see cref="Monitor.ReadFirstPage"/>) and the by calling <see cref="ForwardPage"/>.
+            /// A page gives access to <see cref="Entries"/> by unifying all the raw log files and removing duplicates from them.
+            /// Pages are sequentially accessed from a first page (obtained by <see cref="G:Monitor.ReadFirstPage"/>) and the by calling <see cref="ForwardPage"/>.
             /// </summary>
             public class LivePage : IDisposable
             {

@@ -530,7 +530,7 @@ namespace CK.Core
 
 
         /// <summary>
-        /// Logs a text regardless of <see cref="MinimalFilter"/> level. 
+        /// Logs a text regardless of <see cref="MinimalFilter"/> level (except for <see cref="LogLevelFilter.Off"/>). 
         /// Each call to log is considered as a unit of text: depending on the rendering engine, a line or a 
         /// paragraph separator (or any appropriate separator) should be appended between each text if 
         /// the level is the same as the previous one.
@@ -546,6 +546,7 @@ namespace CK.Core
         public void UnfilteredLog( ActivityMonitorLogData data )
         {
             if( data == null ) throw new ArgumentNullException( "data" );
+            if( _actualFilterIsDirty ) ResyncActualFilter();
             ReentrantAndConcurrentCheck();
             try
             {
@@ -563,6 +564,7 @@ namespace CK.Core
             Debug.Assert( data.Level != LogLevel.None );
             Debug.Assert( !String.IsNullOrEmpty( data.Text ) );
 
+            if( _actualFilter.Line == LogLevelFilter.Off ) return;
             _lastLogTime = data.CombineTagsAndAdjustLogTime( _currentTag, _lastLogTime );
             List<IActivityMonitorClient> buggyClients = null;
             foreach( var l in _output.Clients )
@@ -588,7 +590,7 @@ namespace CK.Core
 
 
         /// <summary>
-        /// Opens a group regardless of <see cref="ActualFilter"/> level. 
+        /// Opens a group regardless of <see cref="ActualFilter"/> level (except for <see cref="LogLevelFilter.Off"/>). 
         /// <see cref="CloseGroup"/> must be called in order to close the group, and/or the returned object must be disposed (both safely can be called: 
         /// the group is closed on the first action, the second one is ignored).
         /// </summary>
@@ -611,7 +613,7 @@ namespace CK.Core
         public virtual IDisposableGroup UnfilteredOpenGroup( ActivityMonitorGroupData data )
         {
             if( data == null ) throw new ArgumentNullException( "data" );
-
+            if( _actualFilterIsDirty ) ResyncActualFilter();
             ReentrantAndConcurrentCheck();
             try
             {
@@ -634,7 +636,7 @@ namespace CK.Core
                 for( int i = idxNext; i < _groups.Length; ++i ) _groups[i] = new Group( this, i );
             }
             _current = _groups[idxNext];
-            if( data.Level == LogLevel.None )
+            if( _actualFilter.Group == LogLevelFilter.Off || data.Level == LogLevel.None )
             {
                 _current.InitializeRejectedGroup( data );
             }
@@ -679,12 +681,11 @@ namespace CK.Core
             if( g != null )
             {
                 // Handles the rejected case first (easiest).
-                if( g.GroupLevel == LogLevel.None )
+                if( g.IsRejectedGroup )
                 {
                     if( g.SavedMonitorFilter != _configuredFilter ) DoSetConfiguredFilter( g.SavedMonitorFilter );
                     _currentTag = g.SavedMonitorTags;
                     _current = g.Index > 0 ? _groups[g.Index - 1] : null;
-                    g.GroupClosed();
                 }
                 else
                 {
@@ -763,10 +764,10 @@ namespace CK.Core
                         UpdateActualFilter();
                     }
                     #endregion
-                    string prevTopic = g.PreviousTopic;
-                    if( prevTopic != null ) DoSetTopic( prevTopic, g.FileName, g.LineNumber );
-                    g.GroupClosed();
                 }
+                string prevTopic = g.PreviousTopic;
+                if( prevTopic != null ) DoSetTopic( prevTopic, g.FileName, g.LineNumber );
+                g.GroupClosed();
             }
         }
 

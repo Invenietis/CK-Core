@@ -67,9 +67,6 @@
     <Compile Include="..\..\..\Tests\CK.Monitoring.Tests\Configuration\RouteConfigurationTests.cs">
       <Link>RouteConfigurationTests.cs</Link>
     </Compile>
-    <Compile Include="..\..\..\Tests\CK.Monitoring.Tests\Fixture.cs">
-      <Link>Fixture.cs</Link>
-    </Compile>
     <Compile Include="..\..\..\Tests\CK.Monitoring.Tests\GrandOutputTests.cs">
       <Link>GrandOutputTests.cs</Link>
     </Compile>

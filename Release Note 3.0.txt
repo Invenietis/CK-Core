@@ -16,7 +16,7 @@ CK.Core 3.0 - Release Notes
     		- It can be initialized only once, before any other access, and when not initialized tries to or use the standard ConfigurationManager.AppSettings through 
     		  late binding. 
 		- It supports multiple overriding and reverting to the original configuration. (Override support and restoration is mainly designed for tests but the override 
-		  functionnality alone can be a useful feature in real life application.)
+		  functionality alone can be a useful feature in real life application.)
 
 	- New IObservableReadOnlyList<out T> and IObservableReadOnlyCollection<out T> interfaces.  
 
@@ -31,24 +31,24 @@ CK.Core 3.0 - Release Notes
 			- Global history enables effective analysis of the activity of the whole System.
 			- GrandOutput is configurable (routes and actions).
 			- GrandOutput is thread-safe.
-			- Cross AppDomain monitoring is supported (exceptions are marshalled as CKExceptionData to avoid assembly loading side-effects).
+			- Cross AppDomain monitoring is supported (exceptions are marshaled as CKExceptionData to avoid assembly loading side-effects).
 			- Routes (and Actions) can configure the MinimalFilter for logs they expect.
 		- Support of file name/line number.
 		- New LogEntry model that captures contextual information (errors and fatal are "contextualized" with their "Activity Path").
 		- Multiple ActivityMonitorClients (memory, binary file, text file).
 		- Newed ActivityMonitors are, by default, automatically configured (GrandOutput uses this).
 		- ActivityMonitor.Topic is a get/set string that defines the current activity of a monitor. It can be changed at any time: the GrandOutput 
-		  uses this Topic to, when it changes, dynamlically choose the new Route for the output of this monitor.
+		  uses this Topic to, when it changes, dynamically choose the new Route for the output of this monitor.
 		- LogLevel filters now applies to OpenGroup as well as "line" logs:
 			- LogFilter value type contains a Line and a Group filter level.
 			- Predefined filters are: Undefined, Debug (full Trace), Verbose (skips Trace line but keeps all OpenGroup),
-			  Monitor (warnings and all OpenGroup), Terse (Error only and Groups whith Info level), Release (only errors, even for OpenGroup)
+			  Monitor (warnings and all OpenGroup), Terse (Error only and Groups with Info level), Release (only errors, even for OpenGroup)
                           and Off (no trace at all).
 		- Effective use of ActivityMonitor.Filter that improves performance:
 			- Any bound ActivityMonitor.Filter clients can expose a MinimalFilter. 
-			- New ActivityMonitor.ActualFilter readonly property exposes the final filter requirements for all clients and for the ActivityMonitor.Filter itself.
+			- New ActivityMonitor.ActualFilter read-only property exposes the final filter requirements for all clients and for the ActivityMonitor.Filter itself.
 			 (when bridging, the ActualFilter of the target monitor is one of the MinimalFilter of the source monitor - and this works cross-domain).
-			- When a Trace, an Info, etc. is done, formatting and sending is not executed at all if not required (ie. if its log level is below the monitor's ActualFilter).
+			- When a Trace, an Info, etc. is done, formatting and sending is not executed at all if not required (i.e. if its log level is below the monitor's ActualFilter).
 		- New SystemActivityMonitor whose main goal is to be internally used by the Monitor framework to report errors in the monitoring itself) but can be used as a "normal" 
 		  monitor (this should be avoided: activity must go to the GrandOutput as much as possible).
 		  SystemActivityMonitor logs the errors it receives into a configurable folder (static RootLogPath property) as small and independent text files.
@@ -57,7 +57,7 @@ CK.Core 3.0 - Release Notes
 - Disparition:
 	- No more Predicate<T> anywhere. ONLY Func<T,bool> exists and must be used.
 	- ActivityLogger is replaced with ActivityMonitor.
-	- No more Empty objetcs (ie. Null object pattern) on ActivityLogger/Monitor.
+	- No more Empty objects (i.e. Null object pattern) on ActivityLogger/Monitor.
 	- No more IDefaultActivityLogger, Tap and Sinks.
 	- No more DefaultActivityLogger/Monitor.
 	- No more LegacySupport/CallerMemberNameAttribute in favor of BCL Portability Pack.
