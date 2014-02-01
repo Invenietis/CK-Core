@@ -1,0 +1,312 @@
+﻿html, body {
+	height: 100%;
+	/* The html and body elements cannot have any padding or margin. */
+}
+
+body {
+	color: black;
+	background-color: lightyellow;
+	font-family: "Helvetica Neue", "Helvetica", "Segoe UI", "Arial", sans-serif;
+}
+
+.collapseToggle:not(.collapsed):before {
+	content: "";
+	margin-right: 3pt;
+	display: inline-block;
+	font-size: 9pt;
+	font-family: 'Glyphicons Halflings';
+	font-style: normal;
+	font-weight: normal;
+	line-height: 1;
+	position: relative;
+	top: 1px;
+}
+
+pre.logLine
+{
+	border: none;
+	background-color:transparent;
+	padding: 0;
+	border-radius: initial;
+}
+
+.collapseToggle.collapsed:before {
+	content: "";
+	margin-right: 3pt;
+	display: inline-block;
+	font-size: 9pt;
+	font-family: 'Glyphicons Halflings';
+	font-style: normal;
+	font-weight: normal;
+	line-height: 1;
+	position: relative;
+	top: 1px;
+}
+
+.tooltip-inner {
+	max-width: none;
+}
+
+.exceptionButton {
+	margin-left: 5pt;
+}
+
+.exceptionContainer {
+	border: 1px solid black;
+	border-radius: 15px;
+	background-color: #F2F2F2;
+	padding: 0;
+    margin: 6pt;
+}
+
+.exceptionEntry {
+	margin: 0;
+	color: darkred;
+	font-weight: bold;
+	font-family: Consolas, 'DejaVu Sans Mono', monospace;
+}
+
+.exceptionHeader {
+	border-bottom: 1px solid black;
+	background-image: url("ex-bg.png");
+	border-top-left-radius: 15px;
+	border-top-right-radius: 15px;
+}
+
+	.exceptionHeader h3 {
+		font-variant: small-caps;
+		font-weight: bold;
+		color: darkred;
+		margin: 0;
+		padding: 4pt;
+	}
+
+.exceptionBody {
+	margin: 0;
+	padding: 4pt;
+}
+
+	.exceptionBody h3 {
+		margin: 0;
+		font-weight: bold;
+		color: darkred;
+	}
+
+	.exceptionBody h4 {
+		margin: 0;
+		font-weight: bold;
+		color: crimson;
+		border-top: 1px solid crimson;
+	}
+
+
+#wrap {
+	min-height: 100%;
+	height: auto;
+}
+
+	#wrap > .container {
+		padding: 50px 15px 0;
+	}
+
+		#wrap > .container .anchor {
+			display: block;
+			height: 50px; /* this is the height of your header */
+			margin-top: -50px; /* this is again negative value of the height of your header */
+			visibility: hidden;
+		}
+
+div.groupBreadcrumb {
+	background-color: lightgray;
+}
+
+div.logGroup, div.groupBreadcrumbItem {
+	padding-left: 15pt;
+}
+
+.paginator > div {
+	display: inline-block;
+}
+
+.paginator {
+	float: right;
+	position: relative;
+	left: -50%;
+}
+
+	.paginator ul {
+		position: relative;
+		left: 50%;
+	}
+
+	.paginator li {
+		float: left;
+		list-style-type: none;
+		margin: 3px;
+		display: inline-block;
+	}
+
+	.paginator > ul > li {
+	}
+
+
+.logList {
+	margin: 0;
+}
+
+	.logList li:nth-child(even) {
+		background: #EEE;
+	}
+
+	.logList li:nth-child(odd) {
+		background: #FFF;
+	}
+
+	.logList > li {
+		list-style-type: none;
+	}
+
+.logLine, .logGroupMessage, .groupBreadcrumbItem, .stackTrace {
+	font-size: 10pt;
+	font-family: Consolas, 'DejaVu Sans Mono', monospace;
+	margin: 0;
+	list-style: none;
+}
+
+div.entryCount
+{
+	font-family: monospace;
+	border: none;
+	margin-left: 3pt;
+}
+
+div.monitorTime, div.monitorId, div.entryCount
+{
+	display:inline-block;
+}
+
+pre.warn:before, .warnCount:before {
+	content: "";
+	display: inline-block;
+	width: 16px;
+	height: 16px;
+	background-image: url("warn.svg");
+	background-size: contain;
+	background-repeat: no-repeat;
+	background-position: center center;
+	vertical-align: middle;
+	margin-right: 4px;
+}
+
+pre.error:before, .errorCount:before {
+	content: "";
+	display: inline-block;
+	width: 16px;
+	height: 16px;
+	background-image: url("error.svg");
+	background-size: contain;
+	background-repeat: no-repeat;
+	background-position: center center;
+	vertical-align: middle;
+	margin-right: 4px;
+}
+
+pre.fatal:before, .fatalCount:before {
+	content: "";
+	display: inline-block;
+	width: 16px;
+	height: 16px;
+	background-image: url("fatal.svg");
+	background-size: contain;
+	background-repeat: no-repeat;
+	background-position: center center;
+	vertical-align: middle;
+	margin-right: 4px;
+}
+
+pre.info:before {
+	content: "";
+	display: inline-block;
+	width: 16px;
+	height: 16px;
+	background-image: url("info.svg");
+	background-size: contain;
+	background-repeat: no-repeat;
+	background-position: center center;
+	vertical-align: middle;
+	margin-right: 4px;
+}
+
+pre.trace:before {
+	content: "";
+	display: inline-block;
+	width: 16px;
+	height: 16px;
+	margin-right: 4px;
+}
+
+.logGroupMessage, .groupBreadcrumbItem {
+	font-weight: bold;
+}
+
+	.logGroupMessage > p, .groupBreadcrumbItem > p {
+		margin: 0;
+	}
+
+.logGroupHeader {
+	font-weight: bold;
+}
+
+.exceptionDetail {
+	background-color: lightyellow;
+}
+
+.largePageButton {
+	width: 100%;
+	text-align: center;
+}
+
+.fatal {
+	color: darkred;
+}
+
+div.fatal {
+	border-left: 1px solid darkred;
+}
+
+.error {
+	color: red;
+}
+
+div.error {
+	border-left: 1px solid red;
+}
+
+.warn {
+	color: darkorange;
+}
+
+div.warn {
+	border-left: 1px solid darkorange;
+}
+
+.info {
+	color: darkblue;
+}
+
+div.info {
+	border-left: 1px solid darkblue;
+}
+
+.trace {
+	color: gray;
+}
+
+div.trace {
+	border-left: 1px solid gray;
+}
+
+.groupBreadcrumbSeparator {
+	width: 100%;
+	border-bottom: 3px double black;
+}
