@@ -181,8 +181,20 @@ namespace CKMon2Htm
 
             if( entry != null )
             {
-                tw.Write( @"<pre class=""logLine logGroupMessage {0}""><span data-toggle=""tooltip"" title=""{3}"" rel=""tooltip"">End of group. Conclusions:</span> {1}</pre><span class=""anchor"" id=""{2}""></span>", GetClassNameOfLogLevel( entry.LogLevel ), String.Join( ", ", entry.Conclusions ), CKMon2Htm.GetTimestampId( entry.LogTime ), GetTooltipText( entry ) );
+                tw.Write( @"<pre class=""logLine logGroupMessage {0}"">",
+                    GetClassNameOfLogLevel( entry.LogLevel )
+                    );
+
+                tw.Write( "End of group." );
+                if( entry.Conclusions.Count > 0)
+                {
+                    tw.Write( " Conclusions: {0}", String.Join( "; ", entry.Conclusions ) );
+                }
+
+                tw.Write( @"</pre>" );
+                tw.Write( @"<span class=""anchor"" id=""{0}""></span>", CKMon2Htm.GetTimestampId( entry.LogTime ) );
             }
+
             tw.Write( @"</div>" );
 
             WriteLogListHeader( tw );
