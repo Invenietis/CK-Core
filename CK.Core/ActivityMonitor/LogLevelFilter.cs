@@ -27,8 +27,10 @@ namespace CK.Core
 {
     /// <summary>
     /// Defines filters for <see cref="LogLevel"/>.
-    /// Two levels are captured by <see cref="LogFilter"/>.
     /// </summary>
+    /// <remarks>
+    /// <see cref="LogFilter"/> capture two levels: one for lines and one for groups.
+    /// </remarks>
     public enum LogLevelFilter : short
     {
         /// <summary>

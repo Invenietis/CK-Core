@@ -77,7 +77,7 @@ namespace CK.Monitoring
         static GrandOutputConfiguration CreateDefaultConfig()
         {
             GrandOutputConfiguration def = new GrandOutputConfiguration();
-            Debug.Assert( def.SourceFilterApplicationMode == SourceFilterApplyMode.None );
+            Debug.Assert( def.SourceOverrideFilterApplicationMode == SourceFilterApplyMode.None );
             Debug.Assert( def.AppDomainDefaultFilter == null );
             var route = new RouteConfiguration();
             route.ConfigData = new GrandOutputChannelConfigData() { MinimalFilter = LogFilter.Terse };

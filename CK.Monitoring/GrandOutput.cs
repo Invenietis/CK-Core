@@ -175,13 +175,13 @@ namespace CK.Monitoring
                 {
                     if( this == _default &&  config.AppDomainDefaultFilter.HasValue ) ActivityMonitor.DefaultFilter = config.AppDomainDefaultFilter.Value;
 
-                    if( config.SourceFilterApplicationMode == SourceFilterApplyMode.Clear || config.SourceFilterApplicationMode == SourceFilterApplyMode.ClearThenApply )
+                    if( config.SourceOverrideFilterApplicationMode == SourceFilterApplyMode.Clear || config.SourceOverrideFilterApplicationMode == SourceFilterApplyMode.ClearThenApply )
                     {
-                        ActivityMonitor.SourceFilter.Clear();
+                        ActivityMonitor.SourceFilter.ClearOverrides();
                     }
-                    if( config.SourceFilter != null && (config.SourceFilterApplicationMode == SourceFilterApplyMode.Apply || config.SourceFilterApplicationMode == SourceFilterApplyMode.ClearThenApply) )
+                    if( config.SourceOverrideFilter != null && (config.SourceOverrideFilterApplicationMode == SourceFilterApplyMode.Apply || config.SourceOverrideFilterApplicationMode == SourceFilterApplyMode.ClearThenApply) )
                     {
-                        foreach( var k in config.SourceFilter ) ActivityMonitor.SourceFilter.SetFileFilter( k.Value, k.Key );
+                        foreach( var k in config.SourceOverrideFilter ) ActivityMonitor.SourceFilter.SetOverrideFilter( k.Value, k.Key );
                     }
                     monitor.CloseGroup( "Success." );
                     return true;

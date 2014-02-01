@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 namespace CK.Monitoring
 {
     /// <summary>
-    /// Defines how the <see cref="GrandOutputConfiguration"/> applies its <see cref="GrandOutputConfiguration.SourceFilter"/>
+    /// Defines how the <see cref="GrandOutputConfiguration"/> applies its <see cref="GrandOutputConfiguration.SourceOverrideFilter"/>
     /// to the application domain's global <see cref="ActivityMonitor.SourceFilter"/>.
     /// </summary>
     public enum SourceFilterApplyMode

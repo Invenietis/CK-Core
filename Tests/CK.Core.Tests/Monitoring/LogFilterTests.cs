@@ -73,5 +73,24 @@ namespace CK.Core.Tests.Monitoring
             Assert.Throws<CKException>( () => LogFilter.Parse( "{Error,Warn,Trace}" ) );
             Assert.Throws<CKException>( () => LogFilter.Parse( "{}" ) );
         }
+
+        [Test]
+        public void SourceLogFilterInternalTests()
+        {
+            {
+                SourceLogFilter f = new SourceLogFilter( LogFilter.Debug, LogFilter.Invalid );
+                Assert.That( (short)(f.GroupFilter >> 16) == (short)LogLevelFilter.Trace );
+                Assert.That( (short)(f.LineFilter >> 16) == (short)LogLevelFilter.Trace );
+                Assert.That( (short)(f.GroupFilter & 0xFFFF) == (short)LogLevelFilter.Invalid );
+                Assert.That( (short)(f.LineFilter & 0xFFFF) == (short)LogLevelFilter.Invalid );
+            }
+            {
+                SourceLogFilter f = new SourceLogFilter( new LogFilter( LogLevelFilter.Off, LogLevelFilter.Fatal ), new LogFilter( LogLevelFilter.Error, LogLevelFilter.Warn ) );
+                Assert.That( (short)(f.GroupFilter >> 16) == (short)LogLevelFilter.Off );
+                Assert.That( (short)(f.LineFilter >> 16) == (short)LogLevelFilter.Fatal );
+                Assert.That( (short)(f.GroupFilter & 0xFFFF) == (short)LogLevelFilter.Error );
+                Assert.That( (short)(f.LineFilter & 0xFFFF) == (short)LogLevelFilter.Warn );
+            }
+        }
     }
 }

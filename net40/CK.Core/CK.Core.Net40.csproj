@@ -172,6 +172,9 @@
     <Compile Include="..\..\CK.Core\ActivityMonitor\LogLevelFilter.cs">
       <Link>LogLevelFilter.cs</Link>
     </Compile>
+    <Compile Include="..\..\CK.Core\ActivityMonitor\SourceLogFilter.cs">
+      <Link>SourceLogFilter.cs</Link>
+    </Compile>
     <Compile Include="..\..\CK.Core\ActivityMonitor\SystemActivityMonitor.cs">
       <Link>SystemActivityMonitor.cs</Link>
     </Compile>

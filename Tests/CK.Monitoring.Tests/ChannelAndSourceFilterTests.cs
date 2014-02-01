@@ -38,11 +38,11 @@ namespace CK.Monitoring.Tests
         <Add Type=""BinaryFile"" Name=""All"" Path=""FilteringBySource"" />
         <Channel Name=""HiddenTopic"" MinimalFilter=""Off"" TopicRegex=""(hidden\s+topic|hide\s+this\s+topic)"" MatchOptions=""CultureInvariant, ExplicitCapture, Compiled, Multiline"" />
     </Channel>
-    <SourceFilter>
+    <SourceOverrideFilter>
         <Add File=""SourceFile-Debug.cs"" Filter=""Debug"" />
         <Add File=""SourceFile-Off.cs"" Filter=""Off"" />
         <Add File=""SourceFile-Strange.cs"" Filter=""{Trace,Fatal}"" />
-    </SourceFilter>
+    </SourceOverrideFilter>
 </GrandOutputConfiguration>", LoadOptions.SetLineInfo ).Root, TestHelper.ConsoleMonitor );
 
                 Assert.That( g.SetConfiguration( config, TestHelper.ConsoleMonitor ) );

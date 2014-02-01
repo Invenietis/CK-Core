@@ -70,7 +70,7 @@ namespace CK.Monitoring
                 LogFilter? appDomainFilter = e.GetAttributeLogFilter( "AppDomainDefaultFilter", false );
 
                 SourceFilterApplyMode applyMode;
-                Dictionary<string, LogFilter> sourceFilter = ReadSourceFilter( e, out applyMode, monitor );
+                Dictionary<string, LogFilter> sourceFilter = ReadSourceOverrideFilter( e, out applyMode, monitor );
                 if( sourceFilter == null ) return false;
 
                 RouteConfiguration routeConfig;
@@ -110,10 +110,10 @@ namespace CK.Monitoring
         }
 
         /// <summary>
-        /// Gets or sets the source file filter mapping: when not null and if <see cref="SourceFilterApplicationMode"/> is <see cref="SourceFilterApplyMode.Apply"/> 
+        /// Gets or sets the source file filter mapping: when not null and if <see cref="SourceOverrideFilterApplicationMode"/> is <see cref="SourceFilterApplyMode.Apply"/> 
         /// or <see cref="SourceFilterApplyMode.ClearThenApply"/> the <see cref="GrandOutput.SetConfiguration"/> method clears any existing source file filters and sets this ones.
         /// </summary>
-        public Dictionary<string, LogFilter> SourceFilter
+        public Dictionary<string, LogFilter> SourceOverrideFilter
         {
             get { return _sourceFilter; }
             set { _sourceFilter = value; }
@@ -122,7 +122,7 @@ namespace CK.Monitoring
         /// <summary>
         /// Gets or sets how global source filter must be impacted.
         /// </summary>
-        public SourceFilterApplyMode SourceFilterApplicationMode
+        public SourceFilterApplyMode SourceOverrideFilterApplicationMode
         {
             get { return _sourceFilterApplyMode; }
             set { _sourceFilterApplyMode = value; }
@@ -143,14 +143,14 @@ namespace CK.Monitoring
             set { _routeConfig = value; }
         }
 
-        static Dictionary<string, LogFilter> ReadSourceFilter( XElement e, out SourceFilterApplyMode apply, IActivityMonitor monitor )
+        static Dictionary<string, LogFilter> ReadSourceOverrideFilter( XElement e, out SourceFilterApplyMode apply, IActivityMonitor monitor )
         {
             apply = SourceFilterApplyMode.None;
-            using( monitor.OpenTrace().Send( "Reading SourceFilter elements." ) )
+            using( monitor.OpenTrace().Send( "Reading SourceOverrideFilter elements." ) )
             {
                 try
                 {
-                    var s = e.Element( "SourceFilter" );
+                    var s = e.Element( "SourceOverrideFilter" );
                     if( s == null )
                     {
                         monitor.CloseGroup( "No source filtering (ApplyMode is None)." );
@@ -158,12 +158,12 @@ namespace CK.Monitoring
                     }
                     apply = s.GetAttributeEnum( "ApplyMode", SourceFilterApplyMode.Apply );
 
-                    var stranger =  e.Elements( "SourceFilter" ).Elements().FirstOrDefault( f => f.Name != "Add" && f.Name != "Remove" );
+                    var stranger =  e.Elements( "SourceOverrideFilter" ).Elements().FirstOrDefault( f => f.Name != "Add" && f.Name != "Remove" );
                     if( stranger != null )
                     {
-                        throw new XmlException( "SourceFilter element must contain only Add and Remove elements." + stranger.GetLineColumString() );
+                        throw new XmlException( "SourceOverrideFilter element must contain only Add and Remove elements." + stranger.GetLineColumString() );
                     }
-                    var result = e.Elements( "SourceFilter" )
+                    var result = e.Elements( "SourceOverrideFilter" )
                                     .Elements()
                                     .Select( f => new
                                                     {
@@ -179,7 +179,7 @@ namespace CK.Monitoring
                 }
                 catch( Exception ex )
                 {
-                    monitor.Error().Send( ex, "Error while reading SourceFilter element." );
+                    monitor.Error().Send( ex, "Error while reading SourceOverrideFilter element." );
                     return null;
                 }
             }
@@ -216,7 +216,7 @@ namespace CK.Monitoring
                 {
                     throw new XmlException( "Subordinated Channel must define one TopicFilter or TopicRegex attribute (and not both)." + xml.GetLineColumString() );
                 }
-                RegexOptions opt = RegexOptions.IgnoreCase | RegexOptions.CultureInvariant | RegexOptions.Multiline;
+                RegexOptions opt = RegexOptions.IgnoreCase | RegexOptions.CultureInvariant | RegexOptions.Multiline | RegexOptions.ExplicitCapture;
                 if( !String.IsNullOrWhiteSpace( matchOptions ) )
                 {
                     if( !Enum.TryParse( matchOptions, true, out opt ) )
@@ -226,7 +226,7 @@ namespace CK.Monitoring
                     }
                     monitor.Trace().Send( "MatchOptions for Channel '{0}' is: {1}.", sub.Name, opt );
                 }
-                else monitor.Trace().Send( "MatchOptions for Channel '{0}' defaults to: IgnoreCase, CultureInvariant, Multiline.", sub.Name );
+                else monitor.Trace().Send( "MatchOptions for Channel '{0}' defaults to: IgnoreCase, CultureInvariant, Multiline, ExplicitCapture.", sub.Name );
 
                 sub.RoutePredicate = filter != null ? CreatePredicateFromWildcards( filter, opt ) : CreatePredicateRegex( regex, opt );
 

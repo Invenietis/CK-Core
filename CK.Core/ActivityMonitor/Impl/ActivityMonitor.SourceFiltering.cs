@@ -31,18 +31,19 @@ using System.Threading.Tasks;
 
 namespace CK.Core
 {
+
     public partial class ActivityMonitor
     {
         /// <summary>
-        /// Manages source filters.
+        /// Manages source filtering.
         /// </summary>
         public static class SourceFilter
         {
-            static readonly ConcurrentDictionary<string,LogFilter> _filters;
+            static readonly ConcurrentDictionary<string,SourceLogFilter> _filters;
 
             static SourceFilter()
             {
-                _filters = new ConcurrentDictionary<string, LogFilter>();
+                _filters = new ConcurrentDictionary<string, SourceLogFilter>();
                 FilterSource = DefaultFilter;
             }
 
@@ -52,8 +53,8 @@ namespace CK.Core
             /// </summary>
             /// <param name="fileName">FileName of the source file (that can be changed, typically by removing a common path prefix).</param>
             /// <param name="lineNumber">The line number in the source file.</param>
-            /// <returns>The LogFilter to apply. Must default to <see cref="LogFilter.Undefined"/>.</returns>
-            public delegate LogFilter FilterSourceDelegate( ref string fileName, int lineNumber );
+            /// <returns>The <see cref="SourceLogFilter"/> to apply. Must default to <see cref="LogFilter.Undefined"/>.</returns>
+            public delegate SourceLogFilter FilterSourceDelegate( ref string fileName, int lineNumber );
 
             /// <summary>
             /// Holds a <see cref="FilterSourceDelegate"/> that can override filter configuration and/or alter 
@@ -66,9 +67,48 @@ namespace CK.Core
             /// <summary>
             /// Clears all existing filters.
             /// </summary>
-            public static void Clear()
+            public static void ClearAll()
             {
                 _filters.Clear(); 
+            }
+
+            /// <summary>
+            /// Clears all existing Override filters.
+            /// </summary>
+            public static void ClearOverrides()
+            {
+                Update( ( file, filter ) => new SourceLogFilter( LogFilter.Undefined, filter.Minimal ) );
+            }
+
+            /// <summary>
+            /// Clears all existing Minimal filters.
+            /// </summary>
+            public static void ClearMinimals()
+            {
+                Update( ( file, filter ) => new SourceLogFilter( filter.Override, LogFilter.Undefined ) );
+            }
+
+            /// <summary>
+            /// Updates (or simply scans) all existing filters.
+            /// </summary>
+            /// <param name="mapper">
+            /// Function that takes the file name, the existing filter and maps it to a new filter.
+            /// </param>
+            /// <remarks>
+            /// When the mapper returns <see cref="SourceLogFilter.Undefined"/>, the file configuration is removed.
+            /// </remarks>
+            public static void Update( Func<string, SourceLogFilter, SourceLogFilter> mapper )
+            {
+                // Keys take a snapshot.
+                // Iterating on the Keys is the preferred method for ConcurrentDictionary.
+                foreach( var f in _filters.Keys )
+                {
+                    SourceLogFilter filter;
+                    if( _filters.TryGetValue( f, out filter ) )
+                    {
+                        SetFilter( mapper( f, filter ), f );
+                    }
+                }
             }
 
             /// <summary>
@@ -77,35 +117,58 @@ namespace CK.Core
             /// <param name="fileName">The file name.</param>
             /// <param name="lineNumber">The line number.</param>
             /// <returns>Defaults to <see cref="LogFilter.Undefined"/>.</returns>
-            public static LogFilter DefaultFilter( ref string fileName, int lineNumber )
+            public static SourceLogFilter DefaultFilter( ref string fileName, int lineNumber )
             {
-                LogFilter f;
+                SourceLogFilter f;
                 _filters.TryGetValue( fileName, out f ); 
                 return f;
             }
 
             /// <summary>
-            /// Sets a filter for a given file. 
-            /// Use <see cref="LogFilter.Undefined"/> to clear any existing configuration for the file.
+            /// Sets a <see cref="SourceLogFilter"/> for a given file. 
+            /// Use <see cref="SourceLogFilter.Undefined"/> to clear any existing configuration for the file.
             /// </summary>
             /// <param name="filter">The filter to set for the file.</param>
             /// <param name="fileName">The file name: do not specify it to inject the path of your source file.</param>
-            public static void SetFileFilter( LogFilter filter, [CallerFilePath]string fileName = null )
+            public static void SetFilter( SourceLogFilter filter, [CallerFilePath]string fileName = null )
             {
-                if( filter == LogFilter.Undefined ) _filters.TryRemove( fileName, out filter );
+                if( filter.IsUndefined ) _filters.TryRemove( fileName, out filter );
                 else _filters.AddOrUpdate( fileName, filter, ( s, prev ) => filter ); 
+            }
+
+            /// <summary>
+            /// Sets an override <see cref="LogFilter"/> for a given file: when not <see cref="LogFilter.Udefined"/> this 
+            /// takes precedence over <see cref="IActivityMonitor.ActualFilter"/>.
+            /// Use <see cref="LogFilter.Undefined"/> to clear it.
+            /// </summary>
+            /// <param name="overrideFilter">The override filter to set for the file.</param>
+            /// <param name="fileName">The file name: do not specify it to inject the path of your source file.</param>
+            public static void SetOverrideFilter( LogFilter overrideFilter, [CallerFilePath]string fileName = null )
+            {
+                SetFilter( new SourceLogFilter( overrideFilter, LogFilter.Undefined ), fileName );
+            }
+
+            /// <summary>
+            /// Sets a minimal <see cref="LogFilter"/> for a given file.
+            /// Use <see cref="LogFilter.Undefined"/> to clear it.
+            /// </summary>
+            /// <param name="minimalFilter">The minimal filter to set for the file.</param>
+            /// <param name="fileName">The file name: do not specify it to inject the path of your source file.</param>
+            public static void SetMinimalFilter( LogFilter minimalFilter, [CallerFilePath]string fileName = null )
+            {
+                SetFilter( new SourceLogFilter( LogFilter.Undefined, minimalFilter ), fileName );
             }
 
             internal static int SourceFilterLine( ref string fileName, int lineNumber )
             {
                 var h = FilterSource;
-                return h == null ? 0 : (int)h( ref fileName, lineNumber ).Line;
+                return h == null ? 0 : (int)h( ref fileName, lineNumber ).LineFilter;
             }
 
             internal static int SourceFilterGroup( ref string fileName, int lineNumber )
             {
                 var h = FilterSource;
-                return h == null ? 0 : (int)h( ref fileName, lineNumber ).Group;
+                return h == null ? 0 : (int)h( ref fileName, lineNumber ).GroupFilter;
             }
 
         }

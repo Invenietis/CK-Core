@@ -18,6 +18,7 @@ namespace CK.Core
     {
         /// <summary>
         /// Undefined filter is <see cref="LogLevelFilter.None"/> for both <see cref="Line"/> and <see cref="Group"/>.
+        /// This is the same as using the default constructor for this structure (it is exposed here for clarity).
         /// </summary>
         static public readonly LogFilter Undefined = new LogFilter( LogLevelFilter.None, LogLevelFilter.None );
 
@@ -132,7 +133,7 @@ namespace CK.Core
 
         /// <summary>
         /// Combines two enums <see cref="LogLevelFilter"/> into one.
-        /// The resulting filter is the more verbose one (the smallest level).
+        /// The resulting filter is the more verbose one (the smallest level). <see cref="LogLevelFilter.Invalid"/> is considered as <see cref="LogLevelFilter.None"/> (it has no impact).
         /// This operation is commutative and associative: different order of combination always give the same result.
         /// </summary>
         /// <param name="x">First filter level.</param>
@@ -140,8 +141,8 @@ namespace CK.Core
         /// <returns>The resulting level.</returns>
         static public LogLevelFilter Combine( LogLevelFilter x, LogLevelFilter y )
         {
-            if( x == LogLevelFilter.None ) return y;
-            if( y == LogLevelFilter.None ) return x;
+            if( x <= 0 ) return y;
+            if( y <= 0 ) return x;
             if( y < x ) return y;
             return x;
         }

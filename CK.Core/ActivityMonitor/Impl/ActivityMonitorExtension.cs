@@ -49,7 +49,7 @@ namespace CK.Core
         }
 
         /// <summary>
-        /// Challenges FileName/LineNumber filters, <see cref="IActivityMonitor.ActualFilter">this monitors' filter</see> and application 
+        /// Challenges source filters based on FileName/LineNumber, <see cref="IActivityMonitor.ActualFilter">this monitors' filter</see> and application 
         /// domain's <see cref="ActivityMonitor.DefaultFilter"/> filters to test whether a log line should actually be emitted.
         /// </summary>
         /// <param name="this">This <see cref="IActivityMonitor"/>.</param>
@@ -60,14 +60,11 @@ namespace CK.Core
         public static bool ShouldLogLine( this IActivityMonitor @this, LogLevel level, [CallerFilePath]string fileName = null, [CallerLineNumber]int lineNumber = 0 )
         {
             if( @this == null ) throw new NullReferenceException( "this" );
-            level &= LogLevel.Mask;
-            int filter;
-            if( (filter = ActivityMonitor.SourceFilter.SourceFilterLine( ref fileName, lineNumber )) == 0 ) filter = (int)@this.ActualFilter.Line;
-            return filter <= 0 ? (int)ActivityMonitor.DefaultFilter.Line <= (int)level : filter <= (int)level;
+            return DoShouldLogLine( @this, level & LogLevel.Mask, fileName, lineNumber );
         }
 
         /// <summary>
-        /// Challenges FileName/LineNumber filters, <see cref="IActivityMonitor.ActualFilter">this monitors'filter</see> and application 
+        /// Challenges source filters based on FileName/LineNumber, <see cref="IActivityMonitor.ActualFilter">this monitors'filter</see> and application 
         /// domain's <see cref="ActivityMonitor.DefaultFilter"/> filters to test whether a log group should actually be emitted.
         /// </summary>
         /// <param name="this">This <see cref="IActivityMonitor"/>.</param>
@@ -78,10 +75,7 @@ namespace CK.Core
         public static bool ShouldLogGroup( this IActivityMonitor @this, LogLevel level, [CallerFilePath]string fileName = null, [CallerLineNumber]int lineNumber = 0 )
         {
             if( @this == null ) throw new NullReferenceException( "this" );
-            level &= LogLevel.Mask;
-            int filter;
-            if( (filter = ActivityMonitor.SourceFilter.SourceFilterGroup( ref fileName, lineNumber )) == 0 ) filter = (int)@this.ActualFilter.Group;
-            return filter <= 0 ? (int)ActivityMonitor.DefaultFilter.Group <= (int)level : filter <= (int)level;
+            return DoShouldLogGroup( @this, level & LogLevel.Mask, fileName, lineNumber );
         }
 
         /// <summary>
@@ -89,10 +83,9 @@ namespace CK.Core
         /// </summary>
         static IActivityMonitorLineSender FilterLogLine( this IActivityMonitor @this, LogLevel level, string fileName, int lineNumber )
         {
+            Debug.Assert( (level & LogLevel.IsFiltered) == 0 );
             if( @this == null ) throw new NullReferenceException( "this" );
-            int filter;
-            if( (filter = ActivityMonitor.SourceFilter.SourceFilterLine( ref fileName, lineNumber )) == 0 ) filter = (int)@this.ActualFilter.Line;
-            if( filter <= 0 ? (int)ActivityMonitor.DefaultFilter.Line <= (int)level : filter <= (int)level )
+            if( DoShouldLogLine( @this, level, fileName, lineNumber ) )
             {
                 return new ActivityMonitorLineSender( @this, level | LogLevel.IsFiltered, fileName, lineNumber );
             }
@@ -105,13 +98,32 @@ namespace CK.Core
         static IActivityMonitorGroupSender FilteredGroup( IActivityMonitor @this, LogLevel level, string fileName, int lineNumber )
         {
             Debug.Assert( (level & LogLevel.IsFiltered) == 0 );
-            int filter;
-            if( (filter = ActivityMonitor.SourceFilter.SourceFilterGroup( ref fileName, lineNumber )) == 0 ) filter = (int)@this.ActualFilter.Group;
-            if( filter <= 0 ? (int)ActivityMonitor.DefaultFilter.Group <= (int)level : filter <= (int)level )
+            if( @this == null ) throw new NullReferenceException( "this" );
+            if( DoShouldLogGroup( @this, level, fileName, lineNumber ) )
             {
                 return new ActivityMonitorGroupSender( @this, level | LogLevel.IsFiltered, fileName, lineNumber );
             }
             return new ActivityMonitorGroupSender( @this );
+        }
+
+        static bool DoShouldLogLine( IActivityMonitor @this, LogLevel level, string fileName, int lineNumber )
+        {
+            int combined = ActivityMonitor.SourceFilter.SourceFilterLine( ref fileName, lineNumber );
+            // Extract Override filter.
+            int filter = (short)(combined >> 16);
+            // If Override is undefined, combine the ActualFilter and Minimal source filter.
+            if( filter <= 0 ) filter = (int)LogFilter.Combine( @this.ActualFilter.Line, (LogLevelFilter)(combined & 0xFFFF) );
+            return filter <= 0 ? (int)ActivityMonitor.DefaultFilter.Line <= (int)level : filter <= (int)level;
+        }
+
+        static bool DoShouldLogGroup( IActivityMonitor @this, LogLevel level, string fileName, int lineNumber )
+        {
+            int combined = ActivityMonitor.SourceFilter.SourceFilterGroup( ref fileName, lineNumber );
+            // Extract Override filter.
+            int filter = (short)(combined >> 16);
+            // If Override is undefined, combine the ActualFilter and Minimal source filter.
+            if( filter <= 0 ) filter = (int)LogFilter.Combine( @this.ActualFilter.Group, (LogLevelFilter)(combined & 0xFFFF) );
+            return filter <= 0 ? (int)ActivityMonitor.DefaultFilter.Group <= (int)level : filter <= (int)level;
         }
 
         /// <summary>
@@ -154,7 +166,7 @@ namespace CK.Core
         /// the group is closed on the first action, the second one is ignored).
         /// </summary>
         /// <param name="this">This <see cref="IActivityMonitor"/>.</param>
-        /// <param name="tags">Tags (from <see cref="ActivityMonitor.Tags"/>) to associate to the log. It will be unioned with current <see cref="IActivityMonitor.AutoTags">AutoTags</see>.</param>
+        /// <param name="tags">Tags (from <see cref="ActivityMonitor.Tags"/>) to associate to the log. It will be union-ed with current <see cref="IActivityMonitor.AutoTags">AutoTags</see>.</param>
         /// <param name="level">Log level. The <see cref="LogLevel.None"/> level is used to open a filtered group. See remarks.</param>
         /// <param name="getConclusionText">Optional function that will be called on group closing.</param>
         /// <param name="text">Text to log (the title of the group). Null text is valid and considered as <see cref="String.Empty"/> or assigned to the <see cref="Exception.Message"/> if it exists.</param>
