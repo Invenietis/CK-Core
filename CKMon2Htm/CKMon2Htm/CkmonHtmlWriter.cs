@@ -212,7 +212,7 @@ namespace CKMon2Htm
 
             tw.Write( @"<h3>{0}</h3>", exception.Message );
             tw.Write( @"<h4>Stack trace:</h4>" );
-            tw.Write( @"<p class=""stackTrace"">{0}</p>", exception.StackTrace );
+            tw.Write( @"<pre class=""stackTrace"">{0}</pre>", exception.StackTrace );
 
             if( exception.AggregatedExceptions != null && exception.AggregatedExceptions.Count > 0 )
             {
