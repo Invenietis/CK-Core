@@ -211,7 +211,7 @@ namespace CKMon2Htm.ConsoleDemo
 
         private static void PrepareDefaultGrandOutput()
         {
-            GrandOutput go = GrandOutput.EnsureActiveDefault();
+            GrandOutput go = GrandOutput.EnsureActiveDefaultWithDefaultSettings();
             GrandOutputConfiguration c = new GrandOutputConfiguration();
             c.Load( XDocument.Parse( @"
 <GrandOutputConfiguration AppDomainDefaultFilter=""Release"" >
