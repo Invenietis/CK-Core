@@ -209,10 +209,11 @@ namespace CK.Mon2Htm
             OpenFileDialog d = new OpenFileDialog();
             d.Filter = "Activity Monitor log files (.ckmon)|*.ckmon";
             d.FilterIndex = 0;
-            d.ShowReadOnly = true;
             d.CheckFileExists = true;
             d.CheckPathExists = true;
-            d.ReadOnlyChecked = true;
+            d.AutoUpgradeEnabled = true;
+            d.Multiselect = true;
+
             d.InitialDirectory = Properties.Settings.Default.LastOpenDirectory;
 
             var result = d.ShowDialog();

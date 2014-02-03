@@ -53,7 +53,7 @@ namespace CK.Mon2Htm
         {
             Dictionary<CKExceptionData, string> exceptions = new Dictionary<CKExceptionData, string>();
 
-            WriteLogGroupBreadcrumb(_initialPath);
+            WriteLogGroupBreadcrumb( _initialPath );
 
             if( _pageNumber > 1 ) WritePrevPageButton();
 
@@ -97,11 +97,11 @@ namespace CK.Mon2Htm
             {
                 if( entry.Parent.IsMissing )
                 {
-                    WriteCloseGroup( entry.Entry );
+                    WriteCloseGroup( entry );
                 }
                 else
                 {
-                    WriteCloseGroup( entry.Entry, _currentPath[_currentPath.Count - 1] );
+                    WriteCloseGroup( entry );
                     _currentPath.RemoveAt( _currentPath.Count - 1 );
                 }
             }
@@ -177,7 +177,7 @@ namespace CK.Mon2Htm
                          );
 
                     var indexGroupEntry = _indexInfo.Groups.GetByKey( entry.LogTime );
-                    if( indexGroupEntry.CloseGroupTimestamp > DateTimeStamp.MinValue)
+                    if( indexGroupEntry.CloseGroupTimestamp > DateTimeStamp.MinValue )
                     {
                         _tw.Write( @" <a href=""{0}""><span class=""glyphicon glyphicon-fast-forward""></span></a> ",
                             HtmlUtils.GetReferenceHref( _monitor, _indexInfo, indexGroupEntry.CloseGroupTimestamp ) );
@@ -194,36 +194,46 @@ namespace CK.Mon2Htm
             WriteLogListHeader();
         }
 
-        private void WriteCloseGroup( ILogEntry entry = null, ILogEntry openGroupEntry = null )
+        private void WriteCloseGroup( ParentedLogEntry parentedEntry = null )
         {
             bool closeDiv = true;
 
-            if( entry != null ) Debug.Assert( entry.LogType == LogEntryType.CloseGroup );
+            if( parentedEntry != null ) Debug.Assert( parentedEntry.Entry.LogType == LogEntryType.CloseGroup );
 
             WriteLogListFooter();
 
-            if( entry != null )
+            if( parentedEntry != null )
             {
-
+                var entry = parentedEntry.Entry;
                 _tw.Write( @"<span class=""anchor"" id=""{0}""></span>", HtmlUtils.GetTimestampId( entry.LogTime ) );
 
                 _tw.Write( @"<p class=""logLine logGroupMessage {0}"">",
                     HtmlUtils.GetClassNameOfLogLevel( entry.LogLevel )
                     );
 
-                if( openGroupEntry == null )
+                if( parentedEntry.Parent.IsMissing )
                 {
 
-                    _tw.Write( HttpUtility.HtmlEncode( "End of group. <Open entry missing>" ) );
+                    _tw.Write( HttpUtility.HtmlEncode( "End of group: <Open entry missing>" ) );
                     closeDiv = false;
                 }
                 else
                 {
                     _tw.Write( @"<a href=""{0}""><span class=""glyphicon glyphicon-fast-backward""></span></a> ",
-                        HtmlUtils.GetReferenceHref( _monitor, _indexInfo, openGroupEntry.LogTime ) );
+                        HtmlUtils.GetReferenceHref( _monitor, _indexInfo, parentedEntry.Parent.Entry.LogTime ) );
 
-
-                    _tw.Write( "End of group: '{0}'.", openGroupEntry.Text );
+                    if( parentedEntry.IsMissing )
+                    {
+                        _tw.Write(
+                            HttpUtility.HtmlEncode(
+                                String.Format( "<Missing end of group>: '{0}'.", parentedEntry.Parent.Entry.Text )
+                            )
+                        );
+                    }
+                    else
+                    {
+                        _tw.Write( "End of group: '{0}'.", parentedEntry.Parent.Entry.Text );
+                    }
                 }
 
                 if( entry.Conclusions.Count > 0 )
@@ -234,7 +244,7 @@ namespace CK.Mon2Htm
                 _tw.Write( @"</p>" );
             }
 
-            if(closeDiv) _tw.Write( @"</div>" );
+            if( closeDiv ) _tw.Write( @"</div>" );
 
             WriteLogListHeader();
 
@@ -346,10 +356,26 @@ namespace CK.Mon2Htm
                 }
                 foreach( var group in groupsToWrite.Reverse() )
                 {
-                    _tw.Write( @"<p>{0} <a href=""{1}""><span class=""glyphicon glyphicon-fast-forward""></span></a></p>",
-                        group.Text,
-                        HtmlUtils.GetReferenceHref( _monitor, _indexInfo, _indexInfo.Groups.GetByKey( group.LogTime ).CloseGroupTimestamp ) );
-                    _tw.Write( @"</div>" );
+                    _tw.Write( "<p>" );
+                    var groupInfo = _indexInfo.Groups.GetByKey( group.LogTime );
+                    if( groupInfo.CloseGroupTimestamp > DateTimeStamp.MinValue )
+                    {
+                        _tw.Write( @"{0} <a href=""{1}""><span class=""glyphicon glyphicon-fast-forward""></span></a>",
+                            group.Text,
+                            HtmlUtils.GetReferenceHref( _monitor, _indexInfo, _indexInfo.Groups.GetByKey( group.LogTime ).CloseGroupTimestamp ) );
+                    }
+                    else
+                    {
+                        _tw.Write(
+                            HttpUtility.HtmlEncode(
+                                String.Format( @"{0} <Missing group end>",
+                                    group.Text,
+                                    HtmlUtils.GetReferenceHref( _monitor, _indexInfo, _indexInfo.Groups.GetByKey( group.LogTime ).CloseGroupTimestamp )
+                                    )
+                                )
+                            );
+                    }
+                    _tw.Write( @"</p></div>" );
                 }
             }
             _tw.Write( @"</div>" );

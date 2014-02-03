@@ -19,7 +19,7 @@ namespace CK.Mon2Htm
         /// <summary>
         /// Resource prefix for content files.
         /// </summary>
-        public static readonly string CONTENT_RESOURCE_PREFIX = @"HtmlGenerator.Content.";
+        public static readonly string CONTENT_RESOURCE_PREFIX = @"CK.Mon2Htm.Content.";
 
         /// <summary>
         /// Time format used in index page.
