@@ -6,6 +6,7 @@ using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
@@ -38,6 +39,25 @@ namespace CKMon2Htm.App
             LoadFromProgramArguments();
 
             UpdateButtonState();
+
+            UpdateVersionLabel();
+        }
+
+        private void UpdateVersionLabel()
+        {
+            Version pubVersion = GetPublishedVersion();
+            if( pubVersion == null )
+            {
+                this.versionLabel.Text = String.Format( "Dev ({0})", Assembly.GetExecutingAssembly().GetName().Version.ToString() );
+            }
+            else
+            {
+                this.versionLabel.Text = pubVersion.ToString();
+            }
+
+#if DEBUG
+            this.versionLabel.Text = this.versionLabel.Text + " DEBUG";
+#endif
         }
 
         private void viewHtmlButton_Click( object sender, EventArgs e )
@@ -54,12 +74,36 @@ namespace CKMon2Htm.App
 
         private void LoadFromProgramArguments()
         {
-            var args = Environment.GetCommandLineArgs();
-            for( int i = 1; i < args.Length; i++ ) // arg 0 is executable itself
+
+            string[] args = Environment.GetCommandLineArgs();
+            string[] activationData = AppDomain.CurrentDomain.SetupInformation.ActivationArguments.ActivationData;
+
+            if( activationData != null && activationData.Length > 0 ) // ClickOnce file parameters
             {
-                string arg = args[i];
-                AddPath( arg );
+                for( int i = 0; i < activationData.Length; i++ )
+                {
+                    string arg = activationData[i];
+                    AddPath( arg );
+                }
             }
+            else if( args.Length > 1 )
+            {
+                for( int i = 1; i < args.Length; i++ ) // arg 0 is executable itself
+                {
+                    string arg = args[i];
+                    AddPath( arg );
+                }
+            }
+
+        }
+
+        private static Version GetPublishedVersion()
+        {
+            if( System.Deployment.Application.ApplicationDeployment.IsNetworkDeployed )
+            {
+                return System.Deployment.Application.ApplicationDeployment.CurrentDeployment.CurrentVersion;
+            }
+            return null;
         }
 
         private void AddPath( string path )
@@ -81,7 +125,10 @@ namespace CKMon2Htm.App
                     // Set selected if same.
                     bool isSame = Path.GetFullPath( f ) == Path.GetFullPath( path );
                     int tmp = AddFile( f, isSame );
-                    if( isSame ) firstRow = tmp;
+                    if( isSame )
+                    {
+                        firstRow = tmp;
+                    }
                 }
 
                 this.dataGridView1.FirstDisplayedScrollingRowIndex = firstRow;
@@ -92,6 +139,8 @@ namespace CKMon2Htm.App
         {
             if( _listedFiles.Contains( filePath ) ) return -1;
             _listedFiles.Add( filePath );
+
+            if( addSelected && !_filesToLoad.Contains( filePath ) ) _filesToLoad.Add( filePath );
 
             return AddFileRow( filePath, addSelected );
         }
@@ -234,7 +283,7 @@ namespace CKMon2Htm.App
         /// <param name="e"></param>
         private void dataGridView1_CurrentCellDirtyStateChanged( object sender, EventArgs e )
         {
-            if( this.dataGridView1.CurrentCell.ColumnIndex == 0)
+            if( this.dataGridView1.CurrentCell.ColumnIndex == 0 )
             {
                 this.dataGridView1.CommitEdit( DataGridViewDataErrorContexts.Commit );
             }
