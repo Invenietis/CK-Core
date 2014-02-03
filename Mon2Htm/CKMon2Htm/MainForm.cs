@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.Data;
 using System.Diagnostics;
 using System.Drawing;
 using System.IO;
@@ -181,7 +180,7 @@ namespace CK.Mon2Htm
 
             _tempDirPath = GetTempFolder();
 
-            return CKMon2Htm.CreateFromActivityMap( activityMap, _m, _tempDirPath );
+            return HtmlGenerator.CreateFromActivityMap( activityMap, _m, _tempDirPath );
         }
 
         private static string GetTempFolder()

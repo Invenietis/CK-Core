@@ -284,7 +284,7 @@ namespace CK.Mon2Htm
             {
                 WriteLogPageHeader( tw, monitor, currentPageNumber );
 
-                HtmlPageWriter.WriteEntries( tw, currentPageLogEntries, openGroupsOnStart, currentPageNumber, _indexInfos[monitor], monitor );
+                HtmlEntryPageWriter.WriteEntries( tw, currentPageLogEntries, openGroupsOnStart, currentPageNumber, _indexInfos[monitor], monitor );
 
                 WriteLogPageFooter( tw, monitor, currentPageNumber );
             }

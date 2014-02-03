@@ -52,7 +52,7 @@
       <Link>Properties\SharedAssemblyInfo.cs</Link>
     </Compile>
     <Compile Include="HtmlGenerator.cs" />
-    <Compile Include="HtmlPageWriter.cs" />
+    <Compile Include="HtmlEntryPageWriter.cs" />
     <Compile Include="HtmlUtils.cs" />
     <Compile Include="MonitorIndexInfo.cs" />
     <Compile Include="MonitoringExtensions.cs" />

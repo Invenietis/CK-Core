@@ -22,7 +22,7 @@ namespace CK.Mon2Htm
     /// - Large "Next page" button
     /// - Open groups footer
     /// </remarks>
-    public class CKMonEntryPageWriter
+    public class HtmlEntryPageWriter
     {
         readonly TextWriter _tw;
         readonly IReadOnlyList<ILogEntry> _initialPath;
@@ -34,12 +34,12 @@ namespace CK.Mon2Htm
 
         internal static void WriteEntries( TextWriter tw, IEnumerable<ParentedLogEntry> logEntries, IReadOnlyList<ILogEntry> initialOpenGroups, int pageNumber, MonitorIndexInfo indexInfo, MultiLogReader.Monitor monitor )
         {
-            var writer = new CKMonEntryPageWriter( tw, initialOpenGroups, pageNumber, indexInfo, monitor );
+            var writer = new HtmlEntryPageWriter( tw, initialOpenGroups, pageNumber, indexInfo, monitor );
 
             writer.DoWriteEntries( logEntries );
         }
 
-        private CKMonEntryPageWriter( TextWriter tw, IReadOnlyList<ILogEntry> initialPath, int pageNumber, MonitorIndexInfo indexInfo, MultiLogReader.Monitor monitor )
+        private HtmlEntryPageWriter( TextWriter tw, IReadOnlyList<ILogEntry> initialPath, int pageNumber, MonitorIndexInfo indexInfo, MultiLogReader.Monitor monitor )
         {
             _tw = tw;
             _pageNumber = pageNumber;
@@ -117,7 +117,7 @@ namespace CK.Mon2Htm
         {
             _tw.Write( @"<li>" );
 
-            string className = HtmUtils.GetClassNameOfLogLevel( entry.LogLevel );
+            string className = HtmlUtils.GetClassNameOfLogLevel( entry.LogLevel );
             if( entry.Exception == null )
             {
                 _tw.Write( String.Format( @"<pre class=""logLine {0}""><span data-toggle=""tooltip"" title=""{1}"" rel=""tooltip"">", className, GetTooltipText( entry ) ) );
@@ -163,32 +163,32 @@ namespace CK.Mon2Htm
             {
 
                 _tw.WriteLine( @"<span class=""anchor"" id=""{0}""></span>",
-                    HtmUtils.GetTimestampId( entry.LogTime ) );
+                    HtmlUtils.GetTimestampId( entry.LogTime ) );
 
                 if( printMessage )
                 {
-                    string className = HtmUtils.GetClassNameOfLogLevel( entry.LogLevel );
+                    string className = HtmlUtils.GetClassNameOfLogLevel( entry.LogLevel );
                     _tw.Write( @"<p class=""logLine logGroupMessage {0}""><span data-toggle=""tooltip"" title=""{1}"" rel=""tooltip"">", className, GetTooltipText( entry ) );
 
                     _tw.Write(
                         @"<a class=""collapseTitle collapseToggle"" data-toggle=""collapse"" href=""#group-{1}"">Group start: '{0}'</a>",
                         HttpUtility.HtmlEncode( entry.Text ),
-                        HtmUtils.GetTimestampId( entry.LogTime )
+                        HtmlUtils.GetTimestampId( entry.LogTime )
                          );
 
                     var indexGroupEntry = _indexInfo.Groups.GetByKey( entry.LogTime );
                     if( indexGroupEntry.CloseGroupTimestamp > DateTimeStamp.MinValue)
                     {
                         _tw.Write( @" <a href=""{0}""><span class=""glyphicon glyphicon-fast-forward""></span></a> ",
-                            HtmUtils.GetReferenceHref( _monitor, _indexInfo, indexGroupEntry.CloseGroupTimestamp ) );
+                            HtmlUtils.GetReferenceHref( _monitor, _indexInfo, indexGroupEntry.CloseGroupTimestamp ) );
                     }
 
                     _tw.WriteLine( @"</span></p>" );
                 }
 
                 _tw.WriteLine( @"<div id=""group-{1}"" class=""collapse in logGroup {0}"">",
-                    HtmUtils.GetClassNameOfLogLevel( entry.LogLevel ),
-                    HtmUtils.GetTimestampId( entry.LogTime ) );
+                    HtmlUtils.GetClassNameOfLogLevel( entry.LogLevel ),
+                    HtmlUtils.GetTimestampId( entry.LogTime ) );
             }
 
             WriteLogListHeader();
@@ -205,10 +205,10 @@ namespace CK.Mon2Htm
             if( entry != null )
             {
 
-                _tw.Write( @"<span class=""anchor"" id=""{0}""></span>", HtmUtils.GetTimestampId( entry.LogTime ) );
+                _tw.Write( @"<span class=""anchor"" id=""{0}""></span>", HtmlUtils.GetTimestampId( entry.LogTime ) );
 
                 _tw.Write( @"<p class=""logLine logGroupMessage {0}"">",
-                    HtmUtils.GetClassNameOfLogLevel( entry.LogLevel )
+                    HtmlUtils.GetClassNameOfLogLevel( entry.LogLevel )
                     );
 
                 if( openGroupEntry == null )
@@ -220,7 +220,7 @@ namespace CK.Mon2Htm
                 else
                 {
                     _tw.Write( @"<a href=""{0}""><span class=""glyphicon glyphicon-fast-backward""></span></a> ",
-                        HtmUtils.GetReferenceHref( _monitor, _indexInfo, openGroupEntry.LogTime ) );
+                        HtmlUtils.GetReferenceHref( _monitor, _indexInfo, openGroupEntry.LogTime ) );
 
 
                     _tw.Write( "End of group: '{0}'.", openGroupEntry.Text );
@@ -310,12 +310,12 @@ namespace CK.Mon2Htm
 
         private void WriteNextPageButton()
         {
-            _tw.Write( @"<a href=""{0}"" class=""btn btn-lg btn-warning largePageButton"" role=""button"">Next page</a>", HtmUtils.GetMonitorPageFilename( _monitor, _pageNumber + 1 ) );
+            _tw.Write( @"<a href=""{0}"" class=""btn btn-lg btn-warning largePageButton"" role=""button"">Next page</a>", HtmlUtils.GetMonitorPageFilename( _monitor, _pageNumber + 1 ) );
         }
 
         private void WritePrevPageButton()
         {
-            _tw.Write( @"<a href=""{0}"" class=""btn btn-lg btn-warning largePageButton"" role=""button"">Previous page</a>", HtmUtils.GetMonitorPageFilename( _monitor, _pageNumber - 1 ) );
+            _tw.Write( @"<a href=""{0}"" class=""btn btn-lg btn-warning largePageButton"" role=""button"">Previous page</a>", HtmlUtils.GetMonitorPageFilename( _monitor, _pageNumber - 1 ) );
         }
 
         private void WriteLogGroupBreadcrumb( IReadOnlyList<ILogEntry> groupsToWrite, bool reverse = false )
@@ -326,10 +326,10 @@ namespace CK.Mon2Htm
             {
                 foreach( var group in groupsToWrite )
                 {
-                    _tw.Write( @"<div class=""groupBreadcrumbItem {0}"">", HtmUtils.GetClassNameOfLogLevel( group.LogLevel ) );
+                    _tw.Write( @"<div class=""groupBreadcrumbItem {0}"">", HtmlUtils.GetClassNameOfLogLevel( group.LogLevel ) );
                     _tw.Write( @"<p>{0} <a href=""{1}""><span class=""glyphicon glyphicon-fast-backward""></span></a></p>",
                         group.Text,
-                        HtmUtils.GetReferenceHref( _monitor, _indexInfo, _indexInfo.Groups.GetByKey( group.LogTime ).OpenGroupTimestamp ) );
+                        HtmlUtils.GetReferenceHref( _monitor, _indexInfo, _indexInfo.Groups.GetByKey( group.LogTime ).OpenGroupTimestamp ) );
                 }
                 for( int i = 0; i < groupsToWrite.Count; i++ )
                 {
@@ -342,13 +342,13 @@ namespace CK.Mon2Htm
                 _tw.Write( @"<div class=""groupBreadcrumbSeparator""></div>" );
                 foreach( var group in groupsToWrite )
                 {
-                    _tw.Write( @"<div class=""groupBreadcrumbItem {0}"">", HtmUtils.GetClassNameOfLogLevel( group.LogLevel ) );
+                    _tw.Write( @"<div class=""groupBreadcrumbItem {0}"">", HtmlUtils.GetClassNameOfLogLevel( group.LogLevel ) );
                 }
                 foreach( var group in groupsToWrite.Reverse() )
                 {
                     _tw.Write( @"<p>{0} <a href=""{1}""><span class=""glyphicon glyphicon-fast-forward""></span></a></p>",
                         group.Text,
-                        HtmUtils.GetReferenceHref( _monitor, _indexInfo, _indexInfo.Groups.GetByKey( group.LogTime ).CloseGroupTimestamp ) );
+                        HtmlUtils.GetReferenceHref( _monitor, _indexInfo, _indexInfo.Groups.GetByKey( group.LogTime ).CloseGroupTimestamp ) );
                     _tw.Write( @"</div>" );
                 }
             }
