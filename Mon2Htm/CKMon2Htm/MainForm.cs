@@ -141,6 +141,8 @@ namespace CK.Mon2Htm
 
             if( addSelected && !_filesToLoad.Contains( filePath ) ) _filesToLoad.Add( filePath );
 
+            UpdateButtonState();
+
             return AddFileRow( filePath, addSelected );
         }
 
@@ -149,6 +151,8 @@ namespace CK.Mon2Htm
             var row = new DataGridViewRow();
 
             var viewCheckbox = new DataGridViewCheckBoxCell();
+            viewCheckbox.TrueValue = true;
+            viewCheckbox.FalseValue = false;
             viewCheckbox.Value = viewSelected;
 
             var fileCell = new DataGridViewTextBoxCell();
@@ -207,6 +211,7 @@ namespace CK.Mon2Htm
         {
             // Add file
             OpenFileDialog d = new OpenFileDialog();
+            d.Title = "Add log file(s)";
             d.Filter = "Activity Monitor log files (.ckmon)|*.ckmon";
             d.FilterIndex = 0;
             d.CheckFileExists = true;
@@ -222,7 +227,7 @@ namespace CK.Mon2Htm
             {
                 foreach( var f in d.FileNames )
                 {
-                    AddFile( f );
+                    AddFile( f, true );
                 }
 
                 CK.Mon2Htm.Properties.Settings.Default.LastOpenDirectory = Path.GetDirectoryName( d.FileName );
@@ -269,6 +274,8 @@ namespace CK.Mon2Htm
             }
 
             UpdateButtonState();
+
+            this.dataGridView1.ClearSelection();
         }
 
         private void UpdateButtonState()
@@ -288,5 +295,30 @@ namespace CK.Mon2Htm
                 this.dataGridView1.CommitEdit( DataGridViewDataErrorContexts.Commit );
             }
         }
+
+        private void selectAllToolStripMenuItem_Click( object sender, EventArgs e )
+        {
+            SetAllViewValues( true );
+        }
+
+        private void selectNoneToolStripMenuItem_Click( object sender, EventArgs e )
+        {
+            SetAllViewValues( false );
+        }
+
+        private void SetAllViewValues(bool value)
+        {
+            foreach( var row in this.dataGridView1.Rows )
+            {
+                DataGridViewRow r = row as DataGridViewRow;
+
+                DataGridViewCheckBoxCell c = r.Cells[0] as DataGridViewCheckBoxCell;
+
+                c.Value = value;
+            }
+            this.dataGridView1.RefreshEdit(); // Flush CurrentCell value
+            this.dataGridView1.InvalidateCell( this.dataGridView1.CurrentCell ); // Repaint it
+        }
+
     }
 }

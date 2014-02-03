@@ -28,23 +28,28 @@
         /// </summary>
         private void InitializeComponent()
         {
+            this.components = new System.ComponentModel.Container();
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(MainForm));
             this.viewHtmlButton = new System.Windows.Forms.Button();
             this.label1 = new System.Windows.Forms.Label();
             this.addDirButton = new System.Windows.Forms.Button();
             this.addFileButton = new System.Windows.Forms.Button();
             this.dataGridView1 = new System.Windows.Forms.DataGridView();
+            this.versionLabel = new System.Windows.Forms.Label();
+            this.contextMenuStrip1 = new System.Windows.Forms.ContextMenuStrip(this.components);
+            this.selectAllToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.selectNoneToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.ViewFileColumn = new System.Windows.Forms.DataGridViewCheckBoxColumn();
             this.FileColumn = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.versionLabel = new System.Windows.Forms.Label();
             ((System.ComponentModel.ISupportInitialize)(this.dataGridView1)).BeginInit();
+            this.contextMenuStrip1.SuspendLayout();
             this.SuspendLayout();
             // 
             // viewHtmlButton
             // 
             this.viewHtmlButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
             this.viewHtmlButton.Location = new System.Drawing.Point(377, 226);
-            this.viewHtmlButton.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.viewHtmlButton.Margin = new System.Windows.Forms.Padding(2);
             this.viewHtmlButton.Name = "viewHtmlButton";
             this.viewHtmlButton.Size = new System.Drawing.Size(102, 30);
             this.viewHtmlButton.TabIndex = 0;
@@ -63,7 +68,7 @@
             // 
             this.addDirButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
             this.addDirButton.Location = new System.Drawing.Point(275, 226);
-            this.addDirButton.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.addDirButton.Margin = new System.Windows.Forms.Padding(2);
             this.addDirButton.Name = "addDirButton";
             this.addDirButton.Size = new System.Drawing.Size(98, 30);
             this.addDirButton.TabIndex = 2;
@@ -75,7 +80,7 @@
             // 
             this.addFileButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
             this.addFileButton.Location = new System.Drawing.Point(175, 226);
-            this.addFileButton.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.addFileButton.Margin = new System.Windows.Forms.Padding(2);
             this.addFileButton.Name = "addFileButton";
             this.addFileButton.Size = new System.Drawing.Size(98, 30);
             this.addFileButton.TabIndex = 3;
@@ -97,7 +102,7 @@
             this.ViewFileColumn,
             this.FileColumn});
             this.dataGridView1.Location = new System.Drawing.Point(6, 6);
-            this.dataGridView1.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.dataGridView1.Margin = new System.Windows.Forms.Padding(2);
             this.dataGridView1.Name = "dataGridView1";
             this.dataGridView1.RowHeadersVisible = false;
             this.dataGridView1.RowTemplate.Height = 33;
@@ -105,19 +110,6 @@
             this.dataGridView1.TabIndex = 4;
             this.dataGridView1.CellValueChanged += new System.Windows.Forms.DataGridViewCellEventHandler(this.dataGridView1_CellValueChanged);
             this.dataGridView1.CurrentCellDirtyStateChanged += new System.EventHandler(this.dataGridView1_CurrentCellDirtyStateChanged);
-            // 
-            // ViewFileColumn
-            // 
-            this.ViewFileColumn.HeaderText = "View";
-            this.ViewFileColumn.Name = "ViewFileColumn";
-            this.ViewFileColumn.Width = 36;
-            // 
-            // FileColumn
-            // 
-            this.FileColumn.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.Fill;
-            this.FileColumn.HeaderText = "File";
-            this.FileColumn.Name = "FileColumn";
-            this.FileColumn.ReadOnly = true;
             // 
             // versionLabel
             // 
@@ -128,6 +120,42 @@
             this.versionLabel.Size = new System.Drawing.Size(16, 13);
             this.versionLabel.TabIndex = 5;
             this.versionLabel.Text = "...";
+            // 
+            // contextMenuStrip1
+            // 
+            this.contextMenuStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.selectAllToolStripMenuItem,
+            this.selectNoneToolStripMenuItem});
+            this.contextMenuStrip1.Name = "contextMenuStrip1";
+            this.contextMenuStrip1.Size = new System.Drawing.Size(136, 48);
+            // 
+            // selectAllToolStripMenuItem
+            // 
+            this.selectAllToolStripMenuItem.Name = "selectAllToolStripMenuItem";
+            this.selectAllToolStripMenuItem.Size = new System.Drawing.Size(135, 22);
+            this.selectAllToolStripMenuItem.Text = "Select all";
+            this.selectAllToolStripMenuItem.Click += new System.EventHandler(this.selectAllToolStripMenuItem_Click);
+            // 
+            // selectNoneToolStripMenuItem
+            // 
+            this.selectNoneToolStripMenuItem.Name = "selectNoneToolStripMenuItem";
+            this.selectNoneToolStripMenuItem.Size = new System.Drawing.Size(135, 22);
+            this.selectNoneToolStripMenuItem.Text = "Select none";
+            this.selectNoneToolStripMenuItem.Click += new System.EventHandler(this.selectNoneToolStripMenuItem_Click);
+            // 
+            // ViewFileColumn
+            // 
+            this.ViewFileColumn.ContextMenuStrip = this.contextMenuStrip1;
+            this.ViewFileColumn.HeaderText = "View";
+            this.ViewFileColumn.Name = "ViewFileColumn";
+            this.ViewFileColumn.Width = 36;
+            // 
+            // FileColumn
+            // 
+            this.FileColumn.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.Fill;
+            this.FileColumn.HeaderText = "File";
+            this.FileColumn.Name = "FileColumn";
+            this.FileColumn.ReadOnly = true;
             // 
             // MainForm
             // 
@@ -140,11 +168,12 @@
             this.Controls.Add(this.addDirButton);
             this.Controls.Add(this.viewHtmlButton);
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
-            this.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.Margin = new System.Windows.Forms.Padding(2);
             this.MinimumSize = new System.Drawing.Size(500, 300);
             this.Name = "MainForm";
             this.Text = "ActivityMonitor HTML log viewer";
             ((System.ComponentModel.ISupportInitialize)(this.dataGridView1)).EndInit();
+            this.contextMenuStrip1.ResumeLayout(false);
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -157,9 +186,12 @@
         private System.Windows.Forms.Button addDirButton;
         private System.Windows.Forms.Button addFileButton;
         private System.Windows.Forms.DataGridView dataGridView1;
+        private System.Windows.Forms.Label versionLabel;
+        private System.Windows.Forms.ContextMenuStrip contextMenuStrip1;
+        private System.Windows.Forms.ToolStripMenuItem selectAllToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem selectNoneToolStripMenuItem;
         private System.Windows.Forms.DataGridViewCheckBoxColumn ViewFileColumn;
         private System.Windows.Forms.DataGridViewTextBoxColumn FileColumn;
-        private System.Windows.Forms.Label versionLabel;
     }
 }
 
