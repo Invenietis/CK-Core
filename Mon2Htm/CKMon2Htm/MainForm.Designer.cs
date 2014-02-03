@@ -36,13 +36,16 @@
             this.addFileButton = new System.Windows.Forms.Button();
             this.dataGridView1 = new System.Windows.Forms.DataGridView();
             this.versionLabel = new System.Windows.Forms.Label();
-            this.contextMenuStrip1 = new System.Windows.Forms.ContextMenuStrip(this.components);
+            this.viewColumnContextMenuStrip = new System.Windows.Forms.ContextMenuStrip(this.components);
             this.selectAllToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.selectNoneToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.fileColumnContextMenuStrip = new System.Windows.Forms.ContextMenuStrip(this.components);
+            this.removeToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.ViewFileColumn = new System.Windows.Forms.DataGridViewCheckBoxColumn();
             this.FileColumn = new System.Windows.Forms.DataGridViewTextBoxColumn();
             ((System.ComponentModel.ISupportInitialize)(this.dataGridView1)).BeginInit();
-            this.contextMenuStrip1.SuspendLayout();
+            this.viewColumnContextMenuStrip.SuspendLayout();
+            this.fileColumnContextMenuStrip.SuspendLayout();
             this.SuspendLayout();
             // 
             // viewHtmlButton
@@ -121,13 +124,13 @@
             this.versionLabel.TabIndex = 5;
             this.versionLabel.Text = "...";
             // 
-            // contextMenuStrip1
+            // viewColumnContextMenuStrip
             // 
-            this.contextMenuStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.viewColumnContextMenuStrip.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.selectAllToolStripMenuItem,
             this.selectNoneToolStripMenuItem});
-            this.contextMenuStrip1.Name = "contextMenuStrip1";
-            this.contextMenuStrip1.Size = new System.Drawing.Size(136, 48);
+            this.viewColumnContextMenuStrip.Name = "viewColumnContextMenuStrip";
+            this.viewColumnContextMenuStrip.Size = new System.Drawing.Size(136, 48);
             // 
             // selectAllToolStripMenuItem
             // 
@@ -143,9 +146,23 @@
             this.selectNoneToolStripMenuItem.Text = "Select none";
             this.selectNoneToolStripMenuItem.Click += new System.EventHandler(this.selectNoneToolStripMenuItem_Click);
             // 
+            // fileColumnContextMenuStrip
+            // 
+            this.fileColumnContextMenuStrip.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.removeToolStripMenuItem});
+            this.fileColumnContextMenuStrip.Name = "fileColumnContextMenuStrip";
+            this.fileColumnContextMenuStrip.Size = new System.Drawing.Size(153, 48);
+            // 
+            // removeToolStripMenuItem
+            // 
+            this.removeToolStripMenuItem.Name = "removeToolStripMenuItem";
+            this.removeToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
+            this.removeToolStripMenuItem.Text = "Clear all";
+            this.removeToolStripMenuItem.Click += new System.EventHandler(this.removeToolStripMenuItem_Click);
+            // 
             // ViewFileColumn
             // 
-            this.ViewFileColumn.ContextMenuStrip = this.contextMenuStrip1;
+            this.ViewFileColumn.ContextMenuStrip = this.viewColumnContextMenuStrip;
             this.ViewFileColumn.HeaderText = "View";
             this.ViewFileColumn.Name = "ViewFileColumn";
             this.ViewFileColumn.Width = 36;
@@ -153,6 +170,7 @@
             // FileColumn
             // 
             this.FileColumn.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.Fill;
+            this.FileColumn.ContextMenuStrip = this.fileColumnContextMenuStrip;
             this.FileColumn.HeaderText = "File";
             this.FileColumn.Name = "FileColumn";
             this.FileColumn.ReadOnly = true;
@@ -173,7 +191,8 @@
             this.Name = "MainForm";
             this.Text = "ActivityMonitor HTML log viewer";
             ((System.ComponentModel.ISupportInitialize)(this.dataGridView1)).EndInit();
-            this.contextMenuStrip1.ResumeLayout(false);
+            this.viewColumnContextMenuStrip.ResumeLayout(false);
+            this.fileColumnContextMenuStrip.ResumeLayout(false);
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -187,9 +206,11 @@
         private System.Windows.Forms.Button addFileButton;
         private System.Windows.Forms.DataGridView dataGridView1;
         private System.Windows.Forms.Label versionLabel;
-        private System.Windows.Forms.ContextMenuStrip contextMenuStrip1;
+        private System.Windows.Forms.ContextMenuStrip viewColumnContextMenuStrip;
         private System.Windows.Forms.ToolStripMenuItem selectAllToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem selectNoneToolStripMenuItem;
+        private System.Windows.Forms.ContextMenuStrip fileColumnContextMenuStrip;
+        private System.Windows.Forms.ToolStripMenuItem removeToolStripMenuItem;
         private System.Windows.Forms.DataGridViewCheckBoxColumn ViewFileColumn;
         private System.Windows.Forms.DataGridViewTextBoxColumn FileColumn;
     }

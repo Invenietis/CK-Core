@@ -274,8 +274,6 @@ namespace CK.Mon2Htm
             }
 
             UpdateButtonState();
-
-            this.dataGridView1.ClearSelection();
         }
 
         private void UpdateButtonState()
@@ -318,6 +316,15 @@ namespace CK.Mon2Htm
             }
             this.dataGridView1.RefreshEdit(); // Flush CurrentCell value
             this.dataGridView1.InvalidateCell( this.dataGridView1.CurrentCell ); // Repaint it
+        }
+
+        private void removeToolStripMenuItem_Click( object sender, EventArgs e )
+        {
+            _listedFiles.Clear();
+            _filesToLoad.Clear();
+
+            this.dataGridView1.Rows.Clear();
+            UpdateButtonState();
         }
 
     }
