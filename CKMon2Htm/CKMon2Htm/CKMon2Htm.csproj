@@ -59,7 +59,8 @@
       <Link>Properties\SharedAssemblyInfo.cs</Link>
     </Compile>
     <Compile Include="CKMon2Htm.cs" />
-    <Compile Include="CkmonHtmlWriter.cs" />
+    <Compile Include="CKMonEntryPageWriter.cs" />
+    <Compile Include="HtmUtils.cs" />
     <Compile Include="MonitorIndexInfo.cs" />
     <Compile Include="MonitoringExtensions.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
