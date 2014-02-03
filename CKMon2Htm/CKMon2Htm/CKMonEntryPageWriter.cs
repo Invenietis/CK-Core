@@ -31,7 +31,8 @@ namespace CKMon2Htm
         readonly MultiLogReader.Monitor _monitor;
         readonly int _pageNumber;
 
-        internal static void WriteEntries( TextWriter tw, IEnumerable<ILogEntry> logEntries, IReadOnlyList<ILogEntry> initialOpenGroups, int pageNumber, MonitorIndexInfo indexInfo, MultiLogReader.Monitor monitor )
+
+        internal static void WriteEntries( TextWriter tw, IEnumerable<ParentedLogEntry> logEntries, IReadOnlyList<ILogEntry> initialOpenGroups, int pageNumber, MonitorIndexInfo indexInfo, MultiLogReader.Monitor monitor )
         {
             var writer = new CKMonEntryPageWriter( tw, initialOpenGroups, pageNumber, indexInfo, monitor );
 
@@ -48,7 +49,7 @@ namespace CKMon2Htm
             _currentPath = _initialPath.ToList();
         }
 
-        private void DoWriteEntries( IEnumerable<ILogEntry> logEntries )
+        private void DoWriteEntries( IEnumerable<ParentedLogEntry> logEntries )
         {
             Dictionary<CKExceptionData, string> exceptions = new Dictionary<CKExceptionData, string>();
 
@@ -85,21 +86,28 @@ namespace CKMon2Htm
             WriteLogGroupBreadcrumb( _currentPath.ToReadOnlyList(), true );
         }
 
-        private void HandleEntry( ILogEntry entry )
+        private void HandleEntry( ParentedLogEntry entry )
         {
-            if( entry.LogType == LogEntryType.OpenGroup )
+            if( entry.Entry.LogType == LogEntryType.OpenGroup )
             {
-                WriteOpenGroup( entry );
-                _currentPath.Add( entry );
+                WriteOpenGroup( entry.Entry );
+                _currentPath.Add( entry.Entry );
             }
-            else if( entry.LogType == LogEntryType.CloseGroup )
+            else if( entry.Entry.LogType == LogEntryType.CloseGroup )
             {
-                WriteCloseGroup( entry, _currentPath[_currentPath.Count - 1] );
-                _currentPath.RemoveAt( _currentPath.Count - 1 );
+                if( entry.Parent.IsMissing )
+                {
+                    WriteCloseGroup( entry.Entry );
+                }
+                else
+                {
+                    WriteCloseGroup( entry.Entry, _currentPath[_currentPath.Count - 1] );
+                    _currentPath.RemoveAt( _currentPath.Count - 1 );
+                }
             }
-            else if( entry.LogType == LogEntryType.Line )
+            else if( entry.Entry.LogType == LogEntryType.Line )
             {
-                WriteLine( entry );
+                WriteLine( entry.Entry );
             }
         }
 
@@ -153,20 +161,32 @@ namespace CKMon2Htm
             }
             else
             {
+
+                _tw.WriteLine( @"<span class=""anchor"" id=""{0}""></span>",
+                    HtmUtils.GetTimestampId( entry.LogTime ) );
+
                 if( printMessage )
                 {
                     string className = HtmUtils.GetClassNameOfLogLevel( entry.LogLevel );
-                    _tw.Write( @"<pre class=""logLine logGroupMessage {0}""><span data-toggle=""tooltip"" title=""{1}"" rel=""tooltip"">", className, GetTooltipText( entry ) );
+                    _tw.Write( @"<p class=""logLine logGroupMessage {0}""><span data-toggle=""tooltip"" title=""{1}"" rel=""tooltip"">", className, GetTooltipText( entry ) );
 
                     _tw.Write(
-                        @"<a class=""collapseTitle collapseToggle"" data-toggle=""collapse"" href=""#group-{1}"">Group start: {0}</a>",
+                        @"<a class=""collapseTitle collapseToggle"" data-toggle=""collapse"" href=""#group-{1}"">Group start: '{0}'</a>",
                         HttpUtility.HtmlEncode( entry.Text ),
                         HtmUtils.GetTimestampId( entry.LogTime )
                          );
 
-                    _tw.WriteLine( @"</span></pre>" );
+                    var indexGroupEntry = _indexInfo.Groups.GetByKey( entry.LogTime );
+                    if( indexGroupEntry.CloseGroupTimestamp > DateTimeStamp.MinValue)
+                    {
+                        _tw.Write( @" <a href=""{0}""><span class=""glyphicon glyphicon-fast-forward""></span></a> ",
+                            HtmUtils.GetReferenceHref( _monitor, _indexInfo, indexGroupEntry.CloseGroupTimestamp ) );
+                    }
+
+                    _tw.WriteLine( @"</span></p>" );
                 }
-                _tw.WriteLine( @"<span class=""anchor"" id=""{1}""></span><div id=""group-{1}"" class=""collapse in logGroup {0}"">",
+
+                _tw.WriteLine( @"<div id=""group-{1}"" class=""collapse in logGroup {0}"">",
                     HtmUtils.GetClassNameOfLogLevel( entry.LogLevel ),
                     HtmUtils.GetTimestampId( entry.LogTime ) );
             }
@@ -176,27 +196,45 @@ namespace CKMon2Htm
 
         private void WriteCloseGroup( ILogEntry entry = null, ILogEntry openGroupEntry = null )
         {
+            bool closeDiv = true;
+
             if( entry != null ) Debug.Assert( entry.LogType == LogEntryType.CloseGroup );
 
             WriteLogListFooter();
 
             if( entry != null )
             {
-                _tw.Write( @"<pre class=""logLine logGroupMessage {0}"">",
+
+                _tw.Write( @"<span class=""anchor"" id=""{0}""></span>", HtmUtils.GetTimestampId( entry.LogTime ) );
+
+                _tw.Write( @"<p class=""logLine logGroupMessage {0}"">",
                     HtmUtils.GetClassNameOfLogLevel( entry.LogLevel )
                     );
 
-                _tw.Write( "End of group." );
+                if( openGroupEntry == null )
+                {
+
+                    _tw.Write( HttpUtility.HtmlEncode( "End of group. <Open entry missing>" ) );
+                    closeDiv = false;
+                }
+                else
+                {
+                    _tw.Write( @"<a href=""{0}""><span class=""glyphicon glyphicon-fast-backward""></span></a> ",
+                        HtmUtils.GetReferenceHref( _monitor, _indexInfo, openGroupEntry.LogTime ) );
+
+
+                    _tw.Write( "End of group: '{0}'.", openGroupEntry.Text );
+                }
+
                 if( entry.Conclusions.Count > 0 )
                 {
                     _tw.Write( " Conclusions: {0}", String.Join( "; ", entry.Conclusions ) );
                 }
 
-                _tw.Write( @"</pre>" );
-                _tw.Write( @"<span class=""anchor"" id=""{0}""></span>", HtmUtils.GetTimestampId( entry.LogTime ) );
+                _tw.Write( @"</p>" );
             }
 
-            _tw.Write( @"</div>" );
+            if(closeDiv) _tw.Write( @"</div>" );
 
             WriteLogListHeader();
 

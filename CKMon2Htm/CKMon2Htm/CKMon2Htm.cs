@@ -206,7 +206,7 @@ namespace CKMon2Htm
             _monitor.Info().Send( "Generating HTML for monitor: {0}", monitor.ToString() );
 
             List<string> pageFilenames = new List<string>();
-            List<ILogEntry> currentPageLogEntries = new List<ILogEntry>();
+            List<ParentedLogEntry> currentPageLogEntries = new List<ParentedLogEntry>();
 
             IReadOnlyList<ILogEntry> openGroupsOnStart = new List<ILogEntry>().ToReadOnlyList(); // To fix
             List<ILogEntry> openGroupsOnEnd = new List<ILogEntry>();
@@ -223,13 +223,13 @@ namespace CKMon2Htm
                 foreach( var parentedLogEntry in page.Entries )
                 {
                     var entry = parentedLogEntry.Entry;
-                    currentPageLogEntries.Add( entry );
+                    currentPageLogEntries.Add( parentedLogEntry );
 
                     if( entry.LogType == LogEntryType.OpenGroup && !parentedLogEntry.IsMissing )
                     {
                         openGroupsOnEnd.Add( entry );
                     }
-                    else if( entry.LogType == LogEntryType.CloseGroup && !parentedLogEntry.IsMissing )
+                    else if( entry.LogType == LogEntryType.CloseGroup && !parentedLogEntry.Parent.IsMissing )
                     {
                         openGroupsOnEnd.Remove( openGroupsOnEnd[openGroupsOnEnd.Count - 1] );
                     }
@@ -271,7 +271,7 @@ namespace CKMon2Htm
         /// <param name="openGroupsOnStart">Group path at the beginning of the page.</param>
         /// <param name="openGroupsOnEnd">Group path at the end of the page.</param>
         /// <returns></returns>
-        private string GenerateLogPage( IEnumerable<ILogEntry> currentPageLogEntries,
+        private string GenerateLogPage( IEnumerable<ParentedLogEntry> currentPageLogEntries,
             MultiLogReader.Monitor monitor,
             int currentPageNumber,
             IReadOnlyList<ILogEntry> openGroupsOnStart,
