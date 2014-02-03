@@ -123,6 +123,7 @@
             this.versionLabel.Size = new System.Drawing.Size(16, 13);
             this.versionLabel.TabIndex = 5;
             this.versionLabel.Text = "...";
+            this.versionLabel.DoubleClick += new System.EventHandler(this.versionLabel_DoubleClick);
             // 
             // viewColumnContextMenuStrip
             // 
@@ -151,12 +152,12 @@
             this.fileColumnContextMenuStrip.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.removeToolStripMenuItem});
             this.fileColumnContextMenuStrip.Name = "fileColumnContextMenuStrip";
-            this.fileColumnContextMenuStrip.Size = new System.Drawing.Size(153, 48);
+            this.fileColumnContextMenuStrip.Size = new System.Drawing.Size(117, 26);
             // 
             // removeToolStripMenuItem
             // 
             this.removeToolStripMenuItem.Name = "removeToolStripMenuItem";
-            this.removeToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
+            this.removeToolStripMenuItem.Size = new System.Drawing.Size(116, 22);
             this.removeToolStripMenuItem.Text = "Clear all";
             this.removeToolStripMenuItem.Click += new System.EventHandler(this.removeToolStripMenuItem_Click);
             // 
