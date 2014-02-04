@@ -85,6 +85,7 @@ namespace CK.Mon2Htm
                     string arg = activationData[i];
                     AddPath( arg );
                 }
+                this.viewHtmlButton.Focus();
             }
             else if( args.Length > 1 )
             {
@@ -93,8 +94,9 @@ namespace CK.Mon2Htm
                     string arg = args[i];
                     AddPath( arg );
                 }
+                this.viewHtmlButton.Focus();
             }
-
+            this.addFileButton.Focus();
         }
 
         private static Version GetPublishedVersion()
@@ -308,6 +310,7 @@ namespace CK.Mon2Htm
                 CK.Mon2Htm.Properties.Settings.Default.Save();
 
                 this.dataGridView1.Sort( this.dataGridView1.Columns[1], ListSortDirection.Ascending );
+                this.viewHtmlButton.Focus();
             }
         }
 

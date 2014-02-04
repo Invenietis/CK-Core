@@ -328,7 +328,7 @@ namespace CK.Mon2Htm
                 tw.Write( @"<p>The logging system encountered the following errors:</p>" );
                 foreach( var path in dumpPaths )
                 {
-                    tw.Write( @"<h3>{0} <small>{1}</small></h3>", Path.GetFileName( path ), Path.GetDirectoryName(path) );
+                    tw.Write( @"<h3>{0} <small>{1}</small></h3>", Path.GetFileName( path ), Path.GetDirectoryName(path));
                     tw.Write( @"<pre>{0}</pre>", File.ReadAllText( path ) );
                 }
                 tw.Write( @"</div>" );
