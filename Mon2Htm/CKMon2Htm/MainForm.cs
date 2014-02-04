@@ -254,6 +254,10 @@ namespace CK.Mon2Htm
                         }
                     }
                 }
+                else
+                {
+                    MessageBox.Show( "No update is available at this time." );
+                }
             }
         }
 
