@@ -19,7 +19,7 @@ namespace CK.Mon2Htm
         /// <summary>
         /// Resource prefix for content files.
         /// </summary>
-        public static readonly string CONTENT_RESOURCE_PREFIX = @"HtmlGenerator.Content.";
+        public static readonly string CONTENT_RESOURCE_PREFIX = @"CK.Mon2Htm.Content.";
 
         /// <summary>
         /// Time format used in index page.
@@ -87,7 +87,7 @@ namespace CK.Mon2Htm
         /// <summary>
         /// Creates an HTML view structure from a MultiLogReader.ActivityMap.
         /// </summary>
-        /// <param name="activityMap">ActivityMap to use.</param>
+        /// <param name="_activityMap">ActivityMap to use.</param>
         /// <param name="activityMonitor">Activity monitor to use when logging events about generation.</param>
         /// <param name="htmlOutputDirectory">Directory in which the HTML structure will be generated.</param>
         /// <param name="logEntryCountPerPage">How many entries to write on every log page.</param>
@@ -188,7 +188,7 @@ namespace CK.Mon2Htm
                 }
             }
 
-            string indexPath = CreateIndex( _activityMap, monitorPages );
+            string indexPath = CreateIndex( monitorPages );
 
             return indexPath;
         }
@@ -206,7 +206,7 @@ namespace CK.Mon2Htm
             _monitor.Info().Send( "Generating HTML for monitor: {0}", monitor.ToString() );
 
             List<string> pageFilenames = new List<string>();
-            List<ILogEntry> currentPageLogEntries = new List<ILogEntry>();
+            List<ParentedLogEntry> currentPageLogEntries = new List<ParentedLogEntry>();
 
             IReadOnlyList<ILogEntry> openGroupsOnStart = new List<ILogEntry>().ToReadOnlyList(); // To fix
             List<ILogEntry> openGroupsOnEnd = new List<ILogEntry>();
@@ -223,13 +223,13 @@ namespace CK.Mon2Htm
                 foreach( var parentedLogEntry in page.Entries )
                 {
                     var entry = parentedLogEntry.Entry;
-                    currentPageLogEntries.Add( entry );
+                    currentPageLogEntries.Add( parentedLogEntry );
 
                     if( entry.LogType == LogEntryType.OpenGroup && !parentedLogEntry.IsMissing )
                     {
                         openGroupsOnEnd.Add( entry );
                     }
-                    else if( entry.LogType == LogEntryType.CloseGroup && !parentedLogEntry.IsMissing )
+                    else if( entry.LogType == LogEntryType.CloseGroup && !parentedLogEntry.Parent.IsMissing )
                     {
                         openGroupsOnEnd.Remove( openGroupsOnEnd[openGroupsOnEnd.Count - 1] );
                     }
@@ -271,7 +271,7 @@ namespace CK.Mon2Htm
         /// <param name="openGroupsOnStart">Group path at the beginning of the page.</param>
         /// <param name="openGroupsOnEnd">Group path at the end of the page.</param>
         /// <returns></returns>
-        private string GenerateLogPage( IEnumerable<ILogEntry> currentPageLogEntries,
+        private string GenerateLogPage( IEnumerable<ParentedLogEntry> currentPageLogEntries,
             MultiLogReader.Monitor monitor,
             int currentPageNumber,
             IReadOnlyList<ILogEntry> openGroupsOnStart,
@@ -284,7 +284,7 @@ namespace CK.Mon2Htm
             {
                 WriteLogPageHeader( tw, monitor, currentPageNumber );
 
-                HtmlPageWriter.WriteEntries( tw, currentPageLogEntries, openGroupsOnStart, currentPageNumber, _indexInfos[monitor], monitor );
+                HtmlEntryPageWriter.WriteEntries( tw, currentPageLogEntries, openGroupsOnStart, currentPageNumber, _indexInfos[monitor], monitor );
 
                 WriteLogPageFooter( tw, monitor, currentPageNumber );
             }
@@ -303,30 +303,44 @@ namespace CK.Mon2Htm
             tw.Write( GetHtmlFooter() );
         }
 
-        private string CreateIndex( MultiLogReader.ActivityMap activityMap, Dictionary<MultiLogReader.Monitor, IEnumerable<string>> monitorPages )
+        private string CreateIndex( Dictionary<MultiLogReader.Monitor, IEnumerable<string>> monitorPages )
         {
             string indexFilePath = Path.Combine( _outputDirectoryPath, @"index.html" );
 
             TextWriter tw = File.CreateText( indexFilePath );
 
-            WriteIndex( activityMap, monitorPages, tw );
+            WriteIndex( monitorPages, tw );
 
             tw.Close();
 
             return indexFilePath;
         }
 
-        private void WriteIndex( MultiLogReader.ActivityMap activityMap, Dictionary<MultiLogReader.Monitor, IEnumerable<string>> monitorPages, TextWriter tw )
+        private void WriteIndex( Dictionary<MultiLogReader.Monitor, IEnumerable<string>> monitorPages, TextWriter tw )
         {
             tw.Write( GetHtmlHeader( "Ckmon Index" ) );
 
+            var dumpPaths = GetSystemActivityMonitorDumpPaths();
+            if( dumpPaths.Count > 0 )
+            {
+                tw.Write( @"<div class=""alert alert-danger"">" );
+                tw.Write( @"<h2>Found SystemActivityMonitor dumps</h2>" );
+                tw.Write( @"<p>The logging system encountered the following errors:</p>" );
+                foreach( var path in dumpPaths )
+                {
+                    tw.Write( @"<h3>{0} <small>{1}</small></h3>", Path.GetFileName( path ), Path.GetDirectoryName(path));
+                    tw.Write( @"<pre>{0}</pre>", File.ReadAllText( path ) );
+                }
+                tw.Write( @"</div>" );
+            }
+
             tw.Write( "<h1>ActivityMonitor log viewer</h1>" );
-            tw.Write( String.Format( "<h3>Between {0} and {1}</h3>", activityMap.FirstEntryDate, activityMap.LastEntryDate ) );
+            tw.Write( String.Format( "<h3>Between {0} and {1}</h3>", _activityMap.FirstEntryDate, _activityMap.LastEntryDate ) );
 
             tw.Write( @"<h2>Monitors:</h2><table class=""monitorTable table table-striped table-bordered"">" );
             tw.Write( @"<thead><tr><th>Monitor ID</th><th>Started</th><th>Duration</th><th>Entries</th></tr></thead><tbody>" );
 
-            var monitorList = activityMap.Monitors.ToList();
+            var monitorList = _activityMap.Monitors.ToList();
             monitorList.Sort( ( a, b ) => b.FirstEntryTime.CompareTo( a.FirstEntryTime ) );
 
             foreach( MultiLogReader.Monitor monitor in monitorList )
@@ -409,6 +423,98 @@ namespace CK.Mon2Htm
             }
 
             tw.Write( @"</ul>" );
+        }
+
+        private IList<string> GetSystemActivityMonitorDumpPaths()
+        {
+            List<string> dumpPaths = new List<string>();
+
+            // Get all ckmon folders in the ActivityMap
+            List<string> ckmonFolders = _activityMap.AllFiles.Select( x => Path.GetDirectoryName( x.FileName ) ).Distinct().ToList();
+
+            foreach( var ckmonFolder in ckmonFolders )
+            {
+                // Find lowest SystemActivityMonitor folder in the path
+                string currentFolder = Path.GetFullPath( ckmonFolder );
+                string targetFolder = String.Empty;
+                bool hasFolder = false;
+                while( !hasFolder )
+                {
+                    targetFolder = Path.Combine( currentFolder, "SystemActivityMonitor" );
+                    if( Directory.Exists( targetFolder ) )
+                    {
+                        hasFolder = true;
+                        currentFolder = targetFolder;
+                        break;
+                    }
+                    else
+                    {
+                        currentFolder = Directory.GetParent( currentFolder ).FullName;
+                        if( currentFolder == null ) break; // At root!
+                    }
+                }
+
+                if( hasFolder )
+                {
+                    foreach( var f in Directory.GetFiles( currentFolder, "*.txt" ) )
+                    {
+                        if( !dumpPaths.Contains( f ) ) dumpPaths.Add( f );
+                    }
+                }
+                else
+                {
+                    // Broke at root, but didn't find a path
+                    _monitor.Warn().Send( "Did not find a SystemActivityMonitor directory when browsing path {0}.", ckmonFolder );
+                }
+
+                if( dumpPaths.Count > 0 )
+                {
+                    using( _monitor.OpenWarn().Send( "Found the following SystemActivityMonitor dumps:" ) )
+                    {
+                        foreach( var p in dumpPaths )
+                        {
+                            _monitor.Warn().Send( "{0}", p );
+                        }
+                        _monitor.CloseGroup( String.Format( "{0} dumps.", dumpPaths.Count.ToString() ) );
+                    }
+                }
+            }
+
+            return dumpPaths;
+        }
+
+        /// <summary>
+        /// Finds the common root directory from a list of paths.
+        /// This one is from Rosetta Code. http://rosettacode.org/wiki/Find_common_directory_path#C.23
+        /// </summary>
+        /// <param name="paths"></param>
+        /// <returns></returns>
+        public static string FindCommonPath( List<string> paths )
+        {
+            string separator = Path.DirectorySeparatorChar.ToString();
+            string commonPath = String.Empty;
+            List<string> separatedPath = paths
+                .First( str => str.Length == paths.Max( st2 => st2.Length ) )
+                .Split( new string[] { separator }, StringSplitOptions.RemoveEmptyEntries )
+                .ToList();
+
+            foreach( string pathSegment in separatedPath )
+            {
+                if( commonPath.Length == 0 && paths.All( str => str.StartsWith( pathSegment ) ) )
+                {
+                    commonPath = pathSegment;
+                }
+                else if( paths.All( str => str.StartsWith( commonPath + separator + pathSegment ) ) )
+                {
+                    commonPath += separator + pathSegment;
+                }
+                else
+                {
+                    break;
+                }
+            }
+
+            return commonPath;
         }
 
         /// <summary>

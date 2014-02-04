@@ -1,9 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Deployment.Application;
 using System.Diagnostics;
+using System.Drawing;
 using System.IO;
 using System.Linq;
+using System.Reflection;
+using System.Text;
+using System.Threading.Tasks;
 using System.Windows.Forms;
 using CK.Core;
 using CK.Monitoring;
@@ -34,6 +39,25 @@ namespace CK.Mon2Htm
             LoadFromProgramArguments();
 
             UpdateButtonState();
+
+            UpdateVersionLabel();
+        }
+
+        private void UpdateVersionLabel()
+        {
+            Version pubVersion = GetPublishedVersion();
+            if( pubVersion == null )
+            {
+                this.versionLabel.Text = String.Format( "Dev ({0})", Assembly.GetExecutingAssembly().GetName().Version.ToString() );
+            }
+            else
+            {
+                this.versionLabel.Text = pubVersion.ToString();
+            }
+
+#if DEBUG
+            this.versionLabel.Text = this.versionLabel.Text + " DEBUG";
+#endif
         }
 
         private void viewHtmlButton_Click( object sender, EventArgs e )
@@ -50,12 +74,38 @@ namespace CK.Mon2Htm
 
         private void LoadFromProgramArguments()
         {
-            var args = Environment.GetCommandLineArgs();
-            for( int i = 1; i < args.Length; i++ ) // arg 0 is executable itself
+
+            string[] args = Environment.GetCommandLineArgs();
+            string[] activationData = AppDomain.CurrentDomain.SetupInformation.ActivationArguments.ActivationData;
+
+            if( activationData != null && activationData.Length > 0 ) // ClickOnce file parameters
             {
-                string arg = args[i];
-                AddPath( arg );
+                for( int i = 0; i < activationData.Length; i++ )
+                {
+                    string arg = activationData[i];
+                    AddPath( arg );
+                }
+                this.viewHtmlButton.Focus();
             }
+            else if( args.Length > 1 )
+            {
+                for( int i = 1; i < args.Length; i++ ) // arg 0 is executable itself
+                {
+                    string arg = args[i];
+                    AddPath( arg );
+                }
+                this.viewHtmlButton.Focus();
+            }
+            this.addFileButton.Focus();
+        }
+
+        private static Version GetPublishedVersion()
+        {
+            if( ApplicationDeployment.IsNetworkDeployed )
+            {
+                return ApplicationDeployment.CurrentDeployment.CurrentVersion;
+            }
+            return null;
         }
 
         private void AddPath( string path )
@@ -77,7 +127,10 @@ namespace CK.Mon2Htm
                     // Set selected if same.
                     bool isSame = Path.GetFullPath( f ) == Path.GetFullPath( path );
                     int tmp = AddFile( f, isSame );
-                    if( isSame ) firstRow = tmp;
+                    if( isSame )
+                    {
+                        firstRow = tmp;
+                    }
                 }
 
                 this.dataGridView1.FirstDisplayedScrollingRowIndex = firstRow;
@@ -89,6 +142,10 @@ namespace CK.Mon2Htm
             if( _listedFiles.Contains( filePath ) ) return -1;
             _listedFiles.Add( filePath );
 
+            if( addSelected && !_filesToLoad.Contains( filePath ) ) _filesToLoad.Add( filePath );
+
+            UpdateButtonState();
+
             return AddFileRow( filePath, addSelected );
         }
 
@@ -97,6 +154,8 @@ namespace CK.Mon2Htm
             var row = new DataGridViewRow();
 
             var viewCheckbox = new DataGridViewCheckBoxCell();
+            viewCheckbox.TrueValue = true;
+            viewCheckbox.FalseValue = false;
             viewCheckbox.Value = viewSelected;
 
             var fileCell = new DataGridViewTextBoxCell();
@@ -131,6 +190,79 @@ namespace CK.Mon2Htm
             return HtmlGenerator.CreateFromActivityMap( activityMap, _m, _tempDirPath );
         }
 
+        private void InstallUpdateSyncWithInfo()
+        {
+            UpdateCheckInfo info = null;
+
+            if( ApplicationDeployment.IsNetworkDeployed )
+            {
+                ApplicationDeployment ad = ApplicationDeployment.CurrentDeployment;
+
+                try
+                {
+                    info = ad.CheckForDetailedUpdate();
+
+                }
+                catch( DeploymentDownloadException dde )
+                {
+                    MessageBox.Show( "The new version of the application cannot be downloaded at this time.\n\nPlease check your network connection, or try again later.\nError: " + dde.Message );
+                    return;
+                }
+                catch( InvalidDeploymentException ide )
+                {
+                    MessageBox.Show( "Cannot check for a new version of the application.\n\nThe ClickOnce deployment is corrupt. Please redeploy the application and try again.\nError: " + ide.Message );
+                    return;
+                }
+                catch( InvalidOperationException ioe )
+                {
+                    MessageBox.Show( "This application cannot be updated.\n\nIt is likely not a ClickOnce application.\nError: " + ioe.Message );
+                    return;
+                }
+
+                if( info.UpdateAvailable )
+                {
+                    Boolean doUpdate = true;
+
+                    if( !info.IsUpdateRequired )
+                    {
+                        DialogResult dr = MessageBox.Show( "An update is available. Would you like to update the application now?", "Update Available", MessageBoxButtons.OKCancel );
+                        if( !(DialogResult.OK == dr) )
+                        {
+                            doUpdate = false;
+                        }
+                    }
+                    else
+                    {
+                        // Display a message that the app MUST reboot. Display the minimum required version.
+                        MessageBox.Show( "This application has detected a mandatory update from your current " +
+                            "version to version " + info.MinimumRequiredVersion.ToString() +
+                            ". The application will now install the update and restart.",
+                            "Update Available", MessageBoxButtons.OK,
+                            MessageBoxIcon.Information );
+                    }
+
+                    if( doUpdate )
+                    {
+                        try
+                        {
+                            ad.Update();
+                            MessageBox.Show( "The application has been upgraded, and will now restart." );
+                            Application.Restart();
+                        }
+                        catch( DeploymentDownloadException dde )
+                        {
+                            MessageBox.Show( "Cannot install the latest version of the application. \n\nPlease check your network connection, or try again later. Error: " + dde );
+                            return;
+                        }
+                    }
+                }
+                else
+                {
+                    MessageBox.Show( "No update is available at this time." );
+                }
+            }
+        }
+
         private static string GetTempFolder()
         {
             string tempFolderName = String.Format( "ckmon-{0}", Guid.NewGuid() );
@@ -155,13 +287,15 @@ namespace CK.Mon2Htm
         {
             // Add file
             OpenFileDialog d = new OpenFileDialog();
+            d.Title = "Add log file(s)";
             d.Filter = "Activity Monitor log files (.ckmon)|*.ckmon";
             d.FilterIndex = 0;
-            d.ShowReadOnly = true;
             d.CheckFileExists = true;
             d.CheckPathExists = true;
-            d.ReadOnlyChecked = true;
-            d.InitialDirectory = CK.Mon2Htm.Properties.Settings.Default.LastOpenDirectory;
+            d.AutoUpgradeEnabled = true;
+            d.Multiselect = true;
+
+            d.InitialDirectory = Properties.Settings.Default.LastOpenDirectory;
 
             var result = d.ShowDialog();
 
@@ -169,13 +303,14 @@ namespace CK.Mon2Htm
             {
                 foreach( var f in d.FileNames )
                 {
-                    AddFile( f );
+                    AddFile( f, true );
                 }
 
                 CK.Mon2Htm.Properties.Settings.Default.LastOpenDirectory = Path.GetDirectoryName( d.FileName );
                 CK.Mon2Htm.Properties.Settings.Default.Save();
 
                 this.dataGridView1.Sort( this.dataGridView1.Columns[1], ListSortDirection.Ascending );
+                this.viewHtmlButton.Focus();
             }
         }
 
@@ -230,10 +365,49 @@ namespace CK.Mon2Htm
         /// <param name="e"></param>
         private void dataGridView1_CurrentCellDirtyStateChanged( object sender, EventArgs e )
         {
-            if( this.dataGridView1.CurrentCell.ColumnIndex == 0)
+            if( this.dataGridView1.CurrentCell.ColumnIndex == 0 )
             {
                 this.dataGridView1.CommitEdit( DataGridViewDataErrorContexts.Commit );
             }
         }
+
+        private void selectAllToolStripMenuItem_Click( object sender, EventArgs e )
+        {
+            SetAllViewValues( true );
+        }
+
+        private void selectNoneToolStripMenuItem_Click( object sender, EventArgs e )
+        {
+            SetAllViewValues( false );
+        }
+
+        private void SetAllViewValues(bool value)
+        {
+            foreach( var row in this.dataGridView1.Rows )
+            {
+                DataGridViewRow r = row as DataGridViewRow;
+
+                DataGridViewCheckBoxCell c = r.Cells[0] as DataGridViewCheckBoxCell;
+
+                c.Value = value;
+            }
+            this.dataGridView1.RefreshEdit(); // Flush CurrentCell value
+            this.dataGridView1.InvalidateCell( this.dataGridView1.CurrentCell ); // Repaint it
+        }
+
+        private void removeToolStripMenuItem_Click( object sender, EventArgs e )
+        {
+            _listedFiles.Clear();
+            _filesToLoad.Clear();
+
+            this.dataGridView1.Rows.Clear();
+            UpdateButtonState();
+        }
+
+        private void versionLabel_DoubleClick( object sender, EventArgs e )
+        {
+            InstallUpdateSyncWithInfo();
+        }
+
     }
 }

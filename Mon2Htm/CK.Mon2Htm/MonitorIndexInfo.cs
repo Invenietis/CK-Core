@@ -162,7 +162,7 @@ namespace CK.Mon2Htm
                 }
                 else if( parentedEntry.Entry.LogType == LogEntryType.CloseGroup )
                 {
-                    if( !parentedEntry.IsMissing )
+                    if( !parentedEntry.Parent.IsMissing )
                     {
                         var openGroupEntry = groupsPath[groupsPath.Count - 1];
                         var existingGroupRef = _groups.GetByKey( openGroupEntry.LogTime );

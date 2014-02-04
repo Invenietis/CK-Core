@@ -6,7 +6,8 @@ $(document).ready(function () {
 
     $("pre.logLine").readmore({
         speed: 400,
-        maxHeight: 40
+        maxHeight: 40,
+        sectionCSS: 'display: inline-block;'
     });
 
     $(".monitorEntry").each(function () {
