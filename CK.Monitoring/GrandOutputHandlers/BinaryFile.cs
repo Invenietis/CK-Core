@@ -47,7 +47,7 @@ namespace CK.Monitoring.GrandOutputHandlers
         private void OpenFile()
         {
             _openedTimeUtc = DateTime.UtcNow;
-            _output = new FileStream( _path + Guid.NewGuid().ToString() + ".ckmon.tmp", FileMode.CreateNew, FileAccess.Write, FileShare.Read, 8, FileOptions.SequentialScan|FileOptions.WriteThrough );
+            _output = new FileStream( _path + Guid.NewGuid().ToString() + ".ckmon.tmp", FileMode.CreateNew, FileAccess.Write, FileShare.Read, 4096, FileOptions.SequentialScan|FileOptions.WriteThrough );
             _writer = new BinaryWriter( _output );
             _writer.Write( LogReader.CurrentStreamVersion );
         }
