@@ -218,7 +218,7 @@ namespace CK.Mon2Htm.ConsoleDemo
     <Channel>
         <Add Type=""BinaryFile"" Name=""All"" Path=""./HtmlGenerator/"" />
     </Channel>
-</GrandOutputConfiguration>" ).Root, new SystemActivityMonitor() );
+</GrandOutputConfiguration>" ).Root, new SystemActivityMonitor( false, null ) );
 
 
             bool result = go.SetConfiguration( c );
@@ -234,7 +234,7 @@ namespace CK.Mon2Htm.ConsoleDemo
     <Channel>
         <Add Type=""BinaryFile"" Name=""GlobalCatch"" Path=""./{0}"" MaxEntriesPerFile=""{1}"" />
     </Channel>
-</GrandOutputConfiguration>" ).Root, new SystemActivityMonitor() );
+</GrandOutputConfiguration>" ).Root, new SystemActivityMonitor( false, null ) );
 
 
             bool result = go.SetConfiguration( c );

@@ -44,7 +44,7 @@ namespace CK.Core
 
         /// <summary>
         /// Gets the log time of the group closing.
-        /// It is <see cref="LogTime.MinValue"/> when the group is not closed yet.
+        /// It is <see cref="DateTimeStamp.MinValue"/> when the group is not closed yet.
         /// </summary>
         DateTimeStamp CloseLogTime { get; }
 

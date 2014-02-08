@@ -62,10 +62,7 @@ namespace CK.Mon2Htm.Tests
             }
         }
 
-        /// <summary>
-        /// Temporary timeout: RemoveAllDuplicates has an infinite loop.
-        /// </summary>
-        [Test, Explicit, Category( "LargeIOTest" )]
+        [Test, Category( "LargeIOTest" )]
         public void MultiChannelDeduplicateTest()
         {
             using( GrandOutput go = new GrandOutput() )
@@ -124,7 +121,7 @@ namespace CK.Mon2Htm.Tests
             }
         }
 
-        [Test, Explicit, Category( "LargeIOTest" )]
+        [Test, Category( "LargeIOTest" )]
         public void MaxEntriesPerFile()
         {
             Action<IActivityMonitor> throwEntries = new Action<IActivityMonitor>( ( IActivityMonitor m ) =>
@@ -196,7 +193,7 @@ namespace CK.Mon2Htm.Tests
         /// MultiLogReader testing.
         /// Uses files.
         /// </summary>
-        [Test, Explicit, Category( "LargeIOTest" )]
+        [Test, Category( "LargeIOTest" )]
         public void MonitorPages()
         {
             string dirName = @"ActivityMonitorPagingTest";

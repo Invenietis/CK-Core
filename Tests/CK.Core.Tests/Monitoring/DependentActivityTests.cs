@@ -36,6 +36,15 @@ namespace CK.Core.Tests.Monitoring
                 Assert.That( launchDependentTopic, Is.EqualTo( "Test..." ) );
             }
 
+            string tokenToString = token.ToString();
+            {
+                Guid id;
+                DateTimeStamp time;
+                Assert.That( ActivityMonitor.DependentToken.TryParseStartMessage( token.ToString(), out id, out time ) );
+                Assert.That( id, Is.EqualTo( ((IUniqueId)m).UniqueId ) );
+                Assert.That( time, Is.EqualTo( cLaunch.Entries[loopNeeded].LogTime ) );
+            }
+
             StupidStringClient.Entry[] logs = RunDependentActivity( token );
             {
                 Assert.That( logs[0].Text, Is.EqualTo( ActivityMonitor.SetTopicPrefix + "Test..." ) );

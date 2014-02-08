@@ -1,4 +1,3 @@
-
 CK.Core 3.0 - Release Notes
 
 - Apparition:
@@ -14,7 +13,7 @@ CK.Core 3.0 - Release Notes
     		- Does not handle multiple configuration per key (like ConfigurationManager.AppSettings can do since it is a NameValueCollection) but
     		  can expose potentially complex configuration objects instead of only strings.
     		- It can be initialized only once, before any other access, and when not initialized tries to or use the standard ConfigurationManager.AppSettings through 
-    		  late binding. 
+    		  very late binding. 
 		- It supports multiple overriding and reverting to the original configuration. (Override support and restoration is mainly designed for tests but the override 
 		  functionality alone can be a useful feature in real life application.)
 
@@ -26,7 +25,7 @@ CK.Core 3.0 - Release Notes
 			- An ActivityMonitor usage is NOT thread-affine. It is Activity-affine: any thread can use an ActivityMonitor provided they do not call it at the same time.
 			- An ActivityMonitor usage is NOT thread-safe and NOT reentrant: such usage are detected and explicit exceptions are thrown.
 			- Registration of IActivityMonitorClients follows the same rules: registering or unregistering a Client must not be concurrent.
-			- ActivityMonitor usage is most of the time lock-free (even with the GrandOutput).
+			- ActivityMonitor usage is lock-free (even with the GrandOutput: the only exception is when GrandOutput applies a new configuration).
 		- Centralized outputs (GrandOutput)
 			- Global history enables effective analysis of the activity of the whole System.
 			- GrandOutput is configurable (routes and actions).
@@ -34,19 +33,18 @@ CK.Core 3.0 - Release Notes
 			- Cross AppDomain monitoring is supported (exceptions are marshaled as CKExceptionData to avoid assembly loading side-effects).
 			- Routes (and Actions) can configure the MinimalFilter for logs they expect.
 		- Support of file name/line number.
-		- New LogEntry model that captures contextual information (errors and fatal are "contextualized" with their "Activity Path").
-		- Multiple ActivityMonitorClients (memory, binary file, text file).
+		- Multiple ActivityMonitorClients (binary file, text file).
 		- Newed ActivityMonitors are, by default, automatically configured (GrandOutput uses this).
 		- ActivityMonitor.Topic is a get/set string that defines the current activity of a monitor. It can be changed at any time: the GrandOutput 
-		  uses this Topic to, when it changes, dynamically choose the new Route for the output of this monitor.
+		  uses this Topic to, when it changes, dynamically choose the new Channelfor the output of this monitor.
 		- LogLevel filters now applies to OpenGroup as well as "line" logs:
 			- LogFilter value type contains a Line and a Group filter level.
 			- Predefined filters are: Undefined, Debug (full Trace), Verbose (skips Trace line but keeps all OpenGroup),
 			  Monitor (warnings and all OpenGroup), Terse (Error only and Groups with Info level), Release (only errors, even for OpenGroup)
                           and Off (no trace at all).
-		- Effective use of ActivityMonitor.Filter that improves performance:
+		- Effective use of ActivityMonitor.ActualFilter that improves performance:
 			- Any bound ActivityMonitor.Filter clients can expose a MinimalFilter. 
-			- New ActivityMonitor.ActualFilter read-only property exposes the final filter requirements for all clients and for the ActivityMonitor.Filter itself.
+			- New ActivityMonitor.ActualFilter read-only property exposes the final filter requirements for all clients and for the ActivityMonitor.MinimalFilter itself.
 			 (when bridging, the ActualFilter of the target monitor is one of the MinimalFilter of the source monitor - and this works cross-domain).
 			- When a Trace, an Info, etc. is done, formatting and sending is not executed at all if not required (i.e. if its log level is below the monitor's ActualFilter).
 		- New SystemActivityMonitor whose main goal is to be internally used by the Monitor framework to report errors in the monitoring itself) but can be used as a "normal" 

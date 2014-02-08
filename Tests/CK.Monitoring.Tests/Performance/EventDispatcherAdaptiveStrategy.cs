@@ -27,12 +27,13 @@ namespace CK.Monitoring.Impl
             _samplingCount = samplingCount > 0 ? samplingCount : maxCapacity / 10;
         }
 
-        void IGrandOutputDispatcherStrategy.Initialize( Func<int> instantLoad, Thread dispatcher )
+        void IGrandOutputDispatcherStrategy.Initialize( Func<int> instantLoad, Thread dispatcher, out Func<int,int> idleManager )
         {
             _count = instantLoad;
             _opened = true;
             _sample = _samplingCount;
             dispatcher.Priority = ThreadPriority.Normal;
+            idleManager = i => -1;
         }
 
         public int IgnoredConcurrentCallCount

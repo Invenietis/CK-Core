@@ -548,11 +548,15 @@ namespace CK.RouteConfig
         {
             if( disposing )
             {
-                Dispose( new SystemActivityMonitor(), Timeout.Infinite );
+                Dispose( new SystemActivityMonitor( false, null ), Timeout.Infinite );
                 GC.SuppressFinalize( this );
             }
         }
 
+        /// <summary>
+        /// Standard Dispose/Finalizer pattern (calls <see cref="Dispose(bool)">Dispose(false)</see>. 
+        /// Here to support release of unmanaged resources by specialization.
+        /// </summary>
         ~ConfiguredRouteHost()
         {
             Dispose( false );

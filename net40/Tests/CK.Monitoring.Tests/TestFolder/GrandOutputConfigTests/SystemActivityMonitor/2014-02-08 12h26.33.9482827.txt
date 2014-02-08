@@ -1,0 +1,12 @@
+﻿<Error>@2014-02-08 12h26.33.9362826
+CK.Monitoring.GrandOutputClient
+ ┌──────────────────────────■ Exception : InvalidOperationException ■──────────────────────────
+ | Message: The event is already signaled and cannot be incremented.
+ | Stack:    at System.Threading.CountdownEvent.AddCount(Int32 signalCount)
+ |           at System.Threading.CountdownEvent.AddCount()
+ |           at CK.Monitoring.Impl.BufferingChannel.PreHandleLock() in e:\Dev\CK-Core\CK.Monitoring\Impl\BufferingChannel.cs:line 62
+ |           at CK.Monitoring.GrandOutputClient.EnsureChannel(Boolean callOnClientMinimalFilterChanged) in e:\Dev\CK-Core\CK.Monitoring\GrandOutputClient.cs:line 106
+ |           at CK.Monitoring.GrandOutputClient.OnGroupClosed(IActivityLogGroup group, IReadOnlyList`1 conclusions) in e:\Dev\CK-Core\CK.Monitoring\GrandOutputClient.cs:line 174
+ |           at CK.Core.ActivityMonitor.DoCloseGroup(DateTimeStamp logTime, Object userConclusion) in e:\Dev\CK-Core\CK.Core\ActivityMonitor\Impl\ActivityMonitor.cs:line 758
+ └─────────────────────────────────────────────────────────────────────────────────────────────
+</Error>

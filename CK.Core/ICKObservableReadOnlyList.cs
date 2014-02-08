@@ -32,7 +32,7 @@ namespace CK.Core
 {
     /// <summary>
     /// Definition of a <see cref="IObservableReadOnlyList{T}"/> that extends <see cref="ICKReadOnlyList{T}"/> (for the 
-    /// contravariant <see cref="ICKReadOnlyCollection{T}.Contains"/> and <see cref="ICKReadOnlyList.IndexOf"/> methods).
+    /// contravariant <see cref="ICKReadOnlyCollection{T}.Contains"/> and <see cref="ICKReadOnlyList{T}.IndexOf"/> methods).
     /// It has no properties nor methods by itself: it is only here to federate its 2 real base interfaces (the <see cref="ICKObservableReadOnlyCollection{T}"/> 
     /// enforces the fact that any list is actually a collection).
     /// </summary>

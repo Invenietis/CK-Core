@@ -69,19 +69,21 @@ namespace CK.Core.Impl
         /// Duplicate IActivityMonitorClient are silently ignored.
         /// </summary>
         /// <param name="client">An <see cref="IActivityMonitorClient"/> implementation.</param>
+        /// <param name="added">True if the client has been added, false if it was already registered.</param>
         /// <returns>The registered client.</returns>
-        public IActivityMonitorClient RegisterClient( IActivityMonitorClient client )
+        public IActivityMonitorClient RegisterClient( IActivityMonitorClient client, out bool added )
         {
             if( client == null ) throw new ArgumentNullException( "client" );
             using( _monitor.ReentrancyAndConcurrencyLock() )
             {
-                return DoRegisterClient( client );
+                added = false;
+                return DoRegisterClient( client, ref added );
             }
         }
 
-        private IActivityMonitorClient DoRegisterClient( IActivityMonitorClient client )
+        private IActivityMonitorClient DoRegisterClient( IActivityMonitorClient client, ref bool forceAdded )
         {
-            if( Array.IndexOf( _clients, client ) < 0 )
+            if( (forceAdded |= (Array.IndexOf( _clients, client ) < 0)) )
             {
                 IActivityMonitorBoundClient bound = client as IActivityMonitorBoundClient;
                 if( bound != null )
@@ -89,7 +91,7 @@ namespace CK.Core.Impl
                     // Calling SetMonitor before adding it to the client first
                     // enables the monitor to initialize itself before being solicited.
                     // And if SetMonitor method calls InitializeTopicAndAutoTags, it does not
-                    // receive a "stupid" OnTopic/AutoTagsChanged. 
+                    // receive a "stupid" OnTopic/AutoTagsChanged.
                     bound.SetMonitor( _monitor, false );
                 }
                 var newArray = new IActivityMonitorClient[_clients.Length + 1];
@@ -106,10 +108,11 @@ namespace CK.Core.Impl
         /// </summary>
         /// <typeparam name="T">Any type that specializes <see cref="IActivityMonitorClient"/>.</typeparam>
         /// <param name="client">Clients to register.</param>
+        /// <param name="added">True if the client has been added, false if it was already registered.</param>
         /// <returns>The registered client.</returns>
-        public T RegisterClient<T>( T client ) where T : IActivityMonitorClient
+        public T RegisterClient<T>( T client, out bool added ) where T : IActivityMonitorClient
         {
-            return (T)RegisterClient( (IActivityMonitorClient)client );
+            return (T)RegisterClient( (IActivityMonitorClient)client, out added );
         }
 
         /// <summary>
@@ -120,6 +123,7 @@ namespace CK.Core.Impl
         /// <returns>The existing or newly created client.</returns>
         /// <remarks>
         /// The factory function MUST return a client that satisfies the tester function otherwise a <see cref="InvalidOperationException"/> is thrown.
+        /// The factory is called only when the no client satisfies the tester function: this makes the 'added' out parameter useless.
         /// </remarks>
         public T RegisterUniqueClient<T>( Func<T, bool> tester, Func<T> factory ) where T : IActivityMonitorClient
         {
@@ -130,7 +134,8 @@ namespace CK.Core.Impl
                 T e = _clients.OfType<T>().FirstOrDefault( tester );
                 if( e == null )
                 {
-                    e = (T)DoRegisterClient( factory() );
+                    bool forceAdded = true;
+                    e = (T)DoRegisterClient( factory(), ref forceAdded );
                     if( !tester( e ) ) throw new InvalidOperationException( R.FactoryTesterMismatch );
                 }
                 return e;

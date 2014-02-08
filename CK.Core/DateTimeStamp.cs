@@ -29,7 +29,7 @@ using System.Globalization;
 namespace CK.Core
 {
     /// <summary>
-    /// A date & time stamp encapsulates a <see cref="TimeUtc"/> (<see cref="DaetTime"/> guaranteed to be in Utc) and a <see cref="Uniquifier"/>.
+    /// A date and time stamp encapsulates a <see cref="TimeUtc"/> (<see cref="DateTime"/> guaranteed to be in Utc) and a <see cref="Uniquifier"/>.
     /// </summary>
     [Serializable]
     [ImmutableObject( true )]
@@ -118,12 +118,12 @@ namespace CK.Core
         /// Initializes a new <see cref="DateTimeStamp"/> that is that is guaranteed to be unique and ascending regarding <paramref name="lastOne"/>.
         /// </summary>
         /// <remarks>
-        /// The <see cref="Uniquifier"/> is optimized if possible (this simply calls <see cref="LogTime(DateTimeStamp,DateTime,bool)"/>).
+        /// The <see cref="Uniquifier"/> is optimized if possible (this simply calls <see cref="DateTimeStamp(DateTimeStamp,DateTime,bool)"/> with ensureGreaterThanLastOne sets to true).
         /// </remarks>
         /// <param name="lastOne">Last time stamp.</param>
         /// <param name="newTime">DateTimeStamp to combine.</param>
         public DateTimeStamp( DateTimeStamp lastOne, DateTimeStamp newTime )
-            : this( lastOne, newTime.TimeUtc )
+            : this( lastOne, newTime.TimeUtc, ensureGreaterThanLastOne:true )
         {
         }
 
@@ -168,7 +168,7 @@ namespace CK.Core
             Byte uniquifier = 0;
             if( FileUtil.MatchFileNameUniqueTimeUtcFormat( s, ref startAt, out t ) )
             {
-                if( startAt < s.Length - 3 && s[startAt] == '(' )
+                if( startAt < s.Length - 2 && s[startAt] == '(' )
                 {
                     int iStartNum = startAt + 1;
                     int iCloseB = s.IndexOf( ')', iStartNum );
@@ -225,13 +225,13 @@ namespace CK.Core
         /// </summary>
         /// <param name="other">Other object.</param>
         /// <returns>True when this is equal to other.</returns>
-        public override bool Equals( object obj )
+        public override bool Equals( object other )
         {
-            return (obj is DateTimeStamp) && Equals( (DateTimeStamp)obj );
+            return (other is DateTimeStamp) && Equals( (DateTimeStamp)other );
         }
 
         /// <summary>
-        /// Overridden to match <see cref="Equals(object)"/>.
+        /// Overridden to match <see cref="Equals(DateTimeStamp)"/>.
         /// </summary>
         /// <returns>The hash code.</returns>
         public override int GetHashCode()
@@ -257,30 +257,30 @@ namespace CK.Core
         /// <summary>
         /// Checks equality.
         /// </summary>
-        /// <param name="d1">First stamp.</param>
-        /// <param name="d2">Second stamp.</param>
+        /// <param name="t1">First stamp.</param>
+        /// <param name="t2">Second stamp.</param>
         /// <returns>True when stamps are equals.</returns>
-        public static bool operator ==( DateTimeStamp d1, DateTimeStamp d2 )
+        public static bool operator ==( DateTimeStamp t1, DateTimeStamp t2 )
         {
-            return d1.Equals( d2 );
+            return t1.Equals( t2 );
         }
 
         /// <summary>
         /// Checks inequality.
         /// </summary>
-        /// <param name="d1">First stamp.</param>
-        /// <param name="d2">Second stamp.</param>
+        /// <param name="t1">First stamp.</param>
+        /// <param name="t2">Second stamp.</param>
         /// <returns>True when stamps are different.</returns>
-        public static bool operator !=( DateTimeStamp d1, DateTimeStamp d2 )
+        public static bool operator !=( DateTimeStamp t1, DateTimeStamp t2 )
         {
-            return !d1.Equals( d2 );
+            return !t1.Equals( t2 );
         }
 
         /// <summary>
         /// Strict greater than operator.
         /// </summary>
-        /// <param name="d1">First stamp.</param>
-        /// <param name="d2">Second stamp.</param>
+        /// <param name="t1">First stamp.</param>
+        /// <param name="t2">Second stamp.</param>
         /// <returns>True when stamps first is greater than second.</returns>
         public static bool operator >( DateTimeStamp t1, DateTimeStamp t2 )
         {
@@ -290,8 +290,8 @@ namespace CK.Core
         /// <summary>
         /// Large greater than operator.
         /// </summary>
-        /// <param name="d1">First stamp.</param>
-        /// <param name="d2">Second stamp.</param>
+        /// <param name="t1">First stamp.</param>
+        /// <param name="t2">Second stamp.</param>
         /// <returns>True when stamps first is greater than or equal to second.</returns>
         public static bool operator >=( DateTimeStamp t1, DateTimeStamp t2 )
         {
@@ -301,8 +301,8 @@ namespace CK.Core
         /// <summary>
         /// Strict lower than operator.
         /// </summary>
-        /// <param name="d1">First stamp.</param>
-        /// <param name="d2">Second stamp.</param>
+        /// <param name="t1">First stamp.</param>
+        /// <param name="t2">Second stamp.</param>
         /// <returns>True when stamps first is lower than second.</returns>
         public static bool operator <( DateTimeStamp t1, DateTimeStamp t2 )
         {
@@ -312,8 +312,8 @@ namespace CK.Core
         /// <summary>
         /// Large lower than operator.
         /// </summary>
-        /// <param name="d1">First stamp.</param>
-        /// <param name="d2">Second stamp.</param>
+        /// <param name="t1">First stamp.</param>
+        /// <param name="t2">Second stamp.</param>
         /// <returns>True when stamps first is lower than or equal to second.</returns>
         public static bool operator <=( DateTimeStamp t1, DateTimeStamp t2 )
         {

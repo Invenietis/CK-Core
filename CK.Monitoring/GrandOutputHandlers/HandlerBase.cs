@@ -1,8 +1,13 @@
-﻿using CK.Core;
+﻿using System;
+using CK.Core;
 using CK.RouteConfig;
 
 namespace CK.Monitoring.GrandOutputHandlers
 {
+    /// <summary>
+    /// Base class to handle of <see cref="GrandOutputEventInfo"/>.
+    /// Specialized handlers are configured by an associated <see cref="HandlerConfiguration"/> specialization.
+    /// </summary>
     public abstract class HandlerBase : IGrandOutputSink
     {
         readonly string _name;
@@ -25,12 +30,12 @@ namespace CK.Monitoring.GrandOutputHandlers
         }
 
         /// <summary>
-        /// Gets the name of this sink. It is the name of its configuration.
+        /// Gets the name of this handler. It is the name of its configuration.
         /// </summary>
         public string Name { get { return _name; } }
 
         /// <summary>
-        /// Initializes this sink. 
+        /// Initializes this handler. 
         /// This is called once for all the configured sink at the start of a new 
         /// configuration, before the first call to <see cref="Handle"/>.
         /// Default implementation does nothing.
@@ -41,8 +46,8 @@ namespace CK.Monitoring.GrandOutputHandlers
         }
 
         /// <summary>
-        /// Enables this sink to interact with any channel to which it belongs. 
-        /// This is called after <see cref="Initialize"/> and for each channel where this sink appears, before the first call to <see cref="Handle"/>.
+        /// Enables this handler to interact with any channel to which it belongs. 
+        /// This is called after <see cref="Initialize"/> and for each channel where this handler appears, before the first call to <see cref="Handle"/>.
         /// Default implementation must be called: sets the minimal filter on the option if the <see cref="HandlerConfiguration"/> defines it.
         /// </summary>
         public virtual void CollectChannelOption( ChannelOption option )
@@ -67,6 +72,5 @@ namespace CK.Monitoring.GrandOutputHandlers
         public virtual void Close( IActivityMonitor monitor )
         {
         }
-
     }
 }

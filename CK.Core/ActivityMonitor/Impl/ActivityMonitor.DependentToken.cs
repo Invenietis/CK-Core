@@ -85,9 +85,10 @@ namespace CK.Core
             }
 
             /// <summary>
-            /// Overridden to give a readable description (without Topic) that can be parsed with <see cref="TryParse"/>.
+            /// Overridden to give a readable description (without Topic: this is the same as what appears in the start message info). 
+            /// It can be parsed with <see cref="TryParseStartMessage"/>.
             /// </summary>
-            /// <returns>A readable string.</returns>
+            /// <returns>A readable string (the start message).</returns>
             public override string ToString()
             {
                 return String.Format( _format, _originatorId, _creationDate );

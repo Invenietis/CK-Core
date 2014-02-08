@@ -112,7 +112,7 @@ namespace CK.Core
             }
 
             /// <summary>
-            /// Default filter, challenging file names added by <see cref="SetFileFilter"/> method.
+            /// Default filter, challenging file names added by <see cref="SetFilter"/> method.
             /// </summary>
             /// <param name="fileName">The file name.</param>
             /// <param name="lineNumber">The line number.</param>
@@ -137,7 +137,7 @@ namespace CK.Core
             }
 
             /// <summary>
-            /// Sets an override <see cref="LogFilter"/> for a given file: when not <see cref="LogFilter.Udefined"/> this 
+            /// Sets an override <see cref="LogFilter"/> for a given file: when not <see cref="LogFilter.Undefined"/> this 
             /// takes precedence over <see cref="IActivityMonitor.ActualFilter"/>.
             /// Use <see cref="LogFilter.Undefined"/> to clear it.
             /// </summary>

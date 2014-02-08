@@ -116,7 +116,7 @@ namespace CK.Core
 
             /// <summary>
             /// Starts a dependent activity. This sets the <see cref="ActivityMonitor.DependentToken.Topic"/> if it is not null and opens a group
-            /// tagged with <see cref="ActivityMonitor.Tags.StartDependentActivity"/> with a message that can be parsed back thanks to <see cref="ActivityMonitor.DependentToken.TryParse"/>.
+            /// tagged with <see cref="ActivityMonitor.Tags.StartDependentActivity"/> with a message that can be parsed back thanks to <see cref="ActivityMonitor.DependentToken.TryParseStartMessage"/>.
             /// </summary>
             /// <param name="token">Token that describes the origin of the activity.</param>
             /// <returns>A disposable object. It must be disposed at the end of the activity.</returns>

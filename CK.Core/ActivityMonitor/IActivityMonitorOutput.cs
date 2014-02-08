@@ -39,16 +39,18 @@ namespace CK.Core
         /// Duplicate IActivityMonitorClient instances are silently ignored.
         /// </summary>
         /// <param name="client">An <see cref="IActivityMonitorClient"/> implementation.</param>
+        /// <param name="added">True if the client has been added, false if it was already registered.</param>
         /// <returns>The registered client.</returns>
-        IActivityMonitorClient RegisterClient( IActivityMonitorClient client );
+        IActivityMonitorClient RegisterClient( IActivityMonitorClient client, out bool added );
 
         /// <summary>
         /// Registers a typed <see cref="IActivityMonitorClient"/>.
         /// </summary>
         /// <typeparam name="T">Any type that specializes <see cref="IActivityMonitorClient"/>.</typeparam>
         /// <param name="client">Client to register.</param>
+        /// <param name="added">True if the client has been added, false if it was already registered.</param>
         /// <returns>The registered client.</returns>
-        T RegisterClient<T>( T client ) where T : IActivityMonitorClient;
+        T RegisterClient<T>( T client, out bool added ) where T : IActivityMonitorClient;
 
         /// <summary>
         /// Unregisters the given <see cref="IActivityMonitorClient"/> from the <see cref="Clients"/> list.
@@ -66,6 +68,7 @@ namespace CK.Core
         /// <returns>The found or newly created client.</returns>
         /// <remarks>
         /// The factory function MUST return a client that satisfies the tester function otherwise a <see cref="InvalidOperationException"/> is thrown.
+        /// The factory is called only when the no client satisfies the tester function: this makes the 'added' out parameter useless.
         /// </remarks>
         T RegisterUniqueClient<T>( Func<T, bool> tester, Func<T> factory ) where T : IActivityMonitorClient;
 

@@ -42,8 +42,9 @@ namespace CK.Core
         /// this client.
         /// </summary>
         /// <param name="source">The monitor that will send log.</param>
-        /// <param name="forceBuggyRemove">True if this method MUST allow the new source without any exceptions: this is used with a null <paramref name="source"/> to
-        /// remove this client because one of its method thrown an exception.</param>
+        /// <param name="forceBuggyRemove">
+        /// True if this client must be removed because one of its method thrown an exception. The <paramref name="source"/> is null.
+        /// </param>
         void SetMonitor( IActivityMonitorImpl source, bool forceBuggyRemove );
     }
 }

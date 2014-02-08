@@ -11,7 +11,7 @@ namespace CK.Monitoring
 {
 
     /// <summary>
-    /// Defines a strategy to manage dispatching log events overload.
+    /// Defines a strategy to manage dispatching log events overload and idle time management.
     /// </summary>
     public interface IGrandOutputDispatcherStrategy
     {
@@ -20,7 +20,8 @@ namespace CK.Monitoring
         /// </summary>
         /// <param name="instantLoad">Gets the number of items waiting to be processed.</param>
         /// <param name="dispatcher">The dispatcher thread.</param>
-        void Initialize( Func<int> instantLoad, Thread dispatcher );
+        /// <param name="idleManager">Function that returns the time in milliseconds to wait for a given idle count.</param>
+        void Initialize( Func<int> instantLoad, Thread dispatcher, out Func<int,int> idleManager );
 
         /// <summary>
         /// Called concurrently for each new event to handle: this must be fully thread-safe and as much efficient as it could be 

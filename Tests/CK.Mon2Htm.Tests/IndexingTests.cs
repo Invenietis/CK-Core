@@ -73,7 +73,7 @@ namespace CK.Mon2Htm.Tests
             Assert.That( info.GuessTimestampPage( DateTimeStamp.MinValue ) == -1, "Timestamps out of bounds return -1" );
         }
 
-        [Test, Explicit, Category( "LargeIOTest" )]
+        [Test, Category( "LargeIOTest" )]
         public void RoundMultiPageMonitorIndexing()
         {
             string dirName = "RoundMultiPageMonitorIndexing";

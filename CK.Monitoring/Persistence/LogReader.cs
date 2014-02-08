@@ -25,6 +25,10 @@ namespace CK.Monitoring
         Exception _readException;
         bool _badEndOfFille;
 
+        /// <summary>
+        /// Current version stamp. Writes are done with this version, but reads MUST handle it.
+        /// The first released version is 5.
+        /// </summary>
         public const int CurrentStreamVersion = 5;
 
         #if net40

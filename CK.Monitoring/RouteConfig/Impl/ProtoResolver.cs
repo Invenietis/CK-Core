@@ -8,6 +8,9 @@ using CK.Core;
 
 namespace CK.RouteConfig.Impl
 {
+    /// <summary>
+    /// Internal class used by <see cref="RouteResolver"/>.
+    /// </summary>
     class ProtoResolver
     {
         readonly IActivityMonitor _monitor;

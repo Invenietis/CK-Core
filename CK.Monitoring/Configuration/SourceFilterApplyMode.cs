@@ -8,7 +8,7 @@ namespace CK.Monitoring
 {
     /// <summary>
     /// Defines how the <see cref="GrandOutputConfiguration"/> applies its <see cref="GrandOutputConfiguration.SourceOverrideFilter"/>
-    /// to the application domain's global <see cref="ActivityMonitor.SourceFilter"/>.
+    /// to the application domain's global <see cref="ActivityMonitor.SourceFilter.FilterSource"/>.
     /// </summary>
     public enum SourceFilterApplyMode
     {
@@ -18,12 +18,12 @@ namespace CK.Monitoring
         None = 0,
 
         /// <summary>
-        /// Clears the current <see cref="ActivityMonitor.SourceFilter"/>.
+        /// Clears the current <see cref="ActivityMonitor.SourceFilter.FilterSource"/>.
         /// </summary>
         Clear = 1,
 
         /// <summary>
-        /// Clears the current <see cref="ActivityMonitor.SourceFilter"/> and then applies the new ones.
+        /// Clears the current <see cref="ActivityMonitor.SourceFilter.FilterSource"/> and then applies the new ones.
         /// </summary>
         ClearThenApply = 2,
 

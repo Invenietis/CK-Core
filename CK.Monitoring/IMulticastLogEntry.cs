@@ -13,29 +13,14 @@ namespace CK.Monitoring
     /// Unified interface for multi-cast log entries whatever their <see cref="ILogEntry.LogType"/> or their source <see cref="MonitorId"/> is.
     /// All log entries can be exposed through this "rich" interface.
     /// </summary>
-    public interface IMulticastLogEntry : ILogEntry
+    public interface IMulticastLogEntry : ILogEntry, IMulticastLogInfo
     {
-        /// <summary>
-        /// Gets the monitor identifier.
-        /// </summary>
-        Guid MonitorId { get; }
-
         /// <summary>
         /// Gets the depth of the entry in the source <see cref="MonitorId"/>.
         /// This is always available (whatever the <see cref="ILogEntry.LogType">LogType</see> is <see cref="LogEntryType.OpenGroup"/>, <see cref="LogEntryType.CloseGroup"/>,
         /// or <see cref="LogEntryType.Line"/>).
         /// </summary>
-        int GroupDepth { get; }
-
-        /// <summary>
-        /// Gets the previous entry type. <see cref="LogEntryType.None"/> when unknown.
-        /// </summary>
-        LogEntryType PreviousEntryType { get; }
-
-        /// <summary>
-        /// Gets the previous log time. <see cref="DateTimeStamp.Unknown"/> when unknown.
-        /// </summary>
-        DateTimeStamp PreviousLogTime { get; }
+        new int GroupDepth { get; }
 
         /// <summary>
         /// Creates a unicast entry from this multi-cast one.

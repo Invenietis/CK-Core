@@ -191,10 +191,31 @@ namespace CK.Core
         bool _actualFilterIsDirty;
 
         /// <summary>
-        /// Initializes a new <see cref="ActivityMonitor"/>.
+        /// Initializes a new <see cref="ActivityMonitor"/> that applies all <see cref="AutoConfiguration"/> and has no <see cref="Topic"/> initially set.
         /// </summary>
         /// <param name="applyAutoConfigurations">Whether <see cref="AutoConfiguration"/> should be applied.</param>
-        public ActivityMonitor( bool applyAutoConfigurations = true )
+        public ActivityMonitor()
+        {
+            Build( new ActivityMonitorOutput( this ), Tags.Empty, true );
+        }
+
+        /// <summary>
+        /// Initializes a new <see cref="ActivityMonitor"/> that applies all <see cref="AutoConfiguration"/> and has an initial <see cref="Topic"/> set.
+        /// </summary>
+        /// <param name="applyAutoConfigurations">Whether <see cref="AutoConfiguration"/> should be applied.</param>
+        /// <param name="topic">Initial topic (can be null).</param>
+        public ActivityMonitor( string topic )
+        {
+            Build( new ActivityMonitorOutput( this ), Tags.Empty, true );
+            if( topic != null ) SetTopic( topic );
+        }
+
+        /// <summary>
+        /// Initializes a new <see cref="ActivityMonitor"/> that optionally applies <see cref="AutoConfiguration"/> and with an initial topic.
+        /// </summary>
+        /// <param name="applyAutoConfigurations">Whether <see cref="AutoConfiguration"/> should be applied.</param>
+        /// <param name="topic">Optional initial topic (can be null).</param>
+        public ActivityMonitor( bool applyAutoConfigurations, string topic = null )
         {
             Build( new ActivityMonitorOutput( this ), Tags.Empty, applyAutoConfigurations );
         }

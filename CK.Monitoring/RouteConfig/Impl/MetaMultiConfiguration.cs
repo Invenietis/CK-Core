@@ -5,7 +5,7 @@ using CK.Core;
 namespace CK.RouteConfig.Impl
 {
     /// <summary>
-    /// Base class for meta configuration object that handles multiple items.
+    /// Base class for meta configuration object that handles one or more items.
     /// </summary>
     public abstract class MetaMultiConfiguration<T> : MetaConfiguration
     {

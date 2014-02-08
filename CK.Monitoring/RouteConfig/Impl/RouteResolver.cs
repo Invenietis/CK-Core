@@ -7,6 +7,9 @@ using CK.Core;
 
 namespace CK.RouteConfig.Impl
 {
+    /// <summary>
+    /// Internal class used by <see cref="RouteConfiguration.Resolve"/>.
+    /// </summary>
     class RouteResolver
     {
         internal readonly RouteConfigurationResolved Root;

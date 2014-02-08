@@ -69,42 +69,81 @@ namespace CK.RouteConfig
         /// </summary>
         public IReadOnlyList<MetaConfiguration> Configurations { get { return _configurations.AsReadOnlyList(); } }
 
+        /// <summary>
+        /// Adds one or more <see cref="ActionConfiguration"/>.
+        /// </summary>
+        /// <param name="a">The first configuration.</param>
+        /// <param name="otherActions">Optional other configurations.</param>
+        /// <returns>This object.</returns>
         public RouteConfiguration AddAction( ActionConfiguration a, params ActionConfiguration[] otherActions )
         {
             _configurations.Add( new MetaAddActionConfiguration( a, otherActions ) );
             return this;
         }
 
+        /// <summary>
+        /// Declares one or more <see cref="ActionConfiguration"/>. It can be inserted later thanks to <see cref="InsertAction"/>.
+        /// </summary>
+        /// <param name="a">The first configuration to declare.</param>
+        /// <param name="otherActions">Optional other configurations to declare.</param>
+        /// <returns>This object.</returns>
         public RouteConfiguration DeclareAction( ActionConfiguration a, params ActionConfiguration[] otherActions )
         {
             _configurations.Add( new MetaDeclareActionConfiguration( a, otherActions ) );
             return this;
         }
 
+        /// <summary>
+        /// Overrides one or more existing <see cref="ActionConfiguration"/> (lookup is done by name).
+        /// </summary>
+        /// <param name="a">The first configuration to override.</param>
+        /// <param name="otherActions">Optional other configurations to override.</param>
+        /// <returns>This object.</returns>
         public RouteConfiguration OverrideAction( ActionConfiguration a, params ActionConfiguration[] otherActions )
         {
             _configurations.Add( new MetaOverrideActionConfiguration( a, otherActions ) );
             return this;
         }
 
+        /// <summary>
+        /// Removes one or more existing <see cref="ActionConfiguration"/>.
+        /// </summary>
+        /// <param name="name">The first configuration name to remove.</param>
+        /// <param name="otherNames">Optional other configurations' name to remove.</param>
+        /// <returns>This object.</returns>
         public RouteConfiguration RemoveAction( string name, params string[] otherNames )
         {
             _configurations.Add( new MetaRemoveActionConfiguration( name, otherNames ) );
             return this;
         }
 
+        /// <summary>
+        /// Inserts a previously <see cref="DeclareAction">declared</see> action.
+        /// </summary>
+        /// <param name="name">The name of the inserted configuration.</param>
+        /// <param name="declarationName">The name of the previously declared action.</param>
+        /// <returns>This object.</returns>
         public RouteConfiguration InsertAction( string name, string declarationName )
         {
             _configurations.Add( new MetaInsertActionConfiguration( name, declarationName ) );
             return this;
         }
 
+        /// <summary>
+        /// Declare a new subordinated route.
+        /// </summary>
+        /// <param name="route">The subordinated route configuration.</param>
+        /// <returns>This object.</returns>
         public RouteConfiguration DeclareRoute( SubRouteConfiguration route )
         {
             _configurations.Add( new MetaDeclareRouteConfiguration( route ) );
             return this;
         }
 
+        /// <summary>
+        /// Protected method to actually add any <see cref="MetaConfiguration"/> object.
+        /// </summary>
+        /// <param name="m">A meta configuration to add.</param>
         protected void AddMeta( MetaConfiguration m )
         {
             _configurations.Add( m );
@@ -113,7 +152,7 @@ namespace CK.RouteConfig
         /// <summary>
         /// Attempts to resolve the configuration. Null if an error occurred.
         /// </summary>
-        /// <param name="monitor">Monitor to use. Must not be null nor the empty monitor.</param>
+        /// <param name="monitor">Monitor to use. Must not be null.</param>
         /// <returns>Null or a set of resolved route configuration.</returns>
         public RouteConfigurationResult Resolve( IActivityMonitor monitor )
         {

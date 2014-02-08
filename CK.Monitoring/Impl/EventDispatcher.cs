@@ -75,6 +75,9 @@ namespace CK.Monitoring.Impl
         readonly ConcurrentQueue<EventItem> _queue;
         readonly object _dispatchLock;
         readonly Thread _thread;
+        readonly Func<int,int> _idleManager;
+        readonly Action<TimeSpan> _onIdle;
+        int _currentIdleCount;
         int _nonBlockingCount;
         IGrandOutputDispatcherStrategy  _strat;
         int _maxQueuedCount;
@@ -83,16 +86,17 @@ namespace CK.Monitoring.Impl
         object _overloadLock;
         bool _overloadedErrorWaiting;
 
-        public EventDispatcher( IGrandOutputDispatcherStrategy strategy )
+        public EventDispatcher( IGrandOutputDispatcherStrategy strategy, Action<TimeSpan> onIdle = null )
         {
             Debug.Assert( strategy != null );
             _queue = new ConcurrentQueue<EventItem>();
             _dispatchLock = new object();
             _strat = strategy;
+            _onIdle = onIdle;
             _overloadLock = new object();
             _thread = new Thread( Run );
             _thread.IsBackground = true;
-            _strat.Initialize( () => _nonBlockingCount, _thread );
+            _strat.Initialize( () => _nonBlockingCount, _thread, out _idleManager );
             _thread.Start();
         }
 
@@ -177,18 +181,27 @@ namespace CK.Monitoring.Impl
 
         void Run()
         {
+            DateTime startIdleTime;
             for(;;)
             {
                 EventItem e;
                 while( _queue.TryDequeue( out e ) )
                 {
+                    _currentIdleCount = 0;
                     Interlocked.Decrement( ref _nonBlockingCount );
                     if( e.MustStop ) return;
                     e.Receiver.Dispatch( e.EventInfo );
                 }
-                lock( _dispatchLock )
-                    while( _queue.IsEmpty )
-                        Monitor.Wait( _dispatchLock );
+                startIdleTime = DateTime.UtcNow;
+                for(;;)
+                {
+                    bool hasEvent = true;
+                    lock( _dispatchLock )
+                        while( _queue.IsEmpty )
+                            hasEvent = Monitor.Wait( _dispatchLock, _idleManager( _currentIdleCount++ ) );
+                    if( hasEvent ) break;
+                    if( _onIdle != null ) _onIdle( DateTime.UtcNow - startIdleTime );
+                }
             }
         }
 

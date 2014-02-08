@@ -146,7 +146,7 @@ namespace CK.Monitoring
                 {
                     var monitorOccurences = new Dictionary<Guid, RawLogFileMonitorOccurence>();
                     var monitorOccurenceList = new List<RawLogFileMonitorOccurence>();
-                    using( var r = LogReader.Open( FileName ) )
+                    using( var r = LogReader.Open( _fileName ) )
                     {
                         if( r.MoveNext() )
                         {

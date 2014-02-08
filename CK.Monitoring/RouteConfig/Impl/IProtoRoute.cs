@@ -8,6 +8,9 @@ namespace CK.RouteConfig.Impl
 {
     public interface IProtoRoute
     {
+        /// <summary>
+        /// Gets the associated <see cref="RouteConfiguration"/> object.
+        /// </summary>
         RouteConfiguration Configuration { get; }
 
         string Namespace { get; }

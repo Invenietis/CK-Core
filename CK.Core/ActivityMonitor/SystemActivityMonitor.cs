@@ -21,19 +21,14 @@ namespace CK.Core
     public sealed class SystemActivityMonitor : ActivityMonitor
     {
         /// <summary>
-        /// A client that can not be removed and is available as a singleton registered in every new SystemActivityMonitor.
+        /// A client that can be added and removed and is available as a singleton.
         /// Its MinimalFilter is set to Release ensuring that errors are always monitored but it stores in RootLogPath/SystemActivityMonitor only errors logs.
         /// </summary>
-        class SysClient : IActivityMonitorBoundClient
+        class SysClient : IActivityMonitorClient
         {
             public LogFilter MinimalFilter
             {
                 get { return LogFilter.Release; }
-            }
-
-            public void SetMonitor( IActivityMonitorImpl source, bool forceBuggyRemove )
-            {
-                if( !forceBuggyRemove && source == null ) throw new InvalidOperationException();
             }
 
             public void OnUnfilteredLog( ActivityMonitorLogData data )
@@ -73,6 +68,17 @@ namespace CK.Core
         }
 
         /// <summary>
+        /// A SysClient that can not be removed and is available as a singleton registered in every new SystemActivityMonitor.
+        /// </summary>
+        class SysLockedClient : SysClient, IActivityMonitorBoundClient
+        {
+            public void SetMonitor( IActivityMonitorImpl source, bool forceBuggyRemove )
+            {
+                if( !forceBuggyRemove && source == null ) throw new InvalidOperationException();
+            }
+        }
+
+        /// <summary>
         /// Defines the event argument of <see cref="SystemActivityMonitor.OnError"/>.
         /// </summary>
         public sealed class LowLevelErrorEventArgs : EventArgs
@@ -103,6 +109,7 @@ namespace CK.Core
         }
 
         static readonly IActivityMonitorClient _client;
+        static readonly IActivityMonitorClient _lockedClient;
         static string _logPath;
         static string _appSettingslogPath;
         static int _activityMonitorErrorTracked;
@@ -112,6 +119,7 @@ namespace CK.Core
             AppSettingsKey = "CK.Core.SystemActivityMonitor.RootLogPath";
             SubDirectoryName = "SystemActivityMonitor/";
             _client = new SysClient();
+            _lockedClient = new SysLockedClient();
             _appSettingslogPath = AppSettings.Default[AppSettingsKey];
             _activityMonitorErrorTracked = 1;
             ActivityMonitor.MonitoringError.OnErrorFromBackgroundThreads += OnTrackActivityMonitorLoggingError;
@@ -262,11 +270,16 @@ namespace CK.Core
         }
 
         /// <summary>
-        /// Initializes a new <see cref="SystemActivityMonitor"/>.
+        /// Registers the internal system client that routes errors and fatals as ActivityMonitor errors.
         /// </summary>
-        public SystemActivityMonitor()
-            : this( false, null )
+        /// <param name="monitor">The monitor that can be temporary works as a <see cref="SystemActivityMonitor"/>.</param>
+        /// <returns>A disposable object that will unregister the system client (if it has been actually added).</returns>
+        public static IDisposable EnsureSystemClient( IActivityMonitor monitor )
         {
+            if( monitor == null ) throw new ArgumentNullException( "monitor" );
+            bool added;
+            monitor.Output.RegisterClient( _client, out added );
+            return added ? Util.CreateDisposableAction( () => monitor.Output.UnregisterClient( _client ) ) : Util.EmptyDisposable;
         }
 
         /// <summary>
@@ -276,10 +289,9 @@ namespace CK.Core
         /// <param name="applyAutoConfigurations">True to apply automatic configurations and, hence, behave like any other <see cref="ActivityMonitor"/>.</param>
         /// <param name="topic">Optional initial topic (can be null).</param>
         public SystemActivityMonitor( bool applyAutoConfigurations, string topic )
-            : base( applyAutoConfigurations )
+            : base( applyAutoConfigurations, topic )
         {
-            if( topic != null ) SetTopic( topic );
-            Output.RegisterClient( _client );
+            Output.RegisterClient( _lockedClient );
         }
 
         static void HandleError( string s )

@@ -138,7 +138,7 @@ namespace CK.Core
         /// <param name="text">Text to log. Must not be null or empty.</param>
         /// <param name="logTime">
         /// Time-stamp of the log entry.
-        /// You can use <see cref="LogTime.UtcNow"/> or <see cref="ActivityMonitorExtension.NextLogTime">IActivityMonitor.NextLogTime()</see> extension method.</param>
+        /// You can use <see cref="DateTimeStamp.UtcNow"/> or <see cref="ActivityMonitorExtension.NextLogTime">IActivityMonitor.NextLogTime()</see> extension method.
         /// </param>
         /// <param name="ex">Optional exception associated to the log. When not null, a Group is automatically created.</param>
         /// <param name="fileName">The source code file name from which the log is emitted.</param>
@@ -172,7 +172,7 @@ namespace CK.Core
         /// <param name="text">Text to log (the title of the group). Null text is valid and considered as <see cref="String.Empty"/> or assigned to the <see cref="Exception.Message"/> if it exists.</param>
         /// <param name="logTime">
         /// Time of the log entry.
-        /// You can use <see cref="LogTime.UtcNow"/> or <see cref="ActivityMonitorExtension.NextLogTime">IActivityMonitor.NextLogTime()</see> extension method.</param>
+        /// You can use <see cref="DateTimeStamp.UtcNow"/> or <see cref="ActivityMonitorExtension.NextLogTime">IActivityMonitor.NextLogTime()</see> extension method.
         /// </param>
         /// <param name="ex">Optional exception associated to the group.</param>
         /// <param name="fileName">The source code file name from which the group is opened.</param>
@@ -463,6 +463,32 @@ namespace CK.Core
 
 
         #region RegisterClients
+
+        /// <summary>
+        /// Registers an <see cref="IActivityMonitorClient"/> to the <see cref="Clients"/> list.
+        /// Duplicate IActivityMonitorClient are silently ignored.
+        /// </summary>
+        /// <param name="this">This <see cref="IActivityMonitorOutput"/> object.</param>
+        /// <param name="client">An <see cref="IActivityMonitorClient"/> implementation.</param>
+        /// <returns>The registered client.</returns>
+        public static IActivityMonitorClient RegisterClient( this IActivityMonitorOutput @this, IActivityMonitorClient client )
+        {
+            bool added;
+            return @this.RegisterClient( client, out added );
+        }
+
+        /// <summary>
+        /// Registers a typed <see cref="IActivityMonitorClient"/>.
+        /// </summary>
+        /// <typeparam name="T">Any type that specializes <see cref="IActivityMonitorClient"/>.</typeparam>
+        /// <param name="this">This <see cref="IActivityMonitorOutput"/> object.</param>
+        /// <param name="client">Client to register.</param>
+        /// <returns>The registered client.</returns>
+        public static T RegisterClient<T>( this IActivityMonitorOutput @this, T client ) where T : IActivityMonitorClient
+        {
+            bool added;
+            return @this.RegisterClient<T>( client, out added );
+        }
 
         /// <summary>
         /// Registers multiple <see cref="IActivityMonitorClient"/>.

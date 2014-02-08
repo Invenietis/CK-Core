@@ -66,6 +66,8 @@
     <Compile Include="GrandOutputHandlers\HandlerConfiguration.cs" />
     <Compile Include="Impl\EventDispatcher.cs" />
     <Compile Include="Impl\EventDispatcherBasicStrategy.cs" />
+    <Compile Include="IMulticastLogInfo.cs" />
+    <Compile Include="MonitorBinaryFileOutput.cs" />
     <Compile Include="Persistence\MulticastLogEntryWithOffset.cs" />
     <Compile Include="Persistence\MultiLogReader.ActivityMap.cs" />
     <Compile Include="Persistence\Impl\LEMCOpenGroup.cs" />
@@ -113,7 +115,7 @@
     <Compile Include="Persistence\Impl\LEOpenGroup.cs" />
     <Compile Include="LogEntryType.cs" />
     <Compile Include="Persistence\LogReader.cs" />
-    <Compile Include="Persistence\ActivityMonitorBinaryWriterClient.cs" />
+    <Compile Include="Persistence\CKMonWriterClient.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="GrandOutputHandlers\BinaryFile.cs" />
     <Compile Include="GrandOutputHandlers\BinaryFileConfiguration.cs" />
@@ -136,6 +138,9 @@
       <Project>{97578828-71ec-46b3-bd9a-44e58292386f}</Project>
       <Name>CK.Core</Name>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="RouteConfig\Configuration.cd" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

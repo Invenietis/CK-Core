@@ -21,7 +21,6 @@ namespace CK.Monitoring.Tests.Persistence
         }
 
         [Test]
-        [Explicit( "This test is too expensive (the GrandOutput disposing). This is to investigate." )]
         public void ReadDuplicates()
         {
             Stopwatch sw = new Stopwatch();
@@ -56,14 +55,15 @@ namespace CK.Monitoring.Tests.Persistence
 
                 var m = new ActivityMonitor();
                 o.Register( m );
-
-                // 6 traces.
+                var direct = m.Output.RegisterClient( new CKMonWriterClient( folder, Math.Min( nbEntries1, nbEntries2 ), LogFilter.Debug ) );
+                // 6 traces that go to the GrandOutput but also to the direct CKMonWriterClient.
                 m.Trace().Send( "Trace 1" );
                 m.OpenTrace().Send( "OpenTrace 1" );
                 m.Trace().Send( "Trace 1.1" );
                 m.Trace().Send( "Trace 1.2" );
                 m.CloseGroup();
                 m.Trace().Send( "Trace 2" );
+                m.Output.UnregisterClient( direct );
             }
 
             for( int pageReadLength = 1; pageReadLength < 10; ++pageReadLength )

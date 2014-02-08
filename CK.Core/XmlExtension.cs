@@ -126,9 +126,9 @@ namespace CK.Core
         #region Xml.Linq
 
         /// <summary>
-        /// Gets line & column information (if it exists) as a string from any <see cref="XObject"/> (such as <see cref="XAttribute"/> or <see cref="XElement"/>).
+        /// Gets line and column information (if it exists) as a string from any <see cref="XObject"/> (such as <see cref="XAttribute"/> or <see cref="XElement"/>).
         /// </summary>
-        /// <param name="r">This <see cref="IXmlLineInfo"/>.</param>
+        /// <param name="this">This <see cref="IXmlLineInfo"/>.</param>
         /// <param name="format">Default format is "- @Line,Column".</param>
         /// <param name="noLineInformation">Defaults to a null string when <see cref="IXmlLineInfo.HasLineInfo()"/> is false.</param>
         /// <returns>A string based on <paramref name="format"/> or <paramref name="noLineInformation"/>.</returns>

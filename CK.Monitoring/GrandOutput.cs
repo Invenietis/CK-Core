@@ -70,7 +70,7 @@ namespace CK.Monitoring
         public GrandOutput( IGrandOutputDispatcherStrategy dispatcherStrategy = null )
         {
             _clients = new List<WeakRef<GrandOutputClient>>();
-            _dispatcher = new EventDispatcher( dispatcherStrategy ?? new EventDispatcherBasicStrategy() );
+            _dispatcher = new EventDispatcher( dispatcherStrategy ?? new EventDispatcherBasicStrategy(), null );
             CommonSink = new GrandOutputCompositeSink();
             var factory = new ChannelFactory( this, _dispatcher );
             _channelHost = new ChannelHost( factory, OnConfigurationReady );
@@ -90,7 +90,7 @@ namespace CK.Monitoring
                 _watcher = null;
                 w.Dispose();
             }
-            Dispose( new SystemActivityMonitor(), 10 );
+            Dispose( new SystemActivityMonitor( false, null ), 10 );
         }
 
         /// <summary>
@@ -339,11 +339,11 @@ namespace CK.Monitoring
         }
 
         /// <summary>
-        /// Calls <see cref="Dispose(IActivityMonitor,int)"/> with a <see cref="SystemActivityMonitor"/> and no closing time limit.
+        /// Calls <see cref="Dispose(IActivityMonitor,int)"/> with a <see cref="SystemActivityMonitor"/> and <see cref="Timeout.Infinite"/>.
         /// </summary>
         public void Dispose()
         {
-            Dispose( new SystemActivityMonitor(), Timeout.Infinite );
+            Dispose( new SystemActivityMonitor( false, null ), Timeout.Infinite );
         }
 
 

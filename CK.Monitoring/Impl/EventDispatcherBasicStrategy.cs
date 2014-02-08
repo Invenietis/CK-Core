@@ -28,7 +28,7 @@ namespace CK.Monitoring.Impl
         /// <param name="maxCapacity">Maximum capacity.</param>
         /// <param name="reenableCapacity">Defaults to 4/5 of the maximum capacity.</param>
         /// <param name="samplingCount">Actual check of the queue count is done by default each 1/10 of the maximum capacity.</param>
-        public EventDispatcherBasicStrategy( int maxCapacity = 128*1024, int reenableCapacity = 0, int samplingCount = 0 )
+        public EventDispatcherBasicStrategy( int maxCapacity = 256*1024, int reenableCapacity = 0, int samplingCount = 0 )
         {
             if( maxCapacity < 1000 || (reenableCapacity > 0 && maxCapacity < reenableCapacity) ) throw new ArgumentException();
             _maxCapacity = maxCapacity;
@@ -44,12 +44,20 @@ namespace CK.Monitoring.Impl
             get { return _ignoredConcurrentCallCount; }
         }
 
-        void IGrandOutputDispatcherStrategy.Initialize( Func<int> instantLoad, Thread dispatcher )
+        void IGrandOutputDispatcherStrategy.Initialize( Func<int> instantLoad, Thread dispatcher, out Func<int,int> idleManager )
         {
             _count = instantLoad;
             _opened = true;
             _sample = _samplingCount;
             dispatcher.Priority = ThreadPriority.Normal;
+            idleManager = IdleManager;
+        }
+
+        static readonly int[] _idleTimes = new[] { 20, 100, 400, 800, 1600, 2400, 4*1000, 10*000, 30*1000, 1*60*1000, 5*60*1000, 10*60*1000, 20*60*1000  };
+        static int IdleManager( int idleCount )
+        {
+            if( idleCount > _idleTimes.Length ) return 30 * 60 * 1000;
+            return _idleTimes[idleCount];
         }
 
         bool IGrandOutputDispatcherStrategy.IsOpened( ref int maxQueuedCount )

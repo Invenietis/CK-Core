@@ -44,6 +44,7 @@ namespace CK.Core
 		/// <param name="inner">Hash set to wrap.</param>
         public CKReadOnlyCollectionOnISet( ISet<T> inner )
         {
+            if( inner == null ) throw new ArgumentNullException( "inner" );
 			_inner = inner;
         }
 

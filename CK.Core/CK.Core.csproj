@@ -70,6 +70,7 @@
     <Compile Include="ActivityMonitor\ActivityMonitorGroupData.cs" />
     <Compile Include="ActivityMonitor\Impl\ActivityMonitor.SourceFiltering.cs" />
     <Compile Include="ActivityMonitor\SourceLogFilter.cs" />
+    <Compile Include="IFluentInterface.cs" />
     <Compile Include="Util.Matcher.cs" />
     <Compile Include="DateTimeStamp.cs" />
     <Compile Include="ActivityMonitor\IDisposableActivityMonitor.cs" />

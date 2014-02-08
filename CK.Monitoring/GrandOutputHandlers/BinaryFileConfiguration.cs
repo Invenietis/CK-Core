@@ -23,6 +23,7 @@ namespace CK.Monitoring.GrandOutputHandlers
             : base( name )
         {
             MaxCountPerFile = 20000;
+            FileBufferSize = 4096;
         }
 
         /// <summary>
@@ -37,6 +38,18 @@ namespace CK.Monitoring.GrandOutputHandlers
         /// Defaults to 20000.
         /// </summary>
         public int MaxCountPerFile { get; set; }
+
+        /// <summary>
+        /// Gets or sets whether files will be opened with <see cref="FileOptions.WriteThrough"/>.
+        /// Defaults to false.
+        /// </summary>
+        public bool FileWriteThrough { get; set; }
+
+        /// <summary>
+        /// Gets or sets the buffer size used to write files.
+        /// Defaults to 4096.
+        /// </summary>
+        public int FileBufferSize { get; set; }
 
         protected override void Initialize( IActivityMonitor monitor, XElement xml )
         {
