@@ -4,12 +4,25 @@
 
 $(document).ready(function () {
 
-    $("pre.logLine").readmore({
+    /* Entry page */
+    $(".longEntry").readmore({
         speed: 400,
         maxHeight: 40,
         sectionCSS: 'display: inline-block;'
     });
 
+    $(".logGroup").each(function () {
+        var errors = $(".warn, .error, .fatal", this);
+
+        if( errors.length == 0 )
+        {
+            $(this).collapse('hide');
+            // Update toggle status
+            $(".collapseToggle[href=\"#"+$(this).attr('id')+"\"]").addClass("collapsed");
+        }
+    });
+
+    /* Monitor list page */
     $(".monitorEntry").each(function () {
         var startTime = $(".startTime", this).text();
         var endTime = $(".endTime", this).text();
