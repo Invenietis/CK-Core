@@ -112,11 +112,16 @@ namespace CK.Mon2Htm
         }
 
         #region Entry writing
-        private void WriteLineHeader( ILogEntry e, int depth = -1, bool writeAnchor = true )
+        private void WriteLineHeader( ILogEntry e, int depth = -1, bool writeAnchor = true, bool writeTooltip = true )
         {
             if( writeAnchor ) _tw.WriteLine( @"<span class=""anchor"" id=""{0}""></span>", HtmlUtils.GetTimestampId( e.LogTime ) );
             _tw.WriteLine( @"<div class=""logLine {0}"">", HtmlUtils.GetClassNameOfLogLevel( e.LogLevel ) );
+
+            if( writeTooltip ) _tw.Write( @"<span data-toggle=""tooltip"" title=""{0}"" rel=""tooltip"">", GetTooltipText( e ) );
+
             _tw.Write( @"<span class=""timestamp"">[{0}]&nbsp;</span>", e.LogTime.TimeUtc.ToString( "HH:mm:ss" ) );
+
+            if( writeTooltip ) _tw.Write( @"</span>", GetTooltipText( e ) );
 
             if( depth < 0 ) depth = _currentPath.Count;
 
