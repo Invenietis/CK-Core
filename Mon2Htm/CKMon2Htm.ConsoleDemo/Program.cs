@@ -18,7 +18,7 @@ namespace CK.Mon2Htm.ConsoleDemo
 
             // This is the default monitor.
             IActivityMonitor m = new ActivityMonitor();
-            m.SetFilter( LogFilter.Debug );
+            m.SetMinimalFilter( LogFilter.Debug );
             m.Output.RegisterClient( new ActivityMonitorConsoleClient() );
 
             // Analyses arguments.
@@ -95,7 +95,7 @@ namespace CK.Mon2Htm.ConsoleDemo
                 m.Warn().Send( "The program was called without a directory. What follows are dummy entries." );
 
                 IActivityMonitor dummyMonitor = new ActivityMonitor();
-                dummyMonitor.SetFilter( LogFilter.Debug );
+                dummyMonitor.SetMinimalFilter( LogFilter.Debug );
 
                 m.Trace().Send( "Writing entries..." );
                 using( GrandOutput go = PrepareNewGrandOutputFolder( m, directoryName ) )

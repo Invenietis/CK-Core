@@ -27,7 +27,7 @@ namespace CK.Mon2Htm.Tests
             SystemActivityMonitor.RootLogPath = TestHelper.TestFolder;
 
             _m = new ActivityMonitor();
-            _m.SetFilter( LogFilter.Debug );
+            _m.SetMinimalFilter( LogFilter.Debug );
         }
 
         [TearDown]

@@ -49,7 +49,7 @@ namespace CK.Core
         }
 
         /// <summary>
-        /// Challenges source filters based on FileName/LineNumber, <see cref="IActivityMonitor.ActualFilter">this monitors' filter</see> and application 
+        /// Challenges source filters based on FileName/LineNumber, <see cref="IActivityMonitor.ActualFilter">this monitors' actual filter</see> and application 
         /// domain's <see cref="ActivityMonitor.DefaultFilter"/> filters to test whether a log line should actually be emitted.
         /// </summary>
         /// <param name="this">This <see cref="IActivityMonitor"/>.</param>
@@ -64,7 +64,7 @@ namespace CK.Core
         }
 
         /// <summary>
-        /// Challenges source filters based on FileName/LineNumber, <see cref="IActivityMonitor.ActualFilter">this monitors'filter</see> and application 
+        /// Challenges source filters based on FileName/LineNumber, <see cref="IActivityMonitor.ActualFilter">this monitor's actual filter</see> and application 
         /// domain's <see cref="ActivityMonitor.DefaultFilter"/> filters to test whether a log group should actually be emitted.
         /// </summary>
         /// <param name="this">This <see cref="IActivityMonitor"/>.</param>
@@ -364,7 +364,7 @@ namespace CK.Core
         #endregion
 
 
-        #region IActivityMonitor.SetFilter( level )
+        #region IActivityMonitor.SetMinimalFilter( ... )
 
         class LogFilterSentinel : IDisposable
         {
@@ -393,13 +393,13 @@ namespace CK.Core
         /// initial value (this is what OpenGroup/CloseGroup do with both the Filter and the AutoTags).
         /// </summary>
         /// <param name="this">This <see cref="IActivityMonitor"/> object.</param>
-        /// <param name="filterLineLevel">The new filter level for log line.</param>
-        /// <param name="filterGroupLevel">The new filter level for group.</param>
+        /// <param name="group">The new filter level for group.</param>
+        /// <param name="line">The new filter level for log line.</param>
         /// <returns>A <see cref="IDisposable"/> object that will restore the current level.</returns>
-        public static IDisposable SetFilter( this IActivityMonitor @this, LogLevelFilter filterLineLevel, LogLevelFilter filterGroupLevel )
+        public static IDisposable SetMinimalFilter( this IActivityMonitor @this, LogLevelFilter group, LogLevelFilter line )
         {
             if( @this == null ) throw new NullReferenceException( "this" );
-            return new LogFilterSentinel( @this, new LogFilter( filterGroupLevel, filterLineLevel ) );
+            return new LogFilterSentinel( @this, new LogFilter( group, line ) );
         }
 
         /// <summary>
@@ -412,13 +412,13 @@ namespace CK.Core
         /// <param name="this">This <see cref="IActivityMonitor"/> object.</param>
         /// <param name="f">The new filter.</param>
         /// <returns>A <see cref="IDisposable"/> object that will restore the current level.</returns>
-        public static IDisposable SetFilter( this IActivityMonitor @this, LogFilter f )
+        public static IDisposable SetMinimalFilter( this IActivityMonitor @this, LogFilter f )
         {
             if( @this == null ) throw new NullReferenceException( "this" );
             return new LogFilterSentinel( @this, f );
         }
 
-        #endregion IActivityMonitor.SetFilter( level )
+        #endregion IActivityMonitor.SetMinimalFilter( ... )
 
 
         #region IActivityMonitor.SetAutoTags( Tags, SetOperation )
