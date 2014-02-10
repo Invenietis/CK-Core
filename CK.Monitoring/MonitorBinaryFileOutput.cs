@@ -200,6 +200,7 @@ namespace CK.Monitoring
         /// Writes a group closing entry as a uni-cast compact entry or as a multi-cast one if needed.
         /// </summary>
         /// <param name="g">The group.</param>
+        /// <param name="conclusions">Group's conclusions.</param>
         /// <param name="adapter">Multi-cast information to be able to write multi-cast entry when needed.</param>
         public void UnicastWriteCloseGroup( IActivityLogGroup g, IReadOnlyList<ActivityLogGroupConclusion> conclusions, IMulticastLogInfo adapter )
         {

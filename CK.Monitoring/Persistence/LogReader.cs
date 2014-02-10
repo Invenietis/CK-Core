@@ -170,7 +170,7 @@ namespace CK.Monitoring
         /// Only entries from this monitor will be extracted when reading a <see cref="IMulticastLogEntry"/> (pure unicast <see cref="ILogEntry"/> will be ignored).
         /// </summary>
         /// <remarks>
-        /// Note that the <see cref="Current"/> will be <see cref="ILogEntry"/> objects: multi-cast entry properties (<see cref="IMulticastLogEntry.MonitorId"/> 
+        /// Note that the <see cref="Current"/> will be <see cref="ILogEntry"/> objects: multi-cast entry properties (<see cref="IMulticastLogInfo.MonitorId"/> 
         /// and <see cref="IMulticastLogEntry.GroupDepth"/>) are no more available when a filter is set.
         /// </remarks>
         public MulticastFilter CurrentFilter { get; set; }

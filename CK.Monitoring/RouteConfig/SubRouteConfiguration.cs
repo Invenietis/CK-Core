@@ -7,6 +7,10 @@ using CK.Core;
 
 namespace CK.RouteConfig
 {
+    /// <summary>
+    /// Captures subordinated <see cref="RouteConfiguration"/>: a SubRouteConfiguration <see cref="ImportParentActions"/> and <see cref="ImportParentDeclaredActionsAbove"/> by default
+    /// and defines a <see cref="RoutePredicate"/>.
+    /// </summary>
     public class SubRouteConfiguration : RouteConfiguration
     {
         Func<string,bool> _routePredicate;

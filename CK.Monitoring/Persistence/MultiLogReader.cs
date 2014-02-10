@@ -62,18 +62,36 @@ namespace CK.Monitoring
         /// <summary>
         /// Immutable object that describes the occurrence of a Monitor in a <see cref="RawLogFile"/>.
         /// </summary>
-        public class RawLogFileMonitorOccurence
+        public sealed class RawLogFileMonitorOccurence
         {
+            /// <summary>
+            /// The <see cref="RawLogFile"/>.
+            /// </summary>
             public readonly RawLogFile LogFile;
+            /// <summary>
+            /// The monitor's identifier.
+            /// </summary>
             public readonly Guid MonitorId;
+            /// <summary>
+            /// First offset for this <see cref="MonitorId"/> in this <see cref="LogFile"/>.
+            /// </summary>
             public readonly long FirstOffset;
+            /// <summary>
+            /// Last offset for this <see cref="MonitorId"/> in this <see cref="LogFile"/>.
+            /// </summary>
             public long LastOffset { get; internal set; }
+            /// <summary>
+            /// First entry time for this <see cref="MonitorId"/> in this <see cref="LogFile"/>.
+            /// </summary>
             public DateTimeStamp FirstEntryTime { get; internal set; }
+            /// <summary>
+            /// Last entry time for this <see cref="MonitorId"/> in this <see cref="LogFile"/>.
+            /// </summary>
             public DateTimeStamp LastEntryTime { get; internal set; }
 
             /// <summary>
             /// Creates and opens a <see cref="LogReader"/> that reads unicast entries only from this monitor.
-            /// The reader is initially positioned before the entry (i.e. <see cref="MoveNext"/> must be called).
+            /// The reader is initially positioned before the entry (i.e. <see cref="LogReader.MoveNext"/> must be called).
             /// </summary>
             /// <param name="streamOffset">Initial stream position.</param>
             /// <returns>A log reader that will read only entries from this monitor.</returns>
@@ -84,7 +102,7 @@ namespace CK.Monitoring
 
             /// <summary>
             /// Opens a <see cref="LogReader"/> that reads unicast entries only from this monitor and positions it on the first entry
-            /// with the given time (i.e. <see cref="MoveNext"/> has been called).
+            /// with the given time (i.e. <see cref="LogReader.MoveNext"/> has been called).
             /// </summary>
             /// <param name="logTime">Log time. Must exist in the stream otherwise an exception is thrown.</param>
             /// <returns>A log reader that will read only entries from this monitor.</returns>
@@ -108,7 +126,7 @@ namespace CK.Monitoring
         /// <summary>
         /// Immutable object that contains a description of the content of a raw log file.
         /// </summary>
-        public class RawLogFile
+        public sealed class RawLogFile
         {
             readonly string _fileName;
             int _fileVersion;
@@ -119,15 +137,49 @@ namespace CK.Monitoring
             Exception _error;
             bool _badEndOfFile;
 
+            /// <summary>
+            /// Gets the file name.
+            /// </summary>
             public string FileName { get { return _fileName; } }
+
+            /// <summary>
+            /// Gets the first entry time.
+            /// </summary>
             public DateTimeStamp FirstEntryTime { get { return _firstEntryTime; } }
+            
+            /// <summary>
+            /// Gets the last entry time.
+            /// </summary>
             public DateTimeStamp LastEntryTime { get { return _lastEntryTime; } }
+
+            /// <summary>
+            /// Gets the file version.
+            /// </summary>
             public int FileVersion { get { return _fileVersion; } }
+            
+            /// <summary>
+            /// Gets the total number of entries.
+            /// </summary>
             public int TotalEntryCount { get { return _totalEntryCount; } }
+            
+            /// <summary>
+            /// Gets whether this file does not end with the end of stream marker (a zero byte).
+            /// </summary>
             public bool BadEndOfFile { get { return _badEndOfFile; } }
+
+            /// <summary>
+            /// Gets whether no <see cref="Error"/> occurred and there is no <see cref="BadEndOfFile"/>.
+            /// </summary>
             public bool IsValidFile { get { return !_badEndOfFile && _error == null; } }
+
+            /// <summary>
+            /// Gets the <see cref="Exception"/> that occurred while reading file.
+            /// </summary>
             public Exception Error { get { return _error; } }
             
+            /// <summary>
+            /// Gets the different monitors that appear in this file.
+            /// </summary>
             public IReadOnlyList<RawLogFileMonitorOccurence> Monitors { get { return _monitors; } }
 
             internal object InitializerLock;
@@ -192,6 +244,10 @@ namespace CK.Monitoring
                 reader.RegisterOneLog( occ, newOccurence, streamOffset, log );
             }
 
+            /// <summary>
+            /// Overridden to return details about its content.
+            /// </summary>
+            /// <returns>Detailed string.</returns>
             public override string ToString()
             {
                 return String.Format( "File: '{0}' ({1}), from {2} for {3}, Error={4}", FileName, TotalEntryCount, _firstEntryTime, _lastEntryTime.TimeUtc-_firstEntryTime.TimeUtc, _error != null ? _error.ToString() : "None" );
@@ -277,6 +333,9 @@ namespace CK.Monitoring
             return m;
         }
 
+        /// <summary>
+        /// Releases this reader.
+        /// </summary>
         public void Dispose()
         {
             _lockWriteRead.Dispose();

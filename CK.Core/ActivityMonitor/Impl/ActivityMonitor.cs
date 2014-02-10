@@ -193,7 +193,6 @@ namespace CK.Core
         /// <summary>
         /// Initializes a new <see cref="ActivityMonitor"/> that applies all <see cref="AutoConfiguration"/> and has no <see cref="Topic"/> initially set.
         /// </summary>
-        /// <param name="applyAutoConfigurations">Whether <see cref="AutoConfiguration"/> should be applied.</param>
         public ActivityMonitor()
         {
             Build( new ActivityMonitorOutput( this ), Tags.Empty, true );
@@ -202,7 +201,6 @@ namespace CK.Core
         /// <summary>
         /// Initializes a new <see cref="ActivityMonitor"/> that applies all <see cref="AutoConfiguration"/> and has an initial <see cref="Topic"/> set.
         /// </summary>
-        /// <param name="applyAutoConfigurations">Whether <see cref="AutoConfiguration"/> should be applied.</param>
         /// <param name="topic">Initial topic (can be null).</param>
         public ActivityMonitor( string topic )
         {

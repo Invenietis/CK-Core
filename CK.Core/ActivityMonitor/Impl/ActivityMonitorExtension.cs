@@ -465,8 +465,8 @@ namespace CK.Core
         #region RegisterClients
 
         /// <summary>
-        /// Registers an <see cref="IActivityMonitorClient"/> to the <see cref="Clients"/> list.
-        /// Duplicate IActivityMonitorClient are silently ignored.
+        /// Registers an <see cref="IActivityMonitorClient"/> to the <see cref="IActivityMonitorOutput.Clients">Clients</see> list.
+        /// Duplicates IActivityMonitorClient are silently ignored.
         /// </summary>
         /// <param name="this">This <see cref="IActivityMonitorOutput"/> object.</param>
         /// <param name="client">An <see cref="IActivityMonitorClient"/> implementation.</param>
