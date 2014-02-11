@@ -44,7 +44,7 @@ namespace CK.Mon2Htm
         /// <param name="htmlOutputDirectory">Directory in which the HTML structure will be generated. Defaults to null, in which case an "html" folder will be created and used inside the logs' directoryPath.</param>
         /// <param name="logEntryCountPerPage">How many entries to write on every log page.</param>
         /// <returns>Full path of created index.html. Null when no valid file could be loaded from directoryPath.</returns>
-        public static string CreateFromLogDirectory( string directoryPath, IActivityMonitor activityMonitor, bool recurse = true, string htmlOutputDirectory = null, int logEntryCountPerPage = 500 )
+        public static string CreateFromLogDirectory( string directoryPath, IActivityMonitor activityMonitor, int logEntryCountPerPage, bool recurse = true, string htmlOutputDirectory = null  )
         {
             if( activityMonitor == null ) throw new ArgumentNullException( "activityMonitor" );
             if( !Directory.Exists( directoryPath ) ) throw new DirectoryNotFoundException( "The given path does not exist, or is not a directory." );
@@ -92,7 +92,7 @@ namespace CK.Mon2Htm
         /// <param name="htmlOutputDirectory">Directory in which the HTML structure will be generated.</param>
         /// <param name="logEntryCountPerPage">How many entries to write on every log page.</param>
         /// <returns>Full path of created index.html. Null when no valid file could be loaded from directoryPath.</returns>
-        public static string CreateFromActivityMap( MultiLogReader.ActivityMap activityMap, IActivityMonitor activityMonitor, string outputDirectoryPath, int logEntryCountPerPage = 500 )
+        public static string CreateFromActivityMap( MultiLogReader.ActivityMap activityMap, IActivityMonitor activityMonitor, int logEntryCountPerPage, string outputDirectoryPath  )
         {
             HtmlGenerator g = new HtmlGenerator( activityMap, outputDirectoryPath, activityMonitor, logEntryCountPerPage );
 

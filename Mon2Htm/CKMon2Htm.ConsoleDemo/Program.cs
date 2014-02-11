@@ -72,7 +72,7 @@ namespace CK.Mon2Htm.ConsoleDemo
                         }
                     }
 
-                    string indexHtmlPath = HtmlGenerator.CreateFromActivityMap( r.GetActivityMap(), m, htmlDirectoryPath );
+                    string indexHtmlPath = HtmlGenerator.CreateFromActivityMap( r.GetActivityMap(), m, 5000, htmlDirectoryPath );
 
                     if( indexHtmlPath != null && File.Exists( indexHtmlPath ) )
                     {
@@ -105,7 +105,7 @@ namespace CK.Mon2Htm.ConsoleDemo
                     m.Trace().Send( "Closing GrandOutput..." );
                 }
 
-                string indexHtmlPath = HtmlGenerator.CreateFromLogDirectory( directoryPath, m, true );
+                string indexHtmlPath = HtmlGenerator.CreateFromLogDirectory( directoryPath, m, 5000, true );
 
                 if( indexHtmlPath != null )
                 {

@@ -187,7 +187,7 @@ namespace CK.Mon2Htm
 
             _tempDirPath = GetTempFolder();
 
-            return HtmlGenerator.CreateFromActivityMap( activityMap, _m, _tempDirPath );
+            return HtmlGenerator.CreateFromActivityMap( activityMap, _m, 5000, _tempDirPath );
         }
 
         private void InstallUpdateSyncWithInfo()
