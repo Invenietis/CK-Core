@@ -10,7 +10,6 @@ using NUnit.Framework;
 
 namespace CK.Core.Tests
 {
-
     public class MarshalByRefObjectLifetimeController<T> : MarshalByRefObject, IDisposable, ISponsor
         where T : class
     {
@@ -170,6 +169,7 @@ namespace CK.Core.Tests
 
 
         [Test]
+        [Explicit]
         public void SimpleWeakReferenceTest()
         {
             // Demonstrates that triggerring a GC.Collect works as it should.
@@ -218,7 +218,7 @@ namespace CK.Core.Tests
                     Assert.That( origin.Server.IsAlive );
                     // Creates a client and registers it on TheServer.
                     appDomain.DoCallBack( new CrossAppDomainDelegate( ClientAppDomainCreateClientObject ) );
-                    // And tell the Client to call TheServer: this call must be succesful since the Server is still here.
+                    // And tell the Client to call TheServer: this call must be successful since the Server is still here.
                     appDomain.DoCallBack( new CrossAppDomainDelegate( ClientAppDomainClientCallsServer ) );
 
                     // Sleeping twice the InitialLeaseTime for TheServer: the server proxy must not be available anymore.
@@ -239,7 +239,7 @@ namespace CK.Core.Tests
                     appDomain.DoCallBack( new CrossAppDomainDelegate( ClientAppDomainCreateSecuredServer ) );
                     // Creates a client and registers it on TheServer.
                     appDomain.DoCallBack( new CrossAppDomainDelegate( ClientAppDomainCreateClientObject ) );
-                    // And tell the Client to call TheServer: this call must be succesful since the Server is still here.
+                    // And tell the Client to call TheServer: this call must be successful since the Server is still here.
                     appDomain.DoCallBack( new CrossAppDomainDelegate( ClientAppDomainClientCallsServer ) );
 
                     // Sleeping twice the InitialLeaseTime for TheServer: the server proxy is still available.

@@ -148,7 +148,7 @@ namespace CK.Monitoring
         /// <summary>
         /// Reads a <see cref="ILogEntry"/> from the binary reader that can be a <see cref="IMulticastLogEntry"/>.
         /// If the first read byte is 0, read stops and null is returned.
-        /// The 0 byte is the "end marker" that <see cref="CKMonWriterClient.Close(bool)"/> should write, but this
+        /// The 0 byte is the "end marker" that <see cref="CKMonWriterClient.Close()"/> write, but this
         /// method can read non zero-terminated streams (it catches an EndOfStreamException when reading the first byte and handles it silently).
         /// This method can throw any type of exception (<see cref="System.IO.EndOfStreamException"/> or <see cref="InvalidDataException"/> for instance) that
         /// must be handled by the caller.
@@ -323,9 +323,5 @@ namespace CK.Monitoring
             Debug.Assert( entry != null );
             return ReferenceEquals( entry.Text, _missingGroupText ) || ReferenceEquals( entry.Text, _missingLineText ) || entry.Conclusions == _missingConclusions;
         }
-
-        public static Guid mId { get; set; }
-
-        public static int depth { get; set; }
     }
 }

@@ -393,13 +393,13 @@ namespace CK.Core.Tests.Monitoring
             using( l.Output.CreateBridgeTo( TestHelper.ConsoleMonitor.Output.BridgeTarget ) )
             {
                 var log = l.Output.RegisterClient( new StupidStringClient() );
-                using( l.SetFilter( LogLevelFilter.Error, LogLevelFilter.Error ) )
+                using( l.SetMinimalFilter( LogLevelFilter.Error, LogLevelFilter.Error ) )
                 {
                     l.Trace().Send( "NO SHOW" );
                     l.Info().Send( "NO SHOW" );
                     l.Warn().Send( "NO SHOW" );
                     l.Error().Send( "Error n°1." );
-                    using( l.SetFilter( WarnWarn ) )
+                    using( l.SetMinimalFilter( WarnWarn ) )
                     {
                         l.Trace().Send( "NO SHOW" );
                         l.Info().Send( "NO SHOW" );

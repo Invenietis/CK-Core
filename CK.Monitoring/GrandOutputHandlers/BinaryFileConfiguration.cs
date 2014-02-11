@@ -1,11 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Xml.Linq;
 using CK.RouteConfig;
 using CK.Core;
+using System.IO;
 
 namespace CK.Monitoring.GrandOutputHandlers
 {
@@ -51,6 +49,11 @@ namespace CK.Monitoring.GrandOutputHandlers
         /// </summary>
         public int FileBufferSize { get; set; }
 
+        /// <summary>
+        /// Initializes (or reinitializes) this <see cref="BinaryFileConfiguration"/> from a <see cref="XElement"/>.
+        /// </summary>
+        /// <param name="monitor">Monitor to report errors or warnings.</param>
+        /// <param name="xml">Source XML element.</param>
         protected override void Initialize( IActivityMonitor monitor, XElement xml )
         {
             Path = xml.AttributeRequired( "Path" ).Value;

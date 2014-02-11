@@ -7,6 +7,9 @@ using CK.Core;
 
 namespace CK.RouteConfig.Impl
 {
+    /// <summary>
+    /// Defines a composite action that can be a <see cref="ActionParallelConfiguration"/> or a <see cref="ActionSequenceConfiguration"/>.
+    /// </summary>
     public class ActionCompositeConfiguration : ActionConfiguration
     {
         readonly List<ActionConfiguration> _children;
@@ -14,6 +17,11 @@ namespace CK.RouteConfig.Impl
         const string _seqDisplayName = "Sequence";
         const string _parDisplayName = "Parallel";
 
+        /// <summary>
+        /// Protected constructor.
+        /// </summary>
+        /// <param name="name">Action's name.</param>
+        /// <param name="isParallel">Whether this composite is a parallel.</param>
         protected ActionCompositeConfiguration( string name, bool isParallel )
             : base( name )
         {
@@ -40,12 +48,25 @@ namespace CK.RouteConfig.Impl
             }
         }
 
+        /// <summary>
+        /// Gets whether this is a parallel composite.
+        /// </summary>
         public bool IsParallel { get { return _isParallel; } }
 
+        /// <summary>
+        /// Gets children (items of this composite) actions.
+        /// </summary>
         public IReadOnlyList<ActionConfiguration> Children { get { return _children.AsReadOnlyList(); } }
 
+        /// <summary>
+        /// Checks that children are valid (action's name must be unique).
+        /// </summary>
+        /// <param name="routeName">Name of the route that references this action.</param>
+        /// <param name="monitor">Monitor to report errors.</param>
+        /// <returns>True if valid, false otherwise.</returns>
         public override bool CheckValidity( string routeName, IActivityMonitor monitor )
         {
+            if( monitor == null ) throw new ArgumentNullException( "monitor" );
             bool result = true;
             for( int i = 0; i < _children.Count; ++i )
             {
@@ -67,14 +88,25 @@ namespace CK.RouteConfig.Impl
             return result;
         }
 
+        /// <summary>
+        /// Adds an <see cref="ActionConfiguration"/> to this composite.
+        /// </summary>
+        /// <param name="action">The action to add.</param>
         protected void Add( ActionConfiguration action )
         {
+            if( action == null ) throw new ArgumentNullException( "action" );
             _children.Add( action );
         }
 
-        internal void Override( int idx, ActionConfiguration a )
+        /// <summary>
+        /// Overrides (replaces) an <see cref="ActionConfiguration"/> at a specified index.
+        /// </summary>
+        /// <param name="idx">Index to replace.</param>
+        /// <param name="action">The new action to inject.</param>
+        internal void Override( int idx, ActionConfiguration action )
         {
-            _children[idx] = a;
+            if( action == null ) throw new ArgumentNullException( "action" );
+            _children[idx] = action;
         }
 
         internal bool CheckAndOptimize( IActivityMonitor monitor )
@@ -124,11 +156,18 @@ namespace CK.RouteConfig.Impl
             get { return _isParallel ? _parDisplayName : _seqDisplayName; }
         }
 
+        /// <summary>
+        /// Always true since one can always clone a composite.
+        /// </summary>
         public override bool IsCloneable
         {
             get { return true; }
         }
 
+        /// <summary>
+        /// Clones this composite.
+        /// </summary>
+        /// <returns>A clone of this composite.</returns>
         public override ActionConfiguration Clone()
         {
             return CloneComposite( false );

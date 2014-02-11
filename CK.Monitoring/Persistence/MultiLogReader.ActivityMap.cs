@@ -12,7 +12,10 @@ namespace CK.Monitoring
 {
     public sealed partial class MultiLogReader : IDisposable
     {
-        public class ActivityMap
+        /// <summary>
+        /// Immutable snapshot of a <see cref="MultiLogReader"/>'s content.
+        /// </summary>
+        public sealed class ActivityMap
         {
             readonly IReadOnlyCollection<RawLogFile> _allFiles;
             readonly IReadOnlyCollection<RawLogFile> _validFiles;
@@ -33,12 +36,24 @@ namespace CK.Monitoring
                 _lastEntryDate = reader._globalLastEntryTime;
             }
 
+            /// <summary>
+            /// Gets the very first entry time (among all <see cref="Monitors"/>).
+            /// </summary>
             public DateTime FirstEntryDate { get { return _firstEntryDate; } }
 
+            /// <summary>
+            /// Gets the very last entry time (among all <see cref="Monitors"/>).
+            /// </summary>
             public DateTime LastEntryDate { get { return _lastEntryDate; } }
 
+            /// <summary>
+            /// Gets the valid files (see <see cref="RawLogFile.IsValidFile"/>).
+            /// </summary>
             public IReadOnlyCollection<RawLogFile> ValidFiles { get { return _validFiles; } }
 
+            /// <summary>
+            /// Gets all files (even the ones for which <see cref="RawLogFile.IsValidFile"/> is false).
+            /// </summary>
             public IReadOnlyCollection<RawLogFile> AllFiles { get { return _allFiles; } }
 
             /// <summary>
@@ -46,12 +61,20 @@ namespace CK.Monitoring
             /// </summary>
             public IReadOnlyList<Monitor> Monitors { get { return _monitorList; } }
 
+            /// <summary>
+            /// Finds a <see cref="Monitor"/> by its identifier.
+            /// </summary>
+            /// <param name="monitorId">The monitor's identifier.</param>
+            /// <returns>The monitor or null if not found.</returns>
             public Monitor FindMonitor( Guid monitorId )
             {
                 return _monitors.GetValueWithDefault( monitorId, null );
             }
         }
 
+        /// <summary>
+        /// Immutable information that describes one monitor's content.
+        /// </summary>
         public class Monitor
         {
             readonly Guid _monitorId;
@@ -71,16 +94,34 @@ namespace CK.Monitoring
                 _lastDepth = m._lastDepth;
             }
 
+            /// <summary>
+            /// Gets the monitor's identifier.
+            /// </summary>
             public Guid MonitorId { get { return _monitorId; } }
 
+            /// <summary>
+            /// Gets the different files where entries from this monitor appear.
+            /// </summary>
             public IReadOnlyList<RawLogFileMonitorOccurence> Files { get { return _files; } }
 
+            /// <summary>
+            /// Gets the very first known entry time for this monitor.
+            /// </summary>
             public DateTimeStamp FirstEntryTime { get { return _firstEntryTime; } }
 
+            /// <summary>
+            /// Gets the very first known depth for this monitor.
+            /// </summary>
             public int FirstDepth { get { return _firstDepth; } }
 
+            /// <summary>
+            /// Gets the very last known entry time for this monitor.
+            /// </summary>
             public DateTimeStamp LastEntryTime { get { return _lastEntryTime; } }
 
+            /// <summary>
+            /// Gets the very last known depth for this monitor.
+            /// </summary>
             public int LastDepth { get { return _lastDepth; } }
 
             internal class MultiFileReader : IDisposable
@@ -235,7 +276,7 @@ namespace CK.Monitoring
             /// A page gives access to <see cref="Entries"/> by unifying all the raw log files and removing duplicates from them.
             /// Pages are sequentially accessed from a first page (obtained by <see cref="G:Monitor.ReadFirstPage"/>) and the by calling <see cref="ForwardPage"/>.
             /// </summary>
-            public class LivePage : IDisposable
+            public sealed class LivePage : IDisposable
             {
                 class WrappedList : IReadOnlyList<ParentedLogEntry>
                 {
@@ -284,12 +325,12 @@ namespace CK.Monitoring
                             {
                                 // Adds a MissingCloseGroup with an unknown time for tail groups: handles the 
                                 // last closing group specifically.
-                                while( entry.GroupDepth < path.Count-1 )
+                                while( entry.GroupDepth < path.Count - 1 )
                                 {
                                     if( AppendEntry( path, ref parent, ref i, LogEntry.CreateMissingCloseGroup( DateTimeStamp.Unknown ) ) ) return i;
                                 }
                                 // Handles the last auto-close group: we may know its time thanks to our current entry (if its previous type is a CloseGroup).
-                                Debug.Assert( entry.GroupDepth == path.Count-1, "We are on the last group to auto-close." );
+                                Debug.Assert( entry.GroupDepth == path.Count - 1, "We are on the last group to auto-close." );
                                 DateTimeStamp prevTime = entry.PreviousEntryType == LogEntryType.CloseGroup ? entry.PreviousLogTime : DateTimeStamp.Unknown;
                                 if( AppendEntry( path, ref parent, ref i, LogEntry.CreateMissingCloseGroup( prevTime ) ) ) return i;
                             }
@@ -302,7 +343,7 @@ namespace CK.Monitoring
                                     if( AppendEntry( path, ref parent, ref i, LogEntry.CreateMissingOpenGroup( DateTimeStamp.Unknown ) ) ) return i;
                                 }
                                 // Handles the last auto-open group: we may know its time thanks to our current entry (if its previous type is a OpenGroup).
-                                Debug.Assert( entry.GroupDepth == path.Count+1, "We are on the last group to auto-open." );
+                                Debug.Assert( entry.GroupDepth == path.Count + 1, "We are on the last group to auto-open." );
                                 DateTimeStamp prevTime = entry.PreviousEntryType == LogEntryType.OpenGroup ? entry.PreviousLogTime : DateTimeStamp.Unknown;
                                 if( AppendEntry( path, ref parent, ref i, LogEntry.CreateMissingOpenGroup( prevTime ) ) ) return i;
                             }
@@ -313,7 +354,7 @@ namespace CK.Monitoring
                             // we ignore this pathological case.
                             if( entry.PreviousEntryType != LogEntryType.None )
                             {
-                                ILogEntry prevEntry = i > 0 ? Entries[i-1].Entry : lastPrevEntry;
+                                ILogEntry prevEntry = i > 0 ? Entries[i - 1].Entry : lastPrevEntry;
                                 if( prevEntry == null || prevEntry.LogTime != entry.PreviousLogTime )
                                 {
                                     if( AppendEntry( path, ref parent, ref i, LogEntry.CreateMissingLine( entry.PreviousLogTime ) ) ) return i;
@@ -366,9 +407,9 @@ namespace CK.Monitoring
                     _pageLength = pageLength;
                     _currentPath = new List<ParentedLogEntry>();
                     ParentedLogEntry e = null;
-                    for( int i = 0; i < initialGroupDepth; ++i ) 
+                    for( int i = 0; i < initialGroupDepth; ++i )
                     {
-                        ParentedLogEntry g = new ParentedLogEntry( e, LogEntry.CreateMissingOpenGroup( DateTimeStamp.Unknown ) ); 
+                        ParentedLogEntry g = new ParentedLogEntry( e, LogEntry.CreateMissingOpenGroup( DateTimeStamp.Unknown ) );
                         _currentPath.Add( g );
                         e = g;
                     }
@@ -380,7 +421,7 @@ namespace CK.Monitoring
                 /// Gets the log entries of the current page.
                 /// </summary>
                 public IReadOnlyList<ParentedLogEntry> Entries { get { return _entries; } }
-                
+
                 /// <summary>
                 /// Gets the page length. 
                 /// </summary>
@@ -482,8 +523,12 @@ namespace CK.Monitoring
                     if( m != null ) m.CloseGroup( String.Format( "Replayed {0} entries ({1} missing).", nbTotal, nbMissing ) );
                 }
             }
-       }
+        }
 
+        /// <summary>
+        /// Gets the <see cref="ActivityMap"/> from this reader.
+        /// </summary>
+        /// <returns>An immutable snapshot of this reader's content.</returns>
         public ActivityMap GetActivityMap()
         {
             _lockWriteRead.EnterWriteLock();

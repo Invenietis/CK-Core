@@ -133,7 +133,7 @@ namespace CK.Core.Tests.Monitoring
                 IActivityMonitor m = new ActivityMonitor();
                 m.MinimalFilter = LogFilter.Off;
                 // ...
-                using( m.SetFilter( LogFilter.Debug ) )
+                using( m.SetMinimalFilter( LogFilter.Debug ) )
                 {
                     Assert.That( m.ActualFilter == LogFilter.Debug );
                     // ...
@@ -179,6 +179,7 @@ namespace CK.Core.Tests.Monitoring
                 }
                 return true;
             }
+            m.SetTopic( "Changing my mind. Keeping it as-is." );
         }
 
     }

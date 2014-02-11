@@ -61,6 +61,9 @@ namespace CK.Monitoring
             }
         }
 
+        /// <summary>
+        /// Gets the <see cref="GrandOutput"/> to which this <see cref="GrandOutputClient"/> is bound.
+        /// </summary>
         public GrandOutput Central
         {
             get { return _central; }
@@ -103,9 +106,9 @@ namespace CK.Monitoring
 
         IChannel EnsureChannel( bool callOnClientMinimalFilterChanged = true )
         {
-            if( _channel != null ) _channel.PreHandleLock();
             if( _version != _curVersion )
             {
+                _channel = null;
                 do
                 {
                     _curVersion = _version;
@@ -127,6 +130,7 @@ namespace CK.Monitoring
                 while( _version != _curVersion );
                 CheckFilter( callOnClientMinimalFilterChanged, _channel.MinimalFilter );
             }
+            else _channel.PreHandleLock();
             return _channel;
         }
 
@@ -152,7 +156,7 @@ namespace CK.Monitoring
             }
         }
 
-        public void OnOpenGroup( IActivityLogGroup group )
+        void IActivityMonitorClient.OnOpenGroup( IActivityLogGroup group )
         {
             var h = EnsureChannel();
             if( h != null )
@@ -165,11 +169,11 @@ namespace CK.Monitoring
             }
         }
 
-        public void OnGroupClosing( IActivityLogGroup group, ref List<ActivityLogGroupConclusion> conclusions )
+        void IActivityMonitorClient.OnGroupClosing( IActivityLogGroup group, ref List<ActivityLogGroupConclusion> conclusions )
         {
         }
 
-        public void OnGroupClosed( IActivityLogGroup group, IReadOnlyList<ActivityLogGroupConclusion> conclusions )
+        void IActivityMonitorClient.OnGroupClosed( IActivityLogGroup group, IReadOnlyList<ActivityLogGroupConclusion> conclusions )
         {
             var h = EnsureChannel();
             if( h != null )

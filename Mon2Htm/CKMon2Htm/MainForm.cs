@@ -27,7 +27,7 @@ namespace CK.Mon2Htm
             _listedFiles = new List<string>();
             _filesToLoad = new List<string>();
             _m = new ActivityMonitor();
-            _m.SetFilter( LogFilter.Debug );
+            _m.SetMinimalFilter( LogFilter.Debug );
             _m.Output.RegisterClient( new ActivityMonitorConsoleClient() );
 
             InitializeComponent();
