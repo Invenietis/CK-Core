@@ -177,9 +177,9 @@ namespace CK.Core.Tests.Monitoring
                         return false;
                     }
                 }
+                m.SetTopic( "Changing my mind. Keeping it as-is." );
                 return true;
             }
-            m.SetTopic( "Changing my mind. Keeping it as-is." );
         }
 
     }
