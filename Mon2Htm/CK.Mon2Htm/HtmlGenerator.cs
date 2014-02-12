@@ -339,7 +339,7 @@ namespace CK.Mon2Htm
             tw.Write( String.Format( "<h3>Between {0} and {1}</h3>", _activityMap.FirstEntryDate, _activityMap.LastEntryDate ) );
 
             tw.Write( @"<h2>Monitors:</h2><table class=""monitorTable table table-striped table-bordered"">" );
-            tw.Write( @"<thead><tr><th>Monitor ID</th><th>Started</th><th>Duration</th><th>Entries</th></tr></thead><tbody>" );
+            tw.Write( @"<thead><tr><th>Monitor</th><th>Started</th><th>Duration</th><th>Entries</th></tr></thead><tbody>" );
 
             var monitorList = _activityMap.Monitors.ToList();
             monitorList.Sort( ( a, b ) => b.FirstEntryTime.CompareTo( a.FirstEntryTime ) );
@@ -352,7 +352,7 @@ namespace CK.Mon2Htm
 
                 if( monitorPages.TryGetValue( monitor, out monitorPageList ) )
                 {
-                    href = String.Format( @"<a href=""{1}"">{0}</a>", monitor.MonitorId.ToString(),
+                    href = String.Format( @"<a href=""{1}"">{0}</a>", _indexInfos[monitor].MonitorTitle,
                         HttpUtility.UrlEncode( monitorPageList.First() ) );
                 }
 

@@ -14,6 +14,7 @@ namespace CK.Mon2Htm
 
         int _totalEntryCount, _totalTraceCount, _totalInfoCount, _totalWarnCount, _totalErrorCount, _totalFatalCount;
         int _pageLength;
+        string _monitorTitle;
 
         List<MonitorPageReference> _pages;
 
@@ -69,6 +70,7 @@ namespace CK.Mon2Htm
         public int TotalEntryCount { get { return _totalEntryCount; } }
         public int PageCount { get { return _pages.Count; } }
         public int PageLength { get { return _pageLength; } }
+        public string MonitorTitle { get { if( String.IsNullOrEmpty( _monitorTitle ) ) { return _monitorGuid.ToString(); } else { return _monitorTitle; } } }
 
         public IReadOnlyList<MonitorPageReference> Pages { get { return _pages.ToReadOnlyList(); } }
         public ICKReadOnlyUniqueKeyedCollection<MonitorGroupReference, DateTimeStamp> Groups { get { return _groups; } }
@@ -147,6 +149,11 @@ namespace CK.Mon2Htm
                 {
                     pageRef.LastEntryTimestamp = parentedEntry.Entry.LogTime;
                     AddTimestampEntry( parentedEntry.Entry.LogTime, _pages.Count );
+                }
+
+                if( parentedEntry.Entry.Tags.IsSupersetOf(ActivityMonitor.Tags.MonitorTopicChanged) && _monitorTitle == null)
+                {
+                    _monitorTitle = parentedEntry.Entry.Text;
                 }
 
                 if( parentedEntry.Entry.LogLevel.HasFlag( LogLevel.Trace ) ) _totalTraceCount++;
