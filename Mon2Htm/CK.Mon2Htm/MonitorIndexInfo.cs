@@ -23,6 +23,25 @@ namespace CK.Mon2Htm
         CKSortedArrayKeyList<MonitorGroupReference,DateTimeStamp> _groups;
         Dictionary<DateTimeStamp,int> _logTimeToPage;
 
+        private MonitorGroupReference GetCurrentGroupReference( List<ILogEntry> groupsPath )
+        {
+            if( groupsPath.Count > 0 )
+            {
+                return _groups.GetByKey( groupsPath[groupsPath.Count - 1].LogTime );
+            }
+            return null;
+        }
+
+        public MonitorGroupReference GetGroupReference( DateTimeStamp s )
+        {
+            return _groups.GetByKey( s );
+        }
+
+        public MonitorGroupReference GetGroupReference( ILogEntry e )
+        {
+            return GetGroupReference( e.LogTime );
+        }
+
         private MonitorIndexInfo( Guid monitorGuid )
         {
             _monitorGuid = monitorGuid;
@@ -105,14 +124,16 @@ namespace CK.Mon2Htm
             _logTimeToPage.Add( t, pageIndex );
         }
 
-        private IReadOnlyList<ILogEntry> AddPage( MultiLogReader.Monitor.LivePage page, IReadOnlyList<ILogEntry> previousPageEndPath = null )
+        private IReadOnlyList<ILogEntry> AddPage( MultiLogReader.Monitor.LivePage page, IReadOnlyList<ILogEntry> previousPageEndPath = null, IReadOnlyList<MonitorGroupReference> previousPageEndPathRefs = null )
         {
             if( previousPageEndPath == null ) previousPageEndPath = new List<ILogEntry>().ToReadOnlyList();
+            if( previousPageEndPathRefs == null ) previousPageEndPathRefs = new List<MonitorGroupReference>().ToReadOnlyList();
             MonitorPageReference pageRef = new MonitorPageReference();
             pageRef.PageLength = page.PageLength;
             pageRef.EntryCount = page.Entries.Count;
             _totalEntryCount += pageRef.EntryCount;
             List<ILogEntry> groupsPath = previousPageEndPath.ToList();
+            List<MonitorGroupReference> groupRefsPath = previousPageEndPathRefs.ToList();
 
             int i = 0;
             foreach( var parentedEntry in page.Entries )
@@ -154,9 +175,11 @@ namespace CK.Mon2Htm
                     MonitorGroupReference groupRef = new MonitorGroupReference()
                     {
                         OpenGroupEntry = parentedEntry.Entry,
-                        OpenGroupTimestamp = parentedEntry.Entry.LogTime
+                        OpenGroupTimestamp = parentedEntry.Entry.LogTime,
+                        HighestLogLevel = parentedEntry.Entry.LogLevel
                     };
                     groupsPath.Add( parentedEntry.Entry );
+                    groupRefsPath.Add( groupRef );
                     _groups.Add( groupRef );
                     AddTimestampEntry( parentedEntry.Entry.LogTime, _pages.Count );
                 }
@@ -170,10 +193,27 @@ namespace CK.Mon2Htm
                         existingGroupRef.CloseGroupTimestamp = parentedEntry.Entry.LogTime;
 
                         groupsPath.RemoveAt( groupsPath.Count - 1 );
+                        groupRefsPath.RemoveAt( groupRefsPath.Count - 1 );
+
                         AddTimestampEntry( parentedEntry.Entry.LogTime, _pages.Count );
                     }
 
                     AddTimestampEntry( parentedEntry.Entry.LogTime, _pages.Count );
+                }
+
+                // Update HighestLogLevel for all parent groups
+                for( int j = groupRefsPath.Count - 1; j >= 0; j-- )
+                {
+                    MonitorGroupReference groupRef = groupRefsPath[j];
+
+                    if( parentedEntry.Entry.LogLevel > groupRef.HighestLogLevel )
+                    {
+                        groupRef.HighestLogLevel = parentedEntry.Entry.LogLevel;
+                    }
+                    else
+                    {
+                        break;
+                    }
                 }
 
                 i++;
@@ -194,6 +234,7 @@ namespace CK.Mon2Htm
 
     public class MonitorGroupReference
     {
+        public LogLevel HighestLogLevel { get; internal set; }
         public DateTimeStamp OpenGroupTimestamp { get; internal set; }
         public DateTimeStamp CloseGroupTimestamp { get; internal set; }
         public ILogEntry OpenGroupEntry { get; internal set; }

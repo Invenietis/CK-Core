@@ -10,15 +10,15 @@
         });
 
     // Auto-hide groups without warnings, errors, fatals
-    $(".logGroup").each(function () {
-        var errors = $(".warn, .error, .fatal", this);
+    //$(".logGroup").each(function () {
+    //    var errors = $(".warn, .error, .fatal", this);
 
-        if (errors.length == 0) {
-            $(this).collapse('hide');
-            // Update toggle status
-            $(".collapseToggle[href=\"#" + $(this).attr('id') + "\"]").addClass("collapsed");
-        }
-    });
+    //    if (errors.length == 0) {
+    //        $(this).collapse('hide');
+    //        // Update toggle status
+    //        $(".collapseToggle[href=\"#" + $(this).attr('id') + "\"]").addClass("collapsed");
+    //    }
+    //});
 });
 
 function hideLogLineGlyphs(element) {

@@ -116,14 +116,14 @@ namespace CK.Mon2Htm
         }
 
         #region Entry writing
-        private void WriteLineHeader( ILogEntry e, int depth = -1, bool writeAnchor = true, bool writeTooltip = true )
+        private void WriteLineHeader( ILogEntry e, int depth = -1, bool writeAnchor = true, bool writeTooltip = true, string timestampClass = null )
         {
             if( writeAnchor ) _tw.WriteLine( @"<span class=""anchor"" id=""{0}""></span>", HtmlUtils.GetTimestampId( e.LogTime ) );
             _tw.WriteLine( @"<div class=""logLine {0} {1}"">", HtmlUtils.GetClassNameOfLogLevel( e.LogLevel ), _currentIndex % 2 == 0 ? "even" : "odd" );
 
             if( writeTooltip ) _tw.Write( @"<span data-toggle=""tooltip"" title=""{0}"" rel=""tooltip"">", GetTooltipText( e ) );
 
-            _tw.Write( @"<span class=""timestamp"">[{0}]&nbsp;</span>", e.LogTime.TimeUtc.ToString( "HH:mm:ss" ) );
+            _tw.Write( @"<span class=""timestamp{1}"">[{0}]&nbsp;</span>", e.LogTime.TimeUtc.ToString( "HH:mm:ss" ), String.IsNullOrEmpty(timestampClass) ? String.Empty : " " + timestampClass );
 
             if( writeTooltip ) _tw.Write( @"</span>", GetTooltipText( e ) );
 
@@ -133,6 +133,10 @@ namespace CK.Mon2Htm
             {
                 _tw.Write( @"<span class=""tabSpace""></span>" );
             }
+        }
+        private void WriteLineHeader( ILogEntry e,string timestampClass )
+        {
+            WriteLineHeader( e, -1, true, true, timestampClass );
         }
         private void WriteLineFooter( ILogEntry e )
         {
@@ -186,21 +190,24 @@ namespace CK.Mon2Htm
             }
             else
             {
+                MonitorGroupReference groupRef = _indexInfo.GetGroupReference( entry );
+
                 if( printMessage )
                 {
-                    WriteLineHeader( entry );
+                    WriteLineHeader( entry, groupRef.HighestLogLevel > entry.LogLevel ? HtmlUtils.GetClassNameOfLogLevel(groupRef.HighestLogLevel) : null );
 
                     string className = HtmlUtils.GetClassNameOfLogLevel( entry.LogLevel );
                     _tw.Write( @"<p class=""logMessage logGroupMessage {0}{1}"">", className, IsLongEntry( entry ) ? " longEntry" : String.Empty );
 
                     _tw.Write(
-                        @"<a class=""collapseTitle collapseToggle"" data-toggle=""collapse"" href=""#group-{1}"">{0}</a>",
+                        @"<a class=""collapseTitle collapseToggle{2}"" data-toggle=""collapse"" href=""#group-{1}"">{0}</a>",
                         HttpUtility.HtmlEncode( entry.Text ),
-                        HtmlUtils.GetTimestampId( entry.LogTime )
+                        HtmlUtils.GetTimestampId( entry.LogTime ),
+                        groupRef.HighestLogLevel < (CK.Core.LogLevel.Warn | CK.Core.LogLevel.IsFiltered) ? " collapsed" : String.Empty
                          );
 
                     var indexGroupEntry = _indexInfo.Groups.GetByKey( entry.LogTime );
-                    if( indexGroupEntry.CloseGroupTimestamp > DateTimeStamp.MinValue )
+                    if( indexGroupEntry.CloseGroupTimestamp > DateTimeStamp.MinValue && !LastGroupEntryIsOnPage( entry ) )
                     {
                         _tw.Write( @" <a class=""showOnHover"" href=""{0}""><span class=""glyphicon glyphicon-fast-forward""></span></a> ",
                             HtmlUtils.GetReferenceHref( _monitor, _indexInfo, indexGroupEntry.CloseGroupTimestamp ) );
@@ -210,9 +217,11 @@ namespace CK.Mon2Htm
                     WriteLineFooter( entry );
                 }
 
-                _tw.WriteLine( @"<div id=""group-{1}"" class=""collapse in logGroup {0}"">",
+                _tw.WriteLine( @"<div id=""group-{1}"" class=""collapse logGroup {0}{2}"">",
                     HtmlUtils.GetClassNameOfLogLevel( entry.LogLevel ),
-                    HtmlUtils.GetTimestampId( entry.LogTime ) );
+                    HtmlUtils.GetTimestampId( entry.LogTime ),
+                    groupRef.HighestLogLevel < (CK.Core.LogLevel.Warn | CK.Core.LogLevel.IsFiltered) ? String.Empty : " in"
+                    );
             }
 
         }
@@ -249,13 +258,15 @@ namespace CK.Mon2Htm
                             )
                         );
                     }
-                    else if(entry.Conclusions.Count > 0)
+                    else if( entry.Conclusions.Count > 0 )
                     {
                         _tw.Write( "Conclusions: {0}", String.Join( "; ", entry.Conclusions ) );
                     }
-
-                    _tw.Write( @"<a class=""showOnHover"" href=""{0}""><span class=""glyphicon glyphicon-fast-backward""></span></a> ",
-                        HtmlUtils.GetReferenceHref( _monitor, _indexInfo, parentedEntry.Parent.Entry.LogTime ) );
+                    if( !EntryIsOnPage( parentedEntry.Parent.Entry.LogTime ) )
+                    {
+                        _tw.Write( @"<a class=""showOnHover"" href=""{0}""><span class=""glyphicon glyphicon-fast-backward""></span></a> ",
+                            HtmlUtils.GetReferenceHref( _monitor, _indexInfo, parentedEntry.Parent.Entry.LogTime ) );
+                    }
                 }
 
                 _tw.Write( @"</p>" );
@@ -350,7 +361,7 @@ namespace CK.Mon2Htm
                     _tw.Write( @"<p class=""logMessage {2}"">{0} <a href=""{1}""><span class=""glyphicon glyphicon-fast-backward""></span></a></p>",
                         group.Text,
                         HtmlUtils.GetReferenceHref( _monitor, _indexInfo, _indexInfo.Groups.GetByKey( group.LogTime ).OpenGroupTimestamp ),
-                        HtmlUtils.GetClassNameOfLogLevel(group.LogLevel) );
+                        HtmlUtils.GetClassNameOfLogLevel( group.LogLevel ) );
 
                     WriteLineFooter( group );
 
@@ -395,6 +406,26 @@ namespace CK.Mon2Htm
         }
 
         #endregion
+
+        private bool LastGroupEntryIsOnPage( ILogEntry entry )
+        {
+            var indexGroupEntry = _indexInfo.Groups.GetByKey( entry.LogTime );
+            return EntryIsOnPage( indexGroupEntry.CloseGroupTimestamp );
+        }
+
+        private bool EntryIsOnPage( DateTimeStamp stamp )
+        {
+            return _indexInfo.GetPageIndexOf( stamp ) == _pageNumber;
+        }
+
+        private MonitorGroupReference GetCurrentGroupReference()
+        {
+            if( _currentPath.Count > 0 )
+            {
+                return _indexInfo.Groups.GetByKey( _currentPath[_currentPath.Count - 1].LogTime );
+            }
+            return null;
+        }
 
         #region Static utilities
         private static string GenerateExceptionId()

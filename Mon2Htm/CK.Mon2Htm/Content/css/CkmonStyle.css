@@ -256,6 +256,28 @@ a.collapseTitle:active {
 	color: gray;
 }
 
+
+.timestamp.fatal {
+	color: darkred;
+	font-weight: bold;
+}
+
+.timestamp.error {
+	color: red;
+}
+
+.timestamp.warn {
+	color: orange;
+}
+
+.timestamp.info {
+	color: black;
+}
+
+.timestamp.trace {
+	color: gray;
+}
+
 .groupBreadcrumbSeparator {
 	width: 100%;
 	border-bottom: 3px double black;
