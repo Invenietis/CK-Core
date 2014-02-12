@@ -415,7 +415,7 @@ namespace CK.Mon2Htm
 
         private bool EntryIsOnPage( DateTimeStamp stamp )
         {
-            return _indexInfo.GetPageIndexOf( stamp ) == _pageNumber;
+            return _indexInfo.GetPageIndexOf( stamp ) == _pageNumber - 1;
         }
 
         private MonitorGroupReference GetCurrentGroupReference()
