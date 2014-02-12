@@ -171,11 +171,11 @@ div.groupBreadcrumb {
 	margin: 0;
 }
 
-	.logContainer .logLine:nth-child(even) {
+	.logContainer .logLine.even {
 		background: #F7F7F7;
 	}
 
-	.logContainer .logLine:nth-of-type(odd) {
+	.logContainer .logLine.odd {
 		background: #FFF;
 	}
 

@@ -30,6 +30,7 @@ namespace CK.Mon2Htm
         readonly MonitorIndexInfo _indexInfo;
         readonly MultiLogReader.Monitor _monitor;
         readonly int _pageNumber;
+        int _currentIndex;
 
 
         internal static void WriteEntries( TextWriter tw, IEnumerable<ParentedLogEntry> logEntries, IReadOnlyList<ILogEntry> initialOpenGroups, int pageNumber, MonitorIndexInfo indexInfo, MultiLogReader.Monitor monitor )
@@ -47,6 +48,7 @@ namespace CK.Mon2Htm
             _indexInfo = indexInfo;
             _initialPath = initialPath;
             _currentPath = _initialPath.ToList();
+            _currentIndex = 0;
         }
 
         private void DoWriteEntries( IEnumerable<ParentedLogEntry> logEntries )
@@ -70,6 +72,8 @@ namespace CK.Mon2Htm
             foreach( var entry in logEntries )
             {
                 HandleEntry( entry );
+
+                _currentIndex++;
 
                 // TODO: path change
             }
@@ -115,7 +119,7 @@ namespace CK.Mon2Htm
         private void WriteLineHeader( ILogEntry e, int depth = -1, bool writeAnchor = true, bool writeTooltip = true )
         {
             if( writeAnchor ) _tw.WriteLine( @"<span class=""anchor"" id=""{0}""></span>", HtmlUtils.GetTimestampId( e.LogTime ) );
-            _tw.WriteLine( @"<div class=""logLine {0}"">", HtmlUtils.GetClassNameOfLogLevel( e.LogLevel ) );
+            _tw.WriteLine( @"<div class=""logLine {0} {1}"">", HtmlUtils.GetClassNameOfLogLevel( e.LogLevel ), _currentIndex % 2 == 0 ? "even" : "odd" );
 
             if( writeTooltip ) _tw.Write( @"<span data-toggle=""tooltip"" title=""{0}"" rel=""tooltip"">", GetTooltipText( e ) );
 
