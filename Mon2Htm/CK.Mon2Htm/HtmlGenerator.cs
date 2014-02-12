@@ -118,6 +118,7 @@ namespace CK.Mon2Htm
             CopyContentResourceToFile( @"css\bootstrap-modal.css", _outputDirectoryPath );
             CopyContentResourceToFile( @"css\bootstrap-theme.min.css", _outputDirectoryPath );
             CopyContentResourceToFile( @"css\ex-bg.png", _outputDirectoryPath );
+            CopyContentResourceToFile( @"css\line-bg.png", _outputDirectoryPath );
             CopyContentResourceToFile( @"css\info.svg", _outputDirectoryPath );
             CopyContentResourceToFile( @"css\warn.svg", _outputDirectoryPath );
             CopyContentResourceToFile( @"css\error.svg", _outputDirectoryPath );

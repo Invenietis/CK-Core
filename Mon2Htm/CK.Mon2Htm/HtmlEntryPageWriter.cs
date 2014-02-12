@@ -202,7 +202,7 @@ namespace CK.Mon2Htm
                     var indexGroupEntry = _indexInfo.Groups.GetByKey( entry.LogTime );
                     if( indexGroupEntry.CloseGroupTimestamp > DateTimeStamp.MinValue )
                     {
-                        _tw.Write( @" <a href=""{0}""><span class=""glyphicon glyphicon-fast-forward""></span></a> ",
+                        _tw.Write( @" <a class=""showOnHover"" href=""{0}""><span class=""glyphicon glyphicon-fast-forward""></span></a> ",
                             HtmlUtils.GetReferenceHref( _monitor, _indexInfo, indexGroupEntry.CloseGroupTimestamp ) );
                     }
 
@@ -223,7 +223,7 @@ namespace CK.Mon2Htm
 
             if( parentedEntry != null ) Debug.Assert( parentedEntry.Entry.LogType == LogEntryType.CloseGroup );
 
-            if( parentedEntry != null )
+            if( parentedEntry != null && (parentedEntry.Parent.IsMissing || parentedEntry.IsMissing || parentedEntry.Entry.Conclusions.Count > 0) )
             {
                 var entry = parentedEntry.Entry;
 
@@ -239,11 +239,8 @@ namespace CK.Mon2Htm
                     _tw.Write( HttpUtility.HtmlEncode( "End of group: <Open entry missing>" ) );
                     closeDiv = false;
                 }
-                else
+                else if( entry.Conclusions.Count > 0 || parentedEntry.IsMissing )
                 {
-                    _tw.Write( @"<a href=""{0}""><span class=""glyphicon glyphicon-fast-backward""></span></a> ",
-                        HtmlUtils.GetReferenceHref( _monitor, _indexInfo, parentedEntry.Parent.Entry.LogTime ) );
-
                     if( parentedEntry.IsMissing )
                     {
                         _tw.Write(
@@ -252,20 +249,19 @@ namespace CK.Mon2Htm
                             )
                         );
                     }
-                    else
+                    else if(entry.Conclusions.Count > 0)
                     {
-                        _tw.Write( "End: {0}", parentedEntry.Parent.Entry.Text );
+                        _tw.Write( "Conclusions: {0}", String.Join( "; ", entry.Conclusions ) );
                     }
-                }
 
-                if( entry.Conclusions.Count > 0 )
-                {
-                    _tw.Write( " (Conclusions: {0})", String.Join( "; ", entry.Conclusions ) );
+                    _tw.Write( @"<a class=""showOnHover"" href=""{0}""><span class=""glyphicon glyphicon-fast-backward""></span></a> ",
+                        HtmlUtils.GetReferenceHref( _monitor, _indexInfo, parentedEntry.Parent.Entry.LogTime ) );
                 }
 
                 _tw.Write( @"</p>" );
 
                 WriteLineFooter( entry );
+
             }
 
             if( closeDiv ) _tw.Write( @"</div>" );

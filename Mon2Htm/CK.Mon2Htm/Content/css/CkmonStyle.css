@@ -34,7 +34,7 @@ body {
 
 /* Close group icon */
 .collapseToggle:not(.collapsed):before {
-	content: "";
+	content: "−";
 	margin-right: 3pt;
 	display: inline-block;
 	font-size: 9pt;
@@ -48,7 +48,7 @@ body {
 
 /* Open group icon */
 .collapseToggle.collapsed:before {
-	content: "";
+	content: "+";
 	margin-right: 3pt;
 	display: inline-block;
 	font-size: 9pt;
@@ -169,15 +169,18 @@ div.groupBreadcrumb {
 
 .logContainer {
 	margin: 0;
+	background-image: url("line-bg");
+	background-size: 9pt 18pt;
+	background-repeat: repeat;
 }
 
-	.logContainer .logLine.even {
+/*.logContainer .logLine.even {
 		background: #F7F7F7;
 	}
 
 	.logContainer .logLine.odd {
 		background: #FFF;
-	}
+	}*/
 
 div.entryCount {
 	font-family: monospace;
@@ -210,6 +213,27 @@ div.monitorTime, div.monitorId, div.entryCount {
 	width: 100%;
 	text-align: center;
 }
+
+a.collapseTitle:link {
+	color: inherit;
+	text-decoration: none;
+}
+
+a.collapseTitle:visited {
+	color: inherit;
+	text-decoration: none;
+}
+
+a.collapseTitle:hover {
+	color: inherit;
+	text-decoration: underline;
+}
+
+a.collapseTitle:active {
+	color: inherit;
+	text-decoration: none;
+}
+
 
 .logMessage.fatal {
 	color: darkred;
