@@ -9,30 +9,27 @@ body {
 	font-family: "Helvetica Neue", "Helvetica", "Segoe UI", "Arial", sans-serif;
 }
 
-.logLine, .logMessage, .logGroupMessage, .timestamp, .stackTrace, .groupBreadcrumbItem
-{
+.logLine, .logMessage, .logGroupMessage, .timestamp, .stackTrace, .groupBreadcrumbItem {
 	font-family: Consolas, 'DejaVu Sans Mono', monospace;
-    font-size: 9pt;
-    vertical-align: top;
+	font-size: 9pt;
+	vertical-align: top;
 	margin: 0;
 }
 
-.logMessage
-{
+.logMessage {
 	border: none;
-	background-color:transparent;
+	background-color: transparent;
 	padding: 0;
 	border-radius: initial;
-    display: inline-block;
-
-    vertical-align: top;
+	display: inline-block;
+	vertical-align: top;
 }
 
-.timestamp
-{
-    margin-right: 10pt;
-    vertical-align: top;
-    display: inline-block;
+.timestamp {
+	margin-right: 10pt;
+	vertical-align: top;
+	display: inline-block;
+	color: lightgrey;
 }
 
 /* Close group icon */
@@ -76,7 +73,7 @@ body {
 	border-radius: 15px;
 	background-color: #F2F2F2;
 	padding: 0;
-    margin: 6pt;
+	margin: 6pt;
 }
 
 .exceptionEntry {
@@ -141,7 +138,7 @@ div.groupBreadcrumb {
 }
 
 .tabSpace {
-    margin-left: 15pt;
+	margin-left: 15pt;
 }
 
 .paginator > div {
@@ -175,28 +172,26 @@ div.groupBreadcrumb {
 }
 
 	.logContainer .logLine:nth-child(even) {
-		background: #EEE;
+		background: #F7F7F7;
 	}
 
 	.logContainer .logLine:nth-of-type(odd) {
 		background: #FFF;
 	}
 
-div.entryCount
-{
+div.entryCount {
 	font-family: monospace;
 	border: none;
 	margin-left: 3pt;
 }
 
-div.monitorTime, div.monitorId, div.entryCount
-{
-	display:inline-block;
+div.monitorTime, div.monitorId, div.entryCount {
+	display: inline-block;
 }
 
 .logGroupMessage, .groupBreadcrumbItem {
 	font-weight: bold;
-    display: inline-block;
+	display: inline-block;
 }
 
 	.logGroupMessage > p, .groupBreadcrumbItem > p {
@@ -218,7 +213,7 @@ div.monitorTime, div.monitorId, div.entryCount
 
 .logMessage.fatal {
 	color: darkred;
-    font-weight: bold;
+	font-weight: bold;
 }
 
 .logMessage.error {
