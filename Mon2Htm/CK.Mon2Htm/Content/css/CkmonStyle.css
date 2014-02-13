@@ -19,13 +19,13 @@ body {
 .logLine {
 	overflow: auto;
 }
+
 .logContent {
 	overflow: hidden;
 }
 
 .lineHeader {
-	float:left;
-
+	float: left;
 }
 
 .logMessage {
@@ -144,7 +144,7 @@ body {
 			margin-top: -50px; /* this is again negative value of the height of your header */
 			visibility: hidden;
 		}
-		
+
 div.groupBreadcrumb {
 	background-color: lightgray;
 }
@@ -159,6 +159,18 @@ div.topGroupBreadcrumb {
 
 .paginator > div {
 	display: inline-block;
+}
+
+.center-container {
+	position: relative;
+	left: 50%;
+	float: left;
+}
+
+.center-content {
+	position: relative;
+	left: -50%;
+	float: left;
 }
 
 .paginator {
@@ -176,7 +188,6 @@ div.topGroupBreadcrumb {
 		float: left;
 		list-style-type: none;
 		margin: 3px;
-		display: inline-block;
 	}
 
 	.paginator > ul > li {
@@ -190,7 +201,7 @@ div.topGroupBreadcrumb {
 	background-repeat: repeat;
 }
 
-.logContainer .logLine.even {
+	.logContainer .logLine.even {
 		background: #F7F7F7;
 	}
 

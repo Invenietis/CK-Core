@@ -44,7 +44,7 @@ namespace CK.Mon2Htm
         /// <param name="htmlOutputDirectory">Directory in which the HTML structure will be generated. Defaults to null, in which case an "html" folder will be created and used inside the logs' directoryPath.</param>
         /// <param name="logEntryCountPerPage">How many entries to write on every log page.</param>
         /// <returns>Full path of created index.html. Null when no valid file could be loaded from directoryPath.</returns>
-        public static string CreateFromLogDirectory( string directoryPath, IActivityMonitor activityMonitor, int logEntryCountPerPage, bool recurse = true, string htmlOutputDirectory = null  )
+        public static string CreateFromLogDirectory( string directoryPath, IActivityMonitor activityMonitor, int logEntryCountPerPage, bool recurse = true, string htmlOutputDirectory = null )
         {
             if( activityMonitor == null ) throw new ArgumentNullException( "activityMonitor" );
             if( !Directory.Exists( directoryPath ) ) throw new DirectoryNotFoundException( "The given path does not exist, or is not a directory." );
@@ -92,7 +92,7 @@ namespace CK.Mon2Htm
         /// <param name="htmlOutputDirectory">Directory in which the HTML structure will be generated.</param>
         /// <param name="logEntryCountPerPage">How many entries to write on every log page.</param>
         /// <returns>Full path of created index.html. Null when no valid file could be loaded from directoryPath.</returns>
-        public static string CreateFromActivityMap( MultiLogReader.ActivityMap activityMap, IActivityMonitor activityMonitor, int logEntryCountPerPage, string outputDirectoryPath  )
+        public static string CreateFromActivityMap( MultiLogReader.ActivityMap activityMap, IActivityMonitor activityMonitor, int logEntryCountPerPage, string outputDirectoryPath )
         {
             HtmlGenerator g = new HtmlGenerator( activityMap, outputDirectoryPath, activityMonitor, logEntryCountPerPage );
 
@@ -329,7 +329,7 @@ namespace CK.Mon2Htm
                 tw.Write( @"<p>The logging system encountered the following errors:</p>" );
                 foreach( var path in dumpPaths )
                 {
-                    tw.Write( @"<h3>{0} <small>{1}</small></h3>", Path.GetFileName( path ), Path.GetDirectoryName(path));
+                    tw.Write( @"<h3>{0} <small>{1}</small></h3>", Path.GetFileName( path ), Path.GetDirectoryName( path ) );
                     tw.Write( @"<pre>{0}</pre>", File.ReadAllText( path ) );
                 }
                 tw.Write( @"</div>" );
@@ -386,7 +386,8 @@ namespace CK.Mon2Htm
         private void WriteMonitorPaginator( TextWriter tw, MultiLogReader.Monitor monitor, int currentPage )
         {
             Debug.Assert( currentPage <= _indexInfos[monitor].PageCount );
-            tw.Write( @"<ul class=""pagination"">" );
+            tw.Write( @"<div class=""center-container"">" );
+            tw.Write( @"<ul class=""pagination center-content"">" );
 
             if( currentPage > 1 )
             {
@@ -399,7 +400,7 @@ namespace CK.Mon2Htm
                 tw.Write( @"<li class=""disabled""><a>Prev</a></li>" );
             }
 
-            for( int i = 1; i <= _indexInfos[monitor].PageCount; i++ )
+            foreach( var i in LogarithmicPagination( currentPage, _indexInfos[monitor].PageCount ) )
             {
                 if( i == currentPage )
                 {
@@ -424,6 +425,7 @@ namespace CK.Mon2Htm
             }
 
             tw.Write( @"</ul>" );
+            tw.Write( @"</div>" );
         }
 
         private IList<string> GetSystemActivityMonitorDumpPaths()
@@ -628,5 +630,59 @@ namespace CK.Mon2Htm
 </script>
 </body></html>";
         #endregion
+
+        private static readonly int LINKS_PER_STEP = 2;
+        private static List<int> LogarithmicPagination( int page, int lastPage )
+        {
+            List<int> resultList = new List<int>();
+
+            // Now calculate page links...
+            int lastp1 = 1;
+            int lastp2 = page;
+            int p1 = 1;
+            int p2 = page;
+            int c1 = LINKS_PER_STEP + 1;
+            int c2 = LINKS_PER_STEP + 1;
+            int step = 1;
+
+            while( true )
+            {
+                if( c1 >= c2 )
+                {
+                    resultList.Add( p1 );
+                    lastp1 = p1;
+                    p1 += step;
+                    c1--;
+                }
+                else
+                {
+                    resultList.Add( p2 );
+                    lastp2 = p2;
+                    p2 -= step;
+                    c2--;
+                }
+                if( c2 == 0 )
+                {
+                    step *= 10;
+                    p1 += step - 1;         // Round UP to nearest multiple of $step
+                    p1 -= (p1 % step);
+                    p2 -= (p2 % step);   // Round DOWN to nearest multiple of $step
+                    c1 = LINKS_PER_STEP;
+                    c2 = LINKS_PER_STEP;
+                }
+                if( p1 > p2 )
+                {
+                    if( (lastp2 > page) || (page >= lastPage) )
+                        return resultList.OrderBy( a => a ).ToList();
+                    lastp1 = page;
+                    lastp2 = lastPage;
+                    p1 = page + 1;
+                    p2 = lastPage;
+                    c1 = LINKS_PER_STEP;
+                    c2 = LINKS_PER_STEP + 1;
+                    step = 1;
+                }
+            }
+        }
     }
 }
