@@ -126,16 +126,15 @@ namespace CK.Mon2Htm
             _logTimeToPage.Add( t, pageIndex );
         }
 
-        private IReadOnlyList<ILogEntry> AddPage( MultiLogReader.Monitor.LivePage page, IReadOnlyList<ILogEntry> previousPageEndPath = null, IReadOnlyList<MonitorGroupReference> previousPageEndPathRefs = null )
+        private IReadOnlyList<ILogEntry> AddPage( MultiLogReader.Monitor.LivePage page, IReadOnlyList<ILogEntry> previousPageEndPath = null )
         {
             if( previousPageEndPath == null ) previousPageEndPath = new List<ILogEntry>().ToReadOnlyList();
-            if( previousPageEndPathRefs == null ) previousPageEndPathRefs = new List<MonitorGroupReference>().ToReadOnlyList();
             MonitorPageReference pageRef = new MonitorPageReference();
             pageRef.PageLength = page.PageLength;
             pageRef.EntryCount = page.Entries.Count;
             _totalEntryCount += pageRef.EntryCount;
             List<ILogEntry> groupsPath = previousPageEndPath.ToList();
-            List<MonitorGroupReference> groupRefsPath = previousPageEndPathRefs.ToList();
+            List<MonitorGroupReference> groupRefsPath = previousPageEndPath.Select( x => GetGroupReference( x ) ).ToList();
 
             int i = 0;
             foreach( var parentedEntry in page.Entries )
