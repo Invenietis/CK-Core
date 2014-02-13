@@ -27,7 +27,7 @@ function ellipseElement(elementToEllipse) {
 }
 
 function collapseEllipse(element) {
-    var text = getExcerpt($(element).text());
+    var text = getHtmlExcerpt($(element).text());
 
     var link = $('<a href="#">•••</a>');
     link.click(function (e) {
@@ -35,7 +35,7 @@ function collapseEllipse(element) {
         return false;
     });
 
-    $(element).text(text);
+    $(element).html(text);
     $(element).append(link);
 }
 
@@ -53,8 +53,8 @@ function expandEllipse(element)
     $(element).append(link);
 }
 
-function getExcerpt(text) {
-    return text.replace(/(\r\n|\n|\r)/gm, "¶").replace(/\s\s+/g, ' ').substr(0, 100);
+function getHtmlExcerpt(text) {
+    return $('<div/>').text(text.replace(/(\r+\n+|\n+|\r+)/gm, "↵").replace(/\s\s+/gm, ' ').substr(0, 100)).html().replace(/↵/gm, '<span class="newLineIcon">↵</span>');
 }
 
 function processLineClasses() {

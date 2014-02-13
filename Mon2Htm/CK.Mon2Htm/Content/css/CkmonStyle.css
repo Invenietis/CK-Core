@@ -294,3 +294,7 @@ a.collapseTitle:active {
 	width: 100%;
 	border-bottom: 3px double black;
 }
+
+.newLineIcon {
+	color: gray;
+}
