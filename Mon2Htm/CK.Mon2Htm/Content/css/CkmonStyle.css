@@ -16,6 +16,18 @@ body {
 	margin: 0;
 }
 
+.logLine {
+	overflow: auto;
+}
+.logContent {
+	overflow: hidden;
+}
+
+.lineHeader {
+	float:left;
+
+}
+
 .logMessage {
 	border: none;
 	background-color: transparent;

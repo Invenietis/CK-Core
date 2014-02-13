@@ -15,15 +15,46 @@
     $('.logGroup.collapse').on('hidden.bs.collapse', function (e) {
         processLineClasses();
     });
+
+    $(".longEntry").each(function () { ellipseElement(this); })
 });
 
 function ellipseElement(elementToEllipse) {
+    var text = $(elementToEllipse).text();
+    $(elementToEllipse).data("fullText", text);
 
+    collapseEllipse(elementToEllipse);
+}
 
+function collapseEllipse(element) {
+    var text = getExcerpt($(element).text());
+
+    var link = $('<a href="#">•••</a>');
+    link.click(function (e) {
+        expandEllipse(element);
+        return false;
+    });
+
+    $(element).text(text);
+    $(element).append(link);
+}
+
+function expandEllipse(element)
+{
+    var text = $(element).data("fullText");
+
+    var link = $('<a href="#">•••</a>');
+    link.click(function (e) {
+        collapseEllipse(element);
+        return false;
+    });
+
+    $(element).text(text);
+    $(element).append(link);
 }
 
 function getExcerpt(text) {
-
+    return text.replace(/(\r\n|\n|\r)/gm, "¶").replace(/\s\s+/g, ' ').substr(0, 100);
 }
 
 function processLineClasses() {
@@ -60,11 +91,11 @@ $(document).ready(function () {
 
     /* Entry page */
     // Enable "More" ellipse for blocks with .longEntry
-    $(".longEntry").readmore({
-        speed: 400,
-        maxHeight: 40,
-        sectionCSS: 'display: inline-block;'
-    });
+    //$(".longEntry").readmore({
+    //    speed: 400,
+    //    maxHeight: 40,
+    //    sectionCSS: 'display: inline-block;'
+    //});
 
     // Hide glyphicons on group messages, and set them to show on hover
 

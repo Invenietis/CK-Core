@@ -121,6 +121,8 @@ namespace CK.Mon2Htm
             if( writeAnchor ) _tw.WriteLine( @"<span class=""anchor"" id=""{0}""></span>", HtmlUtils.GetTimestampId( e.LogTime ) );
             _tw.WriteLine( @"<div class=""logLine {0} {1}"">", HtmlUtils.GetClassNameOfLogLevel( e.LogLevel ), _currentIndex % 2 == 0 ? "even" : "odd" );
 
+            _tw.WriteLine( @"<div class=""lineHeader"">" );
+
             if( writeTooltip ) _tw.Write( @"<span data-toggle=""tooltip"" title=""{0}"" rel=""tooltip"">", GetTooltipText( e ) );
 
             _tw.Write( @"<span class=""timestamp{1}"">[{0}]&nbsp;</span>", e.LogTime.TimeUtc.ToString( "HH:mm:ss" ), String.IsNullOrEmpty(timestampClass) ? String.Empty : " " + timestampClass );
@@ -133,6 +135,9 @@ namespace CK.Mon2Htm
             {
                 _tw.Write( @"<span class=""tabSpace""></span>" );
             }
+
+            _tw.WriteLine( "</div> <!-- /lineHeader -->" );
+            _tw.WriteLine( @"<div class=""logContent"">" );
         }
         private void WriteLineHeader( ILogEntry e,string timestampClass )
         {
@@ -140,6 +145,7 @@ namespace CK.Mon2Htm
         }
         private void WriteLineFooter( ILogEntry e )
         {
+            _tw.WriteLine( "</div> <!-- /logContent -->" );
             _tw.WriteLine( @"</div> <!-- /logLine -->" );
         }
 
@@ -206,14 +212,14 @@ namespace CK.Mon2Htm
                         groupRef.HighestLogLevel < (CK.Core.LogLevel.Warn | CK.Core.LogLevel.IsFiltered) ? " collapsed" : String.Empty
                          );
 
+                    _tw.WriteLine( @"</p>" );
+
                     var indexGroupEntry = _indexInfo.Groups.GetByKey( entry.LogTime );
                     if( indexGroupEntry.CloseGroupTimestamp > DateTimeStamp.MinValue && !LastGroupEntryIsOnPage( entry ) )
                     {
                         _tw.Write( @" <a class=""showOnHover"" href=""{0}""><span class=""glyphicon glyphicon-fast-forward""></span></a> ",
                             HtmlUtils.GetReferenceHref( _monitor, _indexInfo, indexGroupEntry.CloseGroupTimestamp ) );
                     }
-
-                    _tw.WriteLine( @"</p>" );
                     WriteLineFooter( entry );
                 }
 
