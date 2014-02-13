@@ -33,6 +33,7 @@ namespace CK.Mon2Htm
         readonly int _lineNumberNumDigits;
         readonly string _lineStringFormat;
         int _currentIndex;
+        int _currentLineNumber;
 
 
         internal static void WriteEntries( TextWriter tw, IEnumerable<ParentedLogEntry> logEntries, IReadOnlyList<ILogEntry> initialOpenGroups, int pageNumber, MonitorIndexInfo indexInfo, MultiLogReader.Monitor monitor )
@@ -51,6 +52,7 @@ namespace CK.Mon2Htm
             _initialPath = initialPath;
             _currentPath = _initialPath.ToList();
             _currentIndex = 0;
+            _currentLineNumber = 1;
 
             _lineNumberNumDigits = ( (int)Math.Log10( _indexInfo.PageLength ) ) + 1;
             _lineStringFormat = String.Format("{{0,{0}}}",_lineNumberNumDigits);
@@ -124,7 +126,7 @@ namespace CK.Mon2Htm
         private void WriteLineHeader( ILogEntry e, int depth = -1, bool writeAnchor = true, bool writeTooltip = true, string timestampClass = null )
         {
             if( writeAnchor ) _tw.WriteLine( @"<span class=""anchor"" id=""{0}""></span>", HtmlUtils.GetTimestampId( e.LogTime ) );
-            _tw.WriteLine( @"<div class=""logLine {0} {1}"">", HtmlUtils.GetClassNameOfLogLevel( e.LogLevel ), _currentIndex % 2 == 0 ? "even" : "odd" );
+            _tw.WriteLine( @"<div class=""logLine {0} {1}"">", HtmlUtils.GetClassNameOfLogLevel( e.LogLevel ), _currentLineNumber % 2 == 0 ? "even" : "odd" );
 
             _tw.WriteLine( @"<div class=""lineHeader"">" );
 
@@ -133,7 +135,7 @@ namespace CK.Mon2Htm
             _tw.Write( @"<span class=""timestamp{1}"">{0}&nbsp;{2}</span>",
                 e.LogTime.TimeUtc.ToString( "HH:mm:ss" ),
                 String.IsNullOrEmpty(timestampClass) ? String.Empty : " " + timestampClass,
-                String.Format( _lineStringFormat, _currentIndex + 1 ).Replace(" ", "&nbsp;")
+                String.Format( _lineStringFormat, _currentLineNumber ).Replace( " ", "&nbsp;" )
             );
 
             if( writeTooltip ) _tw.Write( @"</span>", GetTooltipText( e ) );
@@ -146,6 +148,9 @@ namespace CK.Mon2Htm
             }
 
             _tw.WriteLine( "</div> <!-- /lineHeader -->" );
+
+            _currentLineNumber++;
+
             _tw.WriteLine( @"<div class=""logContent"">" );
         }
         private void WriteLineHeader( ILogEntry e,string timestampClass )
