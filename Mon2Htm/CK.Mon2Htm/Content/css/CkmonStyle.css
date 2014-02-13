@@ -144,9 +144,13 @@ body {
 			margin-top: -50px; /* this is again negative value of the height of your header */
 			visibility: hidden;
 		}
-
+		
 div.groupBreadcrumb {
 	background-color: lightgray;
+}
+
+div.topGroupBreadcrumb {
+	margin-top: 20pt;
 }
 
 .tabSpace {

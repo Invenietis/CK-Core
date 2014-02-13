@@ -30,6 +30,8 @@ namespace CK.Mon2Htm
         readonly MonitorIndexInfo _indexInfo;
         readonly MultiLogReader.Monitor _monitor;
         readonly int _pageNumber;
+        readonly int _lineNumberNumDigits;
+        readonly string _lineStringFormat;
         int _currentIndex;
 
 
@@ -49,6 +51,9 @@ namespace CK.Mon2Htm
             _initialPath = initialPath;
             _currentPath = _initialPath.ToList();
             _currentIndex = 0;
+
+            _lineNumberNumDigits = ( (int)Math.Log10( _indexInfo.PageLength ) ) + 1;
+            _lineStringFormat = String.Format("{{0,{0}}}",_lineNumberNumDigits);
         }
 
         private void DoWriteEntries( IEnumerable<ParentedLogEntry> logEntries )
@@ -125,7 +130,11 @@ namespace CK.Mon2Htm
 
             if( writeTooltip ) _tw.Write( @"<span data-toggle=""tooltip"" title=""{0}"" rel=""tooltip"">", GetTooltipText( e ) );
 
-            _tw.Write( @"<span class=""timestamp{1}"">[{0}]&nbsp;</span>", e.LogTime.TimeUtc.ToString( "HH:mm:ss" ), String.IsNullOrEmpty(timestampClass) ? String.Empty : " " + timestampClass );
+            _tw.Write( @"<span class=""timestamp{1}"">{0}&nbsp;{2}</span>",
+                e.LogTime.TimeUtc.ToString( "HH:mm:ss" ),
+                String.IsNullOrEmpty(timestampClass) ? String.Empty : " " + timestampClass,
+                String.Format( _lineStringFormat, _currentIndex + 1 ).Replace(" ", "&nbsp;")
+            );
 
             if( writeTooltip ) _tw.Write( @"</span>", GetTooltipText( e ) );
 
@@ -356,7 +365,7 @@ namespace CK.Mon2Htm
         private void WriteLogGroupBreadcrumb( IReadOnlyList<ILogEntry> groupsToWrite, bool reverse = false )
         {
             if( groupsToWrite == null ) return;
-            _tw.Write( @"<div class=""groupBreadcrumb"">" );
+            _tw.Write( @"<div class=""groupBreadcrumb{0}"">", reverse ? String.Empty : " topGroupBreadcrumb" );
             if( !reverse )
             {
                 int i = 0;
