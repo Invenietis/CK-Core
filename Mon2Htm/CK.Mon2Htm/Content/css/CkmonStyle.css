@@ -174,13 +174,13 @@ div.groupBreadcrumb {
 	background-repeat: repeat;
 }
 
-/*.logContainer .logLine.even {
+.logContainer .logLine.even {
 		background: #F7F7F7;
 	}
 
 	.logContainer .logLine.odd {
 		background: #FFF;
-	}*/
+	}
 
 div.entryCount {
 	font-family: monospace;
