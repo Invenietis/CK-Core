@@ -9,17 +9,42 @@
             hideLogLineGlyphs(this);
         });
 
-    // Auto-hide groups without warnings, errors, fatals
-    //$(".logGroup").each(function () {
-    //    var errors = $(".warn, .error, .fatal", this);
-
-    //    if (errors.length == 0) {
-    //        $(this).collapse('hide');
-    //        // Update toggle status
-    //        $(".collapseToggle[href=\"#" + $(this).attr('id') + "\"]").addClass("collapsed");
-    //    }
-    //});
+    $('.logGroup.collapse').on('shown.bs.collapse', function (e) {
+        processLineClasses();
+    });
+    $('.logGroup.collapse').on('hidden.bs.collapse', function (e) {
+        processLineClasses();
+    });
 });
+
+function ellipseElement(elementToEllipse) {
+
+
+}
+
+function getExcerpt(text) {
+
+}
+
+function processLineClasses() {
+    // This reprocesses ALL lines. Might want to optimize later.
+    var logLineElements = $('div.logLine');
+
+    var reallyvisible = function (a) { return !($(a).is(':hidden') || $(a).parents(':hidden').length || $(a).parents('.collapsing').length || $(a).parents('.collapsed').length) };
+
+    var isEven = true;
+
+    for(var i = 0; i < logLineElements.length; i++) {
+        var logLine = $(logLineElements[i]);
+
+        if (reallyvisible(logLine)) {
+            if (isEven) { logLine.removeClass("odd").addClass("even"); }
+            else { logLine.removeClass("even").addClass("odd"); }
+
+            isEven = !isEven;
+        }
+    }
+}
 
 function hideLogLineGlyphs(element) {
     $(".showOnHover", element).stop(true, true);
