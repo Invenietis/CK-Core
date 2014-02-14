@@ -54,8 +54,8 @@ namespace CK.Mon2Htm
             _currentIndex = 0;
             _currentLineNumber = 1;
 
-            _lineNumberNumDigits = ( (int)Math.Log10( _indexInfo.PageLength ) ) + 1;
-            _lineStringFormat = String.Format("{{0,{0}}}.",_lineNumberNumDigits);
+            _lineNumberNumDigits = ((int)Math.Log10( _indexInfo.PageLength )) + 1;
+            _lineStringFormat = String.Format( "{{0,{0}}}.", _lineNumberNumDigits );
         }
 
         private void DoWriteEntries( IEnumerable<ParentedLogEntry> logEntries )
@@ -128,32 +128,32 @@ namespace CK.Mon2Htm
             if( writeAnchor ) _tw.WriteLine( @"<span class=""anchor"" id=""{0}""></span>", HtmlUtils.GetTimestampId( e.LogTime ) );
             _tw.WriteLine( @"<div class=""logLine {0} {1}"">", HtmlUtils.GetClassNameOfLogLevel( e.LogLevel ), _currentLineNumber % 2 == 0 ? "even" : "odd" );
 
-            _tw.WriteLine( @"<div class=""lineHeader"">" );
+
+            _tw.Write( @"<div class=""logLineNumber"">{0}</div>",
+                String.Format( _lineStringFormat, _currentLineNumber ).Replace( " ", "&nbsp;") );
+
+            _tw.Write( @"<div class=""timestamp{0}"">", String.IsNullOrEmpty( timestampClass ) ? String.Empty : " " + timestampClass );
 
             if( writeTooltip ) _tw.Write( @"<span data-toggle=""tooltip"" title=""{0}"" rel=""tooltip"">", GetTooltipText( e ) );
 
-            _tw.Write( @"<span class=""timestamp{1}"">{2}&nbsp;{0}</span>",
-                e.LogTime.TimeUtc.ToString( "HH:mm:ss" ),
-                String.IsNullOrEmpty(timestampClass) ? String.Empty : " " + timestampClass,
-                String.Format( _lineStringFormat, _currentLineNumber ).Replace( " ", "&nbsp;" )
-            );
+            _tw.Write( @"{0}", e.LogTime.TimeUtc.ToString( "HH:mm:ss" ) );
 
             if( writeTooltip ) _tw.Write( @"</span>", GetTooltipText( e ) );
+            _tw.Write( @"</div>" );
+
 
             if( depth < 0 ) depth = _currentPath.Count;
 
             for( int i = 0; i < depth; i++ )
             {
-                _tw.Write( @"<span class=""tabSpace""></span>" );
+                _tw.Write( @"<div class=""tabSpace""></div>" );
             }
-
-            _tw.WriteLine( "</div> <!-- /lineHeader -->" );
 
             _currentLineNumber++;
 
             _tw.WriteLine( @"<div class=""logContent"">" );
         }
-        private void WriteLineHeader( ILogEntry e,string timestampClass )
+        private void WriteLineHeader( ILogEntry e, string timestampClass )
         {
             WriteLineHeader( e, -1, true, true, timestampClass );
         }
@@ -214,7 +214,7 @@ namespace CK.Mon2Htm
 
                 if( printMessage )
                 {
-                    WriteLineHeader( entry, groupRef.HighestLogLevel > entry.LogLevel ? HtmlUtils.GetClassNameOfLogLevel(groupRef.HighestLogLevel) : null );
+                    WriteLineHeader( entry, groupRef.HighestLogLevel > entry.LogLevel ? HtmlUtils.GetClassNameOfLogLevel( groupRef.HighestLogLevel ) : null );
 
                     string className = HtmlUtils.GetClassNameOfLogLevel( entry.LogLevel );
                     _tw.Write( @"<p class=""logMessage logGroupMessage {0}{1}"">", className, IsLongEntry( entry ) ? " longEntry" : String.Empty );

@@ -17,15 +17,21 @@ body {
 }
 
 .logLine {
+	display: table;
+	width: 100%;
 	overflow: auto;
+}
+.logLine > div {
+	display: table-cell;
 }
 
 .logContent {
 	overflow: hidden;
+	width: 99%;
 }
 
 .lineHeader {
-	float: left;
+	white-space: nowrap;
 }
 
 .logMessage {
@@ -37,11 +43,24 @@ body {
 	vertical-align: top;
 }
 
-.timestamp {
-	margin-right: 10pt;
+.timestamp, .logLineNumber {
 	vertical-align: top;
 	display: inline-block;
 	color: lightgrey;
+}
+
+.timestamp {
+	padding-right: 5pt;
+	padding-left: 5pt;
+	overflow: auto;
+	display: inline-block;
+}
+
+.logLineNumber {
+	overflow: auto;
+	display: inline-block;	
+	padding-right: 5pt;
+	border-right: 1px solid lightgrey;
 }
 
 /* Close group icon */
@@ -154,7 +173,7 @@ div.topGroupBreadcrumb {
 }
 
 .tabSpace {
-	margin-left: 15pt;
+	padding-left: 15pt;
 }
 
 .paginator > div {
@@ -220,17 +239,12 @@ div.monitorTime, div.monitorId, div.entryCount {
 }
 
 .logGroupMessage, .groupBreadcrumbItem {
-	font-weight: bold;
 	display: inline-block;
 }
 
 	.logGroupMessage > p, .groupBreadcrumbItem > p {
 		margin: 0;
 	}
-
-.logGroupHeader {
-	font-weight: bold;
-}
 
 .exceptionDetail {
 	background-color: lightyellow;
