@@ -118,19 +118,31 @@ function expandEllipse(element) {
     $element.removeClass("collapsed");
 }
 
+function getGroupOfHeaderGroupLine(groupLineElement)
+{
+    var $element = $(groupLineElement);
+    var href = $element.find("a.collapseToggle").attr('href');
+
+    var $groupDiv = $(href);
+
+    return $groupDiv;
+}
+
 function collapseGroups() {
-    $(".logGroup.in").each(function () {
-        //$(this).collapse('hide');
+    $(".logGroup").each(function () {
         $(this).removeClass("in");
+        $(this).css("height", "0px");
+        $(this).css("overflow", "hidden");
         // Update toggle status
         $(".collapseToggle[href=\"#" + $(this).attr('id') + "\"]").addClass("collapsed");
     });
 }
 
 function expandGroups() {
-    $(".logGroup:not(.in)").each(function () {
-        //$(this).collapse('show');
+    $(".logGroup").each(function () {
         $(this).addClass("in");
+        $(this).css("height", "");
+        $(this).css("overflow", "");
         // Update toggle status
         $(".collapseToggle[href=\"#" + $(this).attr('id') + "\"]").removeClass("collapsed");
     });
@@ -143,9 +155,10 @@ function collapseEverything() {
         collapseEllipse($(this));
     });
 
-    $(".exceptionContainer.in").each(function () {
+    $(".exceptionContainer").each(function () {
         $(this).removeClass("in");
-        //$(this).collapse('hide');
+        $(this).css("height", "0px");
+        $(this).css("overflow", "hidden");
     });
 }
 
@@ -156,9 +169,10 @@ function expandEverything() {
         expandEllipse($(this));
     });
 
-    $(".exceptionContainer:not(.in)").each(function () {
-        //$(this).collapse('show');
+    $(".exceptionContainer").each(function () {
         $(this).addClass("in");
+        $(this).css("height", "");
+        $(this).css("overflow", "");
     });
 }
 
