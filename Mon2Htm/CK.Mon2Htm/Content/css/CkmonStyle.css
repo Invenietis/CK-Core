@@ -215,9 +215,6 @@ div.topGroupBreadcrumb {
 
 .logContainer {
 	margin: 0;
-	background-image: url("line-bg");
-	background-size: 9pt 18pt;
-	background-repeat: repeat;
 }
 
 	.logContainer .logLine.even {

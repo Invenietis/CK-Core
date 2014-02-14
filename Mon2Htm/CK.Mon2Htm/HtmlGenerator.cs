@@ -113,21 +113,14 @@ namespace CK.Mon2Htm
         {
             CopyContentResourceToFile( @"css\CkmonStyle.css", _outputDirectoryPath );
             CopyContentResourceToFile( @"css\Reset.css", _outputDirectoryPath );
-            CopyContentResourceToFile( @"css\bootstrap-modal-bs3patch.css", _outputDirectoryPath );
             CopyContentResourceToFile( @"css\bootstrap.min.css", _outputDirectoryPath );
-            CopyContentResourceToFile( @"css\bootstrap-modal.css", _outputDirectoryPath );
             CopyContentResourceToFile( @"css\bootstrap-theme.min.css", _outputDirectoryPath );
             CopyContentResourceToFile( @"css\ex-bg.png", _outputDirectoryPath );
-            CopyContentResourceToFile( @"css\line-bg.png", _outputDirectoryPath );
-            CopyContentResourceToFile( @"css\info.svg", _outputDirectoryPath );
             CopyContentResourceToFile( @"css\warn.svg", _outputDirectoryPath );
             CopyContentResourceToFile( @"css\error.svg", _outputDirectoryPath );
             CopyContentResourceToFile( @"css\fatal.svg", _outputDirectoryPath );
             CopyContentResourceToFile( @"js\bootstrap.min.js", _outputDirectoryPath );
             CopyContentResourceToFile( @"js\jquery-2.0.3.min.js", _outputDirectoryPath );
-            CopyContentResourceToFile( @"js\bootstrap-modal.js", _outputDirectoryPath );
-            CopyContentResourceToFile( @"js\bootstrap-modalmanager.js", _outputDirectoryPath );
-            CopyContentResourceToFile( @"js\readmore.min.js", _outputDirectoryPath );
             CopyContentResourceToFile( @"js\moment.min.js", _outputDirectoryPath );
             CopyContentResourceToFile( @"js\moment-with-langs.js", _outputDirectoryPath );
             CopyContentResourceToFile( @"js\ckmon.js", _outputDirectoryPath );
@@ -576,8 +569,6 @@ namespace CK.Mon2Htm
 <link rel=""stylesheet"" type=""text/css"" href=""css/Reset.css"">
 <link rel=""stylesheet"" type=""text/css"" href=""css/bootstrap.min.css"">
 <link rel=""stylesheet"" type=""text/css"" href=""css/bootstrap-theme.min.css"">
-<link rel=""stylesheet"" type=""text/css"" href=""css/bootstrap-modal-bs3patch.css"">
-<link rel=""stylesheet"" type=""text/css"" href=""css/bootstrap-modal.css"">
 <link rel=""stylesheet"" type=""text/css"" href=""css/CkmonStyle.css"">
 </head>
 <body>
@@ -620,10 +611,7 @@ namespace CK.Mon2Htm
     </div>
 
 <script src=""js/jquery-2.0.3.min.js""></script>
-<script src=""js/readmore.min.js""></script>
 <script src=""js/bootstrap.min.js""></script>
-<script src=""js/bootstrap-modalmanager.js""></script>
-<script src=""js/bootstrap-modal.js""></script>
 <script src=""js/moment-with-langs.js""></script>
 <script src=""js/ckmon.js""></script>
 <script type=""text/javascript"">
