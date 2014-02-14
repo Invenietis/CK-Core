@@ -55,7 +55,7 @@ namespace CK.Mon2Htm
             _currentLineNumber = 1;
 
             _lineNumberNumDigits = ( (int)Math.Log10( _indexInfo.PageLength ) ) + 1;
-            _lineStringFormat = String.Format("{{0,{0}}}",_lineNumberNumDigits);
+            _lineStringFormat = String.Format("{{0,{0}}}.",_lineNumberNumDigits);
         }
 
         private void DoWriteEntries( IEnumerable<ParentedLogEntry> logEntries )
@@ -132,7 +132,7 @@ namespace CK.Mon2Htm
 
             if( writeTooltip ) _tw.Write( @"<span data-toggle=""tooltip"" title=""{0}"" rel=""tooltip"">", GetTooltipText( e ) );
 
-            _tw.Write( @"<span class=""timestamp{1}"">{0}&nbsp;{2}</span>",
+            _tw.Write( @"<span class=""timestamp{1}"">{2}&nbsp;{0}</span>",
                 e.LogTime.TimeUtc.ToString( "HH:mm:ss" ),
                 String.IsNullOrEmpty(timestampClass) ? String.Empty : " " + timestampClass,
                 String.Format( _lineStringFormat, _currentLineNumber ).Replace( " ", "&nbsp;" )
