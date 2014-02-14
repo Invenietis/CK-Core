@@ -488,11 +488,11 @@ namespace CK.Mon2Htm
         private static string GetTooltipText( ILogEntry entry )
         {
             StringBuilder sb = new StringBuilder();
-            sb.AppendFormat( @"Logged at:<br>{0}", entry.LogTime.TimeUtc.ToString() );
+            sb.AppendFormat( @"{0}", entry.LogTime.ToString() );
 
             if( !String.IsNullOrWhiteSpace( entry.FileName ) && entry.LineNumber > 0 )
             {
-                sb.AppendFormat( @"<br>Sent from:<br>{0}:{1}", entry.FileName, entry.LineNumber );
+                sb.AppendFormat( @" - {0}:{1}", entry.FileName, entry.LineNumber );
             }
             return HttpUtility.HtmlAttributeEncode( sb.ToString() );
         }
