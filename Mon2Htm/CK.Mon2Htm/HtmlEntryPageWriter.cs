@@ -494,6 +494,11 @@ namespace CK.Mon2Htm
             {
                 sb.AppendFormat( @" - {0}:{1}", entry.FileName, entry.LineNumber );
             }
+
+            if( !entry.Tags.IsEmpty )
+            {
+                sb.AppendFormat( @"<br>{0}", String.Join(", ", entry.Tags.AtomicTraits.Select( x => x.ToString() ) ) );
+            }
             return HttpUtility.HtmlAttributeEncode( sb.ToString() );
         }
 
