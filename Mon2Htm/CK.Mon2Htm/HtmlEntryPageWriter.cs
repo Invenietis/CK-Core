@@ -32,6 +32,7 @@ namespace CK.Mon2Htm
         readonly int _pageNumber;
         readonly int _lineNumberNumDigits;
         readonly string _lineStringFormat;
+        readonly Regex _linkParser;
         int _currentIndex;
         int _currentLineNumber;
 
@@ -53,6 +54,8 @@ namespace CK.Mon2Htm
             _currentPath = _initialPath.ToList();
             _currentIndex = 0;
             _currentLineNumber = 1;
+
+            _linkParser = new Regex( @"(https:[/][/]|http:[/][/]|www.)[a-zA-Z0-9\-\.]+\.[a-zA-Z]{2,3}(:[a-zA-Z0-9]*)?/?([a-zA-Z0-9\-\._\?\,\'/\\\+&amp;%\$#\=~])*", RegexOptions.Compiled | RegexOptions.IgnoreCase );
 
             _lineNumberNumDigits = ((int)Math.Log10( _indexInfo.PageLength )) + 1;
             _lineStringFormat = String.Format( "{{0,{0}}}.", _lineNumberNumDigits );
@@ -174,7 +177,7 @@ namespace CK.Mon2Htm
 
                 _tw.Write( String.Format(
                     @"{0}",
-                    HttpUtility.HtmlEncode( entry.Text )
+                    ReplaceUrlsByLinks(entry.Text)
                     ) );
 
                 _tw.Write( @"</pre>" );
@@ -186,7 +189,7 @@ namespace CK.Mon2Htm
                 _tw.Write( String.Format(
                     @"{1} [{0}]",
                     HttpUtility.HtmlEncode( entry.Exception.ExceptionTypeName ),
-                    HttpUtility.HtmlEncode( entry.Text )
+                    ReplaceUrlsByLinks( entry.Text )
                     ) );
 
                 string exceptionId = GenerateExceptionId();
@@ -221,7 +224,7 @@ namespace CK.Mon2Htm
 
                     _tw.Write(
                         @"<a class=""collapseTitle collapseToggle{2}"" data-toggle=""collapse"" href=""#group-{1}"">{0}</a>",
-                        HttpUtility.HtmlEncode( entry.Text ),
+                    ReplaceUrlsByLinks(entry.Text),
                         HtmlUtils.GetTimestampId( entry.LogTime ),
                         groupRef.HighestLogLevel < (CK.Core.LogLevel.Warn | CK.Core.LogLevel.IsFiltered) ? " collapsed" : String.Empty
                          );
@@ -436,6 +439,35 @@ namespace CK.Mon2Htm
         private bool EntryIsOnPage( DateTimeStamp stamp )
         {
             return _indexInfo.GetPageIndexOf( stamp ) == _pageNumber - 1;
+        }
+
+        private string ReplaceUrlsByLinks(string s)
+        {
+            s = HttpUtility.HtmlEncode(s);
+            int delta = 0;
+
+            MatchCollection mc = _linkParser.Matches( s );
+            foreach(Match m in mc)
+            {
+                int startIndex = m.Index + delta;
+                string link = String.Format( @"<a href=""{0}"" target=""_blank"">{0}</a>", m.Value );
+
+                string newString = ReplaceFirst( s, m.Value, link, startIndex );
+                delta += newString.Length - s.Length;
+
+                s = newString;
+            }
+            return s;
+        }
+
+        string ReplaceFirst( string text, string search, string replace, int startIndex = 0 )
+        {
+            int pos = text.IndexOf( search, startIndex );
+            if( pos < 0 )
+            {
+                return text;
+            }
+            return text.Substring( 0, pos ) + replace + text.Substring( pos + search.Length );
         }
 
         private MonitorGroupReference GetCurrentGroupReference()

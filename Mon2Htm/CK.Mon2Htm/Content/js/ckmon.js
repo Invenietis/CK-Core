@@ -22,8 +22,8 @@
 });
 
 function ellipseElement(elementToEllipse) {
-    var text = $(elementToEllipse).text();
-    $(elementToEllipse).data("fullText", text);
+    var text = $(elementToEllipse).html();
+    $(elementToEllipse).data("fullText", htmlEncode(text));
 
     collapseEllipse(elementToEllipse);
 }
@@ -50,8 +50,16 @@ function expandEllipse(element) {
         return false;
     });
 
-    $(element).text(text);
+    $(element).html(htmlDecode(text));
     $(element).append(link);
+}
+
+function htmlEncode(value) {
+    return $('<div/>').text(value).html();
+}
+
+function htmlDecode(value) {
+    return $('<div/>').html(value).text();
 }
 
 function getHtmlExcerpt(text) {
