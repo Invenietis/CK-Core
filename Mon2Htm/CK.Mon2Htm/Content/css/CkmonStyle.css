@@ -276,7 +276,7 @@ a.collapseTitle:active {
 }
 
 .logMessage.info {
-	color: black;
+	color: #0000CC;
 }
 
 .logMessage.trace {
@@ -298,11 +298,50 @@ a.collapseTitle:active {
 }
 
 .timestamp.info {
-	color: black;
+	color: #0000CC;
 }
 
 .timestamp.trace {
 	color: gray;
+}
+
+.warnCount:before {
+	content: "";
+	display: inline-block;
+	width: 16px;
+	height: 16px;
+	background-image: url("warn.svg");
+	background-size: contain;
+	background-repeat: no-repeat;
+	background-position: center center;
+	vertical-align: middle;
+	margin-right: 4px;
+}
+
+.errorCount:before {
+	content: "";
+	display: inline-block;
+	width: 16px;
+	height: 16px;
+	background-image: url("error.svg");
+	background-size: contain;
+	background-repeat: no-repeat;
+	background-position: center center;
+	vertical-align: middle;
+	margin-right: 4px;
+}
+
+.fatalCount:before {
+	content: "";
+	display: inline-block;
+	width: 16px;
+	height: 16px;
+	background-image: url("fatal.svg");
+	background-size: contain;
+	background-repeat: no-repeat;
+	background-position: center center;
+	vertical-align: middle;
+	margin-right: 4px;
 }
 
 .groupBreadcrumbSeparator {

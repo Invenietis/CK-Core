@@ -16,7 +16,9 @@
         processLineClasses();
     });
 
-    $(".longEntry").each(function () { ellipseElement(this); })
+    $(".longEntry").each(function () { ellipseElement(this); });
+
+    processLineClasses();
 });
 
 function ellipseElement(elementToEllipse) {
@@ -39,8 +41,7 @@ function collapseEllipse(element) {
     $(element).append(link);
 }
 
-function expandEllipse(element)
-{
+function expandEllipse(element) {
     var text = $(element).data("fullText");
 
     var link = $('<a href="#">•••</a>');
@@ -65,7 +66,7 @@ function processLineClasses() {
 
     var isEven = true;
 
-    for(var i = 0; i < logLineElements.length; i++) {
+    for (var i = 0; i < logLineElements.length; i++) {
         var logLine = $(logLineElements[i]);
 
         if (reallyvisible(logLine)) {
@@ -106,10 +107,15 @@ $(document).ready(function () {
 
         var mStartTime = moment.utc(startTime);
         var mEndTime = moment.utc(endTime);
-        var mEndTime2 = mEndTime.subtract(mStartTime);
+
+        var startValue = mStartTime.valueOf();
+        var endValue = mEndTime.valueOf();
+
+        var durationValue = endValue - startValue;
+        var mDuration = moment.duration(durationValue, 'ms');
 
         $(".startTime", this).text(mStartTime.fromNow());
-        $(".endTime", this).text(moment.duration(mEndTime2).humanize());
+        $(".endTime", this).text(mDuration.humanize());
     });
 
 
