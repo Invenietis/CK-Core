@@ -1,5 +1,58 @@
 ﻿$(function () {
+    window.freezeReprocessing = false;
+    var $lastClickedLogLine;
+    var $contextMenu = $('#contextMenu');
+
+    // Prepare context menu
+    $("body").on("contextmenu", ".logLine", function (e) {
+        $rowClicked = $(this)
+        $contextMenu.css({
+            display: "block",
+            left: e.pageX,
+            top: e.pageY
+        });
+        return false;
+    });
+
+    $contextMenu.on("click", "a", function () {
+        switch ($(this).attr('id')) {
+            case 'expandGroupsMenuEntry':
+                window.freezeReprocessing = true;
+                expandGroups();
+                window.freezeReprocessing = false;
+                processLineClasses();
+                break;
+            case 'expandAllMenuEntry':
+                window.freezeReprocessing = true;
+                expandEverything();
+                window.freezeReprocessing = false;
+                processLineClasses();
+                break;
+            case 'collapseGroupsMenuEntry':
+                window.freezeReprocessing = true;
+                collapseGroups();
+                window.freezeReprocessing = false;
+                processLineClasses();
+                break;
+            case 'collapseAllMenuEntry':
+                window.freezeReprocessing = true;
+                collapseEverything();
+                window.freezeReprocessing = false;
+                processLineClasses();
+                break;
+            default:
+        }
+
+        $contextMenu.hide();
+    });
+    $(document).click(function () {
+        $contextMenu.hide();
+    });
+
+    // Init tooltips
     $("[rel='tooltip']").tooltip({ html: true, placement: 'auto top' });
+
+    // Init hover ffw/fbw buttons
     $(".showOnHover").css({ display: 'none' });
     $("div.logLine").hover(
         function (e) {
@@ -9,6 +62,7 @@
             hideLogLineGlyphs(this);
         });
 
+    // Init line processing on group show/hide
     $('.logGroup.collapse').on('shown.bs.collapse', function (e) {
         processLineClasses();
     });
@@ -16,8 +70,10 @@
         processLineClasses();
     });
 
+    // Init long entry collapsing
     $(".longEntry").each(function () { ellipseElement(this); });
 
+    // Process even/odd once
     processLineClasses();
 });
 
@@ -29,29 +85,81 @@ function ellipseElement(elementToEllipse) {
 }
 
 function collapseEllipse(element) {
-    var text = getHtmlExcerpt($(element).text());
+    var $element = $(element);
+    if ($element.hasClass("collapsed")) { return; }
 
-    var link = $('<a href="#">•••</a>');
-    link.click(function (e) {
-        expandEllipse(element);
+    var text = getHtmlExcerpt($element.text());
+
+    var $link = $('<a href="#">•••</a>');
+    $link.click(function (e) {
+        expandEllipse($element);
         return false;
     });
 
-    $(element).html(text);
-    $(element).append(link);
+    $element.html(text);
+    $element.append($link);
+    $element.addClass("collapsed");
 }
 
 function expandEllipse(element) {
-    var text = $(element).data("fullText");
+    var $element = $(element);
+    if (!$element.hasClass("collapsed") || typeof $element.data("fullText") === 'undefined') { return; }
 
-    var link = $('<a href="#">•••</a>');
-    link.click(function (e) {
+    var text = $element.data("fullText");
+
+    var $link = $('<a href="#">•••</a>');
+    $link.click(function (e) {
         collapseEllipse(element);
         return false;
     });
 
-    $(element).html(htmlDecode(text));
-    $(element).append(link);
+    $element.html(htmlDecode(text));
+    $element.append($link);
+    $element.removeClass("collapsed");
+}
+
+function collapseGroups() {
+    $(".logGroup.in").each(function () {
+        //$(this).collapse('hide');
+        $(this).removeClass("in");
+        // Update toggle status
+        $(".collapseToggle[href=\"#" + $(this).attr('id') + "\"]").addClass("collapsed");
+    });
+}
+
+function expandGroups() {
+    $(".logGroup:not(.in)").each(function () {
+        //$(this).collapse('show');
+        $(this).addClass("in");
+        // Update toggle status
+        $(".collapseToggle[href=\"#" + $(this).attr('id') + "\"]").removeClass("collapsed");
+    });
+}
+
+function collapseEverything() {
+    collapseGroups();
+
+    $(".longEntry").each(function () {
+        collapseEllipse($(this));
+    });
+
+    $(".exceptionContainer.in").each(function () {
+        $(this).removeClass("in");
+        //$(this).collapse('hide');
+    });
+}
+
+function expandEverything() {
+    expandGroups();
+
+    $(".longEntry").each(function () {
+        expandEllipse($(this));
+    });
+
+    $(".exceptionContainer:not(.in)").each(function () {
+        //$(this).collapse('show');
+        $(this).addClass("in");
+    });
 }
 
 function htmlEncode(value) {
@@ -67,6 +175,7 @@ function getHtmlExcerpt(text) {
 }
 
 function processLineClasses() {
+    if (window.freezeReprocessing) return;
     // This reprocesses ALL lines. Might want to optimize later.
     var logLineElements = $('div.logLine');
 
@@ -97,17 +206,6 @@ function showLogLineGlyphs(element) {
 }
 
 $(document).ready(function () {
-
-    /* Entry page */
-    // Enable "More" ellipse for blocks with .longEntry
-    //$(".longEntry").readmore({
-    //    speed: 400,
-    //    maxHeight: 40,
-    //    sectionCSS: 'display: inline-block;'
-    //});
-
-    // Hide glyphicons on group messages, and set them to show on hover
-
     /* Monitor list page */
     $(".monitorEntry").each(function () {
         var startTime = $(".startTime", this).text();

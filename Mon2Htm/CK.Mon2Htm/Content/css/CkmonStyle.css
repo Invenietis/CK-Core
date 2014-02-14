@@ -41,6 +41,7 @@ body {
 	border-radius: initial;
 	display: inline-block;
 	vertical-align: top;
+	width: 100%;
 }
 
 .timestamp, .logLineNumber {
@@ -229,6 +230,11 @@ div.entryCount {
 	font-family: monospace;
 	border: none;
 	margin-left: 3pt;
+}
+
+#contextMenu {
+    position: absolute;
+    display:none;
 }
 
 div.monitorTime, div.monitorId, div.entryCount {

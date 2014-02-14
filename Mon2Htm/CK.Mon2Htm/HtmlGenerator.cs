@@ -294,6 +294,7 @@ namespace CK.Mon2Htm
         private void WriteLogPageFooter( TextWriter tw, MultiLogReader.Monitor monitor, int currentPage )
         {
             WriteMonitorPaginator( tw, monitor, currentPage );
+            tw.Write( HTML_ENTRYPAGE_CONTEXT_MENU );
             tw.Write( GetHtmlFooter() );
         }
 
@@ -617,6 +618,20 @@ namespace CK.Mon2Htm
 <script type=""text/javascript"">
 </script>
 </body></html>";
+        #endregion
+
+        #region HTML entry page context menu
+        static string HTML_ENTRYPAGE_CONTEXT_MENU =
+            @"
+<div id=""contextMenu"" class=""dropdown clearfix"">
+    <ul class=""dropdown-menu"" role=""menu"" aria-labelledby=""dropdownMenu"" style=""display:block;position:static;margin-bottom:5px;"">
+        <li><a id=""expandGroupsMenuEntry"" tabindex=""-1"" href=""#"">Expand groups</a></li>
+        <li><a id=""expandAllMenuEntry"" tabindex=""-1"" href=""#"">Expand everything</a></li>
+        <li class=""divider""></li>
+        <li><a id=""collapseGroupsMenuEntry"" tabindex=""-1"" href=""#"">Collapse groups</a></li>
+        <li><a id=""collapseAllMenuEntry"" tabindex=""-1"" href=""#"">Collapse everything</a></li>
+    </ul>
+</div>";
         #endregion
 
         private static readonly int LINKS_PER_STEP = 2;
