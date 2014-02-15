@@ -14,7 +14,7 @@
         return false;
     });
 
-    $contextMenu.on("click", "a", function () {
+    $contextMenu.on("click", "a", function (event) {
         switch ($(this).attr('id')) {
             case 'expandGroupsMenuEntry':
                 window.freezeReprocessing = true;
@@ -44,6 +44,8 @@
         }
 
         $contextMenu.hide();
+        event.preventDefault();
+        return false;
     });
     $(document).click(function () {
         $contextMenu.hide();
