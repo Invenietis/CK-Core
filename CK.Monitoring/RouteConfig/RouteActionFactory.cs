@@ -100,7 +100,7 @@ namespace CK.RouteConfig
         /// </summary>
         /// <param name="monitor">Monitor to use if needed.</param>
         /// <param name="configLock">
-        /// Configuration lock. It must not be sollicited during the creation of the action: an action that delay
+        /// Configuration lock. It must not be solicited during the creation of the action: an action that delay
         /// its work can keep a reference to it and use it when needed.
         /// </param>
         /// <param name="c">Configuration of the action.</param>
@@ -112,7 +112,7 @@ namespace CK.RouteConfig
         /// </summary>
         /// <param name="monitor">Monitor to use if needed.</param>
         /// <param name="configLock">
-        /// Configuration lock. It must not be sollicited during the creation of the parallel: if the parallel delays
+        /// Configuration lock. It must not be solicited during the creation of the parallel: if the parallel delays
         /// its work, it can keep a reference to it and use it as needed.
         /// </param>
         /// <param name="c">Configuration of the parallel action.</param>
@@ -125,7 +125,7 @@ namespace CK.RouteConfig
         /// </summary>
         /// <param name="monitor">Monitor to use if needed.</param>
         /// <param name="configLock">
-        /// Configuration lock. It must not be sollicited during the creation of the sequence: a sequence that delays
+        /// Configuration lock. It must not be solicited during the creation of the sequence: a sequence that delays
         /// its work can keep a reference to it and use it as needed.
         /// </param>
         /// <param name="c">Configuration of the sequence action.</param>
@@ -138,7 +138,7 @@ namespace CK.RouteConfig
         /// </summary>
         /// <param name="monitor">Monitor to use if needed to comment route creation.</param>
         /// <param name="configLock">
-        /// Configuration lock. It must not be sollicited during the creation of the route: a route that delays
+        /// Configuration lock. It must not be solicited during the creation of the route: a route that delays
         /// its work can keep a reference to it and use it as needed.
         /// </param>
         /// <param name="actions">Array of actions for the route.</param>
@@ -150,7 +150,7 @@ namespace CK.RouteConfig
 
         /// <summary>
         /// Must be implemented to cleanup any resources (if any) once new actions and routes have been created.
-        /// This is always called (even if an error occcured). 
+        /// This is always called (even if an error occurred). 
         /// Default implementation does nothing.
         /// </summary>
         /// <param name="success">True on success, false if creation of routes has failed.</param>

@@ -46,7 +46,7 @@ namespace CK.RouteConfig
 
         protected internal override void Apply( Impl.IRouteConfigurationContext context )
         {
-            foreach( var a in Actions ) context.AddDeclaredAction( a.Name, a.Name, fromDeclaration: true );
+            foreach( var a in Actions ) context.AddDeclaredAction( a.Name, a.Name, fromMetaInsert: true );
         }
     }
 }
