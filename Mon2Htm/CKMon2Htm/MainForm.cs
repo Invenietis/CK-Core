@@ -76,7 +76,7 @@ namespace CK.Mon2Htm
         {
 
             string[] args = Environment.GetCommandLineArgs();
-            string[] activationData = AppDomain.CurrentDomain.SetupInformation.ActivationArguments.ActivationData;
+            string[] activationData = AppDomain.CurrentDomain.SetupInformation.ActivationArguments == null ? null : AppDomain.CurrentDomain.SetupInformation.ActivationArguments.ActivationData;
 
             if( activationData != null && activationData.Length > 0 ) // ClickOnce file parameters
             {
@@ -187,7 +187,7 @@ namespace CK.Mon2Htm
 
             _tempDirPath = GetTempFolder();
 
-            return HtmlGenerator.CreateFromActivityMap( activityMap, _m, 5000, _tempDirPath );
+            return HtmlGenerator.CreateFromActivityMap( activityMap, _m, 500, _tempDirPath );
         }
 
         private void InstallUpdateSyncWithInfo()
