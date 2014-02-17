@@ -5,7 +5,6 @@
     window.$selectedHtml = "";
     window.selectedLogLines = new Array();
 
-
     $('.logLine').mousedown(function (event) {
         switch (event.which) {
             case 3:
@@ -22,6 +21,40 @@
         }
     });
 
+    // Header menu entries
+    $("#openAllGroupsMenuEntry").on("click", function (event) {
+        window.freezeReprocessing = true;
+        expandAllGroups();
+        window.freezeReprocessing = false;
+        processLineClasses();
+        event.preventDefault();
+        return false;
+    });
+    $("#closeAllGroupsMenuEntry").on("click", function (event) {
+        window.freezeReprocessing = true;
+        collapseAllGroups();
+        window.freezeReprocessing = false;
+        processLineClasses();
+        event.preventDefault();
+        return false;
+    });
+    $("#openAllContentMenuEntry").on("click", function (event) {
+        window.freezeReprocessing = true;
+        expandAllContent();
+        window.freezeReprocessing = false;
+        processLineClasses();
+        event.preventDefault();
+        return false;
+    });
+    $("#closeAllContentMenuEntry").on("click", function (event) {
+        window.freezeReprocessing = true;
+        collapseAllContent();
+        window.freezeReprocessing = false;
+        processLineClasses();
+        event.preventDefault();
+        return false;
+    });
+
     // Prepare context menu
     $("body").on("contextmenu", ".logLine", function (e) {
         return createContextMenu(e);
@@ -30,6 +63,7 @@
     $contextMenu.on("click", "a", function (event) {
         return onContextMenuEntryClick(event, $(this));
     });
+
     $(document).click(function () {
         $contextMenu.hide();
         $(".selectedLine").each(function () { $(this).removeClass("selectedLine"); });
