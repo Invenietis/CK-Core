@@ -626,19 +626,15 @@ namespace CK.Mon2Htm
 <div id=""contextMenu"" class=""dropdown clearfix"">
     <ul class=""dropdown-menu"" role=""menu"" aria-labelledby=""dropdownMenu"" style=""display:block;position:static;margin-bottom:5px;"">
 
-        <li class=""needsGroupHeader""><a id=""toggleGroupMenuEntry"" tabindex=""-1"" href=""#"">Toggle group</a></li>
-        <li class=""divider needsGroupHeader""></li>
+        <li><a id=""toggleGroupMenuEntry"" tabindex=""-1"" href=""#"">Toggle group</a></li>
 
-        <li class=""needsSelection""><a id=""expandSelectionMenuEntry"" tabindex=""-1"" href=""#"">Expand selected tree</a></li>
-        <li class=""needsSelection""><a id=""collapseSelectionMenuEntry"" tabindex=""-1"" href=""#"">Collapse selected tree</a></li>
-        
-        <li class=""needsNoSelection""><a id=""expandGroupsMenuEntry"" tabindex=""-1"" href=""#"">Expand entire tree</a></li>
-        <li class=""needsNoSelection""><a id=""expandContentMenuEntry"" tabindex=""-1"" href=""#"">Expand all content</a></li>
-        <li class=""divider needsNoSelection""></li>
-        <li class=""needsNoSelection""><a id=""collapseGroupsMenuEntry"" tabindex=""-1"" href=""#"">Collapse entire tree</a></li>
-        <li class=""needsNoSelection""><a id=""collapseContentMenuEntry"" tabindex=""-1"" href=""#"">Collapse all content</a></li>
-        <li class=""divider needsParentGroup needsNoSelection""></li>
-        <li class=""needsParentGroup needsNoSelection""><a id=""collapseParentMenuEntry"" tabindex=""-1"" href=""#"">Close parent</a></li>
+        <li><a id=""expandStructureMenuEntry"" tabindex=""-1"" href=""#"">Open selected groups</a></li>
+        <li><a id=""collapseStructureMenuEntry"" tabindex=""-1"" href=""#"">Close selected groups</a></li>
+
+        <li><a id=""expandContentMenuEntry"" tabindex=""-1"" href=""#"">Expand content</a></li>
+        <li><a id=""collapseContentMenuEntry"" tabindex=""-1"" href=""#"">Collapse content</a></li>
+
+        <li><a id=""collapseParentMenuEntry"" tabindex=""-1"" href=""#"">Close parent</a></li>
     </ul>
 </div>";
         #endregion

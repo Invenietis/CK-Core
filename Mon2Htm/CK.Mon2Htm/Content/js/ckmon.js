@@ -1,113 +1,34 @@
 ﻿$(function () {
     window.freezeReprocessing = false;
     window.$lastClickedLogLine = "";
-    var $contextMenu = $('#contextMenu');
+    window.$contextMenu = $('#contextMenu');
     window.$selectedHtml = "";
+    window.selectedLogLines = new Array();
+
+
+    $('.logLine').mousedown(function (event) {
+        switch (event.which) {
+            case 3:
+                startLogEntrySelection(this);
+                break;
+        }
+    });
+
+    $('.logLine').mouseup(function (event) {
+        switch (event.which) {
+            case 3:
+                stopLogEntrySelection(this);
+                break;
+        }
+    });
 
     // Prepare context menu
     $("body").on("contextmenu", ".logLine", function (e) {
-        window.$lastClickedLogLine = $(this);
-        window.$lastClickedLogLine.addClass("selectedLine");
-        window.$selectedHtml = $(getHTMLOfSelection());
-
-        if (typeof window.$selectedHtml == 'undefined' || window.$selectedHtml === "" || window.$selectedHtml.length == 0) {
-            $(".needsSelection", $contextMenu).css('display', 'none');
-            $(".needsNoSelection", $contextMenu).css('display', 'block');
-        } else {
-            $(".needsSelection", $contextMenu).css('display', 'block');
-            $(".needsNoSelection", $contextMenu).css('display', 'none');
-        }
-
-        var $group = getGroupOfHeaderGroupLine(window.$lastClickedLogLine);
-
-        if($group.length == 0) {
-            $(".needsGroupHeader", $contextMenu).css('display', 'none');
-        } else {
-            updateToggleGroupMenuEntry(window.$lastClickedLogLine);
-            $(".needsGroupHeader", $contextMenu).css('display', 'block');
-        }
-
-        var $parentGroup = getParentGroupOfLine(window.$lastClickedLogLine);
-
-        if ($parentGroup !== null) {
-            updateCloseParentMenuEntry($parentGroup);
-            $(".needsParentGroup", $contextMenu).css('display', 'block');
-        } else {
-            $(".needsParentGroup", $contextMenu).css('display', 'none');
-        }
-
-        $contextMenu.css({
-            display: "block",
-            left: e.pageX,
-            top: e.pageY
-        });
-        return false;
+        return createContextMenu(e);
     });
 
     $contextMenu.on("click", "a", function (event) {
-        switch ($(this).attr('id')) {
-            case 'toggleGroupMenuEntry':
-                window.freezeReprocessing = true;
-                var $group = $(getGroupOfHeaderGroupLine(window.$lastClickedLogLine));
-                if ($group.hasClass("in")) {
-                    // Group is open
-                    collapseGroup($group);
-                } else {
-                    // Group is closed
-                    expandGroup($group);
-                }
-                window.freezeReprocessing = false;
-                processLineClasses();
-                break;
-            case 'collapseParentMenuEntry':
-                window.freezeReprocessing = true;
-
-                var $group = $(getParentGroupOfLine(window.$lastClickedLogLine));
-                if ($group !== null) {
-                    // Group is closed
-                    collapseGroup($group);
-                }
-
-                window.freezeReprocessing = false;
-                processLineClasses();
-                break;
-            case 'expandGroupsMenuEntry':
-                window.freezeReprocessing = true;
-                expandGroups();
-                window.freezeReprocessing = false;
-                processLineClasses();
-                break;
-            case 'expandContentMenuEntry':
-                expandContent();
-                break;
-            case 'collapseGroupsMenuEntry':
-                window.freezeReprocessing = true;
-                collapseGroups();
-                window.freezeReprocessing = false;
-                processLineClasses();
-                break;
-            case 'collapseContentMenuEntry':
-                collapseContent();
-                break;
-            case 'collapseSelectionMenuEntry':
-                window.freezeReprocessing = true;
-                collapseSelection();
-                window.freezeReprocessing = false;
-                processLineClasses();
-                break;
-            case 'expandSelectionMenuEntry':
-                window.freezeReprocessing = true;
-                expandSelection();
-                window.freezeReprocessing = false;
-                processLineClasses();
-                break;
-            default:
-        }
-
-        $contextMenu.hide();
-        event.preventDefault();
-        $(".selectedLine").each(function () { $(this).removeClass("selectedLine"); });
-        return false;
+        return onContextMenuEntryClick(event, $(this));
     });
     $(document).click(function () {
         $contextMenu.hide();
@@ -141,6 +62,223 @@
     // Process even/odd once
     processLineClasses();
 });
+
+function createContextMenu(e) {
+    var $contextMenu = $('#contextMenu');
+    if (window.selectedLogLines.length > 1 && hasCollapsedGroupsInSelection()) {
+        $("#expandStructureMenuEntry", $contextMenu).css('display', 'block');
+    } else {
+        $("#expandStructureMenuEntry", $contextMenu).css('display', 'none');
+    }
+
+    if (window.selectedLogLines.length > 1 && hasOpenGroupsInSelection()) {
+        $("#collapseStructureMenuEntry", $contextMenu).css('display', 'block');
+    } else {
+        $("#collapseStructureMenuEntry", $contextMenu).css('display', 'none');
+    }
+
+    if (hasCollapsedContentInSelection()) {
+        $("#expandContentMenuEntry", $contextMenu).css('display', 'block');
+    } else {
+        $("#expandContentMenuEntry", $contextMenu).css('display', 'none');
+    }
+
+    if (hasOpenContentInSelection()) {
+        $("#collapseContentMenuEntry", $contextMenu).css('display', 'block');
+    } else {
+        $("#collapseContentMenuEntry", $contextMenu).css('display', 'none');
+    }
+
+    if (window.selectedLogLines.length == 1) {
+        // If single selection is a group header
+        var $group = getGroupOfHeaderGroupLine(window.selectedLogLines[0]);
+        if ($group.length == 0) {
+            $("#toggleGroupMenuEntry", $contextMenu).css('display', 'none');
+        } else {
+            updateToggleGroupMenuEntry(window.selectedLogLines[0]);
+            $("#toggleGroupMenuEntry", $contextMenu).css('display', 'block');
+        }
+
+        // If single selection has a group parent
+        var $parentGroup = getParentGroupOfLine(window.selectedLogLines[0]);
+        if ($parentGroup !== null) {
+            updateCloseParentMenuEntry($parentGroup);
+            $("#collapseParentMenuEntry", $contextMenu).css('display', 'block');
+        } else {
+            $("#collapseParentMenuEntry", $contextMenu).css('display', 'none');
+        }
+    } else {
+        $("#collapseParentMenuEntry", $contextMenu).css('display', 'none');
+        $("#toggleGroupMenuEntry", $contextMenu).css('display', 'none');
+    }
+    //// If lines selected
+    //if (window.selectedLogLines.length == 0) {
+    //    $(".needsSelection", $contextMenu).css('display', 'none');
+    //    $(".needsNoSelection", $contextMenu).css('display', 'block');
+    //} else {
+    //    $(".needsSelection", $contextMenu).css('display', 'block');
+    //    $(".needsNoSelection", $contextMenu).css('display', 'none');
+    //}
+
+    //if (window.selectedLogLines.length != 1) {
+    //    $(".needsGroupHeader", $contextMenu).css('display', 'none');
+    //    $(".needsParentGroup", $contextMenu).css('display', 'none');
+    //} else {
+    //    // If single selection is a group header
+    //    var $group = getGroupOfHeaderGroupLine(window.selectedLogLines[0]);
+    //    if ($group.length == 0) {
+    //        $(".needsGroupHeader", $contextMenu).css('display', 'none');
+    //    } else {
+    //        updateToggleGroupMenuEntry(window.selectedLogLines[0]);
+    //        $(".needsGroupHeader", $contextMenu).css('display', 'block');
+    //    }
+
+    //    // If single selection has a group parent
+    //    var $parentGroup = getParentGroupOfLine(window.selectedLogLines[0]);
+    //    if ($parentGroup !== null) {
+    //        updateCloseParentMenuEntry($parentGroup);
+    //        $(".needsParentGroup", $contextMenu).css('display', 'block');
+    //    } else {
+    //        $(".needsParentGroup", $contextMenu).css('display', 'none');
+    //    }
+
+    $contextMenu.css({
+        display: "block",
+        left: e.pageX,
+        top: e.pageY
+    });
+    return false;
+}
+
+function onContextMenuEntryClick(event, clickedLink) {
+    var $clickedLink = $(clickedLink);
+    var $contextMenu = $('#contextMenu');
+    switch ($clickedLink.attr('id')) {
+        case 'toggleGroupMenuEntry':
+            window.freezeReprocessing = true;
+            var $group = $(getGroupOfHeaderGroupLine(window.selectedLogLines[0]));
+            if ($group.hasClass("in")) {
+                // Group is open
+                collapseGroup($group);
+            } else {
+                // Group is closed
+                expandGroup($group);
+            }
+            window.freezeReprocessing = false;
+            processLineClasses();
+            break;
+
+        case 'collapseParentMenuEntry':
+            window.freezeReprocessing = true;
+
+            var $group = $(getParentGroupOfLine(window.selectedLogLines[0]));
+            if ($group !== null) {
+                collapseGroup($group);
+            }
+
+            window.freezeReprocessing = false;
+            processLineClasses();
+            break;
+
+        case 'expandStructureMenuEntry':
+            window.freezeReprocessing = true;
+            expandSelectedStructure();
+            window.freezeReprocessing = false;
+            processLineClasses();
+            break;
+        case 'collapseStructureMenuEntry':
+            window.freezeReprocessing = true;
+            collapseSelectedStructure();
+            window.freezeReprocessing = false;
+            processLineClasses();
+            break;
+
+        case 'expandContentMenuEntry':
+            expandSelectedContent();
+            break;
+        case 'collapseContentMenuEntry':
+            collapseSelectedContent();
+            break;
+        default:
+    }
+
+    $contextMenu.hide();
+    event.preventDefault();
+    $(".selectedLine").each(function () { $(this).removeClass("selectedLine"); });
+    return false;
+}
+
+function hasCollapsedGroupsInSelection() {
+    var hasCollapsedGroups = false;
+    window.selectedLogLines.forEach(function (logLine) {
+        if (hasCollapsedGroups) return;
+        if ($(logLine).find(".collapseTitle.collapsed").length > 0) hasCollapsedGroups = true;
+    });
+    return hasCollapsedGroups;
+}
+
+function hasOpenGroupsInSelection() {
+    var hasOpenGroups = false;
+    window.selectedLogLines.forEach(function (logLine) {
+        if (hasOpenGroups) return;
+        if ($(logLine).find(".collapseTitle:not(.collapsed)").length > 0) hasOpenGroups = true;
+    });
+    return hasOpenGroups;
+}
+
+function hasCollapsedContentInSelection() {
+    var hasCollapsedContent = false;
+    window.selectedLogLines.forEach(function (logLine) {
+        if (hasCollapsedContent) return;
+        if ($(logLine).find(".longEntry.collapsed").length > 0) hasCollapsedContent = true;
+        if ($(logLine).find(".exceptionContainer:not(.in)").length > 0) hasCollapsedContent = true;
+    });
+    return hasCollapsedContent;
+}
+
+function hasOpenContentInSelection() {
+    var hasOpenContent = false;
+    window.selectedLogLines.forEach(function (logLine) {
+        if (hasOpenContent) return;
+        if ($(logLine).find(".longEntry:not(.collapsed)").length > 0) hasOpenContent = true;
+        if ($(logLine).find(".exceptionContainer.in").length > 0) hasOpenContent = true;
+    });
+    return hasOpenContent;
+}
+
+function startLogEntrySelection(logLine) {
+    window.selectedLogLines = [];
+    selectLogLine(logLine);
+
+    $(".logLine").each(function () { var logLine = $(this); logLine.bind("mouseenter", handleLogEntryMouseEnter); });
+}
+
+function stopLogEntrySelection(logLine) {
+    $(".logLine").each(function () { var logLine = $(this); logLine.unbind("mouseenter", handleLogEntryMouseEnter); });
+}
+
+function handleLogEntryMouseEnter(e) {
+    selectLogLine(this);
+}
+
+function selectLogLine(logLine) {
+    var $logLine = $(logLine);
+    if ($.inArray($logLine, window.selectedLogLines) === -1) {
+        window.selectedLogLines.push($logLine);
+
+        $logLine.addClass("selectedLine");
+    }
+}
+
+function deselectLogLine(logLine) {
+    var $logLine = $(logLine);
+
+    if ($.inArray($logLine, window.selectedLogLines) !== -1) {
+        window.selectedLogLines.splice($.inArray($logLine, window.selectedLogLines), 1);
+
+        $logLine.removeClass("selectedLine");
+    }
+}
 
 function updateToggleGroupMenuEntry($clickedLogLine) {
     var text = "";
@@ -207,8 +345,7 @@ function getParentGroupOfLine(groupLine) {
     return $groupParent;
 }
 
-function getGroupOfHeaderGroupLine(groupLineElement)
-{
+function getGroupOfHeaderGroupLine(groupLineElement) {
     var $line = $(groupLineElement);
     return getGroupOfTitle($line.find("a.collapseToggle"));
 }
@@ -217,6 +354,7 @@ function getTitleOfGroup(groupElement) {
     var $groupElement = $(groupElement);
     return $(".collapseToggle[href=\"#" + $groupElement.attr('id') + "\"]")
 }
+
 function getGroupOfTitle(collapseTitle) {
     var href = $(collapseTitle).attr('href');
     var $groupDiv = $(href);
@@ -224,11 +362,7 @@ function getGroupOfTitle(collapseTitle) {
     return $groupDiv;
 }
 
-function collapseGroups() {
-    $(".logGroup").each(function () {
-        collapseGroup(this);
-    });
-}
+// On single elements
 
 function collapseGroup(groupElement) {
     var $groupElement = $(groupElement);
@@ -237,12 +371,6 @@ function collapseGroup(groupElement) {
     $groupElement.css("overflow", "hidden");
     // Update toggle status
     getTitleOfGroup(groupElement).addClass("collapsed");
-}
-
-function expandGroups() {
-    $(".logGroup").each(function () {
-        expandGroup(this);
-    });
 }
 
 function expandGroup(groupElement) {
@@ -254,7 +382,33 @@ function expandGroup(groupElement) {
     getTitleOfGroup(groupElement).removeClass("collapsed");
 }
 
-function collapseContent() {
+// On all elements
+
+function expandAllGroups() {
+    $(".logGroup").each(function () {
+        expandGroup(this);
+    });
+}
+
+function collapseAllGroups() {
+    $(".logGroup").each(function () {
+        collapseGroup(this);
+    });
+}
+
+function expandAllContent() {
+    $(".longEntry").each(function () {
+        expandEllipse($(this));
+    });
+
+    $(".exceptionContainer").each(function () {
+        $(this).addClass("in");
+        $(this).css("height", "");
+        $(this).css("overflow", "");
+    });
+}
+
+function collapseAllContent() {
 
     $(".longEntry").each(function () {
         collapseEllipse($(this));
@@ -267,50 +421,66 @@ function collapseContent() {
     });
 }
 
-function expandContent() {
-    $(".longEntry").each(function () {
-        expandEllipse($(this));
-    });
+// On selection
 
-    $(".exceptionContainer").each(function () {
-        $(this).addClass("in");
-        $(this).css("height", "");
-        $(this).css("overflow", "");
-    });
-}
+function expandSelectedStructure() {
+    if (window.selectedLogLines.length == 0) return;
 
-function collapseSelection() {
-    if (typeof window.$selectedHtml == 'undefined' || window.$selectedHtml === "" || window.$selectedHtml == 0) return;
-    getLogGroupsInSelection().forEach(function (logGroupElement) {
-        collapseGroup(logGroupElement);
-    });
-}
+    window.selectedLogLines.forEach(function (logLine) {
+        var $logGroupTitle = $(logLine).find(".collapseTitle");
 
-function expandSelection() {
-    if (typeof window.$selectedHtml == 'undefined' || window.$selectedHtml === "" || window.$selectedHtml == 0) return;
-    getLogGroupsInSelection().forEach(function (logGroupElement) {
-        expandGroup(logGroupElement);
-    });
-}
-
-function getLogGroupsInSelection() {
-    // Add filter (all at root)
-    var $selectedLogGroups = window.$selectedHtml.filter(".logGroup").add(window.$selectedHtml.find(".logGroup"));
-
-    // Create group array
-    var logGroupArray = $selectedLogGroups.map(function () { return $(document.getElementById(this.id)); }).get();
-
-    // Add missing groups where we have header
-    var $selectedLogHeaders = $(window.$selectedHtml).filter(".collapseTitle");
-    $selectedLogHeaders.each(function (groupTitle) {
-        $group = getGroupOfTitle(groupTitle);
-        if ($.inArray($group, logGroupArray) === -1) {
-            logGroupArray.push($group);
+        if ($logGroupTitle.length > 0) {
+            var $group = getGroupOfTitle($logGroupTitle);
+            expandGroup($group);
         }
     });
-
-    return logGroupArray;
 }
+
+function collapseSelectedStructure() {
+    if (window.selectedLogLines.length == 0) return;
+
+    window.selectedLogLines.forEach(function (logLine) {
+        var $logGroupTitle = $(logLine).find(".collapseTitle");
+
+        if ($logGroupTitle.length > 0) {
+            var $group = getGroupOfTitle($logGroupTitle);
+            collapseGroup($group);
+        }
+    });
+}
+
+function expandSelectedContent() {
+    if (window.selectedLogLines.length == 0) return;
+
+    window.selectedLogLines.forEach(function (logLine) {
+        $(logLine).find(".longEntry").each(function () {
+            expandEllipse($(this));
+        });
+
+        $(logLine).find(".exceptionContainer").each(function () {
+            $(this).addClass("in");
+            $(this).css("height", "");
+            $(this).css("overflow", "");
+        });
+    });
+}
+
+function collapseSelectedContent() {
+    if (window.selectedLogLines.length == 0) return;
+
+    window.selectedLogLines.forEach(function (logLine) {
+        $(logLine).find(".longEntry").each(function () {
+            collapseEllipse($(this));
+        });
+
+        $(logLine).find(".exceptionContainer").each(function () {
+            $(this).removeClass("in");
+            $(this).css("height", "0px");
+            $(this).css("overflow", "hidden");
+        });
+    });
+}
+
 
 function htmlEncode(value) {
     return $('<div/>').text(value).html();
