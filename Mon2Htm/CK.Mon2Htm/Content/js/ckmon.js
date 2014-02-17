@@ -4,6 +4,8 @@
     window.$contextMenu = $('#contextMenu');
     window.$selectedHtml = "";
     window.selectedLogLines = new Array();
+    window.shifted = false;
+    $(document).bind('keyup keydown', function (e) { window.shifted = e.shiftKey; return true; });
 
     $('.logLine').mousedown(function (event) {
         switch (event.which) {
@@ -57,7 +59,11 @@
 
     // Prepare context menu
     $("body").on("contextmenu", ".logLine", function (e) {
-        return createContextMenu(e);
+        if (!window.shifted) {
+            return createContextMenu(e);
+        } else {
+            return true;
+        }
     });
 
     $contextMenu.on("click", "a", function (event) {

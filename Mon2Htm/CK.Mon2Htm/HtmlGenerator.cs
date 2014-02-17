@@ -446,8 +446,15 @@ namespace CK.Mon2Htm
                     }
                     else
                     {
-                        currentFolder = Directory.GetParent( currentFolder ).FullName;
-                        if( currentFolder == null ) break; // At root!
+                        var currentFolderInfo = Directory.GetParent( currentFolder );
+                        if( currentFolderInfo == null )
+                        {
+                            break; // At root!
+                        }
+                        else
+                        {
+                            currentFolder = currentFolderInfo.FullName;
+                        }
                     }
                 }
 
