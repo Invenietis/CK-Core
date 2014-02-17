@@ -44,7 +44,7 @@ namespace CK.Mon2Htm
         /// <param name="htmlOutputDirectory">Directory in which the HTML structure will be generated. Defaults to null, in which case an "html" folder will be created and used inside the logs' directoryPath.</param>
         /// <param name="logEntryCountPerPage">How many entries to write on every log page.</param>
         /// <returns>Full path of created index.html. Null when no valid file could be loaded from directoryPath.</returns>
-        public static string CreateFromLogDirectory( string directoryPath, IActivityMonitor activityMonitor, int logEntryCountPerPage, bool recurse = true, string htmlOutputDirectory = null  )
+        public static string CreateFromLogDirectory( string directoryPath, IActivityMonitor activityMonitor, int logEntryCountPerPage, bool recurse = true, string htmlOutputDirectory = null )
         {
             if( activityMonitor == null ) throw new ArgumentNullException( "activityMonitor" );
             if( !Directory.Exists( directoryPath ) ) throw new DirectoryNotFoundException( "The given path does not exist, or is not a directory." );
@@ -92,7 +92,7 @@ namespace CK.Mon2Htm
         /// <param name="htmlOutputDirectory">Directory in which the HTML structure will be generated.</param>
         /// <param name="logEntryCountPerPage">How many entries to write on every log page.</param>
         /// <returns>Full path of created index.html. Null when no valid file could be loaded from directoryPath.</returns>
-        public static string CreateFromActivityMap( MultiLogReader.ActivityMap activityMap, IActivityMonitor activityMonitor, int logEntryCountPerPage, string outputDirectoryPath  )
+        public static string CreateFromActivityMap( MultiLogReader.ActivityMap activityMap, IActivityMonitor activityMonitor, int logEntryCountPerPage, string outputDirectoryPath )
         {
             HtmlGenerator g = new HtmlGenerator( activityMap, outputDirectoryPath, activityMonitor, logEntryCountPerPage );
 
@@ -113,20 +113,14 @@ namespace CK.Mon2Htm
         {
             CopyContentResourceToFile( @"css\CkmonStyle.css", _outputDirectoryPath );
             CopyContentResourceToFile( @"css\Reset.css", _outputDirectoryPath );
-            CopyContentResourceToFile( @"css\bootstrap-modal-bs3patch.css", _outputDirectoryPath );
             CopyContentResourceToFile( @"css\bootstrap.min.css", _outputDirectoryPath );
-            CopyContentResourceToFile( @"css\bootstrap-modal.css", _outputDirectoryPath );
             CopyContentResourceToFile( @"css\bootstrap-theme.min.css", _outputDirectoryPath );
             CopyContentResourceToFile( @"css\ex-bg.png", _outputDirectoryPath );
-            CopyContentResourceToFile( @"css\info.svg", _outputDirectoryPath );
             CopyContentResourceToFile( @"css\warn.svg", _outputDirectoryPath );
             CopyContentResourceToFile( @"css\error.svg", _outputDirectoryPath );
             CopyContentResourceToFile( @"css\fatal.svg", _outputDirectoryPath );
             CopyContentResourceToFile( @"js\bootstrap.min.js", _outputDirectoryPath );
             CopyContentResourceToFile( @"js\jquery-2.0.3.min.js", _outputDirectoryPath );
-            CopyContentResourceToFile( @"js\bootstrap-modal.js", _outputDirectoryPath );
-            CopyContentResourceToFile( @"js\bootstrap-modalmanager.js", _outputDirectoryPath );
-            CopyContentResourceToFile( @"js\readmore.min.js", _outputDirectoryPath );
             CopyContentResourceToFile( @"js\moment.min.js", _outputDirectoryPath );
             CopyContentResourceToFile( @"js\moment-with-langs.js", _outputDirectoryPath );
             CopyContentResourceToFile( @"js\ckmon.js", _outputDirectoryPath );
@@ -300,6 +294,7 @@ namespace CK.Mon2Htm
         private void WriteLogPageFooter( TextWriter tw, MultiLogReader.Monitor monitor, int currentPage )
         {
             WriteMonitorPaginator( tw, monitor, currentPage );
+            tw.Write( HTML_ENTRYPAGE_CONTEXT_MENU );
             tw.Write( GetHtmlFooter() );
         }
 
@@ -328,7 +323,7 @@ namespace CK.Mon2Htm
                 tw.Write( @"<p>The logging system encountered the following errors:</p>" );
                 foreach( var path in dumpPaths )
                 {
-                    tw.Write( @"<h3>{0} <small>{1}</small></h3>", Path.GetFileName( path ), Path.GetDirectoryName(path));
+                    tw.Write( @"<h3>{0} <small>{1}</small></h3>", Path.GetFileName( path ), Path.GetDirectoryName( path ) );
                     tw.Write( @"<pre>{0}</pre>", File.ReadAllText( path ) );
                 }
                 tw.Write( @"</div>" );
@@ -338,7 +333,7 @@ namespace CK.Mon2Htm
             tw.Write( String.Format( "<h3>Between {0} and {1}</h3>", _activityMap.FirstEntryDate, _activityMap.LastEntryDate ) );
 
             tw.Write( @"<h2>Monitors:</h2><table class=""monitorTable table table-striped table-bordered"">" );
-            tw.Write( @"<thead><tr><th>Monitor ID</th><th>Started</th><th>Duration</th><th>Entries</th></tr></thead><tbody>" );
+            tw.Write( @"<thead><tr><th>Monitor</th><th>Started</th><th>Duration</th><th>Entries</th></tr></thead><tbody>" );
 
             var monitorList = _activityMap.Monitors.ToList();
             monitorList.Sort( ( a, b ) => b.FirstEntryTime.CompareTo( a.FirstEntryTime ) );
@@ -351,7 +346,7 @@ namespace CK.Mon2Htm
 
                 if( monitorPages.TryGetValue( monitor, out monitorPageList ) )
                 {
-                    href = String.Format( @"<a href=""{1}"">{0}</a>", monitor.MonitorId.ToString(),
+                    href = String.Format( @"<a href=""{1}"">{0}</a>", _indexInfos[monitor].MonitorTitle,
                         HttpUtility.UrlEncode( monitorPageList.First() ) );
                 }
 
@@ -385,7 +380,8 @@ namespace CK.Mon2Htm
         private void WriteMonitorPaginator( TextWriter tw, MultiLogReader.Monitor monitor, int currentPage )
         {
             Debug.Assert( currentPage <= _indexInfos[monitor].PageCount );
-            tw.Write( @"<ul class=""pagination"">" );
+            tw.Write( @"<div class=""center-container"">" );
+            tw.Write( @"<ul class=""pagination center-content"">" );
 
             if( currentPage > 1 )
             {
@@ -398,7 +394,7 @@ namespace CK.Mon2Htm
                 tw.Write( @"<li class=""disabled""><a>Prev</a></li>" );
             }
 
-            for( int i = 1; i <= _indexInfos[monitor].PageCount; i++ )
+            foreach( var i in LogarithmicPagination( currentPage, _indexInfos[monitor].PageCount ) )
             {
                 if( i == currentPage )
                 {
@@ -423,6 +419,7 @@ namespace CK.Mon2Htm
             }
 
             tw.Write( @"</ul>" );
+            tw.Write( @"</div>" );
         }
 
         private IList<string> GetSystemActivityMonitorDumpPaths()
@@ -573,8 +570,6 @@ namespace CK.Mon2Htm
 <link rel=""stylesheet"" type=""text/css"" href=""css/Reset.css"">
 <link rel=""stylesheet"" type=""text/css"" href=""css/bootstrap.min.css"">
 <link rel=""stylesheet"" type=""text/css"" href=""css/bootstrap-theme.min.css"">
-<link rel=""stylesheet"" type=""text/css"" href=""css/bootstrap-modal-bs3patch.css"">
-<link rel=""stylesheet"" type=""text/css"" href=""css/bootstrap-modal.css"">
 <link rel=""stylesheet"" type=""text/css"" href=""css/CkmonStyle.css"">
 </head>
 <body>
@@ -617,15 +612,80 @@ namespace CK.Mon2Htm
     </div>
 
 <script src=""js/jquery-2.0.3.min.js""></script>
-<script src=""js/readmore.min.js""></script>
 <script src=""js/bootstrap.min.js""></script>
-<script src=""js/bootstrap-modalmanager.js""></script>
-<script src=""js/bootstrap-modal.js""></script>
 <script src=""js/moment-with-langs.js""></script>
 <script src=""js/ckmon.js""></script>
 <script type=""text/javascript"">
 </script>
 </body></html>";
         #endregion
+
+        #region HTML entry page context menu
+        static string HTML_ENTRYPAGE_CONTEXT_MENU =
+            @"
+<div id=""contextMenu"" class=""dropdown clearfix"">
+    <ul class=""dropdown-menu"" role=""menu"" aria-labelledby=""dropdownMenu"" style=""display:block;position:static;margin-bottom:5px;"">
+        <li><a id=""expandGroupsMenuEntry"" tabindex=""-1"" href=""#"">Expand groups</a></li>
+        <li><a id=""expandAllMenuEntry"" tabindex=""-1"" href=""#"">Expand everything</a></li>
+        <li class=""divider""></li>
+        <li><a id=""collapseGroupsMenuEntry"" tabindex=""-1"" href=""#"">Collapse groups</a></li>
+        <li><a id=""collapseAllMenuEntry"" tabindex=""-1"" href=""#"">Collapse everything</a></li>
+    </ul>
+</div>";
+        #endregion
+
+        private static readonly int LINKS_PER_STEP = 2;
+        private static List<int> LogarithmicPagination( int page, int lastPage )
+        {
+            List<int> resultList = new List<int>();
+
+            // Now calculate page links...
+            int lastp1 = 1;
+            int lastp2 = page;
+            int p1 = 1;
+            int p2 = page;
+            int c1 = LINKS_PER_STEP + 1;
+            int c2 = LINKS_PER_STEP + 1;
+            int step = 1;
+
+            while( true )
+            {
+                if( c1 >= c2 )
+                {
+                    resultList.Add( p1 );
+                    lastp1 = p1;
+                    p1 += step;
+                    c1--;
+                }
+                else
+                {
+                    resultList.Add( p2 );
+                    lastp2 = p2;
+                    p2 -= step;
+                    c2--;
+                }
+                if( c2 == 0 )
+                {
+                    step *= 10;
+                    p1 += step - 1;         // Round UP to nearest multiple of $step
+                    p1 -= (p1 % step);
+                    p2 -= (p2 % step);   // Round DOWN to nearest multiple of $step
+                    c1 = LINKS_PER_STEP;
+                    c2 = LINKS_PER_STEP;
+                }
+                if( p1 > p2 )
+                {
+                    if( (lastp2 > page) || (page >= lastPage) )
+                        return resultList.OrderBy( a => a ).ToList();
+                    lastp1 = page;
+                    lastp2 = lastPage;
+                    p1 = page + 1;
+                    p2 = lastPage;
+                    c1 = LINKS_PER_STEP;
+                    c2 = LINKS_PER_STEP + 1;
+                    step = 1;
+                }
+            }
+        }
     }
 }

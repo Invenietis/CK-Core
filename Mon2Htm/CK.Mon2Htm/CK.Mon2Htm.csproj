@@ -56,12 +56,6 @@
     <EmbeddedResource Include="Content\css\Reset.css" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="Content\css\bootstrap-modal-bs3patch.css" />
-    <EmbeddedResource Include="Content\css\bootstrap-modal.css" />
-    <EmbeddedResource Include="Content\js\bootstrap-modal.js" />
-    <EmbeddedResource Include="Content\js\bootstrap-modalmanager.js" />
-  </ItemGroup>
-  <ItemGroup>
     <EmbeddedResource Include="Content\css\bootstrap-theme.min.css" />
     <EmbeddedResource Include="Content\css\bootstrap.min.css" />
     <EmbeddedResource Include="Content\js\bootstrap.min.js" />
@@ -81,14 +75,10 @@
   <ItemGroup>
     <EmbeddedResource Include="Content\css\error.svg" />
     <EmbeddedResource Include="Content\css\fatal.svg" />
-    <EmbeddedResource Include="Content\css\info.svg" />
     <EmbeddedResource Include="Content\css\warn.svg" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Content\js\ckmon.js" />
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="Content\js\readmore.min.js" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Content\js\moment.min.js" />

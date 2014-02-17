@@ -14,6 +14,7 @@ namespace CK.Mon2Htm
 
         int _totalEntryCount, _totalTraceCount, _totalInfoCount, _totalWarnCount, _totalErrorCount, _totalFatalCount;
         int _pageLength;
+        string _monitorTitle;
 
         List<MonitorPageReference> _pages;
 
@@ -22,6 +23,25 @@ namespace CK.Mon2Htm
         List<DateTimeStamp> _fatalTimestamps;
         CKSortedArrayKeyList<MonitorGroupReference,DateTimeStamp> _groups;
         Dictionary<DateTimeStamp,int> _logTimeToPage;
+
+        private MonitorGroupReference GetCurrentGroupReference( List<ILogEntry> groupsPath )
+        {
+            if( groupsPath.Count > 0 )
+            {
+                return _groups.GetByKey( groupsPath[groupsPath.Count - 1].LogTime );
+            }
+            return null;
+        }
+
+        public MonitorGroupReference GetGroupReference( DateTimeStamp s )
+        {
+            return _groups.GetByKey( s );
+        }
+
+        public MonitorGroupReference GetGroupReference( ILogEntry e )
+        {
+            return GetGroupReference( e.LogTime );
+        }
 
         private MonitorIndexInfo( Guid monitorGuid )
         {
@@ -50,6 +70,7 @@ namespace CK.Mon2Htm
         public int TotalEntryCount { get { return _totalEntryCount; } }
         public int PageCount { get { return _pages.Count; } }
         public int PageLength { get { return _pageLength; } }
+        public string MonitorTitle { get { if( String.IsNullOrEmpty( _monitorTitle ) ) { return _monitorGuid.ToString(); } else { return _monitorTitle; } } }
 
         public IReadOnlyList<MonitorPageReference> Pages { get { return _pages.ToReadOnlyList(); } }
         public ICKReadOnlyUniqueKeyedCollection<MonitorGroupReference, DateTimeStamp> Groups { get { return _groups; } }
@@ -113,6 +134,7 @@ namespace CK.Mon2Htm
             pageRef.EntryCount = page.Entries.Count;
             _totalEntryCount += pageRef.EntryCount;
             List<ILogEntry> groupsPath = previousPageEndPath.ToList();
+            List<MonitorGroupReference> groupRefsPath = previousPageEndPath.Select( x => GetGroupReference( x ) ).ToList();
 
             int i = 0;
             foreach( var parentedEntry in page.Entries )
@@ -126,6 +148,11 @@ namespace CK.Mon2Htm
                 {
                     pageRef.LastEntryTimestamp = parentedEntry.Entry.LogTime;
                     AddTimestampEntry( parentedEntry.Entry.LogTime, _pages.Count );
+                }
+
+                if( parentedEntry.Entry.Tags.IsSupersetOf(ActivityMonitor.Tags.MonitorTopicChanged) && _monitorTitle == null)
+                {
+                    _monitorTitle = parentedEntry.Entry.Text;
                 }
 
                 if( parentedEntry.Entry.LogLevel.HasFlag( LogLevel.Trace ) ) _totalTraceCount++;
@@ -154,9 +181,11 @@ namespace CK.Mon2Htm
                     MonitorGroupReference groupRef = new MonitorGroupReference()
                     {
                         OpenGroupEntry = parentedEntry.Entry,
-                        OpenGroupTimestamp = parentedEntry.Entry.LogTime
+                        OpenGroupTimestamp = parentedEntry.Entry.LogTime,
+                        HighestLogLevel = parentedEntry.Entry.LogLevel
                     };
                     groupsPath.Add( parentedEntry.Entry );
+                    groupRefsPath.Add( groupRef );
                     _groups.Add( groupRef );
                     AddTimestampEntry( parentedEntry.Entry.LogTime, _pages.Count );
                 }
@@ -170,10 +199,27 @@ namespace CK.Mon2Htm
                         existingGroupRef.CloseGroupTimestamp = parentedEntry.Entry.LogTime;
 
                         groupsPath.RemoveAt( groupsPath.Count - 1 );
+                        groupRefsPath.RemoveAt( groupRefsPath.Count - 1 );
+
                         AddTimestampEntry( parentedEntry.Entry.LogTime, _pages.Count );
                     }
 
                     AddTimestampEntry( parentedEntry.Entry.LogTime, _pages.Count );
+                }
+
+                // Update HighestLogLevel for all parent groups
+                for( int j = groupRefsPath.Count - 1; j >= 0; j-- )
+                {
+                    MonitorGroupReference groupRef = groupRefsPath[j];
+
+                    if( parentedEntry.Entry.LogLevel > groupRef.HighestLogLevel )
+                    {
+                        groupRef.HighestLogLevel = parentedEntry.Entry.LogLevel;
+                    }
+                    else
+                    {
+                        break;
+                    }
                 }
 
                 i++;
@@ -194,6 +240,7 @@ namespace CK.Mon2Htm
 
     public class MonitorGroupReference
     {
+        public LogLevel HighestLogLevel { get; internal set; }
         public DateTimeStamp OpenGroupTimestamp { get; internal set; }
         public DateTimeStamp CloseGroupTimestamp { get; internal set; }
         public ILogEntry OpenGroupEntry { get; internal set; }

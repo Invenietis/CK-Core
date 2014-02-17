@@ -9,35 +9,64 @@ body {
 	font-family: "Helvetica Neue", "Helvetica", "Segoe UI", "Arial", sans-serif;
 }
 
-.logLine, .logMessage, .logGroupMessage, .timestamp, .stackTrace, .groupBreadcrumbItem
-{
+.logLine, .logMessage, .logGroupMessage, .timestamp, .stackTrace, .groupBreadcrumbItem {
 	font-family: Consolas, 'DejaVu Sans Mono', monospace;
-    font-size: 9pt;
-    vertical-align: top;
+	font-size: 9pt;
+	vertical-align: top;
 	margin: 0;
 }
 
-.logMessage
-{
-	border: none;
-	background-color:transparent;
-	padding: 0;
-	border-radius: initial;
-    display: inline-block;
-
-    vertical-align: top;
+.logLine {
+	display: table;
+	width: 100%;
+	overflow: auto;
+}
+.logLine > div {
+	display: table-cell;
 }
 
-.timestamp
-{
-    margin-right: 10pt;
-    vertical-align: top;
-    display: inline-block;
+.logContent {
+	overflow: hidden;
+	width: 99%;
+}
+
+.lineHeader {
+	white-space: nowrap;
+}
+
+.logMessage {
+	border: none;
+	background-color: transparent;
+	padding: 0;
+	border-radius: initial;
+	display: inline-block;
+	vertical-align: top;
+	width: 100%;
+}
+
+.timestamp, .logLineNumber {
+	vertical-align: top;
+	display: inline-block;
+	color: lightgrey;
+}
+
+.timestamp {
+	padding-right: 5pt;
+	padding-left: 5pt;
+	overflow: auto;
+	display: inline-block;
+}
+
+.logLineNumber {
+	overflow: auto;
+	display: inline-block;	
+	padding-right: 5pt;
+	border-right: 1px solid lightgrey;
 }
 
 /* Close group icon */
 .collapseToggle:not(.collapsed):before {
-	content: "";
+	content: "−";
 	margin-right: 3pt;
 	display: inline-block;
 	font-size: 9pt;
@@ -51,7 +80,7 @@ body {
 
 /* Open group icon */
 .collapseToggle.collapsed:before {
-	content: "";
+	content: "+";
 	margin-right: 3pt;
 	display: inline-block;
 	font-size: 9pt;
@@ -76,7 +105,7 @@ body {
 	border-radius: 15px;
 	background-color: #F2F2F2;
 	padding: 0;
-    margin: 6pt;
+	margin: 6pt;
 }
 
 .exceptionEntry {
@@ -140,12 +169,28 @@ div.groupBreadcrumb {
 	background-color: lightgray;
 }
 
+div.topGroupBreadcrumb {
+	margin-top: 20pt;
+}
+
 .tabSpace {
-    margin-left: 15pt;
+	padding-left: 15pt;
 }
 
 .paginator > div {
 	display: inline-block;
+}
+
+.center-container {
+	position: relative;
+	left: 50%;
+	float: left;
+}
+
+.center-content {
+	position: relative;
+	left: -50%;
+	float: left;
 }
 
 .paginator {
@@ -163,7 +208,6 @@ div.groupBreadcrumb {
 		float: left;
 		list-style-type: none;
 		margin: 3px;
-		display: inline-block;
 	}
 
 	.paginator > ul > li {
@@ -174,38 +218,36 @@ div.groupBreadcrumb {
 	margin: 0;
 }
 
-	.logContainer .logLine:nth-child(even) {
-		background: #EEE;
+	.logContainer .logLine.even {
+		background: #F7F7F7;
 	}
 
-	.logContainer .logLine:nth-of-type(odd) {
+	.logContainer .logLine.odd {
 		background: #FFF;
 	}
 
-div.entryCount
-{
+div.entryCount {
 	font-family: monospace;
 	border: none;
 	margin-left: 3pt;
 }
 
-div.monitorTime, div.monitorId, div.entryCount
-{
-	display:inline-block;
+#contextMenu {
+    position: absolute;
+    display:none;
+}
+
+div.monitorTime, div.monitorId, div.entryCount {
+	display: inline-block;
 }
 
 .logGroupMessage, .groupBreadcrumbItem {
-	font-weight: bold;
-    display: inline-block;
+	display: inline-block;
 }
 
 	.logGroupMessage > p, .groupBreadcrumbItem > p {
 		margin: 0;
 	}
-
-.logGroupHeader {
-	font-weight: bold;
-}
 
 .exceptionDetail {
 	background-color: lightyellow;
@@ -216,9 +258,30 @@ div.monitorTime, div.monitorId, div.entryCount
 	text-align: center;
 }
 
+a.collapseTitle:link {
+	color: inherit;
+	text-decoration: none;
+}
+
+a.collapseTitle:visited {
+	color: inherit;
+	text-decoration: none;
+}
+
+a.collapseTitle:hover {
+	color: inherit;
+	text-decoration: underline;
+}
+
+a.collapseTitle:active {
+	color: inherit;
+	text-decoration: none;
+}
+
+
 .logMessage.fatal {
 	color: darkred;
-    font-weight: bold;
+	font-weight: bold;
 }
 
 .logMessage.error {
@@ -230,14 +293,79 @@ div.monitorTime, div.monitorId, div.entryCount
 }
 
 .logMessage.info {
-	color: black;
+	color: #0000CC;
 }
 
 .logMessage.trace {
 	color: gray;
 }
 
+
+.timestamp.fatal {
+	color: darkred;
+	font-weight: bold;
+}
+
+.timestamp.error {
+	color: red;
+}
+
+.timestamp.warn {
+	color: orange;
+}
+
+.timestamp.info {
+	color: #0000CC;
+}
+
+.timestamp.trace {
+	color: gray;
+}
+
+.warnCount:before {
+	content: "";
+	display: inline-block;
+	width: 16px;
+	height: 16px;
+	background-image: url("warn.svg");
+	background-size: contain;
+	background-repeat: no-repeat;
+	background-position: center center;
+	vertical-align: middle;
+	margin-right: 4px;
+}
+
+.errorCount:before {
+	content: "";
+	display: inline-block;
+	width: 16px;
+	height: 16px;
+	background-image: url("error.svg");
+	background-size: contain;
+	background-repeat: no-repeat;
+	background-position: center center;
+	vertical-align: middle;
+	margin-right: 4px;
+}
+
+.fatalCount:before {
+	content: "";
+	display: inline-block;
+	width: 16px;
+	height: 16px;
+	background-image: url("fatal.svg");
+	background-size: contain;
+	background-repeat: no-repeat;
+	background-position: center center;
+	vertical-align: middle;
+	margin-right: 4px;
+}
+
 .groupBreadcrumbSeparator {
 	width: 100%;
 	border-bottom: 3px double black;
+}
+
+.newLineIcon {
+	color: gray;
 }
