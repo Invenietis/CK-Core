@@ -7,13 +7,35 @@
     // Prepare context menu
     $("body").on("contextmenu", ".logLine", function (e) {
         window.$lastClickedLogLine = $(this);
+        window.$lastClickedLogLine.addClass("selectedLine");
         window.$selectedHtml = $(getHTMLOfSelection());
 
         if (typeof window.$selectedHtml == 'undefined' || window.$selectedHtml === "" || window.$selectedHtml.length == 0) {
             $(".needsSelection", $contextMenu).css('display', 'none');
+            $(".needsNoSelection", $contextMenu).css('display', 'block');
         } else {
             $(".needsSelection", $contextMenu).css('display', 'block');
+            $(".needsNoSelection", $contextMenu).css('display', 'none');
         }
+
+        var $group = getGroupOfHeaderGroupLine(window.$lastClickedLogLine);
+
+        if($group.length == 0) {
+            $(".needsGroupHeader", $contextMenu).css('display', 'none');
+        } else {
+            updateToggleGroupMenuEntry(window.$lastClickedLogLine);
+            $(".needsGroupHeader", $contextMenu).css('display', 'block');
+        }
+
+        var $parentGroup = getParentGroupOfLine(window.$lastClickedLogLine);
+
+        if ($parentGroup !== null) {
+            updateCloseParentMenuEntry($parentGroup);
+            $(".needsParentGroup", $contextMenu).css('display', 'block');
+        } else {
+            $(".needsParentGroup", $contextMenu).css('display', 'none');
+        }
+
         $contextMenu.css({
             display: "block",
             left: e.pageX,
@@ -24,17 +46,39 @@
 
     $contextMenu.on("click", "a", function (event) {
         switch ($(this).attr('id')) {
+            case 'toggleGroupMenuEntry':
+                window.freezeReprocessing = true;
+                var $group = $(getGroupOfHeaderGroupLine(window.$lastClickedLogLine));
+                if ($group.hasClass("in")) {
+                    // Group is open
+                    collapseGroup($group);
+                } else {
+                    // Group is closed
+                    expandGroup($group);
+                }
+                window.freezeReprocessing = false;
+                processLineClasses();
+                break;
+            case 'collapseParentMenuEntry':
+                window.freezeReprocessing = true;
+
+                var $group = $(getParentGroupOfLine(window.$lastClickedLogLine));
+                if ($group !== null) {
+                    // Group is closed
+                    collapseGroup($group);
+                }
+
+                window.freezeReprocessing = false;
+                processLineClasses();
+                break;
             case 'expandGroupsMenuEntry':
                 window.freezeReprocessing = true;
                 expandGroups();
                 window.freezeReprocessing = false;
                 processLineClasses();
                 break;
-            case 'expandAllMenuEntry':
-                window.freezeReprocessing = true;
-                expandEverything();
-                window.freezeReprocessing = false;
-                processLineClasses();
+            case 'expandContentMenuEntry':
+                expandContent();
                 break;
             case 'collapseGroupsMenuEntry':
                 window.freezeReprocessing = true;
@@ -42,11 +86,8 @@
                 window.freezeReprocessing = false;
                 processLineClasses();
                 break;
-            case 'collapseAllMenuEntry':
-                window.freezeReprocessing = true;
-                collapseEverything();
-                window.freezeReprocessing = false;
-                processLineClasses();
+            case 'collapseContentMenuEntry':
+                collapseContent();
                 break;
             case 'collapseSelectionMenuEntry':
                 window.freezeReprocessing = true;
@@ -65,10 +106,12 @@
 
         $contextMenu.hide();
         event.preventDefault();
+        $(".selectedLine").each(function () { $(this).removeClass("selectedLine"); });
         return false;
     });
     $(document).click(function () {
         $contextMenu.hide();
+        $(".selectedLine").each(function () { $(this).removeClass("selectedLine"); });
     });
 
     // Init tooltips
@@ -98,6 +141,23 @@
     // Process even/odd once
     processLineClasses();
 });
+
+function updateToggleGroupMenuEntry($clickedLogLine) {
+    var text = "";
+    if ($clickedLogLine.find(".collapseToggle").hasClass("collapsed")) {
+        // Group is closed
+        text = "Open \"" + $clickedLogLine.find(".collapseTitle").text() + "\"";
+    } else {
+        text = "Close \"" + $clickedLogLine.find(".collapseTitle").text() + "\"";
+    }
+    $("#toggleGroupMenuEntry").text(text);
+}
+
+function updateCloseParentMenuEntry($group) {
+    var text = "Close parent: \"" + getTitleOfGroup($group).text() + "\"";
+
+    $("#collapseParentMenuEntry").text(text);
+}
 
 function ellipseElement(elementToEllipse) {
     var text = $(elementToEllipse).html();
@@ -140,11 +200,25 @@ function expandEllipse(element) {
     $element.removeClass("collapsed");
 }
 
+function getParentGroupOfLine(groupLine) {
+    var $groupLine = $(groupLine);
+    var $groupParent = $groupLine.parent(".logGroup");
+    if ($groupParent.length == 0) return null;
+    return $groupParent;
+}
+
 function getGroupOfHeaderGroupLine(groupLineElement)
 {
-    var $element = $(groupLineElement);
-    var href = $element.find("a.collapseToggle").attr('href');
+    var $line = $(groupLineElement);
+    return getGroupOfTitle($line.find("a.collapseToggle"));
+}
 
+function getTitleOfGroup(groupElement) {
+    var $groupElement = $(groupElement);
+    return $(".collapseToggle[href=\"#" + $groupElement.attr('id') + "\"]")
+}
+function getGroupOfTitle(collapseTitle) {
+    var href = $(collapseTitle).attr('href');
     var $groupDiv = $(href);
 
     return $groupDiv;
@@ -162,7 +236,7 @@ function collapseGroup(groupElement) {
     $groupElement.css("height", "0px");
     $groupElement.css("overflow", "hidden");
     // Update toggle status
-    $(".collapseToggle[href=\"#" + $groupElement.attr('id') + "\"]").addClass("collapsed");
+    getTitleOfGroup(groupElement).addClass("collapsed");
 }
 
 function expandGroups() {
@@ -177,11 +251,10 @@ function expandGroup(groupElement) {
     $groupElement.css("height", "");
     $groupElement.css("overflow", "");
     // Update toggle status
-    $(".collapseToggle[href=\"#" + $groupElement.attr('id') + "\"]").removeClass("collapsed");
+    getTitleOfGroup(groupElement).removeClass("collapsed");
 }
 
-function collapseEverything() {
-    collapseGroups();
+function collapseContent() {
 
     $(".longEntry").each(function () {
         collapseEllipse($(this));
@@ -194,9 +267,7 @@ function collapseEverything() {
     });
 }
 
-function expandEverything() {
-    expandGroups();
-
+function expandContent() {
     $(".longEntry").each(function () {
         expandEllipse($(this));
     });
@@ -214,6 +285,7 @@ function collapseSelection() {
         collapseGroup(logGroupElement);
     });
 }
+
 function expandSelection() {
     if (typeof window.$selectedHtml == 'undefined' || window.$selectedHtml === "" || window.$selectedHtml == 0) return;
     getLogGroupsInSelection().forEach(function (logGroupElement) {
@@ -222,7 +294,22 @@ function expandSelection() {
 }
 
 function getLogGroupsInSelection() {
-    return $(window.$selectedHtml).filter(".logGroup[id]").add($(window.$selectedHtml).find(".logGroup[id]")).map(function () { return $(document.getElementById(this.id)); }).get();
+    // Add filter (all at root)
+    var $selectedLogGroups = window.$selectedHtml.filter(".logGroup").add(window.$selectedHtml.find(".logGroup"));
+
+    // Create group array
+    var logGroupArray = $selectedLogGroups.map(function () { return $(document.getElementById(this.id)); }).get();
+
+    // Add missing groups where we have header
+    var $selectedLogHeaders = $(window.$selectedHtml).filter(".collapseTitle");
+    $selectedLogHeaders.each(function (groupTitle) {
+        $group = getGroupOfTitle(groupTitle);
+        if ($.inArray($group, logGroupArray) === -1) {
+            logGroupArray.push($group);
+        }
+    });
+
+    return logGroupArray;
 }
 
 function htmlEncode(value) {

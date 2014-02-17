@@ -625,14 +625,20 @@ namespace CK.Mon2Htm
             @"
 <div id=""contextMenu"" class=""dropdown clearfix"">
     <ul class=""dropdown-menu"" role=""menu"" aria-labelledby=""dropdownMenu"" style=""display:block;position:static;margin-bottom:5px;"">
-        <li><a id=""expandSelectionMenuEntry"" class=""needsSelection"" tabindex=""-1"" href=""#"">Expand selected groups</a></li>
-        <li><a id=""collapseSelectionMenuEntry"" class=""needsSelection"" tabindex=""-1"" href=""#"">Collapse selected groups</a></li>
-        <li class=""divider needsSelection""></li>
-        <li><a id=""expandGroupsMenuEntry"" tabindex=""-1"" href=""#"">Expand all groups</a></li>
-        <li><a id=""expandAllMenuEntry"" tabindex=""-1"" href=""#"">Expand everything</a></li>
-        <li class=""divider""></li>
-        <li><a id=""collapseGroupsMenuEntry"" tabindex=""-1"" href=""#"">Collapse all groups</a></li>
-        <li><a id=""collapseAllMenuEntry"" tabindex=""-1"" href=""#"">Collapse everything</a></li>
+
+        <li class=""needsGroupHeader""><a id=""toggleGroupMenuEntry"" tabindex=""-1"" href=""#"">Toggle group</a></li>
+        <li class=""divider needsGroupHeader""></li>
+
+        <li class=""needsSelection""><a id=""expandSelectionMenuEntry"" tabindex=""-1"" href=""#"">Expand selected tree</a></li>
+        <li class=""needsSelection""><a id=""collapseSelectionMenuEntry"" tabindex=""-1"" href=""#"">Collapse selected tree</a></li>
+        
+        <li class=""needsNoSelection""><a id=""expandGroupsMenuEntry"" tabindex=""-1"" href=""#"">Expand entire tree</a></li>
+        <li class=""needsNoSelection""><a id=""expandContentMenuEntry"" tabindex=""-1"" href=""#"">Expand all content</a></li>
+        <li class=""divider needsNoSelection""></li>
+        <li class=""needsNoSelection""><a id=""collapseGroupsMenuEntry"" tabindex=""-1"" href=""#"">Collapse entire tree</a></li>
+        <li class=""needsNoSelection""><a id=""collapseContentMenuEntry"" tabindex=""-1"" href=""#"">Collapse all content</a></li>
+        <li class=""divider needsParentGroup needsNoSelection""></li>
+        <li class=""needsParentGroup needsNoSelection""><a id=""collapseParentMenuEntry"" tabindex=""-1"" href=""#"">Close parent</a></li>
     </ul>
 </div>";
         #endregion
