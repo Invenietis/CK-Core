@@ -1,11 +1,19 @@
 ﻿$(function () {
     window.freezeReprocessing = false;
-    var $lastClickedLogLine;
+    window.$lastClickedLogLine = "";
     var $contextMenu = $('#contextMenu');
+    window.$selectedHtml = "";
 
     // Prepare context menu
     $("body").on("contextmenu", ".logLine", function (e) {
-        $rowClicked = $(this)
+        window.$lastClickedLogLine = $(this);
+        window.$selectedHtml = $(getHTMLOfSelection());
+
+        if (typeof window.$selectedHtml == 'undefined' || window.$selectedHtml === "" || window.$selectedHtml.length == 0) {
+            $(".needsSelection", $contextMenu).css('display', 'none');
+        } else {
+            $(".needsSelection", $contextMenu).css('display', 'block');
+        }
         $contextMenu.css({
             display: "block",
             left: e.pageX,
@@ -37,6 +45,18 @@
             case 'collapseAllMenuEntry':
                 window.freezeReprocessing = true;
                 collapseEverything();
+                window.freezeReprocessing = false;
+                processLineClasses();
+                break;
+            case 'collapseSelectionMenuEntry':
+                window.freezeReprocessing = true;
+                collapseSelection();
+                window.freezeReprocessing = false;
+                processLineClasses();
+                break;
+            case 'expandSelectionMenuEntry':
+                window.freezeReprocessing = true;
+                expandSelection();
                 window.freezeReprocessing = false;
                 processLineClasses();
                 break;
@@ -130,22 +150,32 @@ function getGroupOfHeaderGroupLine(groupLineElement)
 
 function collapseGroups() {
     $(".logGroup").each(function () {
-        $(this).removeClass("in");
-        $(this).css("height", "0px");
-        $(this).css("overflow", "hidden");
-        // Update toggle status
-        $(".collapseToggle[href=\"#" + $(this).attr('id') + "\"]").addClass("collapsed");
+        collapseGroup(this);
     });
+}
+
+function collapseGroup(groupElement) {
+    var $groupElement = $(groupElement);
+    $groupElement.removeClass("in");
+    $groupElement.css("height", "0px");
+    $groupElement.css("overflow", "hidden");
+    // Update toggle status
+    $(".collapseToggle[href=\"#" + $groupElement.attr('id') + "\"]").addClass("collapsed");
 }
 
 function expandGroups() {
     $(".logGroup").each(function () {
-        $(this).addClass("in");
-        $(this).css("height", "");
-        $(this).css("overflow", "");
-        // Update toggle status
-        $(".collapseToggle[href=\"#" + $(this).attr('id') + "\"]").removeClass("collapsed");
+        expandGroup(this);
     });
+}
+
+function expandGroup(groupElement) {
+    var $groupElement = $(groupElement);
+    $groupElement.addClass("in");
+    $groupElement.css("height", "");
+    $groupElement.css("overflow", "");
+    // Update toggle status
+    $(".collapseToggle[href=\"#" + $groupElement.attr('id') + "\"]").removeClass("collapsed");
 }
 
 function collapseEverything() {
@@ -174,6 +204,23 @@ function expandEverything() {
         $(this).css("height", "");
         $(this).css("overflow", "");
     });
+}
+
+function collapseSelection() {
+    if (typeof window.$selectedHtml == 'undefined' || window.$selectedHtml === "" || window.$selectedHtml == 0) return;
+    getLogGroupsInSelection().forEach(function (logGroupElement) {
+        collapseGroup(logGroupElement);
+    });
+}
+function expandSelection() {
+    if (typeof window.$selectedHtml == 'undefined' || window.$selectedHtml === "" || window.$selectedHtml == 0) return;
+    getLogGroupsInSelection().forEach(function (logGroupElement) {
+        expandGroup(logGroupElement);
+    });
+}
+
+function getLogGroupsInSelection() {
+    return $(window.$selectedHtml).filter(".logGroup[id]").add($(window.$selectedHtml).find(".logGroup[id]")).map(function () { return $(document.getElementById(this.id)); }).get();
 }
 
 function htmlEncode(value) {
@@ -217,6 +264,30 @@ function hideLogLineGlyphs(element) {
 function showLogLineGlyphs(element) {
     $(".showOnHover", element).stop(true, true);
     $(".showOnHover", element).fadeIn(100);
+}
+
+function getHTMLOfSelection() {
+    var range;
+    if (document.selection && document.selection.createRange) {
+        range = document.selection.createRange();
+        return range.htmlText;
+    }
+    else if (window.getSelection) {
+        var selection = window.getSelection();
+        if (selection.rangeCount > 0) {
+            range = selection.getRangeAt(0);
+            var clonedSelection = range.cloneContents();
+            var div = document.createElement('div');
+            div.appendChild(clonedSelection);
+            return div.innerHTML;
+        }
+        else {
+            return '';
+        }
+    }
+    else {
+        return '';
+    }
 }
 
 $(document).ready(function () {
