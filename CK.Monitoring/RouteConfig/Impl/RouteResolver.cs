@@ -19,14 +19,14 @@ namespace CK.RouteConfig.Impl
         {
             readonly IActivityMonitor _monitor;
             readonly IProtoRoute _protoRoute;
-            readonly Dictionary<string,ActionConfigurationResolved> _idxActions;
+            readonly Dictionary<string,ActionConfigurationResolved> _actionsByName;
             readonly List<ActionConfigurationResolved> _actions;
 
             internal PreRoute( IActivityMonitor monitor, IProtoRoute protoRoute )
             {
                 _monitor = monitor;
                 _protoRoute = protoRoute;
-                _idxActions = new Dictionary<string,ActionConfigurationResolved>();
+                _actionsByName = new Dictionary<string,ActionConfigurationResolved>();
                 _actions = new List<ActionConfigurationResolved>();
                 foreach( var meta in _protoRoute.MetaConfigurations ) meta.Apply( this );
             }
@@ -35,7 +35,7 @@ namespace CK.RouteConfig.Impl
             {
                 for( int i = _actions.Count - 1; i >= 0; --i )
                 {
-                    if( !_idxActions.ContainsKey( _actions[i].Name ) ) _actions.RemoveAt( i );
+                    if( !_actionsByName.ContainsKey( _actions[i].Name ) ) _actions.RemoveAt( i );
                 }
                 return _actions;
             }
@@ -46,16 +46,16 @@ namespace CK.RouteConfig.Impl
 
             IProtoRoute IRouteConfigurationContext.ProtoRoute { get { return _protoRoute; } }
 
-            IEnumerable<ActionConfigurationResolved> IRouteConfigurationContext.CurrentActions { get { return _idxActions.Values; } }
+            IEnumerable<ActionConfigurationResolved> IRouteConfigurationContext.CurrentActions { get { return _actionsByName.Values; } }
 
             ActionConfigurationResolved IRouteConfigurationContext.FindExisting( string name )
             {
-                return _idxActions.GetValueWithDefault( name, null );
+                return _actionsByName.GetValueWithDefault( name, null );
             }
 
             bool IRouteConfigurationContext.RemoveAction( string name )
             {
-                if( !_idxActions.Remove( name ) )
+                if( !_actionsByName.Remove( name ) )
                 {
                     _monitor.Warn().Send( "Action declaration '{0}' to remove is not found.", name );
                     return false;
@@ -63,22 +63,22 @@ namespace CK.RouteConfig.Impl
                 return true;
             }
 
-            bool IRouteConfigurationContext.AddDeclaredAction( string name, string declaredName, bool fromDeclaration )
+            bool IRouteConfigurationContext.AddDeclaredAction( string name, string declaredName, bool fromMetaInsert )
             {
                 var a = _protoRoute.FindDeclaredAction( declaredName );
                 if( a == null ) 
                 {
-                    if( !fromDeclaration ) _monitor.Warn().Send( "Action declaration '{0}' not found. Action '{1}' can not be registered.", declaredName );
+                    if( fromMetaInsert ) _monitor.Warn().Send( "Action declaration '{0}' not found. Action '{1}' can not be registered.", declaredName, name );
                     return false;
                 }
-                ActionConfigurationResolved exists = _idxActions.GetValueWithDefault( name, null );
+                ActionConfigurationResolved exists = _actionsByName.GetValueWithDefault( name, null );
                 if( exists != null )
                 {
                     _monitor.Error().Send( "Action '{0}' can not be added. An action with the same name already exists.", name );
                     return false;
                 }
-                var added = ActionConfigurationResolved.Create( _monitor, a, true, _idxActions.Count );
-                _idxActions.Add( name, added );
+                var added = ActionConfigurationResolved.Create( _monitor, a, true, _actionsByName.Count );
+                _actionsByName.Add( name, added );
                 _actions.Add( added );
                 return true;
             }

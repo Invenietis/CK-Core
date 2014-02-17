@@ -36,7 +36,7 @@ CK.Core 3.0 - Release Notes
 		- Multiple ActivityMonitorClients (binary file, text file).
 		- Newed ActivityMonitors are, by default, automatically configured (GrandOutput uses this).
 		- ActivityMonitor.Topic is a get/set string that defines the current activity of a monitor. It can be changed at any time: the GrandOutput 
-		  uses this Topic to, when it changes, dynamically choose the new Channelfor the output of this monitor.
+		  uses this Topic to, when it changes, dynamically choose the new Channel for the output of this monitor.
 		- LogLevel filters now applies to OpenGroup as well as "line" logs:
 			- LogFilter value type contains a Line and a Group filter level.
 			- Predefined filters are: Undefined, Debug (full Trace), Verbose (skips Trace line but keeps all OpenGroup),
@@ -50,7 +50,7 @@ CK.Core 3.0 - Release Notes
 		- New SystemActivityMonitor whose main goal is to be internally used by the Monitor framework to report errors in the monitoring itself) but can be used as a "normal" 
 		  monitor (this should be avoided: activity must go to the GrandOutput as much as possible).
 		  SystemActivityMonitor logs the errors it receives into a configurable folder (static RootLogPath property) as small and independent text files.
-
+		- New ClickOnce CKMon2Htm application available at https://get-package.com/tools/CKMon2Htm/install/Setup.exe that generates html views of .ckmon files.
 			
 - Disparition:
 	- No more Predicate<T> anywhere. ONLY Func<T,bool> exists and must be used.

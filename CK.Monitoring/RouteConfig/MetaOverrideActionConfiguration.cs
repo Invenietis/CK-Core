@@ -36,6 +36,10 @@ namespace CK.RouteConfig
             return result;
         }
 
+        /// <summary>
+        /// This method declares the action as being overridden.
+        /// </summary>
+        /// <param name="protoContext">The temporary context used to build the routes.</param>
         protected internal override void Apply( Impl.IProtoRouteConfigurationContext protoContext )
         {
             foreach( var a in Actions ) protoContext.DeclareAction( a, overridden: true );
