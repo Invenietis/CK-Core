@@ -1,10 +1,18 @@
 ﻿$(function () {
+
     window.freezeReprocessing = false;
     window.$lastClickedLogLine = "";
     window.$contextMenu = $('#contextMenu');
     window.$selectedHtml = "";
-    window.selectedLogLines = new Array();
+
+    window.visibleLogLines = [];
+    window.selectionStart = -1;
+    window.selectionEnd = -1;
+
+    window.selectedLines = [];
+
     window.shifted = false;
+
     $(document).bind('keyup keydown', function (e) { window.shifted = e.shiftKey; return true; });
 
     $('.logLine').mousedown(function (event) {
@@ -103,44 +111,58 @@
     processLineClasses();
 });
 
+function getSelectedLinesCount() {
+    if (window.selectionEnd == -1 || window.selectionStart == -1) return 0;
+    return Math.abs(window.selectionEnd - window.selectionStart) + 1;
+}
+
+function getSelectedLines() {
+    return window.visibleLogLines.slice(window.selectionStart, window.selectionEnd+1);
+}
+
 function createContextMenu(e) {
     var $contextMenu = $('#contextMenu');
-    if (window.selectedLogLines.length > 1 && hasCollapsedGroupsInSelection()) {
+    var selectedLineCount = getSelectedLinesCount();
+    var selectedLines = [];
+    if (selectedLineCount > 0) selectedLines = getSelectedLines();
+    window.selectedLines = selectedLines;
+
+    if (selectedLineCount > 1 && hasCollapsedGroupsInSelection(selectedLines)) {
         $("#expandStructureMenuEntry", $contextMenu).css('display', 'block');
     } else {
         $("#expandStructureMenuEntry", $contextMenu).css('display', 'none');
     }
 
-    if (window.selectedLogLines.length > 1 && hasOpenGroupsInSelection()) {
+    if (selectedLineCount > 1 && hasOpenGroupsInSelection(selectedLines)) {
         $("#collapseStructureMenuEntry", $contextMenu).css('display', 'block');
     } else {
         $("#collapseStructureMenuEntry", $contextMenu).css('display', 'none');
     }
 
-    if (hasCollapsedContentInSelection()) {
+    if (hasCollapsedContentInSelection(selectedLines)) {
         $("#expandContentMenuEntry", $contextMenu).css('display', 'block');
     } else {
         $("#expandContentMenuEntry", $contextMenu).css('display', 'none');
     }
 
-    if (hasOpenContentInSelection()) {
+    if (hasOpenContentInSelection(selectedLines)) {
         $("#collapseContentMenuEntry", $contextMenu).css('display', 'block');
     } else {
         $("#collapseContentMenuEntry", $contextMenu).css('display', 'none');
     }
 
-    if (window.selectedLogLines.length == 1) {
+    if (selectedLineCount == 1) {
         // If single selection is a group header
-        var $group = getGroupOfHeaderGroupLine(window.selectedLogLines[0]);
+        var $group = getGroupOfHeaderGroupLine(selectedLines[0]);
         if ($group.length == 0) {
             $("#toggleGroupMenuEntry", $contextMenu).css('display', 'none');
         } else {
-            updateToggleGroupMenuEntry(window.selectedLogLines[0]);
+            updateToggleGroupMenuEntry(selectedLines[0]);
             $("#toggleGroupMenuEntry", $contextMenu).css('display', 'block');
         }
 
         // If single selection has a group parent
-        var $parentGroup = getParentGroupOfLine(window.selectedLogLines[0]);
+        var $parentGroup = getParentGroupOfLine(selectedLines[0]);
         if ($parentGroup !== null) {
             updateCloseParentMenuEntry($parentGroup);
             $("#collapseParentMenuEntry", $contextMenu).css('display', 'block');
@@ -190,13 +212,31 @@ function createContextMenu(e) {
     return false;
 }
 
+function getVisibleLogLines() {
+    var visibleLogLines = [];
+    var allLogLines = $('.logLine:visible');
+
+    var isLineVisible = function (a) {
+        return !($(a).is(':hidden') || $(a).parents(':hidden').length || $(a).parents('.collapsing').length || $(a).parents('.collapsed').length)
+    };
+
+    for (var i = 0; i < allLogLines.length; i++) {
+        var $logLine = $(allLogLines[i]);
+
+        if (isLineVisible($logLine)) {
+            visibleLogLines.push($logLine.get(0));
+        }
+    }
+    return visibleLogLines;
+}
+
 function onContextMenuEntryClick(event, clickedLink) {
     var $clickedLink = $(clickedLink);
     var $contextMenu = $('#contextMenu');
     switch ($clickedLink.attr('id')) {
         case 'toggleGroupMenuEntry':
             window.freezeReprocessing = true;
-            var $group = $(getGroupOfHeaderGroupLine(window.selectedLogLines[0]));
+            var $group = $(getGroupOfHeaderGroupLine(window.selectedLines[0]));
             if ($group.hasClass("in")) {
                 // Group is open
                 collapseGroup($group);
@@ -211,7 +251,7 @@ function onContextMenuEntryClick(event, clickedLink) {
         case 'collapseParentMenuEntry':
             window.freezeReprocessing = true;
 
-            var $group = $(getParentGroupOfLine(window.selectedLogLines[0]));
+            var $group = $(getParentGroupOfLine(window.selectedLines[0]));
             if ($group !== null) {
                 collapseGroup($group);
             }
@@ -244,31 +284,31 @@ function onContextMenuEntryClick(event, clickedLink) {
 
     $contextMenu.hide();
     event.preventDefault();
-    $(".selectedLine").each(function () { $(this).removeClass("selectedLine"); });
+    resetSelection();
     return false;
 }
 
-function hasCollapsedGroupsInSelection() {
+function hasCollapsedGroupsInSelection(selectedLines) {
     var hasCollapsedGroups = false;
-    window.selectedLogLines.forEach(function (logLine) {
+    selectedLines.forEach(function (logLine) {
         if (hasCollapsedGroups) return;
         if ($(logLine).find(".collapseTitle.collapsed").length > 0) hasCollapsedGroups = true;
     });
     return hasCollapsedGroups;
 }
 
-function hasOpenGroupsInSelection() {
+function hasOpenGroupsInSelection(selectedLines) {
     var hasOpenGroups = false;
-    window.selectedLogLines.forEach(function (logLine) {
+    selectedLines.forEach(function (logLine) {
         if (hasOpenGroups) return;
         if ($(logLine).find(".collapseTitle:not(.collapsed)").length > 0) hasOpenGroups = true;
     });
     return hasOpenGroups;
 }
 
-function hasCollapsedContentInSelection() {
+function hasCollapsedContentInSelection(selectedLines) {
     var hasCollapsedContent = false;
-    window.selectedLogLines.forEach(function (logLine) {
+    selectedLines.forEach(function (logLine) {
         if (hasCollapsedContent) return;
         if ($(logLine).find(".longEntry.collapsed").length > 0) hasCollapsedContent = true;
         if ($(logLine).find(".exceptionContainer:not(.in)").length > 0) hasCollapsedContent = true;
@@ -276,9 +316,9 @@ function hasCollapsedContentInSelection() {
     return hasCollapsedContent;
 }
 
-function hasOpenContentInSelection() {
+function hasOpenContentInSelection(selectedLines) {
     var hasOpenContent = false;
-    window.selectedLogLines.forEach(function (logLine) {
+    selectedLines.forEach(function (logLine) {
         if (hasOpenContent) return;
         if ($(logLine).find(".longEntry:not(.collapsed)").length > 0) hasOpenContent = true;
         if ($(logLine).find(".exceptionContainer.in").length > 0) hasOpenContent = true;
@@ -286,8 +326,21 @@ function hasOpenContentInSelection() {
     return hasOpenContent;
 }
 
+function resetSelection() {
+    window.selectionStart = -1;
+    window.selectionEnd = -1;
+    $(".selectedLine").each(function () { $(this).removeClass("selectedLine"); });
+}
+
 function startLogEntrySelection(logLine) {
-    window.selectedLogLines = [];
+    resetSelection();
+
+    window.visibleLogLines = getVisibleLogLines();
+
+    window.selectionStart = $.inArray($(logLine).get(0), window.visibleLogLines);
+    window.selectionEnd = window.selectionStart;
+    if (window.selectionStart == -1) console.error("Selected line not found in visible lines array.");
+
     selectLogLine(logLine);
 
     $(".logLine").each(function () { var logLine = $(this); logLine.bind("mouseenter", handleLogEntryMouseEnter); });
@@ -302,11 +355,74 @@ function handleLogEntryMouseEnter(e) {
 }
 
 function selectLogLine(logLine) {
-    var $logLine = $(logLine);
-    if ($.inArray($logLine, window.selectedLogLines) === -1) {
-        window.selectedLogLines.push($logLine);
 
-        $logLine.addClass("selectedLine");
+
+    var previousSelectionEndIndex = window.selectionEnd;
+
+    window.selectionEnd = $.inArray($(logLine).get(0), window.visibleLogLines);
+
+
+    console.log("Start: " + window.selectionStart + " - End: " + window.selectionEnd + " - Previous: " + previousSelectionEndIndex);
+
+    if (window.selectionEnd == -1) {
+        console.error("Selected line not found in visible lines array.");
+    } else {
+        if (previousSelectionEndIndex == -1) { previousSelectionEndIndex = window.selectionStart; }
+
+        var i = previousSelectionEndIndex;
+
+        while (true) {
+            var selectedLogLine = $(window.visibleLogLines[i]);
+            console.log("Processing index " + i);
+
+            if (window.selectionEnd > window.selectionStart) {
+
+                if (i > window.selectionEnd) {
+                    console.log("Deselected index " + i);
+                    selectedLogLine.removeClass("selectedLine");
+                } else {
+                    console.log("Selected index " + i);
+                    selectedLogLine.addClass("selectedLine");
+                }
+
+            } else if (window.selectionEnd < window.selectionStart) {
+                if (i < window.selectionEnd) {
+                    console.log("Deselected index " + i);
+                    selectedLogLine.removeClass("selectedLine");
+                } else {
+                    console.log("Selected index " + i);
+                    selectedLogLine.addClass("selectedLine");
+                }
+            } else {
+                // start == end
+                if (i != window.selectionEnd) {
+                    console.log("Deselected index " + i);
+                    selectedLogLine.removeClass("selectedLine");
+                } else {
+                    console.log("Selected index " + i);
+                    selectedLogLine.addClass("selectedLine");
+                }
+            }
+
+            if (i < window.selectionEnd) {
+                i++;
+            } else if (i > window.selectionEnd) {
+                i--;
+            } else {
+                break;
+            }
+        }
+
+    }
+}
+
+function isInSelectionArray(index) {
+    if (window.selectionStart == -1 || window.selectionEnd == -1) return false;
+
+    if (window.selectionStart > window.selectionEnd) {
+        return (index >= window.selectionEnd && index <= window.selectionStart);
+    } else {
+        return (index >= window.selectionStart && index <= window.selectionEnd);
     }
 }
 
@@ -320,8 +436,9 @@ function deselectLogLine(logLine) {
     }
 }
 
-function updateToggleGroupMenuEntry($clickedLogLine) {
+function updateToggleGroupMenuEntry(clickedLogLine) {
     var text = "";
+    var $clickedLogLine = $(clickedLogLine);
     if ($clickedLogLine.find(".collapseToggle").hasClass("collapsed")) {
         // Group is closed
         text = "Open \"" + $clickedLogLine.find(".collapseTitle").text() + "\"";
@@ -464,9 +581,9 @@ function collapseAllContent() {
 // On selection
 
 function expandSelectedStructure() {
-    if (window.selectedLogLines.length == 0) return;
+    if (window.selectedLines.length == 0) return;
 
-    window.selectedLogLines.forEach(function (logLine) {
+    window.selectedLines.forEach(function (logLine) {
         var $logGroupTitle = $(logLine).find(".collapseTitle");
 
         if ($logGroupTitle.length > 0) {
@@ -477,9 +594,9 @@ function expandSelectedStructure() {
 }
 
 function collapseSelectedStructure() {
-    if (window.selectedLogLines.length == 0) return;
+    if (window.selectedLines.length == 0) return;
 
-    window.selectedLogLines.forEach(function (logLine) {
+    window.selectedLines.forEach(function (logLine) {
         var $logGroupTitle = $(logLine).find(".collapseTitle");
 
         if ($logGroupTitle.length > 0) {
@@ -490,9 +607,9 @@ function collapseSelectedStructure() {
 }
 
 function expandSelectedContent() {
-    if (window.selectedLogLines.length == 0) return;
+    if (window.selectedLines.length == 0) return;
 
-    window.selectedLogLines.forEach(function (logLine) {
+    window.selectedLines.forEach(function (logLine) {
         $(logLine).find(".longEntry").each(function () {
             expandEllipse($(this));
         });
@@ -506,9 +623,9 @@ function expandSelectedContent() {
 }
 
 function collapseSelectedContent() {
-    if (window.selectedLogLines.length == 0) return;
+    if (window.selectedLines.length == 0) return;
 
-    window.selectedLogLines.forEach(function (logLine) {
+    window.selectedLines.forEach(function (logLine) {
         $(logLine).find(".longEntry").each(function () {
             collapseEllipse($(this));
         });
