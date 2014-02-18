@@ -58,7 +58,7 @@ body {
 }
 
 .logLineNumber {
-	overflow: auto;
+	overflow: hidden;
 	display: inline-block;	
 	padding-right: 5pt;
 	border-right: 1px solid lightgrey;
@@ -368,4 +368,8 @@ a.collapseTitle:active {
 
 .newLineIcon {
 	color: gray;
+}
+
+.logLine.selectedLine {
+	background: #FFFF82 !important;
 }

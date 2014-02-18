@@ -288,7 +288,7 @@ namespace CK.Mon2Htm
 
         private void WriteLogPageHeader( TextWriter tw, MultiLogReader.Monitor monitor, int currentPage )
         {
-            tw.Write( GetHtmlHeader( String.Format( "Log: {0} - Page {1}", monitor.MonitorId.ToString(), currentPage ) ) );
+            tw.Write( GetHtmlHeader( String.Format( "Log: {0} - Page {1}", monitor.MonitorId.ToString(), currentPage ), true ) );
         }
 
         private void WriteLogPageFooter( TextWriter tw, MultiLogReader.Monitor monitor, int currentPage )
@@ -446,8 +446,15 @@ namespace CK.Mon2Htm
                     }
                     else
                     {
-                        currentFolder = Directory.GetParent( currentFolder ).FullName;
-                        if( currentFolder == null ) break; // At root!
+                        var currentFolderInfo = Directory.GetParent( currentFolder );
+                        if( currentFolderInfo == null )
+                        {
+                            break; // At root!
+                        }
+                        else
+                        {
+                            currentFolder = currentFolderInfo.FullName;
+                        }
                     }
                 }
 
@@ -543,10 +550,10 @@ namespace CK.Mon2Htm
             }
         }
 
-        private static string GetHtmlHeader( string title )
+        private static string GetHtmlHeader( string title, bool writeLogMenu = false )
         {
             title = HttpUtility.HtmlEncode( title );
-            return String.Format( HTML_HEADER, title );
+            return String.Format( HTML_HEADER, title, writeLogMenu ? HTML_ENTRYPAGE_HEADER_MENU : String.Empty );
         }
 
         private static string GetHtmlFooter()
@@ -593,6 +600,7 @@ namespace CK.Mon2Htm
                     <div class=""collapse navbar-collapse"" id=""bs-top-navbar"">
                         <ul class=""nav navbar-nav"">
                             <li><a href=""index.html"">Index</a></li>
+                               {1}
                         </ul>
                     </div><!-- /.navbar-collapse -->
                 </div>
@@ -625,13 +633,34 @@ namespace CK.Mon2Htm
             @"
 <div id=""contextMenu"" class=""dropdown clearfix"">
     <ul class=""dropdown-menu"" role=""menu"" aria-labelledby=""dropdownMenu"" style=""display:block;position:static;margin-bottom:5px;"">
-        <li><a id=""expandGroupsMenuEntry"" tabindex=""-1"" href=""#"">Expand groups</a></li>
-        <li><a id=""expandAllMenuEntry"" tabindex=""-1"" href=""#"">Expand everything</a></li>
-        <li class=""divider""></li>
-        <li><a id=""collapseGroupsMenuEntry"" tabindex=""-1"" href=""#"">Collapse groups</a></li>
-        <li><a id=""collapseAllMenuEntry"" tabindex=""-1"" href=""#"">Collapse everything</a></li>
+        <li><a id=""toggleGroupMenuEntry"" tabindex=""-1"" href=""#"">Toggle group</a></li>
+
+        <li><a id=""expandStructureMenuEntry"" tabindex=""-1"" href=""#"">Open selected groups</a></li>
+        <li><a id=""collapseStructureMenuEntry"" tabindex=""-1"" href=""#"">Close selected groups</a></li>
+
+        <li><a id=""expandContentMenuEntry"" tabindex=""-1"" href=""#"">Expand content</a></li>
+        <li><a id=""collapseContentMenuEntry"" tabindex=""-1"" href=""#"">Collapse content</a></li>
+
+        <li><a id=""collapseParentMenuEntry"" tabindex=""-1"" href=""#"">Close parent</a></li>
     </ul>
 </div>";
+        #endregion
+
+        #region HTML entry page header menu
+        static string HTML_ENTRYPAGE_HEADER_MENU =
+            @"
+<li class=""dropdown"">
+        <a href=""#"" class=""dropdown-toggle"" data-toggle=""dropdown"">Log page <b class=""caret""></b></a>
+        <ul class=""dropdown-menu"">
+        <li><a id=""openAllGroupsMenuEntry"" tabindex=""-1"" href=""#"">Open all groups</a></li>
+        <li><a id=""closeAllGroupsMenuEntry"" tabindex=""-1"" href=""#"">Close all groups</a></li>
+
+        <li class=""divider""></li>
+
+        <li><a id=""openAllContentMenuEntry"" tabindex=""-1"" href=""#"">Expand all text</a></li>
+        <li><a id=""closeAllContentMenuEntry"" tabindex=""-1"" href=""#"">Collapse all text</a></li>
+    </ul>
+</li>";
         #endregion
 
         private static readonly int LINKS_PER_STEP = 2;
