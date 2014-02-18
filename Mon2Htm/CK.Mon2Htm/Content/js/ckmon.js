@@ -173,36 +173,6 @@ function createContextMenu(e) {
         $("#collapseParentMenuEntry", $contextMenu).css('display', 'none');
         $("#toggleGroupMenuEntry", $contextMenu).css('display', 'none');
     }
-    //// If lines selected
-    //if (window.selectedLogLines.length == 0) {
-    //    $(".needsSelection", $contextMenu).css('display', 'none');
-    //    $(".needsNoSelection", $contextMenu).css('display', 'block');
-    //} else {
-    //    $(".needsSelection", $contextMenu).css('display', 'block');
-    //    $(".needsNoSelection", $contextMenu).css('display', 'none');
-    //}
-
-    //if (window.selectedLogLines.length != 1) {
-    //    $(".needsGroupHeader", $contextMenu).css('display', 'none');
-    //    $(".needsParentGroup", $contextMenu).css('display', 'none');
-    //} else {
-    //    // If single selection is a group header
-    //    var $group = getGroupOfHeaderGroupLine(window.selectedLogLines[0]);
-    //    if ($group.length == 0) {
-    //        $(".needsGroupHeader", $contextMenu).css('display', 'none');
-    //    } else {
-    //        updateToggleGroupMenuEntry(window.selectedLogLines[0]);
-    //        $(".needsGroupHeader", $contextMenu).css('display', 'block');
-    //    }
-
-    //    // If single selection has a group parent
-    //    var $parentGroup = getParentGroupOfLine(window.selectedLogLines[0]);
-    //    if ($parentGroup !== null) {
-    //        updateCloseParentMenuEntry($parentGroup);
-    //        $(".needsParentGroup", $contextMenu).css('display', 'block');
-    //    } else {
-    //        $(".needsParentGroup", $contextMenu).css('display', 'none');
-    //    }
 
     $contextMenu.css({
         display: "block",
@@ -239,10 +209,10 @@ function onContextMenuEntryClick(event, clickedLink) {
             var $group = $(getGroupOfHeaderGroupLine(window.selectedLines[0]));
             if ($group.hasClass("in")) {
                 // Group is open
-                collapseGroup($group);
+                collapseGroup($group, true);
             } else {
                 // Group is closed
-                expandGroup($group);
+                expandGroup($group, true);
             }
             window.freezeReprocessing = false;
             processLineClasses();
@@ -521,8 +491,16 @@ function getGroupOfTitle(collapseTitle) {
 
 // On single elements
 
-function collapseGroup(groupElement) {
+function collapseGroup(groupElement, recurse) {
+    recurse = typeof recurse !== 'undefined' ? recurse : false;
+
     var $groupElement = $(groupElement);
+    if (recurse) {
+        $groupElement.find("> .logGroup").each(function () {
+            collapseGroup(this, recurse);
+        });
+    }
+
     $groupElement.removeClass("in");
     $groupElement.css("height", "0px");
     $groupElement.css("overflow", "hidden");
@@ -530,13 +508,21 @@ function collapseGroup(groupElement) {
     getTitleOfGroup(groupElement).addClass("collapsed");
 }
 
-function expandGroup(groupElement) {
+function expandGroup(groupElement, recurse) {
+    recurse = typeof recurse !== 'undefined' ? recurse : false;
+
     var $groupElement = $(groupElement);
     $groupElement.addClass("in");
     $groupElement.css("height", "");
     $groupElement.css("overflow", "");
     // Update toggle status
     getTitleOfGroup(groupElement).removeClass("collapsed");
+
+    if (recurse) {
+        $groupElement.find("> .logGroup").each(function () {
+            expandGroup(this, recurse);
+        });
+    }
 }
 
 // On all elements
@@ -588,7 +574,7 @@ function expandSelectedStructure() {
 
         if ($logGroupTitle.length > 0) {
             var $group = getGroupOfTitle($logGroupTitle);
-            expandGroup($group);
+            expandGroup($group, true);
         }
     });
 }
@@ -601,7 +587,7 @@ function collapseSelectedStructure() {
 
         if ($logGroupTitle.length > 0) {
             var $group = getGroupOfTitle($logGroupTitle);
-            collapseGroup($group);
+            collapseGroup($group, true);
         }
     });
 }
@@ -610,11 +596,13 @@ function expandSelectedContent() {
     if (window.selectedLines.length == 0) return;
 
     window.selectedLines.forEach(function (logLine) {
-        $(logLine).find(".longEntry").each(function () {
+        $logLine = $(logLine);
+
+        $logLine.find(".longEntry").each(function () {
             expandEllipse($(this));
         });
 
-        $(logLine).find(".exceptionContainer").each(function () {
+        $logLine.find(".exceptionContainer").each(function () {
             $(this).addClass("in");
             $(this).css("height", "");
             $(this).css("overflow", "");
