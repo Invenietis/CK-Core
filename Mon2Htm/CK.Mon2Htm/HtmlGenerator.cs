@@ -632,7 +632,7 @@ namespace CK.Mon2Htm
         static string HTML_ENTRYPAGE_CONTEXT_MENU =
             @"
 <div id=""contextMenu"" class=""dropdown clearfix"">
-    <ul class=""dropdown-menu"" role=""menu"" aria-labelledby=""dropdownMenu"" style=""display:block;position:static;margin-bottom:5px;"">
+    <ul class=""dropdown-menu"" role=""menu"" style=""display:block;position:static;margin-bottom:5px;"">
         <li><a id=""toggleGroupMenuEntry"" tabindex=""-1"" href=""#"">Toggle group</a></li>
 
         <li><a id=""expandStructureMenuEntry"" tabindex=""-1"" href=""#"">Open selected groups</a></li>
