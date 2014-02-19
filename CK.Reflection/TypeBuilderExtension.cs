@@ -36,11 +36,21 @@ namespace CK.Reflection
         /// Creates constructors that relay calls to public and protected constructors in the base class.
         /// </summary> 
         /// <param name="this">This <see cref="TypeBuilder"/>.</param>
-        /// <param name="baseConstructorfilter">Optional predicate used to filter constructors that must be implemented. When null, all public and protected contructors are defined.</param>
-        /// <param name="constructorAttributesFilter">Optional predicate used to filter constructors' attributes. When null, all attributes are redefined.</param>
-        /// <param name="parameterAttributesFilter">Optional predicate used to filter constructors' arguments' attributes. When null, all attributes are redefined.</param>
+        /// <param name="baseConstructorfilter">
+        /// Optional predicate used to filter constructors that must be implemented and set its <see cref="MethodAttributes"/>. 
+        /// When this function returns null, the constructor is not implemented, otherwise it can return the baseConstructor's Attribute.
+        /// When null, all public and protected constructors are replicated with the same access (public or protected).
+        /// </param>
+        /// <param name="constructorAttributesFilter">
+        /// Optional predicate used to filter constructors' attributes. 
+        /// When null, all attributes are redefined.
+        /// </param>
+        /// <param name="parameterAttributesFilter">
+        /// Optional predicate used to filter constructors' arguments' attributes. 
+        /// When null, all attributes are redefined.
+        /// </param>
         public static void DefinePassThroughConstructors( this TypeBuilder @this,
-                                                            Func<ConstructorInfo,bool> baseConstructorfilter = null,
+                                                            Func<ConstructorInfo,MethodAttributes?> baseConstructorfilter = null,
                                                             Func<ConstructorInfo, CustomAttributeData, bool> constructorAttributesFilter = null,
                                                             Func<ParameterInfo, CustomAttributeData, bool> parameterAttributesFilter = null )
         {
@@ -48,16 +58,17 @@ namespace CK.Reflection
             foreach( var baseCtor in baseType.GetConstructors( BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic ) )
             {
                 if( baseCtor.IsPrivate ) continue;
-                if( baseConstructorfilter != null && !baseConstructorfilter( baseCtor ) ) continue;
+                MethodAttributes? newCtorAttr = baseCtor.Attributes;
+                if( baseConstructorfilter != null && !(newCtorAttr = baseConstructorfilter( baseCtor )).HasValue ) continue;
                 var parameters = baseCtor.GetParameters();
-                if( parameters.Length == 0 ) @this.DefineDefaultConstructor( baseCtor.Attributes );
+                if( parameters.Length == 0 ) @this.DefineDefaultConstructor( newCtorAttr.Value );
                 else
                 {
                     Type[] parameterTypes = ReflectionHelper.CreateParametersType( parameters );
                     Type[][] requiredCustomModifiers = parameters.Select( p => p.GetRequiredCustomModifiers() ).ToArray();
                     Type[][] optionalCustomModifiers = parameters.Select( p => p.GetOptionalCustomModifiers() ).ToArray();
 
-                    var ctor = @this.DefineConstructor( MethodAttributes.Public, baseCtor.CallingConvention, parameterTypes, requiredCustomModifiers, optionalCustomModifiers );
+                    var ctor = @this.DefineConstructor( newCtorAttr.Value, baseCtor.CallingConvention, parameterTypes, requiredCustomModifiers, optionalCustomModifiers );
                     for( var i = 0; i < parameters.Length; ++i )
                     {
                         ParameterInfo parameter = parameters[i];
