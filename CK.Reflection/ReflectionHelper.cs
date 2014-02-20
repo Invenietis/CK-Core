@@ -281,7 +281,7 @@ namespace CK.Reflection
         /// </summary>
         /// <typeparam name="T">Type of the element that you're looking for. <see cref="MethodInfo"/> for example.</typeparam>
         /// <param name="interfaceType">Type to process, it must be an interface.</param>
-        /// <param name="getFunction">Function that takes a type and return an <see cref="IEnumerable{T}"/>, a possible implementation can be the lambda <c>t => t.GetMethods()</c></param>
+        /// <param name="getFunction">Function that takes a type and return an <see cref="IEnumerable{T}"/>, a possible implementation can be the lambda <c>t => t.GetMethods()</c>.</param>
         /// <returns>An <see cref="IEnumerable{T}"/> that contains elements returned by the <paramref name="getFunction"/>.</returns>
         public static IEnumerable<T> GetFlattenMembers<T>( Type interfaceType, Func<Type, IEnumerable<T>> getFunction )
         {

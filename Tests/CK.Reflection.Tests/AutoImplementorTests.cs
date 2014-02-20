@@ -416,7 +416,7 @@ namespace CK.Reflection.Tests
         {
             {
                 TypeBuilder b = CreateTypeBuilder( typeof( BaseOne ) );
-                b.DefinePassThroughConstructors();
+                b.DefinePassThroughConstructors( c => c.Attributes | MethodAttributes.Public );
                 Type t = b.CreateType();
                 BaseOne one1 = (BaseOne)Activator.CreateInstance( t, 5 );
                 Assert.That( one1.CtorMessage, Is.EqualTo( ".private.protected" ) );
@@ -425,7 +425,7 @@ namespace CK.Reflection.Tests
             }
             {
                 TypeBuilder b = CreateTypeBuilder( typeof( BaseTwo ) );
-                b.DefinePassThroughConstructors();
+                b.DefinePassThroughConstructors( c => c.Attributes | MethodAttributes.Public );
                 Type t = b.CreateType();
                 var ctor = t.GetConstructors()[0];
                 BaseTwo two = (BaseTwo)ctor.Invoke( new object[]{ new int[] { 1, 2, 3, 4 } } );
@@ -433,7 +433,7 @@ namespace CK.Reflection.Tests
             }
             {
                 TypeBuilder b = CreateTypeBuilder( typeof( BaseThree ) );
-                b.DefinePassThroughConstructors();
+                b.DefinePassThroughConstructors( c => c.Attributes | MethodAttributes.Public );
                 Type t = b.CreateType();
                 var ctor = t.GetConstructors()[0];
                 BaseThree three = (BaseThree)ctor.Invoke( new object[]{ "s0", "s1", "s2" } );
@@ -446,7 +446,7 @@ namespace CK.Reflection.Tests
             }
             {
                 TypeBuilder b = CreateTypeBuilder( typeof( BaseThree ) );
-                b.DefinePassThroughConstructors( null, (ctor, attrData) => attrData.NamedArguments.Any(), (param,attrData) => attrData.ConstructorArguments.Any() );
+                b.DefinePassThroughConstructors( c => c.Attributes | MethodAttributes.Public, ( ctor, attrData ) => attrData.NamedArguments.Any(), ( param, attrData ) => attrData.ConstructorArguments.Any() );
                 Type t = b.CreateType();
                 var theCtor = t.GetConstructors()[0];
                 BaseThree three = (BaseThree)theCtor.Invoke( new object[]{ "s0", "s1", "s2" } );

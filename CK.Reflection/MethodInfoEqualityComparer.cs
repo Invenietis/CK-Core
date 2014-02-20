@@ -110,7 +110,7 @@ namespace CK.Reflection
             return SafeHashCode( m.DeclaringType ) ^ SafeHashCode( m.MetadataToken ) ^ SafeHashCode( m.Module );
         }
 
-        private int SafeHashCode( object o )
+        static int SafeHashCode( object o )
         {
             return o != null ? o.GetHashCode() : 0;
         }
