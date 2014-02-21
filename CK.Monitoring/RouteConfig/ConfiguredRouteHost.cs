@@ -322,7 +322,7 @@ namespace CK.RouteConfig
                     using( monitor.OpenInfo().Send( "Waiting for current routes to terminate." ) )
                     {
                         if( _root != _emptyHost ) _configLock.Signal();
-                        if( !_configLock.Wait( millisecondsBeforeForceClose ) ) monitor.Warn( "Timeout expired. Force the termination." );
+                        if( !_configLock.Wait( millisecondsBeforeForceClose ) ) monitor.Warn().Send( "Timeout expired. Force the termination." );
                     }
                     bool success = CloseCurrentRoutesAndStartNewOnes( monitor );
                     // The new routes are ready.
@@ -515,7 +515,7 @@ namespace CK.RouteConfig
                 using( monitor.OpenInfo().Send( "Waiting for current routes to terminate." ) )
                 {
                     if( _root != _emptyHost ) _configLock.Signal();
-                    if( !_configLock.Wait( millisecondsBeforeForceClose ) ) monitor.Warn( "Timeout expired. Force the termination." );
+                    if( !_configLock.Wait( millisecondsBeforeForceClose ) ) monitor.Warn().Send( "Timeout expired. Force the termination." );
                 }
                 if( _allActionsDying != null )
                 {

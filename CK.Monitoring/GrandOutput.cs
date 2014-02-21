@@ -260,8 +260,8 @@ namespace CK.Monitoring
             {
                 int nbDeadClients;
                 lock( _clients ) nbDeadClients = DoGarbageDeadClients( DateTime.UtcNow );
-                if( nbDeadClients > 0 ) e.Monitor.Info( "Removing {0} dead client(s).", nbDeadClients );
-                else e.Monitor.Trace( "No dead client to remove." );
+                if( nbDeadClients > 0 ) e.Monitor.Info().Send( "Removing {0} dead client(s).", nbDeadClients );
+                else e.Monitor.Trace().Send( "No dead client to remove." );
             }
         }
 
