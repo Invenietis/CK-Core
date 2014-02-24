@@ -7,6 +7,7 @@ using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
@@ -20,6 +21,7 @@ namespace CK.Mon2Htm
         readonly IActivityMonitor _m;
         readonly List<string> _listedFiles;
         readonly List<string> _filesToLoad;
+        bool _hasUpdatedResources;
         string _loadedDirectory;
         string _tempDirPath;
         FileSystemWatcher _dirWatcher;
@@ -28,6 +30,7 @@ namespace CK.Mon2Htm
         {
             _listedFiles = new List<string>();
             _filesToLoad = new List<string>();
+            _hasUpdatedResources = false;
 
             _m = new ActivityMonitor();
             _m.SetMinimalFilter( LogFilter.Debug );
@@ -319,8 +322,22 @@ namespace CK.Mon2Htm
             }
 
             _tempDirPath = GetTempFolder();
+            string rootFolder = GetRootTempFolder();
 
-            return HtmlGenerator.CreateFromActivityMap( activityMap, _m, 500, _tempDirPath );
+            string indexFilePath = Path.Combine( _tempDirPath, "index.html" );
+
+            if( !_hasUpdatedResources )
+            {
+                HtmlGenerator.CopyResourcesToDirectory( rootFolder );
+                _hasUpdatedResources = true;
+            }
+
+            if( !File.Exists( indexFilePath ) )
+            {
+                indexFilePath = HtmlGenerator.CreateFromActivityMap( activityMap, _m, 500, _tempDirPath, "../" );
+            }
+
+            return indexFilePath;
         }
 
         /// <summary>
@@ -402,14 +419,56 @@ namespace CK.Mon2Htm
             }
         }
 
+        private string GetRootTempFolder()
+        {
+            string tempFolderName = String.Format( "ckmon2htm" );
+            string tempFolderPath = Path.Combine( Path.GetTempPath(), tempFolderName );
+
+            DirectoryInfo di = Directory.CreateDirectory( tempFolderPath );
+
+            return tempFolderPath;
+        }
+
+        private string GetSelectionHash()
+        {
+            StringBuilder sb = new StringBuilder();
+            foreach( var f in _filesToLoad )
+            {
+                FileInfo fi = new FileInfo(f);
+                sb.Append( fi.Name );
+                sb.Append( '_' );
+                sb.Append( fi.Length );
+                sb.Append( '_' );
+            }
+
+            return CalculateMD5Hash( sb.ToString() );
+        }
+
+        public string CalculateMD5Hash( string input )
+        {
+            MD5 md5 = System.Security.Cryptography.MD5.Create();
+
+            byte[] inputBytes = System.Text.Encoding.ASCII.GetBytes( input );
+            byte[] hash = md5.ComputeHash( inputBytes );
+
+            StringBuilder sb = new StringBuilder();
+
+            for( int i = 0; i < hash.Length; i++ )
+            {
+                sb.Append( hash[i].ToString( "X2" ) );
+            }
+
+            return sb.ToString();
+        }
+
         /// <summary>
         /// Creates a new, random folder in the user's temporary files.
         /// </summary>
         /// <returns>Created Temporary folder path</returns>
-        private static string GetTempFolder()
+        private string GetTempFolder()
         {
-            string tempFolderName = String.Format( "ckmon-{0}", Guid.NewGuid() );
-            string tempFolderPath = Path.Combine( Path.GetTempPath(), tempFolderName );
+            string tempFolderName = GetSelectionHash();
+            string tempFolderPath = Path.Combine( GetRootTempFolder(), tempFolderName );
 
             DirectoryInfo di = Directory.CreateDirectory( tempFolderPath );
 
