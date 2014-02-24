@@ -44,7 +44,7 @@ namespace CK.Mon2Htm
             UpdateVersionLabel();
         }
 
-        private void WatchDirectory(string directoryPath)
+        private void WatchDirectory( string directoryPath )
         {
             CloseDirWatcher();
 
@@ -64,16 +64,19 @@ namespace CK.Mon2Htm
 
         void _dirWatcher_Renamed( object sender, RenamedEventArgs e )
         {
-            Debug.Assert( e.FullPath.EndsWith( ".ckmon" ) );
             bool wasChecked = _filesToLoad.Contains( e.OldFullPath );
             RemoveFile( e.OldFullPath );
-            AddFile( e.FullPath, wasChecked );
-            this.dataGridView1.Sort( this.dataGridView1.Columns[1], ListSortDirection.Descending );
+
+            if( e.FullPath.EndsWith( ".ckmon" ) )
+            {
+                AddFile( e.FullPath, wasChecked );
+                this.dataGridView1.Sort( this.dataGridView1.Columns[1], ListSortDirection.Descending );
+            }
         }
 
         void _dirWatcher_Created( object sender, FileSystemEventArgs e )
         {
-            Debug.Assert(e.FullPath.EndsWith(".ckmon"));
+            Debug.Assert( e.FullPath.EndsWith( ".ckmon" ) );
             AddFile( e.FullPath );
             this.dataGridView1.Sort( this.dataGridView1.Columns[1], ListSortDirection.Descending );
         }
@@ -86,7 +89,7 @@ namespace CK.Mon2Htm
 
         private void CloseDirWatcher()
         {
-            if(_dirWatcher != null )
+            if( _dirWatcher != null )
             {
                 _dirWatcher.EnableRaisingEvents = false;
 
@@ -206,7 +209,7 @@ namespace CK.Mon2Htm
             return AddFileRow( filePath, addSelected );
         }
 
-        private void RemoveFile(string filePath)
+        private void RemoveFile( string filePath )
         {
             if( _filesToLoad.Contains( filePath ) ) _filesToLoad.Remove( filePath );
             if( _listedFiles.Contains( filePath ) ) _listedFiles.Remove( filePath );
@@ -431,7 +434,7 @@ namespace CK.Mon2Htm
             SetAllViewValues( false );
         }
 
-        private void SetAllViewValues(bool value)
+        private void SetAllViewValues( bool value )
         {
             foreach( var row in this.dataGridView1.Rows )
             {
