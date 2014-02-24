@@ -34,6 +34,7 @@ namespace CK.Mon2Htm
         readonly string _outputDirectoryPath;
         readonly MultiLogReader.ActivityMap _activityMap;
         readonly int _logEntryCountPerPage;
+        readonly string _resourcesDirectoryPath;
 
         /// <summary>
         /// Creates an HTML view structure from a directory containing .ckmon files.
@@ -73,12 +74,12 @@ namespace CK.Mon2Htm
 
             var activityMap = r.GetActivityMap();
 
-            HtmlGenerator g = new HtmlGenerator( activityMap, htmlOutputDirectory, activityMonitor, logEntryCountPerPage );
+            HtmlGenerator g = new HtmlGenerator( activityMap, htmlOutputDirectory, activityMonitor, logEntryCountPerPage, String.Empty );
             string indexPath = g.GenerateHtmlStructure();
 
             if( indexPath != null )
             {
-                g.CopyContent();
+                g.CopyResourcesToIndexDirectory();
             }
 
             return indexPath;
@@ -92,42 +93,46 @@ namespace CK.Mon2Htm
         /// <param name="htmlOutputDirectory">Directory in which the HTML structure will be generated.</param>
         /// <param name="logEntryCountPerPage">How many entries to write on every log page.</param>
         /// <returns>Full path of created index.html. Null when no valid file could be loaded from directoryPath.</returns>
-        public static string CreateFromActivityMap( MultiLogReader.ActivityMap activityMap, IActivityMonitor activityMonitor, int logEntryCountPerPage, string outputDirectoryPath )
+        public static string CreateFromActivityMap( MultiLogReader.ActivityMap activityMap, IActivityMonitor activityMonitor, int logEntryCountPerPage, string outputDirectoryPath, string resourcesDirectoryPath = "" )
         {
-            HtmlGenerator g = new HtmlGenerator( activityMap, outputDirectoryPath, activityMonitor, logEntryCountPerPage );
+            HtmlGenerator g = new HtmlGenerator( activityMap, outputDirectoryPath, activityMonitor, logEntryCountPerPage, resourcesDirectoryPath );
 
             string indexPath = g.GenerateHtmlStructure();
 
-            if( indexPath != null )
+            if( indexPath != null && String.IsNullOrWhiteSpace( resourcesDirectoryPath ) )
             {
-                g.CopyContent();
+                g.CopyResourcesToIndexDirectory();
             }
 
             return indexPath;
+        }
+        private void CopyResourcesToIndexDirectory()
+        {
+            CopyResourcesToDirectory( _outputDirectoryPath );
         }
 
         /// <summary>
         /// Copies additional content (JS, CSS, images) into the target directory path.
         /// </summary>
-        private void CopyContent()
+        public static void CopyResourcesToDirectory(string resourceDirectoryRoot)
         {
-            CopyContentResourceToFile( @"css\CkmonStyle.css", _outputDirectoryPath );
-            CopyContentResourceToFile( @"css\Reset.css", _outputDirectoryPath );
-            CopyContentResourceToFile( @"css\bootstrap.min.css", _outputDirectoryPath );
-            CopyContentResourceToFile( @"css\bootstrap-theme.min.css", _outputDirectoryPath );
-            CopyContentResourceToFile( @"css\ex-bg.png", _outputDirectoryPath );
-            CopyContentResourceToFile( @"css\warn.svg", _outputDirectoryPath );
-            CopyContentResourceToFile( @"css\error.svg", _outputDirectoryPath );
-            CopyContentResourceToFile( @"css\fatal.svg", _outputDirectoryPath );
-            CopyContentResourceToFile( @"js\bootstrap.min.js", _outputDirectoryPath );
-            CopyContentResourceToFile( @"js\jquery-2.0.3.min.js", _outputDirectoryPath );
-            CopyContentResourceToFile( @"js\moment.min.js", _outputDirectoryPath );
-            CopyContentResourceToFile( @"js\moment-with-langs.js", _outputDirectoryPath );
-            CopyContentResourceToFile( @"js\ckmon.js", _outputDirectoryPath );
-            CopyContentResourceToFile( @"fonts\glyphicons-halflings-regular.eot", _outputDirectoryPath );
-            CopyContentResourceToFile( @"fonts\glyphicons-halflings-regular.svg", _outputDirectoryPath );
-            CopyContentResourceToFile( @"fonts\glyphicons-halflings-regular.ttf", _outputDirectoryPath );
-            CopyContentResourceToFile( @"fonts\glyphicons-halflings-regular.woff", _outputDirectoryPath );
+            CopyContentResourceToFile( @"css\CkmonStyle.css", resourceDirectoryRoot );
+            CopyContentResourceToFile( @"css\Reset.css", resourceDirectoryRoot );
+            CopyContentResourceToFile( @"css\bootstrap.min.css", resourceDirectoryRoot );
+            CopyContentResourceToFile( @"css\bootstrap-theme.min.css", resourceDirectoryRoot );
+            CopyContentResourceToFile( @"css\ex-bg.png", resourceDirectoryRoot );
+            CopyContentResourceToFile( @"css\warn.svg", resourceDirectoryRoot );
+            CopyContentResourceToFile( @"css\error.svg", resourceDirectoryRoot );
+            CopyContentResourceToFile( @"css\fatal.svg", resourceDirectoryRoot );
+            CopyContentResourceToFile( @"js\bootstrap.min.js", resourceDirectoryRoot );
+            CopyContentResourceToFile( @"js\jquery-2.0.3.min.js", resourceDirectoryRoot );
+            CopyContentResourceToFile( @"js\moment.min.js", resourceDirectoryRoot );
+            CopyContentResourceToFile( @"js\moment-with-langs.js", resourceDirectoryRoot );
+            CopyContentResourceToFile( @"js\ckmon.js", resourceDirectoryRoot );
+            CopyContentResourceToFile( @"fonts\glyphicons-halflings-regular.eot", resourceDirectoryRoot );
+            CopyContentResourceToFile( @"fonts\glyphicons-halflings-regular.svg", resourceDirectoryRoot );
+            CopyContentResourceToFile( @"fonts\glyphicons-halflings-regular.ttf", resourceDirectoryRoot );
+            CopyContentResourceToFile( @"fonts\glyphicons-halflings-regular.woff", resourceDirectoryRoot );
         }
 
         /// <summary>
@@ -136,7 +141,7 @@ namespace CK.Mon2Htm
         /// <param name="_activityMap">ActivityMap</param>
         /// <param name="htmlOutputDirectory">directory to output HTML into</param>
         /// <param name="activityMonitor">Monitor to use when reporting events about generation</param>
-        private HtmlGenerator( MultiLogReader.ActivityMap activityMap, string htmlOutputDirectory, IActivityMonitor activityMonitor, int logEntryCountPerPage )
+        private HtmlGenerator( MultiLogReader.ActivityMap activityMap, string htmlOutputDirectory, IActivityMonitor activityMonitor, int logEntryCountPerPage, string resourcesDirectoryPath )
         {
             Debug.Assert( activityMap != null );
             Debug.Assert( activityMonitor != null );
@@ -147,6 +152,7 @@ namespace CK.Mon2Htm
             _outputDirectoryPath = htmlOutputDirectory;
             _indexInfos = new Dictionary<MultiLogReader.Monitor, MonitorIndexInfo>();
             _activityMap = activityMap;
+            _resourcesDirectoryPath = resourcesDirectoryPath;
 
         }
 
@@ -288,14 +294,14 @@ namespace CK.Mon2Htm
 
         private void WriteLogPageHeader( TextWriter tw, MultiLogReader.Monitor monitor, int currentPage )
         {
-            tw.Write( GetHtmlHeader( String.Format( "Log: {0} - Page {1}", monitor.MonitorId.ToString(), currentPage ), true ) );
+            tw.Write( GetHtmlHeader( String.Format( "Log: {0} - Page {1}", monitor.MonitorId.ToString(), currentPage ), _resourcesDirectoryPath, true ) );
         }
 
         private void WriteLogPageFooter( TextWriter tw, MultiLogReader.Monitor monitor, int currentPage )
         {
             WriteMonitorPaginator( tw, monitor, currentPage );
             tw.Write( HTML_ENTRYPAGE_CONTEXT_MENU );
-            tw.Write( GetHtmlFooter() );
+            tw.Write( GetHtmlFooter( _resourcesDirectoryPath ) );
         }
 
         private string CreateIndex( Dictionary<MultiLogReader.Monitor, IEnumerable<string>> monitorPages )
@@ -313,7 +319,7 @@ namespace CK.Mon2Htm
 
         private void WriteIndex( Dictionary<MultiLogReader.Monitor, IEnumerable<string>> monitorPages, TextWriter tw )
         {
-            tw.Write( GetHtmlHeader( "Ckmon Index" ) );
+            tw.Write( GetHtmlHeader( "Ckmon Index", _resourcesDirectoryPath ) );
 
             var dumpPaths = GetSystemActivityMonitorDumpPaths();
             if( dumpPaths.Count > 0 )
@@ -374,7 +380,7 @@ namespace CK.Mon2Htm
                 tw.Write( "</tr>" );
             }
             tw.Write( "</tbody></table>" );
-            tw.Write( GetHtmlFooter() );
+            tw.Write( GetHtmlFooter(_resourcesDirectoryPath) );
         }
 
         private void WriteMonitorPaginator( TextWriter tw, MultiLogReader.Monitor monitor, int currentPage )
@@ -550,15 +556,15 @@ namespace CK.Mon2Htm
             }
         }
 
-        private static string GetHtmlHeader( string title, bool writeLogMenu = false )
+        private static string GetHtmlHeader( string title, string resourceDirectory, bool writeLogMenu = false )
         {
             title = HttpUtility.HtmlEncode( title );
-            return String.Format( HTML_HEADER, title, writeLogMenu ? HTML_ENTRYPAGE_HEADER_MENU : String.Empty );
+            return String.Format( HTML_HEADER, title, writeLogMenu ? HTML_ENTRYPAGE_HEADER_MENU : String.Empty, resourceDirectory );
         }
 
-        private static string GetHtmlFooter()
+        private static string GetHtmlFooter(string resourceDirectory)
         {
-            return HTML_FOOTER;
+            return String.Format(HTML_FOOTER, resourceDirectory);
         }
 
         #region HTML header template
@@ -574,10 +580,10 @@ namespace CK.Mon2Htm
 <script src=""https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js""></script>
 <script src=""https://oss.maxcdn.com/libs/respond.js/1.3.0/respond.min.js""></script>
 <![endif]-->
-<link rel=""stylesheet"" type=""text/css"" href=""css/Reset.css"">
-<link rel=""stylesheet"" type=""text/css"" href=""css/bootstrap.min.css"">
-<link rel=""stylesheet"" type=""text/css"" href=""css/bootstrap-theme.min.css"">
-<link rel=""stylesheet"" type=""text/css"" href=""css/CkmonStyle.css"">
+<link rel=""stylesheet"" type=""text/css"" href=""{2}css/Reset.css"">
+<link rel=""stylesheet"" type=""text/css"" href=""{2}css/bootstrap.min.css"">
+<link rel=""stylesheet"" type=""text/css"" href=""{2}css/bootstrap-theme.min.css"">
+<link rel=""stylesheet"" type=""text/css"" href=""{2}css/CkmonStyle.css"">
 </head>
 <body>
 
@@ -619,12 +625,10 @@ namespace CK.Mon2Htm
         </div>
     </div>
 
-<script src=""js/jquery-2.0.3.min.js""></script>
-<script src=""js/bootstrap.min.js""></script>
-<script src=""js/moment-with-langs.js""></script>
-<script src=""js/ckmon.js""></script>
-<script type=""text/javascript"">
-</script>
+<script src=""{0}js/jquery-2.0.3.min.js""></script>
+<script src=""{0}js/bootstrap.min.js""></script>
+<script src=""{0}js/moment-with-langs.js""></script>
+<script src=""{0}js/ckmon.js""></script>
 </body></html>";
         #endregion
 
@@ -632,7 +636,7 @@ namespace CK.Mon2Htm
         static string HTML_ENTRYPAGE_CONTEXT_MENU =
             @"
 <div id=""contextMenu"" class=""dropdown clearfix"">
-    <ul class=""dropdown-menu"" role=""menu"" aria-labelledby=""dropdownMenu"" style=""display:block;position:static;margin-bottom:5px;"">
+    <ul class=""dropdown-menu"" role=""menu"" style=""display:block;position:static;margin-bottom:5px;"">
         <li><a id=""toggleGroupMenuEntry"" tabindex=""-1"" href=""#"">Toggle group</a></li>
 
         <li><a id=""expandStructureMenuEntry"" tabindex=""-1"" href=""#"">Open selected groups</a></li>

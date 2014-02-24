@@ -304,7 +304,7 @@ namespace CK.Mon2Htm
 
         private void WriteExceptionCollapseButton( string exceptionId )
         {
-            _tw.Write( @"<button class=""btn btn-xs btn-danger exceptionButton"" data-toggle=""collapse"" href=""#{0}"">
+            _tw.Write( @"<button class=""btn btn-xs btn-danger exceptionButton"" data-toggle=""collapse"" data-target=""#{0}"">
               View details
             </button>", exceptionId );
         }
@@ -316,7 +316,7 @@ namespace CK.Mon2Htm
             _tw.Write( @"
             <div class=""exceptionContainer collapse"" id=""{0}"">
                   <div class=""exceptionHeader"">
-                    <h3 class=""exceptionTitle"" id=""label-{0}"">{1}</h4>
+                    <h3 class=""exceptionTitle"" id=""label-{0}"">{1}</h3>
                   </div>
                   <div class=""exceptionBody"">",
              exceptionId, // 0
