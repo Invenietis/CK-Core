@@ -321,7 +321,7 @@ namespace CK.Mon2Htm
                 activityMap = r.GetActivityMap();
             }
 
-            _tempDirPath = GetTempFolder();
+            _tempDirPath = GetTempFolder( activityMap );
             string rootFolder = GetRootTempFolder();
 
             string indexFilePath = Path.Combine( _tempDirPath, "index.html" );
@@ -429,22 +429,25 @@ namespace CK.Mon2Htm
             return tempFolderPath;
         }
 
-        private string GetSelectionHash()
+        private static string GetActivityMapHash(MultiLogReader.ActivityMap activityMap)
         {
             StringBuilder sb = new StringBuilder();
-            foreach( var f in _filesToLoad )
+            sb.Append( activityMap.FirstEntryDate.ToString() );
+            sb.Append( activityMap.LastEntryDate.ToString() );
+            foreach( var monitor in activityMap.Monitors )
             {
-                FileInfo fi = new FileInfo(f);
-                sb.Append( fi.Name );
                 sb.Append( '_' );
-                sb.Append( fi.Length );
+                sb.Append( monitor.MonitorId.ToString() );
                 sb.Append( '_' );
+                sb.Append( monitor.FirstEntryTime.ToString() );
+                sb.Append( '_' );
+                sb.Append( monitor.LastEntryTime.ToString() );
             }
 
             return CalculateMD5Hash( sb.ToString() );
         }
 
-        public string CalculateMD5Hash( string input )
+        public static string CalculateMD5Hash( string input )
         {
             MD5 md5 = System.Security.Cryptography.MD5.Create();
 
@@ -465,9 +468,9 @@ namespace CK.Mon2Htm
         /// Creates a new, random folder in the user's temporary files.
         /// </summary>
         /// <returns>Created Temporary folder path</returns>
-        private string GetTempFolder()
+        private string GetTempFolder( MultiLogReader.ActivityMap activityMap )
         {
-            string tempFolderName = GetSelectionHash();
+            string tempFolderName = GetActivityMapHash( activityMap );
             string tempFolderPath = Path.Combine( GetRootTempFolder(), tempFolderName );
 
             DirectoryInfo di = Directory.CreateDirectory( tempFolderPath );
