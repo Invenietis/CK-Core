@@ -21,6 +21,7 @@ namespace CK.Mon2Htm
         List<string> _listedFiles;
         List<string> _filesToLoad;
         string _tempDirPath;
+        FileSystemWatcher _dirWatcher;
 
         public MainForm()
         {
@@ -41,6 +42,57 @@ namespace CK.Mon2Htm
             UpdateButtonState();
 
             UpdateVersionLabel();
+        }
+
+        private void WatchDirectory(string directoryPath)
+        {
+            CloseDirWatcher();
+
+            _dirWatcher = new FileSystemWatcher( directoryPath, "*.ckmon" );
+            _dirWatcher.Deleted += _dirWatcher_Deleted;
+            _dirWatcher.Created += _dirWatcher_Created;
+            _dirWatcher.Renamed += _dirWatcher_Renamed;
+
+            _dirWatcher.SynchronizingObject = this;
+
+            NotifyFilters notificationFilters = new NotifyFilters();
+            notificationFilters = notificationFilters | NotifyFilters.FileName;
+
+            _dirWatcher.NotifyFilter = notificationFilters;
+            _dirWatcher.EnableRaisingEvents = true;
+        }
+
+        void _dirWatcher_Renamed( object sender, RenamedEventArgs e )
+        {
+            Debug.Assert( e.FullPath.EndsWith( ".ckmon" ) );
+            bool wasChecked = _filesToLoad.Contains( e.OldFullPath );
+            RemoveFile( e.OldFullPath );
+            AddFile( e.FullPath, wasChecked );
+            this.dataGridView1.Sort( this.dataGridView1.Columns[1], ListSortDirection.Descending );
+        }
+
+        void _dirWatcher_Created( object sender, FileSystemEventArgs e )
+        {
+            Debug.Assert(e.FullPath.EndsWith(".ckmon"));
+            AddFile( e.FullPath );
+            this.dataGridView1.Sort( this.dataGridView1.Columns[1], ListSortDirection.Descending );
+        }
+
+        void _dirWatcher_Deleted( object sender, FileSystemEventArgs e )
+        {
+            Debug.Assert( e.FullPath.EndsWith( ".ckmon" ) );
+            RemoveFile( e.FullPath );
+        }
+
+        private void CloseDirWatcher()
+        {
+            if(_dirWatcher != null )
+            {
+                _dirWatcher.EnableRaisingEvents = false;
+
+                _dirWatcher.Dispose();
+                _dirWatcher = null;
+            }
         }
 
         private void UpdateVersionLabel()
@@ -120,7 +172,12 @@ namespace CK.Mon2Htm
 
                 // Special treament: Add files in directory around target, but only select the first one.
                 List<string> files = Directory.GetFiles( Path.GetDirectoryName( path ), "*.ckmon", SearchOption.TopDirectoryOnly ).ToList();
-                files.Sort( ( a, b ) => String.Compare( Path.GetFileNameWithoutExtension( a ), Path.GetFileNameWithoutExtension( b ), StringComparison.InvariantCultureIgnoreCase ) );
+                files.Sort( ( a, b ) => String.Compare( Path.GetFileNameWithoutExtension( b ), Path.GetFileNameWithoutExtension( a ), StringComparison.InvariantCultureIgnoreCase ) );
+
+                // Watch directory for file changes, too
+                Properties.Settings.Default.LastOpenDirectory = Path.GetDirectoryName( path );
+                Properties.Settings.Default.Save();
+                WatchDirectory( Path.GetDirectoryName( path ) );
 
                 foreach( var f in files )
                 {
@@ -147,6 +204,19 @@ namespace CK.Mon2Htm
             UpdateButtonState();
 
             return AddFileRow( filePath, addSelected );
+        }
+
+        private void RemoveFile(string filePath)
+        {
+            if( _filesToLoad.Contains( filePath ) ) _filesToLoad.Remove( filePath );
+            if( _listedFiles.Contains( filePath ) ) _listedFiles.Remove( filePath );
+
+            // Cell 1 is the file name (tag is full path).
+            var s = this.dataGridView1.Rows.Cast<DataGridViewRow>().Where( x => ((DataGridViewTextBoxCell)x.Cells[1]).Tag.ToString() == filePath ).ToList();
+
+            foreach( var row in s ) this.dataGridView1.Rows.Remove( row );
+
+            UpdateButtonState();
         }
 
         private int AddFileRow( string filePath, bool viewSelected = false )
@@ -309,28 +379,8 @@ namespace CK.Mon2Htm
                 CK.Mon2Htm.Properties.Settings.Default.LastOpenDirectory = Path.GetDirectoryName( d.FileName );
                 CK.Mon2Htm.Properties.Settings.Default.Save();
 
-                this.dataGridView1.Sort( this.dataGridView1.Columns[1], ListSortDirection.Ascending );
+                this.dataGridView1.Sort( this.dataGridView1.Columns[1], ListSortDirection.Descending );
                 this.viewHtmlButton.Focus();
-            }
-        }
-
-        private void addDirButton_Click( object sender, EventArgs e )
-        {
-            // Add directory
-            FolderBrowserDialog d = new FolderBrowserDialog();
-            d.ShowNewFolderButton = false;
-            d.SelectedPath = Properties.Settings.Default.LastOpenDirectory;
-
-            var result = d.ShowDialog();
-
-            if( result == DialogResult.OK )
-            {
-                AddDirectory( d.SelectedPath );
-
-                Properties.Settings.Default.LastOpenDirectory = d.SelectedPath;
-                Properties.Settings.Default.Save();
-
-                this.dataGridView1.Sort( this.dataGridView1.Columns[1], ListSortDirection.Ascending );
             }
         }
 
