@@ -21,9 +21,10 @@ body {
 	width: 100%;
 	overflow: auto;
 }
-.logLine > div {
-	display: table-cell;
-}
+
+	.logLine > div {
+		display: table-cell;
+	}
 
 .logContent {
 	overflow: hidden;
@@ -59,9 +60,25 @@ body {
 
 .logLineNumber {
 	overflow: hidden;
-	display: inline-block;	
+	display: inline-block;
 	padding-right: 5pt;
 	border-right: 1px solid lightgrey;
+}
+
+a.collapseToggle.emptyGroupToggle:link {
+	text-decoration: none;
+}
+
+a.collapseToggle.emptyGroupToggle:visited {
+	text-decoration: none;
+}
+
+a.collapseToggle.emptyGroupToggle:hover {
+	text-decoration: none;
+}
+
+a.collapseToggle.emptyGroupToggle:active {
+	text-decoration: none;
 }
 
 /* Close group icon */
@@ -76,6 +93,21 @@ body {
 	line-height: 1;
 	position: relative;
 	top: 1px;
+}
+
+/* Close group icon (empty groups) */
+.collapseToggle.emptyGroupToggle:before {
+	content: "−";
+	margin-right: 3pt;
+	display: inline-block;
+	font-size: 9pt;
+	font-family: 'Glyphicons Halflings';
+	font-style: normal;
+	font-weight: normal;
+	line-height: 1;
+	position: relative;
+	top: 1px;
+	color: lightgray;
 }
 
 /* Open group icon */
@@ -233,8 +265,8 @@ div.entryCount {
 }
 
 #contextMenu {
-    position: absolute;
-    display:none;
+	position: absolute;
+	display: none;
 }
 
 div.monitorTime, div.monitorId, div.entryCount {
@@ -279,25 +311,25 @@ a.collapseTitle:active {
 }
 
 
-.logMessage.fatal {
-	color: darkred;
+.logMessage.fatal, .logMessage.fatal a {
+	color: darkred !important;
 	font-weight: bold;
 }
 
-.logMessage.error {
-	color: red;
+.logMessage.error, .logMessage.error a {
+	color: red !important;
 }
 
-.logMessage.warn {
-	color: orange;
+.logMessage.warn, .logMessage.warn a {
+	color: orange !important;
 }
 
-.logMessage.info {
-	color: #0000CC;
+.logMessage.info, .logMessage.info a {
+	color: #0000CC !important;
 }
 
-.logMessage.trace {
-	color: gray;
+.logMessage.trace, .logMessage.trace a {
+	color: gray !important;
 }
 
 

@@ -109,7 +109,24 @@
 
     // Process even/odd once
     processLineClasses();
+
+    // Change classes of groups without entries
+    clearEmptyGroups();
 });
+
+function clearEmptyGroups() {
+    $(".logGroup").each(function () {
+        if ($(this).find("> .logLine").length == 0) {
+            // No log lines cotnained in group:
+            // Expand it (just in case)
+            expandGroup($(this));
+            var collapseToggle = getTitleOfGroup($(this));
+            $(collapseToggle).removeAttr("data-toggle");
+            $(collapseToggle).removeAttr("href");
+            $(collapseToggle).addClass("emptyGroupToggle");
+        }
+    });
+}
 
 function getSelectedLinesCount() {
     if (window.selectionEnd == -1 || window.selectionStart == -1) return 0;
@@ -117,7 +134,7 @@ function getSelectedLinesCount() {
 }
 
 function getSelectedLines() {
-    return window.visibleLogLines.slice(window.selectionStart, window.selectionEnd+1);
+    return window.visibleLogLines.slice(window.selectionStart, window.selectionEnd + 1);
 }
 
 function createContextMenu(e) {

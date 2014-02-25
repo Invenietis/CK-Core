@@ -128,7 +128,7 @@ namespace CK.Mon2Htm
 
             if( activationData != null && activationData.Length > 0 ) // ClickOnce file parameters
             {
-                string arg = args[0];
+                string arg = activationData[0];
                 LoadPath( arg );
 
                 this.viewHtmlButton.Focus();
