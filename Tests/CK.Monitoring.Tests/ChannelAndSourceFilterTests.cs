@@ -50,21 +50,21 @@ namespace CK.Monitoring.Tests
                 var m = new ActivityMonitor( false );
                 g.Register( m );
 
-                m.Fatal( "SourceFile-Off.cs" ).Send( "NOSHOW" );
+                m.Fatal( fileName: "SourceFile-Off.cs" ).Send( "NOSHOW" );
                 m.SetTopic( "This is a hidden topic..." );
-                m.Trace( "SourceFile-Debug.cs" ).Send( "Trace-1" );
+                m.Trace( 0, "SourceFile-Debug.cs" ).Send( "Trace-1" );
                 m.Trace().Send( "NOSHOW" );
                 m.SetTopic( "Please, hide this topic!" );
-                m.Trace( "SourceFile-Strange.cs" ).Send( "NOSHOW" );
-                using( m.OpenTrace( "SourceFile-Strange.cs" ).Send( "Trace-2" ) )
+                m.Trace( fileName: "SourceFile-Strange.cs" ).Send( "NOSHOW" );
+                using( m.OpenTrace( fileName: "SourceFile-Strange.cs" ).Send( "Trace-2" ) )
                 {
-                    m.Trace( "SourceFile-Strange.cs" ).Send( "NOSHOW" );
-                    m.Fatal( "SourceFile-Strange.cs" ).Send( "Fatal-1" );
-                    m.Fatal( "SourceFile-Off.cs" ).Send( "NOSHOW" );
+                    m.Trace( fileName: "SourceFile-Strange.cs" ).Send( "NOSHOW" );
+                    m.Fatal( fileName: "SourceFile-Strange.cs" ).Send( "Fatal-1" );
+                    m.Fatal( fileName: "SourceFile-Off.cs" ).Send( "NOSHOW" );
                 }
                 m.SetTopic( null );
-                m.Trace( "SourceFile-Strange.cs" ).Send( "NOSHOW" );
-                m.Fatal( "SourceFile-Off.cs" ).Send( "NOSHOW" );
+                m.Trace( fileName: "SourceFile-Strange.cs" ).Send( "NOSHOW" );
+                m.Fatal( fileName: "SourceFile-Off.cs" ).Send( "NOSHOW" );
                 m.Trace().Send( "Trace-3" );
             }
             List<StupidStringClient> logs = TestHelper.ReadAllLogs( new DirectoryInfo( SystemActivityMonitor.RootLogPath + "FilteringBySource" ), false );

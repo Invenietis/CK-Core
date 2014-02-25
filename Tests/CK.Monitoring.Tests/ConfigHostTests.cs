@@ -310,17 +310,17 @@ namespace CK.Monitoring.Tests
 
         void _host_ConfigurationClosing( object sender, ConfiguredRouteHost<ConfigHostTests.ITestIt, ConfigHostTests.FinalRoute>.ConfigurationClosingEventArgs e )
         {
-            e.Monitor.Info( "Configuration closing." );
+            e.Monitor.Info().Send( "Configuration closing." );
             if( _defaultRoute != null )
             {
-                e.Monitor.Info( "Releasing current default route." );
+                e.Monitor.Info().Send( "Releasing current default route." );
                 _defaultRoute.UnlockObtainedRoute();
             }
         }
 
         void OnConfigurationReady( ConfiguredRouteHost<ITestIt, FinalRoute>.ConfigurationReady ready )
         {
-            ready.Monitor.Info( "OnConfigurationReady called." );
+            ready.Monitor.Info().Send( "OnConfigurationReady called." );
         }
 
         [TearDown]
