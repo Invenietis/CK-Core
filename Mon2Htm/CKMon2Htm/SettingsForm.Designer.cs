@@ -73,6 +73,11 @@
             0,
             0,
             0});
+            this.entriesPerPageNumericUpDown.Minimum = new decimal(new int[] {
+            1,
+            0,
+            0,
+            0});
             this.entriesPerPageNumericUpDown.Name = "entriesPerPageNumericUpDown";
             this.entriesPerPageNumericUpDown.Value = new decimal(new int[] {
             500,

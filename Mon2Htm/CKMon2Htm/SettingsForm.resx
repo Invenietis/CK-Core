@@ -191,6 +191,9 @@
   <data name="refreshLogsCheckBox.Text" xml:space="preserve">
     <value>Auto-refresh logs when selection changes</value>
   </data>
+  <data name="refreshLogsCheckBox.Visible" type="System.Boolean, mscorlib">
+    <value>False</value>
+  </data>
   <data name="&gt;&gt;refreshLogsCheckBox.Name" xml:space="preserve">
     <value>refreshLogsCheckBox</value>
   </data>

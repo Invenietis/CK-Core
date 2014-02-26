@@ -215,15 +215,28 @@ namespace CK.Mon2Htm
 
             int totalEntryCount = monitorIndex.TotalEntryCount;
             int totalPageCount = monitorIndex.PageCount;
+            int visibleEntryCount = 0;
 
             var page = monitor.ReadFirstPage( monitor.FirstEntryTime, _logEntryCountPerPage );
 
             do
             {
+
                 foreach( var parentedLogEntry in page.Entries )
                 {
+
                     var entry = parentedLogEntry.Entry;
                     currentPageLogEntries.Add( parentedLogEntry );
+                
+                    // Entry is considered visible if either:
+                    // - It's missing
+                    // - It's a log line
+                    // - It's an open group entry
+                    // - It's a close group entry AND it has conclusions
+                    if( parentedLogEntry.IsMissing || parentedLogEntry.Entry.LogType == LogEntryType.OpenGroup || parentedLogEntry.Entry.LogType == LogEntryType.Line || (parentedLogEntry.Entry.LogType == LogEntryType.CloseGroup && parentedLogEntry.Entry.Conclusions.Count > 0))
+                    {
+                        visibleEntryCount++;
+                    }
 
                     if( entry.LogType == LogEntryType.OpenGroup && !parentedLogEntry.IsMissing )
                     {
@@ -235,12 +248,13 @@ namespace CK.Mon2Htm
                     }
 
                     // Flush entries into HTML
-                    if( currentPageLogEntries.Count >= _logEntryCountPerPage )
+                    if( visibleEntryCount >= _logEntryCountPerPage )
                     {
                         _monitor.Info().Send( "Generating page {0}", currentPageNumber );
                         string pageName = GenerateLogPage( currentPageLogEntries, monitor, currentPageNumber, openGroupsOnStart, openGroupsOnEnd.ToReadOnlyList() );
                         currentPageNumber++;
                         currentPageLogEntries.Clear();
+                        visibleEntryCount = 0;
 
                         pageFilenames.Add( pageName );
                         openGroupsOnStart = openGroupsOnEnd.ToReadOnlyList();
@@ -250,7 +264,7 @@ namespace CK.Mon2Htm
             } while( page.ForwardPage() > 0 );
 
             // Flush outstanding entries into HTML
-            if( currentPageLogEntries.Count > 0 )
+            if( visibleEntryCount > 0 )
             {
                 _monitor.Info().Send( "Generating outstanding page {0}", currentPageNumber );
                 string pageName = GenerateLogPage( currentPageLogEntries, monitor, currentPageNumber, openGroupsOnStart, openGroupsOnEnd.ToReadOnlyList() );

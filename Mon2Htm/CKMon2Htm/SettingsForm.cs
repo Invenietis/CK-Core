@@ -27,6 +27,7 @@ namespace CK.Mon2Htm
             bool autoAddFiles = settings.AutoSelectNewFiles;
             bool autoRefreshPage = settings.AutoRefreshPages;
             int entriesPerPage = settings.EntriesPerPage;
+            if( entriesPerPage <= 0 ) entriesPerPage = 500;
 
             this.watchFsCheckBox.Checked = monitorDirectories;
             this.addNewFilesCheckBox.Checked = autoAddFiles;
@@ -53,16 +54,30 @@ namespace CK.Mon2Htm
 
         private void ClearCache()
         {
-            var rootDirectory = new DirectoryInfo(MainForm.GetRootTempFolder());
+            var rootDirectory = new DirectoryInfo( MainForm.GetRootTempFolder() );
             if( !rootDirectory.Exists ) return;
 
             foreach( var directory in rootDirectory.GetDirectories() )
             {
-                directory.Delete( true );
+                try
+                {
+                    directory.Delete( true );
+                }
+                catch( Exception e )
+                {
+                    Console.WriteLine( e.ToString() );
+                }
             }
             foreach( var file in rootDirectory.GetFiles() )
             {
-                file.Delete();
+                try
+                {
+                    file.Delete();
+                }
+                catch( Exception e )
+                {
+                    Console.WriteLine( e.ToString() );
+                }
             }
             RefreshCacheSize();
         }
@@ -87,8 +102,6 @@ namespace CK.Mon2Htm
                 len = len / 1024;
             }
 
-            // Adjust the format string to your preferences. For example "{0:0.#}{1}" would
-            // show a single decimal place, and no space.
             string result = String.Format( "{0:0.##} {1}", len, sizes[order] );
 
             return result;
@@ -153,6 +166,9 @@ namespace CK.Mon2Htm
             int entriesPerPage = Convert.ToInt32( this.entriesPerPageNumericUpDown.Value );
 
             var settings = Properties.Settings.Default;
+
+            // If the entry count changes, existing files are no longer valid.
+            if( entriesPerPage != settings.EntriesPerPage ) ClearCache();
 
             settings.MonitorDirectory = monitorDirectory;
             settings.AutoSelectNewFiles = autoSelectFiles;
