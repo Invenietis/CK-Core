@@ -55,6 +55,33 @@ namespace CK.Mon2Htm
             return true;
         }
 
+        public static bool SerializeMonitorList(IEnumerable<MonitorIndexInfo> monitors, string outputFile, Func<Guid, string> getMonitorJsonPath)
+        {
+            using( JSResWriter writer = new JSResWriter() )
+            {
+                writer.ExportNamedArray( "Monitors", monitors, ( info, w ) => {
+                    using( JSResWriter sw = w.OpenRawObject() )
+                    {
+                        writer.ExportNamedVar( "MonitorGuid", info.MonitorGuid.ToString() );
+                        writer.ExportNamedVar( "MonitorTitle", info.MonitorTitle );
+                        writer.ExportNamedVar( "Path", getMonitorJsonPath(info.MonitorGuid) );
+
+                        writer.ExportNamedVar( "PageCount", info.PageCount.ToString() );
+
+                        writer.ExportNamedVar( "TotalEntryCount", info.TotalEntryCount.ToString() );
+
+                        writer.ExportNamedVar( "TotalWarnCount", info.TotalWarnCount.ToString() );
+                        writer.ExportNamedVar( "TotalErrorCount", info.TotalErrorCount.ToString() );
+                        writer.ExportNamedVar( "TotalFatalCount", info.TotalFatalCount.ToString() );
+                    }
+                } );
+
+
+                File.WriteAllText( outputFile, writer.GetResult() );
+            }
+            return true;
+        }
+
         private static void WriteMonitorPageReference( MonitorPageReference p, JSResWriter w, Func<int, string> getLogPageJsonPath )
         {
             using( JSResWriter sw = w.OpenRawObject() )

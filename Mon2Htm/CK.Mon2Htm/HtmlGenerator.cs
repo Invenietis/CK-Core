@@ -187,6 +187,8 @@ namespace CK.Mon2Htm
                     if( logPages != null ) monitorPages.Add( monitor, logPages );
                 }
             }
+            string monitorListPath = Path.Combine( _outputDirectoryPath, "monitors.json" );
+            JsonLogPageSerializer.SerializeMonitorList( _indexInfos.Values, monitorListPath, GetMonitorIndexJsonPath );
 
             string indexPath = CreateIndex( monitorPages );
 
@@ -195,7 +197,12 @@ namespace CK.Mon2Htm
 
         private string GetMonitorIndexJsonPath( MultiLogReader.Monitor monitor )
         {
-            string jsonPath = Path.Combine( _outputDirectoryPath, String.Format( "{0}.json", monitor.MonitorId.ToString() ) );
+            return GetMonitorIndexJsonPath( monitor.MonitorId );
+        }
+
+        private string GetMonitorIndexJsonPath( Guid monitorId )
+        {
+            string jsonPath = Path.Combine( _outputDirectoryPath, String.Format( "{0}.json", monitorId.ToString() ) );
 
             return jsonPath;
         }
