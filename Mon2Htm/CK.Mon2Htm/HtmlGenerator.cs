@@ -193,6 +193,19 @@ namespace CK.Mon2Htm
             return indexPath;
         }
 
+        private string GetMonitorIndexJsonPath( MultiLogReader.Monitor monitor )
+        {
+            string jsonPath = Path.Combine( _outputDirectoryPath, String.Format( "{0}.json", monitor.MonitorId.ToString() ) );
+
+            return jsonPath;
+        }
+        private string GetLogPageJsonPath( MultiLogReader.Monitor monitor, int pageNum )
+        {
+            string jsonPath = Path.Combine( _outputDirectoryPath, String.Format( "{0}_{1}.json", monitor.MonitorId.ToString(), pageNum ) );
+
+            return jsonPath;
+        }
+
         /// <summary>
         /// Creates the HTML structure of a single monitor into a paginated list of files.
         /// </summary>
@@ -205,6 +218,7 @@ namespace CK.Mon2Htm
         {
             _monitor.Info().Send( "Generating HTML for monitor: {0}", monitor.ToString() );
 
+
             List<string> pageFilenames = new List<string>();
             List<ParentedLogEntry> currentPageLogEntries = new List<ParentedLogEntry>();
 
@@ -216,6 +230,9 @@ namespace CK.Mon2Htm
             int totalEntryCount = monitorIndex.TotalEntryCount;
             int totalPageCount = monitorIndex.PageCount;
             int currentPageEntryCount = 0;
+            
+            Func<int, string> getLogPageJsonPath = (i) => { return GetLogPageJsonPath(monitor, i); };
+            JsonLogPageSerializer.SerializeMonitorIndex( monitorIndex, GetMonitorIndexJsonPath(monitor), getLogPageJsonPath );
 
             var page = monitor.ReadFirstPage( monitor.FirstEntryTime, _logEntryCountPerPage );
 
@@ -241,7 +258,14 @@ namespace CK.Mon2Htm
                     if( currentPageEntryCount >= _logEntryCountPerPage )
                     {
                         _monitor.Info().Send( "Generating page {0}", currentPageNumber );
+
                         string pageName = GenerateLogPage( currentPageLogEntries, monitor, currentPageNumber, openGroupsOnStart, openGroupsOnEnd.ToReadOnlyList() );
+
+                        string jsonFilename = String.Format( "{0}_{1}.json", monitor.MonitorId, currentPageNumber );
+                        ILogPage logPage = new LogPage( currentPageLogEntries.Select(x => x.Entry).ToReadOnlyList(), openGroupsOnStart, openGroupsOnEnd.ToReadOnlyList(), currentPageNumber );
+                        JsonLogPageSerializer.SerializeLogPage( logPage, Path.Combine(_outputDirectoryPath, jsonFilename) );
+
+
                         currentPageNumber++;
                         currentPageLogEntries.Clear();
                         currentPageEntryCount = 0;
@@ -257,7 +281,13 @@ namespace CK.Mon2Htm
             if( currentPageEntryCount > 0 )
             {
                 _monitor.Info().Send( "Generating outstanding page {0}", currentPageNumber );
+
                 string pageName = GenerateLogPage( currentPageLogEntries, monitor, currentPageNumber, openGroupsOnStart, openGroupsOnEnd.ToReadOnlyList() );
+
+                string jsonFilename = GetLogPageJsonPath(monitor, currentPageNumber);
+                ILogPage logPage = new LogPage( currentPageLogEntries.Select( x => x.Entry ).ToReadOnlyList(), openGroupsOnStart, openGroupsOnEnd.ToReadOnlyList(), currentPageNumber );
+                JsonLogPageSerializer.SerializeLogPage( logPage, Path.Combine( _outputDirectoryPath, jsonFilename ) );
+
                 currentPageLogEntries.Clear();
 
                 pageFilenames.Add( pageName );
@@ -265,6 +295,9 @@ namespace CK.Mon2Htm
 
             return pageFilenames;
         }
+
+
+
 
         /// <summary>
         /// Generates a single HTML log page from a list of entries corresponding to a monitor.

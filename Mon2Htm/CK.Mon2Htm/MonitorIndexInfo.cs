@@ -111,10 +111,10 @@ namespace CK.Mon2Htm
         {
             var page = monitor.ReadFirstPage( monitor.FirstEntryTime, itemsPerPage );
             IReadOnlyList<ILogEntry> pagePath = null;
-
+            int i = 1;
             do
             {
-                pagePath = AddPage( page, pagePath );
+                pagePath = AddPage( page, i++, pagePath );
             }
             while( page.ForwardPage() > 0 );
         }
@@ -126,10 +126,11 @@ namespace CK.Mon2Htm
             _logTimeToPage.Add( t, pageIndex );
         }
 
-        private IReadOnlyList<ILogEntry> AddPage( MultiLogReader.Monitor.LivePage page, IReadOnlyList<ILogEntry> previousPageEndPath = null )
+        private IReadOnlyList<ILogEntry> AddPage( MultiLogReader.Monitor.LivePage page, int pageNumber, IReadOnlyList<ILogEntry> previousPageEndPath = null )
         {
             if( previousPageEndPath == null ) previousPageEndPath = new List<ILogEntry>().ToReadOnlyList();
             MonitorPageReference pageRef = new MonitorPageReference();
+            pageRef.PageNumber = pageNumber;
             pageRef.PageLength = page.PageLength;
             pageRef.EntryCount = page.Entries.Count;
             _totalEntryCount += pageRef.EntryCount;
@@ -236,6 +237,7 @@ namespace CK.Mon2Htm
         public DateTimeStamp LastEntryTimestamp { get; internal set; }
         public int PageLength { get; internal set; }
         public int EntryCount { get; internal set; }
+        public int PageNumber { get; internal set; }
     }
 
     public class MonitorGroupReference

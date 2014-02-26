@@ -45,6 +45,9 @@
     <Compile Include="HtmlGenerator.cs" />
     <Compile Include="HtmlEntryPageWriter.cs" />
     <Compile Include="HtmlUtils.cs" />
+    <Compile Include="Impl\JsonLogPageSerializer.cs" />
+    <Compile Include="Impl\LogPage.cs" />
+    <Compile Include="Interfaces\ILogPage.cs" />
     <Compile Include="MonitorIndexInfo.cs" />
     <Compile Include="MonitoringExtensions.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
