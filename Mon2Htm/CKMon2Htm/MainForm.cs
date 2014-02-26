@@ -222,7 +222,8 @@ namespace CK.Mon2Htm
             if( _filesToLoad.Contains( filePath ) ) _filesToLoad.Remove( filePath );
             if( _listedFiles.Contains( filePath ) ) _listedFiles.Remove( filePath );
 
-            this.dataGridView1.Rows.Remove( GetRowOfFilePath( filePath ) );
+            var row = GetRowOfFilePath( filePath );
+            if( row != null ) this.dataGridView1.Rows.Remove( row );
 
             UpdateButtonState();
         }
@@ -272,9 +273,9 @@ namespace CK.Mon2Htm
 
             _loadedDirectory = directoryPath;
 
-            WatchDirectory( directoryPath );
-            AddDirectoryFiles( directoryPath );
+            if( Properties.Settings.Default.MonitorDirectory ) WatchDirectory( directoryPath );
 
+            AddDirectoryFiles( directoryPath );
             SortGrid();
         }
 
@@ -296,7 +297,7 @@ namespace CK.Mon2Htm
             return this.dataGridView1.Rows.Cast<DataGridViewRow>().Where( x => x.Cells[1].Tag.ToString() == filePath ).FirstOrDefault();
         }
 
-        private string GetRelativePathOfFile(string filePath)
+        private string GetRelativePathOfFile( string filePath )
         {
             if( _loadedDirectory == null ) return Path.GetFileName( filePath );
             string loadedDirectory = Path.GetFullPath( _loadedDirectory );
@@ -326,15 +327,17 @@ namespace CK.Mon2Htm
 
             string indexFilePath = Path.Combine( _tempDirPath, "index.html" );
 
-            if( !_hasUpdatedResources )
+            if( !_hasUpdatedResources || !Directory.Exists( Path.Combine( rootFolder, "css" ) ) )
             {
                 HtmlGenerator.CopyResourcesToDirectory( rootFolder );
                 _hasUpdatedResources = true;
             }
 
+            int entriesPerPage = Properties.Settings.Default.EntriesPerPage;
+
             if( !File.Exists( indexFilePath ) )
             {
-                indexFilePath = HtmlGenerator.CreateFromActivityMap( activityMap, _m, 500, _tempDirPath, "../" );
+                indexFilePath = HtmlGenerator.CreateFromActivityMap( activityMap, _m, entriesPerPage, _tempDirPath, "../" );
             }
 
             return indexFilePath;
@@ -419,7 +422,7 @@ namespace CK.Mon2Htm
             }
         }
 
-        private string GetRootTempFolder()
+        internal static string GetRootTempFolder()
         {
             string tempFolderName = String.Format( "ckmon2htm" );
             string tempFolderPath = Path.Combine( Path.GetTempPath(), tempFolderName );
@@ -429,7 +432,7 @@ namespace CK.Mon2Htm
             return tempFolderPath;
         }
 
-        private static string GetActivityMapHash(MultiLogReader.ActivityMap activityMap)
+        private static string GetActivityMapHash( MultiLogReader.ActivityMap activityMap )
         {
             StringBuilder sb = new StringBuilder();
             sb.Append( activityMap.FirstEntryDate.ToString() );
@@ -521,7 +524,7 @@ namespace CK.Mon2Htm
         #region FileSystemWatcher event handlers
         void _dirWatcher_Renamed( object sender, RenamedEventArgs e )
         {
-            bool wasChecked = _filesToLoad.Contains( e.OldFullPath );
+            bool wasChecked = _filesToLoad.Contains( e.OldFullPath ) || Properties.Settings.Default.AutoSelectNewFiles;
             RemoveFile( e.OldFullPath );
 
             if( e.FullPath.EndsWith( ".ckmon" ) )
@@ -534,7 +537,7 @@ namespace CK.Mon2Htm
         void _dirWatcher_Created( object sender, FileSystemEventArgs e )
         {
             Debug.Assert( e.FullPath.EndsWith( ".ckmon" ) );
-            AddFile( e.FullPath );
+            AddFile( e.FullPath, Properties.Settings.Default.AutoSelectNewFiles );
             SortGrid();
         }
 
@@ -604,6 +607,45 @@ namespace CK.Mon2Htm
             InstallUpdateSyncWithInfo();
         }
         #endregion
+
+        private void settingsButton_Click( object sender, EventArgs e )
+        {
+            SettingsForm form = new SettingsForm();
+
+            form.Owner = this;
+            this.AddOwnedForm( form );
+
+            form.ShowDialog( this );
+
+            ReloadSettings();
+        }
+
+        private void ReloadSettings()
+        {
+            var settings = Properties.Settings.Default;
+
+            if( settings.MonitorDirectory )
+            {
+                WatchDirectory( _loadedDirectory );
+                RefreshDirectory();
+            }
+            else
+            {
+                CloseDirWatcher();
+            }
+        }
+
+        private void RefreshDirectory()
+        {
+            AddDirectoryFiles( _loadedDirectory );
+
+            foreach( var file in _listedFiles.ToList() )
+            {
+                if( !File.Exists( file ) ) RemoveFile( file );
+            }
+
+            SortGrid();
+        }
     }
 
     internal class SortGridHelper : System.Collections.IComparer

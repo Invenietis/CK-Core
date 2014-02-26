@@ -39,6 +39,7 @@
             this.selectNoneToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.FileColumn = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.versionLabel = new System.Windows.Forms.Label();
+            this.settingsButton = new System.Windows.Forms.Button();
             ((System.ComponentModel.ISupportInitialize)(this.dataGridView1)).BeginInit();
             this.viewColumnContextMenuStrip.SuspendLayout();
             this.SuspendLayout();
@@ -98,19 +99,19 @@
             this.selectAllToolStripMenuItem,
             this.selectNoneToolStripMenuItem});
             this.viewColumnContextMenuStrip.Name = "viewColumnContextMenuStrip";
-            this.viewColumnContextMenuStrip.Size = new System.Drawing.Size(176, 80);
+            this.viewColumnContextMenuStrip.Size = new System.Drawing.Size(156, 52);
             // 
             // selectAllToolStripMenuItem
             // 
             this.selectAllToolStripMenuItem.Name = "selectAllToolStripMenuItem";
-            this.selectAllToolStripMenuItem.Size = new System.Drawing.Size(175, 24);
+            this.selectAllToolStripMenuItem.Size = new System.Drawing.Size(155, 24);
             this.selectAllToolStripMenuItem.Text = "Select all";
             this.selectAllToolStripMenuItem.Click += new System.EventHandler(this.selectAllToolStripMenuItem_Click);
             // 
             // selectNoneToolStripMenuItem
             // 
             this.selectNoneToolStripMenuItem.Name = "selectNoneToolStripMenuItem";
-            this.selectNoneToolStripMenuItem.Size = new System.Drawing.Size(175, 24);
+            this.selectNoneToolStripMenuItem.Size = new System.Drawing.Size(155, 24);
             this.selectNoneToolStripMenuItem.Text = "Select none";
             this.selectNoneToolStripMenuItem.Click += new System.EventHandler(this.selectNoneToolStripMenuItem_Click);
             // 
@@ -133,11 +134,24 @@
             this.versionLabel.Text = "...";
             this.versionLabel.DoubleClick += new System.EventHandler(this.versionLabel_DoubleClick);
             // 
+            // settingsButton
+            // 
+            this.settingsButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
+            this.settingsButton.BackgroundImage = global::CK.Mon2Htm.Properties.Resources.settingsIcon;
+            this.settingsButton.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Zoom;
+            this.settingsButton.Location = new System.Drawing.Point(457, 290);
+            this.settingsButton.Name = "settingsButton";
+            this.settingsButton.Size = new System.Drawing.Size(34, 30);
+            this.settingsButton.TabIndex = 6;
+            this.settingsButton.UseVisualStyleBackColor = true;
+            this.settingsButton.Click += new System.EventHandler(this.settingsButton_Click);
+            // 
             // MainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(120F, 120F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Dpi;
             this.ClientSize = new System.Drawing.Size(605, 326);
+            this.Controls.Add(this.settingsButton);
             this.Controls.Add(this.versionLabel);
             this.Controls.Add(this.dataGridView1);
             this.Controls.Add(this.viewHtmlButton);
@@ -164,6 +178,7 @@
         private System.Windows.Forms.ToolStripMenuItem selectNoneToolStripMenuItem;
         private System.Windows.Forms.DataGridViewCheckBoxColumn ViewFileColumn;
         private System.Windows.Forms.DataGridViewTextBoxColumn FileColumn;
+        private System.Windows.Forms.Button settingsButton;
     }
 }
 
