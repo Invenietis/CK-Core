@@ -126,25 +126,31 @@ namespace CK.Mon2Htm
         }
 
         #region Entry writing
-        private void WriteLineHeader( ILogEntry e, int depth = -1, bool writeAnchor = true, bool writeTooltip = true, string timestampClass = null )
+        private void WriteLineHeader( ILogEntry e, int depth = -1, bool writeAnchor = true, bool writeTooltip = true, string timestampClass = null, bool writeLineStamp = true )
         {
             if( writeAnchor ) _tw.WriteLine( @"<span class=""anchor"" id=""{0}""></span>", HtmlUtils.GetTimestampId( e.LogTime ) );
             _tw.WriteLine( @"<div class=""logLine {0} {1}"">", HtmlUtils.GetClassNameOfLogLevel( e.LogLevel ), _currentLineNumber % 2 == 0 ? "even" : "odd" );
 
+            if( writeLineStamp )
+            {
+                _tw.Write( @"<div class=""logLineNumber"">{0}</div>",
+                    String.Format( _lineStringFormat, _currentLineNumber ).Replace( " ", "&nbsp;" ) );
 
-            _tw.Write( @"<div class=""logLineNumber"">{0}</div>",
-                String.Format( _lineStringFormat, _currentLineNumber ).Replace( " ", "&nbsp;") );
+                _tw.Write( @"<div class=""timestamp{0}"">", String.IsNullOrEmpty( timestampClass ) ? String.Empty : " " + timestampClass );
 
-            _tw.Write( @"<div class=""timestamp{0}"">", String.IsNullOrEmpty( timestampClass ) ? String.Empty : " " + timestampClass );
+                if( writeTooltip ) _tw.Write( @"<span data-toggle=""tooltip"" title=""{0}"" rel=""tooltip"">", GetTooltipText( e ) );
 
-            if( writeTooltip ) _tw.Write( @"<span data-toggle=""tooltip"" title=""{0}"" rel=""tooltip"">", GetTooltipText( e ) );
+                _tw.Write( @"{0}", e.LogTime.TimeUtc.ToString( "HH:mm:ss" ) );
 
-            _tw.Write( @"{0}", e.LogTime.TimeUtc.ToString( "HH:mm:ss" ) );
+                if( writeTooltip ) _tw.Write( @"</span>", GetTooltipText( e ) );
+                _tw.Write( @"</div>" );
 
-            if( writeTooltip ) _tw.Write( @"</span>", GetTooltipText( e ) );
-            _tw.Write( @"</div>" );
-
-
+                _currentLineNumber++;
+            }
+            else
+            {
+                _tw.Write( @"<div class=""logLineNumber""></div><div class=""timestamp""></div>" );
+            }
             if( depth < 0 ) depth = _currentPath.Count;
 
             for( int i = 0; i < depth; i++ )
@@ -152,13 +158,12 @@ namespace CK.Mon2Htm
                 _tw.Write( @"<div class=""tabSpace""></div>" );
             }
 
-            _currentLineNumber++;
 
             _tw.WriteLine( @"<div class=""logContent"">" );
         }
         private void WriteLineHeader( ILogEntry e, string timestampClass )
         {
-            WriteLineHeader( e, -1, true, true, timestampClass );
+            WriteLineHeader( e, -1, true, true, timestampClass, true );
         }
         private void WriteLineFooter( ILogEntry e )
         {
@@ -177,7 +182,7 @@ namespace CK.Mon2Htm
 
                 _tw.Write( String.Format(
                     @"{0}",
-                    ReplaceUrlsByLinks(entry.Text)
+                    ReplaceUrlsByLinks( entry.Text )
                     ) );
 
                 _tw.Write( @"</pre>" );
@@ -224,12 +229,10 @@ namespace CK.Mon2Htm
 
                     _tw.Write(
                         @"<a class=""collapseTitle collapseToggle{2}"" data-toggle=""collapse"" href=""#group-{1}"">{0}</a>",
-                    ReplaceUrlsByLinks(entry.Text),
+                        ReplaceUrlsByLinks( entry.Text ),
                         HtmlUtils.GetTimestampId( entry.LogTime ),
                         groupRef.HighestLogLevel < (CK.Core.LogLevel.Warn | CK.Core.LogLevel.IsFiltered) ? " collapsed" : String.Empty
                          );
-
-                    _tw.WriteLine( @"</p>" );
 
                     var indexGroupEntry = _indexInfo.Groups.GetByKey( entry.LogTime );
                     if( indexGroupEntry.CloseGroupTimestamp > DateTimeStamp.MinValue && !LastGroupEntryIsOnPage( entry ) )
@@ -237,13 +240,16 @@ namespace CK.Mon2Htm
                         _tw.Write( @" <a class=""showOnHover"" href=""{0}""><span class=""glyphicon glyphicon-fast-forward""></span></a> ",
                             HtmlUtils.GetReferenceHref( _monitor, _indexInfo, indexGroupEntry.CloseGroupTimestamp ) );
                     }
+
+                    _tw.WriteLine( @"</p>" );
                     WriteLineFooter( entry );
                 }
 
                 _tw.WriteLine( @"<div id=""group-{1}"" class=""collapse logGroup {0}{2}"">",
                     HtmlUtils.GetClassNameOfLogLevel( entry.LogLevel ),
                     HtmlUtils.GetTimestampId( entry.LogTime ),
-                    groupRef.HighestLogLevel < (CK.Core.LogLevel.Warn | CK.Core.LogLevel.IsFiltered) ? String.Empty : " in"
+                    // Only collapse group if the toggle was visible AND highest log level >= Warn.
+                    printMessage && groupRef.HighestLogLevel < (CK.Core.LogLevel.Warn | CK.Core.LogLevel.IsFiltered) ? String.Empty : " in"
                     );
             }
 
@@ -379,7 +385,7 @@ namespace CK.Mon2Htm
                 int i = 0;
                 foreach( var group in groupsToWrite )
                 {
-                    WriteLineHeader( group, i, false );
+                    WriteLineHeader( group, i, false, false, null, false );
 
                     _tw.Write( @"<p class=""logMessage {2}"">{0} <a href=""{1}""><span class=""glyphicon glyphicon-fast-backward""></span></a></p>",
                         group.Text,
@@ -441,13 +447,13 @@ namespace CK.Mon2Htm
             return _indexInfo.GetPageIndexOf( stamp ) == _pageNumber - 1;
         }
 
-        private string ReplaceUrlsByLinks(string s)
+        private string ReplaceUrlsByLinks( string s )
         {
-            s = HttpUtility.HtmlEncode(s);
+            s = HttpUtility.HtmlEncode( s );
             int delta = 0;
 
             MatchCollection mc = _linkParser.Matches( s );
-            foreach(Match m in mc)
+            foreach( Match m in mc )
             {
                 int startIndex = m.Index + delta;
                 string link = String.Format( @"<a href=""{0}"" target=""_blank"">{0}</a>", m.Value );
@@ -497,7 +503,7 @@ namespace CK.Mon2Htm
 
             if( !entry.Tags.IsEmpty )
             {
-                sb.AppendFormat( @"<br>{0}", String.Join(", ", entry.Tags.AtomicTraits.Select( x => x.ToString() ) ) );
+                sb.AppendFormat( @"<br>{0}", String.Join( ", ", entry.Tags.AtomicTraits.Select( x => x.ToString() ) ) );
             }
             return HttpUtility.HtmlAttributeEncode( sb.ToString() );
         }

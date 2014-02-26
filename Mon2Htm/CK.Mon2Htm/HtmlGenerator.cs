@@ -178,10 +178,10 @@ namespace CK.Mon2Htm
             {
                 foreach( var monitor in _activityMap.Monitors )
                 {
+                    _monitor.Trace().Send( "Indexing monitor: {0}", monitor.MonitorId.ToString() );
                     var monitorIndex = MonitorIndexInfo.IndexMonitor( monitor, _logEntryCountPerPage );
                     _indexInfos.Add( monitor, monitorIndex );
 
-                    _monitor.Trace().Send( "Indexing monitor: {0}", monitor.MonitorId.ToString() );
                     _monitor.Trace().Send( "Writing monitor: {0}", monitor.MonitorId.ToString() );
                     var logPages = CreateMonitorHtmlStructure( monitor, monitorIndex );
                     if( logPages != null ) monitorPages.Add( monitor, logPages );
@@ -215,28 +215,18 @@ namespace CK.Mon2Htm
 
             int totalEntryCount = monitorIndex.TotalEntryCount;
             int totalPageCount = monitorIndex.PageCount;
-            int visibleEntryCount = 0;
+            int currentPageEntryCount = 0;
 
             var page = monitor.ReadFirstPage( monitor.FirstEntryTime, _logEntryCountPerPage );
 
             do
             {
-
                 foreach( var parentedLogEntry in page.Entries )
                 {
-
                     var entry = parentedLogEntry.Entry;
                     currentPageLogEntries.Add( parentedLogEntry );
-                
-                    // Entry is considered visible if either:
-                    // - It's missing
-                    // - It's a log line
-                    // - It's an open group entry
-                    // - It's a close group entry AND it has conclusions
-                    if( parentedLogEntry.IsMissing || parentedLogEntry.Entry.LogType == LogEntryType.OpenGroup || parentedLogEntry.Entry.LogType == LogEntryType.Line || (parentedLogEntry.Entry.LogType == LogEntryType.CloseGroup && parentedLogEntry.Entry.Conclusions.Count > 0))
-                    {
-                        visibleEntryCount++;
-                    }
+
+                    currentPageEntryCount++;
 
                     if( entry.LogType == LogEntryType.OpenGroup && !parentedLogEntry.IsMissing )
                     {
@@ -248,13 +238,13 @@ namespace CK.Mon2Htm
                     }
 
                     // Flush entries into HTML
-                    if( visibleEntryCount >= _logEntryCountPerPage )
+                    if( currentPageEntryCount >= _logEntryCountPerPage )
                     {
                         _monitor.Info().Send( "Generating page {0}", currentPageNumber );
                         string pageName = GenerateLogPage( currentPageLogEntries, monitor, currentPageNumber, openGroupsOnStart, openGroupsOnEnd.ToReadOnlyList() );
                         currentPageNumber++;
                         currentPageLogEntries.Clear();
-                        visibleEntryCount = 0;
+                        currentPageEntryCount = 0;
 
                         pageFilenames.Add( pageName );
                         openGroupsOnStart = openGroupsOnEnd.ToReadOnlyList();
@@ -264,7 +254,7 @@ namespace CK.Mon2Htm
             } while( page.ForwardPage() > 0 );
 
             // Flush outstanding entries into HTML
-            if( visibleEntryCount > 0 )
+            if( currentPageEntryCount > 0 )
             {
                 _monitor.Info().Send( "Generating outstanding page {0}", currentPageNumber );
                 string pageName = GenerateLogPage( currentPageLogEntries, monitor, currentPageNumber, openGroupsOnStart, openGroupsOnEnd.ToReadOnlyList() );
