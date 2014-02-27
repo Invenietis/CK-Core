@@ -43,8 +43,6 @@ namespace CK.Mon2Htm
                 pagedEntry.GroupStartsOnPage = groupStartPage;
                 if(pageNumber != groupEndPage) pagedEntry.GroupEndsOnPage = groupEndPage;
 
-                currentPath.Add( pagedEntry );
-
                 if( currentPath.Count > 0 )
                 {
                     // Add current path as child
@@ -55,13 +53,15 @@ namespace CK.Mon2Htm
                     // Add to root
                     logEntries.Add( pagedEntry );
                 }
+
+                currentPath.Add( pagedEntry );
             }
 
             foreach( var entry in entries )
             {
                 var pagedEntry = new PagedLogEntry( entry );
 
-                if( currentPath.Count > 0 )
+                if( currentPath.Count > 0  )
                 {
                     // Add current path as child
                     currentPath[currentPath.Count - 1].AddChild( pagedEntry );

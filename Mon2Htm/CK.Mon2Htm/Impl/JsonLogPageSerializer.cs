@@ -153,22 +153,19 @@ namespace CK.Mon2Htm
 
             WriteLogEntryContents( e );
 
-            if(e.LogType == LogEntryType.OpenGroup)
+            if( e.GroupStartsOnPage > 0 ) _writer.WriteProperty( "GroupStartsOnPage", e.GroupStartsOnPage );
+            if( e.GroupEndsOnPage > 0 ) _writer.WriteProperty( "GroupEndsOnPage", e.GroupEndsOnPage );
+
+            if( e.LogType == LogEntryType.OpenGroup )
             {
                 _writer.WritePropertyStart( "Children" );
                 _writer.OpenArray();
-                foreach( var child in e.Children)
+                foreach( var child in e.Children )
                 {
                     WriteLogEntry( child );
                 }
                 _writer.CloseArray();
-
-
             }
-            if( e.GroupStartsOnPage > 0 ) _writer.WriteProperty( "GroupStartsOnPage", e.GroupStartsOnPage );
-            if( e.GroupEndsOnPage > 0 ) _writer.WriteProperty( "GroupEndsOnPage", e.GroupEndsOnPage );
-
-
             _writer.CloseObject();
         }
         void WriteLogEntry( ILogEntry e )
