@@ -269,7 +269,7 @@ namespace CK.Mon2Htm
                         string pageName = GenerateLogPage( currentPageLogEntries, monitor, currentPageNumber, openGroupsOnStart, openGroupsOnEnd.ToReadOnlyList() );
 
                         string jsonFilename = String.Format( "{0}_{1}.json", monitor.MonitorId, currentPageNumber );
-                        ILogPage logPage = new LogPage( currentPageLogEntries.Select(x => x.Entry).ToReadOnlyList(), openGroupsOnStart, openGroupsOnEnd.ToReadOnlyList(), currentPageNumber );
+                        IStructuredLogPage logPage = new LogPage( currentPageLogEntries.Select(x => x.Entry).ToReadOnlyList(), openGroupsOnStart, openGroupsOnEnd.ToReadOnlyList(), currentPageNumber, monitorIndex );
                         JsonLogPageSerializer.SerializeLogPage( logPage, Path.Combine(_outputDirectoryPath, jsonFilename) );
 
 
@@ -292,7 +292,7 @@ namespace CK.Mon2Htm
                 string pageName = GenerateLogPage( currentPageLogEntries, monitor, currentPageNumber, openGroupsOnStart, openGroupsOnEnd.ToReadOnlyList() );
 
                 string jsonFilename = GetLogPageJsonPath(monitor, currentPageNumber);
-                ILogPage logPage = new LogPage( currentPageLogEntries.Select( x => x.Entry ).ToReadOnlyList(), openGroupsOnStart, openGroupsOnEnd.ToReadOnlyList(), currentPageNumber );
+                IStructuredLogPage logPage = new LogPage( currentPageLogEntries.Select( x => x.Entry ).ToReadOnlyList(), openGroupsOnStart, openGroupsOnEnd.ToReadOnlyList(), currentPageNumber, monitorIndex );
                 JsonLogPageSerializer.SerializeLogPage( logPage, Path.Combine( _outputDirectoryPath, jsonFilename ) );
 
                 currentPageLogEntries.Clear();
