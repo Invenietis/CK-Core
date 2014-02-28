@@ -7,26 +7,96 @@ using CK.Monitoring;
 
 namespace CK.Mon2Htm
 {
-    class LogPage : ILogPage
+    class LogPage : IStructuredLogPage
     {
-        readonly IReadOnlyList<ILogEntry> _entries;
+        readonly IReadOnlyList<IPagedLogEntry> _entries;
         readonly IReadOnlyList<ILogEntry> _openGroupsAtStart;
         readonly IReadOnlyList<ILogEntry> _openGroupsAtEnd;
         readonly int _pageNumber;
 
-        internal LogPage(IReadOnlyList<ILogEntry> entries, IReadOnlyList<ILogEntry> openGroupsAtStart, IReadOnlyList<ILogEntry> openGroupsAtEnd, int pageNumber)
+        internal LogPage(IReadOnlyList<ILogEntry> entries, IReadOnlyList<ILogEntry> openGroupsAtStart, IReadOnlyList<ILogEntry> openGroupsAtEnd, int pageNumber, MonitorIndexInfo indexInfo)
         {
-            _entries = entries;
+            _entries = BuildStructuredLogEntries( entries, openGroupsAtStart, openGroupsAtEnd, indexInfo, pageNumber );
+
             _openGroupsAtStart = openGroupsAtStart;
             _openGroupsAtEnd = openGroupsAtEnd;
             _pageNumber = pageNumber;
         }
 
-        #region ILogPage Members
-
-        public IReadOnlyList<ILogEntry> Entries
+        private static IReadOnlyList<IPagedLogEntry> BuildStructuredLogEntries( IEnumerable<ILogEntry> entries, IReadOnlyList<ILogEntry> openGroupsAtStart, IReadOnlyList<ILogEntry> openGroupsAtEnd, MonitorIndexInfo indexInfo, int pageNumber )
         {
-            get { return _entries; }
+            List<PagedLogEntry> logEntries = new List<PagedLogEntry>();
+
+            List<PagedLogEntry> currentPath = new List<PagedLogEntry>();
+
+            // Process already-opened group
+
+            foreach( var entry in openGroupsAtStart )
+            {
+                bool exists;
+
+                var pagedEntry = new PagedLogEntry( entry );
+
+                int groupStartPage = indexInfo.GetPageIndexOf( entry.LogTime ) + 1;
+                int groupEndPage = indexInfo.GetPageIndexOf( indexInfo.Groups.GetByKey( entry.LogTime, out exists ).CloseGroupTimestamp ) + 1;
+
+                pagedEntry.GroupStartsOnPage = groupStartPage;
+                if(pageNumber != groupEndPage) pagedEntry.GroupEndsOnPage = groupEndPage;
+
+                if( currentPath.Count > 0 )
+                {
+                    // Add current path as child
+                    currentPath[currentPath.Count - 1].AddChild( pagedEntry );
+                }
+                else
+                {
+                    // Add to root
+                    logEntries.Add( pagedEntry );
+                }
+
+                currentPath.Add( pagedEntry );
+            }
+
+            foreach( var entry in entries )
+            {
+                var pagedEntry = new PagedLogEntry( entry );
+
+                if( currentPath.Count > 0  )
+                {
+                    // Add current path as child
+                    currentPath[currentPath.Count - 1].AddChild( pagedEntry );
+                }
+                else
+                {
+                    // Add to root
+                    logEntries.Add( pagedEntry );
+                }
+
+                if( pagedEntry.LogType == LogEntryType.OpenGroup )
+                {
+                    bool exists;
+
+                    int groupEndPage = indexInfo.GetPageIndexOf( indexInfo.Groups.GetByKey( entry.LogTime, out exists ).CloseGroupTimestamp ) + 1;
+
+                    pagedEntry.GroupStartsOnPage = 0;
+                    if( pageNumber != groupEndPage ) pagedEntry.GroupEndsOnPage = groupEndPage;
+
+                    currentPath.Add( pagedEntry );
+                }
+                else if( pagedEntry.LogType == LogEntryType.CloseGroup )
+                {
+                    var openGroupTimestamp = indexInfo.Groups.First( x => x.CloseGroupTimestamp == pagedEntry.LogTime ).OpenGroupTimestamp;
+                    var groupStartPage = indexInfo.GetPageIndexOf( openGroupTimestamp );
+
+                    if( pageNumber != groupStartPage ) pagedEntry.GroupStartsOnPage = groupStartPage;
+                    pagedEntry.GroupEndsOnPage = 0;
+
+                    currentPath.RemoveAt( currentPath.Count - 1 );
+                }
+                
+            }
+
+            return logEntries.AsReadOnly();
         }
 
         public IReadOnlyList<ILogEntry> OpenGroupsAtStart
@@ -44,6 +114,9 @@ namespace CK.Mon2Htm
             get { return _pageNumber; }
         }
 
-        #endregion
+        public IReadOnlyList<IPagedLogEntry> Entries
+        {
+            get { return _entries; }
+        }
     }
 }

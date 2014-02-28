@@ -47,10 +47,13 @@
     <Compile Include="HtmlUtils.cs" />
     <Compile Include="Impl\JsonLogPageSerializer.cs" />
     <Compile Include="Impl\LogPage.cs" />
+    <Compile Include="Impl\PagedLogEntry.cs" />
     <Compile Include="Interfaces\ILogPage.cs" />
+    <Compile Include="Interfaces\IPagedLogEntry.cs" />
     <Compile Include="MonitorIndexInfo.cs" />
     <Compile Include="MonitoringExtensions.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="SimpleJsonWriter.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Content\css\CkmonStyle.css" />

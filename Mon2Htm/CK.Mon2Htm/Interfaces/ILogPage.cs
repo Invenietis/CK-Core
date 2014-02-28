@@ -7,9 +7,9 @@ using CK.Monitoring;
 
 namespace CK.Mon2Htm
 {
-    public interface ILogPage
+    public interface IStructuredLogPage
     {
-        IReadOnlyList<ILogEntry> Entries { get; }
+        IReadOnlyList<IPagedLogEntry> Entries { get; }
 
         IReadOnlyList<ILogEntry> OpenGroupsAtStart { get; }
 
