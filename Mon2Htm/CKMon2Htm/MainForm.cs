@@ -1,15 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Deployment.Application;
 using System.Diagnostics;
-using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Security.Cryptography;
 using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 using CK.Core;
 using CK.Monitoring;
@@ -272,11 +269,19 @@ namespace CK.Mon2Htm
             if( !Directory.Exists( directoryPath ) ) throw new DirectoryNotFoundException( String.Format( "Attempted to load on a directory that does not exist: {0}", directoryPath ) );
 
             _loadedDirectory = directoryPath;
+            UpdateTitle();
 
             if( Properties.Settings.Default.MonitorDirectory ) WatchDirectory( directoryPath );
 
             AddDirectoryFiles( directoryPath );
             SortGrid();
+        }
+
+        private void UpdateTitle()
+        {
+            DirectoryInfo d = new DirectoryInfo( _loadedDirectory );
+
+            this.Text = String.Format( "{0} ({1}) - Mon2Htm", d.Name, d.FullName );
         }
 
         private void SortGrid()
