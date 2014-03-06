@@ -820,6 +820,40 @@ namespace CK.Core.Tests.Monitoring
         }
 
         [Test]
+        public void FilteredTextWriterTests()
+        {
+            StringBuilder sb = new StringBuilder();
+
+            IActivityMonitor d = new ActivityMonitor();
+            d.SetMinimalFilter( LogFilter.Debug );
+
+            var c = new ActivityMonitorTextWriterClient(s => sb.Append(s), LogFilter.Release);
+            d.Output.RegisterClient( c );
+
+            d.Trace().Send( "NO SHOW" );
+            d.Trace().Send( "NO SHOW" );
+            using( d.OpenTrace().Send( "NO SHOW" ) )
+            {
+                d.Info().Send( "NO SHOW" );
+                d.Info().Send( "NO SHOW" );
+            }
+
+            d.Error().Send( "Error line at root" );
+            using( d.OpenInfo().Send( "NO SHOW" ) )
+            {
+                d.Warn().Send( "NO SHOW" );
+                d.Error().Send( "NO SHOW" ); // Error, but in filtered group
+                using( d.OpenError().Send( "NO SHOW" ) ) // Error, but in filtered group
+                {
+                    d.Error().Send( "NO SHOW" ); // Error, but in filtered group
+                }
+            }
+
+            Assert.That( sb.ToString(), Is.Not.StringContaining( "NO SHOW" ) );
+            Assert.That( sb.ToString(), Is.StringContaining( "Error line at root" ) );
+        }
+
+        [Test]
         public void CatchTests()
         {
             IActivityMonitor d = new ActivityMonitor();

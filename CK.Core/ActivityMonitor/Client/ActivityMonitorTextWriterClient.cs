@@ -34,26 +34,31 @@ namespace CK.Core
     /// <summary>
     /// Formats the activity and pushes piece of texts to an <see cref="Action{T}"/> where T is a string.
     /// </summary>
-    public class ActivityMonitorTextWriterClient : ActivityMonitorTextHelperClient
+    public class ActivityMonitorTextWriterClient : ActivityMonitorTextHelperClient, IActivityMonitorBoundClient
     {
         readonly Action<string> _writer;
         readonly StringBuilder _buffer;
         string _prefix;
         string _prefixLevel;
         CKTrait _currentTags;
+        LogFilter _outputFilter;
+        Impl.IActivityMonitorImpl _source;
+        int _filteredGroupLevel = 0;
 
         /// <summary>
         /// Initializes a new <see cref="ActivityMonitorTextWriterClient"/> bound to a 
-        /// function that must write a string.
+        /// function that must write a string, with an output filter.
         /// </summary>
         /// <param name="writer">Function that writes the content.</param>
-        public ActivityMonitorTextWriterClient( Action<string> writer )
+        /// <param name="outputFilter">Function that writes the content.</param>
+        public ActivityMonitorTextWriterClient( Action<string> writer, LogFilter outputFilter = default(LogFilter) )
         {
             if( writer == null ) throw new ArgumentNullException( "writer" );
             _writer = writer;
             _buffer = new StringBuilder();
             _prefixLevel = _prefix = String.Empty;
             _currentTags = ActivityMonitor.Tags.Empty;
+            _outputFilter = outputFilter;
         }
 
         /// <summary>
@@ -62,6 +67,8 @@ namespace CK.Core
         /// <param name="data">Log data.</param>
         protected override void OnEnterLevel( ActivityMonitorLogData data )
         {
+            if( !CanOutputLine( data.MaskedLevel ) ) return;
+
             var w = _buffer.Clear();
             _prefixLevel = _prefix + new String( ' ', data.MaskedLevel.ToString().Length + 4 );
             string text = data.Text.Replace( Environment.NewLine, Environment.NewLine + _prefixLevel );
@@ -81,12 +88,24 @@ namespace CK.Core
             _writer( w.ToString() );
         }
 
+        private bool CanOutputGroup( LogLevel logLevel )
+        {
+            return _filteredGroupLevel == 0 && ( _outputFilter.Group == LogLevelFilter.None || (int)logLevel >= (int)_outputFilter.Group );
+        }
+
+        private bool CanOutputLine( LogLevel logLevel )
+        {
+            return _filteredGroupLevel == 0 && ( _outputFilter.Line == LogLevelFilter.None || (int)logLevel >= (int)_outputFilter.Line ); 
+        }
+
         /// <summary>
         /// Writes all information.
         /// </summary>
         /// <param name="data">Log data.</param>
         protected override void OnContinueOnSameLevel( ActivityMonitorLogData data )
         {
+            if( !CanOutputLine( data.MaskedLevel ) ) return;
+
             var w = _buffer.Clear();
             string text = data.Text.Replace( Environment.NewLine, Environment.NewLine + _prefixLevel );
             if( _currentTags != data.Tags )
@@ -109,6 +128,8 @@ namespace CK.Core
         /// <param name="level">Previous level.</param>
         protected override void OnLeaveLevel( LogLevel level )
         {
+            if( !CanOutputLine( level ) ) return;
+
             Debug.Assert( (level & LogLevel.IsFiltered) == 0 );
             _prefixLevel = _prefix;
         }
@@ -119,6 +140,12 @@ namespace CK.Core
         /// <param name="g">Group information.</param>
         protected override void OnGroupOpen( IActivityLogGroup g )
         {
+            if( !CanOutputGroup( g.MaskedGroupLevel ) )
+            {
+                _filteredGroupLevel++;
+                return;
+            }
+
             var w = _buffer.Clear();
             string start = String.Format( "{0}> {1}: ", _prefix, g.MaskedGroupLevel.ToString() );
             _prefix += "|  ";
@@ -148,6 +175,12 @@ namespace CK.Core
         /// <param name="conclusions">Conclusions for the group.</param>
         protected override void OnGroupClose( IActivityLogGroup g, IReadOnlyList<ActivityLogGroupConclusion> conclusions )
         {
+            if( !CanOutputGroup( g.MaskedGroupLevel ) )
+            {
+                _filteredGroupLevel--;
+                return;
+            }
+
             var w = _buffer.Clear();
             _prefixLevel = _prefix = _prefix.Remove( _prefix.Length - 3 );
 
@@ -267,6 +300,24 @@ namespace CK.Core
             w.AppendLine( prefix + " └" + new String( '─', header.Length - 2 ) );
         }
 
+
+        #region IActivityMonitorBoundClient Members
+
+        public LogFilter MinimalFilter
+        {
+            get { return _outputFilter; }
+        }
+
+        public void SetMonitor( Impl.IActivityMonitorImpl source, bool forceBuggyRemove )
+        {
+            if( !forceBuggyRemove )
+            {
+                if( source != null && _source != null ) throw ActivityMonitorClient.CreateMultipleRegisterOnBoundClientException( this );
+            }
+            _source = source;
+        }
+
+        #endregion
     }
 
 }
