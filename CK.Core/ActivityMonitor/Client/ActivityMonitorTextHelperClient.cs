@@ -32,21 +32,40 @@ namespace CK.Core
     /// Base class for <see cref="IActivityMonitorClient"/> that tracks groups and level changes in order
     /// to ease text-based renderer.
     /// </summary>
-    public abstract class ActivityMonitorTextHelperClient : IActivityMonitorClient
+    public abstract class ActivityMonitorTextHelperClient : IActivityMonitorBoundClient
     {
         int _curLevel;
+        LogFilter _filter;
+        Stack<bool> _openGroups;
+        Impl.IActivityMonitorImpl _source;
+
+        /// <summary>
+        /// Initialize a new <see cref="ActivityMonitorTextHelperClient"/> with a filter.
+        /// </summary>
+        protected ActivityMonitorTextHelperClient( LogFilter filter )
+        {
+            _curLevel = -1;
+            _openGroups = new Stack<bool>();
+            _filter = filter;
+        }
 
         /// <summary>
         /// Initialize a new <see cref="ActivityMonitorTextHelperClient"/>.
         /// </summary>
         protected ActivityMonitorTextHelperClient()
+            : this( LogFilter.Undefined )
         {
-            _curLevel = -1;
         }
 
         void IActivityMonitorClient.OnUnfilteredLog( ActivityMonitorLogData data )
         {
             var level = data.Level & LogLevel.Mask;
+
+            if( !CanOutputLine( level ) )
+            {
+                return;
+            }
+
             if( data.Text == ActivityMonitor.ParkLevel )
             {
                 if( _curLevel != -1 )
@@ -80,6 +99,15 @@ namespace CK.Core
                 OnLeaveLevel( (LogLevel)_curLevel );
                 _curLevel = -1;
             }
+
+            if( !CanOutputGroup( group.MaskedGroupLevel ) )
+            {
+                _openGroups.Push( false );
+                return;
+            }
+
+            _openGroups.Push( true );
+
             OnGroupOpen( group );
         }
 
@@ -94,6 +122,12 @@ namespace CK.Core
                 OnLeaveLevel( (LogLevel)_curLevel );
                 _curLevel = -1;
             }
+
+            if( !_openGroups.Pop() ) // Tip is true: Group was open
+            {
+                return;
+            }
+
             OnGroupClose( group, conclusions );
         }
 
@@ -136,5 +170,42 @@ namespace CK.Core
         void IActivityMonitorClient.OnAutoTagsChanged( CKTrait newTrait )
         {
         }
+
+        public LogFilter Filter { get { return _filter; } }
+
+        private bool CanOutputLine( LogLevel logLevel )
+        {
+            return Filter.Line == LogLevelFilter.None || (int)logLevel >= (int)Filter.Line;
+        }
+
+        private bool CanOutputGroup( LogLevel logLevel )
+        {
+            return Filter.Group == LogLevelFilter.None || (int)logLevel >= (int)Filter.Group;
+        }
+
+        #region IActivityMonitorBoundClient Members
+
+        public LogFilter MinimalFilter
+        {
+            get { return Filter; }
+            set
+            {
+                LogFilter oldFilter = _filter;
+                _filter = value;
+
+                if( _source != null ) _source.OnClientMinimalFilterChanged( oldFilter, _filter );
+            }
+        }
+
+        public void SetMonitor( Impl.IActivityMonitorImpl source, bool forceBuggyRemove )
+        {
+            if( !forceBuggyRemove )
+            {
+                if( source != null && _source != null ) throw ActivityMonitorClient.CreateMultipleRegisterOnBoundClientException( this );
+            }
+            _source = source;
+        }
+
+        #endregion
     }
 }

@@ -842,15 +842,18 @@ namespace CK.Core.Tests.Monitoring
             using( d.OpenInfo().Send( "NO SHOW" ) )
             {
                 d.Warn().Send( "NO SHOW" );
-                d.Error().Send( "NO SHOW" ); // Error, but in filtered group
-                using( d.OpenError().Send( "NO SHOW" ) ) // Error, but in filtered group
+                d.Error().Send( "Send error line inside group" );
+                using( d.OpenError().Send( "Open error group" ) )
                 {
-                    d.Error().Send( "NO SHOW" ); // Error, but in filtered group
+                    d.Error().Send( "Send error line inside sub group" );
                 }
             }
 
             Assert.That( sb.ToString(), Is.Not.StringContaining( "NO SHOW" ) );
             Assert.That( sb.ToString(), Is.StringContaining( "Error line at root" ) );
+            Assert.That( sb.ToString(), Is.StringContaining( "Send error line inside group" ) );
+            Assert.That( sb.ToString(), Is.StringContaining( "Open error group" ) );
+            Assert.That( sb.ToString(), Is.StringContaining( "Send error line inside sub group" ) );
         }
 
         [Test]

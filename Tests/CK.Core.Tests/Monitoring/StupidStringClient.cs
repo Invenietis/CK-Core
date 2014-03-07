@@ -32,7 +32,7 @@ using CK.Core;
 namespace CK.Core.Tests.Monitoring
 {
     [ExcludeFromCodeCoverage]
-    public class StupidStringClient : ActivityMonitorTextHelperClient
+    public class StupidStringClient : IActivityMonitorClient
     {
         public class Entry
         {
@@ -65,15 +65,87 @@ namespace CK.Core.Tests.Monitoring
         public bool WriteTags { get; private set; }
         public bool WriteConclusionTraits { get; private set; }
 
+        int _curLevel;
+
         public StupidStringClient( bool writeTags = false, bool writeConclusionTraits = false )
         {
+            _curLevel = -1;
             Entries = new List<Entry>();
             Writer = new StringWriter();
             WriteTags = writeTags;
             WriteConclusionTraits = writeConclusionTraits;
         }
 
-        protected override void OnEnterLevel( ActivityMonitorLogData data )
+
+        #region IActivityMonitorClient members
+
+        void IActivityMonitorClient.OnTopicChanged( string newTopic, string fileName, int lineNumber )
+        {
+        }
+
+        void IActivityMonitorClient.OnAutoTagsChanged( CKTrait newTrait )
+        {
+        }
+
+        void IActivityMonitorClient.OnUnfilteredLog( ActivityMonitorLogData data )
+        {
+            var level = data.Level & LogLevel.Mask;
+
+            if( data.Text == ActivityMonitor.ParkLevel )
+            {
+                if( _curLevel != -1 )
+                {
+                    OnLeaveLevel( (LogLevel)_curLevel );
+                }
+                _curLevel = -1;
+            }
+            else
+            {
+                if( _curLevel == (int)level )
+                {
+                    OnContinueOnSameLevel( data );
+                }
+                else
+                {
+                    if( _curLevel != -1 )
+                    {
+                        OnLeaveLevel( (LogLevel)_curLevel );
+                    }
+                    OnEnterLevel( data );
+                    _curLevel = (int)level;
+                }
+            }
+        }
+
+        void IActivityMonitorClient.OnOpenGroup( IActivityLogGroup group )
+        {
+            if( _curLevel != -1 )
+            {
+                OnLeaveLevel( (LogLevel)_curLevel );
+                _curLevel = -1;
+            }
+
+            OnGroupOpen( group );
+        }
+
+        void IActivityMonitorClient.OnGroupClosing( IActivityLogGroup group, ref List<ActivityLogGroupConclusion> conclusions )
+        {
+        }
+
+        void IActivityMonitorClient.OnGroupClosed( IActivityLogGroup group, IReadOnlyList<ActivityLogGroupConclusion> conclusions )
+        {
+            if( _curLevel != -1 )
+            {
+                OnLeaveLevel( (LogLevel)_curLevel );
+                _curLevel = -1;
+            }
+
+            OnGroupClose( group, conclusions );
+        }
+
+        #endregion IActivityMonitorClient members
+
+        void OnEnterLevel( ActivityMonitorLogData data )
         {
             Entries.Add( new Entry( data ) );
             Writer.WriteLine();
@@ -82,7 +154,7 @@ namespace CK.Core.Tests.Monitoring
             if( data.Exception != null ) Writer.Write( "Exception: " + data.Exception.Message );
         }
 
-        protected override void OnContinueOnSameLevel( ActivityMonitorLogData data )
+        void OnContinueOnSameLevel( ActivityMonitorLogData data )
         {
             Entries.Add( new Entry( data ) );
             Writer.Write( data.Text );
@@ -90,12 +162,12 @@ namespace CK.Core.Tests.Monitoring
             if( data.Exception != null ) Writer.Write( "Exception: " + data.Exception.Message );
         }
 
-        protected override void OnLeaveLevel( LogLevel level )
+        void OnLeaveLevel( LogLevel level )
         {
             Writer.Flush();
         }
 
-        protected override void OnGroupOpen( IActivityLogGroup g )
+        void OnGroupOpen( IActivityLogGroup g )
         {
             Entries.Add( new Entry( g ) );
             Writer.WriteLine();
@@ -105,7 +177,7 @@ namespace CK.Core.Tests.Monitoring
             if( WriteTags ) Writer.Write( "-[{0}]", g.GroupTags.ToString() );
         }
 
-        protected override void OnGroupClose( IActivityLogGroup g, IReadOnlyList<ActivityLogGroupConclusion> conclusions )
+        void OnGroupClose( IActivityLogGroup g, IReadOnlyList<ActivityLogGroupConclusion> conclusions )
         {
             Writer.WriteLine();
             Writer.Write( new String( '-', g.Depth ) );
