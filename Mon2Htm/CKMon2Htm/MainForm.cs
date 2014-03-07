@@ -39,10 +39,15 @@ namespace CK.Mon2Htm
             this.dataGridView1.DefaultCellStyle.SelectionBackColor = this.dataGridView1.DefaultCellStyle.BackColor;
             this.dataGridView1.DefaultCellStyle.SelectionForeColor = this.dataGridView1.DefaultCellStyle.ForeColor;
 
+
+            this.Load += MainForm_Load;
+        }
+
+        void MainForm_Load( object sender, EventArgs e )
+        {
             LoadFromProgramArguments();
 
             UpdateButtonState();
-
             UpdateVersionLabel();
         }
 
@@ -143,6 +148,7 @@ namespace CK.Mon2Htm
 
                 if( !hasSelectedFile ) this.Close();
             }
+            this.Activate();
         }
 
         /// <summary>
