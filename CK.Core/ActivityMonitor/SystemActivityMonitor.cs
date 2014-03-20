@@ -121,6 +121,7 @@ namespace CK.Core
             _client = new SysClient();
             _lockedClient = new SysLockedClient();
             _appSettingslogPath = AppSettings.Default[AppSettingsKey];
+            if( _appSettingslogPath != null ) _appSettingslogPath = Environment.ExpandEnvironmentVariables( _appSettingslogPath );
             _activityMonitorErrorTracked = 1;
             ActivityMonitor.MonitoringError.OnErrorFromBackgroundThreads += OnTrackActivityMonitorLoggingError;
         }
