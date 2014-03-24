@@ -56,7 +56,7 @@ namespace CK.Monitoring.Impl
         static readonly int[] _idleTimes = new[] { 20, 100, 400, 800, 1600, 2400, 4*1000, 10*000, 30*1000, 1*60*1000, 5*60*1000, 10*60*1000, 20*60*1000  };
         static int IdleManager( int idleCount )
         {
-            if( idleCount > _idleTimes.Length ) return 30 * 60 * 1000;
+            if( idleCount >= _idleTimes.Length ) return 30 * 60 * 1000;
             return _idleTimes[idleCount];
         }
 
