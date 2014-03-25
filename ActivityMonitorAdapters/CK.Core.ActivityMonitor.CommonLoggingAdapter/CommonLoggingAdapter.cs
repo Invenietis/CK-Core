@@ -1,24 +1,29 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using CK.Core.ActivityMonitorAdapters.CommonLoggingImpl;
+﻿using CK.Core.ActivityMonitorAdapters.CommonLoggingImpl;
 
 namespace CK.Core.ActivityMonitorAdapters
 {
     public class CommonLoggingAdapter
     {
+        static bool _isInitialized;
+        static object _lock = new object();
+
         /// <summary>
         /// Causes all newly created ActivityMonitors to automatically output to Common.Logging loggers (based on ActivityMonitors' topics).
         /// </summary>
         public static void Initialize()
         {
-            ActivityMonitor.AutoConfiguration += ( monitor ) =>
+            lock( _lock )
             {
-                CommonLoggingTopicBasedClient client = new CommonLoggingTopicBasedClient( monitor.Topic );
-                monitor.Output.RegisterClient( client );
-            };
+                if( !_isInitialized )
+                {
+                    ActivityMonitor.AutoConfiguration += ( monitor ) =>
+                    {
+                        CommonLoggingTopicBasedClient client = new CommonLoggingTopicBasedClient( monitor.Topic );
+                        monitor.Output.RegisterClient( client );
+                    };
+                    _isInitialized = true;
+                }
+            }
         }
     }
 }
