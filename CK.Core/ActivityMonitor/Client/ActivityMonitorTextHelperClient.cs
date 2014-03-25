@@ -23,6 +23,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using CK.Core.Impl;
 
@@ -37,7 +38,7 @@ namespace CK.Core
         int _curLevel;
         LogFilter _filter;
         Stack<bool> _openGroups;
-        Impl.IActivityMonitorImpl _source;
+        IActivityMonitorImpl _source;
 
         /// <summary>
         /// Initialize a new <see cref="ActivityMonitorTextHelperClient"/> with a filter.
@@ -59,7 +60,7 @@ namespace CK.Core
 
         void IActivityMonitorClient.OnUnfilteredLog( ActivityMonitorLogData data )
         {
-            var level = data.Level & LogLevel.Mask;
+            var level = data.MaskedLevel;
 
             if( !CanOutputLine( level ) )
             {
@@ -99,15 +100,12 @@ namespace CK.Core
                 OnLeaveLevel( (LogLevel)_curLevel );
                 _curLevel = -1;
             }
-
             if( !CanOutputGroup( group.MaskedGroupLevel ) )
             {
                 _openGroups.Push( false );
                 return;
             }
-
             _openGroups.Push( true );
-
             OnGroupOpen( group );
         }
 
@@ -122,13 +120,8 @@ namespace CK.Core
                 OnLeaveLevel( (LogLevel)_curLevel );
                 _curLevel = -1;
             }
-
-            if( !_openGroups.Pop() ) // Tip is true: Group was open
-            {
-                return;
-            }
-
-            OnGroupClose( group, conclusions );
+            // Has the Group actually been opened?
+            if( _openGroups.Count > 0 && _openGroups.Pop() ) OnGroupClose( group, conclusions );
         }
 
         /// <summary>
@@ -171,30 +164,37 @@ namespace CK.Core
         {
         }
 
-        public LogFilter Filter { get { return _filter; } }
-
-        private bool CanOutputLine( LogLevel logLevel )
-        {
-            return Filter.Line == LogLevelFilter.None || (int)logLevel >= (int)Filter.Line;
-        }
-
-        private bool CanOutputGroup( LogLevel logLevel )
-        {
-            return Filter.Group == LogLevelFilter.None || (int)logLevel >= (int)Filter.Group;
-        }
-
-        #region IActivityMonitorBoundClient Members
-
-        public LogFilter MinimalFilter
-        {
-            get { return Filter; }
+        /// <summary>
+        /// Gets or sets the filter for this client.
+        /// </summary>
+        public LogFilter Filter 
+        { 
+            get { return _filter; }
             set
             {
                 LogFilter oldFilter = _filter;
                 _filter = value;
-
                 if( _source != null ) _source.OnClientMinimalFilterChanged( oldFilter, _filter );
             }
+        }
+
+        bool CanOutputLine( LogLevel logLevel )
+        {
+            Debug.Assert( (logLevel & LogLevel.IsFiltered) == 0, "The level must already be masked." );
+            return _filter.Line == LogLevelFilter.None || (int)logLevel >= (int)_filter.Line;
+        }
+
+        bool CanOutputGroup( LogLevel logLevel )
+        {
+            Debug.Assert( (logLevel & LogLevel.IsFiltered) == 0, "The level must already be masked." );
+            return _filter.Group == LogLevelFilter.None || (int)logLevel >= (int)_filter.Group;
+        }
+
+        #region IActivityMonitorBoundClient Members
+
+        LogFilter IActivityMonitorBoundClient.MinimalFilter
+        {
+            get { return _filter; }
         }
 
         public void SetMonitor( Impl.IActivityMonitorImpl source, bool forceBuggyRemove )
@@ -203,6 +203,7 @@ namespace CK.Core
             {
                 if( source != null && _source != null ) throw ActivityMonitorClient.CreateMultipleRegisterOnBoundClientException( this );
             }
+            _openGroups.Clear();
             _source = source;
         }
 
