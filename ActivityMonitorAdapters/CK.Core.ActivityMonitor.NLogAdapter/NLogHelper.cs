@@ -78,7 +78,10 @@ namespace CK.Core.ActivityMonitorAdapters.NLogImpl
         /// <returns>Created LogEventInfo.</returns>
         public static LogEventInfo CreateEventInfo( string loggerName, IActivityLogGroup logGroup, string tag )
         {
-            string entryText = String.Format( "[ActivityMonitor {1}] {0}", logGroup.GroupText, tag );
+            string entryText = String.Format(
+                "[ActivityMonitor {1}] {0}",
+                logGroup.GroupTags == ActivityMonitor.Tags.Empty ? logGroup.GroupText : String.Format( "[{0}] {1}", logGroup.GroupTags.ToString(), logGroup.GroupText ),
+                tag );
             return CreateEventInfo( loggerName, logGroup.MaskedGroupLevel, entryText, logGroup.Exception,
                 logGroup.CloseLogTime > DateTimeStamp.MinValue ? logGroup.CloseLogTime : logGroup.LogTime );
         }

@@ -4,11 +4,11 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{98A11F32-114C-4F01-9AAC-943B3AA5F0C6}</ProjectGuid>
+    <ProjectGuid>{27748028-49D5-48B8-A348-8C11401AFBE4}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>CK.Core.ActivityMonitorAdapters.Tests</RootNamespace>
-    <AssemblyName>CK.Core.ActivityMonitorAdapters.Tests</AssemblyName>
+    <RootNamespace>CK.Core.ActivityMonitorAdapters.CommonLoggingImpl</RootNamespace>
+    <AssemblyName>CK.Core.ActivityMonitor.CommonLoggingAdapter</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
   </PropertyGroup>
@@ -33,14 +33,14 @@
     <SignAssembly>true</SignAssembly>
   </PropertyGroup>
   <PropertyGroup>
-    <AssemblyOriginatorKeyFile>..\SharedKey.snk</AssemblyOriginatorKeyFile>
+    <AssemblyOriginatorKeyFile>..\..\SharedKey.snk</AssemblyOriginatorKeyFile>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="NLog">
-      <HintPath>..\packages\NLog.2.1.0\lib\net45\NLog.dll</HintPath>
+    <Reference Include="Common.Logging">
+      <HintPath>..\..\packages\Common.Logging.2.2.0\lib\net40\Common.Logging.dll</HintPath>
     </Reference>
-    <Reference Include="nunit.framework">
-      <HintPath>..\packages\NUnit.2.6.3\lib\nunit.framework.dll</HintPath>
+    <Reference Include="Common.Logging.Core">
+      <HintPath>..\..\packages\Common.Logging.Core.2.2.0\lib\net40\Common.Logging.Core.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -51,30 +51,26 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="..\SharedAssemblyInfo.cs">
+    <Compile Include="..\..\SharedAssemblyInfo.cs">
       <Link>Properties\SharedAssemblyInfo.cs</Link>
     </Compile>
-    <Compile Include="NLogTests.cs" />
+    <Compile Include="CommonLoggingAdapter.cs" />
+    <Compile Include="CommonLoggingClient.cs" />
+    <Compile Include="CommonLoggingHelper.cs" />
+    <Compile Include="CommonLoggingTopicBasedClient.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="..\SharedKey.snk">
+    <None Include="..\..\SharedKey.snk">
       <Link>SharedKey.snk</Link>
     </None>
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\ActivityMonitorAdapters\CK.Core.ActivityMonitor.NLogAdapter\CK.Core.ActivityMonitor.NLogAdapter.csproj">
-      <Project>{bdf27ffd-e2ea-4070-bc7b-e2dcfb00daaf}</Project>
-      <Name>CK.Core.ActivityMonitor.NLogAdapter</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\CK.Core\CK.Core.csproj">
+    <ProjectReference Include="..\..\CK.Core\CK.Core.csproj">
       <Project>{97578828-71ec-46b3-bd9a-44e58292386f}</Project>
       <Name>CK.Core</Name>
     </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
-    <Service Include="{82A7F48D-3B50-4B1E-B82E-3ADA8210C358}" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

@@ -4,11 +4,11 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{BDF27FFD-E2EA-4070-BC7B-E2DCFB00DAAF}</ProjectGuid>
+    <ProjectGuid>{98A11F32-114C-4F01-9AAC-943B3AA5F0C6}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>CK.Core.ActivityMonitorAdapters.NLogImpl</RootNamespace>
-    <AssemblyName>CK.Core.ActivityMonitor.NLogAdapter</AssemblyName>
+    <RootNamespace>CK.Core.ActivityMonitorAdapters.Tests</RootNamespace>
+    <AssemblyName>CK.Core.ActivityMonitorAdapters.Tests</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
   </PropertyGroup>
@@ -36,32 +36,60 @@
     <AssemblyOriginatorKeyFile>..\..\SharedKey.snk</AssemblyOriginatorKeyFile>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Common.Logging">
+      <HintPath>..\..\packages\Common.Logging.2.2.0\lib\net40\Common.Logging.dll</HintPath>
+    </Reference>
+    <Reference Include="Common.Logging.Core">
+      <HintPath>..\..\packages\Common.Logging.Core.2.2.0\lib\net40\Common.Logging.Core.dll</HintPath>
+    </Reference>
+    <Reference Include="Common.Logging.NLog20">
+      <HintPath>..\..\packages\Common.Logging.NLog20.2.2.0\lib\net40\Common.Logging.NLog20.dll</HintPath>
+    </Reference>
     <Reference Include="NLog">
-      <HintPath>..\..\packages\NLog.2.1.0\lib\net45\NLog.dll</HintPath>
+      <HintPath>..\packages\NLog.2.1.0\lib\net45\NLog.dll</HintPath>
+    </Reference>
+    <Reference Include="nunit.framework">
+      <HintPath>..\packages\NUnit.2.6.3\lib\nunit.framework.dll</HintPath>
     </Reference>
     <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="..\..\SharedAssemblyInfo.cs">
       <Link>Properties\SharedAssemblyInfo.cs</Link>
     </Compile>
-    <Compile Include="NLogAdapter.cs" />
-    <Compile Include="NLogClient.cs" />
-    <Compile Include="NLogHelper.cs" />
-    <Compile Include="NLogTopicBasedClient.cs" />
+    <Compile Include="CommonLoggingTests.cs" />
+    <Compile Include="NLogTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\..\SharedKey.snk">
       <Link>SharedKey.snk</Link>
     </None>
+    <None Include="app.config" />
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\ActivityMonitorAdapters\CK.Core.ActivityMonitor.CommonLoggingAdapter\CK.Core.ActivityMonitor.CommonLoggingAdapter.csproj">
+      <Project>{27748028-49d5-48b8-a348-8c11401afbe4}</Project>
+      <Name>CK.Core.ActivityMonitor.CommonLoggingAdapter</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\ActivityMonitorAdapters\CK.Core.ActivityMonitor.NLogAdapter\CK.Core.ActivityMonitor.NLogAdapter.csproj">
+      <Project>{bdf27ffd-e2ea-4070-bc7b-e2dcfb00daaf}</Project>
+      <Name>CK.Core.ActivityMonitor.NLogAdapter</Name>
+    </ProjectReference>
     <ProjectReference Include="..\..\CK.Core\CK.Core.csproj">
       <Project>{97578828-71ec-46b3-bd9a-44e58292386f}</Project>
       <Name>CK.Core</Name>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Service Include="{82A7F48D-3B50-4B1E-B82E-3ADA8210C358}" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
