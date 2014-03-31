@@ -29,9 +29,9 @@ using System.Reflection;
 [assembly: AssemblyCopyright( "Copyright © Invenietis 2007-2014" )]
 [assembly: AssemblyTrademark( "" )]
 [assembly: CLSCompliant( true )]
-[assembly: AssemblyVersion( "3.0.19" )]
-[assembly: AssemblyFileVersion( "3.0.19" )]
-[assembly: AssemblyInformationalVersion( "3.0.19-develop" )]
+[assembly: AssemblyVersion( "3.0.20" )]
+[assembly: AssemblyFileVersion( "3.0.20" )]
+[assembly: AssemblyInformationalVersion( "3.0.20-develop" )]
 
 #if DEBUG
     [assembly: AssemblyConfiguration("Debug")]
