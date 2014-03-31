@@ -91,6 +91,14 @@ namespace CK.Reflection.Tests
             public abstract byte M( ref CultureAttribute i );
         }
 
+        public abstract class K
+        {
+            public abstract MK<T> M<T>();
+        }
+
+        public class MK<T>
+        {
+        }
 
         delegate void DynamicWithOutParameters( out Action a, out byte b, ref Guid g, int x );
 
@@ -242,6 +250,20 @@ namespace CK.Reflection.Tests
             CultureAttribute c = cOrigin;
             Assert.That( o.M( ref c ), Is.EqualTo( 0 ) );
             Assert.That( c, Is.SameAs( cOrigin ) );
+        }
+
+        [Test]
+        public void AutoImplementGenericMethod()
+        {
+            Type t = typeof( K );
+            TypeBuilder b = CreateTypeBuilder( t );
+            EmitHelper.ImplementEmptyStubMethod( b, t.GetMethod( "M" ), false );
+            Type builtType = b.CreateType();
+            K o = (K)Activator.CreateInstance( builtType );
+            CultureAttribute cOrigin = new CultureAttribute();
+            CultureAttribute c = cOrigin;
+
+            Assert.That( o.M<int>(), Is.Null );
         }
 
         #endregion

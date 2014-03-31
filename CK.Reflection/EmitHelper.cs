@@ -31,9 +31,29 @@ namespace CK.Reflection
 
             MethodAttributes mA = method.Attributes & ~(MethodAttributes.Abstract | MethodAttributes.VtableLayoutMask);
             if( isVirtual ) mA |= MethodAttributes.Virtual;
-            MethodBuilder m = tB.DefineMethod( method.Name, mA, returnType, parametersTypes );
-            EmitEmptyImplementation( m, returnType, parameters );
-            return m;
+            MethodBuilder mB = tB.DefineMethod( method.Name, mA );
+            if( method.ContainsGenericParameters )
+            {
+                int i = 0;
+
+                Type[] genericArguments = method.GetGenericArguments();
+                string[] names = genericArguments.Select( t => String.Format( "T{0}", i++ ) ).ToArray();
+
+                var genericParameters = mB.DefineGenericParameters( names );
+                for( i = 0; i < names.Length; ++i )
+                {
+                    Type genericTypeArgument = genericArguments[i];
+                    GenericTypeParameterBuilder genericTypeBuilder = genericParameters[i];
+
+
+                    genericTypeBuilder.SetGenericParameterAttributes( genericTypeArgument.GenericParameterAttributes );
+                    genericTypeBuilder.SetInterfaceConstraints( genericTypeArgument.GetGenericParameterConstraints() );
+                }
+            }
+            mB.SetReturnType( method.ReturnType );
+            mB.SetParameters( ReflectionHelper.CreateParametersType( parameters ) );
+            EmitEmptyImplementation( mB, returnType, parameters );
+            return mB;
         }
 
         private static void EmitEmptyImplementation( MethodBuilder vM, Type returnType, ParameterInfo[] parameters )
