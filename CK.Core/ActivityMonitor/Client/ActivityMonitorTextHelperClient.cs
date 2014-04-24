@@ -197,7 +197,7 @@ namespace CK.Core
             get { return _filter; }
         }
 
-        public void SetMonitor( Impl.IActivityMonitorImpl source, bool forceBuggyRemove )
+        void IActivityMonitorBoundClient.SetMonitor( Impl.IActivityMonitorImpl source, bool forceBuggyRemove )
         {
             if( !forceBuggyRemove )
             {

@@ -203,8 +203,9 @@ namespace CK.Core
                 
                 Debug.Assert( Guid.Empty.ToString( "B" ).Length == 38 );
                 int timeIdx = iIdBracket + 38 + 4;
-                if( timeIdx >= s.Length ) return false;
-                if( !DateTimeStamp.Match( s, ref timeIdx, out time ) ) return false;
+                int len = s.Length;
+                if( timeIdx >= len ) return false;
+                if( !DateTimeStamp.Match( s, ref timeIdx, len, out time ) ) return false;
                 
                 int remainder = s.Length - iIdBracket;
                 if( String.CompareOrdinal( s, iIdBracket+38, " at ", 0, 4 ) != 0 || !Guid.TryParseExact( s.Substring( iIdBracket, 38 ), "B", out id ) ) return false;

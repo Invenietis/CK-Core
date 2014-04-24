@@ -141,16 +141,19 @@ namespace CK.Core
         /// Index where the match must start (can be equal to or greater than the length of the string: the match fails).
         /// On success, index of the end of the match.
         /// </param>
+        /// <param name="maxLength">
+        /// Maximum index to consider in the string (it can shorten the default <see cref="String.Length"/> if 
+        /// set to a positive value, otherwise it is set to String.Length).
+        /// If maxLength is greater than String.Length an <see cref="ArgumentException"/> is thrown.
+        /// </param>
         /// <param name="time">Result time.</param>
         /// <returns>True if the time has been matched.</returns>
-        public static bool MatchFileNameUniqueTimeUtcFormat( string s, ref int startAt, out DateTime time )
+        public static bool MatchFileNameUniqueTimeUtcFormat( string s, ref int startAt, int maxLength, out DateTime time )
         {
-            if( s == null ) throw new ArgumentNullException( "s" );
             time = Util.UtcMinValue;
-            if( startAt >= s.Length ) return false;
-
+            if( !Util.Matcher.CheckMatchArguments( s, startAt, maxLength ) ) return false;
             Debug.Assert( FileNameUniqueTimeUtcFormat.Replace( "\\", "" ).Length == 27 );
-            if( s.Length < startAt - 27 ) return false;
+            if( startAt + 27 > maxLength ) return false;
             if( DateTime.TryParseExact( s.Substring( startAt, 27 ), FileUtil.FileNameUniqueTimeUtcFormat, CultureInfo.InvariantCulture, DateTimeStyles.AdjustToUniversal | DateTimeStyles.AssumeUniversal, out time ) )
             {
                 startAt += 27;
@@ -170,7 +173,7 @@ namespace CK.Core
         public static bool TryParseFileNameUniqueTimeUtcFormat( string s, out DateTime time, bool allowSuffix = false )
         {
             int startAt = 0;
-            return MatchFileNameUniqueTimeUtcFormat( s, ref startAt, out time ) && (allowSuffix || startAt == s.Length);
+            return MatchFileNameUniqueTimeUtcFormat( s, ref startAt, s.Length, out time ) && (allowSuffix || startAt == s.Length);
         }
 
         /// <summary>

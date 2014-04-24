@@ -108,7 +108,7 @@ namespace CK.Core
 
         static bool DoShouldLogLine( IActivityMonitor @this, LogLevel level, string fileName, int lineNumber )
         {
-            int combined = ActivityMonitor.SourceFilter.SourceFilterLine( ref fileName, lineNumber );
+            int combined = ActivityMonitor.SourceFilter.SourceFilterLine( ref fileName, ref lineNumber );
             // Extract Override filter.
             int filter = (short)(combined >> 16);
             // If Override is undefined, combine the ActualFilter and Minimal source filter.
@@ -118,7 +118,7 @@ namespace CK.Core
 
         static bool DoShouldLogGroup( IActivityMonitor @this, LogLevel level, string fileName, int lineNumber )
         {
-            int combined = ActivityMonitor.SourceFilter.SourceFilterGroup( ref fileName, lineNumber );
+            int combined = ActivityMonitor.SourceFilter.SourceFilterGroup( ref fileName, ref lineNumber );
             // Extract Override filter.
             int filter = (short)(combined >> 16);
             // If Override is undefined, combine the ActualFilter and Minimal source filter.

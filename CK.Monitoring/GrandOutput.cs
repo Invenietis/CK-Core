@@ -15,7 +15,8 @@ namespace CK.Monitoring
     /// multiple channels based on <see cref="IActivityMonitor.Topic"/>.
     /// 
     /// It is usually useless to explicitly create an instance of GrandOutput: the <see cref="Default"/> one is 
-    /// available as soon as <see cref="EnsureActiveDefault"/> is called and will be automatically used by new <see cref="ActivityMonitor"/>.
+    /// available as soon as <see cref="EnsureActiveDefault"/> (or <see cref="EnsureActiveDefaultWithDefaultSettings"/>) is called 
+    /// and will be automatically used by new <see cref="ActivityMonitor"/>.
     /// </summary>
     public sealed partial class GrandOutput : IDisposable
     {
@@ -44,22 +45,30 @@ namespace CK.Monitoring
         /// application domain will automatically have a <see cref="GrandOutputClient"/> registered for this Default GrandOutput.
         /// Use <see cref="EnsureActiveDefaultWithDefaultSettings"/> to initially configure this default.
         /// </summary>
+        /// <param name="configurator">
+        /// Optional action that can configure the default GrandOutput.
+        /// If specified will be called after the creation of a new GrandOutput: it will not be called 
+        /// if a <see cref="Default"/> is already available.
+        /// This parameter is optional since you can configure it at any time.
+        /// </param>
         /// <returns>The Default GrandOutput.</returns>
         /// <remarks>
         /// This method is thread-safe (a simple lock protects it) and uses a <see cref="ActivityMonitor.AutoConfiguration"/> action 
         /// that <see cref="Register"/>s newly created <see cref="ActivityMonitor"/>.
         /// </remarks>
-        static public GrandOutput EnsureActiveDefault()
+        static public GrandOutput EnsureActiveDefault( Action<GrandOutput> configurator = null )
         {
             lock( _defaultLock )
             {
-                if( _default != null )
+                if( _default != null ) configurator = null;
+                else
                 {
                     SystemActivityMonitor.EnsureStaticInitialization();
                     _default = new GrandOutput();
                     ActivityMonitor.AutoConfiguration += m => Default.Register( m );
                 }
             }
+            if( configurator != null ) configurator( _default );
             return _default;
         }
 

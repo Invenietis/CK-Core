@@ -40,7 +40,7 @@ namespace CK.Core.Tests.Monitoring
             {
                 Guid id;
                 DateTimeStamp time;
-                Assert.That( ActivityMonitor.DependentToken.TryParseStartMessage( token.ToString(), out id, out time ) );
+                Assert.That( ActivityMonitor.DependentToken.TryParseStartMessage( tokenToString, out id, out time ) );
                 Assert.That( id, Is.EqualTo( ((IUniqueId)m).UniqueId ) );
                 Assert.That( time, Is.EqualTo( cLaunch.Entries[loopNeeded].LogTime ) );
             }

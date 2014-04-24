@@ -54,7 +54,7 @@ namespace CK.Core
             /// <param name="fileName">FileName of the source file (that can be changed, typically by removing a common path prefix).</param>
             /// <param name="lineNumber">The line number in the source file.</param>
             /// <returns>The <see cref="SourceLogFilter"/> to apply. Must default to <see cref="LogFilter.Undefined"/>.</returns>
-            public delegate SourceLogFilter FilterSourceDelegate( ref string fileName, int lineNumber );
+            public delegate SourceLogFilter FilterSourceDelegate( ref string fileName, ref int lineNumber );
 
             /// <summary>
             /// Holds a <see cref="FilterSourceDelegate"/> that can override filter configuration and/or alter 
@@ -117,7 +117,7 @@ namespace CK.Core
             /// <param name="fileName">The file name.</param>
             /// <param name="lineNumber">The line number.</param>
             /// <returns>Defaults to <see cref="LogFilter.Undefined"/>.</returns>
-            public static SourceLogFilter DefaultFilter( ref string fileName, int lineNumber )
+            public static SourceLogFilter DefaultFilter( ref string fileName, ref int lineNumber )
             {
                 SourceLogFilter f;
                 _filters.TryGetValue( fileName, out f ); 
@@ -159,16 +159,16 @@ namespace CK.Core
                 SetFilter( new SourceLogFilter( LogFilter.Undefined, minimalFilter ), fileName );
             }
 
-            internal static int SourceFilterLine( ref string fileName, int lineNumber )
+            internal static int SourceFilterLine( ref string fileName, ref int lineNumber )
             {
                 var h = FilterSource;
-                return h == null ? 0 : (int)h( ref fileName, lineNumber ).LineFilter;
+                return h == null ? 0 : (int)h( ref fileName, ref lineNumber ).LineFilter;
             }
 
-            internal static int SourceFilterGroup( ref string fileName, int lineNumber )
+            internal static int SourceFilterGroup( ref string fileName, ref int lineNumber )
             {
                 var h = FilterSource;
-                return h == null ? 0 : (int)h( ref fileName, lineNumber ).GroupFilter;
+                return h == null ? 0 : (int)h( ref fileName, ref lineNumber ).GroupFilter;
             }
 
         }

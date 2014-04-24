@@ -29,28 +29,53 @@ namespace CK.Core.Tests
     [TestFixture]
     public class UtilMatcherTests
     {
+
+
+        [Test]
+        public void BasicMatchChar()
+        {
+            string s = "ABCD";
+            int idx = 0;
+            Assert.That( Util.Matcher.Match( s, ref idx, s.Length, 'A' ), Is.True );
+            Assert.That( idx, Is.EqualTo( 1 ) );
+            Assert.That( Util.Matcher.Match( s, ref idx, s.Length, 'A' ), Is.False );
+            Assert.That( Util.Matcher.Match( s, ref idx, -1, 'B' ), Is.False );
+            Assert.That( Util.Matcher.Match( s, ref idx, 0, 'B' ), Is.False );
+            Assert.That( Util.Matcher.Match( s, ref idx, 2, 'B' ), Is.True );
+            Assert.That( Util.Matcher.Match( s, ref idx, 3, 'C' ), Is.True );
+            Assert.Throws<ArgumentException>( () => Util.Matcher.Match( s, ref idx, 5, 'C' ) );
+            Assert.That( Util.Matcher.Match( s, ref idx, 4, 'D' ), Is.True );
+            Assert.That( Util.Matcher.Match( s, ref idx, 4, 'D' ), Is.False );
+        }
+
         [Test]
         public void BasicMatch()
         {
             string s = " AB  \t\r C";
             int idx = 0;
-            Assert.That( Util.Matcher.Match( s, ref idx, "A" ), Is.False );
+            Assert.That( Util.Matcher.Match( s, ref idx, s.Length, "A" ), Is.False );
             Assert.That( idx, Is.EqualTo( 0 ) );
-            Assert.That( Util.Matcher.MatchWhiteSpaces( s, ref idx ), Is.True );
+            Assert.That( Util.Matcher.MatchWhiteSpaces( s, ref idx, s.Length ), Is.True );
             Assert.That( idx, Is.EqualTo( 1 ) );
-            Assert.That( Util.Matcher.Match( s, ref idx, "A" ), Is.True );
-            Assert.That( Util.Matcher.Match( s, ref idx, "B" ), Is.True );
+            Assert.That( Util.Matcher.Match( s, ref idx, -1, "A" ), Is.False );
+            Assert.That( Util.Matcher.Match( s, ref idx, 0, "A" ), Is.False );
+            Assert.That( Util.Matcher.Match( s, ref idx, 1, "A" ), Is.False );
+            Assert.That( Util.Matcher.Match( s, ref idx, 2, "A" ), Is.True );
+            Assert.That( Util.Matcher.Match( s, ref idx, 3, "B" ), Is.True );
             Assert.That( idx, Is.EqualTo( 3 ) );
-            Assert.That( Util.Matcher.MatchWhiteSpaces( s, ref idx ), Is.True );
+            Assert.That( Util.Matcher.MatchWhiteSpaces( s, ref idx, 4 ), Is.True );
+            Assert.That( idx, Is.EqualTo( 4 ) );
+            Assert.That( Util.Matcher.MatchWhiteSpaces( s, ref idx, s.Length ), Is.True );
             Assert.That( idx, Is.EqualTo( 8 ) );
-            Assert.That( Util.Matcher.Match( s, ref idx, "c" ), Is.True );
+            Assert.That( Util.Matcher.MatchWhiteSpaces( s, ref idx, s.Length ), Is.False );
+            Assert.That( Util.Matcher.Match( s, ref idx, s.Length, "c" ), Is.True );
             Assert.That( idx, Is.EqualTo( s.Length ) );
 
 
-            Assert.DoesNotThrow( () => Util.Matcher.Match( s, ref idx, "c" ) );
-            Assert.DoesNotThrow( () => Util.Matcher.MatchWhiteSpaces( s, ref idx ) );
-            Assert.That( Util.Matcher.Match( s, ref idx, "A" ), Is.False );
-            Assert.That( Util.Matcher.MatchWhiteSpaces( s, ref idx ), Is.False );
+            Assert.DoesNotThrow( () => Util.Matcher.Match( s, ref idx, s.Length, "c" ) );
+            Assert.DoesNotThrow( () => Util.Matcher.MatchWhiteSpaces( s, ref idx, s.Length ) );
+            Assert.That( Util.Matcher.Match( s, ref idx, s.Length, "A" ), Is.False );
+            Assert.That( Util.Matcher.MatchWhiteSpaces( s, ref idx, s.Length ), Is.False );
         }
         
     }
