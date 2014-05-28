@@ -31,7 +31,7 @@ using System.Reflection;
 [assembly: CLSCompliant( true )]
 [assembly: AssemblyVersion( "3.0.20" )]
 [assembly: AssemblyFileVersion( "3.0.20" )]
-[assembly: AssemblyInformationalVersion( "3.0.20-develop" )]
+[assembly: AssemblyInformationalVersion( "%semver%" )]
 
 #if DEBUG
     [assembly: AssemblyConfiguration("Debug")]
