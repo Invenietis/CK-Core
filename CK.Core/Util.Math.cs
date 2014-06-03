@@ -54,13 +54,16 @@ namespace CK.Core
             [CLSCompliant( false )]
             static public int Log2( UInt32 v )
             {
-                v |= v >> 1;
-                v |= v >> 2;
-                v |= v >> 4;
-                v |= v >> 8;
-                v |= v >> 16;
-                v = (v >> 1) + 1;
-                return _multiplyDeBruijnBitPosition[((v * 0x077CB531U)) >> 27];
+                unchecked
+                {
+                    v |= v >> 1;
+                    v |= v >> 2;
+                    v |= v >> 4;
+                    v |= v >> 8;
+                    v |= v >> 16;
+                    v = (v >> 1) + 1;
+                    return _multiplyDeBruijnBitPosition[((v * 0x077CB531U)) >> 27];
+                }
             }
 
             /// <summary>
@@ -71,7 +74,10 @@ namespace CK.Core
             [CLSCompliant( false )]
             static public int Log2ForPower2( UInt32 v )
             {
-                return _multiplyDeBruijnBitPosition[(((uint)v * 0x077CB531U)) >> 27];
+                unchecked
+                {
+                    return _multiplyDeBruijnBitPosition[(((uint)v * 0x077CB531U)) >> 27];
+                }
             }
 
             /// <summary>

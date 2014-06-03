@@ -34,42 +34,29 @@ namespace Storage
     public static class TestHelper
     {
         static string _testFolder;
-        static string _appFolder;
+        static string _solutionFolder;
 
-        static DirectoryInfo _testFolderDir;
-        static DirectoryInfo _appFolderDir;
-
-        static IDefaultActivityLogger _logger;
-        static ActivityLoggerConsoleSink _console;
+        static IActivityMonitor _monitor;
+        static ActivityMonitorConsoleClient _console;
 
         static TestHelper()
         {
-            _console = new ActivityLoggerConsoleSink();
-            _logger = new DefaultActivityLogger();
-            _logger.Tap.Register( _console );
+            _monitor = new ActivityMonitor();
+            _console = _monitor.Output.RegisterClient( new ActivityMonitorConsoleClient() );
         }
 
-        public static IActivityLogger Logger
+        public static IActivityMonitor ConsoleMonitor
         {
-            get { return _logger; }
+            get { return _monitor; }
         }
 
         public static bool LogsToConsole
         {
-            get { return _logger.Tap.RegisteredSinks.Contains( _console ); }
+            get { return _monitor.Output.Clients.Contains( _console ); }
             set
             {
-                if( value ) _logger.Tap.Register( _console );
-                else _logger.Tap.Unregister( _console );
-            }
-        }
-
-        public static string AppFolder
-        {
-            get
-            {
-                if( _appFolder == null ) InitalizePaths();
-                return _appFolder;
+                if( value ) _monitor.Output.RegisterUniqueClient( c => c ==_console, () => _console );
+                else _monitor.Output.UnregisterClient( _console );
             }
         }
 
@@ -82,39 +69,57 @@ namespace Storage
             }
         }
 
-        public static DirectoryInfo AppFolderDir
+        public static string SolutionFolder
         {
-            get { return _appFolderDir ?? (_appFolderDir = new DirectoryInfo( AppFolder )); }
+            get
+            {
+                if( _solutionFolder == null ) InitalizePaths();
+                return _solutionFolder;
+            }
         }
 
-        public static DirectoryInfo TestFolderDir
+        public static void CleanupTestFolder()
         {
-            get { return _testFolderDir ?? (_testFolderDir = new DirectoryInfo( TestFolder )); }
-        }
-
-        public static void CleanupTestDir()
-        {
-            if( TestFolderDir.Exists ) TestFolderDir.Delete( true );
-            TestFolderDir.Create();
+            int tryCount = 0;
+            for( ; ; )
+            {
+                try
+                {
+                    if( Directory.Exists( TestFolder ) ) Directory.Delete( TestFolder, true );
+                    Directory.CreateDirectory( TestFolder );
+                    File.WriteAllText( Path.Combine( TestFolder, "TestWrite.txt" ), "Test write works." );
+                    File.Delete( Path.Combine( TestFolder, "TestWrite.txt" ) );
+                    return;
+                }
+                catch( Exception ex )
+                {
+                    if( ++tryCount == 20 ) throw;
+                    ConsoleMonitor.Info().Send( ex, "While cleaning up test directory. Retrying." );
+                    System.Threading.Thread.Sleep( 100 );
+                }
+            }
         }
 
         private static void InitalizePaths()
         {
-            string p = System.Reflection.Assembly.GetExecutingAssembly().CodeBase;
-            // Code base is like "file:///C:/Documents and Settings/Olivier Spinelli/Mes documents/Dev/CK/Output/Debug/App/CVKTests.DLL"
-            StringAssert.StartsWith( "file:///", p, "Code base must start with file:/// protocol." );
-
-            p = p.Substring( 8 ).Replace( '/', System.IO.Path.DirectorySeparatorChar );
-
-            // => Debug/
+            string p = new Uri( System.Reflection.Assembly.GetExecutingAssembly().CodeBase ).LocalPath;
+            // => CK.XXX.Tests/bin/Debug/
             p = Path.GetDirectoryName( p );
-            _appFolder = p;
+            // => CK.XXX.Tests/bin/
+            p = Path.GetDirectoryName( p );
+            // => CK.XXX.Tests/
+            p = Path.GetDirectoryName( p );
+            // ==> CK.XXX.Tests/TestDir
+            _testFolder = Path.Combine( p, "TestDir" );
+            do
+            {
+                p = Path.GetDirectoryName( p );
+            }
+            while( !File.Exists( Path.Combine( p, "CK-Core.sln" ) ) );
+            _solutionFolder = p;
 
-            // ==> Debug/SubTestDir
-            _testFolder = Path.Combine( p, "SubTestDir" );
-            if( Directory.Exists( _testFolder ) ) Directory.Delete( _testFolder, true );
-            Directory.CreateDirectory( _testFolder );
-
+            ConsoleMonitor.Info().Send( "SolutionFolder is: {1}\r\nTestFolder is: {0}", _testFolder, _solutionFolder );
+            CleanupTestFolder();
         }
 
         static public string GetTestXmlFilePath( string prefix, string name )

@@ -30,8 +30,8 @@ namespace CK.Core
 {
     /// <summary>
     /// Adapts a <see cref="IList{T}"/> object to the <see cref="IReadOnlyList{T}"/> interface.
-    /// The other <see cref="ReadOnlyListOnIList{T,TInner}"/> generic can expose (wrap) a list of TInner 
-    /// as a readonly list of T where TInner is a T.
+    /// The other <see cref="CKReadOnlyListOnIList{T,TInner}"/> generic can expose (wrap) a list of TInner 
+    /// as a read only list of T where TInner is a T.
     /// </summary>
     /// <typeparam name="T">Type of the element.</typeparam>
     [DebuggerTypeProxy( typeof( Impl.CKReadOnlyCollectionDebuggerView<> ) ), DebuggerDisplay( "Count = {Count}" )]
@@ -201,7 +201,7 @@ namespace CK.Core
     /// </para>
     /// </remarks>
     [DebuggerTypeProxy( typeof( Impl.ReadOnlyCollectionDebuggerView<,> ) ), DebuggerDisplay( "Count = {Count}" )]
-    public sealed class ReadOnlyListOnIList<T, TInner> : IReadOnlyList<T>, IList<T>
+    public sealed class CKReadOnlyListOnIList<T, TInner> : IReadOnlyList<T>, IList<T>
         where TInner : T
     {
 		IList<TInner> _inner;
@@ -210,7 +210,7 @@ namespace CK.Core
 		/// Initializes a new <see cref="CKReadOnlyListOnIList{T}"/> around a <see cref="IList{TInner}"/>.
 		/// </summary>
 		/// <param name="list">List to wrap.</param>
-		public ReadOnlyListOnIList( IList<TInner> list )
+		public CKReadOnlyListOnIList( IList<TInner> list )
         {
 			_inner = list;
         }

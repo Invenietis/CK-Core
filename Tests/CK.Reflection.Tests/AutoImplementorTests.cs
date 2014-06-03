@@ -20,7 +20,7 @@ namespace CK.Reflection.Tests
         static ModuleBuilder _moduleBuilder;
         static int _typeID;
 
-        public TypeBuilder CreateTypeBuilder( Type abstractType )
+        public TypeBuilder CreateTypeBuilder( Type baseType )
         {
             if( _moduleBuilder == null )
             {
@@ -29,7 +29,9 @@ namespace CK.Reflection.Tests
                 AssemblyBuilder assemblyBuilder = AppDomain.CurrentDomain.DefineDynamicAssembly( assemblyName, AssemblyBuilderAccess.RunAndSave );
                 _moduleBuilder = assemblyBuilder.DefineDynamicModule( "TypeImplementorModule" );
             }
-            return _moduleBuilder.DefineType( abstractType.Name + Interlocked.Increment( ref _typeID ).ToString(), TypeAttributes.Class | TypeAttributes.Public, abstractType );
+            return baseType == null 
+                    ? _moduleBuilder.DefineType( "No_Base_Type_" + Interlocked.Increment( ref _typeID ).ToString(), TypeAttributes.Class | TypeAttributes.Public )
+                    : _moduleBuilder.DefineType( baseType.Name + Interlocked.Increment( ref _typeID ).ToString(), TypeAttributes.Class | TypeAttributes.Public, baseType );
         }
 
         #region EmitHelper.ImplementEmptyStubMethod tests
@@ -89,6 +91,14 @@ namespace CK.Reflection.Tests
             public abstract byte M( ref CultureAttribute i );
         }
 
+        public abstract class K
+        {
+            public abstract MK<T> M<T>();
+        }
+
+        public class MK<T>
+        {
+        }
 
         delegate void DynamicWithOutParameters( out Action a, out byte b, ref Guid g, int x );
 
@@ -242,6 +252,20 @@ namespace CK.Reflection.Tests
             Assert.That( c, Is.SameAs( cOrigin ) );
         }
 
+        [Test]
+        public void AutoImplementGenericMethod()
+        {
+            Type t = typeof( K );
+            TypeBuilder b = CreateTypeBuilder( t );
+            EmitHelper.ImplementEmptyStubMethod( b, t.GetMethod( "M" ), false );
+            Type builtType = b.CreateType();
+            K o = (K)Activator.CreateInstance( builtType );
+            CultureAttribute cOrigin = new CultureAttribute();
+            CultureAttribute c = cOrigin;
+
+            Assert.That( o.M<int>(), Is.Null );
+        }
+
         #endregion
 
         #region EmitHelper.ImplementEmptyStubProperty tests
@@ -345,5 +369,117 @@ namespace CK.Reflection.Tests
         }
 
         #endregion
+
+
+        public class BaseOne
+        {
+            public readonly string CtorMessage;
+
+            private BaseOne()
+            {
+                CtorMessage += ".private";
+            }
+
+            protected BaseOne( int i )
+                : this()
+            {
+                CtorMessage += ".protected";
+            }
+            
+            public BaseOne( string s )
+                : this()
+            {
+                CtorMessage += ".public";
+            }
+        }
+
+        public class BaseTwo
+        {
+            public readonly string CtorMessage;
+
+            public BaseTwo( params int[] multi )
+            {
+                CtorMessage = multi.Length.ToString();
+            }
+        }
+
+        [AttributeUsage( AttributeTargets.Constructor | AttributeTargets.Parameter, AllowMultiple = true )]
+        public class CustAttr : Attribute
+        {
+            public CustAttr()
+            {
+            }
+
+            public CustAttr( string name )
+            {
+                Name = name;
+            }
+
+            public string Name { get; set; }
+
+            public string FieldName;
+        }
+
+        public class BaseThree
+        {
+            public readonly string CtorMessage;
+
+            [CustAttr( "OnCtorByParam" )]
+            [CustAttr( Name = "OnCtorByProperty" )]
+            [CustAttr( Name = "OnCtorByField" )]
+            public BaseThree( [CustAttr( "OnParamByParam" )]string s0, [CustAttr( Name = "OnParamByProperty" )]string s1, [CustAttr( Name = "OnCtorByField" )]string s2 )
+            {
+                CtorMessage = s0 + s1 + s2;
+            }
+        }
+
+        [Test]
+        public void PassThroughConstructors()
+        {
+            {
+                TypeBuilder b = CreateTypeBuilder( typeof( BaseOne ) );
+                b.DefinePassThroughConstructors( c => c.Attributes | MethodAttributes.Public );
+                Type t = b.CreateType();
+                BaseOne one1 = (BaseOne)Activator.CreateInstance( t, 5 );
+                Assert.That( one1.CtorMessage, Is.EqualTo( ".private.protected" ) );
+                BaseOne one2 = (BaseOne)Activator.CreateInstance( t, "a string" );
+                Assert.That( one2.CtorMessage, Is.EqualTo( ".private.public" ) );
+            }
+            {
+                TypeBuilder b = CreateTypeBuilder( typeof( BaseTwo ) );
+                b.DefinePassThroughConstructors( c => c.Attributes | MethodAttributes.Public );
+                Type t = b.CreateType();
+                var ctor = t.GetConstructors()[0];
+                BaseTwo two = (BaseTwo)ctor.Invoke( new object[]{ new int[] { 1, 2, 3, 4 } } );
+                Assert.That( two.CtorMessage, Is.EqualTo( "4" ) );
+            }
+            {
+                TypeBuilder b = CreateTypeBuilder( typeof( BaseThree ) );
+                b.DefinePassThroughConstructors( c => c.Attributes | MethodAttributes.Public );
+                Type t = b.CreateType();
+                var ctor = t.GetConstructors()[0];
+                BaseThree three = (BaseThree)ctor.Invoke( new object[]{ "s0", "s1", "s2" } );
+                Assert.That( three.CtorMessage, Is.EqualTo( "s0s1s2" ) );
+                // Everything is defined.
+                CollectionAssert.AreEquivalent( ctor.GetCustomAttributes<CustAttr>().Select( a => a.Name ?? a.FieldName ), new string[] { "OnCtorByParam", "OnCtorByProperty", "OnCtorByField" } );
+                Assert.That( ctor.GetParameters()[0].GetCustomAttributes<CustAttr>().Single().Name, Is.EqualTo( "OnParamByParam" ) );
+                Assert.That( ctor.GetParameters()[1].GetCustomAttributes<CustAttr>().Single().Name, Is.EqualTo( "OnParamByProperty" ) );
+                Assert.That( ctor.GetParameters()[2].GetCustomAttributes<CustAttr>().Single().Name, Is.EqualTo( "OnCtorByField" ) );
+            }
+            {
+                TypeBuilder b = CreateTypeBuilder( typeof( BaseThree ) );
+                b.DefinePassThroughConstructors( c => c.Attributes | MethodAttributes.Public, ( ctor, attrData ) => attrData.NamedArguments.Any(), ( param, attrData ) => attrData.ConstructorArguments.Any() );
+                Type t = b.CreateType();
+                var theCtor = t.GetConstructors()[0];
+                BaseThree three = (BaseThree)theCtor.Invoke( new object[]{ "s0", "s1", "s2" } );
+                Assert.That( three.CtorMessage, Is.EqualTo( "s0s1s2" ) );
+                // Only attribute defined via Named arguments are defined on the final ctor.
+                CollectionAssert.AreEquivalent( theCtor.GetCustomAttributes<CustAttr>().Select( a => a.Name ?? a.FieldName ), new string[] { "OnCtorByProperty", "OnCtorByField" } );
+                // Only the one defined by constructor argument is redefined.
+                Assert.That( theCtor.GetParameters()[0].GetCustomAttributes<CustAttr>().Single().Name, Is.EqualTo( "OnParamByParam" ) );
+                Assert.That( theCtor.GetParameters()[1].GetCustomAttributes<CustAttr>(), Is.Empty );
+                Assert.That( theCtor.GetParameters()[2].GetCustomAttributes<CustAttr>(), Is.Empty );
+            }
+        }
     }
 }

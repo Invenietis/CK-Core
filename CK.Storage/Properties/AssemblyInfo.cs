@@ -25,9 +25,12 @@ using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System;
+using System.Resources;
 
 [assembly: AssemblyTitle( "CK.Storage" )]
 [assembly: AssemblyDescription( "Low-level Storage layer that supports composite/modular Xml data." )]
-[assembly: AssemblyCulture("")]	
+[assembly: AssemblyCulture("")]
+[assembly: NeutralResourcesLanguage( "en-US" )]
+
 [assembly: ComVisible( false )]
 [assembly: Guid( "f9993716-02df-4f88-81fd-f2c5f861d032" )]

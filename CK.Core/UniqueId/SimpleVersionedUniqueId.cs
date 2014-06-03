@@ -23,6 +23,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text;
 
@@ -31,6 +32,7 @@ namespace CK.Core
     /// <summary>
     /// Minimal implementation of the minimal <see cref="INamedVersionedUniqueId"/> interface.
     /// </summary>
+    [ExcludeFromCodeCoverage]
     public class SimpleVersionedUniqueId : IVersionedUniqueId
     {
         /// <summary>
@@ -43,11 +45,6 @@ namespace CK.Core
         /// This value MUST NOT be used for anything else than a temporary marker.
         /// </summary>
         public static readonly INamedVersionedUniqueId InvalidId = SimpleNamedVersionedUniqueId.InvalidId;
-
-        /// <summary>
-        /// Empty array of <see cref="IUniqueId"/>.
-        /// </summary>
-        public static readonly INamedVersionedUniqueId[] EmptyArray = SimpleNamedVersionedUniqueId.EmptyArray;
 
         /// <summary>
         /// Initializes a new instance of <see cref="SimpleVersionedUniqueId"/> where its <see cref="UniqueId"/> is built from the string

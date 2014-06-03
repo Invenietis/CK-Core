@@ -27,6 +27,7 @@ using System.Diagnostics;
 using System.Linq;
 using CK.Core;
 using System.Threading;
+using System.ComponentModel;
 
 namespace CK.Core
 {
@@ -35,7 +36,13 @@ namespace CK.Core
     /// combined ("Alt|Ctrl", "Alt|Ctrl|Home"). The only way to obtain a CKTrait is to call <see cref="CKTraitContext.FindOrCreate(string)"/> (from 
     /// a string) or to use one of the available combination methods (<see cref="Union"/>, <see cref="Except"/>, <see cref="SymmetricExcept"/> or <see cref="Intersect"/> ).
     /// </summary>
-    public sealed class CKTrait : IComparable<CKTrait>
+    /// <remarks>
+    /// A CKTrait is not serializable: since it is relative to <see cref="CKTraitContext"/>, it must be recreated in the right context. A CKTraitContext is typically
+    /// a static object that exists in the origin application domain. A CKTrait must be serialized as its <see cref="ToString"/> representation and it is up to the 
+    /// code to call <see cref="CKTraitContext.FindOrCreate(string)"/> on the appropriate context when deserializing it.
+    /// </remarks>
+    [ImmutableObject( true )]
+    public sealed class CKTrait : IComparable<CKTrait>, IEquatable<CKTrait>
     {
         readonly CKTraitContext _context;
         readonly string _trait;
@@ -107,7 +114,7 @@ namespace CK.Core
         /// </summary>
         public bool IsEmpty
         {
-            get { return _trait == String.Empty; }
+            get { return _trait.Length == 0; }
         }
 
         /// <summary>
@@ -135,6 +142,16 @@ namespace CK.Core
             int cmp = _traits.Count - other.AtomicTraits.Count;
             if( cmp == 0 ) cmp = StringComparer.Ordinal.Compare( other._trait, _trait );
             return cmp;
+        }
+
+        /// <summary>
+        /// Checks equality of this trait with another one.
+        /// </summary>
+        /// <param name="other">The trait to compare to.</param>
+        /// <returns>True on equality.</returns>
+        public bool Equals( CKTrait other )
+        {
+            return ReferenceEquals( this, other );
         }
 
         /// <summary>
@@ -279,7 +296,7 @@ namespace CK.Core
         /// 
         /// This shows that our 4 methods Intersect, Remove, Toggle and Add cover the interesting cases - others are either symetric or useless.
         /// </remarks>
-        static void Process( CKTrait left, CKTrait right, Predicate<CKTrait> onLeft, Predicate<CKTrait> onRight, Predicate<CKTrait> onBoth )
+        static void Process( CKTrait left, CKTrait right, Func<CKTrait,bool> onLeft, Func<CKTrait,bool> onRight, Func<CKTrait,bool> onBoth )
         {
             ICKReadOnlyList<CKTrait> l = left.AtomicTraits;
             int cL = l.Count;

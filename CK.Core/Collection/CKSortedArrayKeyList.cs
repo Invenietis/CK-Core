@@ -94,7 +94,7 @@ namespace CK.Core
         /// Gets the zero based position of on of the items that is associated to this key.
         /// </summary>
         /// <param name="key">The key to find.</param>
-        /// <returns>The index or a negative value like <see cref="Util.BinarySearch{T,TKey}"/>.</returns>
+        /// <returns>The index or a negative value like <see cref="G:Util.BinarySearch{T,TKey}"/>.</returns>
         public int IndexOf( TKey key )
         {
             return Util.BinarySearch( Store, 0, Count, key, ComparisonKey );
@@ -104,7 +104,7 @@ namespace CK.Core
         /// True if this list contains at least one item with the given key.
         /// </summary>
         /// <param name="key">The key to find.</param>
-        /// <returns>True if an item is foud, false otherwise.</returns>
+        /// <returns>True if an item is found, false otherwise.</returns>
         public bool Contains( TKey key )
         {
             return Util.BinarySearch( Store, 0, Count, key, ComparisonKey ) >= 0;
@@ -140,11 +140,11 @@ namespace CK.Core
         }
 
         /// <summary>
-        /// Gets an independant collection of the items that 
+        /// Gets an independent collection of the items that 
         /// are associated to the given key value.
         /// </summary>
         /// <param name="key">The key to find.</param>
-        /// <returns>An independant collection of <typeparamref name="T"/>.</returns>
+        /// <returns>An independent collection of <typeparamref name="T"/>.</returns>
         public IReadOnlyCollection<T> GetAllByKey( TKey key )
         {
             int idx = Util.BinarySearch( Store, 0, Count, key, ComparisonKey );

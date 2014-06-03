@@ -2,6 +2,7 @@
 bin/
 obj/
 Output/
+Tests/CK.Monitoring.Tests/TestFolder/
 #ignore thumbnails created by windows
 Thumbs.db
 #Ignore files build by Visual Studio
@@ -34,3 +35,8 @@ _ReSharper*/
 CK-Core.Tests.VisualState.xml
 *.nuspec
 *.nupkg
+Tests/CK.Core.Tests/TestDir/
+net40/Tests/CK.Core.Tests/TestDir/
+net40/Tests/CK.Monitoring.Tests/TestDir/
+Tests/CK.Monitoring.Tests/TestDir/
+net40/Tests/CK.Monitoring.Tests/TestFolder/

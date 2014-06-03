@@ -33,47 +33,55 @@ using NUnit.Framework;
 namespace CK.Core.Tests
 {
     [ExcludeFromCodeCoverage]
-    static class TestHelper
+    static partial class TestHelper
     {
         static string _testFolder;
-        static string _copyFolder;
-        static string _appFolder;
-
-        static DirectoryInfo _testFolderDir;
-        static DirectoryInfo _copyFolderDir;
-        static DirectoryInfo _appFolderDir;
+        static string _solutionFolder;
         
-        static IDefaultActivityLogger _logger;
-        static ActivityLoggerConsoleSink _console;
+        static IActivityMonitor _monitor;
+        static ActivityMonitorConsoleClient _console;
 
         static TestHelper()
         {
-            _console = new ActivityLoggerConsoleSink();
-            _logger = new DefaultActivityLogger();
-            _logger.Tap.Register( _console );
+            _monitor = new ActivityMonitor();
+            _monitor.Output.BridgeTarget.HonorMonitorFilter = false;
+            _console = new ActivityMonitorConsoleClient();
+            _monitor.Output.RegisterClients( _console );
         }
 
-        public static IActivityLogger Logger
+        public static IActivityMonitor ConsoleMonitor
         {
-            get { return _logger; }
+            get { return _monitor; }
         }
 
         public static bool LogsToConsole
         {
-            get { return _logger.Tap.RegisteredSinks.Contains( _console ); }
+            get { return _monitor.Output.Clients.Contains( _console ); }
             set
             {
-                if( value ) _logger.Tap.Register( _console );
-                else _logger.Tap.Unregister( _console );
+                if( value ) _monitor.Output.RegisterUniqueClient( c => c ==_console, () => _console );
+                else _monitor.Output.UnregisterClient( _console );
             }
         }
-        
-        public static string AppFolder
+
+        /// <summary>
+        /// Use reflection to actually set <see cref="System.Runtime.Remoting.Lifetime.LifetimeServices.LeaseManagerPollTime"/> to 5 milliseconds.
+        /// This triggers an immediate polling from the internal .Net framework LeaseManager.
+        /// Note that the LeaseManager is per AppDomain.
+        /// </summary>
+        public static void SetRemotingLeaseManagerVeryShortPollTime()
         {
-            get
+            System.Runtime.Remoting.Lifetime.LifetimeServices.LeaseManagerPollTime = TimeSpan.FromMilliseconds( 5 );
+            object remotingData = typeof( AppDomain ).GetProperty( "RemotingData", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance ).GetGetMethod( true ).Invoke( System.Threading.Thread.GetDomain(), null );
+            if( remotingData != null )
             {
-                if( _appFolder == null ) InitalizePaths();
-                return _appFolder;
+                object leaseManager = remotingData.GetType().GetProperty( "LeaseManager", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance ).GetGetMethod( true ).Invoke( remotingData, null );
+                if( leaseManager != null )
+                {
+                    System.Threading.Timer timer = (System.Threading.Timer)leaseManager.GetType().GetField( "leaseTimer", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance ).GetValue( leaseManager );
+                    Assert.That( timer, Is.Not.Null );
+                    timer.Change( 0, -1 );
+                }
             }
         }
 
@@ -86,78 +94,65 @@ namespace CK.Core.Tests
             }
         }
 
-        public static string CopyFolder
+        public static string SolutionFolder
         {
             get
             {
-                if( _copyFolder == null ) InitalizeCopyPaths();
-                return _copyFolder;
+                if( _solutionFolder == null ) InitalizePaths();
+                return _solutionFolder;
             }
         }
 
-        public static DirectoryInfo AppFolderDir
+        public static void CleanupTestFolder()
         {
-            get { return _appFolderDir ?? (_appFolderDir = new DirectoryInfo( AppFolder )); }
+            DeleteFolder( TestFolder, true );
         }
 
-        public static DirectoryInfo TestFolderDir
+        public static void DeleteFolder( string directoryPath, bool recreate = false )
         {
-            get { return _testFolderDir ?? (_testFolderDir = new DirectoryInfo( TestFolder )); }
-        }
-
-        public static DirectoryInfo CopyFolderDir
-        {
-            get { return _copyFolderDir ?? (_copyFolderDir = new DirectoryInfo( CopyFolder )); }
-        }
-
-        public static void CleanupTestDir()
-        {
-            if( TestFolderDir.Exists ) TestFolderDir.Delete( true );
-            TestFolderDir.Create();
-        }
-
-        public static void CleanupCopyDir()
-        {
-            if( CopyFolderDir.Exists ) CopyFolderDir.Delete( true );
-            CopyFolderDir.Create();
+            int tryCount = 0;
+            for( ; ; )
+            {
+                try
+                {
+                    if( Directory.Exists( directoryPath ) ) Directory.Delete( directoryPath, true );
+                    if( recreate )
+                    {
+                        Directory.CreateDirectory( directoryPath );
+                        File.WriteAllText( Path.Combine( directoryPath, "TestWrite.txt" ), "Test write works." );
+                        File.Delete( Path.Combine( directoryPath, "TestWrite.txt" ) );
+                    }
+                    return;
+                }
+                catch( Exception ex )
+                {
+                    if( ++tryCount == 20 ) throw;
+                    ConsoleMonitor.Info().Send( ex, "While cleaning up directory '{0}'. Retrying.", directoryPath );
+                    System.Threading.Thread.Sleep( 100 );
+                }
+            }
         }
 
         private static void InitalizePaths()
         {
-            string p = System.Reflection.Assembly.GetExecutingAssembly().CodeBase;
-            // Code base is like "file:///C:/Documents and Settings/Olivier Spinelli/Mes documents/Dev/CK/Output/Debug/App/CVKTests.DLL"
-            StringAssert.StartsWith( "file:///", p, "Code base must start with file:/// protocol." );
-
-            p = p.Substring( 8 ).Replace( '/', System.IO.Path.DirectorySeparatorChar );
-
-            // => Debug/
+            string p = new Uri( System.Reflection.Assembly.GetExecutingAssembly().CodeBase ).LocalPath;
+            // => CK.XXX.Tests/bin/Debug/
             p = Path.GetDirectoryName( p );
-            _appFolder = p;
-
-            // ==> Debug/SubTestDir
-            _testFolder = Path.Combine( p, "SubTestDir" );
-            if( Directory.Exists( _testFolder ) ) Directory.Delete( _testFolder, true );
-            Directory.CreateDirectory( _testFolder );
-        }
-
-        private static void InitalizeCopyPaths()
-        {
-            string p = System.Reflection.Assembly.GetExecutingAssembly().CodeBase;
-            // Code base is like "file:///C:/Documents and Settings/Olivier Spinelli/Mes documents/Dev/CK/Output/Debug/App/CVKTests.DLL"
-            StringAssert.StartsWith( "file:///", p, "Code base must start with file:/// protocol." );
-
-            p = p.Substring( 8 ).Replace( '/', System.IO.Path.DirectorySeparatorChar );
-
-            // => Debug/
+            // => CK.XXX.Tests/bin/
             p = Path.GetDirectoryName( p );
-            _appFolder = p;
+            // => CK.XXX.Tests/
+            p = Path.GetDirectoryName( p );
+            // ==> CK.XXX.Tests/TestDir
+            _testFolder = Path.Combine( p, "TestDir" );
+            do
+            {
+                p = Path.GetDirectoryName( p );
+            }
+            while( !File.Exists( Path.Combine( p, "CK-Core.sln" ) ) );
+            _solutionFolder = p;
 
-            // ==> Debug/SubTestDir
-            _copyFolder = Path.Combine( p, "SubCopyTestDir" );
-            if( Directory.Exists( _copyFolder ) ) Directory.Delete( _copyFolder, true );
-            Directory.CreateDirectory( _copyFolder );
-
+            ConsoleMonitor.Info().Send( "SolutionFolder is: {1}\r\nTestFolder is: {0}", _testFolder, _solutionFolder );
+            CleanupTestFolder();
         }
-
     }
 }

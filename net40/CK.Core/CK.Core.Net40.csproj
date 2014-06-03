@@ -1,0 +1,415 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{56511BEE-6107-4CB6-BF05-0FB9C2C88C88}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>CK.Core</RootNamespace>
+    <AssemblyName>CK.Core</AssemblyName>
+    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <TargetFrameworkProfile>Client</TargetFrameworkProfile>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>TRACE;DEBUG;net40</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <DocumentationFile>
+    </DocumentationFile>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE;net40</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <DocumentationFile>bin\Release\CK.Core.xml</DocumentationFile>
+  </PropertyGroup>
+  <PropertyGroup>
+    <SignAssembly>true</SignAssembly>
+  </PropertyGroup>
+  <PropertyGroup>
+    <AssemblyOriginatorKeyFile>..\..\SharedKey.snk</AssemblyOriginatorKeyFile>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.IO">
+      <HintPath>..\..\packages\Microsoft.Bcl.1.1.6\lib\net40\System.IO.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Runtime">
+      <HintPath>..\..\packages\Microsoft.Bcl.1.1.6\lib\net40\System.Runtime.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Threading.Tasks">
+      <HintPath>..\..\packages\Microsoft.Bcl.1.1.6\lib\net40\System.Threading.Tasks.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="..\..\CK.Core\ActivityMonitor\ActivityLogGroupConclusion.cs">
+      <Link>ActivityLogGroupConclusion.cs</Link>
+    </Compile>
+    <Compile Include="..\..\CK.Core\ActivityMonitor\ActivityMonitorGroupData.cs">
+      <Link>ActivityMonitorGroupData.cs</Link>
+    </Compile>
+    <Compile Include="..\..\CK.Core\ActivityMonitor\ActivityMonitorLogData.cs">
+      <Link>ActivityMonitorLogData.cs</Link>
+    </Compile>
+    <Compile Include="..\..\CK.Core\ActivityMonitor\Client\ActivityMonitorClient.cs">
+      <Link>ActivityMonitorClient.cs</Link>
+    </Compile>
+    <Compile Include="..\..\CK.Core\ActivityMonitor\Client\ActivityMonitorConsoleClient.cs">
+      <Link>ActivityMonitorConsoleClient.cs</Link>
+    </Compile>
+    <Compile Include="..\..\CK.Core\ActivityMonitor\Client\ActivityMonitorErrorCounter.cs">
+      <Link>ActivityMonitorErrorCounter.cs</Link>
+    </Compile>
+    <Compile Include="..\..\CK.Core\ActivityMonitor\Client\ActivityMonitorPathCatcher.cs">
+      <Link>ActivityMonitorPathCatcher.cs</Link>
+    </Compile>
+    <Compile Include="..\..\CK.Core\ActivityMonitor\Client\ActivityMonitorSimpleCollector.cs">
+      <Link>ActivityMonitorSimpleCollector.cs</Link>
+    </Compile>
+    <Compile Include="..\..\CK.Core\ActivityMonitor\Client\ActivityMonitorTextHelperClient.cs">
+      <Link>ActivityMonitorTextHelperClient.cs</Link>
+    </Compile>
+    <Compile Include="..\..\CK.Core\ActivityMonitor\Client\ActivityMonitorTextWriterClient.cs">
+      <Link>ActivityMonitorTextWriterClient.cs</Link>
+    </Compile>
+    <Compile Include="..\..\CK.Core\ActivityMonitor\IActivityLogGroup.cs">
+      <Link>IActivityLogGroup.cs</Link>
+    </Compile>
+    <Compile Include="..\..\CK.Core\ActivityMonitor\IActivityMonitor.cs">
+      <Link>IActivityMonitor.cs</Link>
+    </Compile>
+    <Compile Include="..\..\CK.Core\ActivityMonitor\IActivityMonitorBoundClient.cs">
+      <Link>IActivityMonitorBoundClient.cs</Link>
+    </Compile>
+    <Compile Include="..\..\CK.Core\ActivityMonitor\IActivityMonitorClient.cs">
+      <Link>IActivityMonitorClient.cs</Link>
+    </Compile>
+    <Compile Include="..\..\CK.Core\ActivityMonitor\IActivityMonitorGroupSender.cs">
+      <Link>IActivityMonitorGroupSender.cs</Link>
+    </Compile>
+    <Compile Include="..\..\CK.Core\ActivityMonitor\IActivityMonitorLineSender.cs">
+      <Link>IActivityMonitorLineSender.cs</Link>
+    </Compile>
+    <Compile Include="..\..\CK.Core\ActivityMonitor\IActivityMonitorOutput.cs">
+      <Link>IActivityMonitorOutput.cs</Link>
+    </Compile>
+    <Compile Include="..\..\CK.Core\ActivityMonitor\IDisposableActivityMonitor.cs">
+      <Link>IDisposableActivityMonitor.cs</Link>
+    </Compile>
+    <Compile Include="..\..\CK.Core\ActivityMonitor\IDisposableGroup.cs">
+      <Link>IDisposableGroup.cs</Link>
+    </Compile>
+    <Compile Include="..\..\CK.Core\ActivityMonitor\Impl\ActivityMonitor.cs">
+      <Link>ActivityMonitor.cs</Link>
+    </Compile>
+    <Compile Include="..\..\CK.Core\ActivityMonitor\Impl\ActivityMonitor.DependentToken.cs">
+      <Link>ActivityMonitor.DependentToken.cs</Link>
+    </Compile>
+    <Compile Include="..\..\CK.Core\ActivityMonitor\Impl\ActivityMonitor.Group.cs">
+      <Link>ActivityMonitor.Group.cs</Link>
+    </Compile>
+    <Compile Include="..\..\CK.Core\ActivityMonitor\Impl\ActivityMonitor.SourceFiltering.cs">
+      <Link>ActivityMonitor.SourceFiltering.cs</Link>
+    </Compile>
+    <Compile Include="..\..\CK.Core\ActivityMonitor\Impl\ActivityMonitorBridge.cs">
+      <Link>ActivityMonitorBridge.cs</Link>
+    </Compile>
+    <Compile Include="..\..\CK.Core\ActivityMonitor\Impl\ActivityMonitorBridgeTarget.cs">
+      <Link>ActivityMonitorBridgeTarget.cs</Link>
+    </Compile>
+    <Compile Include="..\..\CK.Core\ActivityMonitor\Impl\ActivityMonitorExtension-Gen.cs">
+      <Link>ActivityMonitorExtension-Gen.cs</Link>
+    </Compile>
+    <Compile Include="..\..\CK.Core\ActivityMonitor\Impl\ActivityMonitorExtension.cs">
+      <Link>ActivityMonitorExtension.cs</Link>
+    </Compile>
+    <Compile Include="..\..\CK.Core\ActivityMonitor\Impl\ActivityMonitorExtension.DependentActivity.cs">
+      <Link>ActivityMonitorExtension.DependentActivity.cs</Link>
+    </Compile>
+    <Compile Include="..\..\CK.Core\ActivityMonitor\Impl\ActivityMonitorGroupSender-Gen.cs">
+      <Link>ActivityMonitorGroupSender-Gen.cs</Link>
+    </Compile>
+    <Compile Include="..\..\CK.Core\ActivityMonitor\Impl\ActivityMonitorGroupSender.cs">
+      <Link>ActivityMonitorGroupSender.cs</Link>
+    </Compile>
+    <Compile Include="..\..\CK.Core\ActivityMonitor\Impl\ActivityMonitorLineSender-Gen.cs">
+      <Link>ActivityMonitorLineSender-Gen.cs</Link>
+    </Compile>
+    <Compile Include="..\..\CK.Core\ActivityMonitor\Impl\ActivityMonitorLineSender.cs">
+      <Link>ActivityMonitorLineSender.cs</Link>
+    </Compile>
+    <Compile Include="..\..\CK.Core\ActivityMonitor\Impl\ActivityMonitorOutput.cs">
+      <Link>ActivityMonitorOutput.cs</Link>
+    </Compile>
+    <Compile Include="..\..\CK.Core\ActivityMonitor\Impl\DisposableActivityMonitor.cs">
+      <Link>DisposableActivityMonitor.cs</Link>
+    </Compile>
+    <Compile Include="..\..\CK.Core\ActivityMonitor\Impl\IActivityMonitorBridgeCallback.cs">
+      <Link>IActivityMonitorBridgeCallback.cs</Link>
+    </Compile>
+    <Compile Include="..\..\CK.Core\ActivityMonitor\Impl\IActivityMonitorImpl.cs">
+      <Link>IActivityMonitorImpl.cs</Link>
+    </Compile>
+    <Compile Include="..\..\CK.Core\ActivityMonitor\LogFilter.cs">
+      <Link>LogFilter.cs</Link>
+    </Compile>
+    <Compile Include="..\..\CK.Core\ActivityMonitor\LogLevel.cs">
+      <Link>LogLevel.cs</Link>
+    </Compile>
+    <Compile Include="..\..\CK.Core\ActivityMonitor\LogLevelFilter.cs">
+      <Link>LogLevelFilter.cs</Link>
+    </Compile>
+    <Compile Include="..\..\CK.Core\ActivityMonitor\SourceLogFilter.cs">
+      <Link>SourceLogFilter.cs</Link>
+    </Compile>
+    <Compile Include="..\..\CK.Core\ActivityMonitor\SystemActivityMonitor.cs">
+      <Link>SystemActivityMonitor.cs</Link>
+    </Compile>
+    <Compile Include="..\..\CK.Core\AppSettings.cs">
+      <Link>AppSettings.cs</Link>
+    </Compile>
+    <Compile Include="..\..\CK.Core\CKException.cs">
+      <Link>CKException.cs</Link>
+    </Compile>
+    <Compile Include="..\..\CK.Core\CKExceptionData.cs">
+      <Link>CKExceptionData.cs</Link>
+    </Compile>
+    <Compile Include="..\..\CK.Core\Collection\CKComponentModelExtension.cs">
+      <Link>CKComponentModelExtension.cs</Link>
+    </Compile>
+    <Compile Include="..\..\CK.Core\Collection\CKEnumerableConverter.cs">
+      <Link>CKEnumerableConverter.cs</Link>
+    </Compile>
+    <Compile Include="..\..\CK.Core\Collection\CKEnumeratorEmpty.cs">
+      <Link>CKEnumeratorEmpty.cs</Link>
+    </Compile>
+    <Compile Include="..\..\CK.Core\Collection\CKEnumeratorMono.cs">
+      <Link>CKEnumeratorMono.cs</Link>
+    </Compile>
+    <Compile Include="..\..\CK.Core\Collection\CKObservableSortedArrayKeyList.cs">
+      <Link>CKObservableSortedArrayKeyList.cs</Link>
+    </Compile>
+    <Compile Include="..\..\CK.Core\Collection\CKObservableSortedArrayList.cs">
+      <Link>CKObservableSortedArrayList.cs</Link>
+    </Compile>
+    <Compile Include="..\..\CK.Core\Collection\CKReadOnlyCollectionDebuggerView.cs">
+      <Link>CKReadOnlyCollectionDebuggerView.cs</Link>
+    </Compile>
+    <Compile Include="..\..\CK.Core\Collection\CKReadOnlyCollectionOnICollection.cs">
+      <Link>CKReadOnlyCollectionOnICollection.cs</Link>
+    </Compile>
+    <Compile Include="..\..\CK.Core\Collection\CKReadOnlyCollectionOnISet.cs">
+      <Link>CKReadOnlyCollectionOnISet.cs</Link>
+    </Compile>
+    <Compile Include="..\..\CK.Core\Collection\CKReadOnlyCollectionTypeConverter.cs">
+      <Link>CKReadOnlyCollectionTypeConverter.cs</Link>
+    </Compile>
+    <Compile Include="..\..\CK.Core\Collection\CKReadOnlyExtension.cs">
+      <Link>CKReadOnlyExtension.cs</Link>
+    </Compile>
+    <Compile Include="..\..\CK.Core\Collection\CKReadOnlyListEmpty.cs">
+      <Link>CKReadOnlyListEmpty.cs</Link>
+    </Compile>
+    <Compile Include="..\..\CK.Core\Collection\CKReadOnlyListMono.cs">
+      <Link>CKReadOnlyListMono.cs</Link>
+    </Compile>
+    <Compile Include="..\..\CK.Core\Collection\CKReadOnlyListOnIList.cs">
+      <Link>CKReadOnlyListOnIList.cs</Link>
+    </Compile>
+    <Compile Include="..\..\CK.Core\Collection\CKSortedArrayKeyList.cs">
+      <Link>CKSortedArrayKeyList.cs</Link>
+    </Compile>
+    <Compile Include="..\..\CK.Core\Collection\CKSortedArrayList.cs">
+      <Link>CKSortedArrayList.cs</Link>
+    </Compile>
+    <Compile Include="..\..\CK.Core\Collection\CollectionExtension.cs">
+      <Link>CollectionExtension.cs</Link>
+    </Compile>
+    <Compile Include="..\..\CK.Core\Collection\DictionaryExtension.cs">
+      <Link>DictionaryExtension.cs</Link>
+    </Compile>
+    <Compile Include="..\..\CK.Core\Collection\EnumerableExtension.cs">
+      <Link>EnumerableExtension.cs</Link>
+    </Compile>
+    <Compile Include="..\..\CK.Core\Collection\FIFOBuffer.cs">
+      <Link>FIFOBuffer.cs</Link>
+    </Compile>
+    <Compile Include="..\..\CK.Core\CriticalErrorCollector.cs">
+      <Link>CriticalErrorCollector.cs</Link>
+    </Compile>
+    <Compile Include="..\..\CK.Core\DateTimeStamp.cs">
+      <Link>DateTimeStamp.cs</Link>
+    </Compile>
+    <Compile Include="..\..\CK.Core\File\FileUtil.cs">
+      <Link>FileUtil.cs</Link>
+    </Compile>
+    <Compile Include="..\..\CK.Core\File\TemporaryFile.cs">
+      <Link>TemporaryFile.cs</Link>
+    </Compile>
+    <Compile Include="..\..\CK.Core\GlobalSuppressions.cs">
+      <Link>GlobalSuppressions.cs</Link>
+    </Compile>
+    <Compile Include="..\..\CK.Core\ICKObservableReadOnlyCollection.cs">
+      <Link>ICKObservableReadOnlyCollection.cs</Link>
+    </Compile>
+    <Compile Include="..\..\CK.Core\ICKObservableReadOnlyList.cs">
+      <Link>ICKObservableReadOnlyList.cs</Link>
+    </Compile>
+    <Compile Include="..\..\CK.Core\ICKReadOnlyCollection.cs">
+      <Link>ICKReadOnlyCollection.cs</Link>
+    </Compile>
+    <Compile Include="..\..\CK.Core\ICKReadOnlyList.cs">
+      <Link>ICKReadOnlyList.cs</Link>
+    </Compile>
+    <Compile Include="..\..\CK.Core\ICKReadOnlyMultiKeyedCollection.cs">
+      <Link>ICKReadOnlyMultiKeyedCollection.cs</Link>
+    </Compile>
+    <Compile Include="..\..\CK.Core\ICKReadOnlyUniqueKeyedCollection.cs">
+      <Link>ICKReadOnlyUniqueKeyedCollection.cs</Link>
+    </Compile>
+    <Compile Include="..\..\CK.Core\ICKWritableCollection.cs">
+      <Link>ICKWritableCollection.cs</Link>
+    </Compile>
+    <Compile Include="..\..\CK.Core\ICKWritableCollector.cs">
+      <Link>ICKWritableCollector.cs</Link>
+    </Compile>
+    <Compile Include="..\..\CK.Core\IMergeable.cs">
+      <Link>IMergeable.cs</Link>
+    </Compile>
+    <Compile Include="..\..\CK.Core\IObservableReadOnlyCollection.cs">
+      <Link>IObservableReadOnlyCollection.cs</Link>
+    </Compile>
+    <Compile Include="..\..\CK.Core\IObservableReadOnlyList.cs">
+      <Link>IObservableReadOnlyList.cs</Link>
+    </Compile>
+    <Compile Include="..\..\CK.Core\ISimpleServiceContainer.cs">
+      <Link>ISimpleServiceContainer.cs</Link>
+    </Compile>
+    <Compile Include="..\..\CK.Core\ISimpleTypeFinder.cs">
+      <Link>ISimpleTypeFinder.cs</Link>
+    </Compile>
+    <Compile Include="..\..\CK.Core\ISimpleTypeNaming.cs">
+      <Link>ISimpleTypeNaming.cs</Link>
+    </Compile>
+    <Compile Include="..\..\CK.Core\LegacySupport\IReadOnlyCollection.cs">
+      <Link>IReadOnlyCollection.cs</Link>
+    </Compile>
+    <Compile Include="..\..\CK.Core\LegacySupport\IReadOnlyList.cs">
+      <Link>IReadOnlyList.cs</Link>
+    </Compile>
+    <Compile Include="..\..\CK.Core\R.Designer.cs">
+      <Link>R.Designer.cs</Link>
+    </Compile>
+    <Compile Include="..\..\CK.Core\SetOperation.cs">
+      <Link>SetOperation.cs</Link>
+    </Compile>
+    <Compile Include="..\..\CK.Core\SimpleServiceContainer.cs">
+      <Link>SimpleServiceContainer.cs</Link>
+    </Compile>
+    <Compile Include="..\..\CK.Core\SimpleTypeFinder.cs">
+      <Link>SimpleTypeFinder.cs</Link>
+    </Compile>
+    <Compile Include="..\..\CK.Core\Trait\CKTrait.cs">
+      <Link>CKTrait.cs</Link>
+    </Compile>
+    <Compile Include="..\..\CK.Core\Trait\CKTraitContext.cs">
+      <Link>CKTraitContext.cs</Link>
+    </Compile>
+    <Compile Include="..\..\CK.Core\UniqueId\INamedVersionedUniqueId.cs">
+      <Link>INamedVersionedUniqueId.cs</Link>
+    </Compile>
+    <Compile Include="..\..\CK.Core\UniqueId\IUniqueId.cs">
+      <Link>IUniqueId.cs</Link>
+    </Compile>
+    <Compile Include="..\..\CK.Core\UniqueId\IVersionedUniqueId.cs">
+      <Link>IVersionedUniqueId.cs</Link>
+    </Compile>
+    <Compile Include="..\..\CK.Core\UniqueId\SimpleNamedVersionedUniqueId.cs">
+      <Link>SimpleNamedVersionedUniqueId.cs</Link>
+    </Compile>
+    <Compile Include="..\..\CK.Core\UniqueId\SimpleUniqueId.cs">
+      <Link>SimpleUniqueId.cs</Link>
+    </Compile>
+    <Compile Include="..\..\CK.Core\UniqueId\SimpleVersionedUniqueId.cs">
+      <Link>SimpleVersionedUniqueId.cs</Link>
+    </Compile>
+    <Compile Include="..\..\CK.Core\Uri\UriExtension.cs">
+      <Link>UriExtension.cs</Link>
+    </Compile>
+    <Compile Include="..\..\CK.Core\Uri\UriHelper.cs">
+      <Link>UriHelper.cs</Link>
+    </Compile>
+    <Compile Include="..\..\CK.Core\Util.Converter.cs">
+      <Link>Util.Converter.cs</Link>
+    </Compile>
+    <Compile Include="..\..\CK.Core\Util.cs">
+      <Link>Util.cs</Link>
+    </Compile>
+    <Compile Include="..\..\CK.Core\Util.Empty.cs">
+      <Link>Util.Empty.cs</Link>
+    </Compile>
+    <Compile Include="..\..\CK.Core\Util.Hash.cs">
+      <Link>Util.Hash.cs</Link>
+    </Compile>
+    <Compile Include="..\..\CK.Core\Util.Matcher.cs">
+      <Link>Util.Matcher.cs</Link>
+    </Compile>
+    <Compile Include="..\..\CK.Core\Util.Math.cs">
+      <Link>Util.Math.cs</Link>
+    </Compile>
+    <Compile Include="..\..\CK.Core\WeakRef.cs">
+      <Link>WeakRef.cs</Link>
+    </Compile>
+    <Compile Include="..\..\CK.Core\XmlExtension.cs">
+      <Link>XmlExtension.cs</Link>
+    </Compile>
+    <Compile Include="..\..\SharedAssemblyInfo.cs">
+      <Link>Properties\SharedAssemblyInfo.cs</Link>
+    </Compile>
+    <Compile Include="Properties\AssemblyInfo.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="..\..\CK.Core\R.resx">
+      <Link>R.resx</Link>
+    </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="FodyWeavers.xml" />
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <Import Project="..\..\packages\Microsoft.Bcl.Build.1.0.13\tools\Microsoft.Bcl.Build.targets" Condition="Exists('..\..\packages\Microsoft.Bcl.Build.1.0.13\tools\Microsoft.Bcl.Build.targets')" />
+  <Target Name="EnsureBclBuildImported" BeforeTargets="BeforeBuild" Condition="'$(BclBuildImported)' == ''">
+    <Error Condition="!Exists('..\..\packages\Microsoft.Bcl.Build.1.0.13\tools\Microsoft.Bcl.Build.targets')" Text="This project references NuGet package(s) that are missing on this computer. Enable NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=317567." HelpKeyword="BCLBUILD2001" />
+    <Error Condition="Exists('..\..\packages\Microsoft.Bcl.Build.1.0.13\tools\Microsoft.Bcl.Build.targets')" Text="The build restored NuGet packages. Build the project again to include these packages in the build. For more information, see http://go.microsoft.com/fwlink/?LinkID=317568." HelpKeyword="BCLBUILD2002" />
+  </Target>
+  <Import Project="..\..\packages\Fody.1.22.1\build\Fody.targets" Condition="Exists('..\..\packages\Fody.1.22.1\build\Fody.targets')" />
+  <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
+    <PropertyGroup>
+      <ErrorText>This project references NuGet package(s) that are missing on this computer. Enable NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
+    </PropertyGroup>
+    <Error Condition="!Exists('..\..\packages\Fody.1.22.1\build\Fody.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\..\packages\Fody.1.22.1\build\Fody.targets'))" />
+  </Target>
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>

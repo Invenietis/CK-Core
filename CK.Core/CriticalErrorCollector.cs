@@ -26,12 +26,20 @@ namespace CK.Core
         /// </summary>
         public struct Error
         {
-            internal Error( string c, Exception e, int n )
+            internal Error( string c, Exception e, int n, int lostErrorCount )
             {
                 Comment = c;
                 Exception = e;
                 SequenceNumber = n;
+                LostErrorCount = lostErrorCount;
             }
+
+            /// <summary>
+            /// Holds the count of errors that have been discarded: too many critical errors occur
+            /// in a too short time.
+            /// When this field is greater than zero, this indicates a serious problem.
+            /// </summary>
+            public readonly int LostErrorCount;
 
             /// <summary>
             /// Unique, increasing, sequence number.
@@ -50,11 +58,13 @@ namespace CK.Core
             public readonly Exception Exception;
 
             /// <summary>
-            /// Overriden to return <see cref="Comment"/> and <see cref="P:Exception"/> message.
+            /// Overridden to return <see cref="Comment"/> and <see cref="P:Exception"/> message.
             /// </summary>
             /// <returns>Explicit content.</returns>
             public override string ToString()
             {
+                if( LostErrorCount > 0 )
+                    return String.Format( "{0} - {1} - Lost Critical Error count: {2}.",  Comment, Exception.Message, LostErrorCount );
                 return Comment + " - " + Exception.Message;
             }
 
@@ -85,11 +95,13 @@ namespace CK.Core
         int _waitingRaiseCount;
         // Number of queued work items that have been created since the creation of this collector.
         int _dispatchQueuedWorkItemCount;
-        // This is an optimisation: it avoids queing a new work item
+        // This is an optimization: it avoids queuing a new work item
         // if one already exists and has not yet started to dispatch error.
         int _dispatchWorkItemIsReady;
-        // This is to measure the impact of the _dispatchWorkItemIsReady optimisation.
+        // This is to measure the impact of the _dispatchWorkItemIsReady optimization.
         int _savedDispatchQueuedWorkItemCount;
+        // Lost error count: the capacity is too short. Errors have been discarded.
+        int _lostErrorCount;
 
         /// <summary>
         /// Fires when an error has been <see cref="Add"/>ed (there cannot be more than one thread that raises this event at the same time).
@@ -101,18 +113,18 @@ namespace CK.Core
         public event EventHandler<ErrorEventArgs> OnErrorFromBackgroundThreads;
 
         /// <summary>
-        /// Initializes a new <see cref="CriticalErrorCollector"/> with a default <see cref="Capacity"/> set to 64.
+        /// Initializes a new <see cref="CriticalErrorCollector"/> with a default <see cref="Capacity"/> set to 128.
         /// </summary>
         public CriticalErrorCollector()
         {
-            _collector = new FIFOBuffer<Error>( 64 );
+            _collector = new FIFOBuffer<Error>( 128 );
             _raiseLock = new object();
             _endOfWorkLock = new object();
         }
 
         /// <summary>
         /// Gets or sets the maximal number of errors kept by this collector.
-        /// Defaults to 64 (which should be enough).
+        /// Defaults to 128 (which should be enough).
         /// It can be safely changed at any time.
         /// </summary>
         public int Capacity
@@ -129,11 +141,17 @@ namespace CK.Core
         public void Add( Exception ex, string comment )
         {
             if( ex == null ) throw new ArgumentNullException( "ex" );
+            if( _lostErrorCount > 1024 ) return;
             if( comment == null ) comment = String.Empty;
-            Interlocked.Increment( ref _waitingRaiseCount );
             lock( _collector )
             {
-                _collector.Push( new Error( comment, ex, _seqNumber++ ) );
+                if( _waitingRaiseCount >= _collector.Capacity )
+                {
+                    Interlocked.Increment( ref _lostErrorCount );
+                    return;
+                }
+                Interlocked.Increment( ref _waitingRaiseCount );
+                _collector.Push( new Error( comment, ex, _seqNumber++, _lostErrorCount ) );
             }
             if( Interlocked.CompareExchange( ref _dispatchWorkItemIsReady, 1, 0 ) == 0 )
             {
@@ -167,7 +185,7 @@ namespace CK.Core
                         var h = OnErrorFromBackgroundThreads;
                         if( h != null )
                         {
-                            // h.GetInvocationList() creates an independant copy of Delegate[].
+                            // h.GetInvocationList() creates an independent copy of Delegate[].
                             foreach( EventHandler<ErrorEventArgs> d in h.GetInvocationList() )
                             {
                                 try
@@ -177,13 +195,14 @@ namespace CK.Core
                                 catch( Exception ex2 )
                                 {
                                     // Since this thread will loop, flags it to avoid 
-                                    // creating useless new dispathing queue items.
+                                    // creating useless new dispatching queue items.
                                     Interlocked.Exchange( ref _dispatchWorkItemIsReady, 1 );
                                     Interlocked.Increment( ref _waitingRaiseCount );
                                     OnErrorFromBackgroundThreads -= (EventHandler<ErrorEventArgs>)d;
                                     lock( _collector )
                                     {
-                                        _collector.Push( new Error( R.ErrorWhileCollectorRaiseError, ex2, _seqNumber++ ) );
+                                        if( _collector.Count == _collector.Capacity ) Interlocked.Increment( ref _lostErrorCount );
+                                        else _collector.Push( new Error( R.ErrorWhileCollectorRaiseError, ex2, _seqNumber++, _lostErrorCount ) );
                                     }
                                     again = true;
                                 }
@@ -194,26 +213,8 @@ namespace CK.Core
             }
             while( again );
 
-            // Just for fun: a lock-free substraction...
-            int w = _waitingRaiseCount;
-            if( Interlocked.CompareExchange( ref _waitingRaiseCount, w - raisedCount, w ) != w )
-            {
-                // After a lot of readings of msdn and internet, I use the SpinWait struct...
-                // This is the recommended way, so...
-                // Note that tests under heavy loads show that this code is rarely solicited
-                // which means that the first Interlocked.CompareExchange always work.
-                // Unfortunate consequence: this code is not often covered by any tests. To test it, modify the 
-                // line above to be: int w = _waitingRaiseCount + 1;
-                SpinWait sw = new SpinWait();
-                do
-                {
-                    sw.SpinOnce();
-                    w = _waitingRaiseCount;
-                }
-                while( Interlocked.CompareExchange( ref _waitingRaiseCount, w - raisedCount, w ) != w );
-            }
             // Signals the _endOfWorkLock monitor if _waitingRaiseCount reached 0.
-            if( _waitingRaiseCount == 0 )
+            if( Interlocked.Add( ref _waitingRaiseCount, -raisedCount ) == 0 )
             {
                 lock( _endOfWorkLock ) Monitor.PulseAll( _endOfWorkLock );
             }
@@ -239,18 +240,39 @@ namespace CK.Core
         /// Clears the list. Only errors that have been already raised by <see cref="OnErrorFromBackgroundThreads"/>
         /// are removed from the internal buffer: it can be safely called at any time.
         /// </summary>
-        /// <returns>The number of errors waiting to be raised.</returns>
-        public int Clear()
+        /// <param name="cleared">Number of suppressed errors.</param>
+        /// <param name="waitingToBeRaisedErrors">The number of errors waiting to be raised.</param>
+        public void Clear( out int cleared, out int waitingToBeRaisedErrors )
         {
-            int left = 0;
+            cleared = 0;
             lock( _collector )
             {
                 // Items are from oldest to newest: take the index of the first one that has not been raised yet.
                 int idx = _collector.IndexOf( e => e.SequenceNumber >= _lastSeqNumberRaising );
-                if( idx < 0 ) _collector.Clear();
-                else _collector.Truncate( (left = _collector.Count - idx) );
+                if( idx < 0 )
+                {
+                    cleared = _collector.Count;
+                    waitingToBeRaisedErrors = 0;
+                    _collector.Clear();
+                }
+                else
+                {
+                    cleared = idx;
+                    waitingToBeRaisedErrors = _collector.Count - idx;
+                    _collector.Truncate( waitingToBeRaisedErrors );
+                }
             }
-            return left;
+        }
+
+        /// <summary>
+        /// Clears the list. Only errors that have been already raised by <see cref="OnErrorFromBackgroundThreads"/>
+        /// are removed from the internal buffer: it can be safely called at any time.
+        /// </summary>
+        public void Clear()
+        {
+            int cleared = 0;
+            int waiting = 0;
+            Clear( out cleared, out waiting );
         }
 
         /// <summary>
@@ -280,7 +302,7 @@ namespace CK.Core
         /// Obtains a copy of the last (up to) <see cref="Capacity"/> errors from oldest to newest.
         /// The newest may have not been raised by <see cref="OnErrorFromBackgroundThreads"/> yet.
         /// </summary>
-        /// <returns>An independent array.</returns>
+        /// <returns>An independent array. May be empty but never null.</returns>
         public Error[] ToArray()
         {
             lock( _collector )

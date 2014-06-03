@@ -23,6 +23,9 @@
 
 using System;
 using System.Collections;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Globalization;
 using System.IO;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -36,7 +39,7 @@ namespace CK.Core
     {
         /// <summary>
         /// Combination of <see cref="FileAttributes"/> that can not exist: it can be used to 
-        /// tag inexisting files among other existing (i.e. valid) file attributes.
+        /// tag non existing files among other existing (i.e. valid) file attributes.
         /// </summary>
         static readonly public FileAttributes InexistingFile = FileAttributes.Normal | FileAttributes.Offline;
 
@@ -51,7 +54,7 @@ namespace CK.Core
             string[] m = multiFileMask.Split( ';' );
             if( m.Length > 1 )
             {
-                ArrayList l = new ArrayList();
+                List<string> l = new List<string>();
                 foreach( string oneMask in m )
                 {
                     if( oneMask.Length > 0 )
@@ -66,7 +69,7 @@ namespace CK.Core
                         }
                     }
                 }
-                return (string[])l.ToArray( typeof( string ) );
+                return l.ToArray();
             }
             if( m.Length > 0 && m[0] != "*" && m[0] != "*.*" )
                 return Directory.GetFiles( path, m[0] );
@@ -117,6 +120,63 @@ namespace CK.Core
         public static readonly string AltDirectorySeparatorString = new String( Path.AltDirectorySeparatorChar, 1 );
 
         /// <summary>
+        /// A display format for <see cref="DateTime"/> that supports round-trips, is readable and can be used in path 
+        /// or url (the DateTime should be in UTC since <see cref="DateTime.Kind"/> is ignored).
+        /// Use <see cref="MatchFileNameUniqueTimeUtcFormat"/> or <see cref="TryParseFileNameUniqueTimeUtcFormat"/> to parse it (it uses the correct <see cref="DateTimeStyles"/>).
+        /// It is: @"yyyy-MM-dd HH\hmm.ss.fffffff"
+        /// </summary>
+        public static readonly string FileNameUniqueTimeUtcFormat = @"yyyy-MM-dd HH\hmm.ss.fffffff";
+
+        /// <summary>
+        /// The time returned by <see cref="File.GetLastWriteTimeUtc"/> when the file does not exist.
+        /// From MSDN: If the file described in the path parameter does not exist, this method returns 12:00 midnight, January 1, 1601 A.D. (C.E.) Coordinated Universal Time (UTC).
+        /// </summary>
+        public static readonly DateTime MissingFileLastWriteTimeUtc = new DateTime( 1601, 1, 1, 0, 0, 0, DateTimeKind.Utc );
+        
+        /// <summary>
+        /// Tries to match a DateTime that follows the <see cref="FileNameUniqueTimeUtcFormat"/> in a string at a given position.
+        /// </summary>
+        /// <param name="s">The string to match.</param>
+        /// <param name="startAt">
+        /// Index where the match must start (can be equal to or greater than the length of the string: the match fails).
+        /// On success, index of the end of the match.
+        /// </param>
+        /// <param name="maxLength">
+        /// Maximum index to consider in the string (it can shorten the default <see cref="String.Length"/> if 
+        /// set to a positive value, otherwise it is set to String.Length).
+        /// If maxLength is greater than String.Length an <see cref="ArgumentException"/> is thrown.
+        /// </param>
+        /// <param name="time">Result time.</param>
+        /// <returns>True if the time has been matched.</returns>
+        public static bool MatchFileNameUniqueTimeUtcFormat( string s, ref int startAt, int maxLength, out DateTime time )
+        {
+            time = Util.UtcMinValue;
+            if( !Util.Matcher.CheckMatchArguments( s, startAt, maxLength ) ) return false;
+            Debug.Assert( FileNameUniqueTimeUtcFormat.Replace( "\\", "" ).Length == 27 );
+            if( startAt + 27 > maxLength ) return false;
+            if( DateTime.TryParseExact( s.Substring( startAt, 27 ), FileUtil.FileNameUniqueTimeUtcFormat, CultureInfo.InvariantCulture, DateTimeStyles.AdjustToUniversal | DateTimeStyles.AssumeUniversal, out time ) )
+            {
+                startAt += 27;
+                return true;
+            }
+            return false;
+        }
+
+        /// <summary>
+        /// Tries to parse a string formatted with the <see cref="FileNameUniqueTimeUtcFormat"/>.
+        /// The string must contain only the time unless <paramref name="allowSuffix"/> is true.
+        /// </summary>
+        /// <param name="s">The string to parse.</param>
+        /// <param name="time">Result time on success.</param>
+        /// <param name="allowSuffix">True to accept a string that starts with the time and contains more text.</param>
+        /// <returns>True if the string has been successfully parsed.</returns>
+        public static bool TryParseFileNameUniqueTimeUtcFormat( string s, out DateTime time, bool allowSuffix = false )
+        {
+            int startAt = 0;
+            return MatchFileNameUniqueTimeUtcFormat( s, ref startAt, s.Length, out time ) && (allowSuffix || startAt == s.Length);
+        }
+
+        /// <summary>
         /// Finds the first character index of any characters that are invalid in a path.
         /// This method (and <see cref="IndexOfInvalidFileNameChars"/>) avoid the allocation of 
         /// the array each time <see cref="Path.GetInvalidPathChars"/> is called.
@@ -141,6 +201,146 @@ namespace CK.Core
         }
 
         /// <summary>
+        /// Creates a new necessarily unique file and writes bytes content in a directory that must exist.
+        /// The file name is based on a <see cref="DateTime"/>, with an eventual uniquifier if a file already exists with the same name.
+        /// </summary>
+        /// <param name="pathPrefix">The path prefix. Must not be null. Must be a valid path and may ends with a prefix for the file name itself.</param>
+        /// <param name="fileSuffix">Suffix for the file name. Must not be null. Typically an extension (like ".txt").</param>
+        /// <param name="time">The time that will be used to create the file name. It should be an UTC time.</param>
+        /// <param name="content">The bytes to write. Can be null or empty if the file must only be created.</param>
+        /// <param name="withUTF8Bom">True to write the UTF8 Byte Order Mask (the preamble).</param>
+        /// <param name="maxTryBeforeGuid">Maximum value for short hexa uniquifier before using a base 64 guid suffix. Must between 0 and 15 (included).</param>
+        /// <returns>The full path name of the created file.</returns>
+        public static string WriteUniqueTimedFile( string pathPrefix, string fileSuffix, DateTime time, byte[] content, bool withUTF8Bom, int maxTryBeforeGuid = 3 )
+        {
+            string fullLogFilePath;
+            using( var f = CreateAndOpenUniqueTimedFile( pathPrefix, fileSuffix, time, FileAccess.Write, FileShare.Read, 8, FileOptions.SequentialScan | FileOptions.WriteThrough, maxTryBeforeGuid ) )
+            {
+                Debug.Assert( Encoding.UTF8.GetPreamble().Length == 3 );
+                if( withUTF8Bom ) f.Write( Encoding.UTF8.GetPreamble(), 0, 3 );
+                if( content != null && content.Length > 0 ) f.Write( content, 0, content.Length );
+                fullLogFilePath = f.Name;
+            }
+            return fullLogFilePath;
+        }
+
+        /// <summary>
+        /// Creates and opens a new necessarily unique file in a directory that must exist.
+        /// The file name is based on a <see cref="DateTime"/>, with an eventual uniquifier if a file already exists with the same name.
+        /// You can use <see cref="FileStream.Name"/> to obtain the file name.
+        /// </summary>
+        /// <param name="pathPrefix">The path prefix. Must not be null. Must be a valid path and may ends with a prefix for the file name itself.</param>
+        /// <param name="fileSuffix">Suffix for the file name. Must not be null. Typically an extension (like ".txt").</param>
+        /// <param name="time">The time that will be used to create the file name. It must be an UTC time.</param>
+        /// <param name="access">
+        /// A constant that determines how the file can be accessed by the FileStream object. 
+        /// It can only be <see cref="FileAccess.Write"/> or <see cref="FileAccess.ReadWrite"/> (when set to <see cref="FileAccess.Read"/> a <see cref="ArgumentException"/> is thrown).
+        /// This sets the CanRead and CanWrite properties of the FileStream object. 
+        /// CanSeek is true if path specifies a disk file.
+        /// </param>
+        /// <param name="share">
+        /// A constant that determines how the file will be shared by processes.
+        /// </param>
+        /// <param name="bufferSize">
+        /// A positive Int32 value greater than 0 indicating the buffer size. For bufferSize values between one and eight, the actual buffer size is set to eight bytes.
+        /// </param>
+        /// <param name="options">Specifies additional file options.</param>
+        /// <param name="maxTryBeforeGuid">
+        /// Maximum value for short hexadecimal uniquifier before using a base 64 guid suffix. Must greater than 0.</param>
+        /// <returns>An opened <see cref="FileStream"/>.</returns>
+        public static FileStream CreateAndOpenUniqueTimedFile( string pathPrefix, string fileSuffix, DateTime time, FileAccess access, FileShare share, int bufferSize, FileOptions options, int maxTryBeforeGuid = 512 )
+        {
+            if( access == FileAccess.Read ) throw new ArgumentException( R.FileUtilNoReadOnlyWhenCreateFile, "access" );
+            FileStream f = null;
+            FindUniqueTimedFile( pathPrefix, fileSuffix, time, maxTryBeforeGuid, p => TryCreateNew( p, access, share, bufferSize, options, out f ) );
+            return f;
+        }
+
+        static bool TryCreateNew( string timedPath, FileAccess access, FileShare share, int bufferSize, FileOptions options, out FileStream f )
+        {
+            f = null;
+            try
+            {
+                if( File.Exists( timedPath ) ) return false;
+                f = new FileStream( timedPath, FileMode.CreateNew, access, share, bufferSize, options );
+                return true;
+            }
+            catch( IOException ex )
+            {
+                if( ex is PathTooLongException || ex is DirectoryNotFoundException ) throw;
+            }
+            return false;
+        }
+
+        /// <summary>
+        /// Moves (renames) a file to a necessarily unique named file.
+        /// The file name is based on a <see cref="DateTime"/>, with an eventual uniquifier if a file already exists with the same name.
+        /// </summary>
+        /// <param name="sourceFilePath">Path of the file to move.</param>
+        /// <param name="pathPrefix">The path prefix. Must not be null. Must be a valid path and may ends with a prefix for the file name itself.</param>
+        /// <param name="fileSuffix">Suffix for the file name. Must not be null. Typically an extension (like ".txt").</param>
+        /// <param name="time">The time that will be used to create the file name. It must be an UTC time.</param>
+        /// <param name="maxTryBeforeGuid">
+        /// Maximum value for short hexadecimal uniquifier before using a base 64 guid suffix. Must greater than 0.
+        /// </param>
+        /// <returns>An opened <see cref="FileStream"/>.</returns>
+        public static string MoveToUniqueTimedFile( string sourceFilePath, string pathPrefix, string fileSuffix, DateTime time, int maxTryBeforeGuid = 512 )
+        {
+            if( sourceFilePath == null ) throw new ArgumentNullException( "sourceFilePath" );
+            if( !File.Exists( sourceFilePath ) ) throw new FileNotFoundException( R.FileMustExist, sourceFilePath );
+            return FindUniqueTimedFile( pathPrefix, fileSuffix, time, maxTryBeforeGuid, p => TryMoveTo( sourceFilePath, p ) );
+        }
+
+        static bool TryMoveTo( string sourceFilePath, string timedPath )
+        {
+            try
+            {
+                if( File.Exists( timedPath ) ) return false;
+                File.Move( sourceFilePath, timedPath );
+                return true;
+            }
+            catch( IOException ex )
+            {
+                if( ex is PathTooLongException || ex is DirectoryNotFoundException ) throw;
+            }
+            return false;
+        }
+
+        static string FindUniqueTimedFile( string pathPrefix, string fileSuffix, DateTime time, int maxTryBeforeGuid, Func<string,bool> tester )
+        {
+            if( pathPrefix == null ) throw new ArgumentNullException( "pathPrefix" );
+            if( fileSuffix == null ) throw new ArgumentNullException( "fileSuffix" );
+            if( maxTryBeforeGuid < 0 ) throw new ArgumentOutOfRangeException( "maxTryBeforeGuid" );
+
+            DateTimeStamp timeStamp = new DateTimeStamp( time );
+            int counter = 0;
+            string result = pathPrefix + timeStamp.ToString() + fileSuffix;
+            for( ; ; )
+            {
+                if( tester( result ) ) break;
+                if( counter < maxTryBeforeGuid )
+                {
+                    timeStamp = new DateTimeStamp( timeStamp, timeStamp );
+                    result = pathPrefix + timeStamp.ToString() + fileSuffix;
+                }
+                else
+                {
+                    if( counter == maxTryBeforeGuid + 1 ) throw new CKException( R.FileUtilUnableToCreateUniqueTimedFile );
+                    if( counter == maxTryBeforeGuid )
+                    {
+                        Debug.Assert( Convert.ToBase64String( Guid.NewGuid().ToByteArray() ).Length == 24 );
+                        Debug.Assert( Convert.ToBase64String( Guid.NewGuid().ToByteArray() ).EndsWith( "==" ) );
+                        // Use http://en.wikipedia.org/wiki/Base64#URL_applications encoding.
+                        string dedup = Convert.ToBase64String( Guid.NewGuid().ToByteArray() ).Remove( 22 ).Replace( '+', '-' ).Replace( '/', '_' );
+                        result = pathPrefix + time.ToString( FileNameUniqueTimeUtcFormat, CultureInfo.InvariantCulture ) + "-" + dedup + fileSuffix;
+                    }
+                }
+                ++counter;
+            }
+            return result;
+        }
+
+        /// <summary>
         /// Recursively copy a directory. 
         /// Throws an IOException, if a same file exists in the target directory.
         /// </summary>
@@ -150,7 +350,7 @@ namespace CK.Core
         /// <param name="withHiddenFolders">False to skip hidden folders.</param>
         /// <param name="fileFilter">Optional predicate for directories.</param>
         /// <param name="dirFilter">Optional predicate for files.</param>
-        public static void CopyDirectory( DirectoryInfo src, DirectoryInfo target, bool withHiddenFiles = true, bool withHiddenFolders = true, Predicate<FileInfo> fileFilter = null, Predicate<DirectoryInfo> dirFilter = null )
+        public static void CopyDirectory( DirectoryInfo src, DirectoryInfo target, bool withHiddenFiles = true, bool withHiddenFolders = true, Func<FileInfo,bool> fileFilter = null, Func<DirectoryInfo,bool> dirFilter = null )
         {
             if( src == null ) throw new ArgumentNullException( "src" );
             if( target == null ) throw new ArgumentNullException( "target" );
@@ -179,26 +379,28 @@ namespace CK.Core
         /// Waits for a file to be writable. Do not open the file.
         /// Waits approximately the number of seconds given before leaving and returning false.
         /// </summary>
-        /// <param name="file">The file to write to.</param>
+        /// <param name="path">The path of the file to write to.</param>
         /// <param name="nbMaxSecond">Maximum number of seconds to wait before returning false.</param>
         /// <returns>True if the file has been correctly opened in write mode.</returns>
-        static public bool WaitForWriteAcccess( FileInfo file, int nbMaxSecond )
+        static public bool WaitForWriteAcccess( string path, int nbMaxSecond )
         {
+            if( path == null ) throw new ArgumentNullException( "path" );
             for( ; ; )
             {
-                System.Threading.Thread.Sleep( 100 );
-                if( !file.Exists ) return true;
+                System.Threading.Thread.Sleep( 10 );
+                if( !File.Exists( path ) ) return true;
                 try
                 {
-                    using( Stream s = file.OpenWrite() ) { return true; }
+                    using( Stream s = File.OpenWrite( path ) ) { return true; }
                 }
                 catch
                 {
                     if( --nbMaxSecond < 0 ) return false;
-                    System.Threading.Thread.Sleep( 900 );
+                    System.Threading.Thread.Sleep( 990 );
                 }
             }
         }
+
     }
 
 }

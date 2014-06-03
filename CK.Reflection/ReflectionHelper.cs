@@ -126,7 +126,7 @@ namespace CK.Reflection
         /// and the compiler generates one automatically.
         /// </summary>
         /// <typeparam name="TProperty">Property type.</typeparam>
-        /// <param name="propertyLambda">A lambda function that selects a property (from the current syntaxic context).</param>
+        /// <param name="propertyLambda">A lambda function that selects a property (from the current syntactic context).</param>
         /// <returns>Corresponding property information.</returns>
         public static PropertyInfo GetPropertyInfo<TProperty>( Expression<Func<TProperty>> propertyLambda )
         {
@@ -223,6 +223,28 @@ namespace CK.Reflection
         }
 
         /// <summary>
+        /// Generates <see cref="CustomAttributeBuilder"/> from an enumerable of <see cref="CustomAttributeData"/>.
+        /// </summary>
+        /// <param name="customAttributes">Existing custom attribute data (can be obtained through <see cref="MemberInfo.GetCustomAttributesData"/>).</param>
+        /// <param name="collector">Action that receives builders that reproduce the original custom attributes.</param>
+        /// <param name="filter">Optional filter for attributes. When null, all attributes are collected.</param>
+        public static void GenerateCustomAttributeBuilder( IEnumerable<CustomAttributeData> customAttributes, Action<CustomAttributeBuilder> collector, Func<CustomAttributeData,bool> filter = null )
+        {
+            if( customAttributes == null ) throw new ArgumentNullException( "customAttributes" );
+            if( collector == null ) throw new ArgumentNullException( "collector" );
+            foreach( var attr in customAttributes )
+            {
+                if( filter != null && !filter( attr ) ) continue;
+                var ctorArgs = attr.ConstructorArguments.Select( a => a.Value ).ToArray();
+                var namedPropertyInfos = attr.NamedArguments.Select( a => a.MemberInfo ).OfType<PropertyInfo>().ToArray();
+                var namedPropertyValues = attr.NamedArguments.Where( a => a.MemberInfo is PropertyInfo ).Select( a => a.TypedValue.Value ).ToArray();
+                var namedFieldInfos = attr.NamedArguments.Select( a => a.MemberInfo ).OfType<FieldInfo>().ToArray();
+                var namedFieldValues = attr.NamedArguments.Where( a => a.MemberInfo is FieldInfo ).Select( a => a.TypedValue.Value ).ToArray();
+                collector( new CustomAttributeBuilder( attr.Constructor, ctorArgs, namedPropertyInfos, namedPropertyValues, namedFieldInfos, namedFieldValues ) );
+            }
+        }
+
+        /// <summary>
         /// Gets all methods (including inherited methods and methods with special names like get_XXX 
         /// and others add_XXX) of the given interface type.
         /// </summary>
@@ -259,7 +281,7 @@ namespace CK.Reflection
         /// </summary>
         /// <typeparam name="T">Type of the element that you're looking for. <see cref="MethodInfo"/> for example.</typeparam>
         /// <param name="interfaceType">Type to process, it must be an interface.</param>
-        /// <param name="getFunction">Function that takes a type and return an <see cref="IEnumerable{T}"/>, a possible implementation can be the lambda <c>t => t.GetMethods()</c></param>
+        /// <param name="getFunction">Function that takes a type and return an <see cref="IEnumerable{T}"/>, a possible implementation can be the lambda <c>t => t.GetMethods()</c>.</param>
         /// <returns>An <see cref="IEnumerable{T}"/> that contains elements returned by the <paramref name="getFunction"/>.</returns>
         public static IEnumerable<T> GetFlattenMembers<T>( Type interfaceType, Func<Type, IEnumerable<T>> getFunction )
         {

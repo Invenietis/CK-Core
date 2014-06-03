@@ -1,7 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
-    <!-- This makes the .Net 4.5 the default -->
     <TargetFrameworkVersion Condition=" '$(TargetFrameworkVersion)' == '' ">v4.5</TargetFrameworkVersion>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
@@ -19,32 +18,29 @@
     <UpgradeBackupLocation />
     <TargetFrameworkProfile>
     </TargetFrameworkProfile>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(TargetFrameworkVersion)' == 'v4.0' ">
-    <TargetSavor>net40</TargetSavor>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(TargetFrameworkVersion)' == 'v4.5' ">
-    <TargetSavor>net45</TargetSavor>
+    <SolutionDir Condition="$(SolutionDir) == '' Or $(SolutionDir) == '*Undefined*'">..\</SolutionDir>
+    <RestorePackages>true</RestorePackages>
   </PropertyGroup>
   <PropertyGroup>
-    <OutputPath>bin\$(Configuration)\$(TargetSavor)\</OutputPath>
+    <OutputPath>bin\$(Configuration)\</OutputPath>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
-    <DefineConstants>DEBUG;TRACE;$(TargetSavor)</DefineConstants>
+    <DefineConstants>DEBUG;TRACE;net45</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <DocumentationFile>
     </DocumentationFile>
     <Prefer32Bit>false</Prefer32Bit>
+    <CodeAnalysisRuleSet>BasicDesignGuidelineRules.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
     <ErrorReport>prompt</ErrorReport>
-    <DefineConstants>TRACE;$(TargetSavor)</DefineConstants>
+    <DefineConstants>TRACE;net45</DefineConstants>
     <WarningLevel>4</WarningLevel>
     <DocumentationFile>$(OutputPath)CK.Core.xml</DocumentationFile>
     <LangVersion>default</LangVersion>
@@ -69,34 +65,75 @@
     <Compile Include="..\SharedAssemblyInfo.cs">
       <Link>Properties\SharedAssemblyInfo.cs</Link>
     </Compile>
-    <Compile Include="ActivityLogger\ActivityLoggerEmpty.cs" />
-    <Compile Include="ActivityLogger\ActivityLogGroupConclusion.cs" />
-    <Compile Include="ActivityLogger\IActivityLogger.cs" />
-    <Compile Include="ActivityLogger\IActivityLoggerBoundClient.cs" />
-    <Compile Include="ActivityLogger\IActivityLoggerClient.cs" />
-    <Compile Include="ActivityLogger\IActivityLoggerOutput.cs" />
-    <Compile Include="ActivityLogger\IActivityLogGroup.cs" />
-    <Compile Include="ActivityLogger\Impl\ActivityLoggerBridgeTarget.cs" />
-    <Compile Include="ActivityLogger\Impl\ActivityLoggerConsoleSink.cs" />
-    <Compile Include="ActivityLogger\Impl\ActivityLoggerErrorCounter.cs" />
-    <Compile Include="ActivityLogger\Impl\ActivityLoggerClient.cs" />
-    <Compile Include="ActivityLogger\Impl\ActivityLoggerOutput.cs" />
-    <Compile Include="ActivityLogger\Impl\ActivityLoggerPathCatcher.cs" />
-    <Compile Include="ActivityLogger\Impl\ActivityLoggerSimpleCollector.cs" />
-    <Compile Include="ActivityLogger\Impl\ActivityLoggerTap.cs" />
-    <Compile Include="ActivityLogger\Impl\ActivityLoggerTextWriterSink.cs" />
-    <Compile Include="ActivityLogger\Impl\ActivityLogger.Group.cs" />
-    <Compile Include="ActivityLogger\Impl\ActivityLoggerExtension.WithoutTags.cs" />
-    <Compile Include="ActivityLogger\Impl\ActivityLoggerExtension.WithTags.cs" />
-    <Compile Include="ActivityLogger\Impl\ActivityLoggerBridge.cs" />
-    <Compile Include="ActivityLogger\Impl\DefaultActivityLogger.cs" />
-    <Compile Include="ActivityLogger\IDefaultActivityLogger.cs" />
-    <Compile Include="ActivityLogger\IActivityLoggerSink.cs" />
-    <Compile Include="ActivityLogger\Impl\ActivityLoggerExtension.cs" />
-    <Compile Include="ActivityLogger\Impl\ActivityLogger.cs" />
-    <Compile Include="ActivityLogger\LogLevel.cs" />
-    <Compile Include="ActivityLogger\LogLevelFilter.cs" />
+    <Compile Include="ActivityMonitor\ActivityLogGroupConclusion.cs" />
+    <Compile Include="ActivityMonitor\ActivityMonitorLogData.cs" />
+    <Compile Include="ActivityMonitor\ActivityMonitorGroupData.cs" />
+    <Compile Include="ActivityMonitor\Impl\ActivityMonitor.SourceFiltering.cs" />
+    <Compile Include="ActivityMonitor\SourceLogFilter.cs" />
+    <Compile Include="IFluentInterface.cs" />
+    <Compile Include="Util.Matcher.cs" />
+    <Compile Include="DateTimeStamp.cs" />
+    <Compile Include="ActivityMonitor\IDisposableActivityMonitor.cs" />
+    <Compile Include="ActivityMonitor\IActivityMonitorGroupSender.cs" />
+    <Compile Include="ActivityMonitor\IActivityMonitorLineSender.cs" />
+    <Compile Include="ActivityMonitor\Impl\ActivityMonitorExtension.DependentActivity.cs" />
+    <Compile Include="ActivityMonitor\Impl\ActivityMonitorGroupSender.cs" />
+    <Compile Include="ActivityMonitor\IActivityMonitor.cs" />
+    <Compile Include="ActivityMonitor\IActivityMonitorBoundClient.cs" />
+    <Compile Include="ActivityMonitor\IActivityMonitorClient.cs" />
+    <Compile Include="ActivityMonitor\IActivityMonitorOutput.cs" />
+    <Compile Include="ActivityMonitor\IActivityLogGroup.cs" />
+    <Compile Include="ActivityMonitor\IDisposableGroup.cs" />
+    <Compile Include="ActivityMonitor\Impl\ActivityMonitorBridgeTarget.cs" />
+    <Compile Include="ActivityMonitor\Client\ActivityMonitorConsoleClient.cs" />
+    <Compile Include="ActivityMonitor\Client\ActivityMonitorErrorCounter.cs" />
+    <Compile Include="ActivityMonitor\Client\ActivityMonitorClient.cs" />
+    <Compile Include="ActivityMonitor\Impl\ActivityMonitorLineSender-Gen.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>ActivityMonitorLineSender-Gen.tt</DependentUpon>
+    </Compile>
+    <Compile Include="ActivityMonitor\Impl\ActivityMonitorExtension-Gen.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>ActivityMonitorExtension-Gen.tt</DependentUpon>
+    </Compile>
+    <Compile Include="ActivityMonitor\Impl\ActivityMonitorLineSender.cs" />
+    <Compile Include="ActivityMonitor\Impl\ActivityMonitorOutput.cs" />
+    <Compile Include="ActivityMonitor\Client\ActivityMonitorPathCatcher.cs" />
+    <Compile Include="ActivityMonitor\Client\ActivityMonitorSimpleCollector.cs" />
+    <Compile Include="ActivityMonitor\Client\ActivityMonitorTextHelperClient.cs" />
+    <Compile Include="ActivityMonitor\Client\ActivityMonitorTextWriterClient.cs" />
+    <Compile Include="ActivityMonitor\Impl\ActivityMonitor.Group.cs" />
+    <Compile Include="ActivityMonitor\Impl\ActivityMonitorBridge.cs" />
+    <Compile Include="ActivityMonitor\Impl\ActivityMonitorExtension.cs" />
+    <Compile Include="ActivityMonitor\Impl\ActivityMonitor.cs" />
+    <Compile Include="ActivityMonitor\Impl\ActivityMonitorGroupSender-Gen.cs">
+      <DependentUpon>ActivityMonitorGroupSender-Gen.tt</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+    </Compile>
+    <Compile Include="ActivityMonitor\Impl\ActivityMonitor.DependentToken.cs" />
+    <Compile Include="ActivityMonitor\Impl\DisposableActivityMonitor.cs" />
+    <Compile Include="ActivityMonitor\Impl\IActivityMonitorBridgeCallback.cs" />
+    <Compile Include="ActivityMonitor\Impl\IActivityMonitorImpl.cs" />
+    <Compile Include="ActivityMonitor\LogFilter.cs" />
+    <Compile Include="ActivityMonitor\LogLevel.cs" />
+    <Compile Include="ActivityMonitor\LogLevelFilter.cs" />
+    <Compile Include="ActivityMonitor\SystemActivityMonitor.cs" />
+    <Compile Include="AppSettings.cs" />
     <Compile Include="CKException.cs" />
+    <Compile Include="CKExceptionData.cs" />
+    <Compile Include="IObservableReadOnlyCollection.cs" />
+    <Compile Include="IObservableReadOnlyList.cs" />
+    <Compile Include="GlobalSuppressions.cs" />
+    <Compile Include="LegacySupport\IReadOnlyCollection.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="LegacySupport\IReadOnlyList.cs">
+      <SubType>Code</SubType>
+    </Compile>
+    <Compile Include="Util.Empty.cs" />
     <Compile Include="CriticalErrorCollector.cs" />
     <Compile Include="ICKReadOnlyCollection.cs" />
     <Compile Include="ICKReadOnlyList.cs" />
@@ -115,12 +152,10 @@
     <Compile Include="Collection\FIFOBuffer.cs" />
     <Compile Include="Collection\CKReadOnlyCollectionDebuggerView.cs" />
     <Compile Include="ICKWritableCollection.cs" />
-    <Compile Include="LegacySupport\CallerMemberNameAttribute.cs" />
     <Compile Include="SetOperation.cs" />
     <Compile Include="Trait\CKTrait.cs" />
     <Compile Include="Trait\CKTraitContext.cs" />
-    <Compile Include="IFluentInterface.cs" />
-    <Compile Include="Collection\ISimpleTypeNaming.cs" />
+    <Compile Include="ISimpleTypeNaming.cs" />
     <Compile Include="File\TemporaryFile.cs" />
     <Compile Include="UniqueId\IVersionedUniqueId.cs" />
     <Compile Include="UniqueId\SimpleNamedVersionedUniqueId.cs" />
@@ -130,9 +165,9 @@
     <Compile Include="UniqueId\SimpleUniqueId.cs" />
     <Compile Include="IMergeable.cs" />
     <Compile Include="UniqueId\IUniqueId.cs" />
-    <Compile Include="Collection\SimpleServiceContainer.cs" />
-    <Compile Include="Collection\ISimpleServiceContainer.cs" />
-    <Compile Include="Collection\SimpleTypeFinder.cs" />
+    <Compile Include="SimpleServiceContainer.cs" />
+    <Compile Include="ISimpleServiceContainer.cs" />
+    <Compile Include="SimpleTypeFinder.cs" />
     <Compile Include="Collection\DictionaryExtension.cs" />
     <Compile Include="Collection\EnumerableExtension.cs" />
     <Compile Include="Collection\CKEnumeratorEmpty.cs" />
@@ -148,21 +183,16 @@
     <Compile Include="Util.Converter.cs" />
     <Compile Include="Util.cs" />
     <Compile Include="Collection\CKReadOnlyExtension.cs" />
-    <Compile Include="InvalidFileException.cs" />
-    <Compile Include="LegacySupport\IReadOnlyCollection.cs" />
-    <Compile Include="LegacySupport\IReadOnlyList.cs" />
-    <Compile Include="Collection\ISimpleTypeFinder.cs" />
-    <Compile Include="OSVersionInfo.cs" />
+    <Compile Include="ISimpleTypeFinder.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="R.Designer.cs">
       <DependentUpon>R.resx</DependentUpon>
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
     </Compile>
-    <Compile Include="Obsolete\ChangeStatus.cs" />
     <Compile Include="Util.Hash.cs" />
     <Compile Include="Util.Math.cs" />
-    <Compile Include="WeakReference.cs" />
+    <Compile Include="WeakRef.cs" />
     <Compile Include="XmlExtension.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -174,15 +204,39 @@
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
-    <None Include="..\SharedKey.snk">
-      <Link>Properties\SharedKey.snk</Link>
+    <None Include="ActivityMonitor\ActivityMonitorOverview.cd" />
+    <None Include="ActivityMonitor\Impl\ActivityMonitorExtension-Gen.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>ActivityMonitorExtension-Gen.cs</LastGenOutput>
     </None>
+    <None Include="ActivityMonitor\Impl\ActivityMonitorLineSender-Gen.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>ActivityMonitorLineSender-Gen.cs</LastGenOutput>
+    </None>
+    <None Include="ActivityMonitor\Impl\ActivityMonitorGroupSender-Gen.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>ActivityMonitorGroupSender-Gen.cs</LastGenOutput>
+    </None>
+    <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <Service Include="{508349B6-6B84-4DF5-91F0-309BEEBAD82D}" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="FodyWeavers.xml" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
     <PostBuildEvent>
     </PostBuildEvent>
   </PropertyGroup>
+  <Import Project="..\packages\Fody.1.22.1\build\Fody.targets" Condition="Exists('..\packages\Fody.1.22.1\build\Fody.targets')" />
+  <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
+    <PropertyGroup>
+      <ErrorText>This project references NuGet package(s) that are missing on this computer. Enable NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
+    </PropertyGroup>
+    <Error Condition="!Exists('..\packages\Fody.1.22.1\build\Fody.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Fody.1.22.1\build\Fody.targets'))" />
+  </Target>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets. 
   <Target Name="BeforeBuild">

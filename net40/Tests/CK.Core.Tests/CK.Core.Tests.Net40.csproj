@@ -1,0 +1,196 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{1828F147-8286-4D78-8FE2-31F40023B345}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>CK.Core.Tests</RootNamespace>
+    <AssemblyName>CK.Core.Tests</AssemblyName>
+    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <TargetFrameworkProfile>Client</TargetFrameworkProfile>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>TRACE;DEBUG;net40</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE;net40</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup>
+    <SignAssembly>true</SignAssembly>
+  </PropertyGroup>
+  <PropertyGroup>
+    <AssemblyOriginatorKeyFile>..\..\..\SharedKey.snk</AssemblyOriginatorKeyFile>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="nunit.framework, Version=2.6.3.13283, Culture=neutral, PublicKeyToken=96d09a1eb7f44a77, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\packages\NUnit.2.6.3\lib\nunit.framework.dll</HintPath>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.configuration" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.IO">
+      <HintPath>..\..\..\packages\Microsoft.Bcl.1.1.6\lib\net40\System.IO.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Runtime">
+      <HintPath>..\..\..\packages\Microsoft.Bcl.1.1.6\lib\net40\System.Runtime.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Threading.Tasks">
+      <HintPath>..\..\..\packages\Microsoft.Bcl.1.1.6\lib\net40\System.Threading.Tasks.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="..\..\..\SharedAssemblyInfo.cs">
+      <Link>Properties\SharedAssemblyInfo.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\Tests\CK.Core.Tests\Animals.cs">
+      <Link>Animals.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\Tests\CK.Core.Tests\AppSettingsTests.cs">
+      <Link>AppSettingsTests.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\Tests\CK.Core.Tests\CKExceptionTests.cs">
+      <Link>CKExceptionTests.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\Tests\CK.Core.Tests\CollectionExtensionTests.cs">
+      <Link>CollectionExtensionTests.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\Tests\CK.Core.Tests\Collection\FIFOTests.cs">
+      <Link>FIFOTests.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\Tests\CK.Core.Tests\Collection\ObservableSortedArrayListTests.cs">
+      <Link>ObservableSortedArrayListTests.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\Tests\CK.Core.Tests\Collection\ReadOnlyTests.cs">
+      <Link>ReadOnlyTests.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\Tests\CK.Core.Tests\Collection\SortedArrayKeyListTests.cs">
+      <Link>SortedArrayKeyListTests.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\Tests\CK.Core.Tests\Collection\SortedArrayListTests.cs">
+      <Link>SortedArrayListTests.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\Tests\CK.Core.Tests\CoreExtensionTests.cs">
+      <Link>CoreExtensionTests.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\Tests\CK.Core.Tests\CriticalErrorCollectorTests.cs">
+      <Link>CriticalErrorCollectorTests.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\Tests\CK.Core.Tests\EnumerableExtensionTests.cs">
+      <Link>EnumerableExtensionTests.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\Tests\CK.Core.Tests\FileUtilTests.cs">
+      <Link>FileUtilTests.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\Tests\CK.Core.Tests\MarshallByRefPlayground.cs">
+      <Link>MarshallByRefPlayground.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\Tests\CK.Core.Tests\Monitoring\ActivityLoggerMultiThreadTests.cs">
+      <Link>ActivityLoggerMultiThreadTests.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\Tests\CK.Core.Tests\Monitoring\ActivityMonitorClientTester.cs">
+      <Link>ActivityMonitorClientTester.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\Tests\CK.Core.Tests\Monitoring\ActivityMonitorCrossAppDomain.cs">
+      <Link>ActivityMonitorCrossAppDomain.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\Tests\CK.Core.Tests\Monitoring\ActivityMonitorErrorLogs.cs">
+      <Link>ActivityMonitorErrorLogs.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\Tests\CK.Core.Tests\Monitoring\ActivityMonitorFilterPropagation.cs">
+      <Link>ActivityMonitorFilterPropagation.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\Tests\CK.Core.Tests\Monitoring\ActivityMonitorTests.cs">
+      <Link>ActivityMonitorTests.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\Tests\CK.Core.Tests\Monitoring\ActivityMonitorTimestamp.cs">
+      <Link>ActivityMonitorTimestamp.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\Tests\CK.Core.Tests\Monitoring\DependentActivityTests.cs">
+      <Link>DependentActivityTests.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\Tests\CK.Core.Tests\Monitoring\DocumentationCodeSnippets.cs">
+      <Link>DocumentationCodeSnippets.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\Tests\CK.Core.Tests\Monitoring\LogFilterTests.cs">
+      <Link>LogFilterTests.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\Tests\CK.Core.Tests\Monitoring\StupidStringClient.cs">
+      <Link>StupidStringClient.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\Tests\CK.Core.Tests\Monitoring\StupidXmlClient.cs">
+      <Link>StupidXmlClient.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\Tests\CK.Core.Tests\Monitoring\SystemActivityMonitorTests.cs">
+      <Link>SystemActivityMonitorTests.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\Tests\CK.Core.Tests\ServiceContainerTests.cs">
+      <Link>ServiceContainerTests.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\Tests\CK.Core.Tests\TemporaryFileTests.cs">
+      <Link>TemporaryFileTests.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\Tests\CK.Core.Tests\TestHelper.cs">
+      <Link>TestHelper.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\Tests\CK.Core.Tests\TestHelper.LegacySupport.cs">
+      <Link>TestHelper.LegacySupport.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\Tests\CK.Core.Tests\Traits.cs">
+      <Link>Traits.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\Tests\CK.Core.Tests\UriHelperTests.cs">
+      <Link>UriHelperTests.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\Tests\CK.Core.Tests\UtilInterlockedTests.cs">
+      <Link>UtilInterlockedTests.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\Tests\CK.Core.Tests\UtilMatcherTests.cs">
+      <Link>UtilMatcherTests.cs</Link>
+    </Compile>
+    <Compile Include="Properties\AssemblyInfo.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\CK.Core\CK.Core.Net40.csproj">
+      <Project>{56511bee-6107-4cb6-bf05-0fb9c2c88c88}</Project>
+      <Name>CK.Core.Net40</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <Service Include="{82A7F48D-3B50-4B1E-B82E-3ADA8210C358}" />
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <Import Project="..\..\..\packages\Microsoft.Bcl.Build.1.0.13\tools\Microsoft.Bcl.Build.targets" Condition="Exists('..\..\..\packages\Microsoft.Bcl.Build.1.0.13\tools\Microsoft.Bcl.Build.targets')" />
+  <Target Name="EnsureBclBuildImported" BeforeTargets="BeforeBuild" Condition="'$(BclBuildImported)' == ''">
+    <Error Condition="!Exists('..\..\..\packages\Microsoft.Bcl.Build.1.0.13\tools\Microsoft.Bcl.Build.targets')" Text="This project references NuGet package(s) that are missing on this computer. Enable NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=317567." HelpKeyword="BCLBUILD2001" />
+    <Error Condition="Exists('..\..\..\packages\Microsoft.Bcl.Build.1.0.13\tools\Microsoft.Bcl.Build.targets')" Text="The build restored NuGet packages. Build the project again to include these packages in the build. For more information, see http://go.microsoft.com/fwlink/?LinkID=317568." HelpKeyword="BCLBUILD2002" />
+  </Target>
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>

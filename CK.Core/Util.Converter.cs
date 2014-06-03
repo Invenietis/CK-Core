@@ -39,13 +39,25 @@ namespace CK.Core
         static public class Converter
         {
             /// <summary>
+            /// '0'...'F' array. This is public for performance reasons.
+            /// Obviously: do NOT modify it! 
+            /// </summary>
+            public static readonly char[] HexChars = new char[] { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F' };
+            
+            /// <summary>
+            /// '0'...'f' array. This is public for performance reasons.
+            /// Obviously: do NOT modify it! 
+            /// </summary>
+            public static readonly char[] HexCharsLower = new char[] { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f' };
+
+            /// <summary>
             /// Converts an array of bytes to an hexadecimal string.
             /// </summary>
             /// <param name="bytes">A non null array of bytes.</param>
             /// <param name="zeroxPrefix">False to not prefix the result with 0x.</param>
             /// <param name="lowerCase">True to use upper case A...F (instead of a...f).</param>
             /// <returns>The bytes expressed as a an hexadecimal string.</returns>
-            public static string BytesToString( byte[] bytes, bool zeroxPrefix = true, bool lowerCase = false )
+            public static string BytesToHexaString( byte[] bytes, bool zeroxPrefix = true, bool lowerCase = false )
             {
                 if( bytes == null ) throw new ArgumentNullException();
                 int len = bytes.Length;
@@ -56,7 +68,7 @@ namespace CK.Core
                     r[0] = '0';
                     r[j = 1] = 'x';
                 }
-                char[] chars = lowerCase ? _hexCharsLower : _hexChars;
+                char[] chars = lowerCase ? HexCharsLower : HexChars;
                 int i = 0;
                 while( len-- > 0 )
                 {
@@ -66,6 +78,7 @@ namespace CK.Core
                 }
                 return new String( r );
             }
+
         }
     }
 }

@@ -117,17 +117,26 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="ActivityLoggerBoundClientMultipleRegister" xml:space="preserve">
-    <value>A '{0}' can be registered in only one IActivityLogger.Output at the same time. Unregister it before Registering it in another logger.</value>
+  <data name="ActivityMonitorBoundClientMultipleRegister" xml:space="preserve">
+    <value>A '{0}' can be registered in only one IActivityMonitor.Output at the same time. Unregister it before Registering it in another monitor.</value>
+  </data>
+  <data name="ActivityMonitorConcurrentThreadAccess" xml:space="preserve">
+    <value>Concurrent accesses from 2 threads to the same ActivityMonitor has been detected. Only one thread at a time can interact with an ActivityMonitor.</value>
+  </data>
+  <data name="ActivityMonitorErrorWhileGetConclusionText" xml:space="preserve">
+    <value>Unexpected error while getting conclusion text: '{0}'.</value>
+  </data>
+  <data name="ActivityMonitorReentrancyError" xml:space="preserve">
+    <value>A reentrant call in an ActivityMonitor has been detected. A monitor usage must not trigger another operation on the same monitor.</value>
+  </data>
+  <data name="ActivityMonitorReentrancyReleaseError" xml:space="preserve">
+    <value>Internal error: Error during release reentrancy operation. Thread id={0} entered whereas release is called from thread '{1}', id={2}.</value>
   </data>
   <data name="ArgumentCountNegative" xml:space="preserve">
     <value>Argument count can not be negative.</value>
   </data>
   <data name="ArgumentMustNotBeNullOrWhiteSpace" xml:space="preserve">
     <value>Argument must not be null or whitespace.</value>
-  </data>
-  <data name="CanNotUnregisterDefaultClient" xml:space="preserve">
-    <value>Can not Unregister the Tap, PathCatcher or ErrorCounter of a default logger.</value>
   </data>
   <data name="ClosedByBridgeRemoved" xml:space="preserve">
     <value>Prematurely closed by Bridge removed.</value>
@@ -150,6 +159,9 @@
   <data name="ExpectedXmlEndElement" xml:space="preserve">
     <value>Expected EndElement token named {0}.</value>
   </data>
+  <data name="FactoryTesterMismatch" xml:space="preserve">
+    <value>The 'factory' function must create an item that satisfies the 'tester' function.</value>
+  </data>
   <data name="FIFOBufferEmpty" xml:space="preserve">
     <value>FIFOBuffer is empty.</value>
   </data>
@@ -171,13 +183,64 @@
   <data name="ServiceImplTypeMismatch" xml:space="preserve">
     <value>Service {0} is not implemented by object {1}.</value>
   </data>
-  <data name="TagMustBeRegisteredInActivityLogger" xml:space="preserve">
-    <value>Must be not null and registered in ActivityLogger.RegisteredTags.</value>
+  <data name="SimpleMultiActionNullAction" xml:space="preserve">
+    <value>One of the action is null.</value>
   </data>
   <data name="TraitsMustBelongToTheSameContext" xml:space="preserve">
     <value>Traits must belong to the same context.</value>
   </data>
   <data name="UnregisteredServiceInServiceProvider" xml:space="preserve">
     <value>Unable to find service '{0}'.</value>
+  </data>
+  <data name="MustBeAMarshalByRefObject" xml:space="preserve">
+    <value>refObject Must be a MarshalByRefObject.</value>
+  </data>
+  <data name="AggregatedExceptionsMustContainAtLeastOne" xml:space="preserve">
+    <value>AggregatedExceptions must contain at least one exception.</value>
+  </data>
+  <data name="InnerExceptionMustBeTheFirstAggregatedException" xml:space="preserve">
+    <value>The InnerException must be the first AggregatedExceptions.</value>
+  </data>
+  <data name="ActivityMonitorTagMustBeRegistered" xml:space="preserve">
+    <value>The Tag (CKTrait) must be registered in ActivityMonitor.Tags.</value>
+  </data>
+  <data name="ActivityMonitorReentrancyCallOnly" xml:space="preserve">
+    <value>Only reentrant calls to this method are supported.</value>
+  </data>
+  <data name="AppSettingsAlreadyInitialized" xml:space="preserve">
+    <value>ApplicationSettings have already been initialized.It can be initialized only once.</value>
+  </data>
+  <data name="AppSettingsDefaultInitializationFailed" xml:space="preserve">
+    <value>Unable to initialize AppSettings, the default fallback to System.Configuration.ConfigurationManager.AppSettings can not be generated since System.Configuration assembly is not available.</value>
+  </data>
+  <data name="AppSettingsRequiredConfigurationBadType" xml:space="preserve">
+    <value>Required AppSettings configuration named '{0}' is missising: it must be a '{1}'.</value>
+  </data>
+  <data name="AppSettingsRequiredConfigurationMissing" xml:space="preserve">
+    <value>Required AppSettings configuration named '{0}' is missising.</value>
+  </data>
+  <data name="ActivityMonitorInvalidLogLevel" xml:space="preserve">
+    <value>The level must be a valid level (Trace, Info, Warn, Error or Fatal).</value>
+  </data>
+  <data name="ActivityMonitorTooMuchDependentStart" xml:space="preserve">
+    <value>Dependent token created by Monitor '{0}' at {1} expect at most {2} dependent activitiy(es).</value>
+  </data>
+  <data name="FileUtilNoReadOnlyWhenCreateFile" xml:space="preserve">
+    <value>Access set to FileAccess.Read is stupid when creating a file.</value>
+  </data>
+  <data name="FileUtilUnableToCreateUniqueTimedFile" xml:space="preserve">
+    <value>Unable to create a unique timed file.</value>
+  </data>
+  <data name="FileMustExist" xml:space="preserve">
+    <value>File must exist.</value>
+  </data>
+  <data name="SystemActivityMonitorRootLogPathSetOnlyOnce" xml:space="preserve">
+    <value>SystemActivityMonitor.RootLogPath must be set only once and before any access to it if defined in application config (in the AppSettings section).</value>
+  </data>
+  <data name="InvalidRootLogPath" xml:space="preserve">
+    <value>{2} = '{0}' is invalid: unable to create a test file in '{1}'.</value>
+  </data>
+  <data name="RootLogPathMustBeSet" xml:space="preserve">
+    <value>{0} must be set to a valid, writeable, folder. You can set it programmatically at the start of your program or use the &lt;appSettings&gt; section of the application config file: &lt;configuration&gt;\r\n &lt;appSettings&gt;\r\n  &lt;add key="{0}" value="(path)" /&gt;\r\n &lt;/appSettings&gt;\r\n&lt;/configuration&gt;</value>
   </data>
 </root>

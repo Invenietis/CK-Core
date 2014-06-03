@@ -246,7 +246,7 @@ namespace CK.Reflection
         /// <param name="throwOnError">True to raise a <see cref="MissingMethodException"/> when not found.</param>
         /// <returns>A delegate of type <typeparamref name="TDelegate"/>.</returns>
         /// <exception name="MissingMethodException">When there is no matching method found.</exception>
-        public static TDelegate GetInvoker<TDelegate>( object obj, Type type, string name, BindingFlags bindingAttr, Predicate<MethodInfo> filter, string filterMessage, bool throwOnError )
+        public static TDelegate GetInvoker<TDelegate>( object obj, Type type, string name, BindingFlags bindingAttr, Func<MethodInfo,bool> filter, string filterMessage, bool throwOnError )
             where TDelegate : class
         {
             return new DelegateBuilder<TDelegate>( obj, type, name, throwOnError, bindingAttr )
@@ -286,7 +286,7 @@ namespace CK.Reflection
             private Type _returnType;
             private Type[] _parameterTypes;
 
-            internal Predicate<MethodInfo> MethodFilter { get; set; }
+            internal Func<MethodInfo,bool> MethodFilter { get; set; }
             internal string MethodFilterMessage { get; set; }
 
             public DelegateBuilder( object targetObject, Type targetType, string methodName, bool throwOnError )

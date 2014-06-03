@@ -38,7 +38,7 @@ namespace CK.Storage
     /// <summary>
     /// Simple implementation of <see cref="IStructuredWriter"/>.
     /// </summary>
-    internal class WriterImpl : WriterBase, IStructuredWriter
+    internal sealed class WriterImpl : WriterBase, IStructuredWriter
     {
         internal WriterBase Current;
         SimpleServiceContainer _serviceContainer;

@@ -1,0 +1,407 @@
+﻿html, body {
+	height: 100%;
+	/* The html and body elements cannot have any padding or margin. */
+}
+
+body {
+	color: black;
+	background-color: #F2F2F2;
+	font-family: "Helvetica Neue", "Helvetica", "Segoe UI", "Arial", sans-serif;
+}
+
+.logLine, .logMessage, .logGroupMessage, .timestamp, .stackTrace, .groupBreadcrumbItem {
+	font-family: Consolas, 'DejaVu Sans Mono', monospace;
+	font-size: 9pt;
+	vertical-align: top;
+	margin: 0;
+}
+
+.logLine {
+	display: table;
+	width: 100%;
+	overflow: auto;
+}
+
+	.logLine > div {
+		display: table-cell;
+	}
+
+.logContent {
+	overflow: hidden;
+	width: 99%;
+}
+
+.lineHeader {
+	white-space: nowrap;
+}
+
+.logMessage {
+	border: none;
+	background-color: transparent;
+	padding: 0;
+	border-radius: initial;
+	display: inline-block;
+	vertical-align: top;
+	width: 100%;
+}
+
+.timestamp, .logLineNumber {
+	vertical-align: top;
+	display: inline-block;
+	color: lightgrey;
+}
+
+.timestamp {
+	padding-right: 5pt;
+	padding-left: 5pt;
+	overflow: auto;
+	display: inline-block;
+}
+
+.logLineNumber {
+	overflow: hidden;
+	display: inline-block;
+	padding-right: 5pt;
+	border-right: 1px solid lightgrey;
+}
+
+a.collapseToggle.emptyGroupToggle:link {
+	text-decoration: none;
+}
+
+a.collapseToggle.emptyGroupToggle:visited {
+	text-decoration: none;
+}
+
+a.collapseToggle.emptyGroupToggle:hover {
+	text-decoration: none;
+}
+
+a.collapseToggle.emptyGroupToggle:active {
+	text-decoration: none;
+}
+
+/* Close group icon */
+.collapseToggle:not(.collapsed):before {
+	content: "−";
+	margin-right: 3pt;
+	display: inline-block;
+	font-size: 9pt;
+	font-family: 'Glyphicons Halflings';
+	font-style: normal;
+	font-weight: normal;
+	line-height: 1;
+	position: relative;
+	top: 1px;
+}
+
+/* Close group icon (empty groups) */
+.collapseToggle.emptyGroupToggle:before {
+	content: "−";
+	margin-right: 3pt;
+	display: inline-block;
+	font-size: 9pt;
+	font-family: 'Glyphicons Halflings';
+	font-style: normal;
+	font-weight: normal;
+	line-height: 1;
+	position: relative;
+	top: 1px;
+	color: lightgray;
+}
+
+/* Open group icon */
+.collapseToggle.collapsed:before {
+	content: "+";
+	margin-right: 3pt;
+	display: inline-block;
+	font-size: 9pt;
+	font-family: 'Glyphicons Halflings';
+	font-style: normal;
+	font-weight: normal;
+	line-height: 1;
+	position: relative;
+	top: 1px;
+}
+
+.tooltip-inner {
+	max-width: none;
+}
+
+.exceptionButton {
+	margin-left: 5pt;
+}
+
+.exceptionContainer {
+	border: 1px solid black;
+	border-radius: 15px;
+	background-color: #F2F2F2;
+	padding: 0;
+	margin: 6pt;
+}
+
+.exceptionEntry {
+	margin: 0;
+	color: darkred;
+	font-weight: bold;
+	font-family: Consolas, 'DejaVu Sans Mono', monospace;
+}
+
+.exceptionHeader {
+	border-bottom: 1px solid black;
+	background-image: url("ex-bg.png");
+	border-top-left-radius: 15px;
+	border-top-right-radius: 15px;
+}
+
+	.exceptionHeader h3 {
+		font-variant: small-caps;
+		font-weight: bold;
+		color: darkred;
+		margin: 0;
+		padding: 4pt;
+	}
+
+.exceptionBody {
+	margin: 0;
+	padding: 4pt;
+}
+
+	.exceptionBody h3 {
+		margin: 0;
+		font-weight: bold;
+		color: darkred;
+	}
+
+	.exceptionBody h4 {
+		margin: 0;
+		font-weight: bold;
+		color: crimson;
+		border-top: 1px solid crimson;
+	}
+
+
+#wrap {
+	min-height: 100%;
+	height: auto;
+}
+
+	#wrap > .container {
+		padding: 50px 15px 0;
+	}
+
+		#wrap > .container .anchor {
+			display: block;
+			height: 50px; /* this is the height of your header */
+			margin-top: -50px; /* this is again negative value of the height of your header */
+			visibility: hidden;
+		}
+
+div.groupBreadcrumb {
+	background-color: lightgray;
+}
+
+div.topGroupBreadcrumb {
+	margin-top: 20pt;
+}
+
+.tabSpace {
+	padding-left: 15pt;
+}
+
+.paginator > div {
+	display: inline-block;
+}
+
+.center-container {
+	position: relative;
+	left: 50%;
+	float: left;
+}
+
+.center-content {
+	position: relative;
+	left: -50%;
+	float: left;
+}
+
+.paginator {
+	float: right;
+	position: relative;
+	left: -50%;
+}
+
+	.paginator ul {
+		position: relative;
+		left: 50%;
+	}
+
+	.paginator li {
+		float: left;
+		list-style-type: none;
+		margin: 3px;
+	}
+
+	.paginator > ul > li {
+	}
+
+
+.logContainer {
+	margin: 0;
+}
+
+	.logContainer .logLine.even {
+		background: #F7F7F7;
+	}
+
+	.logContainer .logLine.odd {
+		background: #FFF;
+	}
+
+div.entryCount {
+	font-family: monospace;
+	border: none;
+	margin-left: 3pt;
+}
+
+#contextMenu {
+	position: absolute;
+	display: none;
+}
+
+div.monitorTime, div.monitorId, div.entryCount {
+	display: inline-block;
+}
+
+.logGroupMessage, .groupBreadcrumbItem {
+	display: inline-block;
+}
+
+	.logGroupMessage > p, .groupBreadcrumbItem > p {
+		margin: 0;
+	}
+
+.exceptionDetail {
+	background-color: lightyellow;
+}
+
+.largePageButton {
+	width: 100%;
+	text-align: center;
+}
+
+a.collapseTitle:link {
+	color: inherit;
+	text-decoration: none;
+}
+
+a.collapseTitle:visited {
+	color: inherit;
+	text-decoration: none;
+}
+
+a.collapseTitle:hover {
+	color: inherit;
+	text-decoration: underline;
+}
+
+a.collapseTitle:active {
+	color: inherit;
+	text-decoration: none;
+}
+
+
+.logMessage.fatal, .logMessage.fatal a {
+	color: darkred !important;
+	font-weight: bold;
+}
+
+.logMessage.error, .logMessage.error a {
+	color: red !important;
+}
+
+.logMessage.warn, .logMessage.warn a {
+	color: orange !important;
+}
+
+.logMessage.info, .logMessage.info a {
+	color: #0000CC !important;
+}
+
+.logMessage.trace, .logMessage.trace a {
+	color: gray !important;
+}
+
+
+.timestamp.fatal {
+	color: darkred;
+	font-weight: bold;
+}
+
+.timestamp.error {
+	color: red;
+}
+
+.timestamp.warn {
+	color: orange;
+}
+
+.timestamp.info {
+	color: #0000CC;
+}
+
+.timestamp.trace {
+	color: gray;
+}
+
+.warnCount:before {
+	content: "";
+	display: inline-block;
+	width: 16px;
+	height: 16px;
+	background-image: url("warn.svg");
+	background-size: contain;
+	background-repeat: no-repeat;
+	background-position: center center;
+	vertical-align: middle;
+	margin-right: 4px;
+}
+
+.errorCount:before {
+	content: "";
+	display: inline-block;
+	width: 16px;
+	height: 16px;
+	background-image: url("error.svg");
+	background-size: contain;
+	background-repeat: no-repeat;
+	background-position: center center;
+	vertical-align: middle;
+	margin-right: 4px;
+}
+
+.fatalCount:before {
+	content: "";
+	display: inline-block;
+	width: 16px;
+	height: 16px;
+	background-image: url("fatal.svg");
+	background-size: contain;
+	background-repeat: no-repeat;
+	background-position: center center;
+	vertical-align: middle;
+	margin-right: 4px;
+}
+
+.groupBreadcrumbSeparator {
+	width: 100%;
+	border-bottom: 3px double black;
+}
+
+.newLineIcon {
+	color: gray;
+}
+
+.logLine.selectedLine {
+	background: #FFFF82 !important;
+}

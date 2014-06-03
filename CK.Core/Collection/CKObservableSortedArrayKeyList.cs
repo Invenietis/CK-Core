@@ -92,7 +92,7 @@ namespace CK.Core
         }
 
         /// <summary>
-        /// Overriden to trigger the necessary events.
+        /// Overridden to trigger the necessary events.
         /// </summary>
         /// <param name="index">Index to insert.</param>
         /// <param name="value">Item to insert.</param>
@@ -105,7 +105,7 @@ namespace CK.Core
         }
 
         /// <summary>
-        /// Overriden to trigger the necessary events.
+        /// Overridden to trigger the necessary events.
         /// </summary>
         /// <param name="index">Index to remove.</param>
         protected override void DoRemoveAt( int index )
@@ -118,7 +118,7 @@ namespace CK.Core
         }
 
         /// <summary>
-        /// Overriden to trigger the necessary events.
+        /// Overridden to trigger the necessary events.
         /// </summary>
         /// <param name="index">The position to set.</param>
         /// <param name="newValue">The new item to inject.</param>
@@ -132,7 +132,7 @@ namespace CK.Core
         }
 
         /// <summary>
-        /// Overriden to trigger the necessary events.
+        /// Overridden to trigger the necessary events.
         /// </summary>
         /// <param name="from">Old index of the item.</param>
         /// <param name="newIndex">New index.</param>
@@ -149,7 +149,7 @@ namespace CK.Core
         }
 
         /// <summary>
-        /// Overriden to trigger the necessary events.
+        /// Overridden to trigger the necessary events.
         /// </summary>
         protected override void DoClear()
         {

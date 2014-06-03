@@ -47,7 +47,7 @@ namespace Storage
         [TearDown]
         public void Setup()
         {
-            TestHelper.CleanupTestDir();
+            TestHelper.CleanupTestFolder();
         }
 
         [Test]
@@ -655,11 +655,11 @@ namespace Storage
             // A syntax error in version, culture or token is silently ignored...
             Type tSyntaxError = Type.GetType( "ExternalDll.ExternalClass, CK.Storage.Tests.ExternalDll, VersionSYNTAX=1.0.0.0, CultureSYNTAX=neutral, PublicKeyTokenSYNTAX=b77a5c561934e089", true );
             Assert.That( tSyntaxError, Is.Not.Null );
-            //As dlls are signed, version, culture & PublicTokenKey must match. Testing the WeakTypeFinder, that truncates these information, to load the type regardeless of them
+            //As dlls are signed, version, culture & PublicTokenKey must match. Testing the WeakTypeFinder, that truncates these information, to load the type regardless of them
             ISimpleTypeFinder wtf = SimpleTypeFinder.WeakDefault;
             Type t2 = SimpleTypeFinder.WeakDefault.ResolveType("ExternalDll.ExternalClass, CK.Storage.Tests.ExternalDll, Version=5.0.4.0, Culture=neutral, PublicKeyToken=null", true );
             Type t1 = SimpleTypeFinder.WeakDefault.ResolveType("ExternalDll.ExternalClass, CK.Storage.Tests.ExternalDll, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null", true );
-            //Provinding only namespace.classname, assembly works properly
+            //Providing only namespace.classname, assembly works properly
             Type t0 = Type.GetType( "ExternalDll.ExternalClass, CK.Storage.Tests.ExternalDll", true );
 
             // When the full name or the assembly can not be found, GetType( ..., false ) gently returns null.
