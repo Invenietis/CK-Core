@@ -286,6 +286,9 @@
     <Compile Include="..\..\CK.Core\ICKWritableCollector.cs">
       <Link>ICKWritableCollector.cs</Link>
     </Compile>
+    <Compile Include="..\..\CK.Core\IFluentInterface.cs">
+      <Link>IFluentInterface.cs</Link>
+    </Compile>
     <Compile Include="..\..\CK.Core\IMergeable.cs">
       <Link>IMergeable.cs</Link>
     </Compile>
