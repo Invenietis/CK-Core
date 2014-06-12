@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using CK.Monitoring;
+using CK.Core;
 
 namespace CK.Mon2Htm
 {
@@ -23,7 +24,7 @@ namespace CK.Mon2Htm
             _children.Add( entry );
         }
 
-        public IReadOnlyList<IPagedLogEntry> Children { get { return _children.AsReadOnly(); } }
+        public IReadOnlyList<IPagedLogEntry> Children { get { return _children.AsReadOnlyList(); } }
 
         public int GroupStartsOnPage { get; internal set; }
 

@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using CK.Monitoring;
+using CK.Core;
 
 namespace CK.Mon2Htm
 {
@@ -96,7 +97,7 @@ namespace CK.Mon2Htm
                 
             }
 
-            return logEntries.AsReadOnly();
+            return logEntries.AsReadOnlyList();
         }
 
         public IReadOnlyList<ILogEntry> OpenGroupsAtStart

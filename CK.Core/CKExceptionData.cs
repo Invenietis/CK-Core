@@ -152,7 +152,7 @@ namespace CK.Core
                 innerException = a[0];
                 aggregatedExceptions = a;
             }
-            else innerException = ex.InnerException == null ? null : CreateFrom( ex.InnerException );
+            else innerException = CreateFrom( ex.InnerException );
 
             string fileName = null;
             string fusionLog = null;
@@ -162,7 +162,7 @@ namespace CK.Core
             if( typeLoadEx != null )
             {
                 CKExceptionData[] a = new CKExceptionData[typeLoadEx.LoaderExceptions.Length];
-                for( int i = 0; i < a.Length; ++i ) a[i] = CreateFrom( aggEx.InnerExceptions[i] );
+                for( int i = 0; i < a.Length; ++i ) a[i] = CreateFrom( typeLoadEx.LoaderExceptions[i] );
                 loaderExceptions = a;
             }
             else

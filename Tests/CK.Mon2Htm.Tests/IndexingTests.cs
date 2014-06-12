@@ -109,7 +109,7 @@ namespace CK.Mon2Htm.Tests
 
             Assert.That( info.PageCount == 7 );
 
-            foreach( var page in info.Pages )
+            foreach( MonitorPageReference page in info.Pages )
             {
                 Assert.That( page.PageLength == pageLength );
                 Assert.That( page.EntryCount == pageLength );
