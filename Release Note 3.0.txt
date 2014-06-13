@@ -3,7 +3,7 @@ CK.Core 3.0 - Release Notes
 - Apparition:
 	- Util.EmptyArray<T>
 
-	- .Net 4.0 support use the Microsoft BCL Portability Pack 1.1.3 (but still requires net40/CK.Core.dll for IReadOnlyXXX support).
+	- .Net 4.0 support use the Microsoft BCL Portability Pack 1.1.9 (but still requires net40/CK.Core.dll for IReadOnlyXXX support).
 
 	- New Util.InterlokedXXX methods (atomic set and array manipulations).
 
