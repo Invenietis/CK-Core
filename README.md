@@ -22,6 +22,15 @@ CK.Monitoring.GrandOutput.EnsureActiveDefaultWithDefaultSettings();
 ```
 Any *ActivityMonitor* created after this code snipped will be configured to output to the GrandOutput.
 
+To avoid hardcoding the log path, simply use your standard application configuration file with the following application settings key:
+```
+<?xml version="1.0" encoding="utf-8"?>
+<configuration>
+  <appSettings>
+    <add key="CK.Core.SystemActivityMonitor.RootLogPath" value="Misc\Logs" />
+  </appSettings>
+</configuration>
+```
 ###CK.Interop###
 Contains LowLevel helpers, for example a DLLImportAttribute that handles defining different dlls regarding the computer's architecture (32 or 64 bit).
 
