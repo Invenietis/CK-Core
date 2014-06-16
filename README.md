@@ -13,6 +13,15 @@ Another important component is the ActivityLogger: it offers a different way tha
 ActivityLogger uses CKTrait to handle the combination of different tags in a determinist manner. 
 Traits are normalized (*"Sql|DB access|Subscription" == "DB access|Sql|Subscription"* and *"DB access|Sql" > "Sql"*): a total order exists on the set of traits combinations based on lexicographical order for atomic trait and the number of traits in a composite. They support union, intersect, except and symmetric except in O(n).
 
+###CK.Monitoring###
+Provides monitoring tools such as the *GrandOutput*.
+Simple default configuration:
+```
+CK.Core.SystemActivityMonitor.RootLogPath = @"C:\Test\Logs";
+CK.Monitoring.GrandOutput.EnsureActiveDefaultWithDefaultSettings();
+```
+Any *ActivityMonitor* created after this code snipped will be configured to output to the GrandOutput.
+
 ###CK.Interop###
 Contains LowLevel helpers, for example a DLLImportAttribute that handles defining different dlls regarding the computer's architecture (32 or 64 bit).
 
