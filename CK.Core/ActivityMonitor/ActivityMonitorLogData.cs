@@ -158,11 +158,13 @@ namespace CK.Core
 
         internal void Initialize( string text, Exception exception, CKTrait tags, DateTimeStamp logTime )
         {
-            if( String.IsNullOrEmpty( (_text = text) ) )
+            if( (_text = text) == null )
             {
                 if( exception == null ) throw new ArgumentNullException( "text" );
                 _text = exception.Message;
             }
+            else if( text.Length == 0 && exception != null ) _text = exception.Message;
+
             _exception = exception;
             _tags = tags ?? ActivityMonitor.Tags.Empty;
             _logTime = logTime;
