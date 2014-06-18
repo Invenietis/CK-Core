@@ -29,8 +29,8 @@ using System.Reflection;
 [assembly: AssemblyCopyright( "Copyright © Invenietis 2007-2014" )]
 [assembly: AssemblyTrademark( "" )]
 [assembly: CLSCompliant( true )]
-[assembly: AssemblyVersion( "3.0.26" )]
-[assembly: AssemblyFileVersion( "3.0.26" )]
+[assembly: AssemblyVersion( "3.0.27" )]
+[assembly: AssemblyFileVersion( "3.0.27" )]
 [assembly: AssemblyInformationalVersion( "%semver% - %githash%" )]
 
 #if DEBUG

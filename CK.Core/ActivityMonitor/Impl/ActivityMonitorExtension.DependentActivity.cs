@@ -55,12 +55,19 @@ namespace CK.Core
 
             /// <summary>
             /// Creates a token for a dependent activity that will use the current monitor's topic.
+            /// By default, a line with <see cref="ActivityMonitor.Tags.CreateDependentActivity"/> is logged that describes the 
+            /// creation of the token.
+            /// If <paramref name="delayedLaunch"/> is true, the actual launch of the dependent activity must be signaled thanks to <see cref="Launch(ActivityMonitor.DependentToken)"/>
+            /// (otherwise there will be no way to bind the two activities). 
             /// </summary>
-            public ActivityMonitor.DependentToken CreateToken()
+            /// <param name="delayedLaunch">True to use <see cref="Launch(ActivityMonitor.DependentToken)"/> later to indicate the actual launch of the dependent activity.</param>
+            /// <returns>A dependent token.</returns>
+            public ActivityMonitor.DependentToken CreateToken( bool delayedLaunch = false )
             {
                 string msg;
-                var t = ActivityMonitor.DependentToken.CreateWithMonitorTopic( _monitor, false, out msg );
-                _monitor.UnfilteredLog( ActivityMonitor.Tags.CreateDependentActivity, LogLevel.Info, msg, t.CreationDate, null, _fileName, _lineNumber );
+                var t = ActivityMonitor.DependentToken.CreateWithMonitorTopic( _monitor, delayedLaunch, out msg );
+                if( delayedLaunch ) t.DelayedLaunchMessage = msg;
+                else _monitor.UnfilteredLog( ActivityMonitor.Tags.CreateDependentActivity, LogLevel.Info, msg, t.CreationDate, null, _fileName, _lineNumber );
                 return t;
             }
 
@@ -69,17 +76,32 @@ namespace CK.Core
             /// if null is specified).
             /// </summary>
             /// <param name="dependentTopic">Topic for the dependent activity. Use null to not change the dependent monitor's topic.</param>
+            /// <param name="delayedLaunch">True to use <see cref="Launch(ActivityMonitor.DependentToken)"/> later to indicate the actual launch of the dependent activity.</param>
             /// <returns>A dependent token.</returns>
-            public ActivityMonitor.DependentToken CreateTokenWithTopic( string dependentTopic )
+            public ActivityMonitor.DependentToken CreateTokenWithTopic( string dependentTopic, bool delayedLaunch = false )
             {
                 string msg;
-                var t = ActivityMonitor.DependentToken.CreateWithDependentTopic( _monitor, false, dependentTopic, out msg );
-                _monitor.UnfilteredLog( ActivityMonitor.Tags.CreateDependentActivity, LogLevel.Info, msg, t.CreationDate, null, _fileName, _lineNumber );
+                var t = ActivityMonitor.DependentToken.CreateWithDependentTopic( _monitor, delayedLaunch, dependentTopic, out msg );
+                if( delayedLaunch ) t.DelayedLaunchMessage = msg;
+                else _monitor.UnfilteredLog( ActivityMonitor.Tags.CreateDependentActivity, LogLevel.Info, msg, t.CreationDate, null, _fileName, _lineNumber );
                 return t;
             }
 
             /// <summary>
+            /// Signals the launch of one or more dependent activities by emitting a log line that describes the token.
+            /// The token must have been created by <see cref="CreateToken"/> or <see cref="CreateTokenWithTopic"/> with a true delayedLaunch parameter
+            /// otherwise an <see cref="InvalidOperationException"/> is thrown.
+            /// </summary>
+            /// <param name="token">Dependent token.</param>
+            public void Launch( ActivityMonitor.DependentToken token )
+            {
+                if( token.DelayedLaunchMessage == null ) throw new InvalidOperationException( R.ActivityMonitorDependentTokenMustBeDelayedLaunch );
+                _monitor.UnfilteredLog( ActivityMonitor.Tags.CreateDependentActivity, LogLevel.Info, token.DelayedLaunchMessage, _monitor.NextLogTime(), null, _fileName, _lineNumber );
+            }
+
+            /// <summary>
             /// Launches one or more dependent activities (thanks to a delegate) that will use the current monitor's topic.
+            /// This creates a new <see cref="ActivityMonitor.DependentToken"/> and opens a group that wraps the execution of the <paramref name="dependentLauncher"/>.
             /// </summary>
             /// <param name="dependentLauncher">Must create and launch dependent activities that should use the created token.</param>
             /// <returns>A dependent token.</returns>
@@ -98,6 +120,7 @@ namespace CK.Core
             /// <summary>
             /// Launches one or more dependent activities (thanks to a delegate) that will be bound to a specified topic (or that will not change 
             /// the dependent monitor's topic if null is specified).
+            /// This creates a new <see cref="ActivityMonitor.DependentToken"/> and opens a group that wraps the execution of the <paramref name="dependentLauncher"/>.
             /// </summary>
             /// <param name="dependentLauncher">Must create and launch dependent activities that should use the created token.</param>
             /// <param name="dependentTopic">Topic for the dependent activity. When null, the dependent monitor's topic is not changed.</param>

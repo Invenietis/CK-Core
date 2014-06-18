@@ -48,6 +48,8 @@ namespace CK.Core
             readonly Guid _originatorId;
             readonly DateTimeStamp _creationDate;
             readonly string _topic;
+            [NonSerialized]
+            string _delayedLaunchMessage;
 
             static readonly string _format = "{0:B} at {1}";
 
@@ -145,6 +147,15 @@ namespace CK.Core
                 }
                 else if( !message.StartsWith( _prefixCreate ) ) return false;
                 return true;
+            }
+
+            /// <summary>
+            /// Captures the log message when created with a delayed launch so that DependentSender.Launch( token ) can logs it.
+            /// </summary>
+            internal string DelayedLaunchMessage
+            {
+                get { return _delayedLaunchMessage; }
+                set { _delayedLaunchMessage = value; }
             }
 
             private static bool ExtractTopic( string message, int start, out string dependentTopic )
