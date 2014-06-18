@@ -163,12 +163,6 @@ namespace CK.Mon2Htm
         /// <returns>Complete index path. Null if no files could be loaded.</returns>
         private string GenerateHtmlStructure()
         {
-            if( _activityMap.ValidFiles.Count == 0 )
-            {
-                _monitor.Warn().Send( "No valid log files could be loaded. Nothing will be done." );
-                return null;
-            }
-
             _monitor.Info().Send( "Generating HTML files in directory: '{0}'", _outputDirectoryPath );
 
             if( !Directory.Exists( _outputDirectoryPath ) ) Directory.CreateDirectory( _outputDirectoryPath );
