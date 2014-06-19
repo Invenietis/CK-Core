@@ -263,6 +263,9 @@
     <Compile Include="..\..\CK.Core\GlobalSuppressions.cs">
       <Link>GlobalSuppressions.cs</Link>
     </Compile>
+    <Compile Include="..\..\CK.Core\GrantLevel.cs">
+      <Link>GrantLevel.cs</Link>
+    </Compile>
     <Compile Include="..\..\CK.Core\ICKObservableReadOnlyCollection.cs">
       <Link>ICKObservableReadOnlyCollection.cs</Link>
     </Compile>

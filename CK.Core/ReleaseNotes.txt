@@ -1,0 +1,4 @@
+﻿==> 3.0.28 (pending)
+- Added the GrantLevel enum.
+
+==> 3.0.27
