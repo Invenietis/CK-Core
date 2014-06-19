@@ -15,7 +15,7 @@ namespace CK.Mon2Htm
         readonly IReadOnlyList<ILogEntry> _openGroupsAtEnd;
         readonly int _pageNumber;
 
-        internal LogPage(IReadOnlyList<ILogEntry> entries, IReadOnlyList<ILogEntry> openGroupsAtStart, IReadOnlyList<ILogEntry> openGroupsAtEnd, int pageNumber, MonitorIndexInfo indexInfo)
+        internal LogPage( IReadOnlyList<ILogEntry> entries, IReadOnlyList<ILogEntry> openGroupsAtStart, IReadOnlyList<ILogEntry> openGroupsAtEnd, int pageNumber, MonitorIndexInfo indexInfo )
         {
             _entries = BuildStructuredLogEntries( entries, openGroupsAtStart, openGroupsAtEnd, indexInfo, pageNumber );
 
@@ -42,7 +42,7 @@ namespace CK.Mon2Htm
                 int groupEndPage = indexInfo.GetPageIndexOf( indexInfo.Groups.GetByKey( entry.LogTime, out exists ).CloseGroupTimestamp ) + 1;
 
                 pagedEntry.GroupStartsOnPage = groupStartPage;
-                if(pageNumber != groupEndPage) pagedEntry.GroupEndsOnPage = groupEndPage;
+                if( pageNumber != groupEndPage ) pagedEntry.GroupEndsOnPage = groupEndPage;
 
                 if( currentPath.Count > 0 )
                 {
@@ -62,7 +62,7 @@ namespace CK.Mon2Htm
             {
                 var pagedEntry = new PagedLogEntry( entry );
 
-                if( currentPath.Count > 0  )
+                if( currentPath.Count > 0 )
                 {
                     // Add current path as child
                     currentPath[currentPath.Count - 1].AddChild( pagedEntry );
@@ -86,15 +86,24 @@ namespace CK.Mon2Htm
                 }
                 else if( pagedEntry.LogType == LogEntryType.CloseGroup )
                 {
-                    var openGroupTimestamp = indexInfo.Groups.First( x => x.CloseGroupTimestamp == pagedEntry.LogTime ).OpenGroupTimestamp;
-                    var groupStartPage = indexInfo.GetPageIndexOf( openGroupTimestamp );
+                    var openGroupRef = indexInfo.Groups.FirstOrDefault( x => x.CloseGroupTimestamp == pagedEntry.LogTime );
+                    if( openGroupRef != null )
+                    {
+                        // Not Missing open group
+                        var openGroupTimestamp = openGroupRef.OpenGroupTimestamp;
+                        var groupStartPage = indexInfo.GetPageIndexOf( openGroupTimestamp );
 
-                    if( pageNumber != groupStartPage ) pagedEntry.GroupStartsOnPage = groupStartPage;
+                        if( pageNumber != groupStartPage ) pagedEntry.GroupStartsOnPage = groupStartPage;
+
+                        currentPath.RemoveAt( currentPath.Count - 1 );
+                    }
+                    else
+                    {
+                        pagedEntry.GroupStartsOnPage = 0;
+                    }
                     pagedEntry.GroupEndsOnPage = 0;
-
-                    currentPath.RemoveAt( currentPath.Count - 1 );
                 }
-                
+
             }
 
             return logEntries.AsReadOnlyList();
