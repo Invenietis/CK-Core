@@ -1,0 +1,4 @@
+﻿==> 3.0.28 (pending)
+- Added weighted Tags display per monitor on index file.
+
+==> 3.0.27

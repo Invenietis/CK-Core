@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -377,7 +378,7 @@ namespace CK.Mon2Htm
             tw.Write( String.Format( "<h3>Between {0} and {1}</h3>", _activityMap.FirstEntryDate, _activityMap.LastEntryDate ) );
 
             tw.Write( @"<h2>Monitors:</h2><table class=""monitorTable table table-striped table-bordered"">" );
-            tw.Write( @"<thead><tr><th>Monitor</th><th>Started</th><th>Duration</th><th>Entries</th></tr></thead><tbody>" );
+            tw.Write( @"<thead><tr><th>Monitor</th><th>Started</th><th>Duration</th><th>Entries</th><th>Tags</th></tr></thead><tbody>" );
 
             var monitorList = _activityMap.Monitors.ToList();
             monitorList.Sort( ( a, b ) => b.FirstEntryTime.CompareTo( a.FirstEntryTime ) );
@@ -403,7 +404,8 @@ namespace CK.Mon2Htm
     <div class=""errorCount entryCount"">{4}</div>
     <div class=""fatalCount entryCount"">{5}</div>
     <div class=""totalCount entryCount"">Total: {8}</div>
-</td>",
+</td>
+<td>{9}</td>",
                     href,
                     monitor.FirstEntryTime.TimeUtc.ToString( TIME_FORMAT ),
                     monitor.LastEntryTime.TimeUtc.ToString( TIME_FORMAT ),
@@ -412,7 +414,8 @@ namespace CK.Mon2Htm
                     _indexInfos[monitor].TotalFatalCount,
                     String.Format( "First entry: {0}<br>Last entry: {0}", monitor.FirstEntryTime.TimeUtc.ToString( TIME_FORMAT ), monitor.LastEntryTime.TimeUtc.ToString( TIME_FORMAT ) ),
                     String.Format( "Monitor duration: {0}", (monitor.LastEntryTime.TimeUtc - monitor.FirstEntryTime.TimeUtc).ToString( "c" ) ),
-                    _indexInfos[monitor].TotalEntryCount
+                    _indexInfos[monitor].TotalEntryCount,
+                    String.Join( ", ", monitor.AllTags.Select( wTag => HttpUtility.HtmlEncode( wTag.Key.ToString() ) + @"<div class=""entryCount"">(" + wTag.Value.ToString( CultureInfo.InvariantCulture ) + ")</div>" ) )
                     ) );
 
                 tw.Write( "</tr>" );

@@ -116,6 +116,7 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="FodyWeavers.xml" />
+    <Content Include="ReleaseNotes.txt" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\net40\CK.Core\CK.Core.Net40.csproj">

@@ -83,6 +83,7 @@ namespace CK.Monitoring
             readonly int _firstDepth;
             readonly DateTimeStamp _lastEntryTime;
             readonly int _lastDepth;
+            readonly IReadOnlyList<KeyValuePair<CKTrait,int>> _tags;
 
             internal Monitor( LiveIndexedMonitor m )
             {
@@ -92,6 +93,7 @@ namespace CK.Monitoring
                 _firstDepth = m._firstDepth;
                 _lastEntryTime = m._lastEntryTime;
                 _lastDepth = m._lastDepth;
+                _tags = m._tags != null ? m._tags.OrderByDescending( k => k.Key ).ToReadOnlyList() : CKReadOnlyListEmpty<KeyValuePair<CKTrait, int>>.Empty;
             }
 
             /// <summary>
@@ -123,6 +125,11 @@ namespace CK.Monitoring
             /// Gets the very last known depth for this monitor.
             /// </summary>
             public int LastDepth { get { return _lastDepth; } }
+
+            /// <summary>
+            /// Gets the weighted occurences of each tags that have been logged in this monitor.
+            /// </summary>
+            public IReadOnlyList<KeyValuePair<CKTrait, int>> AllTags { get { return _tags; } }
 
             internal class MultiFileReader : IDisposable
             {
