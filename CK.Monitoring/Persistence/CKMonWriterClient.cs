@@ -12,7 +12,7 @@ namespace CK.Monitoring
 {
     /// <summary>
     /// This client writes .ckmon files for one monitor.
-    /// To close output file, simply <see cref="IActivityMonitoroutput.UnregisterClient">unregister</see> this client.
+    /// To close output file, simply <see cref="IActivityMonitorOutput.UnregisterClient">unregister</see> this client.
     /// </summary>
     public sealed class CKMonWriterClient : IActivityMonitorBoundClient, IMulticastLogInfo
     {

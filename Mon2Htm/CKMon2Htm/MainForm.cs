@@ -19,19 +19,24 @@ namespace CK.Mon2Htm
         readonly List<string> _listedFiles;
         readonly List<string> _filesToLoad;
         bool _hasUpdatedResources;
+        bool _debug = false;
         string _loadedDirectory;
         string _tempDirPath;
+        string _baseTitle;
         FileSystemWatcher _dirWatcher;
 
         public MainForm()
         {
+#if DEBUG
+            _debug = true;
+#endif
             _listedFiles = new List<string>();
             _filesToLoad = new List<string>();
             _hasUpdatedResources = false;
 
             _m = new ActivityMonitor();
             _m.SetMinimalFilter( LogFilter.Debug );
-            _m.Output.RegisterClient( new ActivityMonitorConsoleClient() );
+            //_m.Output.RegisterClient( new ActivityMonitorConsoleClient() );
 
             InitializeComponent();
 
@@ -49,6 +54,10 @@ namespace CK.Mon2Htm
 
             UpdateButtonState();
             UpdateVersionLabel();
+
+            _baseTitle = this.Text;
+
+            UpdateTitle();
         }
 
         private void WatchDirectory( string directoryPath )
@@ -285,9 +294,19 @@ namespace CK.Mon2Htm
 
         private void UpdateTitle()
         {
-            DirectoryInfo d = new DirectoryInfo( _loadedDirectory );
 
-            this.Text = String.Format( "{0} ({1}) - Mon2Htm", d.Name, d.FullName );
+            if( String.IsNullOrWhiteSpace( _loadedDirectory ) )
+            {
+                this.Text = _baseTitle;
+            }
+            else
+            {
+                DirectoryInfo d = new DirectoryInfo( _loadedDirectory );
+
+                this.Text = String.Format( "{0} ({1}) - Mon2Htm", d.Name, d.FullName );
+            }
+
+            if( _debug ) this.Text = String.Format( "{0} (Debug)", this.Text );
         }
 
         private void SortGrid()
@@ -338,7 +357,9 @@ namespace CK.Mon2Htm
 
             string indexFilePath = Path.Combine( _tempDirPath, "index.html" );
 
-            if( !_hasUpdatedResources || !Directory.Exists( Path.Combine( rootFolder, "css" ) ) )
+            if( _debug ) _m.Info().Send( "CKMon2Htm is running in debug mode and will not cache generated files." );
+
+            if( !_debug || !_hasUpdatedResources || !Directory.Exists( Path.Combine( rootFolder, "css" ) ) )
             {
                 HtmlGenerator.CopyResourcesToDirectory( rootFolder );
                 _hasUpdatedResources = true;
@@ -346,7 +367,7 @@ namespace CK.Mon2Htm
 
             int entriesPerPage = Properties.Settings.Default.EntriesPerPage;
 
-            if( !File.Exists( indexFilePath ) )
+            if( _debug || !File.Exists( indexFilePath ) )
             {
                 indexFilePath = HtmlGenerator.CreateFromActivityMap( activityMap, _m, entriesPerPage, _tempDirPath, "../" );
             }

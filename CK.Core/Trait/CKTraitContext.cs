@@ -297,7 +297,7 @@ namespace CK.Core
             for( int i = 1; i < count; ++i )
             {
                 Debug.Assert( StringComparer.Ordinal.Compare( atomicTraits[i - 1].ToString(), atomicTraits[i].ToString() ) < 0, "Traits are already sorted and NO DUPLICATE exists." );
-                b.Append( '+' ).Append( atomicTraits[i].ToString() );
+                b.Append( _separator ).Append( atomicTraits[i].ToString() );
             }
             string traits = b.ToString();
             CKTrait m;
@@ -315,7 +315,7 @@ namespace CK.Core
                 {
                     if( !_traits.TryGetValue( traits, out m ) )
                     {
-                        m = new CKTrait( this, traits, new CKReadOnlyListOnIList<CKTrait>( atomicTraits ) );
+                        m = new CKTrait( this, traits, atomicTraits.ToReadOnlyList() );
                         _traits[traits] = m;
                     }
                 }

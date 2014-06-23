@@ -358,17 +358,17 @@ namespace CK.Core.Tests
                 CKTrait[] sorted = f.ToArray();
                 Array.Sort( sorted );
                 Array.Reverse( sorted );
-                Assert.That( sorted.SequenceEqual( f ), "KeyboardTrait.CompareTo respects the fallbacks (fallbacks is in reverse order)." );
+                Assert.That( sorted.SequenceEqual( f ), "CKTrait.CompareTo respects the fallbacks (fallbacks is in reverse order)." );
             }
             {
                 CKTrait m = Context.FindOrCreate( "Alpha+Beta+Combo+Fridge+F+K+Ju+J+A+B" );
                 IReadOnlyList<CKTrait> f = m.Fallbacks.ToReadOnlyList();
-                Assert.That( f.OrderBy( trait => trait ).Reverse().SequenceEqual( f ), "KeyboardTrait.CompareTo is ok, thanks to Linq ;-)." );
+                Assert.That( f.OrderBy( trait => trait ).Reverse().SequenceEqual( f ), "CKTrait.CompareTo is ok, thanks to Linq ;-)." );
             }
             {
                 CKTrait m = Context.FindOrCreate( "xz+lz+ded+az+zer+t+zer+ce+ret+ert+ml+a+nzn" );
                 IReadOnlyList<CKTrait> f = m.Fallbacks.ToReadOnlyList();
-                Assert.That( f.OrderBy( trait => trait ).Reverse().SequenceEqual( f ), "KeyboardTrait.CompareTo is ok, thanks to Linq ;-)." );
+                Assert.That( f.OrderBy( trait => trait ).Reverse().SequenceEqual( f ), "CKTrait.CompareTo is ok, thanks to Linq ;-)." );
             }
         }
 

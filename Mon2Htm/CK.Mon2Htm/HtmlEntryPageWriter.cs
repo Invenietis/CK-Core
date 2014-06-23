@@ -140,7 +140,7 @@ namespace CK.Mon2Htm
 
                 if( writeTooltip ) _tw.Write( @"<span data-toggle=""tooltip"" title=""{0}"" rel=""tooltip"">", GetTooltipText( e ) );
 
-                _tw.Write( @"{0}", e.LogTime.TimeUtc.ToString( "HH:mm:ss" ) );
+                _tw.Write( @"{0}", e.LogTime.TimeUtc.ToString( "HH:mm:ss:ffff" ) );
 
                 if( writeTooltip ) _tw.Write( @"</span>", GetTooltipText( e ) );
                 _tw.Write( @"</div>" );
@@ -193,7 +193,7 @@ namespace CK.Mon2Htm
 
                 _tw.Write( String.Format(
                     @"{1} [{0}]",
-                    HttpUtility.HtmlEncode( entry.Exception.ExceptionTypeName ),
+                    HtmlUtils.HtmlEncode( entry.Exception.ExceptionTypeName ),
                     ReplaceUrlsByLinks( entry.Text )
                     ) );
 
@@ -274,7 +274,7 @@ namespace CK.Mon2Htm
                 if( parentedEntry.Parent.IsMissing )
                 {
 
-                    _tw.Write( HttpUtility.HtmlEncode( "End of group: <Open entry missing>" ) );
+                    _tw.Write( HtmlUtils.HtmlEncode( "End of group: <Open entry missing>" ) );
                     closeDiv = false;
                 }
                 else if( entry.Conclusions.Count > 0 || parentedEntry.IsMissing )
@@ -282,7 +282,7 @@ namespace CK.Mon2Htm
                     if( parentedEntry.IsMissing )
                     {
                         _tw.Write(
-                            HttpUtility.HtmlEncode(
+                            HtmlUtils.HtmlEncode(
                                 String.Format( "<Missing end of group>: '{0}'.", parentedEntry.Parent.Entry.Text )
                             )
                         );
@@ -368,12 +368,18 @@ namespace CK.Mon2Htm
 
         private void WriteNextPageButton()
         {
-            _tw.Write( @"<a href=""{0}"" class=""btn btn-lg btn-warning largePageButton"" role=""button"">Next page</a>", HtmlUtils.GetMonitorPageFilename( _monitor, _pageNumber + 1 ) );
+            _tw.Write( @"<a href=""{0}"" class=""btn btn-xs btn-warning largePageButton"" role=""button"">
+                            <span class=""glyphicon glyphicon-arrow-down""></span>
+                            <span class=""glyphicon glyphicon-arrow-down""></span>
+                        </a>", HtmlUtils.GetMonitorPageFilename( _monitor, _pageNumber + 1 ) );
         }
 
         private void WritePrevPageButton()
         {
-            _tw.Write( @"<a href=""{0}"" class=""btn btn-lg btn-warning largePageButton"" role=""button"">Previous page</a>", HtmlUtils.GetMonitorPageFilename( _monitor, _pageNumber - 1 ) );
+            _tw.Write( @"<a href=""{0}"" class=""btn btn-xs btn-warning largePageButton"" role=""button"">
+                            <span class=""glyphicon glyphicon-arrow-up""></span>
+                            <span class=""glyphicon glyphicon-arrow-up""></span>
+                         </a>", HtmlUtils.GetMonitorPageFilename( _monitor, _pageNumber - 1 ) );
         }
 
         private void WriteLogGroupBreadcrumb( IReadOnlyList<ILogEntry> groupsToWrite, bool reverse = false )
@@ -385,7 +391,7 @@ namespace CK.Mon2Htm
                 int i = 0;
                 foreach( var group in groupsToWrite )
                 {
-                    WriteLineHeader( group, i, false, false, null, false );
+                    WriteLineHeader( group, i, false );
 
                     _tw.Write( @"<p class=""logMessage {2}"">{0} <a href=""{1}""><span class=""glyphicon glyphicon-fast-backward""></span></a></p>",
                         group.Text,
@@ -400,7 +406,7 @@ namespace CK.Mon2Htm
             else
             {
                 int i = groupsToWrite.Count - 1;
-                foreach( var group in groupsToWrite )
+                foreach( var group in groupsToWrite.Reverse() )
                 {
                     WriteLineHeader( group, i, false );
 
@@ -416,7 +422,7 @@ namespace CK.Mon2Htm
                     else
                     {
                         _tw.Write(
-                            HttpUtility.HtmlEncode(
+                            HtmlUtils.HtmlEncode(
                                 String.Format( @"{0} <Missing group end>",
                                     group.Text,
                                     HtmlUtils.GetReferenceHref( _monitor, _indexInfo, _indexInfo.Groups.GetByKey( group.LogTime ).CloseGroupTimestamp )
@@ -449,7 +455,7 @@ namespace CK.Mon2Htm
 
         private string ReplaceUrlsByLinks( string s )
         {
-            s = HttpUtility.HtmlEncode( s );
+            s = HtmlUtils.HtmlEncode( s );
             int delta = 0;
 
             MatchCollection mc = _linkParser.Matches( s );
@@ -505,7 +511,7 @@ namespace CK.Mon2Htm
             {
                 sb.AppendFormat( @"<br>{0}", String.Join( ", ", entry.Tags.AtomicTraits.Select( x => x.ToString() ) ) );
             }
-            return HttpUtility.HtmlAttributeEncode( sb.ToString() );
+            return HtmlUtils.HtmlAttributeEncode( sb.ToString() );
         }
 
         private static bool IsLongEntry( ILogEntry e )

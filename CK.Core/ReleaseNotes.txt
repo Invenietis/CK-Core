@@ -1,0 +1,5 @@
+﻿==> 3.0.28 (pending)
+- Added the GrantLevel enum.
+- Enhanced CKTrait documentation.
+
+==> 3.0.27

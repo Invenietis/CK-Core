@@ -1,0 +1,4 @@
+﻿==> 3.0.28 (pending)
+- Tags per monitor are collected with their count on each Monitor.
+
+==> 3.0.27

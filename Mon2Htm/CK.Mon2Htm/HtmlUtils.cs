@@ -49,7 +49,20 @@ namespace CK.Mon2Htm
 
         public static string GetReferenceHref( MultiLogReader.Monitor monitor, MonitorIndexInfo monitorIndex, DateTimeStamp timestamp )
         {
-            return String.Format( "{0}#{1}", HtmlUtils.GetMonitorPageFilename( monitor, monitorIndex.GetPageIndexOf( timestamp ) + 1 ), HttpUtility.UrlEncode( GetTimestampId( timestamp ) ) );
+            return String.Format( "{0}#{1}", HtmlUtils.GetMonitorPageFilename( monitor, monitorIndex.GetPageIndexOf( timestamp ) + 1 ), HtmlUtils.UrlEncode( GetTimestampId( timestamp ) ) );
+        }
+
+        public static string HtmlEncode( string s )
+        {
+            return System.Net.WebUtility.HtmlEncode( s );
+        }
+        public static string UrlEncode( string s )
+        {
+            return System.Uri.EscapeDataString( s );
+        }
+        public static string HtmlAttributeEncode( string s )
+        {
+            return System.Security.SecurityElement.Escape( s );
         }
 
         public static string GetTimestampId( DateTimeStamp t )

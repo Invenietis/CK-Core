@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -346,11 +347,12 @@ namespace CK.Mon2Htm
         {
             string indexFilePath = Path.Combine( _outputDirectoryPath, @"index.html" );
 
-            TextWriter tw = File.CreateText( indexFilePath );
+            using( TextWriter tw = File.CreateText( indexFilePath ) )
+            {
+                WriteIndex( monitorPages, tw );
 
-            WriteIndex( monitorPages, tw );
-
-            tw.Close();
+                tw.Close();
+            }
 
             return indexFilePath;
         }
@@ -377,7 +379,7 @@ namespace CK.Mon2Htm
             tw.Write( String.Format( "<h3>Between {0} and {1}</h3>", _activityMap.FirstEntryDate, _activityMap.LastEntryDate ) );
 
             tw.Write( @"<h2>Monitors:</h2><table class=""monitorTable table table-striped table-bordered"">" );
-            tw.Write( @"<thead><tr><th>Monitor</th><th>Started</th><th>Duration</th><th>Entries</th></tr></thead><tbody>" );
+            tw.Write( @"<thead><tr><th>Monitor</th><th>Started</th><th>Duration</th><th>Entries</th><th>Tags</th></tr></thead><tbody>" );
 
             var monitorList = _activityMap.Monitors.ToList();
             monitorList.Sort( ( a, b ) => b.FirstEntryTime.CompareTo( a.FirstEntryTime ) );
@@ -391,7 +393,7 @@ namespace CK.Mon2Htm
                 if( monitorPages.TryGetValue( monitor, out monitorPageList ) )
                 {
                     href = String.Format( @"<a href=""{1}"">{0}</a>", _indexInfos[monitor].MonitorTitle,
-                        HttpUtility.UrlEncode( monitorPageList.First() ) );
+                        HtmlUtils.UrlEncode( monitorPageList.First() ) );
                 }
 
                 tw.Write( String.Format( @"
@@ -399,11 +401,12 @@ namespace CK.Mon2Htm
 <td class=""monitorTime""><span data-toggle=""tooltip"" title=""{6}"" rel=""tooltip""><span class=""startTime"">{1}</span></span></td>
 <td class=""monitorTime""><span data-toggle=""tooltip"" title=""{7}"" rel=""tooltip""><span class=""endTime"">{2}</span></span></td>
 <td>
-    <div class=""warnCount entryCount"">{3}</div>
-    <div class=""errorCount entryCount"">{4}</div>
-    <div class=""fatalCount entryCount"">{5}</div>
     <div class=""totalCount entryCount"">Total: {8}</div>
-</td>",
+    <div class=""warnCount entryCount"" style=""display: {10}"">{3}</div>
+    <div class=""errorCount entryCount"" style=""display: {11}"">{4}</div>
+    <div class=""fatalCount entryCount"" style=""display: {12}"">{5}</div>
+</td>
+<td>{9}</td>",
                     href,
                     monitor.FirstEntryTime.TimeUtc.ToString( TIME_FORMAT ),
                     monitor.LastEntryTime.TimeUtc.ToString( TIME_FORMAT ),
@@ -412,7 +415,11 @@ namespace CK.Mon2Htm
                     _indexInfos[monitor].TotalFatalCount,
                     String.Format( "First entry: {0}<br>Last entry: {0}", monitor.FirstEntryTime.TimeUtc.ToString( TIME_FORMAT ), monitor.LastEntryTime.TimeUtc.ToString( TIME_FORMAT ) ),
                     String.Format( "Monitor duration: {0}", (monitor.LastEntryTime.TimeUtc - monitor.FirstEntryTime.TimeUtc).ToString( "c" ) ),
-                    _indexInfos[monitor].TotalEntryCount
+                    _indexInfos[monitor].TotalEntryCount,
+                    String.Join( ", ", monitor.AllTags.Select( wTag => HtmlUtils.HtmlEncode( wTag.Key.ToString() ) + @"<div class=""entryCount"">(" + wTag.Value.ToString( CultureInfo.InvariantCulture ) + ")</div>" ) ),
+                    (_indexInfos[monitor].TotalWarnCount > 0) ? "inline" : "none",
+                    (_indexInfos[monitor].TotalErrorCount > 0) ? "inline" : "none",
+                    (_indexInfos[monitor].TotalFatalCount > 0) ? "inline" : "none"
                     ) );
 
                 tw.Write( "</tr>" );
@@ -596,7 +603,7 @@ namespace CK.Mon2Htm
 
         private static string GetHtmlHeader( string title, string resourceDirectory, bool writeLogMenu = false )
         {
-            title = HttpUtility.HtmlEncode( title );
+            title = HtmlUtils.HtmlEncode( title );
             return String.Format( HTML_HEADER, title, writeLogMenu ? HTML_ENTRYPAGE_HEADER_MENU : String.Empty, resourceDirectory );
         }
 

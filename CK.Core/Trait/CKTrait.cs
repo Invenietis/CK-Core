@@ -102,6 +102,9 @@ namespace CK.Core
 
         /// <summary>
         /// Gets the atomic traits that this trait contains.
+        /// This list does not contain the empty trait and is sorted according to the name of the atomic traits (lexical order): this is the 
+        /// same as the <see cref="ToString"/> representation.
+        /// Note that it is in reverse order regarding <see cref="CompareTo"/> ("A" that is stronger than "B" appears before "B").
         /// </summary>
         public ICKReadOnlyList<CKTrait> AtomicTraits
         {
@@ -126,11 +129,14 @@ namespace CK.Core
         /// </remarks>
         public bool IsAtomic
         {
-            get { return _traits.Count < 2; }
+            get { return _traits.Count <= 1; }
         }
 
         /// <summary>
         /// Compares this trait with another one.
+        /// The <see cref="Context"/> is the primary key (see <see cref="CKTraitContext.CompareTo"/>), then comes 
+        /// the number of traits (more traits is greater) and then comes the string representation of the trait in 
+        /// reverse lexical order (<see cref="StringComparer.Ordinal"/>): "A" is greater than "B".
         /// </summary>
         /// <param name="other">The trait to compare to.</param>
         /// <returns>A negative, zero or positive value.</returns>
