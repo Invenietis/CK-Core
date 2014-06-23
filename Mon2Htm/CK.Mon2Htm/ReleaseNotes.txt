@@ -1,4 +1,6 @@
 ﻿==> 3.0.28 (pending)
 - Added weighted Tags display per monitor on index file.
+- On monitor list, fatal/error/warning counts no longer display when they are at zero.
+- Now targeting .NET 4.0, Client profile.
 
 ==> 3.0.27
