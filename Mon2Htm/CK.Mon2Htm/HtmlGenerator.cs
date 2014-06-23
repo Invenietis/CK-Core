@@ -347,11 +347,12 @@ namespace CK.Mon2Htm
         {
             string indexFilePath = Path.Combine( _outputDirectoryPath, @"index.html" );
 
-            TextWriter tw = File.CreateText( indexFilePath );
+            using( TextWriter tw = File.CreateText( indexFilePath ) )
+            {
+                WriteIndex( monitorPages, tw );
 
-            WriteIndex( monitorPages, tw );
-
-            tw.Close();
+                tw.Close();
+            }
 
             return indexFilePath;
         }
@@ -400,12 +401,12 @@ namespace CK.Mon2Htm
 <td class=""monitorTime""><span data-toggle=""tooltip"" title=""{6}"" rel=""tooltip""><span class=""startTime"">{1}</span></span></td>
 <td class=""monitorTime""><span data-toggle=""tooltip"" title=""{7}"" rel=""tooltip""><span class=""endTime"">{2}</span></span></td>
 <td>
-    <div class=""warnCount entryCount"">{3}</div>
-    <div class=""errorCount entryCount"">{4}</div>
-    <div class=""fatalCount entryCount"">{5}</div>
     <div class=""totalCount entryCount"">Total: {8}</div>
 </td>
 <td>{9}</td>",
+    <div class=""warnCount entryCount"" style=""display: {10}"">{3}</div>
+    <div class=""errorCount entryCount"" style=""display: {11}"">{4}</div>
+    <div class=""fatalCount entryCount"" style=""display: {12}"">{5}</div>
                     href,
                     monitor.FirstEntryTime.TimeUtc.ToString( TIME_FORMAT ),
                     monitor.LastEntryTime.TimeUtc.ToString( TIME_FORMAT ),
@@ -416,6 +417,9 @@ namespace CK.Mon2Htm
                     String.Format( "Monitor duration: {0}", (monitor.LastEntryTime.TimeUtc - monitor.FirstEntryTime.TimeUtc).ToString( "c" ) ),
                     _indexInfos[monitor].TotalEntryCount,
                     String.Join( ", ", monitor.AllTags.Select( wTag => HttpUtility.HtmlEncode( wTag.Key.ToString() ) + @"<div class=""entryCount"">(" + wTag.Value.ToString( CultureInfo.InvariantCulture ) + ")</div>" ) )
+                    (_indexInfos[monitor].TotalWarnCount > 0) ? "inline" : "none",
+                    (_indexInfos[monitor].TotalErrorCount > 0) ? "inline" : "none",
+                    (_indexInfos[monitor].TotalFatalCount > 0) ? "inline" : "none"
                     ) );
 
                 tw.Write( "</tr>" );

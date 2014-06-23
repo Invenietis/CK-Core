@@ -140,7 +140,7 @@ namespace CK.Mon2Htm
 
                 if( writeTooltip ) _tw.Write( @"<span data-toggle=""tooltip"" title=""{0}"" rel=""tooltip"">", GetTooltipText( e ) );
 
-                _tw.Write( @"{0}", e.LogTime.TimeUtc.ToString( "HH:mm:ss" ) );
+                _tw.Write( @"{0}", e.LogTime.TimeUtc.ToString( "HH:mm:ss:ffff" ) );
 
                 if( writeTooltip ) _tw.Write( @"</span>", GetTooltipText( e ) );
                 _tw.Write( @"</div>" );
@@ -368,12 +368,18 @@ namespace CK.Mon2Htm
 
         private void WriteNextPageButton()
         {
-            _tw.Write( @"<a href=""{0}"" class=""btn btn-lg btn-warning largePageButton"" role=""button"">Next page</a>", HtmlUtils.GetMonitorPageFilename( _monitor, _pageNumber + 1 ) );
+            _tw.Write( @"<a href=""{0}"" class=""btn btn-xs btn-warning largePageButton"" role=""button"">
+                            <span class=""glyphicon glyphicon-arrow-down""></span>
+                            <span class=""glyphicon glyphicon-arrow-down""></span>
+                        </a>", HtmlUtils.GetMonitorPageFilename( _monitor, _pageNumber + 1 ) );
         }
 
         private void WritePrevPageButton()
         {
-            _tw.Write( @"<a href=""{0}"" class=""btn btn-lg btn-warning largePageButton"" role=""button"">Previous page</a>", HtmlUtils.GetMonitorPageFilename( _monitor, _pageNumber - 1 ) );
+            _tw.Write( @"<a href=""{0}"" class=""btn btn-xs btn-warning largePageButton"" role=""button"">
+                            <span class=""glyphicon glyphicon-arrow-up""></span>
+                            <span class=""glyphicon glyphicon-arrow-up""></span>
+                         </a>", HtmlUtils.GetMonitorPageFilename( _monitor, _pageNumber - 1 ) );
         }
 
         private void WriteLogGroupBreadcrumb( IReadOnlyList<ILogEntry> groupsToWrite, bool reverse = false )
@@ -385,7 +391,7 @@ namespace CK.Mon2Htm
                 int i = 0;
                 foreach( var group in groupsToWrite )
                 {
-                    WriteLineHeader( group, i, false, false, null, false );
+                    WriteLineHeader( group, i, false );
 
                     _tw.Write( @"<p class=""logMessage {2}"">{0} <a href=""{1}""><span class=""glyphicon glyphicon-fast-backward""></span></a></p>",
                         group.Text,
@@ -400,7 +406,7 @@ namespace CK.Mon2Htm
             else
             {
                 int i = groupsToWrite.Count - 1;
-                foreach( var group in groupsToWrite )
+                foreach( var group in groupsToWrite.Reverse() )
                 {
                     WriteLineHeader( group, i, false );
 

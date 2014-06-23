@@ -262,6 +262,7 @@ div.entryCount {
 	font-family: monospace;
 	border: none;
 	margin-left: 3pt;
+	font-weight: bold;
 }
 
 #contextMenu {
