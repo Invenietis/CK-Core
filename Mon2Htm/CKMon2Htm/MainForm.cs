@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Deployment.Application;
 using System.Diagnostics;
 using System.IO;
@@ -18,11 +19,13 @@ namespace CK.Mon2Htm
         readonly IActivityMonitor _m;
         readonly List<string> _listedFiles;
         readonly List<string> _filesToLoad;
+
         bool _hasUpdatedResources;
         bool _debug = false;
         string _loadedDirectory;
         string _tempDirPath;
         string _baseTitle;
+        BackgroundWorker _bw;
         FileSystemWatcher _dirWatcher;
 
         public MainForm()
@@ -343,36 +346,110 @@ namespace CK.Mon2Htm
         /// <returns>Path of the created index file</returns>
         private string GenerateHtml()
         {
-            MultiLogReader.ActivityMap activityMap;
+            if( _bw != null ) return null;
 
-            using( MultiLogReader r = new MultiLogReader() )
+            _bw = new BackgroundWorker();
+            _bw.ProgressChanged += _bw_ProgressChanged;
+            _bw.RunWorkerCompleted += _bw_RunWorkerCompleted;
+
+            try
             {
-                r.Add( _filesToLoad );
+                this.viewHtmlButton.Enabled = false;
+                this.progressBar1.Visible = true;
 
-                activityMap = r.GetActivityMap();
+                MultiLogReader.ActivityMap activityMap;
+
+                using( MultiLogReader r = new MultiLogReader() )
+                {
+                    r.Add( _filesToLoad );
+
+                    activityMap = r.GetActivityMap();
+                }
+
+                _tempDirPath = GetTempFolder( activityMap );
+                string rootFolder = GetRootTempFolder();
+
+                string indexFilePath = Path.Combine( _tempDirPath, "index.html" );
+
+                if( _debug ) _m.Info().Send( "CKMon2Htm is running in debug mode and will not cache generated files." );
+
+                if( !_debug || !_hasUpdatedResources || !Directory.Exists( Path.Combine( rootFolder, "css" ) ) )
+                {
+                    HtmlGenerator.CopyResourcesToDirectory( rootFolder );
+                    _hasUpdatedResources = true;
+                }
+
+                int entriesPerPage = Properties.Settings.Default.EntriesPerPage;
+
+                if( _debug || !File.Exists( indexFilePath ) )
+                {
+                    HtmlGenerator gen = new HtmlGenerator( activityMap, _tempDirPath, _m, entriesPerPage, "../" );
+                    gen.ConfigureBackgroundWorker( _bw );
+
+                    _bw.RunWorkerAsync();
+                    return null;
+                }
+                else
+                {
+                    _bw.Dispose();
+                    _bw = null;
+                    if( File.Exists( indexFilePath ) ) return indexFilePath;
+                    else return null;
+                }
+            }
+            catch( Exception ex )
+            {
+                this.viewHtmlButton.Enabled = true;
+                this.viewHtmlButton.Text = @"View HTML";
+                this.progressBar1.Visible = false;
+
+                _bw.Dispose();
+                _bw = null;
+
+                throw ex;
+            }
+        }
+
+        void _bw_RunWorkerCompleted( object sender, RunWorkerCompletedEventArgs e )
+        {
+            if( InvokeRequired )
+            {
+                BeginInvoke( (MethodInvoker)delegate() { _bw_RunWorkerCompleted( sender, e ); } );
+                return;
             }
 
-            _tempDirPath = GetTempFolder( activityMap );
-            string rootFolder = GetRootTempFolder();
+            this.viewHtmlButton.Enabled = true;
+            this.viewHtmlButton.Text = @"View HTML";
+            this.progressBar1.Visible = false;
 
-            string indexFilePath = Path.Combine( _tempDirPath, "index.html" );
+            string indexFilePath = e.Result.ToString();
 
-            if( _debug ) _m.Info().Send( "CKMon2Htm is running in debug mode and will not cache generated files." );
+            DoRun( indexFilePath );
 
-            if( !_debug || !_hasUpdatedResources || !Directory.Exists( Path.Combine( rootFolder, "css" ) ) )
+            _bw.Dispose();
+            _bw = null;
+        }
+
+        void _bw_ProgressChanged( object sender, ProgressChangedEventArgs e )
+        {
+            if( InvokeRequired )
             {
-                HtmlGenerator.CopyResourcesToDirectory( rootFolder );
-                _hasUpdatedResources = true;
+                BeginInvoke( (MethodInvoker)delegate() { _bw_ProgressChanged( sender, e ); } );
+                return;
             }
 
-            int entriesPerPage = Properties.Settings.Default.EntriesPerPage;
-
-            if( _debug || !File.Exists( indexFilePath ) )
+            if( e.ProgressPercentage == -1 )
             {
-                indexFilePath = HtmlGenerator.CreateFromActivityMap( activityMap, _m, entriesPerPage, _tempDirPath, "../" );
+                this.progressBar1.Value = 0;
+                this.progressBar1.Style = ProgressBarStyle.Marquee;
             }
+            else
+            {
+                this.progressBar1.Value = e.ProgressPercentage;
+                this.progressBar1.Style = ProgressBarStyle.Continuous;
+            }
+            if( e.UserState != null ) this.viewHtmlButton.Text = e.UserState.ToString();
 
-            return indexFilePath;
         }
 
         /// <summary>
@@ -585,9 +662,15 @@ namespace CK.Mon2Htm
         {
             string indexFilePath = GenerateHtml();
 
+            if( indexFilePath != null ) DoRun( indexFilePath );
+            // Otherwise, the BackgroundWorker is running and will callback later.
+        }
+
+        void DoRun( string indexFilePath )
+        {
             RecurseTemporaryAttributes( _tempDirPath );
 
-            if( indexFilePath != null )
+            if( indexFilePath != null && File.Exists( indexFilePath ) )
             {
                 Process.Start( indexFilePath );
             }
