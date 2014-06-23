@@ -392,7 +392,7 @@ namespace CK.Mon2Htm
                 if( monitorPages.TryGetValue( monitor, out monitorPageList ) )
                 {
                     href = String.Format( @"<a href=""{1}"">{0}</a>", _indexInfos[monitor].MonitorTitle,
-                        HttpUtility.UrlEncode( monitorPageList.First() ) );
+                        HtmlUtils.UrlEncode( monitorPageList.First() ) );
                 }
 
                 tw.Write( String.Format( @"
@@ -415,7 +415,7 @@ namespace CK.Mon2Htm
                     String.Format( "First entry: {0}<br>Last entry: {0}", monitor.FirstEntryTime.TimeUtc.ToString( TIME_FORMAT ), monitor.LastEntryTime.TimeUtc.ToString( TIME_FORMAT ) ),
                     String.Format( "Monitor duration: {0}", (monitor.LastEntryTime.TimeUtc - monitor.FirstEntryTime.TimeUtc).ToString( "c" ) ),
                     _indexInfos[monitor].TotalEntryCount,
-                    String.Join( ", ", monitor.AllTags.Select( wTag => HttpUtility.HtmlEncode( wTag.Key.ToString() ) + @"<div class=""entryCount"">(" + wTag.Value.ToString( CultureInfo.InvariantCulture ) + ")</div>" ) )
+                    String.Join( ", ", monitor.AllTags.Select( wTag => HtmlUtils.HtmlEncode( wTag.Key.ToString() ) + @"<div class=""entryCount"">(" + wTag.Value.ToString( CultureInfo.InvariantCulture ) + ")</div>" ) )
                     ) );
 
                 tw.Write( "</tr>" );
@@ -599,7 +599,7 @@ namespace CK.Mon2Htm
 
         private static string GetHtmlHeader( string title, string resourceDirectory, bool writeLogMenu = false )
         {
-            title = HttpUtility.HtmlEncode( title );
+            title = HtmlUtils.HtmlEncode( title );
             return String.Format( HTML_HEADER, title, writeLogMenu ? HTML_ENTRYPAGE_HEADER_MENU : String.Empty, resourceDirectory );
         }
 

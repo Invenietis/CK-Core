@@ -193,7 +193,7 @@ namespace CK.Mon2Htm
 
                 _tw.Write( String.Format(
                     @"{1} [{0}]",
-                    HttpUtility.HtmlEncode( entry.Exception.ExceptionTypeName ),
+                    HtmlUtils.HtmlEncode( entry.Exception.ExceptionTypeName ),
                     ReplaceUrlsByLinks( entry.Text )
                     ) );
 
@@ -274,7 +274,7 @@ namespace CK.Mon2Htm
                 if( parentedEntry.Parent.IsMissing )
                 {
 
-                    _tw.Write( HttpUtility.HtmlEncode( "End of group: <Open entry missing>" ) );
+                    _tw.Write( HtmlUtils.HtmlEncode( "End of group: <Open entry missing>" ) );
                     closeDiv = false;
                 }
                 else if( entry.Conclusions.Count > 0 || parentedEntry.IsMissing )
@@ -282,7 +282,7 @@ namespace CK.Mon2Htm
                     if( parentedEntry.IsMissing )
                     {
                         _tw.Write(
-                            HttpUtility.HtmlEncode(
+                            HtmlUtils.HtmlEncode(
                                 String.Format( "<Missing end of group>: '{0}'.", parentedEntry.Parent.Entry.Text )
                             )
                         );
@@ -416,7 +416,7 @@ namespace CK.Mon2Htm
                     else
                     {
                         _tw.Write(
-                            HttpUtility.HtmlEncode(
+                            HtmlUtils.HtmlEncode(
                                 String.Format( @"{0} <Missing group end>",
                                     group.Text,
                                     HtmlUtils.GetReferenceHref( _monitor, _indexInfo, _indexInfo.Groups.GetByKey( group.LogTime ).CloseGroupTimestamp )
@@ -449,7 +449,7 @@ namespace CK.Mon2Htm
 
         private string ReplaceUrlsByLinks( string s )
         {
-            s = HttpUtility.HtmlEncode( s );
+            s = HtmlUtils.HtmlEncode( s );
             int delta = 0;
 
             MatchCollection mc = _linkParser.Matches( s );
@@ -505,7 +505,7 @@ namespace CK.Mon2Htm
             {
                 sb.AppendFormat( @"<br>{0}", String.Join( ", ", entry.Tags.AtomicTraits.Select( x => x.ToString() ) ) );
             }
-            return HttpUtility.HtmlAttributeEncode( sb.ToString() );
+            return HtmlUtils.HtmlAttributeEncode( sb.ToString() );
         }
 
         private static bool IsLongEntry( ILogEntry e )
