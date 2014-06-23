@@ -402,11 +402,11 @@ namespace CK.Mon2Htm
 <td class=""monitorTime""><span data-toggle=""tooltip"" title=""{7}"" rel=""tooltip""><span class=""endTime"">{2}</span></span></td>
 <td>
     <div class=""totalCount entryCount"">Total: {8}</div>
-</td>
-<td>{9}</td>",
     <div class=""warnCount entryCount"" style=""display: {10}"">{3}</div>
     <div class=""errorCount entryCount"" style=""display: {11}"">{4}</div>
     <div class=""fatalCount entryCount"" style=""display: {12}"">{5}</div>
+</td>
+<td>{9}</td>",
                     href,
                     monitor.FirstEntryTime.TimeUtc.ToString( TIME_FORMAT ),
                     monitor.LastEntryTime.TimeUtc.ToString( TIME_FORMAT ),
@@ -416,7 +416,7 @@ namespace CK.Mon2Htm
                     String.Format( "First entry: {0}<br>Last entry: {0}", monitor.FirstEntryTime.TimeUtc.ToString( TIME_FORMAT ), monitor.LastEntryTime.TimeUtc.ToString( TIME_FORMAT ) ),
                     String.Format( "Monitor duration: {0}", (monitor.LastEntryTime.TimeUtc - monitor.FirstEntryTime.TimeUtc).ToString( "c" ) ),
                     _indexInfos[monitor].TotalEntryCount,
-                    String.Join( ", ", monitor.AllTags.Select( wTag => HtmlUtils.HtmlEncode( wTag.Key.ToString() ) + @"<div class=""entryCount"">(" + wTag.Value.ToString( CultureInfo.InvariantCulture ) + ")</div>" ) )
+                    String.Join( ", ", monitor.AllTags.Select( wTag => HtmlUtils.HtmlEncode( wTag.Key.ToString() ) + @"<div class=""entryCount"">(" + wTag.Value.ToString( CultureInfo.InvariantCulture ) + ")</div>" ) ),
                     (_indexInfos[monitor].TotalWarnCount > 0) ? "inline" : "none",
                     (_indexInfos[monitor].TotalErrorCount > 0) ? "inline" : "none",
                     (_indexInfos[monitor].TotalFatalCount > 0) ? "inline" : "none"
