@@ -10,20 +10,52 @@ using CK.Monitoring.Impl;
 
 namespace CK.Monitoring
 {
+    /// <summary>
+    /// Encapsulates <see cref="ILogEntry"/> concrete objects manipulation.
+    /// </summary>
     public static class LogEntry
     {
         #region Unicast
 
+        /// <summary>
+        /// Creates a <see cref="ILogEntry"/> for a line.
+        /// </summary>
+        /// <param name="text">Text of the log entry.</param>
+        /// <param name="t">Time stamp of the log entry.</param>
+        /// <param name="level">Log level of the log entry.</param>
+        /// <param name="fileName">Source file name of the log entry</param>
+        /// <param name="lineNumber">Source line number of the log entry</param>
+        /// <param name="tags">Tags of the log entry</param>
+        /// <param name="ex">Exception of the log entry.</param>
+        /// <returns>A log entry object.</returns>
         public static ILogEntry CreateLog( string text, DateTimeStamp t, LogLevel level, string fileName, int lineNumber, CKTrait tags, CKExceptionData ex )
         {
             return new LELog( text, t, fileName, lineNumber, level, tags, ex );
         }
 
+        /// <summary>
+        /// Creates a <see cref="ILogEntry"/> for an opened group.
+        /// </summary>
+        /// <param name="text">Text of the log entry.</param>
+        /// <param name="t">Time stamp of the log entry.</param>
+        /// <param name="level">Log level of the log entry.</param>
+        /// <param name="fileName">Source file name of the log entry</param>
+        /// <param name="lineNumber">Source line number of the log entry</param>
+        /// <param name="tags">Tags of the log entry</param>
+        /// <param name="ex">Exception of the log entry.</param>
+        /// <returns>A log entry object.</returns>
         public static ILogEntry CreateOpenGroup( string text, DateTimeStamp t, LogLevel level, string fileName, int lineNumber, CKTrait tags, CKExceptionData ex )
         {
             return new LEOpenGroup( text, t, fileName, lineNumber, level, tags, ex );
         }
 
+        /// <summary>
+        /// Creates a <see cref="ILogEntry"/> for the closing of a group.
+        /// </summary>
+        /// <param name="t">Time stamp of the log entry.</param>
+        /// <param name="level">Log level of the log entry.</param>
+        /// <param name="c">Group conclusions.</param>
+        /// <returns>A log entry object.</returns>
         public static ILogEntry CreateCloseGroup( DateTimeStamp t, LogLevel level, IReadOnlyList<ActivityLogGroupConclusion> c )
         {
             return new LECloseGroup( t, level, c );
@@ -33,16 +65,57 @@ namespace CK.Monitoring
 
         #region Multi-cast
 
+        /// <summary>
+        /// Creates a <see cref="ILogEntry"/> for a line.
+        /// </summary>
+        /// <param name="monitorId">Identifier of the monitor.</param>
+        /// <param name="previousEntryType">Log type of the previous entry in the monitor..</param>
+        /// <param name="previousLogTime">Time stamp of the previous entry in the monitor.</param>
+        /// <param name="depth">Depth of the line (number of opened groups above).</param>
+        /// <param name="text">Text of the log entry.</param>
+        /// <param name="t">Time stamp of the log entry.</param>
+        /// <param name="level">Log level of the log entry.</param>
+        /// <param name="fileName">Source file name of the log entry</param>
+        /// <param name="lineNumber">Source line number of the log entry</param>
+        /// <param name="tags">Tags of the log entry</param>
+        /// <param name="ex">Exception of the log entry.</param>
+        /// <returns>A log entry object.</returns>
         public static IMulticastLogEntry CreateMulticastLog( Guid monitorId, LogEntryType previousEntryType, DateTimeStamp previousLogTime, int depth, string text, DateTimeStamp t, LogLevel level, string fileName, int lineNumber, CKTrait tags, CKExceptionData ex )
         {
             return new LEMCLog( monitorId, depth, previousLogTime, previousEntryType, text, t, fileName, lineNumber, level, tags, ex );
         }
 
+        /// <summary>
+        /// Creates a <see cref="ILogEntry"/> for an opend group.
+        /// </summary>
+        /// <param name="monitorId">Identifier of the monitor.</param>
+        /// <param name="previousEntryType">Log type of the previous entry in the monitor..</param>
+        /// <param name="previousLogTime">Time stamp of the previous entry in the monitor.</param>
+        /// <param name="depth">Depth of the line (number of opened groups above).</param>
+        /// <param name="text">Text of the log entry.</param>
+        /// <param name="t">Time stamp of the log entry.</param>
+        /// <param name="level">Log level of the log entry.</param>
+        /// <param name="fileName">Source file name of the log entry</param>
+        /// <param name="lineNumber">Source line number of the log entry</param>
+        /// <param name="tags">Tags of the log entry</param>
+        /// <param name="ex">Exception of the log entry.</param>
+        /// <returns>A log entry object.</returns>
         public static IMulticastLogEntry CreateMulticastOpenGroup( Guid monitorId, LogEntryType previousEntryType, DateTimeStamp previousLogTime, int depth, string text, DateTimeStamp t, LogLevel level, string fileName, int lineNumber, CKTrait tags, CKExceptionData ex )
         {
             return new LEMCOpenGroup( monitorId, depth, previousLogTime, previousEntryType, text, t, fileName, lineNumber, level, tags, ex );
         }
 
+        /// <summary>
+        /// Creates a <see cref="ILogEntry"/> for the closing of a group.
+        /// </summary>
+        /// <param name="monitorId">Identifier of the monitor.</param>
+        /// <param name="previousEntryType">Log type of the previous entry in the monitor..</param>
+        /// <param name="previousLogTime">Time stamp of the previous entry in the monitor.</param>
+        /// <param name="depth">Depth of the line (number of opened groups above).</param>
+        /// <param name="t">Time stamp of the log entry.</param>
+        /// <param name="level">Log level of the log entry.</param>
+        /// <param name="c">Group conclusions.</param>
+        /// <returns>A log entry object.</returns>
         public static IMulticastLogEntry CreateMulticastCloseGroup( Guid monitorId, LogEntryType previousEntryType, DateTimeStamp previousLogTime, int depth, DateTimeStamp t, LogLevel level, IReadOnlyList<ActivityLogGroupConclusion> c )
         {
             return new LEMCCloseGroup( monitorId, depth, previousLogTime, previousEntryType, t, level, c );
@@ -50,15 +123,43 @@ namespace CK.Monitoring
 
         #endregion
 
-        static public void WriteLog( BinaryWriter w, Guid monitorId, LogEntryType previousEntryType, DateTimeStamp previousStamp, int depth, bool isOpenGroup, LogLevel level, DateTimeStamp logTime, string text, CKTrait tags, CKExceptionData ex, string fileName, int lineNumber )
+        /// <summary>
+        /// Binary writes a multicast log entry.
+        /// </summary>
+        /// <param name="w">Binary writer to use.</param>
+        /// <param name="monitorId">Identifier of the monitor.</param>
+        /// <param name="previousEntryType">Log type of the previous entry in the monitor..</param>
+        /// <param name="previousLogTime">Time stamp of the previous entry in the monitor.</param>
+        /// <param name="depth">Depth of the line (number of opened groups above).</param>
+        /// <param name="isOpenGroup">True if this the opening of a group. False for a line.</param>
+        /// <param name="text">Text of the log entry.</param>
+        /// <param name="level">Log level of the log entry.</param>
+        /// <param name="logTime">Time stamp of the log entry.</param>
+        /// <param name="tags">Tags of the log entry</param>
+        /// <param name="ex">Exception of the log entry.</param>
+        /// <param name="fileName">Source file name of the log entry</param>
+        /// <param name="lineNumber">Source line number of the log entry</param>
+        static public void WriteLog( BinaryWriter w, Guid monitorId, LogEntryType previousEntryType, DateTimeStamp previousLogTime, int depth, bool isOpenGroup, LogLevel level, DateTimeStamp logTime, string text, CKTrait tags, CKExceptionData ex, string fileName, int lineNumber )
         {
             if( w == null ) throw new ArgumentNullException( "w" );
             StreamLogType type = StreamLogType.IsMultiCast | (isOpenGroup ? StreamLogType.TypeOpenGroup : StreamLogType.TypeLine);
-            type = UpdateTypeWithPrevious( type, previousEntryType, ref previousStamp );
+            type = UpdateTypeWithPrevious( type, previousEntryType, ref previousLogTime );
             DoWriteLog( w, type, level, logTime, text, tags, ex, fileName, lineNumber );
-            WriteMulticastFooter( w, monitorId, previousEntryType, previousStamp, depth );
+            WriteMulticastFooter( w, monitorId, previousEntryType, previousLogTime, depth );
         }
 
+        /// <summary>
+        /// Binary writes a log entry.
+        /// </summary>
+        /// <param name="w">Binary writer to use.</param>
+        /// <param name="isOpenGroup">True if this the opening of a group. False for a line.</param>
+        /// <param name="level">Log level of the log entry.</param>
+        /// <param name="text">Text of the log entry.</param>
+        /// <param name="logTime">Time stamp of the log entry.</param>
+        /// <param name="tags">Tags of the log entry</param>
+        /// <param name="ex">Exception of the log entry.</param>
+        /// <param name="fileName">Source file name of the log entry</param>
+        /// <param name="lineNumber">Source line number of the log entry</param>
         static public void WriteLog( BinaryWriter w, bool isOpenGroup, LogLevel level, DateTimeStamp logTime, string text, CKTrait tags, CKExceptionData ex, string fileName, int lineNumber )
         {
             if( w == null ) throw new ArgumentNullException( "w" );
@@ -89,12 +190,30 @@ namespace CK.Monitoring
             if( (t & StreamLogType.IsTextTheExceptionMessage) == 0 ) w.Write( text );
         }
 
+        /// <summary>
+        /// Binary writes a closing entry.
+        /// </summary>
+        /// <param name="w">Binary writer to use.</param>
+        /// <param name="level">Log level of the log entry.</param>
+        /// <param name="closeTime">Time stamp of the group closing.</param>
+        /// <param name="conclusions">Group conclusions.</param>
         static public void WriteCloseGroup( BinaryWriter w, LogLevel level, DateTimeStamp closeTime, IReadOnlyList<ActivityLogGroupConclusion> conclusions )
         {
             if( w == null ) throw new ArgumentNullException( "w" );
             DoWriteCloseGroup( w, StreamLogType.TypeGroupClosed, level, closeTime, conclusions );
         }
 
+        /// <summary>
+        /// Binary writes a multicast closing entry.
+        /// </summary>
+        /// <param name="w">Binary writer to use.</param>
+        /// <param name="monitorId">Identifier of the monitor.</param>
+        /// <param name="previousEntryType">Log type of the previous entry in the monitor..</param>
+        /// <param name="previousLogTime">Time stamp of the previous entry in the monitor.</param>
+        /// <param name="depth">Depth of the group (number of opened groups above).</param>
+        /// <param name="level">Log level of the log entry.</param>
+        /// <param name="closeTime">Time stamp of the group closing.</param>
+        /// <param name="conclusions">Group conclusions.</param>
         static public void WriteCloseGroup( BinaryWriter w, Guid monitorId, LogEntryType previousEntryType, DateTimeStamp previousStamp, int depth, LogLevel level, DateTimeStamp closeTime, IReadOnlyList<ActivityLogGroupConclusion> conclusions )
         {
             if( w == null ) throw new ArgumentNullException( "w" );
