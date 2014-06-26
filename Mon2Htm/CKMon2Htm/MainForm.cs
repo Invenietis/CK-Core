@@ -28,6 +28,47 @@ namespace CK.Mon2Htm
         BackgroundWorker _bw;
         FileSystemWatcher _dirWatcher;
 
+        protected override void WndProc( ref Message m )
+        {
+            if( m.Msg == NativeMethods.WM_SHOWME )
+            {
+                ShowMe();
+            }
+            base.WndProc( ref m );
+        }
+
+        /// <summary>
+        /// Manual activation of the window.
+        /// </summary>
+        private void ShowMe()
+        {
+            if( InvokeRequired )
+            {
+                BeginInvoke( (MethodInvoker)delegate() { ShowMe(); } );
+                return;
+            }
+
+            if( WindowState == FormWindowState.Minimized )
+            {
+                WindowState = FormWindowState.Normal;
+            }
+
+            bool top = TopMost;
+            TopMost = true;
+            TopMost = top;
+
+            Activate();
+
+            LoadFilesFromStash();
+        }
+
+        void LoadFilesFromStash()
+        {
+            string[] filesInStash = Program.ReadStashFiles().ToArray();
+
+            if( filesInStash.Length > 0 ) LoadPath( filesInStash );
+        }
+
         public MainForm()
         {
 #if DEBUG
