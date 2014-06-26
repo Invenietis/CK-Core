@@ -109,7 +109,7 @@ namespace CK.Mon2Htm
 
             if( dialogResult == System.Windows.Forms.DialogResult.OK )
             {
-                LoadPath( d.FileName );
+                LoadPath( d.FileNames );
                 return true;
             }
             else
@@ -176,30 +176,31 @@ namespace CK.Mon2Htm
             return null;
         }
 
+        private void LoadPath( string path )
+        {
+            LoadPath( new string[] { path } );
+        }
+
         /// <summary>
         /// Loads file or directory path given as argument.
         /// </summary>
         /// <param name="path">File or directory path</param>
-        private void LoadPath( string path )
+        private void LoadPath( string[] path )
         {
-            if( Directory.Exists( path ) )
+            if( path.Length > 0 && (Directory.Exists( path[0] ) || File.Exists( path[0] ) ))
             {
-                SetLoadedDirectory( path );
+                LoadDirectory( path[0] );
 
-                Properties.Settings.Default.LastOpenDirectory = Path.GetDirectoryName( path );
-                Properties.Settings.Default.Save();
-            }
-            else if( File.Exists( path ) )
-            {
-                SetLoadedDirectory( path );
+                foreach (var item in path)
+	            {
+                    if( File.Exists( item ) )
+                    {
+                        SelectFile( item );
 
-                SelectFile( path );
-
-                Properties.Settings.Default.LastOpenDirectory = Path.GetDirectoryName( path );
-                Properties.Settings.Default.Save();
-
-                var row = GetRowOfFilePath( path );
-                this.dataGridView1.FirstDisplayedScrollingRowIndex = this.dataGridView1.Rows.IndexOf( row );
+                        var row = GetRowOfFilePath( item );
+                        this.dataGridView1.FirstDisplayedScrollingRowIndex = this.dataGridView1.Rows.IndexOf( row );
+                    }
+                }
             }
             else
             {
@@ -208,6 +209,14 @@ namespace CK.Mon2Htm
 
                 if( !hasSelectedFile ) this.Close();
             }
+        }
+
+        private void LoadDirectory( string path )
+        {
+            SetLoadedDirectory( path );
+
+            Properties.Settings.Default.LastOpenDirectory = Path.GetDirectoryName( path );
+            Properties.Settings.Default.Save();
         }
 
         /// <summary>
