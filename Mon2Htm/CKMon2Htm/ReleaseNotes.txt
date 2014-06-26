@@ -1,4 +1,10 @@
-﻿==> 3.0.28 (pending)
+﻿==> 3.0.29
+- Added progress bar.
+- Parallel processing for html generation.
+- App is now single-instanced.
+- Multi-selection when opening app without args now works.
+
+==> 3.0.28
 - When executing in Debug mode, HTML and resource files are no longer cached.
 - Logs no longer show in console.
 - Now targeting .NET 4.0, Client profile.

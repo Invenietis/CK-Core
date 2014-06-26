@@ -1,10 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
 using System.Web;
 using CK.Core;
 using CK.Monitoring;
@@ -13,7 +15,8 @@ namespace CK.Mon2Htm
 {
     /// <summary>
     /// Utility class to generate an HTML structure from .ckmon binary log files.
-    /// See: <see cref="CreateFromLogDirectory()"/> or <see cref="CreateFromActivityMap()"/>.
+    /// See: <see cref="CreateFromLogDirectory()"/> , or <see cref="CreateFromActivityMap()"/>,
+    /// or instanciate it yourself and use <see cref="GenerateHtmlStructure()"/>.
     /// </summary>
     public class HtmlGenerator
     {
@@ -30,12 +33,21 @@ namespace CK.Mon2Htm
         /// </remarks>
         public static readonly string TIME_FORMAT = @"yyyy-MM-ddTHH:mm:ss.fff";
 
+        /// <summary>
+        /// Names of the dump folders containing critical error dumps (like the ones made by SystemActivityMonitor).
+        /// They are looked up in the directory tree of .ckmon files, and printed on the index page.
+        /// </summary>
+        public static readonly string[] DUMP_FOLDER_NAMES = new[] { "SystemActivityMonitor", "CriticalErrors" };
+
         readonly IActivityMonitor _monitor;
         readonly Dictionary<MultiLogReader.Monitor, MonitorIndexInfo> _indexInfos;
         readonly string _outputDirectoryPath;
         readonly MultiLogReader.ActivityMap _activityMap;
         readonly int _logEntryCountPerPage;
         readonly string _resourcesDirectoryPath;
+
+        BackgroundWorker _bw;
+        static object _lock = new object();
 
         /// <summary>
         /// Creates an HTML view structure from a directory containing .ckmon files.
@@ -89,10 +101,11 @@ namespace CK.Mon2Htm
         /// <summary>
         /// Creates an HTML view structure from a MultiLogReader.ActivityMap.
         /// </summary>
-        /// <param name="_activityMap">ActivityMap to use.</param>
+        /// <param name="activityMap">ActivityMap to use.</param>
         /// <param name="activityMonitor">Activity monitor to use when logging events about generation.</param>
         /// <param name="htmlOutputDirectory">Directory in which the HTML structure will be generated.</param>
         /// <param name="logEntryCountPerPage">How many entries to write on every log page.</param>
+        /// <param name="resourcesDirectoryPath">The directory path, relative to the htmlOutputDirectory, that will contain the css/js folders linked inside the HTML headers. If not empty, CSS/JS resources will automatically be copied inside. <see cref="CopyResourcesToDirectory(string)"/></param>
         /// <returns>Full path of created index.html. Null when no valid file could be loaded from directoryPath.</returns>
         public static string CreateFromActivityMap( MultiLogReader.ActivityMap activityMap, IActivityMonitor activityMonitor, int logEntryCountPerPage, string outputDirectoryPath, string resourcesDirectoryPath = "" )
         {
@@ -115,7 +128,7 @@ namespace CK.Mon2Htm
         /// <summary>
         /// Copies additional content (JS, CSS, images) into the target directory path.
         /// </summary>
-        public static void CopyResourcesToDirectory(string resourceDirectoryRoot)
+        public static void CopyResourcesToDirectory( string resourceDirectoryRoot )
         {
             CopyContentResourceToFile( @"css\CkmonStyle.css", resourceDirectoryRoot );
             CopyContentResourceToFile( @"css\Reset.css", resourceDirectoryRoot );
@@ -137,12 +150,15 @@ namespace CK.Mon2Htm
         }
 
         /// <summary>
-        /// Initializes a new HtmlGenerator, using an existing ActivityMap.
+        /// Initializes a new HtmlGenerator, using an existing ActivityMap,
+        /// which can then be used to process its monitors into HTML files, written inside a target directory.
         /// </summary>
-        /// <param name="_activityMap">ActivityMap</param>
-        /// <param name="htmlOutputDirectory">directory to output HTML into</param>
+        /// <param name="activityMap">ActivityMap to extract the monitors and monitor information from.</param>
+        /// <param name="htmlOutputDirectory">Directory to output HTML into</param>
         /// <param name="activityMonitor">Monitor to use when reporting events about generation</param>
-        private HtmlGenerator( MultiLogReader.ActivityMap activityMap, string htmlOutputDirectory, IActivityMonitor activityMonitor, int logEntryCountPerPage, string resourcesDirectoryPath )
+        /// <param name="logEntryCountPerPage">Number of entry per HTML page, inside each monitor.</param>
+        /// <param name="resourcesDirectoryPath">The directory path, relative to the htmlOutputDirectory, that will contain the css/js folders linked inside the HTML headers. <see cref="CopyResourcesToDirectory(string)"/></param>
+        public HtmlGenerator( MultiLogReader.ActivityMap activityMap, string htmlOutputDirectory, IActivityMonitor activityMonitor, int logEntryCountPerPage, string resourcesDirectoryPath )
         {
             Debug.Assert( activityMap != null );
             Debug.Assert( activityMonitor != null );
@@ -154,7 +170,36 @@ namespace CK.Mon2Htm
             _indexInfos = new Dictionary<MultiLogReader.Monitor, MonitorIndexInfo>();
             _activityMap = activityMap;
             _resourcesDirectoryPath = resourcesDirectoryPath;
+        }
 
+        public void ConfigureBackgroundWorker( BackgroundWorker bw )
+        {
+            Debug.Assert( bw.IsBusy == false, "Given BackgroundWorker should not be busy." );
+            Debug.Assert( _bw == null, "No BackgroundWorker should exist before in this instance." );
+
+            _bw = bw;
+
+            _bw.WorkerSupportsCancellation = false;
+            _bw.WorkerReportsProgress = true;
+
+            _bw.DoWork += bw_DoWork;
+        }
+
+        void bw_DoWork( object sender, DoWorkEventArgs e )
+        {
+            Debug.Assert( _bw != null, "BackgroundWorker exists." );
+
+            string path = GenerateHtmlStructure();
+
+            e.Result = path;
+        }
+
+        void ReportProgress( int progressPercent = -1, string statusDescription = "" )
+        {
+            Debug.Assert( progressPercent >= -1 && progressPercent <= 100, "Progress should be between -1 (undefined) and 100 percent." );
+            if( _bw == null ) return;
+
+            _bw.ReportProgress( progressPercent, statusDescription );
         }
 
         /// <summary>
@@ -162,26 +207,55 @@ namespace CK.Mon2Htm
         /// then generates an index.
         /// </summary>
         /// <returns>Complete index path. Null if no files could be loaded.</returns>
-        private string GenerateHtmlStructure()
+        public string GenerateHtmlStructure()
         {
+            ReportProgress( -1, "Preparing" );
+
             _monitor.Info().Send( "Generating HTML files in directory: '{0}'", _outputDirectoryPath );
+            int i = 0;
 
             if( !Directory.Exists( _outputDirectoryPath ) ) Directory.CreateDirectory( _outputDirectoryPath );
 
             Dictionary<MultiLogReader.Monitor, IEnumerable<string>> monitorPages = new Dictionary<MultiLogReader.Monitor, IEnumerable<string>>();
+
             using( _monitor.OpenTrace().Send( "Writing monitors' HTML files" ) )
             {
-                foreach( var monitor in _activityMap.Monitors )
-                {
-                    _monitor.Trace().Send( "Indexing monitor: {0}", monitor.MonitorId.ToString() );
-                    var monitorIndex = MonitorIndexInfo.IndexMonitor( monitor, _logEntryCountPerPage );
-                    _indexInfos.Add( monitor, monitorIndex );
+                var token = _monitor.DependentActivity().CreateToken();
 
-                    _monitor.Trace().Send( "Writing monitor: {0}", monitor.MonitorId.ToString() );
-                    var logPages = CreateMonitorHtmlStructure( monitor, monitorIndex );
-                    if( logPages != null ) monitorPages.Add( monitor, logPages );
-                }
+                Parallel.ForEach( _activityMap.Monitors, ( monitor ) =>
+                {
+                    lock( _lock )
+                    {
+                        int progress = Convert.ToInt32( ((double)i / _activityMap.Monitors.Count) * 100 );
+
+                        ReportProgress( progress, String.Format( "Gen. {0}/{1}.", i + 1, _activityMap.Monitors.Count ) );
+                    }
+
+                    using( IDisposableActivityMonitor m = token.CreateDependentMonitor() )
+                    {
+                        m.Trace().Send( "Indexing monitor: {0}", monitor.MonitorId.ToString() );
+                        var monitorIndex = MonitorIndexInfo.IndexMonitor( monitor, _logEntryCountPerPage );
+
+                        lock( _lock ) _indexInfos.Add( monitor, monitorIndex );
+
+                        m.Trace().Send( "Writing monitor: {0}", monitor.MonitorId.ToString() );
+                        var logPages = CreateMonitorHtmlStructure( m, monitor, monitorIndex );
+                        if( logPages != null )
+                        {
+                            lock( _lock ) monitorPages.Add( monitor, logPages );
+                        }
+                    }
+
+                    lock( _lock )
+                    {
+                        i++;
+                    }
+                } );
+
             }
+
+            ReportProgress( 100, String.Format( "Gen. index", 100, _activityMap.Monitors.Count ) );
+
             string monitorListPath = Path.Combine( _outputDirectoryPath, "monitors.json" );
             JsonLogPageSerializer.SerializeMonitorList( _indexInfos.Values, monitorListPath, GetMonitorIndexJsonPath );
 
@@ -216,9 +290,9 @@ namespace CK.Mon2Htm
         /// <remarks>
         /// This loops and stores the log entries of every page, then writes them to a file when changing pages.
         /// </remarks>
-        private IEnumerable<string> CreateMonitorHtmlStructure( MultiLogReader.Monitor monitor, MonitorIndexInfo monitorIndex )
+        private IEnumerable<string> CreateMonitorHtmlStructure( IActivityMonitor activityMonitor, MultiLogReader.Monitor monitor, MonitorIndexInfo monitorIndex )
         {
-            _monitor.Info().Send( "Generating HTML for monitor: {0}", monitor.ToString() );
+            activityMonitor.Info().Send( "Generating HTML for monitor: {0}", monitor.ToString() );
 
 
             List<string> pageFilenames = new List<string>();
@@ -232,9 +306,9 @@ namespace CK.Mon2Htm
             int totalEntryCount = monitorIndex.TotalEntryCount;
             int totalPageCount = monitorIndex.PageCount;
             int currentPageEntryCount = 0;
-            
-            Func<int, string> getLogPageJsonPath = (i) => { return GetLogPageJsonPath(monitor, i); };
-            JsonLogPageSerializer.SerializeMonitorIndex( monitorIndex, GetMonitorIndexJsonPath(monitor), getLogPageJsonPath );
+
+            Func<int, string> getLogPageJsonPath = ( i ) => { return GetLogPageJsonPath( monitor, i ); };
+            JsonLogPageSerializer.SerializeMonitorIndex( monitorIndex, GetMonitorIndexJsonPath( monitor ), getLogPageJsonPath );
 
             var page = monitor.ReadFirstPage( monitor.FirstEntryTime, _logEntryCountPerPage );
 
@@ -259,13 +333,13 @@ namespace CK.Mon2Htm
                     // Flush entries into HTML
                     if( currentPageEntryCount >= _logEntryCountPerPage )
                     {
-                        _monitor.Info().Send( "Generating page {0}", currentPageNumber );
+                        activityMonitor.Info().Send( "Generating page {0}", currentPageNumber );
 
                         string pageName = GenerateLogPage( currentPageLogEntries, monitor, currentPageNumber, openGroupsOnStart, openGroupsOnEnd.ToReadOnlyList() );
 
                         string jsonFilename = String.Format( "{0}_{1}.json", monitor.MonitorId, currentPageNumber );
-                        IStructuredLogPage logPage = new LogPage( currentPageLogEntries.Select(x => x.Entry).ToReadOnlyList(), openGroupsOnStart, openGroupsOnEnd.ToReadOnlyList(), currentPageNumber, monitorIndex );
-                        JsonLogPageSerializer.SerializeLogPage( logPage, Path.Combine(_outputDirectoryPath, jsonFilename) );
+                        IStructuredLogPage logPage = new LogPage( currentPageLogEntries.Select( x => x.Entry ).ToReadOnlyList(), openGroupsOnStart, openGroupsOnEnd.ToReadOnlyList(), currentPageNumber, monitorIndex );
+                        JsonLogPageSerializer.SerializeLogPage( logPage, Path.Combine( _outputDirectoryPath, jsonFilename ) );
 
 
                         currentPageNumber++;
@@ -282,11 +356,11 @@ namespace CK.Mon2Htm
             // Flush outstanding entries into HTML
             if( currentPageEntryCount > 0 )
             {
-                _monitor.Info().Send( "Generating outstanding page {0}", currentPageNumber );
+                activityMonitor.Info().Send( "Generating outstanding page {0}", currentPageNumber );
 
                 string pageName = GenerateLogPage( currentPageLogEntries, monitor, currentPageNumber, openGroupsOnStart, openGroupsOnEnd.ToReadOnlyList() );
 
-                string jsonFilename = GetLogPageJsonPath(monitor, currentPageNumber);
+                string jsonFilename = GetLogPageJsonPath( monitor, currentPageNumber );
                 IStructuredLogPage logPage = new LogPage( currentPageLogEntries.Select( x => x.Entry ).ToReadOnlyList(), openGroupsOnStart, openGroupsOnEnd.ToReadOnlyList(), currentPageNumber, monitorIndex );
                 JsonLogPageSerializer.SerializeLogPage( logPage, Path.Combine( _outputDirectoryPath, jsonFilename ) );
 
@@ -365,8 +439,8 @@ namespace CK.Mon2Htm
             if( dumpPaths.Count > 0 )
             {
                 tw.Write( @"<div class=""alert alert-danger"">" );
-                tw.Write( @"<h2>Found SystemActivityMonitor dumps</h2>" );
-                tw.Write( @"<p>The logging system encountered the following errors:</p>" );
+                tw.Write( @"<h2>Found critical error dumps</h2>" );
+                tw.Write( @"<p>Critical errors were encountered while logging:</p>" );
                 foreach( var path in dumpPaths )
                 {
                     tw.Write( @"<h3>{0} <small>{1}</small></h3>", Path.GetFileName( path ), Path.GetDirectoryName( path ) );
@@ -379,7 +453,7 @@ namespace CK.Mon2Htm
             tw.Write( String.Format( "<h3>Between {0} and {1}</h3>", _activityMap.FirstEntryDate, _activityMap.LastEntryDate ) );
 
             tw.Write( @"<h2>Monitors:</h2><table class=""monitorTable table table-striped table-bordered"">" );
-            tw.Write( @"<thead><tr><th>Monitor</th><th>Started</th><th>Duration</th><th>Entries</th><th>Tags</th></tr></thead><tbody>" );
+            tw.Write( @"<thead><tr><th>Monitor</th><th>Started</th><th>Duration</th><th>Tags</th><th>Entries</th></tr></thead><tbody>" );
 
             var monitorList = _activityMap.Monitors.ToList();
             monitorList.Sort( ( a, b ) => b.FirstEntryTime.CompareTo( a.FirstEntryTime ) );
@@ -400,20 +474,20 @@ namespace CK.Mon2Htm
 <td class=""monitorId"">{0}</td>
 <td class=""monitorTime""><span data-toggle=""tooltip"" title=""{6}"" rel=""tooltip""><span class=""startTime"">{1}</span></span></td>
 <td class=""monitorTime""><span data-toggle=""tooltip"" title=""{7}"" rel=""tooltip""><span class=""endTime"">{2}</span></span></td>
+<td>{9}</td>
 <td>
-    <div class=""totalCount entryCount"">Total: {8}</div>
+    <div class=""totalCount entryCount"">{8}</div>
     <div class=""warnCount entryCount"" style=""display: {10}"">{3}</div>
     <div class=""errorCount entryCount"" style=""display: {11}"">{4}</div>
     <div class=""fatalCount entryCount"" style=""display: {12}"">{5}</div>
-</td>
-<td>{9}</td>",
+</td>",
                     href,
                     monitor.FirstEntryTime.TimeUtc.ToString( TIME_FORMAT ),
                     monitor.LastEntryTime.TimeUtc.ToString( TIME_FORMAT ),
                     _indexInfos[monitor].TotalWarnCount,
                     _indexInfos[monitor].TotalErrorCount,
                     _indexInfos[monitor].TotalFatalCount,
-                    String.Format( "First entry: {0}<br>Last entry: {0}", monitor.FirstEntryTime.TimeUtc.ToString( TIME_FORMAT ), monitor.LastEntryTime.TimeUtc.ToString( TIME_FORMAT ) ),
+                    String.Format( "First entry: {0}<br>Last entry: {1}", monitor.FirstEntryTime.TimeUtc.ToString( TIME_FORMAT ), monitor.LastEntryTime.TimeUtc.ToString( TIME_FORMAT ) ),
                     String.Format( "Monitor duration: {0}", (monitor.LastEntryTime.TimeUtc - monitor.FirstEntryTime.TimeUtc).ToString( "c" ) ),
                     _indexInfos[monitor].TotalEntryCount,
                     String.Join( ", ", monitor.AllTags.Select( wTag => HtmlUtils.HtmlEncode( wTag.Key.ToString() ) + @"<div class=""entryCount"">(" + wTag.Value.ToString( CultureInfo.InvariantCulture ) + ")</div>" ) ),
@@ -425,7 +499,7 @@ namespace CK.Mon2Htm
                 tw.Write( "</tr>" );
             }
             tw.Write( "</tbody></table>" );
-            tw.Write( GetHtmlFooter(_resourcesDirectoryPath) );
+            tw.Write( GetHtmlFooter( _resourcesDirectoryPath ) );
         }
 
         private void WriteMonitorPaginator( TextWriter tw, MultiLogReader.Monitor monitor, int currentPage )
@@ -484,18 +558,21 @@ namespace CK.Mon2Htm
             {
                 // Find lowest SystemActivityMonitor folder in the path
                 string currentFolder = Path.GetFullPath( ckmonFolder );
-                string targetFolder = String.Empty;
-                bool hasFolder = false;
-                while( !hasFolder )
+
+                List<string> dumpFolders = new List<string>();
+
+                while( dumpFolders.Count == 0 )
                 {
-                    targetFolder = Path.Combine( currentFolder, "SystemActivityMonitor" );
-                    if( Directory.Exists( targetFolder ) )
+                    foreach( string dumpFolderName in DUMP_FOLDER_NAMES )
                     {
-                        hasFolder = true;
-                        currentFolder = targetFolder;
-                        break;
+                        string dumpFolderFullPath = Path.Combine( currentFolder, dumpFolderName );
+                        if( Directory.Exists( dumpFolderFullPath ) )
+                        {
+                            dumpFolders.Add( dumpFolderFullPath );
+                        }
                     }
-                    else
+
+                    if( dumpFolders.Count == 0 )
                     {
                         var currentFolderInfo = Directory.GetParent( currentFolder );
                         if( currentFolderInfo == null )
@@ -509,22 +586,25 @@ namespace CK.Mon2Htm
                     }
                 }
 
-                if( hasFolder )
+                if( dumpFolders.Count > 0 )
                 {
-                    foreach( var f in Directory.GetFiles( currentFolder, "*.txt" ) )
+                    foreach( string dumpFolderFullPath in dumpFolders )
                     {
-                        if( !dumpPaths.Contains( f ) ) dumpPaths.Add( f );
+                        foreach( var f in Directory.GetFiles( dumpFolderFullPath, "*.txt" ) )
+                        {
+                            if( !dumpPaths.Contains( f ) ) dumpPaths.Add( f );
+                        }
                     }
                 }
                 else
                 {
                     // Broke at root, but didn't find a path
-                    _monitor.Warn().Send( "Did not find a SystemActivityMonitor directory when browsing path {0}.", ckmonFolder );
+                    _monitor.Warn().Send( "Did not find a critical dump (SystemActivityMonitor) directory when browsing path {0}.", ckmonFolder );
                 }
 
                 if( dumpPaths.Count > 0 )
                 {
-                    using( _monitor.OpenWarn().Send( "Found the following SystemActivityMonitor dumps:" ) )
+                    using( _monitor.OpenWarn().Send( "Found the following critical dumps (SystemActivityMonitor):" ) )
                     {
                         foreach( var p in dumpPaths )
                         {
@@ -536,40 +616,6 @@ namespace CK.Mon2Htm
             }
 
             return dumpPaths;
-        }
-
-        /// <summary>
-        /// Finds the common root directory from a list of paths.
-        /// This one is from Rosetta Code. http://rosettacode.org/wiki/Find_common_directory_path#C.23
-        /// </summary>
-        /// <param name="paths"></param>
-        /// <returns></returns>
-        public static string FindCommonPath( List<string> paths )
-        {
-            string separator = Path.DirectorySeparatorChar.ToString();
-            string commonPath = String.Empty;
-            List<string> separatedPath = paths
-                .First( str => str.Length == paths.Max( st2 => st2.Length ) )
-                .Split( new string[] { separator }, StringSplitOptions.RemoveEmptyEntries )
-                .ToList();
-
-            foreach( string pathSegment in separatedPath )
-            {
-                if( commonPath.Length == 0 && paths.All( str => str.StartsWith( pathSegment ) ) )
-                {
-                    commonPath = pathSegment;
-                }
-                else if( paths.All( str => str.StartsWith( commonPath + separator + pathSegment ) ) )
-                {
-                    commonPath += separator + pathSegment;
-                }
-                else
-                {
-                    break;
-                }
-            }
-
-            return commonPath;
         }
 
         /// <summary>
@@ -607,9 +653,9 @@ namespace CK.Mon2Htm
             return String.Format( HTML_HEADER, title, writeLogMenu ? HTML_ENTRYPAGE_HEADER_MENU : String.Empty, resourceDirectory );
         }
 
-        private static string GetHtmlFooter(string resourceDirectory)
+        private static string GetHtmlFooter( string resourceDirectory )
         {
-            return String.Format(HTML_FOOTER, resourceDirectory);
+            return String.Format( HTML_FOOTER, resourceDirectory );
         }
 
         #region HTML header template
