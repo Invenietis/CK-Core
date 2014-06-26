@@ -1,4 +1,4 @@
-﻿==> 3.0.29 (pending)
+﻿==> 3.0.29
 - Moved StartDependentActivity extension method to IActivityMonitor instead of DependentSender.
 
 ==> 3.0.28

@@ -1,4 +1,4 @@
-﻿==> 3.0.29 (pending)
+﻿==> 3.0.29
 - Fix: same datetime was used.
 - Reordered columns in index page.
 - Parallel processing for html generation.
