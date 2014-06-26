@@ -38,7 +38,7 @@ namespace CK.Core
     {
 
         /// <summary>
-        /// Offers dependent token creation, launching and start.
+        /// Offers dependent token creation and launching.
         /// </summary>
         public struct DependentSender
         {
@@ -136,22 +136,23 @@ namespace CK.Core
                 }
             }
 
-
             /// <summary>
-            /// Starts a dependent activity. This sets the <see cref="ActivityMonitor.DependentToken.Topic"/> if it is not null and opens a group
-            /// tagged with <see cref="ActivityMonitor.Tags.StartDependentActivity"/> with a message that can be parsed back thanks to <see cref="ActivityMonitor.DependentToken.TryParseStartMessage"/>.
+            /// 
             /// </summary>
-            /// <param name="token">Token that describes the origin of the activity.</param>
-            /// <returns>A disposable object. It must be disposed at the end of the activity.</returns>
+            /// <param name="token"></param>
+            /// <returns></returns>
+            [Obsolete( "Use the IActivityMonitor.StartDependentActivity( token ) extension method instead.", false )]
             public IDisposable StartDependentActivity( ActivityMonitor.DependentToken token )
             {
                 if( token == null ) throw new ArgumentNullException( "token" );
                 return ActivityMonitor.DependentToken.Start( token, _monitor, _fileName, _lineNumber );
             }
         }
-
+        
         /// <summary>
-        /// Enables dependent activities token creation, activities launch and start declaration.
+        /// Enables dependent activities token creation and activities launch.
+        /// Use <see cref="StartDependentActivity">IActivityMonitor.StartDependentActivity</see> to declare the start of a 
+        /// dependent activity on the target monitor.
         /// </summary>
         /// <param name="this">This <see cref="IActivityMonitor"/>.</param>
         /// <param name="fileName">Source file name of the emitter (automatically injected by C# compiler but can be explicitly set).</param>
@@ -161,5 +162,21 @@ namespace CK.Core
         {
             return new DependentSender( @this, fileName, lineNumber );
         }
+        
+        /// <summary>
+        /// Starts a dependent activity. This sets the <see cref="ActivityMonitor.DependentToken.Topic"/> if it is not null and opens a group
+        /// tagged with <see cref="ActivityMonitor.Tags.StartDependentActivity"/> with a message that can be parsed back thanks to <see cref="ActivityMonitor.DependentToken.TryParseStartMessage"/>.
+        /// </summary>
+        /// <param name="this">This <see cref="IActivityMonitor"/>.</param>
+        /// <param name="token">Token that describes the origin of the activity.</param>
+        /// <param name="fileName">Source file name of the emitter (automatically injected by C# compiler but can be explicitly set).</param>
+        /// <param name="lineNumber">Line number in the source file (automatically injected by C# compiler but can be explicitly set).</param>
+        /// <returns>A disposable object. It must be disposed at the end of the activity.</returns>
+        static public IDisposable StartDependentActivity( this IActivityMonitor @this, ActivityMonitor.DependentToken token, [CallerFilePath]string fileName = null, [CallerLineNumber]int lineNumber = 0 )
+        {
+            if( token == null ) throw new ArgumentNullException( "token" );
+            return ActivityMonitor.DependentToken.Start( token, @this, fileName, lineNumber );
+        }
+
     }
 }
