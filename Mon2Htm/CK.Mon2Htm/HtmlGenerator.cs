@@ -33,6 +33,12 @@ namespace CK.Mon2Htm
         /// </remarks>
         public static readonly string TIME_FORMAT = @"yyyy-MM-ddTHH:mm:ss.fff";
 
+        /// <summary>
+        /// Names of the dump folders containing critical error dumps (like the ones made by SystemActivityMonitor).
+        /// They are looked up in the directory tree of .ckmon files, and printed on the index page.
+        /// </summary>
+        public static readonly string[] DUMP_FOLDER_NAMES = new[] { "SystemActivityMonitor", "CriticalErrors" };
+
         readonly IActivityMonitor _monitor;
         readonly Dictionary<MultiLogReader.Monitor, MonitorIndexInfo> _indexInfos;
         readonly string _outputDirectoryPath;
@@ -433,8 +439,8 @@ namespace CK.Mon2Htm
             if( dumpPaths.Count > 0 )
             {
                 tw.Write( @"<div class=""alert alert-danger"">" );
-                tw.Write( @"<h2>Found SystemActivityMonitor dumps</h2>" );
-                tw.Write( @"<p>The logging system encountered the following errors:</p>" );
+                tw.Write( @"<h2>Found critical error dumps</h2>" );
+                tw.Write( @"<p>Critical errors were encountered while logging:</p>" );
                 foreach( var path in dumpPaths )
                 {
                     tw.Write( @"<h3>{0} <small>{1}</small></h3>", Path.GetFileName( path ), Path.GetDirectoryName( path ) );
@@ -552,18 +558,21 @@ namespace CK.Mon2Htm
             {
                 // Find lowest SystemActivityMonitor folder in the path
                 string currentFolder = Path.GetFullPath( ckmonFolder );
-                string targetFolder = String.Empty;
-                bool hasFolder = false;
-                while( !hasFolder )
+
+                List<string> dumpFolders = new List<string>();
+
+                while( dumpFolders.Count == 0 )
                 {
-                    targetFolder = Path.Combine( currentFolder, "SystemActivityMonitor" );
-                    if( Directory.Exists( targetFolder ) )
+                    foreach( string dumpFolderName in DUMP_FOLDER_NAMES )
                     {
-                        hasFolder = true;
-                        currentFolder = targetFolder;
-                        break;
+                        string dumpFolderFullPath = Path.Combine( currentFolder, dumpFolderName );
+                        if( Directory.Exists( dumpFolderFullPath ) )
+                        {
+                            dumpFolders.Add( dumpFolderFullPath );
+                        }
                     }
-                    else
+
+                    if( dumpFolders.Count == 0 )
                     {
                         var currentFolderInfo = Directory.GetParent( currentFolder );
                         if( currentFolderInfo == null )
@@ -577,22 +586,25 @@ namespace CK.Mon2Htm
                     }
                 }
 
-                if( hasFolder )
+                if( dumpFolders.Count > 0 )
                 {
-                    foreach( var f in Directory.GetFiles( currentFolder, "*.txt" ) )
+                    foreach( string dumpFolderFullPath in dumpFolders )
                     {
-                        if( !dumpPaths.Contains( f ) ) dumpPaths.Add( f );
+                        foreach( var f in Directory.GetFiles( dumpFolderFullPath, "*.txt" ) )
+                        {
+                            if( !dumpPaths.Contains( f ) ) dumpPaths.Add( f );
+                        }
                     }
                 }
                 else
                 {
                     // Broke at root, but didn't find a path
-                    _monitor.Warn().Send( "Did not find a SystemActivityMonitor directory when browsing path {0}.", ckmonFolder );
+                    _monitor.Warn().Send( "Did not find a critical dump (SystemActivityMonitor) directory when browsing path {0}.", ckmonFolder );
                 }
 
                 if( dumpPaths.Count > 0 )
                 {
-                    using( _monitor.OpenWarn().Send( "Found the following SystemActivityMonitor dumps:" ) )
+                    using( _monitor.OpenWarn().Send( "Found the following critical dumps (SystemActivityMonitor):" ) )
                     {
                         foreach( var p in dumpPaths )
                         {
