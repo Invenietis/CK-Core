@@ -1,6 +1,8 @@
 ﻿==> 3.0.29 (pending)
 - Added progress bar.
 - Parallel processing for html generation.
+- App is now single-instanced.
+- Multi-selection when opening app without args now works.
 
 ==> 3.0.28
 - When executing in Debug mode, HTML and resource files are no longer cached.
