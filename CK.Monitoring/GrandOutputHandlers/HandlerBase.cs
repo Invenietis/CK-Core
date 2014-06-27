@@ -23,6 +23,10 @@ namespace CK.Monitoring.GrandOutputHandlers
             _minimalFilter = LogFilter.Undefined;
         }
 
+        /// <summary>
+        /// Base constructor bound to base configuration object.
+        /// </summary>
+        /// <param name="config">The configuration object.</param>
         protected HandlerBase( HandlerConfiguration config )
         {
             _name = config.Name;

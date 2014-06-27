@@ -19,9 +19,10 @@ namespace CK.Monitoring
         static DateTime _lastConfigFileWriteTime = FileUtil.MissingFileLastWriteTimeUtc;
 
         /// <summary>
-        /// Ensures that the <see cref="Default"/> GrandOutput is created (see <see cref="EnsureActiveDefault"/>) and configured with default settings.
-        /// The <see cref="SystemActivityMonitor.RootLogPath"/> must be valid and if a GrandOutput.config file exists inside, it is loaded as the configuration
-        /// that must be valid (otherwise an exception is thrown).
+        /// Ensures that the <see cref="Default"/> GrandOutput is created (see <see cref="EnsureActiveDefault"/>) and configured with default settings:
+        /// only one one channel with its minimal filter sets to Debug with one file handler that writes .ckmon files in "<see cref="SystemActivityMonitor.RootLogPath"/>\GrandOutputDefault" directory.
+        /// The <see cref="SystemActivityMonitor.RootLogPath"/> must be valid and if a GrandOutput.config file exists inside, it is loaded as the configuration.
+        /// If it exists, it must be valid (otherwise an exception is thrown).
         /// Once loaded, the file is monitored and any change that occurs to it dynamically triggers a <see cref="SetConfiguration"/> with the new file.
         /// </summary>
         /// <param name="monitor">An optional monitor.</param>
@@ -69,7 +70,7 @@ namespace CK.Monitoring
 
         const string _defaultConfig = 
 @"<GrandOutputConfiguration>
-    <Channel MinimalFilter=""Terse"">
+    <Channel MinimalFilter=""Debug"">
         <Add Type=""BinaryFile"" Name=""All"" Path=""GrandOutputDefault"" />
     </Channel>
 </GrandOutputConfiguration>";
@@ -80,7 +81,7 @@ namespace CK.Monitoring
             Debug.Assert( def.SourceOverrideFilterApplicationMode == SourceFilterApplyMode.None );
             Debug.Assert( def.AppDomainDefaultFilter == null );
             var route = new RouteConfiguration();
-            route.ConfigData = new GrandOutputChannelConfigData() { MinimalFilter = LogFilter.Terse };
+            route.ConfigData = new GrandOutputChannelConfigData() { MinimalFilter = LogFilter.Debug };
             route.AddAction( new BinaryFileConfiguration( "All" ) { Path = "GrandOutputDefault" } );
             def.ChannelsConfiguration = route;
             return def;

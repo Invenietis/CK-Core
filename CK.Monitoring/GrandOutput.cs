@@ -33,7 +33,7 @@ namespace CK.Monitoring
 
         /// <summary>
         /// Gets the default <see cref="GrandOutput"/> for the current Application Domain.
-        /// Note that <see cref="EnsureActiveDefault()"/> must have been called, otherwise this static property is null.
+        /// Note that <see cref="EnsureActiveDefault"/> must have been called, otherwise this static property is null.
         /// </summary>
         public static GrandOutput Default 
         { 
