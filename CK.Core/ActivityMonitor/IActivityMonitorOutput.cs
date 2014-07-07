@@ -36,7 +36,7 @@ namespace CK.Core
     {
         /// <summary>
         /// Registers an <see cref="IActivityMonitorClient"/> to the <see cref="Clients"/> list.
-        /// Duplicate IActivityMonitorClient instances are silently ignored.
+        /// Duplicate IActivityMonitorClient instances are ignored.
         /// </summary>
         /// <param name="client">An <see cref="IActivityMonitorClient"/> implementation.</param>
         /// <param name="added">True if the client has been added, false if it was already registered.</param>

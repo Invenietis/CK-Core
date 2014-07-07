@@ -83,7 +83,7 @@ namespace CK.Core.Tests
         }
 
         [Test]
-        public void DefaultInitializationnOnConfigurationManangerIsDynamic()
+        public void DefaultInitializationOnConfigurationManangerIsDynamic()
         {
             AppSettings settings = new AppSettings();
             // Here, ConfigurationManager has been late bound.
@@ -92,6 +92,40 @@ namespace CK.Core.Tests
             SetConfigurationManagerSettings( "Test", "Murfn" );
             Assert.That( settings["Test"], Is.EqualTo( "Murfn" ) );
             RemoveConfigurationManagerSettings( "Test" );
+            Assert.That( settings["Test"], Is.Null );
+        }
+
+        [Test]
+        public void OverideDefaultInitialization()
+        {
+            AppSettings settings = new AppSettings();
+            SetConfigurationManagerSettings( "Test", "Murfn will be overridden." );
+            Assert.That( settings["Test"], Is.EqualTo( "Murfn will be overridden." ) );
+            settings.Override( ( legacy, key ) =>
+            {
+                if( key == "Test" )
+                {
+                    Assert.That( legacy( key ), Is.EqualTo( "Murfn will be overridden." ) );
+                    return "Overide Murfn...";
+                }
+                return legacy( key );
+            } );
+            Assert.That( settings["Test"], Is.EqualTo( "Overide Murfn..." ) );
+            settings.RevertOverrides();
+            Assert.That( settings["Test"], Is.EqualTo( "Murfn will be overridden." ) );
+            RemoveConfigurationManagerSettings( "Test" );
+            Assert.That( settings["Test"], Is.Null );
+            settings.Override( ( legacy, key ) =>
+            {
+                if( key == "Test" )
+                {
+                    Assert.That( legacy( key ), Is.Null );
+                    return "Overide Murfn... 2";
+                }
+                return legacy( key );
+            } );
+            Assert.That( settings["Test"], Is.EqualTo( "Overide Murfn... 2" ) );
+            settings.RevertOverrides();
             Assert.That( settings["Test"], Is.Null );
         }
 
