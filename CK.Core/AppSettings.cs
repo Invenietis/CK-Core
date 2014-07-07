@@ -182,7 +182,7 @@ namespace CK.Core
                 g.Emit( OpCodes.Ldarg_0 );
                 g.EmitCall( OpCodes.Call, indexer, null );
                 g.Emit( OpCodes.Ret );
-                _getObject = (Func<string, object>)getter.CreateDelegate( typeof( Func<string, object> ) );
+                _initializedGetObject = _getObject = (Func<string, object>)getter.CreateDelegate( typeof( Func<string, object> ) );
                 _initialized = true;
             }
             else throw new CKException( R.AppSettingsDefaultInitializationFailed );

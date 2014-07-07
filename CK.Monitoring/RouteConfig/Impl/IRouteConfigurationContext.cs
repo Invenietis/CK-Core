@@ -42,9 +42,9 @@ namespace CK.RouteConfig.Impl
         bool RemoveAction( string name );
 
         /// <summary>
-        /// Adds an action that has been previously declared or not: <paramref name="fromMetaInsert"/> is true
-        /// if we insert actions from <see cref="MetaInsertActionConfiguration"/>, false if the action is
-        /// added by a direct <see cref="MetaAddActionConfiguration"/>.
+        /// Adds an action that has been previously declared or not: 
+        /// <paramref name="fromMetaInsert"/> is true if we insert actions from <see cref="MetaInsertActionConfiguration"/>. 
+        /// It is false if the action is added by a direct <see cref="MetaAddActionConfiguration"/>.
         /// </summary>
         /// <param name="name">Name of the action to add.</param>
         /// <param name="declaredName">Name of the declared action.</param>

@@ -214,13 +214,13 @@ namespace CK.Monitoring
         /// <param name="level">Log level of the log entry.</param>
         /// <param name="closeTime">Time stamp of the group closing.</param>
         /// <param name="conclusions">Group conclusions.</param>
-        static public void WriteCloseGroup( BinaryWriter w, Guid monitorId, LogEntryType previousEntryType, DateTimeStamp previousStamp, int depth, LogLevel level, DateTimeStamp closeTime, IReadOnlyList<ActivityLogGroupConclusion> conclusions )
+        static public void WriteCloseGroup( BinaryWriter w, Guid monitorId, LogEntryType previousEntryType, DateTimeStamp previousLogTime, int depth, LogLevel level, DateTimeStamp closeTime, IReadOnlyList<ActivityLogGroupConclusion> conclusions )
         {
             if( w == null ) throw new ArgumentNullException( "w" );
             StreamLogType type = StreamLogType.TypeGroupClosed | StreamLogType.IsMultiCast;
-            type = UpdateTypeWithPrevious( type, previousEntryType, ref previousStamp );
+            type = UpdateTypeWithPrevious( type, previousEntryType, ref previousLogTime );
             DoWriteCloseGroup( w, type, level, closeTime, conclusions );
-            WriteMulticastFooter( w, monitorId, previousEntryType, previousStamp, depth );
+            WriteMulticastFooter( w, monitorId, previousEntryType, previousLogTime, depth );
         }
 
         static StreamLogType UpdateTypeWithPrevious( StreamLogType type, LogEntryType previousEntryType, ref DateTimeStamp previousStamp )

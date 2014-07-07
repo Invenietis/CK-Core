@@ -10,6 +10,11 @@ using CK.Core;
 
 namespace CK.Monitoring
 {
+    /// <summary>
+    /// This reader process multiples .ckmon files (possibly in different steps: it internally aggregates the result) and can 
+    /// create <see cref="ActivityMap"/> objects on demand.
+    /// It is a thread safe object (the ActivityMap is immutable).
+    /// </summary>
     public sealed partial class MultiLogReader : IDisposable
     {
         readonly ConcurrentDictionary<Guid,LiveIndexedMonitor> _monitors;

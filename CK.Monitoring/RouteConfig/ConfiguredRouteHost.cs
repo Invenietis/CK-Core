@@ -127,7 +127,7 @@ namespace CK.RouteConfig
         /// Returns the <typeparamref name="TRoute"/> for a full name.
         /// Obtaining a route locks the configuration: it must be unlocked when not used anymore.
         /// When null, it means that a configuration is waiting to be applied (a route that buffers its work should be substituted)
-        /// or that this host <see cref="IsDisposed"/>.
+        /// or that this host <see cref="IsDisposed">is disposed</see>.
         /// </summary>
         /// <param name="route">The full route that will be matched.</param>
         /// <returns>The final route to apply or null if a configuration is applying or if <see cref="IsDisposed"/> is true.</returns>

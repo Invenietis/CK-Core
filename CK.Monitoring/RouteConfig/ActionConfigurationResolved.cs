@@ -8,6 +8,7 @@ using CK.Core;
 namespace CK.RouteConfig
 {
     /// <summary>
+    /// Resolved action configurations belong to <see cref="RouteConfigurationResolved"/> and <see cref="SubRouteConfigurationResolved"/>.
     /// </summary>
     public class ActionConfigurationResolved
     {

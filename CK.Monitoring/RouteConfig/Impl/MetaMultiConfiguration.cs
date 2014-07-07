@@ -11,6 +11,11 @@ namespace CK.RouteConfig.Impl
     {
         readonly List<T> _items;
 
+        /// <summary>
+        /// Initializes a configuration with at least one item.
+        /// </summary>
+        /// <param name="first">First and required item.</param>
+        /// <param name="other">Optional multiple items.</param>
         public MetaMultiConfiguration( T first, params T[] other )
         {
             _items = new List<T>();
@@ -18,11 +23,18 @@ namespace CK.RouteConfig.Impl
             _items.AddRange( other.Where( i => i != null ) );
         }
 
+        /// <summary>
+        /// Gets the items.
+        /// </summary>
         protected IReadOnlyList<T> Items
         {
             get { return _items.AsReadOnlyList(); }
         }
 
+        /// <summary>
+        /// Adds a new item.
+        /// </summary>
+        /// <param name="item">Item to add.</param>
         protected void Add( T item )
         {
             if( item != null ) _items.Add( item );
