@@ -9,6 +9,10 @@ namespace CK.Core.ActivityMonitorAdapters.NLogImpl
     /// </summary>
     public class NLogClient : IActivityMonitorClient
     {
+        /// <summary>
+        /// The assigned logger.
+        /// <see cref="NLogTopicBasedClient"/> changed this whenever the monitor's topic changes.
+        /// </summary>
         protected Logger Logger;
 
         /// <summary>

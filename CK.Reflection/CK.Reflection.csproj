@@ -34,7 +34,7 @@
     <DefineConstants>TRACE;net45</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
-    <DocumentationFile>$(OutputPath)CK.Reflection.xml</DocumentationFile>
+    <DocumentationFile>bin\Release\CK.Reflection.xml</DocumentationFile>
     <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <PropertyGroup>

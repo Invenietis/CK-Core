@@ -38,7 +38,7 @@ namespace CK.Monitoring.Impl
                     }
                     catch( Exception ex )
                     {
-                        ActivityMonitor.MonitoringError.Add( ex, "While logging event into Global sinks." );
+                        ActivityMonitor.CriticalErrorCollector.Add( ex, "While logging event into Global sinks." );
                     }
                 }
                 try
@@ -47,7 +47,7 @@ namespace CK.Monitoring.Impl
                 }
                 catch( Exception ex )
                 {
-                    ActivityMonitor.MonitoringError.Add( ex, "While logging event." );
+                    ActivityMonitor.CriticalErrorCollector.Add( ex, "While logging event." );
                 }
                 finally
                 {
@@ -169,7 +169,7 @@ namespace CK.Monitoring.Impl
                     {
                         if( _overloadedErrorWaiting && now > _nextCapacityError )
                         {
-                            ActivityMonitor.MonitoringError.Add( new CKException( "GrandOutput dispatcher overload. Lost {0} total events.", _eventLostCount ), null );
+                            ActivityMonitor.CriticalErrorCollector.Add( new CKException( "GrandOutput dispatcher overload. Lost {0} total events.", _eventLostCount ), null );
                             if( receiver != null ) _nextCapacityError = now.Add( _delayBetweenCapacityError );
                             _overloadedErrorWaiting = false;
                         }

@@ -116,9 +116,9 @@ namespace CK.Core
         /// The monitoring error collector. 
         /// Any error that occurs while dispatching logs to <see cref="IActivityMonitorClient"/>
         /// are collected and the culprit is removed from <see cref="Output"/>.
-        /// See <see cref="CriticalErrorCollector"/>.
+        /// See <see cref="T:CriticalErrorCollector"/>.
         /// </summary>
-        public static readonly CriticalErrorCollector MonitoringError;
+        public static readonly CriticalErrorCollector CriticalErrorCollector;
 
         static LogFilter _defaultFilterLevel;
         
@@ -153,7 +153,7 @@ namespace CK.Core
                             }
                             catch( Exception ex )
                             {
-                                MonitoringError.Add( ex, "DefaultFilter changed." );
+                                CriticalErrorCollector.Add( ex, "DefaultFilter changed." );
                             }
                         }
                     }
@@ -170,7 +170,7 @@ namespace CK.Core
 
         static ActivityMonitor()
         {
-            MonitoringError = new CriticalErrorCollector();
+            CriticalErrorCollector = new CriticalErrorCollector();
             AutoConfiguration = null;
             _defaultFilterLevel = LogFilter.Undefined;
             _lockDefaultFilterLevel = new object();
@@ -250,7 +250,10 @@ namespace CK.Core
         }
 
         /// <summary>
-        /// Unique identifier for this monitor.
+        /// Gets the unique identifier for this monitor.
+        /// It is a <see cref="Guid.NewGuid"/> by default but specialized implementations can set it
+        /// via the protected <see cref="SetUniqueId"/> if a unique identifier exists in the context 
+        /// that can more easily identify this activity.
         /// </summary>
         protected Guid UniqueId
         {
@@ -491,7 +494,7 @@ namespace CK.Core
                     }
                     catch( Exception exCall )
                     {
-                        MonitoringError.Add( exCall, l.GetType().FullName );
+                        CriticalErrorCollector.Add( exCall, l.GetType().FullName );
                         if( buggyClients == null ) buggyClients = new List<IActivityMonitorClient>();
                         buggyClients.Add( l );
                     }
@@ -604,7 +607,7 @@ namespace CK.Core
                 }
                 catch( Exception exCall )
                 {
-                    MonitoringError.Add( exCall, l.GetType().FullName );
+                    CriticalErrorCollector.Add( exCall, l.GetType().FullName );
                     if( buggyClients == null ) buggyClients = new List<IActivityMonitorClient>();
                     buggyClients.Add( l );
                 }
@@ -753,7 +756,7 @@ namespace CK.Core
                         }
                         catch( Exception exCall )
                         {
-                            MonitoringError.Add( exCall, l.GetType().FullName );
+                            CriticalErrorCollector.Add( exCall, l.GetType().FullName );
                             if( buggyClients == null ) buggyClients = new List<IActivityMonitorClient>();
                             buggyClients.Add( l );
                         }
@@ -778,7 +781,7 @@ namespace CK.Core
                         }
                         catch( Exception exCall )
                         {
-                            MonitoringError.Add( exCall, l.GetType().FullName );
+                            CriticalErrorCollector.Add( exCall, l.GetType().FullName );
                             if( buggyClients == null ) buggyClients = new List<IActivityMonitorClient>();
                             buggyClients.Add( l );
                         }
@@ -816,7 +819,7 @@ namespace CK.Core
                 }
                 catch( Exception exCall )
                 {
-                    MonitoringError.Add( exCall, l.GetType().FullName );
+                    CriticalErrorCollector.Add( exCall, l.GetType().FullName );
                     if( buggyClients == null ) buggyClients = new List<IActivityMonitorClient>();
                     buggyClients.Add( l );
                 }

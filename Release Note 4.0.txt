@@ -1,0 +1,44 @@
+CK.Core 4.0 - Release Notes
+
+- This is the first release of CK-Core packages on nuget.org.
+- The "<root log path>/SystemActivityMonitor/" has been renamed to "<root log path>/CriticalErrors/"
+	- Applications should use the ActivityMonitor.CriticalErrorCollector to log any unexpected, unhandled exceptions.
+	  A typical Program.cs should be:
+	  
+		using System;
+		using CK.Core;
+		using CK.Monitoring;
+		
+		class Program
+		{
+			static void Main( string[] args )
+			{
+				// Initializes SystemActivityMonitor:
+				//
+				// This uses the Application configuration (if it exists):
+				//
+				//      <appSettings>
+				//          <add key="CK.Core.SystemActivityMonitor.RootLogPath" value="..." />
+				//      </appSettings>
+				//
+				// If the setting is not there, the Critical errors will NOT be logged
+				// except if it is explicitly set:
+				//
+				// SystemActivityMonitor.RootLogPath = "...";
+				// 
+				SystemActivityMonitor.EnsureStaticInitialization();
+				try
+				{
+					IActivityMonitor m = new ActivityMonitor();
+					m.Output.RegisterClient( new ActivityMonitorConsoleClient() );
+					Run( args, m );
+				}
+				catch( Exception ex )
+				{
+					ActivityMonitor.CriticalErrorCollector.Add( ex, "Unexpected exception @Main." );
+				}
+				// Ensures that any critical errors have been handled.
+				ActivityMonitor.CriticalErrorCollector.WaitOnErrorFromBackgroundThreadsPending();
+			}
+		}
+

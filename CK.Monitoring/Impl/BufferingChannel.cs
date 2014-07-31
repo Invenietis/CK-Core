@@ -91,31 +91,31 @@ namespace CK.Monitoring.Impl
         /// This is the only step during which a lock blocks GrandOutput.ObtainChannel calls.
         /// </summary>
         /// <param name="newChannels">Function that knows how to return the channel to uses based on the topic string.</param>
-        internal void FlushBuffer( Func<string,IChannel> newChannels )
-        {
-            #if !net40
-            Debug.Assert( Monitor.IsEntered( _flushLock ) );
-            #endif
-            Debug.Assert( _useLock.CurrentCount >= 1 );
+internal void FlushBuffer( Func<string,IChannel> newChannels )
+{
+    #if !net40
+    Debug.Assert( Monitor.IsEntered( _flushLock ) );
+    #endif
+    Debug.Assert( _useLock.CurrentCount >= 1 );
 
-            _useLock.Signal();
-            _useLock.Wait();
-            if( newChannels == null )
-            {
-                GrandOutputEventInfo e;
-                while( _buffer.TryDequeue( out e ) );
-            }
-            else
-            {
-                GrandOutputEventInfo e;
-                while( _buffer.TryDequeue( out e ) )
-                {
-                    IChannel c = newChannels( e.Topic );
-                    c.Handle( e, false );
-                }
-            }
-            Debug.Assert( _useLock.CurrentCount == 0 );
+    _useLock.Signal();
+    _useLock.Wait();
+    if( newChannels == null )
+    {
+        GrandOutputEventInfo e;
+        while( _buffer.TryDequeue( out e ) );
+    }
+    else
+    {
+        GrandOutputEventInfo e;
+        while( _buffer.TryDequeue( out e ) )
+        {
+            IChannel c = newChannels( e.Topic );
+            c.Handle( e, false );
         }
+    }
+    Debug.Assert( _useLock.CurrentCount == 0 );
+}
 
 
         public void Dispose()

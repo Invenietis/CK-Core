@@ -154,7 +154,7 @@ namespace CK.Monitoring.Tests
                     nbLost = c.GrandOutput.LostEventCount;
                     maxQueuedCount = c.GrandOutput.MaxQueuedCount;
                 }
-                ActivityMonitor.MonitoringError.WaitOnErrorFromBackgroundThreadsPending();
+                ActivityMonitor.CriticalErrorCollector.WaitOnErrorFromBackgroundThreadsPending();
             }
             finally
             {

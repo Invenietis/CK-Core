@@ -80,7 +80,7 @@ namespace CK.Core.ActivityMonitorAdapters.CommonLoggingImpl
         /// <summary>
         /// Logs an ActivityMonitor ClosedGroup entry to this Common.Logging logger, additionally logging ActivityMonitor conclusions if any were found.
         /// </summary>
-        /// <param name="this">Common.Logging logger</param>
+        /// <param name="this">This Common.Logging logger</param>
         /// <param name="group">Closing group</param>
         /// <param name="conclusions">Conclusions</param>
         public static void LogActivityMonitorGroupClosed( this ILog @this, IActivityLogGroup group, IReadOnlyList<ActivityLogGroupConclusion> conclusions )
@@ -90,6 +90,11 @@ namespace CK.Core.ActivityMonitorAdapters.CommonLoggingImpl
             if( conclusions.Count > 0 ) @this.DoLog( group.MaskedGroupLevel, String.Format( "[Group conclusions] {0}", conclusions.ToStringGroupConclusion() ), null );
         }
 
+        /// <summary>
+        /// Logs a change in <see cref="IActivityMonitor.AutoTags"/>.
+        /// </summary>
+        /// <param name="this">This Common.Logging logger</param>
+        /// <param name="newTrait">The changed tags.</param>
         public static void LogActivityMonitorAutoTagsChanged( this ILog @this, CKTrait newTrait )
         {
             @this.TraceFormat( "[ActivityMonitor] AutoTags Changed to: {0}", newTrait.ToString() );
@@ -99,6 +104,7 @@ namespace CK.Core.ActivityMonitorAdapters.CommonLoggingImpl
         {
             @this.DoLog( CKLogLevelToCommonLogLevel( level ), message, e );
         }
+
         static void DoLog( this ILog @this, Common.Logging.LogLevel level, string message, Exception e )
         {
             switch( level )

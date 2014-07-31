@@ -36,8 +36,8 @@ namespace CK.Core.Tests.Monitoring
             SystemActivityMonitor.OnError += h;
             try
             {
-                ActivityMonitor.MonitoringError.Add( new CKException( "The-Test-Exception-Message" ), "Produced by SystemActivityMonitorTests.SimpleTest" );
-                ActivityMonitor.MonitoringError.WaitOnErrorFromBackgroundThreadsPending();
+                ActivityMonitor.CriticalErrorCollector.Add( new CKException( "The-Test-Exception-Message" ), "Produced by SystemActivityMonitorTests.SimpleTest" );
+                ActivityMonitor.CriticalErrorCollector.WaitOnErrorFromBackgroundThreadsPending();
                 Assert.That( eventHasBeenRaised );
             }
             finally
@@ -58,13 +58,13 @@ namespace CK.Core.Tests.Monitoring
             SystemActivityMonitor.OnError += hBad;
             try
             {
-                ActivityMonitor.MonitoringError.Add( new CKException( "The-Test-Exception-Message" ), "First call to SystemActivityMonitorTests.OnErrorEventIsSecured" );
-                ActivityMonitor.MonitoringError.WaitOnErrorFromBackgroundThreadsPending();
+                ActivityMonitor.CriticalErrorCollector.Add( new CKException( "The-Test-Exception-Message" ), "First call to SystemActivityMonitorTests.OnErrorEventIsSecured" );
+                ActivityMonitor.CriticalErrorCollector.WaitOnErrorFromBackgroundThreadsPending();
                 Assert.That( eventHandlerCount, Is.EqualTo( 2 ), "We also received the error of the buggy handler :-)." );
                 Assert.That( buggyEventHandlerCount, Is.EqualTo( 1 ) );
 
-                ActivityMonitor.MonitoringError.Add( new CKException( "The-Test-Exception-Message" ), "Second call to SystemActivityMonitorTests.OnErrorEventIsSecured" );
-                ActivityMonitor.MonitoringError.WaitOnErrorFromBackgroundThreadsPending();
+                ActivityMonitor.CriticalErrorCollector.Add( new CKException( "The-Test-Exception-Message" ), "Second call to SystemActivityMonitorTests.OnErrorEventIsSecured" );
+                ActivityMonitor.CriticalErrorCollector.WaitOnErrorFromBackgroundThreadsPending();
                 Assert.That( eventHandlerCount, Is.EqualTo( 3 ) );
                 Assert.That( buggyEventHandlerCount, Is.EqualTo( 1 ) );
             }

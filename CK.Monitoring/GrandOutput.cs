@@ -177,7 +177,7 @@ namespace CK.Monitoring
         public bool SetConfiguration( GrandOutputConfiguration config, IActivityMonitor monitor = null, int millisecondsBeforeForceClose = Timeout.Infinite )
         {
             if( config == null ) throw new ArgumentNullException( "config" );
-            if( monitor == null ) monitor = new SystemActivityMonitor( true, "GrandOutput" );
+            if( monitor == null ) monitor = new SystemActivityMonitor( true, "GrandOutput" ) { MinimalFilter = GrandOutputMinimalFilter };
             using( monitor.OpenInfo().Send( this == Default ? "Applying Default GrandOutput configuration." : "Applying GrandOutput configuration." ) )
             {
                 if( _channelHost.SetConfiguration( monitor, config.ChannelsConfiguration ?? new RouteConfiguration(), millisecondsBeforeForceClose ) )

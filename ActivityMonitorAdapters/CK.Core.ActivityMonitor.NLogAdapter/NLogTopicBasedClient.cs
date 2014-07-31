@@ -4,7 +4,7 @@ using NLog;
 namespace CK.Core.ActivityMonitorAdapters.NLogImpl
 {
     /// <summary>
-    /// ActivityMonitor client, outputting to NLog, which auto-gets the NLog logger based in the ActivityMonitor's topic.
+    /// ActivityMonitor client that outputs to NLog, which auto-gets the NLog logger based in the ActivityMonitor's topic.
     /// </summary>
     class NLogTopicBasedClient : NLogClient, IActivityMonitorBoundClient
     {

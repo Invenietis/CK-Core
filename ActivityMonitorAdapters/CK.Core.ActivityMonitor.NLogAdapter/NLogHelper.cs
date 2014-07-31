@@ -142,14 +142,20 @@ namespace CK.Core.ActivityMonitorAdapters.NLogImpl
         /// <summary>
         /// Logs an ActivityMonitor ClosedGroup entry to this NLog logger, additionally logging ActivityMonitor conclusions if any were found.
         /// </summary>
-        /// <param name="this">NLog logger</param>
-        /// <param name="group">Closing group</param>
-        /// <param name="conclusions">Conclusions</param>
+        /// <param name="this">This NLog logger.</param>
+        /// <param name="group">Closing group.</param>
+        /// <param name="conclusions">Conclusions.</param>
         public static void LogActivityMonitorGroupClosed( this Logger @this, IActivityLogGroup group, IReadOnlyList<ActivityLogGroupConclusion> conclusions )
         {
             @this.Log( CreateEventInfo( @this.Name, group, "GroupClosed" ) );
             if( conclusions.Count > 0 ) @this.Log( CreateEventInfo( @this.Name, group.MaskedGroupLevel, conclusions.ToStringGroupConclusion(), null, group.CloseLogTime ) );
         }
+
+        /// <summary>
+        /// Log the change of a monitor's <see cref="IActivityMonitor.AutoTags"/>.
+        /// </summary>
+        /// <param name="this">This NLog logger.</param>
+        /// <param name="newTrait">The changed tags.</param>
         public static void LogActivityMonitorAutoTagsChanged( this Logger @this, CKTrait newTrait )
         {
             @this.Trace( "[ActivityMonitor] AutoTags Changed to: {0}", newTrait.ToString() );

@@ -21,6 +21,13 @@ namespace CK.Monitoring.Tests
         public void Setup()
         {
             TestHelper.InitalizePaths();
+            GrandOutput.GrandOutputMinimalFilter = LogFilter.Debug;
+        }
+
+        [TearDown]
+        public void Teardown()
+        {
+            GrandOutput.GrandOutputMinimalFilter = LogFilter.Release;
         }
 
         [Test]
@@ -72,17 +79,18 @@ namespace CK.Monitoring.Tests
             {
                 SystemActivityMonitor.RootLogPath = DomainRootLogPath;
                 if( File.Exists( DomainGrandOutputConfig ) ) File.Delete( DomainGrandOutputConfig );
+                GrandOutput.GrandOutputMinimalFilter = LogFilter.Debug;
                 _callerMonitor = new ActivityMonitor( false );
                 _bridgeToCallerMonitor = _callerMonitor.Output.CreateStrongBridgeTo( bridgeToConsole );
                 GrandOutput.EnsureActiveDefaultWithDefaultSettings( _callerMonitor );
                 _localMonitor = new ActivityMonitor();
             }
 
-            public void RunNoConfigFileDefaultsToTerse()
+            public void RunNoConfigFileDefaultsToDebug()
             {
-                _localMonitor.Trace().Send( "NoConfigFile1-NOSHOW" );
-                _localMonitor.Info().Send( "NoConfigFile2-NOSHOW" );
-                _localMonitor.Warn().Send( "NoConfigFile3-NOSHOW" );
+                _localMonitor.Trace().Send( "NoConfigFile1" );
+                _localMonitor.Info().Send( "NoConfigFile2" );
+                _localMonitor.Warn().Send( "NoConfigFile3" );
                 _localMonitor.Error().Send( "NoConfigFile4" );
                 _localMonitor.Fatal().Send( "NoConfigFile5" );
             }
@@ -107,13 +115,13 @@ namespace CK.Monitoring.Tests
                 if( _localMonitor.ShouldLogLine( level ) ) _localMonitor.UnfilteredLog( ActivityMonitor.Tags.Empty, level|LogLevel.IsFiltered, msg, _localMonitor.NextLogTime(), null );
             }
 
-            public void RunWithConfigFileMonitorFilter()
+            public void RunWithConfigFileReleaseFilter()
             {
-                _localMonitor.Trace().Send( "ConfigFileMonitorFilter-NOSHOW" );
-                _localMonitor.Info().Send( "ConfigFileMonitorFilter-NOSHOW" );
-                _localMonitor.Warn().Send( "ConfigFileMonitorFilter1" );
-                _localMonitor.Error().Send( "ConfigFileMonitorFilter2" );
-                _localMonitor.Fatal().Send( "ConfigFileMonitorFilter3" );
+                _localMonitor.Trace().Send( "ConfigFileReleaseFilter-NOSHOW" );
+                _localMonitor.Info().Send( "ConfigFileReleaseFilter-NOSHOW" );
+                _localMonitor.Warn().Send( "ConfigFileReleaseFilter-NOSHOW" );
+                _localMonitor.Error().Send( "ConfigFileReleaseFilter1" );
+                _localMonitor.Fatal().Send( "ConfigFileReleaseFilter2" );
             }
 
             public void Close()
@@ -152,17 +160,20 @@ namespace CK.Monitoring.Tests
 
             try
             {
+
                 exec.Initialize( TestHelper.ConsoleMonitor.Output.BridgeTarget );
 
-                Assert.That( exec.GetLocalMonitorActualFilter(), Is.EqualTo( LogFilter.Terse ) );
+                Assert.That( exec.GetLocalMonitorActualFilter(), Is.EqualTo( LogFilter.Debug ), "Default configuration is Debug." );
 
-                exec.RunNoConfigFileDefaultsToTerse();
+                exec.RunNoConfigFileDefaultsToDebug();
 
+                // Gets the base number of configuration attempt.
                 int confCount = exec.GetConfigurationAttemptCount();
 
+                // 1 - Sets GrandOutputConfig to Release.
                 SetDomainConfigTextFile( @"
 <GrandOutputConfiguration>
-    <Channel MinimalFilter=""Monitor"">
+    <Channel MinimalFilter=""Release"">
         <Add Type=""BinaryFile"" Name=""AllFromConfig""  Path=""GrandOutputDefault"" />
     </Channel>
 </GrandOutputConfiguration>" );
@@ -171,22 +182,23 @@ namespace CK.Monitoring.Tests
 
                 Assert.That( exec.GetConfigurationAttemptCount(), Is.EqualTo( confCount + 1 ) );
 
-                Assert.That( exec.GetLocalMonitorActualFilter(), Is.EqualTo( LogFilter.Monitor ) );
-                
-                exec.RunWithConfigFileMonitorFilter();
+                Assert.That( exec.GetLocalMonitorActualFilter(), Is.EqualTo( LogFilter.Release ) );
+                exec.SendLine( LogLevel.Warn, "NOSHOW (since it now defaults to Release filter)" );
+                exec.RunWithConfigFileReleaseFilter();
 
+                // 2 - Removes GrandOutputConfig file.
                 SetDomainConfigTextFile( null );
                 
                 exec.WaitForNextConfiguration( confCount + 2 );
                 Assert.That( exec.GetConfigurationAttemptCount(), Is.EqualTo( confCount + 2 ) );
 
-                Assert.That( exec.GetLocalMonitorActualFilter(), Is.EqualTo( LogFilter.Terse ) );
-                exec.SendLine( LogLevel.Warn, "NOSHOW (since it now defaults to Terse filter)" );
-                exec.SendLine( LogLevel.Error, "ErrorWithTerseFilter" );
+                Assert.That( exec.GetLocalMonitorActualFilter(), Is.EqualTo( LogFilter.Debug ) );
+                exec.SendLine( LogLevel.Trace, "TraceSinceDebug1" );
 
+                // 3 - Sets GrandOutputConfig to Terse.
                 SetDomainConfigTextFile( @"
 <GrandOutputConfiguration>
-    <Channel MinimalFilter=""Debug"">
+    <Channel MinimalFilter=""Terse"">
         <Add Type=""BinaryFile"" Name=""AllFromConfig""  Path=""GrandOutputDefault"" />
     </Channel>
 </GrandOutputConfiguration>" );
@@ -194,25 +206,28 @@ namespace CK.Monitoring.Tests
                 exec.WaitForNextConfiguration( confCount + 3 );
                 Assert.That( exec.GetConfigurationAttemptCount(), Is.EqualTo( confCount + 3 ) );
 
-                Assert.That( exec.GetLocalMonitorActualFilter(), Is.EqualTo( LogFilter.Debug ) );
-                exec.SendLine( LogLevel.Trace, "TraceSinceDebug" );
+                exec.SendLine( LogLevel.Warn, "NOSHOW (since it now defaults to Terse filter)" );
+                exec.SendLine( LogLevel.Error, "ErrorWithTerseFilter1" );
+                Assert.That( exec.GetLocalMonitorActualFilter(), Is.EqualTo( LogFilter.Terse ) );
 
+                // 4 - Renames GrandOutputConfig: it disapeared.
                 SetDomainConfigTextFile( "rename" );
                 
                 exec.WaitForNextConfiguration( confCount + 4 );
                 Assert.That( exec.GetConfigurationAttemptCount(), Is.EqualTo( confCount + 4 ) );
 
-                Assert.That( exec.GetLocalMonitorActualFilter(), Is.EqualTo( LogFilter.Terse ) );
-                exec.SendLine( LogLevel.Warn, "NOSHOW (since it now defaults to Terse filter)" );
-                exec.SendLine( LogLevel.Error, "ErrorWithTerseFilter2" );
+                Assert.That( exec.GetLocalMonitorActualFilter(), Is.EqualTo( LogFilter.Debug ) );
+                exec.SendLine( LogLevel.Trace, "TraceSinceDebug2" );
 
+                // 5 - Restores the file.
                 SetDomainConfigTextFile( "renameBack" );
                 
                 exec.WaitForNextConfiguration( confCount + 5 );
                 Assert.That( exec.GetConfigurationAttemptCount(), Is.EqualTo( confCount + 5 ) );
 
-                Assert.That( exec.GetLocalMonitorActualFilter(), Is.EqualTo( LogFilter.Debug ) );
-                exec.SendLine( LogLevel.Trace, "TraceSinceDebug2" );
+                Assert.That( exec.GetLocalMonitorActualFilter(), Is.EqualTo( LogFilter.Terse ) );
+                exec.SendLine( LogLevel.Warn, "NOSHOW (since it now defaults to Terse filter)" );
+                exec.SendLine( LogLevel.Error, "ErrorWithTerseFilter2" );
 
             }
             finally
@@ -225,7 +240,17 @@ namespace CK.Monitoring.Tests
 
             Assert.That( logs.Count, Is.EqualTo( 6 ), "It contains the test monitor but also the monitoring of the reconfiguration due to the 5 file changes." );
             CollectionAssert.AreEqual(
-                new[] { "NoConfigFile4", "NoConfigFile5", "ConfigFileMonitorFilter1", "ConfigFileMonitorFilter2", "ConfigFileMonitorFilter3", "ErrorWithTerseFilter", "TraceSinceDebug", "ErrorWithTerseFilter2", "TraceSinceDebug2" }, 
+                new[] { "NoConfigFile1", 
+                        "NoConfigFile2", 
+                        "NoConfigFile3", 
+                        "NoConfigFile4", 
+                        "NoConfigFile5", 
+                        "ConfigFileReleaseFilter1", 
+                        "ConfigFileReleaseFilter2", 
+                        "TraceSinceDebug1",  
+                        "ErrorWithTerseFilter1", 
+                        "TraceSinceDebug2",
+                        "ErrorWithTerseFilter2" }, 
                 logs[0].Entries.Select( e => e.Text ), StringComparer.OrdinalIgnoreCase );
         }
 
@@ -244,6 +269,7 @@ namespace CK.Monitoring.Tests
         {
             if( config != null )
             {
+                Thread.Sleep( 100 );
                 if( config.StartsWith( "rename" ) )
                 {
                     if( config == "rename" )

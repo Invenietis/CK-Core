@@ -25,6 +25,9 @@ using System;
 using System.Collections.Generic;
 using System.Reflection;
 
+// Removes "no more Missing XML comment for publicly visible type or member." for this file. 
+#pragma warning disable 1591
+
 namespace CK.Reflection
 {
 
@@ -247,3 +250,5 @@ namespace CK.Reflection
         }
     }
 }
+#pragma warning restore 1591
+

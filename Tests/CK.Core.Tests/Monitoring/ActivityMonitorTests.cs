@@ -42,14 +42,14 @@ namespace CK.Core.Tests.Monitoring
         public void ClearActivityMonitorErrors()
         {
             TestHelper.ConsoleMonitor.MinimalFilter = LogFilter.Undefined;
-            ActivityMonitor.MonitoringError.WaitOnErrorFromBackgroundThreadsPending();
-            ActivityMonitor.MonitoringError.Clear();
+            ActivityMonitor.CriticalErrorCollector.WaitOnErrorFromBackgroundThreadsPending();
+            ActivityMonitor.CriticalErrorCollector.Clear();
         }
 
         [TearDown]
         public void CheckActivityMonitorErrors()
         {
-            var e = ActivityMonitor.MonitoringError.ToArray();
+            var e = ActivityMonitor.CriticalErrorCollector.ToArray();
             Assert.That( e, Is.Empty );
         }
 

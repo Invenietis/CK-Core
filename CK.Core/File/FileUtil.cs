@@ -47,8 +47,8 @@ namespace CK.Core
         /// Returns files in a directory according to multiple file masks (separated by ';'). 
         /// </summary>
         /// <param name="path">Path of the directory to read.</param>
-        /// <param name="multiFileMask">File masks, for example: <i>*.gif;*.jpg;*.png</i>.</param>
-        /// <returns>List of files (without duplicates).</returns>
+        /// <param name="multiFileMask">File masks, for example: *.gif;*.jpg;*.png.</param>
+        /// <returns>List of files' full name (without duplicates).</returns>
         static public string[] GetFiles( string path, string multiFileMask )
         {
             string[] m = multiFileMask.Split( ';' );

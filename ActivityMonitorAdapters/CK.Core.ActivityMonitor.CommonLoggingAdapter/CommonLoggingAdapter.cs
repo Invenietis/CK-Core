@@ -2,6 +2,10 @@
 
 namespace CK.Core.ActivityMonitorAdapters
 {
+    /// <summary>
+    /// Startup class: <see cref="Initialize"/> makes all new <see cref="ActivityMonitor"/> routes their output to Common.Logging loggers
+    /// named with the monitor's topic.
+    /// </summary>
     public class CommonLoggingAdapter
     {
         static bool _isInitialized;

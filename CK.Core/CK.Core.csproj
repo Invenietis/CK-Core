@@ -43,7 +43,7 @@
     <ErrorReport>prompt</ErrorReport>
     <DefineConstants>TRACE;net45</DefineConstants>
     <WarningLevel>4</WarningLevel>
-    <DocumentationFile>$(OutputPath)CK.Core.xml</DocumentationFile>
+    <DocumentationFile>bin\Release\CK.Core.xml</DocumentationFile>
     <LangVersion>default</LangVersion>
     <UseVSHostingProcess>true</UseVSHostingProcess>
     <Prefer32Bit>false</Prefer32Bit>
