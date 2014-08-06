@@ -347,6 +347,7 @@ namespace CK.Core
                     }
                     _bridgeTarget.CloseGroup( taggedConclusions );
                 }
+                _openedGroups[group.Depth - 1] = false;
             }
         }
 

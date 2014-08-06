@@ -134,6 +134,49 @@ namespace CK.Core.Tests.Monitoring
 
         [Test]
         [Category( "Console" )]
+        public void BridgeBalancePrematurelyClose()
+        {
+            //Main app monitor
+            IActivityMonitor mainMonitor = new ActivityMonitor();
+            var mainDump = mainMonitor.Output.RegisterClient( new StupidStringClient() );
+            using(mainMonitor.Output.CreateBridgeTo( TestHelper.ConsoleMonitor.Output.BridgeTarget ))
+            {
+                //Domain monitor
+                IActivityMonitor domainMonitor = new ActivityMonitor();
+                var domainDump = domainMonitor.Output.RegisterClient( new StupidStringClient() );
+
+                int i = 0;
+                for(; i < 10; i++) mainMonitor.OpenInfo().Send( "NOT Bridged n°{0}", i );
+
+                using(domainMonitor.Output.CreateBridgeTo( mainMonitor.Output.BridgeTarget ))
+                {
+                    domainMonitor.OpenInfo().Send( "Bridged n°10" );
+                    domainMonitor.OpenInfo().Send( "Bridged n°20" );
+                    domainMonitor.CloseGroup( "Bridged close n°10" );
+                    domainMonitor.CloseGroup( "Bridged close n°20" );
+
+                    using(domainMonitor.OpenInfo().Send("Bridged n°50") )
+                    {
+                        using(domainMonitor.OpenInfo().Send( "Bridged n°60" ))
+                        {
+                            using(domainMonitor.OpenInfo().Send( "Bridged n°70" ))
+                            {
+                                // Number of Prematurely closed by Bridge removed depends on the max level of groups open
+                            }
+                        }
+                    }
+                }
+
+                int j = 0;
+                for(; j < 10; j++) mainMonitor.CloseGroup( String.Format( "NOT Bridge close n°{0}", j ) );
+            }
+
+            string allText = mainDump.ToString();
+            Assert.That( Regex.Matches( allText, R.ClosedByBridgeRemoved ).Count, Is.EqualTo( 0 ), "All Info groups are closed, no need to automatically close other groups" );
+        }
+
+        [Test]
+        [Category( "Console" )]
         public void BridgeBalance()
         {
             IActivityMonitor monitor = new ActivityMonitor();
