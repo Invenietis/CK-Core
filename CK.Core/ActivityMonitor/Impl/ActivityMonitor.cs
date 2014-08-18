@@ -14,7 +14,7 @@
 * You should have received a copy of the GNU Lesser General Public License 
 * along with CiviKey.  If not, see <http://www.gnu.org/licenses/>. 
 *  
-* Copyright © 2007-2012, 
+* Copyright © 2007-2014, 
 *     Invenietis <http://www.invenietis.com>,
 *     In’Tech INFO <http://www.intechinfo.fr>,
 * All rights reserved. 
@@ -531,7 +531,7 @@ namespace CK.Core
                 {
                     _actualFilterIsDirty = false;
                     // Optimization for some cases: if we can be sure that the oldLevel has no impact on the current 
-                    // client filter, we can conclude without getting the all the minimal filters.
+                    // client filter, we can conclude without getting all the minimal filters.
                     if( !dirty && ((oldLevel.Line == LogLevelFilter.None || oldLevel.Line > _clientFilter.Line) && (oldLevel.Group == LogLevelFilter.None || oldLevel.Group > _clientFilter.Group)) )
                     {
                         // This Client had no impact on the current final client filter: if its new level has 

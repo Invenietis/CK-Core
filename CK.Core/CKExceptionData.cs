@@ -1,4 +1,4 @@
-﻿#region LGPL License
+#region LGPL License
 /*----------------------------------------------------------------------------
 * This file (CK.Core\CKExceptionData.cs) is part of CiviKey. 
 *  
@@ -14,8 +14,9 @@
 * You should have received a copy of the GNU Lesser General Public License 
 * along with CiviKey.  If not, see <http://www.gnu.org/licenses/>. 
 *  
-* Copyright © 2007-2013, 
+* Copyright © 2007-2014, 
 *     Invenietis <http://www.invenietis.com>,
+*     In’Tech INFO <http://www.intechinfo.fr>,
 * All rights reserved. 
 *-----------------------------------------------------------------------------*/
 #endregion
@@ -237,14 +238,14 @@ namespace CK.Core
         /// Gets all the the exceptions that occurred while dynamically loading a type or an assembly if the exception is a <see cref="System.Reflection.ReflectionTypeLoadException"/>.
         /// Null otherwise.
         /// </summary>
-        public IReadOnlyList<CKExceptionData> LoaderExceptions { get { return _loaderExceptions; } }
+        public IReadOnlyList<CKExceptionData> LoaderExceptions { get { return _loaderExceptions.AsReadOnlyList(); } }
 
         /// <summary>
         /// Gets all the the aggregated exceptions if the exception is a <see cref="System.AggregateException"/>.
         /// This corresponds to the <see cref="System.AggregateException.InnerExceptions"/> property.
         /// Null if this exception is not a an AggregatedException.
         /// </summary>
-        public IReadOnlyList<CKExceptionData> AggregatedExceptions { get { return _aggregatedExceptions; } }
+        public IReadOnlyList<CKExceptionData> AggregatedExceptions { get { return _aggregatedExceptions.AsReadOnlyList(); } }
 
         /// <summary>
         /// Writes this exception data into a <see cref="BinaryWriter"/>.

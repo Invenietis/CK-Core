@@ -1,6 +1,6 @@
-#region LGPL License
+﻿#region LGPL License
 /*----------------------------------------------------------------------------
-* This file (CK.Core\ActivityMonitor\IActivityMonitorLineSender.cs) is part of CiviKey. 
+* This file (Tests\CK.Core.Tests\InternalsVisibleToChecks.cs) is part of CiviKey. 
 *  
 * CiviKey is free software: you can redistribute it and/or modify 
 * it under the terms of the GNU Lesser General Public License as published 
@@ -26,17 +26,19 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using NUnit.Framework;
 
-namespace CK.Core
+namespace CK.Core.Tests
 {
-    /// <summary>
-    /// The interface that carries Send extension methods.
-    /// </summary>
-    public interface IActivityMonitorLineSender
+    [TestFixture]
+    public class InternalsVisibleToChecks
     {
-        /// <summary>
-        /// Gets whether the log has been rejected.
-        /// </summary>
-        bool IsRejected { get; }
+        [Test]
+        public void SuccessfulAccessToCKCoreInternals()
+        {
+            string msg;
+            var d = CK.Core.ActivityMonitor.DependentToken.CreateWithMonitorTopic( TestHelper.ConsoleMonitor, true, out msg );
+            Assert.That( msg, Is.StringEnding( "." ), "Just a silly test." );
+        }
     }
 }
