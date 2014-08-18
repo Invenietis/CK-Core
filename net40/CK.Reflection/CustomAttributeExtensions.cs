@@ -1,6 +1,6 @@
-﻿#region LGPL License
+#region LGPL License
 /*----------------------------------------------------------------------------
-* This file (CK.Reflection\LegacySupport\CustomAttributeExtensions.cs) is part of CiviKey. 
+* This file (net40\CK.Reflection\CustomAttributeExtensions.cs) is part of CiviKey. 
 *  
 * CiviKey is free software: you can redistribute it and/or modify 
 * it under the terms of the GNU Lesser General Public License as published 
@@ -14,7 +14,7 @@
 * You should have received a copy of the GNU Lesser General Public License 
 * along with CiviKey.  If not, see <http://www.gnu.org/licenses/>. 
 *  
-* Copyright © 2007-2013, 
+* Copyright © 2007-2014, 
 *     Invenietis <http://www.invenietis.com>,
 *     In’Tech INFO <http://www.intechinfo.fr>,
 * All rights reserved. 
@@ -24,6 +24,9 @@
 using System;
 using System.Collections.Generic;
 using System.Reflection;
+
+// Removes "no more Missing XML comment for publicly visible type or member." for this file. 
+#pragma warning disable 1591
 
 namespace CK.Reflection
 {
@@ -247,3 +250,5 @@ namespace CK.Reflection
         }
     }
 }
+#pragma warning restore 1591
+

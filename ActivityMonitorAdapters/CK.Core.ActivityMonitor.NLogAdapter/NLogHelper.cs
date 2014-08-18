@@ -1,4 +1,27 @@
-﻿using System;
+#region LGPL License
+/*----------------------------------------------------------------------------
+* This file (ActivityMonitorAdapters\CK.Core.ActivityMonitor.NLogAdapter\NLogHelper.cs) is part of CiviKey. 
+*  
+* CiviKey is free software: you can redistribute it and/or modify 
+* it under the terms of the GNU Lesser General Public License as published 
+* by the Free Software Foundation, either version 3 of the License, or 
+* (at your option) any later version. 
+*  
+* CiviKey is distributed in the hope that it will be useful, 
+* but WITHOUT ANY WARRANTY; without even the implied warranty of
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
+* GNU Lesser General Public License for more details. 
+* You should have received a copy of the GNU Lesser General Public License 
+* along with CiviKey.  If not, see <http://www.gnu.org/licenses/>. 
+*  
+* Copyright © 2007-2014, 
+*     Invenietis <http://www.invenietis.com>,
+*     In’Tech INFO <http://www.intechinfo.fr>,
+* All rights reserved. 
+*-----------------------------------------------------------------------------*/
+#endregion
+
+using System;
 using System.Collections.Generic;
 using NLog;
 
@@ -142,14 +165,20 @@ namespace CK.Core.ActivityMonitorAdapters.NLogImpl
         /// <summary>
         /// Logs an ActivityMonitor ClosedGroup entry to this NLog logger, additionally logging ActivityMonitor conclusions if any were found.
         /// </summary>
-        /// <param name="this">NLog logger</param>
-        /// <param name="group">Closing group</param>
-        /// <param name="conclusions">Conclusions</param>
+        /// <param name="this">This NLog logger.</param>
+        /// <param name="group">Closing group.</param>
+        /// <param name="conclusions">Conclusions.</param>
         public static void LogActivityMonitorGroupClosed( this Logger @this, IActivityLogGroup group, IReadOnlyList<ActivityLogGroupConclusion> conclusions )
         {
             @this.Log( CreateEventInfo( @this.Name, group, "GroupClosed" ) );
             if( conclusions.Count > 0 ) @this.Log( CreateEventInfo( @this.Name, group.MaskedGroupLevel, conclusions.ToStringGroupConclusion(), null, group.CloseLogTime ) );
         }
+
+        /// <summary>
+        /// Log the change of a monitor's <see cref="IActivityMonitor.AutoTags"/>.
+        /// </summary>
+        /// <param name="this">This NLog logger.</param>
+        /// <param name="newTrait">The changed tags.</param>
         public static void LogActivityMonitorAutoTagsChanged( this Logger @this, CKTrait newTrait )
         {
             @this.Trace( "[ActivityMonitor] AutoTags Changed to: {0}", newTrait.ToString() );

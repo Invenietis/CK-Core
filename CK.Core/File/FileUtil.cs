@@ -14,7 +14,7 @@
 * You should have received a copy of the GNU Lesser General Public License 
 * along with CiviKey.  If not, see <http://www.gnu.org/licenses/>. 
 *  
-* Copyright © 2007-2012, 
+* Copyright © 2007-2014, 
 *     Invenietis <http://www.invenietis.com>,
 *     In’Tech INFO <http://www.intechinfo.fr>,
 * All rights reserved. 
@@ -47,8 +47,8 @@ namespace CK.Core
         /// Returns files in a directory according to multiple file masks (separated by ';'). 
         /// </summary>
         /// <param name="path">Path of the directory to read.</param>
-        /// <param name="multiFileMask">File masks, for example: <i>*.gif;*.jpg;*.png</i>.</param>
-        /// <returns>List of files (without duplicates).</returns>
+        /// <param name="multiFileMask">File masks, for example: *.gif;*.jpg;*.png.</param>
+        /// <returns>List of files' full name (without duplicates).</returns>
         static public string[] GetFiles( string path, string multiFileMask )
         {
             string[] m = multiFileMask.Split( ';' );
@@ -341,7 +341,7 @@ namespace CK.Core
         }
 
         /// <summary>
-        /// Recursively copy a directory. 
+        /// Recursively copy a directory, creates it if it does not already exists. 
         /// Throws an IOException, if a same file exists in the target directory.
         /// </summary>
         /// <param name="src">The source directory.</param>

@@ -1,4 +1,27 @@
-﻿using System;
+#region LGPL License
+/*----------------------------------------------------------------------------
+* This file (CK.Core\ActivityMonitor\SystemActivityMonitor.cs) is part of CiviKey. 
+*  
+* CiviKey is free software: you can redistribute it and/or modify 
+* it under the terms of the GNU Lesser General Public License as published 
+* by the Free Software Foundation, either version 3 of the License, or 
+* (at your option) any later version. 
+*  
+* CiviKey is distributed in the hope that it will be useful, 
+* but WITHOUT ANY WARRANTY; without even the implied warranty of
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
+* GNU Lesser General Public License for more details. 
+* You should have received a copy of the GNU Lesser General Public License 
+* along with CiviKey.  If not, see <http://www.gnu.org/licenses/>. 
+*  
+* Copyright © 2007-2014, 
+*     Invenietis <http://www.invenietis.com>,
+*     In’Tech INFO <http://www.intechinfo.fr>,
+* All rights reserved. 
+*-----------------------------------------------------------------------------*/
+#endregion
+
+using System;
 using System.Collections.Generic;
 using System.Configuration;
 using System.Diagnostics;
@@ -18,11 +41,24 @@ namespace CK.Core
     /// The easiest way to configure it is to set an application settings with the key "CK.Core.SystemActivityMonitor.RootLogPath" and the root path 
     /// for logs as the value.
     /// </summary>
+    /// <remarks>
+    /// The RootLogPath uses the Application configuration (if it exists):
+    /// <code>
+    ///     &lt;appSettings&gt;
+    ///          &lt;add key="CK.Core.SystemActivityMonitor.RootLogPath" value="..." /&gt;
+    ///      &lt;/appSettings&gt;
+    /// </code>
+    /// If the setting is not there, the Critical errors will NOT be logged
+    /// except if it is explicitly set:
+    /// <code>
+    ///     SystemActivityMonitor.RootLogPath = "...";
+    /// </code>
+    /// </remarks>
     public sealed class SystemActivityMonitor : ActivityMonitor
     {
         /// <summary>
         /// A client that can be added and removed and is available as a singleton.
-        /// Its MinimalFilter is set to Release ensuring that errors are always monitored but it stores in RootLogPath/SystemActivityMonitor only errors logs.
+        /// Its MinimalFilter is set to Release ensuring that errors are always monitored. Fatals and Errors are stored in RootLogPath/CriticalErrors.
         /// </summary>
         class SysClient : IActivityMonitorClient
         {
@@ -117,13 +153,13 @@ namespace CK.Core
         static SystemActivityMonitor()
         {
             AppSettingsKey = "CK.Core.SystemActivityMonitor.RootLogPath";
-            SubDirectoryName = "SystemActivityMonitor/";
+            SubDirectoryName = "CriticalErrors/";
             _client = new SysClient();
             _lockedClient = new SysLockedClient();
             _appSettingslogPath = AppSettings.Default[AppSettingsKey];
             if( _appSettingslogPath != null ) _appSettingslogPath = Environment.ExpandEnvironmentVariables( _appSettingslogPath );
             _activityMonitorErrorTracked = 1;
-            ActivityMonitor.MonitoringError.OnErrorFromBackgroundThreads += OnTrackActivityMonitorLoggingError;
+            ActivityMonitor.CriticalErrorCollector.OnErrorFromBackgroundThreads += OnTrackActivityMonitorLoggingError;
         }
 
         /// <summary>
@@ -151,20 +187,20 @@ namespace CK.Core
         static public readonly string AppSettingsKey;
 
         /// <summary>
-        /// The directory in <see cref="RootLogPath"/> into which errors file will created is "SystemActivityMonitor/".
+        /// The directory in <see cref="RootLogPath"/> into which errors file will be created is "CriticalErrors/".
         /// </summary>
         static public readonly string SubDirectoryName;
 
         /// <summary>
         /// Event that enables subsequent handling of errors.
         /// Raising this event is protected: a registered handler that raises an exception will be automatically removed and the
-        /// exception will be added to the <see cref="ActivityMonitor.MonitoringError"/> collector to give other participants a chance 
+        /// exception will be added to the <see cref="ActivityMonitor.CriticalErrorCollector"/> collector to give other participants a chance 
         /// to handle it and track the culprit.
         /// </summary>
         static public event EventHandler<LowLevelErrorEventArgs> OnError;
 
         /// <summary>
-        /// Gets or sets whether <see cref="ActivityMonitor.MonitoringError"/> are tracked (this is thread safe).
+        /// Gets or sets whether <see cref="ActivityMonitor.CriticalErrorCollector"/> are tracked (this is thread safe).
         /// When true, LoggingError events are tracked, written to a file (if <see cref="RootLogPath"/> is available) and ultimately 
         /// published again as a <see cref="OnError"/> events.
         /// Defaults to true.
@@ -178,12 +214,12 @@ namespace CK.Core
                 {
                     if( Interlocked.CompareExchange( ref _activityMonitorErrorTracked, 1, 0 ) == 0 )
                     {
-                        ActivityMonitor.MonitoringError.OnErrorFromBackgroundThreads += OnTrackActivityMonitorLoggingError;
+                        ActivityMonitor.CriticalErrorCollector.OnErrorFromBackgroundThreads += OnTrackActivityMonitorLoggingError;
                     }
                 }
                 else if( Interlocked.CompareExchange( ref _activityMonitorErrorTracked, 0, 1 ) == 1 )
                 {
-                    ActivityMonitor.MonitoringError.OnErrorFromBackgroundThreads -= OnTrackActivityMonitorLoggingError;
+                    ActivityMonitor.CriticalErrorCollector.OnErrorFromBackgroundThreads -= OnTrackActivityMonitorLoggingError;
                 }
             }
         }
@@ -208,7 +244,7 @@ namespace CK.Core
         /// with the <see cref="AppDomain.BaseDirectory">AppDomain.CurrentDomain.BaseDirectory</see>).
         /// </para>
         /// <para>
-        /// The subordinate directory "SystemActivityMonitor" is created (if not already here) and a test file is created (and deleted) inside it 
+        /// The subordinate directory "CriticalErrors" is created (if not already here) and a test file is created (and deleted) inside it 
         /// to ensure that (at least at configuration time), no security configuration prevents us to create log files: all errors files will be created in this sub directory.
         /// </para>
         /// <para>
@@ -326,7 +362,7 @@ namespace CK.Core
                     catch( Exception ex )
                     {
                         OnError -= (EventHandler<LowLevelErrorEventArgs>)d;
-                        ActivityMonitor.MonitoringError.Add( ex, "While raising SystemActivityMonitor.OnError event." );
+                        ActivityMonitor.CriticalErrorCollector.Add( ex, "While raising SystemActivityMonitor.OnError event." );
                     }
                 }
             }

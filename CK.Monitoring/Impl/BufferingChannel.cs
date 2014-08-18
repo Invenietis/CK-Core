@@ -1,4 +1,27 @@
-﻿using System;
+#region LGPL License
+/*----------------------------------------------------------------------------
+* This file (CK.Monitoring\Impl\BufferingChannel.cs) is part of CiviKey. 
+*  
+* CiviKey is free software: you can redistribute it and/or modify 
+* it under the terms of the GNU Lesser General Public License as published 
+* by the Free Software Foundation, either version 3 of the License, or 
+* (at your option) any later version. 
+*  
+* CiviKey is distributed in the hope that it will be useful, 
+* but WITHOUT ANY WARRANTY; without even the implied warranty of
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
+* GNU Lesser General Public License for more details. 
+* You should have received a copy of the GNU Lesser General Public License 
+* along with CiviKey.  If not, see <http://www.gnu.org/licenses/>. 
+*  
+* Copyright © 2007-2014, 
+*     Invenietis <http://www.invenietis.com>,
+*     In’Tech INFO <http://www.intechinfo.fr>,
+* All rights reserved. 
+*-----------------------------------------------------------------------------*/
+#endregion
+
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -91,31 +114,31 @@ namespace CK.Monitoring.Impl
         /// This is the only step during which a lock blocks GrandOutput.ObtainChannel calls.
         /// </summary>
         /// <param name="newChannels">Function that knows how to return the channel to uses based on the topic string.</param>
-        internal void FlushBuffer( Func<string,IChannel> newChannels )
-        {
-            #if !net40
-            Debug.Assert( Monitor.IsEntered( _flushLock ) );
-            #endif
-            Debug.Assert( _useLock.CurrentCount >= 1 );
+internal void FlushBuffer( Func<string,IChannel> newChannels )
+{
+    #if !net40
+    Debug.Assert( Monitor.IsEntered( _flushLock ) );
+    #endif
+    Debug.Assert( _useLock.CurrentCount >= 1 );
 
-            _useLock.Signal();
-            _useLock.Wait();
-            if( newChannels == null )
-            {
-                GrandOutputEventInfo e;
-                while( _buffer.TryDequeue( out e ) );
-            }
-            else
-            {
-                GrandOutputEventInfo e;
-                while( _buffer.TryDequeue( out e ) )
-                {
-                    IChannel c = newChannels( e.Topic );
-                    c.Handle( e, false );
-                }
-            }
-            Debug.Assert( _useLock.CurrentCount == 0 );
+    _useLock.Signal();
+    _useLock.Wait();
+    if( newChannels == null )
+    {
+        GrandOutputEventInfo e;
+        while( _buffer.TryDequeue( out e ) );
+    }
+    else
+    {
+        GrandOutputEventInfo e;
+        while( _buffer.TryDequeue( out e ) )
+        {
+            IChannel c = newChannels( e.Topic );
+            c.Handle( e, false );
         }
+    }
+    Debug.Assert( _useLock.CurrentCount == 0 );
+}
 
 
         public void Dispose()

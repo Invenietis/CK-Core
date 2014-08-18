@@ -1,4 +1,27 @@
-﻿using System;
+#region LGPL License
+/*----------------------------------------------------------------------------
+* This file (Tests\CK.Monitoring.Tests\Persistence\ReadWriteTests.cs) is part of CiviKey. 
+*  
+* CiviKey is free software: you can redistribute it and/or modify 
+* it under the terms of the GNU Lesser General Public License as published 
+* by the Free Software Foundation, either version 3 of the License, or 
+* (at your option) any later version. 
+*  
+* CiviKey is distributed in the hope that it will be useful, 
+* but WITHOUT ANY WARRANTY; without even the implied warranty of
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
+* GNU Lesser General Public License for more details. 
+* You should have received a copy of the GNU Lesser General Public License 
+* along with CiviKey.  If not, see <http://www.gnu.org/licenses/>. 
+*  
+* Copyright © 2007-2014, 
+*     Invenietis <http://www.invenietis.com>,
+*     In’Tech INFO <http://www.intechinfo.fr>,
+* All rights reserved. 
+*-----------------------------------------------------------------------------*/
+#endregion
+
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -67,5 +90,46 @@ namespace CK.Monitoring.Tests.Persistence
 
         }
 
+
+        [Test]
+        public void CKMonWriterClientTest()
+        {
+            TestHelper.CleanupTestFolder();
+            using( TextWriter w = new StringWriter() )
+            {
+                var m = new ActivityMonitor();
+                m.Output.RegisterClient( new ActivityMonitorTextWriterClient( s => w.Write( s ) ) );
+                m.Output.RegisterClient( new ActivityMonitorErrorCounter( true ) );
+
+                using( m.OpenWarn().Send( "First" ) )
+                {
+                    m.Info().Send( "Inner first test" );
+                }
+
+                w.Flush();
+                Assert.That( w.ToString(), Is.Not.Empty );
+                Assert.That( w.ToString(), Is.StringContaining( "First" ) );
+                Assert.That( w.ToString(), Is.StringContaining( "Inner first test" ) );
+                Assert.That( w.ToString(), Is.Not.StringContaining( "Second" ) );
+                Assert.That( w.ToString(), Is.Not.StringContaining( "Inner second test" ) );
+
+
+                m.Output.RegisterClient( new CKMonWriterClient( Path.Combine( TestHelper.TestFolder, "CKMonWriterClientTest" ), 20000, LogFilter.Undefined ) );
+
+                using( m.OpenWarn().Send( "Second" ) )
+                {
+                    m.Info().Send( "Inner second test" );
+                }
+
+                w.Flush();
+
+                Assert.That( w.ToString(), Is.Not.Empty );
+                Assert.That( w.ToString(), Is.StringContaining( "First" ) );
+                Assert.That( w.ToString(), Is.StringContaining( "Inner first test" ) );
+                Assert.That( w.ToString(), Is.StringContaining( "Second" ) );
+                Assert.That( w.ToString(), Is.StringContaining( "Inner second test" ) );
+
+            }
+        }
     }
 }

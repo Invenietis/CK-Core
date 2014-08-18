@@ -1,4 +1,27 @@
-﻿using System;
+#region LGPL License
+/*----------------------------------------------------------------------------
+* This file (ActivityMonitorAdapters\CK.Core.ActivityMonitor.CommonLoggingAdapter\CommonLoggingHelper.cs) is part of CiviKey. 
+*  
+* CiviKey is free software: you can redistribute it and/or modify 
+* it under the terms of the GNU Lesser General Public License as published 
+* by the Free Software Foundation, either version 3 of the License, or 
+* (at your option) any later version. 
+*  
+* CiviKey is distributed in the hope that it will be useful, 
+* but WITHOUT ANY WARRANTY; without even the implied warranty of
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
+* GNU Lesser General Public License for more details. 
+* You should have received a copy of the GNU Lesser General Public License 
+* along with CiviKey.  If not, see <http://www.gnu.org/licenses/>. 
+*  
+* Copyright © 2007-2014, 
+*     Invenietis <http://www.invenietis.com>,
+*     In’Tech INFO <http://www.intechinfo.fr>,
+* All rights reserved. 
+*-----------------------------------------------------------------------------*/
+#endregion
+
+using System;
 using System.Collections.Generic;
 using Common.Logging;
 
@@ -80,7 +103,7 @@ namespace CK.Core.ActivityMonitorAdapters.CommonLoggingImpl
         /// <summary>
         /// Logs an ActivityMonitor ClosedGroup entry to this Common.Logging logger, additionally logging ActivityMonitor conclusions if any were found.
         /// </summary>
-        /// <param name="this">Common.Logging logger</param>
+        /// <param name="this">This Common.Logging logger</param>
         /// <param name="group">Closing group</param>
         /// <param name="conclusions">Conclusions</param>
         public static void LogActivityMonitorGroupClosed( this ILog @this, IActivityLogGroup group, IReadOnlyList<ActivityLogGroupConclusion> conclusions )
@@ -90,6 +113,11 @@ namespace CK.Core.ActivityMonitorAdapters.CommonLoggingImpl
             if( conclusions.Count > 0 ) @this.DoLog( group.MaskedGroupLevel, String.Format( "[Group conclusions] {0}", conclusions.ToStringGroupConclusion() ), null );
         }
 
+        /// <summary>
+        /// Logs a change in <see cref="IActivityMonitor.AutoTags"/>.
+        /// </summary>
+        /// <param name="this">This Common.Logging logger</param>
+        /// <param name="newTrait">The changed tags.</param>
         public static void LogActivityMonitorAutoTagsChanged( this ILog @this, CKTrait newTrait )
         {
             @this.TraceFormat( "[ActivityMonitor] AutoTags Changed to: {0}", newTrait.ToString() );
@@ -99,6 +127,7 @@ namespace CK.Core.ActivityMonitorAdapters.CommonLoggingImpl
         {
             @this.DoLog( CKLogLevelToCommonLogLevel( level ), message, e );
         }
+
         static void DoLog( this ILog @this, Common.Logging.LogLevel level, string message, Exception e )
         {
             switch( level )

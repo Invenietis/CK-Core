@@ -1,4 +1,27 @@
-﻿using System;
+#region LGPL License
+/*----------------------------------------------------------------------------
+* This file (Mon2Htm\CKMon2Htm.ConsoleDemo\Program.cs) is part of CiviKey. 
+*  
+* CiviKey is free software: you can redistribute it and/or modify 
+* it under the terms of the GNU Lesser General Public License as published 
+* by the Free Software Foundation, either version 3 of the License, or 
+* (at your option) any later version. 
+*  
+* CiviKey is distributed in the hope that it will be useful, 
+* but WITHOUT ANY WARRANTY; without even the implied warranty of
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
+* GNU Lesser General Public License for more details. 
+* You should have received a copy of the GNU Lesser General Public License 
+* along with CiviKey.  If not, see <http://www.gnu.org/licenses/>. 
+*  
+* Copyright © 2007-2014, 
+*     Invenietis <http://www.invenietis.com>,
+*     In’Tech INFO <http://www.intechinfo.fr>,
+* All rights reserved. 
+*-----------------------------------------------------------------------------*/
+#endregion
+
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -14,118 +37,146 @@ namespace CK.Mon2Htm.ConsoleDemo
     {
         static void Main( string[] args )
         {
-            PrepareDefaultGrandOutput(); // This one writes into ./HtmlGenerator/.
-
-            // This is the default monitor.
-            IActivityMonitor m = new ActivityMonitor();
-            m.SetMinimalFilter( LogFilter.Debug );
-            m.Output.RegisterClient( new ActivityMonitorConsoleClient() );
-
-            // Analyses arguments.
-            if( args.Length >= 1 )
+            // Initializes SystemActivityMonitor:
+            //
+            // This uses the Application configuration (if it exists):
+            //
+            //      <appSettings>
+            //          <add key="CK.Core.SystemActivityMonitor.RootLogPath" value="..." />
+            //      </appSettings>
+            //
+            // If the setting is not there, the Critical errors will NOT be logged
+            // except if it is explicitly set:
+            //
+            // SystemActivityMonitor.RootLogPath = "...";
+            // 
+            SystemActivityMonitor.EnsureStaticInitialization();
+            try
             {
-                using( MultiLogReader r = new MultiLogReader() )
+                PrepareDefaultGrandOutput(); // This one writes into ./HtmlGenerator/.
+                IActivityMonitor m = new ActivityMonitor();
+                m.SetMinimalFilter( LogFilter.Debug );
+                m.Output.RegisterClient( new ActivityMonitorConsoleClient() );
+                if( args.Length >= 1 )
                 {
-                    List<string> ckmonFiles = new List<string>();
-
-                    using( m.OpenTrace().Send( "Loading from arguments:" ) )
-                    {
-                        foreach( string path in args )
-                        {
-                            if( Directory.Exists( path ) )
-                            {
-                                m.Trace().Send( "Directory: {0}", path );
-                                ckmonFiles.AddRange( GetCkmonFilesFromDirectory( path ) );
-                            }
-                            else if( File.Exists( path ) && Path.GetExtension( path ) == @".ckmon" )
-                            {
-                                m.Trace().Send( "File: {0}", path );
-                                ckmonFiles.Add( path );
-                            }
-                        }
-                    }
-
-                    using( m.OpenTrace().Send( "Log files loaded:" ) )
-                    {
-                        foreach( var f in ckmonFiles ) m.Trace().Send( f );
-                    }
-
-                    if( ckmonFiles.Count == 0 )
-                    {
-                        m.Fatal().Send( "No log files were found at the designated paths." );
-                        PressAnyKeyToExit();
-                    }
-                    
-                    string htmlDirectoryName = String.Format( "ckmon-{0}-html", DateTime.UtcNow.ToString("yyyyMMdd-HHmmss") );
-                    string htmlDirectoryPath = Path.Combine(Environment.CurrentDirectory, htmlDirectoryName);
-
-                    m.Info().Send("Creating HTML structure into: {0}", htmlDirectoryPath);
-
-                    Directory.CreateDirectory( htmlDirectoryPath );
-
-                    var rawLogFiles = r.Add( ckmonFiles );
-                    foreach(var file in rawLogFiles)
-                    {
-                        if( file.Error != null )
-                        {
-                            m.Warn().Send( file.Error, "Exception encountered when reading file: {0}", file.FileName );
-                        }
-                    }
-
-                    string indexHtmlPath = HtmlGenerator.CreateFromActivityMap( r.GetActivityMap(), m, 5000, htmlDirectoryPath );
-
-                    if( indexHtmlPath != null && File.Exists( indexHtmlPath ) )
-                    {
-                        // Run result in browser
-                        Process.Start( indexHtmlPath );
-                    }
-                    else
-                    {
-                        PressAnyKeyToExit();
-                    }
+                    RunWithArguments( args, m );
                 }
-
+                else
+                {
+                    RunWithoutArgument( m );
+                }
             }
-            else
+            catch( Exception ex )
             {
-                string rootPath = SystemActivityMonitor.RootLogPath;
-                string directoryName = "DummyEntries";
-                string directoryPath = Path.Combine( rootPath, directoryName );
+                ActivityMonitor.CriticalErrorCollector.Add( ex, "Unexpected exception @Main." );
+            }
+            // Ensures that any critical errors have been handled.
+            ActivityMonitor.CriticalErrorCollector.WaitOnErrorFromBackgroundThreadsPending();
+        }
 
-                m.Warn().Send( "The program was called without a directory. What follows are dummy entries." );
+        static void RunWithArguments( string[] args, IActivityMonitor m )
+        {
+            using( MultiLogReader r = new MultiLogReader() )
+            {
+                List<string> ckmonFiles = new List<string>();
 
-                IActivityMonitor dummyMonitor = new ActivityMonitor();
-                dummyMonitor.SetMinimalFilter( LogFilter.Debug );
-
-                m.Trace().Send( "Writing entries..." );
-                using( GrandOutput go = PrepareNewGrandOutputFolder( m, directoryName ) )
+                using( m.OpenTrace().Send( "Loading from arguments:" ) )
                 {
-                    go.Register( dummyMonitor );
-                    SendDummyMonitorEvents( dummyMonitor );
-                    m.Trace().Send( "Closing GrandOutput..." );
+                    foreach( string path in args )
+                    {
+                        if( Directory.Exists( path ) )
+                        {
+                            m.Trace().Send( "Directory: {0}", path );
+                            ckmonFiles.AddRange( GetCkmonFilesFromDirectory( path ) );
+                        }
+                        else if( File.Exists( path ) && Path.GetExtension( path ) == @".ckmon" )
+                        {
+                            m.Trace().Send( "File: {0}", path );
+                            ckmonFiles.Add( path );
+                        }
+                    }
                 }
 
-                string indexHtmlPath = HtmlGenerator.CreateFromLogDirectory( directoryPath, m, 5000, true );
-
-                if( indexHtmlPath != null )
+                using( m.OpenTrace().Send( "Log files loaded:" ) )
                 {
+                    foreach( var f in ckmonFiles ) m.Trace().Send( f );
+                }
+
+                if( ckmonFiles.Count == 0 )
+                {
+                    m.Fatal().Send( "No log files were found at the designated paths." );
+                    PressAnyKeyToExit();
+                }
+
+                string htmlDirectoryName = String.Format( "ckmon-{0}-html", DateTime.UtcNow.ToString( "yyyyMMdd-HHmmss" ) );
+                string htmlDirectoryPath = Path.Combine( Environment.CurrentDirectory, htmlDirectoryName );
+
+                m.Info().Send( "Creating HTML structure into: {0}", htmlDirectoryPath );
+
+                Directory.CreateDirectory( htmlDirectoryPath );
+
+                var rawLogFiles = r.Add( ckmonFiles );
+                foreach( var file in rawLogFiles )
+                {
+                    if( file.Error != null )
+                    {
+                        m.Warn().Send( file.Error, "Exception encountered when reading file: {0}", file.FileName );
+                    }
+                }
+
+                string indexHtmlPath = HtmlGenerator.CreateFromActivityMap( r.GetActivityMap(), m, 5000, htmlDirectoryPath );
+
+                if( indexHtmlPath != null && File.Exists( indexHtmlPath ) )
+                {
+                    // Run result in browser
                     Process.Start( indexHtmlPath );
                 }
                 else
                 {
                     PressAnyKeyToExit();
                 }
-
             }
         }
 
-        private static IEnumerable<string> GetCkmonFilesFromDirectory( string path )
+        static void RunWithoutArgument( IActivityMonitor m )
+        {
+            string rootPath = SystemActivityMonitor.RootLogPath;
+            string directoryName = "DummyEntries";
+            string directoryPath = Path.Combine( rootPath, directoryName );
+
+            m.Warn().Send( "The program was called without a directory. What follows are dummy entries." );
+
+            IActivityMonitor dummyMonitor = new ActivityMonitor();
+            dummyMonitor.SetMinimalFilter( LogFilter.Debug );
+
+            m.Trace().Send( "Writing entries..." );
+            using( GrandOutput go = PrepareNewGrandOutputFolder( m, directoryName ) )
+            {
+                go.Register( dummyMonitor );
+                SendDummyMonitorEvents( dummyMonitor );
+                m.Trace().Send( "Closing GrandOutput..." );
+            }
+
+            string indexHtmlPath = HtmlGenerator.CreateFromLogDirectory( directoryPath, m, 5000, true );
+
+            if( indexHtmlPath != null )
+            {
+                Process.Start( indexHtmlPath );
+            }
+            else
+            {
+                PressAnyKeyToExit();
+            }
+
+        }
+
+        static IEnumerable<string> GetCkmonFilesFromDirectory( string path )
         {
             string[] ckmonFiles = Directory.GetFiles( path, "*.ckmon", SearchOption.AllDirectories );
             return ckmonFiles;
         }
 
-        private static void SendDummyMonitorEvents( IActivityMonitor m )
+        static void SendDummyMonitorEvents( IActivityMonitor m )
         {
             string dummyLongText = @"{
 	""title"": ""Example Schema"",

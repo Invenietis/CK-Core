@@ -1,4 +1,27 @@
-﻿using System;
+#region LGPL License
+/*----------------------------------------------------------------------------
+* This file (CK.Monitoring\GrandOutput.DefaultConfig.cs) is part of CiviKey. 
+*  
+* CiviKey is free software: you can redistribute it and/or modify 
+* it under the terms of the GNU Lesser General Public License as published 
+* by the Free Software Foundation, either version 3 of the License, or 
+* (at your option) any later version. 
+*  
+* CiviKey is distributed in the hope that it will be useful, 
+* but WITHOUT ANY WARRANTY; without even the implied warranty of
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
+* GNU Lesser General Public License for more details. 
+* You should have received a copy of the GNU Lesser General Public License 
+* along with CiviKey.  If not, see <http://www.gnu.org/licenses/>. 
+*  
+* Copyright © 2007-2014, 
+*     Invenietis <http://www.invenietis.com>,
+*     In’Tech INFO <http://www.intechinfo.fr>,
+* All rights reserved. 
+*-----------------------------------------------------------------------------*/
+#endregion
+
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -17,6 +40,19 @@ namespace CK.Monitoring
         static object _watcherLock = new object();
         static string _configPath = null;
         static DateTime _lastConfigFileWriteTime = FileUtil.MissingFileLastWriteTimeUtc;
+        static LogFilter _fileWatcherMonitoringMinimalFilter = LogFilter.Release;
+
+        /// <summary>
+        /// Gets or sets the minimal filter that monitors created for the 
+        /// GrandOutput itself will use.
+        /// Defaults to <see cref="LogFilter.Release"/> (this should be changed only for debugging reasons).
+        /// Caution: this applies only to the current AppDomain!
+        /// </summary>
+        static public LogFilter GrandOutputMinimalFilter
+        {
+            get { return _fileWatcherMonitoringMinimalFilter; }
+            set { _fileWatcherMonitoringMinimalFilter = value; }
+        }
 
         /// <summary>
         /// Ensures that the <see cref="Default"/> GrandOutput is created (see <see cref="EnsureActiveDefault"/>) and configured with default settings:
@@ -32,7 +68,7 @@ namespace CK.Monitoring
             {
                 if( _default == null )
                 {
-                    if( monitor == null ) monitor = new SystemActivityMonitor( true, "GrandOutput" );
+                    if( monitor == null ) monitor = new SystemActivityMonitor( true, "GrandOutput" ) { MinimalFilter = GrandOutputMinimalFilter };
                     using( monitor.OpenInfo().Send( "Attempting Default GrandOutput configuration." ) )
                     {
                         try
@@ -71,7 +107,7 @@ namespace CK.Monitoring
         const string _defaultConfig = 
 @"<GrandOutputConfiguration>
     <Channel MinimalFilter=""Debug"">
-        <Add Type=""BinaryFile"" Name=""All"" Path=""GrandOutputDefault"" />
+        <Add Type=""BinaryFile"" Name=""All"" Path=""GrandOutputDefault"" MaxCountPerFile=""20000"" />
     </Channel>
 </GrandOutputConfiguration>";
 
@@ -103,7 +139,7 @@ namespace CK.Monitoring
 
         static void _watcher_Error( object sender, ErrorEventArgs e )
         {
-            ActivityMonitor.MonitoringError.Add( e.GetException(), String.Format( "While monitoring GrandOutput.Default configuration file '{0}'.", _watcher.Path ) );
+            ActivityMonitor.CriticalErrorCollector.Add( e.GetException(), String.Format( "While monitoring GrandOutput.Default configuration file '{0}'.", _watcher.Path ) );
         }
 
         static void _watcher_Changed( object sender, FileSystemEventArgs e )
@@ -119,8 +155,8 @@ namespace CK.Monitoring
                     if( time == _lastConfigFileWriteTime ) return;
                     _lastConfigFileWriteTime = time;
                 }
-                var monitor = new SystemActivityMonitor( true, "GrandOutput.Default.Reconfiguration" );
-                using( monitor.OpenInfo().Send( "AppDomain '{0}',  file '{1}' changed.", AppDomain.CurrentDomain.FriendlyName, _configPath ) )
+                var monitor = new SystemActivityMonitor( true, "GrandOutput.Default.Reconfiguration" ) { MinimalFilter = GrandOutputMinimalFilter };
+                using( monitor.OpenInfo().Send( "AppDomain '{0}',  file '{1}' changed (change n°{2}).", AppDomain.CurrentDomain.FriendlyName, _configPath, _default.ConfigurationAttemptCount ) )
                 {
                     def = CreateDefaultConfig();
                     if( File.Exists( _configPath ) )

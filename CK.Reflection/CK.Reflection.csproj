@@ -12,8 +12,7 @@
     <RootNamespace>CK.Reflection</RootNamespace>
     <AssemblyName>CK.Reflection</AssemblyName>
     <FileAlignment>512</FileAlignment>
-    <TargetFrameworkProfile>
-    </TargetFrameworkProfile>
+    <TargetFrameworkProfile></TargetFrameworkProfile>
     <NuGetPackageImportStamp>ce3fa47c</NuGetPackageImportStamp>
   </PropertyGroup>
   <PropertyGroup>
@@ -34,7 +33,7 @@
     <DefineConstants>TRACE;net45</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
-    <DocumentationFile>$(OutputPath)CK.Reflection.xml</DocumentationFile>
+    <DocumentationFile>bin\Release\CK.Reflection.xml</DocumentationFile>
     <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <PropertyGroup>

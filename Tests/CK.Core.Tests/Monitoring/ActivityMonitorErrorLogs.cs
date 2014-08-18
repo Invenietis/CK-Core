@@ -1,6 +1,6 @@
 #region LGPL License
 /*----------------------------------------------------------------------------
-* This file (Tests\CK.Core.Tests\ActivityMonitorTests.cs) is part of CiviKey. 
+* This file (Tests\CK.Core.Tests\Monitoring\ActivityMonitorErrorLogs.cs) is part of CiviKey. 
 *  
 * CiviKey is free software: you can redistribute it and/or modify 
 * it under the terms of the GNU Lesser General Public License as published 
@@ -14,7 +14,7 @@
 * You should have received a copy of the GNU Lesser General Public License 
 * along with CiviKey.  If not, see <http://www.gnu.org/licenses/>. 
 *  
-* Copyright © 2007-2012, 
+* Copyright © 2007-2014, 
 *     Invenietis <http://www.invenietis.com>,
 *     In’Tech INFO <http://www.intechinfo.fr>,
 * All rights reserved. 
@@ -241,7 +241,7 @@ namespace CK.Core.Tests.Monitoring
             for( int i = 0; i < threadCount; ++i ) _contexts.Add( new ThreadContext( this, _contexts.Count, buggyClientCount, operationCount ) );
             _inSafeErrorHandler = false;
             _maxNumberOfErrorReceivedAtOnce = 0;
-            _lastSequenceNumberReceived = ActivityMonitor.MonitoringError.NextSequenceNumber - 1;
+            _lastSequenceNumberReceived = ActivityMonitor.CriticalErrorCollector.NextSequenceNumber - 1;
             _errorsFromBackground = new ConcurrentBag<string>();
             _probBuggyOnErrorHandlerFailure = probBuggyOnErrorHandlerFailure;
             _buggyOnErrorHandlerFailCount = 0;
@@ -259,8 +259,8 @@ namespace CK.Core.Tests.Monitoring
         
         void OneRun( int threadCount, int operationCount )
         {
-            ActivityMonitor.MonitoringError.Clear();
-            ActivityMonitor.MonitoringError.Capacity = 300;
+            ActivityMonitor.CriticalErrorCollector.Clear();
+            ActivityMonitor.CriticalErrorCollector.Capacity = 300;
 
             InitializeEnv( 
                 threadCount: threadCount, 
@@ -269,14 +269,14 @@ namespace CK.Core.Tests.Monitoring
                 probFailurePerOperation: 0.9 / operationCount,
                 probBuggyOnErrorHandlerFailure: 0.1 );
 
-            ActivityMonitor.MonitoringError.OnErrorFromBackgroundThreads += SafeOnErrorHandler;
-            ActivityMonitor.MonitoringError.OnErrorFromBackgroundThreads += BuggyOnErrorHandler;
+            ActivityMonitor.CriticalErrorCollector.OnErrorFromBackgroundThreads += SafeOnErrorHandler;
+            ActivityMonitor.CriticalErrorCollector.OnErrorFromBackgroundThreads += BuggyOnErrorHandler;
 
-            int nextSeq = ActivityMonitor.MonitoringError.NextSequenceNumber;
+            int nextSeq = ActivityMonitor.CriticalErrorCollector.NextSequenceNumber;
             RunAllAndWaitForTermination();
 
-            ActivityMonitor.MonitoringError.OnErrorFromBackgroundThreads -= SafeOnErrorHandler;
-            ActivityMonitor.MonitoringError.OnErrorFromBackgroundThreads -= BuggyOnErrorHandler;
+            ActivityMonitor.CriticalErrorCollector.OnErrorFromBackgroundThreads -= SafeOnErrorHandler;
+            ActivityMonitor.CriticalErrorCollector.OnErrorFromBackgroundThreads -= BuggyOnErrorHandler;
 
             Console.WriteLine( @"ActivityMonitor.LoggingError Test:
             ThreadCount: {0}
@@ -286,10 +286,10 @@ namespace CK.Core.Tests.Monitoring
             Errors from Error handler: {4}
             Errors Cleared while raised: {5}
             Errors not Cleared while raised: {6}", 
-                threadCount, 
-                ActivityMonitor.MonitoringError.DispatchQueuedWorkItemCount, 
-                ActivityMonitor.MonitoringError.OptimizedDispatchQueuedWorkItemCount,
-                ActivityMonitor.MonitoringError.NextSequenceNumber - nextSeq,
+                threadCount,
+                ActivityMonitor.CriticalErrorCollector.DispatchQueuedWorkItemCount,
+                ActivityMonitor.CriticalErrorCollector.OptimizedDispatchQueuedWorkItemCount,
+                ActivityMonitor.CriticalErrorCollector.NextSequenceNumber - nextSeq,
                 _buggyOnErrorHandlerReceivedCount,
                 _nbClearedWhileRaised,
                 _nbNotClearedWhileRaised );
@@ -302,12 +302,12 @@ namespace CK.Core.Tests.Monitoring
             Assert.That( _buggyOnErrorHandlerReceivedCount, Is.GreaterThan( 0 ), "There must be at least one error from the buggy handler." );
             Assert.That( _buggyOnErrorHandlerReceivedCount, Is.EqualTo( _buggyOnErrorHandlerFailCount ) );
 
-            Assert.That( ActivityMonitor.MonitoringError.DispatchQueuedWorkItemCount, Is.GreaterThan( 0 ), "Of course, events have been raised..." );
-            Assert.That( ActivityMonitor.MonitoringError.OptimizedDispatchQueuedWorkItemCount, Is.GreaterThan( 0 ), "Optimizations must have saved us some works." );
-            Assert.That( ActivityMonitor.MonitoringError.Capacity, Is.EqualTo( 500 ), "Changed in SafeOnErrorHandler." );
+            Assert.That( ActivityMonitor.CriticalErrorCollector.DispatchQueuedWorkItemCount, Is.GreaterThan( 0 ), "Of course, events have been raised..." );
+            Assert.That( ActivityMonitor.CriticalErrorCollector.OptimizedDispatchQueuedWorkItemCount, Is.GreaterThan( 0 ), "Optimizations must have saved us some works." );
+            Assert.That( ActivityMonitor.CriticalErrorCollector.Capacity, Is.EqualTo( 500 ), "Changed in SafeOnErrorHandler." );
             Assert.That( _nbClearedWhileRaised, Is.GreaterThan( 0 ), "Clear is called from SafeOnErrorHandler each 20 errors." );
 
-            ActivityMonitor.MonitoringError.Clear();
+            ActivityMonitor.CriticalErrorCollector.Clear();
         }
 
 
@@ -331,7 +331,7 @@ namespace CK.Core.Tests.Monitoring
             // As soon as the first error, we increase the capacity to avoid losing any error.
             // This tests the tread-safety of the operation and shows that no deadlock occur (we are 
             // receiving an error event and can safely change the internal buffer capacity).
-            ActivityMonitor.MonitoringError.Capacity = 500;
+            ActivityMonitor.CriticalErrorCollector.Capacity = 500;
 
             _inSafeErrorHandler = true;
             _maxNumberOfErrorReceivedAtOnce = Math.Max( _maxNumberOfErrorReceivedAtOnce, e.LoggingErrors.Count );
@@ -341,7 +341,7 @@ namespace CK.Core.Tests.Monitoring
                 {
                     int clearedErrors;
                     int notYetRaisedErrors;
-                    ActivityMonitor.MonitoringError.Clear( out clearedErrors, out notYetRaisedErrors );
+                    ActivityMonitor.CriticalErrorCollector.Clear( out clearedErrors, out notYetRaisedErrors );
                     _nbClearedWhileRaised += clearedErrors;
                     _nbNotClearedWhileRaised += notYetRaisedErrors;
                 }
@@ -389,7 +389,7 @@ namespace CK.Core.Tests.Monitoring
             if( _buggyOnErrorHandlerFailCount == 0 || _random.NextDouble() < _probBuggyOnErrorHandlerFailure )
             {
                 // Subscribe again to this buggy event.
-                ActivityMonitor.MonitoringError.OnErrorFromBackgroundThreads += BuggyOnErrorHandler;
+                ActivityMonitor.CriticalErrorCollector.OnErrorFromBackgroundThreads += BuggyOnErrorHandler;
                 throw new CKException( "BuggyErrorHandler{0}", _buggyOnErrorHandlerFailCount++ );
             }
         }
@@ -417,8 +417,8 @@ namespace CK.Core.Tests.Monitoring
             //
             // The right way to wait for something to happen is to block a thread until a signal unblocks it.
             // This is what the following function is doing.
-            ActivityMonitor.MonitoringError.WaitOnErrorFromBackgroundThreadsPending();
-            Assert.That( ActivityMonitor.MonitoringError.OnErrorFromBackgroundThreadsPending, Is.False, "Since nobody calls ActivityMonitor.Add. In real situations, this would not necessarily be true." );
+            ActivityMonitor.CriticalErrorCollector.WaitOnErrorFromBackgroundThreadsPending();
+            Assert.That( ActivityMonitor.CriticalErrorCollector.OnErrorFromBackgroundThreadsPending, Is.False, "Since nobody calls ActivityMonitor.Add. In real situations, this would not necessarily be true." );
         }
 
     }

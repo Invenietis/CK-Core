@@ -61,6 +61,7 @@
     </Compile>
     <Compile Include="AppSettingsTests.cs" />
     <Compile Include="CKExceptionTests.cs" />
+    <Compile Include="InternalsVisibleToChecks.cs" />
     <Compile Include="Monitoring\SourceFilteringTests.cs" />
     <Compile Include="UtilMatcherTests.cs" />
     <Compile Include="Monitoring\ActivityMonitorTimestamp.cs" />
@@ -99,7 +100,7 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\CK.Core\CK.Core.csproj">
-      <Project>{6DFBE436-2571-4029-B220-E101D2162A63}</Project>
+      <Project>{97578828-71EC-46B3-BD9A-44E58292386F}</Project>
       <Name>CK.Core</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\CK.Core\CK.Core.csproj">

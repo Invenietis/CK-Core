@@ -1,4 +1,27 @@
-﻿using System;
+#region LGPL License
+/*----------------------------------------------------------------------------
+* This file (Tests\CK.Monitoring.Tests\ConfigHostTests.cs) is part of CiviKey. 
+*  
+* CiviKey is free software: you can redistribute it and/or modify 
+* it under the terms of the GNU Lesser General Public License as published 
+* by the Free Software Foundation, either version 3 of the License, or 
+* (at your option) any later version. 
+*  
+* CiviKey is distributed in the hope that it will be useful, 
+* but WITHOUT ANY WARRANTY; without even the implied warranty of
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
+* GNU Lesser General Public License for more details. 
+* You should have received a copy of the GNU Lesser General Public License 
+* along with CiviKey.  If not, see <http://www.gnu.org/licenses/>. 
+*  
+* Copyright © 2007-2014, 
+*     Invenietis <http://www.invenietis.com>,
+*     In’Tech INFO <http://www.intechinfo.fr>,
+* All rights reserved. 
+*-----------------------------------------------------------------------------*/
+#endregion
+
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
@@ -204,7 +227,7 @@ namespace CK.Monitoring.Tests
                 }
                 catch( Exception ex )
                 {
-                    ActivityMonitor.MonitoringError.Add( ex, String.Format( "WriteAction named '{0}'.", _name ) );
+                    ActivityMonitor.CriticalErrorCollector.Add( ex, String.Format( "WriteAction named '{0}'.", _name ) );
                 }
             }
 
@@ -256,7 +279,7 @@ namespace CK.Monitoring.Tests
                 }
                 catch( Exception ex )
                 {
-                    ActivityMonitor.MonitoringError.Add( ex, "While logging event." );
+                    ActivityMonitor.CriticalErrorCollector.Add( ex, "While logging event." );
                 }
                 finally
                 {
@@ -301,7 +324,7 @@ namespace CK.Monitoring.Tests
         public void SetupContext()
         {
             File.AllFiles.Clear();
-            ActivityMonitor.MonitoringError.Clear();
+            ActivityMonitor.CriticalErrorCollector.Clear();
             File.FileWaitMilliSeconds = -1;
             FinalRoute.SynchronousRoute = true;
             _host = new ConfiguredRouteHost<ITestIt, FinalRoute>( new TestFactory(), OnConfigurationReady, ( m, t ) => t.Initialize( m ), ( m, t ) => t.Close( m ) );
@@ -328,7 +351,7 @@ namespace CK.Monitoring.Tests
         {
             _host.Dispose();
             File.AllFiles.Clear();
-            ActivityMonitor.MonitoringError.Clear();
+            ActivityMonitor.CriticalErrorCollector.Clear();
         }
 
         [Test]
@@ -376,7 +399,7 @@ namespace CK.Monitoring.Tests
             CheckContent( f1, "0", "1", "2", "3", "4" );
             CheckContent( f2, "0", "1", "2" );
 
-            Assert.That( ActivityMonitor.MonitoringError.ToArray().Length, Is.EqualTo( 0 ) );
+            Assert.That( ActivityMonitor.CriticalErrorCollector.ToArray().Length, Is.EqualTo( 0 ) );
         }
 
         private static void CheckContent( File f, params string[] values )
