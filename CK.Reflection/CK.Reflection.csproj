@@ -12,7 +12,8 @@
     <RootNamespace>CK.Reflection</RootNamespace>
     <AssemblyName>CK.Reflection</AssemblyName>
     <FileAlignment>512</FileAlignment>
-    <TargetFrameworkProfile></TargetFrameworkProfile>
+    <TargetFrameworkProfile>
+    </TargetFrameworkProfile>
     <NuGetPackageImportStamp>ce3fa47c</NuGetPackageImportStamp>
   </PropertyGroup>
   <PropertyGroup>

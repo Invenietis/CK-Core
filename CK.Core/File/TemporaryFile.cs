@@ -45,7 +45,7 @@ namespace CK.Core
 		}
 
         /// <summary>
-        /// Initializes a new short lived <see cref="TemporaryFile"/>.
+        /// Initializes a new <see cref="TemporaryFile"/>.
         /// When <paramref name="shortLived"/> is true, the <see cref="FileAttributes.Temporary"/> is set on the file.
         /// </summary>
         /// <param name="shortLived">True to set the <see cref="FileAttributes.Temporary"/> on the file.</param>
@@ -55,7 +55,7 @@ namespace CK.Core
         }
 
         /// <summary>
-        /// Initializes the TemporaryFile with an extension - the file will have a name looking like : xxxx.tmp.extension        
+        /// Initializes a new short lived <see cref="TemporaryFile"/> with an extension - the file will have a name looking like : xxxx.tmp.extension        
         /// </summary>
         /// <param name="extension">The extension of the file (example : '.png' and 'png' would both work) </param>
         public TemporaryFile( string extension )
@@ -64,7 +64,7 @@ namespace CK.Core
         }
 
         /// <summary>
-        /// Initializes a new short lived <see cref="TemporaryFile"/> with an extension.
+        /// Initializes a new <see cref="TemporaryFile"/> with an extension.
         /// When <paramref name="shortLived"/> is true, the <see cref="FileAttributes.Temporary"/> is set on the file.
         /// The file will have a name looking like : xxxx.tmp.extension
         /// </summary>
