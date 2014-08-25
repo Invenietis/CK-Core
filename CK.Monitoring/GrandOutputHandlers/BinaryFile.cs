@@ -40,7 +40,7 @@ namespace CK.Monitoring.GrandOutputHandlers
         readonly MonitorBinaryFileOutput _file;
 
         /// <summary>
-        /// Initializes a new <see cref="BinaryFileConfiguration"/> bound to its <see cref="BinaryFileConfiguration"/>.
+        /// Initializes a new <see cref="BinaryFile"/> bound to its <see cref="BinaryFileConfiguration"/>.
         /// </summary>
         /// <param name="config">The configuration.</param>
         public BinaryFile( BinaryFileConfiguration config )

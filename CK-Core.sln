@@ -94,6 +94,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CK.Core.ActivityMonitor.NLo
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CK.Core.ActivityMonitor.CommonLoggingAdapter.Net40", "net40\ActivityMonitorAdapters\CK.Core.ActivityMonitor.CommonLoggingAdapter\CK.Core.ActivityMonitor.CommonLoggingAdapter.Net40.csproj", "{33C97DB1-ED3D-40D4-B7D9-996E83619AE0}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Monitor", "Monitor", "{E98B10FF-3FAC-4390-9B2B-DFF068BF32D9}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
