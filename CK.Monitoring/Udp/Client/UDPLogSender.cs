@@ -7,25 +7,25 @@ using System.Text;
 using System.Threading.Tasks;
 using CK.Core;
 
-namespace CK.Monitoring.GrandOutputHandlers.UDP
+namespace CK.Monitoring.Udp
 {
-    class UDPLogSender : ILogSender
+    class UdpLogSender : ILogSender
     {
         readonly int _port;
         readonly UdpClient _client;
+        readonly UdpPacketSplitter _splitter;
 
-        const int UDPMAXPACKETSIZE = 512;
-
-        public UDPLogSender( int port )
+        public UdpLogSender( int port, int maxUdpPacketSize = 1280 )
         {
             _port = port;
             _client = new UdpClient();
+            _splitter = new UdpPacketSplitter( maxUdpPacketSize );
         }
 
         public void Initialize( Core.IActivityMonitor monitor )
         {
             IPEndPoint endPoint = new IPEndPoint( IPAddress.Broadcast, _port );
-            
+
             monitor.Trace().Send( "Connecting UdpClient to {0}.", endPoint.ToString() );
             _client.Connect( endPoint );
             monitor.Trace().Send( "Connected." );
@@ -34,13 +34,21 @@ namespace CK.Monitoring.GrandOutputHandlers.UDP
         public void SendLog( IMulticastLogEntry entry )
         {
             var buffer = PrepareSend( entry );
-            _client.Send( buffer, buffer.Length );
+            foreach( var envelope in _splitter.Split( buffer ) )
+            {
+                byte[] dataGram = envelope.ToByteArray();
+                _client.Send( dataGram, dataGram.Length );
+            }
         }
 
-        public Task SendLogAsync( IMulticastLogEntry entry )
+        public async Task SendLogAsync( IMulticastLogEntry entry )
         {
             var buffer = PrepareSend( entry );
-            return _client.SendAsync( buffer, buffer.Length );
+            foreach( var envelope in _splitter.Split( buffer ) )
+            {
+                byte[] dataGram = envelope.ToByteArray();
+                await _client.SendAsync( dataGram, dataGram.Length );
+            }
         }
 
         private byte[] PrepareSend( IMulticastLogEntry entry )

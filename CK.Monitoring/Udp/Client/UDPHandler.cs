@@ -4,24 +4,25 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using CK.Core;
+using CK.Monitoring.GrandOutputHandlers;
 
-namespace CK.Monitoring.GrandOutputHandlers.UDP
+namespace CK.Monitoring.Udp
 {
     /// <summary>
     /// UDP Handler
     /// </summary>
-    public class UDPHandler : HandlerBase
+    public class UdpHandler : HandlerBase
     {
         ILogSender _logSender;
 
         /// <summary>
-        /// Initializes a new <see cref="UDPHandler"/> bound to its <see cref="UDPHandlerConfiguration"/>.
+        /// Initializes a new <see cref="UdpHandler"/> bound to its <see cref="UdpHandlerConfiguration"/>.
         /// </summary>
         /// <param name="config">The configuration.</param>
-        public UDPHandler( UDPHandlerConfiguration config )
+        public UdpHandler( UdpHandlerConfiguration config )
             : base( config )
         {
-            _logSender = new UDPLogSender( config.Port );
+            _logSender = new UdpLogSender( config.Port );
         }
 
         public override void Initialize( Core.IActivityMonitor monitor )

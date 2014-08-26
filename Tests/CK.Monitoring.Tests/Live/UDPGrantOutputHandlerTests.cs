@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 using CK.Monitoring.GrandOutputHandlers;
 using NUnit.Framework;
 using CK.Core;
-using CK.Monitoring.GrandOutputHandlers.UDP;
+using CK.Monitoring.Udp;
 
 namespace CK.Monitoring.Tests.Live
 {
@@ -27,8 +27,8 @@ namespace CK.Monitoring.Tests.Live
             GrandOutput.EnsureActiveDefault( configurator =>
             {
                 configurator.CommonSink.Add(
-                    new UDPGrantOutputHandler(
-                        new UDPHandlerConfiguration( "UDPConfiguration" ) { Port = 3712 } ) );
+                    new UdpHandler(
+                        new UdpHandlerConfiguration( "UDPConfiguration" ) { Port = 3712 } ) );
             } );
 
             IActivityMonitor m = new ActivityMonitor();
@@ -58,46 +58,6 @@ namespace CK.Monitoring.Tests.Live
 
             public void Close( IActivityMonitor monitor )
             {
-            }
-        }
-
-        class UDPHandlerConfiguration : HandlerConfiguration
-        {
-            public UDPHandlerConfiguration( string name )
-                : base( name )
-            {
-            }
-
-            public int Port { get; set; }
-
-            protected override void Initialize( Core.IActivityMonitor m, System.Xml.Linq.XElement xml )
-            {
-                Port = xml.GetAttributeInt( "Port", Port );
-            }
-        }
-
-        class UDPGrantOutputHandler : HandlerBase
-        {
-            ILogSender _logSender;
-            public UDPGrantOutputHandler( UDPHandlerConfiguration config )
-                : base( config )
-            {
-                _logSender = new DummyLogSender();
-            }
-
-            public override void Handle( GrandOutputEventInfo logEvent, bool parrallelCall )
-            {
-                _logSender.SendLog( logEvent.Entry );
-            }
-
-            public override void Initialize( Core.IActivityMonitor monitor )
-            {
-                base.Initialize( monitor );
-            }
-
-            public override void Close( Core.IActivityMonitor monitor )
-            {
-                base.Close( monitor );
             }
         }
     }

@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using CK.Core;
 
-namespace CK.Monitoring.GrandOutputHandlers.UDP
+namespace CK.Monitoring.Udp
 {
     public interface ILogSender : IDisposable
     {

@@ -62,6 +62,7 @@
     <Compile Include="DocumentationCodeSnippets.cs" />
     <Compile Include="GrandOutputTests.cs" />
     <Compile Include="Live\UDPGrantOutputHandlerTests.cs" />
+    <Compile Include="Live\UDPPacketSplitterTest.cs" />
     <Compile Include="Live\UDPSenderReceiverTests.cs" />
     <Compile Include="Performance\EventDispatcherAdaptiveStrategy.cs" />
     <Compile Include="Performance\FakeHandler.cs" />
