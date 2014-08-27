@@ -64,7 +64,7 @@ namespace CK.Monitoring.Tests
 
                 foreach( var e in envelopes )
                 {
-                    composer.PushBuffer( e.ToByteArray() );
+                    composer.PushUdpDataGram( e.ToByteArray() );
                 }
 
                 Assert.That( logFullyComposed, Is.True );

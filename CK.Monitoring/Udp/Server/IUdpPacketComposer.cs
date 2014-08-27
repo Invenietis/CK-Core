@@ -12,10 +12,10 @@ namespace CK.Monitoring.Udp
         /// Push a dataGram packet received from the UdpClient
         /// </summary>
         /// <param name="dataGram"></param>
-        void PushBuffer( byte[] dataGram );
+        void PushUdpDataGram( byte[] dataGram );
 
         /// <summary>
-        /// Fired when a packet has been fully restored
+        /// Fired when an object has been fully restored from multiple UDP packets
         /// </summary>
         /// <param name="callback"></param>
         void OnObjectRestored( Action<T> callback );

@@ -12,12 +12,9 @@ namespace CK.Monitoring.Udp
     class ReceivePump<T> : IDisposable
     {
         bool _shouldReceive;
-        Task _receivingTask;
-        System.Collections.Concurrent.BlockingCollection<T> _logEntriesCollected;
 
         readonly IActivityMonitor _monitor;
         readonly UdpClient _client;
-        readonly CancellationTokenSource _cancellationTokenSource;
         readonly Action<T> _syncCallback;
         readonly Func<T, Task> _taskCallback;
 
@@ -39,88 +36,23 @@ namespace CK.Monitoring.Udp
             _monitor = monitor;
             _shouldReceive = true;
             _client = new UdpClient( port );
-            _logEntriesCollected = new System.Collections.Concurrent.BlockingCollection<T>();
-            _cancellationTokenSource = new CancellationTokenSource();
         }
 
         public async void Start( IUdpPacketComposer<T> composer )
         {
-            _receivingTask = null;
-            ActivityMonitor.DependentToken monitorToken = _monitor.DependentActivity().CreateTokenWithTopic( "ReceivingTask" );
-            if( _syncCallback != null )
-            {
-                _receivingTask = new Task( () =>
-                {
-                    IActivityMonitor monitor = monitorToken.CreateDependentMonitor();
-                    using( monitor.OpenTrace().Send( "Receiving task." ) )
-                    {
-                        for( ; ; )
-                        {
-
-                            if( _logEntriesCollected != null )
-                            {
-                                T logEntry = _logEntriesCollected.Take( _cancellationTokenSource.Token );
-                                monitor.Trace().Send( "Entry received. Calling callback." );
-                                try
-                                {
-                                    _syncCallback( logEntry );
-                                    monitor.Trace().Send( "Callback executed successfully." );
-                                }
-                                catch( Exception ex )
-                                {
-                                    monitor.Error().Send( ex, "Error during callback execution." );
-                                }
-                            }
-                        }
-                    }
-                }, _cancellationTokenSource.Token );
-            }
-            if( _taskCallback != null )
-            {
-                _receivingTask = new Task( async () =>
-                {
-                    IActivityMonitor monitor = monitorToken.CreateDependentMonitor();
-                    using( monitor.OpenTrace().Send( "Receiving task." ) )
-                    {
-                        for( ; ; )
-                        {
-
-                            if( _logEntriesCollected != null )
-                            {
-                                T logEntry = _logEntriesCollected.Take( _cancellationTokenSource.Token );
-                                monitor.Trace().Send( "Entry received. Calling callback." );
-                                try
-                                {
-                                    await _taskCallback( logEntry );
-                                    monitor.Trace().Send( "Callback executed successfully." );
-                                }
-                                catch( Exception ex )
-                                {
-                                    monitor.OpenError().Send( ex, "Error during callback execution." );
-                                }
-                            }
-                        }
-                    }
-                }, _cancellationTokenSource.Token );
-            }
-
-            if( _receivingTask == null )
-                throw new InvalidOperationException( "There is no receiver callback registered." );
-
-            _receivingTask.Start();
-
+            ActivityMonitor.DependentToken monitorToken = _monitor.DependentActivity().CreateToken();
 
             composer.OnObjectRestored( logEntry =>
             {
-                if( _logEntriesCollected != null )
+                var monitor = monitorToken.CreateDependentMonitor();
+                try
                 {
-                    lock( _receiveLock )
-                    {
-                        if( _logEntriesCollected != null )
-                        {
-                            _logEntriesCollected.Add( logEntry, _cancellationTokenSource.Token );
-                        }
-                    }
+                    if( _syncCallback != null ) _syncCallback( logEntry );
+                    if( _taskCallback != null ) _taskCallback( logEntry );
+                }
+                catch( Exception ex )
+                {
+                    monitor.Error().Send( ex, "Error during callback execution." );
                 }
             } );
 
@@ -129,33 +61,31 @@ namespace CK.Monitoring.Udp
                 try
                 {
                     UdpReceiveResult receiveResult = await _client.ReceiveAsync();
-                    composer.PushBuffer( receiveResult.Buffer );
+                    composer.PushUdpDataGram( receiveResult.Buffer );
                 }
                 catch( ObjectDisposedException )
                 {
                     _monitor.Warn().Send( "The underlying socket has been closed" );
                 }
-
+                catch( SocketException se )
+                {
+                    _monitor.Error().Send( se );
+                }
             }
         }
 
         public void Stop()
         {
             _shouldReceive = false;
-            _cancellationTokenSource.Cancel();
         }
 
         public void Dispose()
         {
             Stop();
-            _cancellationTokenSource.Dispose();
 
             lock( _receiveLock )
             {
                 _client.Close();
-
-                _logEntriesCollected.Dispose();
-                _logEntriesCollected = null;
             }
 
         }

@@ -11,7 +11,7 @@ namespace CK.Monitoring.Udp
         Action<T> _callback;
         Dictionary<Guid, UdpPacketEnvelope[]> _envelopes = new Dictionary<Guid, UdpPacketEnvelope[]>();
 
-        public void PushBuffer( byte[] dataGram )
+        public void PushUdpDataGram( byte[] dataGram )
         {
             UdpPacketEnvelope e = UdpPacketEnvelope.FromByteArray( dataGram );
 
