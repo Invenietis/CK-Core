@@ -24,7 +24,7 @@ namespace CK.Monitoring.Tests.Live
         }
 
         [Test]
-        public void UDPLogSender_SendsLogEntryAsString_Through_A_Specific_Port()
+        public void SendLogThroughUdpAndReceiveTest()
         {
             AutoResetEvent e = new AutoResetEvent( false );
             using( ILogReceiver receiver = new UdpLogReceiver( 3712 ) )
@@ -46,38 +46,85 @@ namespace CK.Monitoring.Tests.Live
         }
 
         [Test]
-        public void UDPLogReceiver_ExceptionDuring_CallBack_Should_Not_Interrupt_The_WholeProcess()
+        public async void SendLogThroughUdpAndReceiveAsyncTest()
         {
             Directory.CreateDirectory( SystemActivityMonitor.RootLogPath );
             GrandOutput.EnsureActiveDefaultWithDefaultSettings();
-            IActivityMonitor monitor = new ActivityMonitor();
+            var monitor = new ActivityMonitor();
+            monitor.Output.RegisterClient( new ActivityMonitorConsoleClient() );
 
-            bool secondMessageReceived = false;
-            AutoResetEvent e = new AutoResetEvent( false );
-            using( ILogReceiver receiver = new UdpLogReceiver( 3712, monitor ) )
+            using( AutoResetEvent e = new AutoResetEvent( false ) )
             {
-                receiver.ReceiveLog( ( logEntry ) =>
+                Thread t = new Thread( () =>
                 {
-                    if( logEntry.Text == "This is a log entry" )
+                    ILogReceiver receiver = new UdpLogReceiver( 3712 );
+                    receiver.ReceiveLogAsync( async ( logEntry ) =>
                     {
-                        throw new ApplicationException( "This is a manual triggered exception" );
-                    }
-                    else
-                    {
-                        secondMessageReceived = true;
+                        Assert.That( logEntry.Text, Is.EqualTo( "This is a log entry" ) );
+
+                        using( FileStream fs = new FileStream( Path.Combine( TestHelper.TestFolder, "log.txt" ), FileMode.OpenOrCreate ) )
+                        {
+                            using( BinaryWriter bw = new BinaryWriter( fs, Encoding.UTF8, true ) ) logEntry.WriteLogEntry( bw );
+
+                            var text = Encoding.UTF8.GetBytes( Environment.NewLine + " and some hand written texts." );
+                            await fs.WriteAsync( text, 0, text.Length );
+                        }
+
                         e.Set();
-                    }
+                        receiver.Dispose();
+                    } );
+
                 } );
+                t.Start();
 
                 using( ILogSender sender = new UdpLogSender( 3712 ) )
                 {
                     sender.Initialize( monitor );
+                    await sender.SendLogAsync( "This is a log entry" );
+                }
+
+                Assert.That( e.WaitOne(), Is.True );
+                t.Abort();
+            }
+
+        }
+
+        [Test]
+        public void UDPLogReceiver_ExceptionDuring_CallBack_Should_Not_Interrupt_The_WholeProcess()
+        {
+            Directory.CreateDirectory( SystemActivityMonitor.RootLogPath );
+            GrandOutput.EnsureActiveDefaultWithDefaultSettings();
+
+            using( AutoResetEvent e = new AutoResetEvent( false ) )
+            {
+                Thread server = new Thread( () =>
+                {
+                    ILogReceiver receiver = new UdpLogReceiver( 3712 );
+                    receiver.ReceiveLog( ( logEntry ) =>
+                    {
+                        if( logEntry.Text == "This is a log entry" )
+                        {
+                            throw new ApplicationException( "This is a manual triggered exception" );
+                        }
+                        else
+                        {
+                            e.Set();
+                        }
+
+                        receiver.Dispose();
+                    } );
+                } );
+                server.Start();
+
+                using( ILogSender sender = new UdpLogSender( 3712 ) )
+                {
+                    sender.Initialize( new ActivityMonitor() );
                     sender.SendLog( "This is a log entry" );
                     sender.SendLog( "This is a log entry with no exception." );
                 }
 
-                e.WaitOne( TimeSpan.FromSeconds( 2 ) );
-                Assert.That( secondMessageReceived );
+                Assert.That( e.WaitOne( TimeSpan.FromSeconds( 2 ) ) );
+                server.Abort();
             }
         }
 
@@ -89,33 +136,41 @@ namespace CK.Monitoring.Tests.Live
             Directory.CreateDirectory( SystemActivityMonitor.RootLogPath );
             GrandOutput.EnsureActiveDefaultWithDefaultSettings();
 
-            IActivityMonitor monitor = new ActivityMonitor();
 
-            AutoResetEvent e = new AutoResetEvent( false );
-            using( ILogReceiver receiver = new UdpLogReceiver( 3712, monitor ) )
+            using( AutoResetEvent e = new AutoResetEvent( false ) )
             {
-                Stopwatch receiverWatch = new Stopwatch();
-                receiverWatch.Start();
-                receiver.ReceiveLog( ( logEntry ) =>
+                Thread server = new Thread( () =>
                 {
-                    string textEntry = logEntry.Text;
-                    monitor.Trace().Send( textEntry );
-
-                    string part = "This is log entry n°";
-                    StringAssert.StartsWith( part, textEntry );
-
-                    string subString = textEntry.Remove( 0, part.Length );
-
-                    int logEntryInc = Int32.Parse( subString );
-                    if( logEntryInc == entries )
+                    ILogReceiver receiver = new UdpLogReceiver( 3712 );
+                    Stopwatch receiverWatch = new Stopwatch();
+                    receiverWatch.Start();
+                    receiver.ReceiveLog( ( logEntry ) =>
                     {
-                        e.Set();
-                    }
+                        string textEntry = logEntry.Text;
+
+                        string part = "This is log entry n°";
+                        StringAssert.StartsWith( part, textEntry );
+
+                        string subString = textEntry.Remove( 0, part.Length );
+
+                        int logEntryInc = Int32.Parse( subString );
+                        if( logEntryInc == entries )
+                        {
+                            receiverWatch.Stop();
+                            Console.WriteLine( "Receive {0} log entries in {1}", entries, receiverWatch.Elapsed );
+
+                            e.Set();
+                            receiver.Dispose();
+                        }
+                    } );
+
                 } );
+
+                server.Start();
 
                 using( ILogSender sender = new UdpLogSender( 3712 ) )
                 {
-                    sender.Initialize( monitor );
+                    sender.Initialize( new ActivityMonitor() );
                     Stopwatch senderWatch = new Stopwatch();
                     senderWatch.Start();
                     for( int i = 1; i <= entries; ++i )
@@ -128,9 +183,7 @@ namespace CK.Monitoring.Tests.Live
 
                 Assert.That( e.WaitOne( 15000 ) );
 
-                receiverWatch.Stop();
-                Console.WriteLine( "Receive {0} log entries in {1}", entries, receiverWatch.Elapsed );
-
+                server.Abort();
             }
         }
 
@@ -148,6 +201,12 @@ namespace CK.Monitoring.Tests.Live
         {
             var e = LogEntry.CreateMulticastLog( Guid.NewGuid(), LogEntryType.Line, DateTimeStamp.UtcNow, 0, logEntry, DateTimeStamp.UtcNow, LogLevel.Info, "", 0, null, exception );
             sender.SendLog( e );
+        }
+
+        public static Task SendLogAsync( this ILogSender sender, string logEntry )
+        {
+            var e = LogEntry.CreateMulticastLog( Guid.NewGuid(), LogEntryType.Line, DateTimeStamp.UtcNow, 0, logEntry, DateTimeStamp.UtcNow, LogLevel.Info, "", 0, null, exception );
+            return sender.SendLogAsync( e );
         }
     }
 

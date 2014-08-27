@@ -40,36 +40,38 @@ namespace CK.Monitoring.Udp
 
         public async void Start( IUdpPacketComposer<T> composer )
         {
-            ActivityMonitor.DependentToken monitorToken = _monitor.DependentActivity().CreateToken();
-
-            composer.OnObjectRestored( logEntry =>
+            composer.OnObjectRestored( async logEntry =>
             {
-                var monitor = monitorToken.CreateDependentMonitor();
                 try
                 {
                     if( _syncCallback != null ) _syncCallback( logEntry );
-                    if( _taskCallback != null ) _taskCallback( logEntry );
+                    if( _taskCallback != null ) await _taskCallback( logEntry );
                 }
                 catch( Exception ex )
                 {
-                    monitor.Error().Send( ex, "Error during callback execution." );
+                    _monitor.Error().Send( ex, "Error during callback execution." );
                 }
             } );
 
-            while( _shouldReceive )
+            using( _monitor.OpenInfo().Send( "Start receiver loop." ).ConcludeWith( () => "Receiver loop stopped" ) )
             {
-                try
+                while( _shouldReceive )
                 {
-                    UdpReceiveResult receiveResult = await _client.ReceiveAsync();
-                    composer.PushUdpDataGram( receiveResult.Buffer );
-                }
-                catch( ObjectDisposedException )
-                {
-                    _monitor.Warn().Send( "The underlying socket has been closed" );
-                }
-                catch( SocketException se )
-                {
-                    _monitor.Error().Send( se );
+                    try
+                    {
+                        UdpReceiveResult receiveResult = await _client.ReceiveAsync();
+                        _monitor.Trace().Send( "Received {0} bytes", receiveResult.Buffer.Length );
+
+                        composer.PushUdpDataGram( receiveResult.Buffer );
+                    }
+                    catch( ObjectDisposedException )
+                    {
+                        _monitor.Warn().Send( "The underlying socket has been closed" );
+                    }
+                    catch( SocketException se )
+                    {
+                        _monitor.Error().Send( se );
+                    }
                 }
             }
         }
