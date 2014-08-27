@@ -61,10 +61,10 @@
     <Compile Include="GrandOutput.DefaultConfig.cs" />
     <Compile Include="GlobalSuppressions.cs" />
     <Compile Include="GrandOutput.XAppDomain.cs" />
-    <Compile Include="Udp\Client\UdpHandlerConfiguration.cs" />
-    <Compile Include="Udp\Client\UdpLogSender.cs" />
-    <Compile Include="Udp\Client\ILogSender.cs" />
-    <Compile Include="Udp\Client\UdpHandler.cs" />
+    <Compile Include="GrandOutputHandlers\UdpHandlerConfiguration.cs" />
+    <Compile Include="Udp\UdpLogSender.cs" />
+    <Compile Include="Udp\ILogSender.cs" />
+    <Compile Include="GrandOutputHandlers\UdpHandler.cs" />
     <Compile Include="IGrandOutputBridgeTarget.cs" />
     <Compile Include="IGrandOutputDispatcherStrategy.cs" />
     <Compile Include="GrandOutputEventInfo.cs" />
@@ -137,15 +137,8 @@
     <Compile Include="GrandOutputHandlers\HandlerTypeAttribute.cs" />
     <Compile Include="GrandOutputHandlers\Impl\SequenceHandler.cs" />
     <Compile Include="GrandOutputHandlers\Impl\ParallelHandler.cs" />
-    <Compile Include="Udp\Client\UdpPacketSplitter.cs" />
-    <Compile Include="Udp\Server\ILogReceiver.cs" />
-    <Compile Include="Udp\Server\Impl\ReceivePump.cs" />
-    <Compile Include="Udp\Server\Impl\MultiCastLogEntryComposer.cs" />
-    <Compile Include="Udp\Server\Impl\UdpLogReceiver.cs" />
-    <Compile Include="Udp\Server\UdpPacketComposer.cs" />
-    <Compile Include="Udp\Server\IUdpPacketComposer.cs" />
+    <Compile Include="Udp\UdpPacketSplitter.cs" />
     <Compile Include="Udp\UdpPacketEnvelope.cs" />
-    <Compile Include="UDPSender.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\CK.Core\CK.Core.csproj">
@@ -161,9 +154,7 @@
     <Content Include="FodyWeavers.xml" />
     <Content Include="ReleaseNotes.txt" />
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="GrandOutputHandlers\UDP\" />
-  </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="..\packages\Fody.1.24.0\build\Fody.targets" Condition="Exists('..\packages\Fody.1.24.0\build\Fody.targets')" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">

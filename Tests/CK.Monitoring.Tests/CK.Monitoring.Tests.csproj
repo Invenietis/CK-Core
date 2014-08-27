@@ -61,6 +61,7 @@
     <Compile Include="ChannelAndSourceFilterTests.cs" />
     <Compile Include="DocumentationCodeSnippets.cs" />
     <Compile Include="GrandOutputTests.cs" />
+    <Compile Include="Live\ActivityMonitorServerHostTest.cs" />
     <Compile Include="Live\UDPGrantOutputHandlerTests.cs" />
     <Compile Include="Live\UDPPacketSplitterTest.cs" />
     <Compile Include="Live\UDPSenderReceiverTests.cs" />
@@ -76,6 +77,10 @@
     <Compile Include="TestHelper.cs" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\CK.Monitoring.Server\CK.Monitoring.Server.csproj">
+      <Project>{0b548291-2915-4e55-9f8a-6422aca5061b}</Project>
+      <Name>CK.Monitoring.Server</Name>
+    </ProjectReference>
     <ProjectReference Include="..\..\CK.Monitoring\CK.Monitoring.csproj">
       <Project>{dd23f681-55a9-49f3-95d7-9344980a0f97}</Project>
       <Name>CK.Monitoring</Name>

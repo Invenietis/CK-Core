@@ -66,6 +66,11 @@ namespace CK.Core
             static public readonly CKTrait Empty;
 
             /// <summary>
+            /// Applications which want to sign their logs will apply this Trait in every emitted log.
+            /// </summary>
+            static public readonly CKTrait ApplicationSignature;
+
+            /// <summary>
             /// Creation of dependent activities are marked with "dep:CreateActivity".
             /// </summary>
             static public readonly CKTrait CreateDependentActivity;
@@ -109,6 +114,7 @@ namespace CK.Core
                 MonitorTopicChanged = Context.FindOrCreate( "MonitorTopicChanged" );
                 CreateDependentActivity = Context.FindOrCreate( "dep:CreateActivity" );
                 StartDependentActivity = Context.FindOrCreate( "dep:StartActivity" );
+                ApplicationSignature = Context.FindOrCreate( "ApplicationSignature" );
             }
         }
 

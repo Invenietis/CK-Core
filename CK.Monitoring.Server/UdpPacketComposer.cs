@@ -3,8 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using CK.Monitoring.Udp;
 
-namespace CK.Monitoring.Udp
+namespace CK.Monitoring.Server
 {
     public abstract class UdpPacketComposer<T> : IUdpPacketComposer<T>
     {

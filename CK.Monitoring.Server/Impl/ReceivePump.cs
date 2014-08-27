@@ -7,7 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using CK.Core;
 
-namespace CK.Monitoring.Udp
+namespace CK.Monitoring.Server
 {
     class ReceivePump<T> : IDisposable
     {

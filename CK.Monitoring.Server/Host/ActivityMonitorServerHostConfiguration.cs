@@ -4,9 +4,10 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace CK.Monitoring
+namespace CK.Monitoring.Server
 {
-    class UDPSender
+    public class ActivityMonitorServerHostConfiguration
     {
+        public int Port { get; set; }
     }
 }

@@ -18,12 +18,12 @@ namespace CK.Monitoring.Tests.Live
         public void Setup()
         {
             TestHelper.InitalizePaths();
+            Directory.CreateDirectory( SystemActivityMonitor.RootLogPath );
         }
 
         [Test]
         public void GrantOutputHandler_IsRegistered_InGrandOutput()
         {
-            Directory.CreateDirectory( SystemActivityMonitor.RootLogPath );
             GrandOutput.EnsureActiveDefault( configurator =>
             {
                 configurator.CommonSink.Add(
@@ -33,32 +33,7 @@ namespace CK.Monitoring.Tests.Live
 
             IActivityMonitor m = new ActivityMonitor();
             m.Trace().Send( "Log entry" );
-        }
-
-
-        class DummyLogSender : ILogSender
-        {
-            public void SendLog( IMulticastLogEntry entry )
-            {
-                Assert.That( entry.Text == "Log entry" );
-            }
-
-            public Task SendLogAsync( IMulticastLogEntry entry )
-            {
-                return Task.FromResult( 0 );
-            }
-
-            public void Dispose()
-            {
-            }
-
-            public void Initialize( IActivityMonitor monitor )
-            {
-            }
-
-            public void Close( IActivityMonitor monitor )
-            {
-            }
+            
         }
     }
 }

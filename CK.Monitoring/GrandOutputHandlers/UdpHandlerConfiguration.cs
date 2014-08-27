@@ -4,9 +4,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using CK.Core;
-using CK.Monitoring.GrandOutputHandlers;
 
-namespace CK.Monitoring.Udp
+namespace CK.Monitoring.GrandOutputHandlers
 {
     /// <summary>
     /// Configuration object for <see cref="UDPHandler"/>.

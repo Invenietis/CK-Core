@@ -11,6 +11,7 @@ using System.Threading;
 using System.IO;
 using System.Diagnostics;
 using CK.Monitoring.Udp;
+using CK.Monitoring.Server;
 
 namespace CK.Monitoring.Tests.Live
 {
@@ -21,6 +22,8 @@ namespace CK.Monitoring.Tests.Live
         public void Setup()
         {
             TestHelper.InitalizePaths();
+            Directory.CreateDirectory( SystemActivityMonitor.RootLogPath );
+            GrandOutput.EnsureActiveDefaultWithDefaultSettings();
         }
 
         [Test]
@@ -48,11 +51,6 @@ namespace CK.Monitoring.Tests.Live
         [Test]
         public async void SendLogThroughUdpAndReceiveAsyncTest()
         {
-            Directory.CreateDirectory( SystemActivityMonitor.RootLogPath );
-            GrandOutput.EnsureActiveDefaultWithDefaultSettings();
-            var monitor = new ActivityMonitor();
-            monitor.Output.RegisterClient( new ActivityMonitorConsoleClient() );
-
             using( AutoResetEvent e = new AutoResetEvent( false ) )
             {
                 Thread t = new Thread( () =>
@@ -79,7 +77,7 @@ namespace CK.Monitoring.Tests.Live
 
                 using( ILogSender sender = new UdpLogSender( 3712 ) )
                 {
-                    sender.Initialize( monitor );
+                    sender.Initialize(  new ActivityMonitor() );
                     await sender.SendLogAsync( "This is a log entry" );
                 }
 
@@ -92,9 +90,6 @@ namespace CK.Monitoring.Tests.Live
         [Test]
         public void UDPLogReceiver_ExceptionDuring_CallBack_Should_Not_Interrupt_The_WholeProcess()
         {
-            Directory.CreateDirectory( SystemActivityMonitor.RootLogPath );
-            GrandOutput.EnsureActiveDefaultWithDefaultSettings();
-
             using( AutoResetEvent e = new AutoResetEvent( false ) )
             {
                 Thread server = new Thread( () =>
@@ -133,10 +128,6 @@ namespace CK.Monitoring.Tests.Live
         [TestCase( 10000 )]
         public void UDPLogSender_Sends_MultipleEntries_Receiver_ReadAllEntries( int entries )
         {
-            Directory.CreateDirectory( SystemActivityMonitor.RootLogPath );
-            GrandOutput.EnsureActiveDefaultWithDefaultSettings();
-
-
             using( AutoResetEvent e = new AutoResetEvent( false ) )
             {
                 Thread server = new Thread( () =>

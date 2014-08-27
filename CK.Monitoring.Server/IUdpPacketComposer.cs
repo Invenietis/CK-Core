@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace CK.Monitoring.Udp
+namespace CK.Monitoring.Server
 {
     public interface IUdpPacketComposer<T>
     {

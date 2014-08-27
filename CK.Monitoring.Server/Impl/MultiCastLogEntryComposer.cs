@@ -4,8 +4,9 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using CK.Monitoring.Udp;
 
-namespace CK.Monitoring.Udp
+namespace CK.Monitoring.Server
 {
     public class MultiCastLogEntryComposer : UdpPacketComposer<IMulticastLogEntry>
     {

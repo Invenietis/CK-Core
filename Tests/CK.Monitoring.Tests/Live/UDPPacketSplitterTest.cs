@@ -7,6 +7,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using CK.Core;
+using CK.Monitoring.Server;
 using CK.Monitoring.Udp;
 using NUnit.Framework;
 

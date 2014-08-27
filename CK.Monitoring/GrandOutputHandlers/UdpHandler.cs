@@ -4,9 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using CK.Core;
-using CK.Monitoring.GrandOutputHandlers;
+using CK.Monitoring.Udp;
 
-namespace CK.Monitoring.Udp
+namespace CK.Monitoring.GrandOutputHandlers
 {
     /// <summary>
     /// UDP Handler

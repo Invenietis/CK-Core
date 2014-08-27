@@ -96,6 +96,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CK.Core.ActivityMonitor.Com
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Monitor", "Monitor", "{E98B10FF-3FAC-4390-9B2B-DFF068BF32D9}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CK.Monitoring.Server", "CK.Monitoring.Server\CK.Monitoring.Server.csproj", "{0B548291-2915-4E55-9F8A-6422ACA5061B}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CK.Monitoring.Server.UI", "CK.Monitoring.Server.UI\CK.Monitoring.Server.UI.csproj", "{1246A455-4C61-4299-A775-EE0C63F534D3}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -226,6 +230,14 @@ Global
 		{33C97DB1-ED3D-40D4-B7D9-996E83619AE0}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{33C97DB1-ED3D-40D4-B7D9-996E83619AE0}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{33C97DB1-ED3D-40D4-B7D9-996E83619AE0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0B548291-2915-4E55-9F8A-6422ACA5061B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0B548291-2915-4E55-9F8A-6422ACA5061B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0B548291-2915-4E55-9F8A-6422ACA5061B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0B548291-2915-4E55-9F8A-6422ACA5061B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1246A455-4C61-4299-A775-EE0C63F534D3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1246A455-4C61-4299-A775-EE0C63F534D3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1246A455-4C61-4299-A775-EE0C63F534D3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1246A455-4C61-4299-A775-EE0C63F534D3}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
