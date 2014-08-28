@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Text;
+using CK.Core;
 
 namespace CK.Monitoring.Server
 {
@@ -12,20 +14,27 @@ namespace CK.Monitoring.Server
         public ClientMonitor( Guid monitorId )
         {
             MonitorId = monitorId;
-            Entries = new List<IMulticastLogEntry>();
+            Entries = new ObservableCollection<IMulticastLogEntry>();
         }
 
         public Guid MonitorId { get; set; }
 
-        public List<IMulticastLogEntry> Entries { get; set; }
+        public ObservableCollection<IMulticastLogEntry> Entries { get; set; }
 
         public void AddEntry( IMulticastLogEntry entry )
         {
             // TODO Optim.
             lock( _lock )
             {
-                Entries.Add( entry );
-                Entries = Entries.OrderBy( x => x.LogTime ).ToList();
+                var lastEntry = Entries.FirstOrDefault( x => x.LogTime > entry.LogTime );
+                if( lastEntry == null )
+                {
+                    Entries.Add( entry );
+                }
+                else
+                {
+                    Entries.Insert( Entries.IndexOf( lastEntry ), entry );
+                }
             }
         }
     }

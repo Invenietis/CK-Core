@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.Linq;
 using System.Text;
 
@@ -10,16 +12,16 @@ namespace CK.Monitoring.Server
         public ClientApplication( string signature )
         {
             Signature = signature;
-            Monitors = new List<ClientMonitor>();
+            Monitors = new ObservableCollection<ClientMonitor>();
         }
 
         public string Signature { get; set; }
 
-        public List<ClientMonitor> Monitors { get; set; }
+        public ObservableCollection<ClientMonitor> Monitors { get; set; }
 
         public void RegisterMonitor( Guid monitorId )
         {
-            if( !Monitors.Exists( x => x.MonitorId == monitorId ) )
+            if( !Monitors.Any( x => x.MonitorId == monitorId ) )
             {
                 Monitors.Add( new ClientMonitor( monitorId ) );
             }

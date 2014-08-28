@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -10,16 +12,16 @@ namespace CK.Monitoring.Server
     public class ClientMonitorDatabase
     {
         LogEntryDispatcher _dispatcher;
-        List<ClientApplication> _applications;
+        ObservableCollection<ClientApplication> _applications;
 
-        public IReadOnlyCollection<ClientApplication> Applications
+        public ObservableCollection<ClientApplication> Applications
         {
             get { return _applications; }
         }
 
         public ClientMonitorDatabase( LogEntryDispatcher dispatcher )
         {
-            _applications = new List<ClientApplication>();
+            _applications = new ObservableCollection<ClientApplication>();
 
             _dispatcher = dispatcher;
             _dispatcher.LogEntryReceived += OnLogEntryReceived;
@@ -37,7 +39,7 @@ namespace CK.Monitoring.Server
 
         void AddApplication( string signature, Guid monitorId )
         {
-            var app = _applications.Find( x => x.Signature == signature );
+            var app = _applications.FirstOrDefault( x => x.Signature == signature );
             if( app == null )
             {
                 app =  new ClientApplication( signature );
@@ -57,6 +59,7 @@ namespace CK.Monitoring.Server
                 monitor.AddEntry( entry );
             }
         }
+
     }
 
 }
