@@ -16,7 +16,24 @@ namespace CK.Monitoring.Server.UI
         {
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault( false );
-            Application.Run( new MainForm() );
+
+            MainForm mainView = new MainForm();
+
+            ActivityMonitorServerHostConfiguration config = new ActivityMonitorServerHostConfiguration
+            {
+                Port = 3712
+            };
+
+            LogEntryDispatcher dispatcher = new LogEntryDispatcher();
+
+            ClientMonitorDatabase database = new ClientMonitorDatabase( dispatcher );
+            Presenter presenter = new Presenter( mainView, database );
+            presenter.Start();
+
+            ActivityMonitorServerHost server = new ActivityMonitorServerHost( config );
+            server.Open( dispatcher.DispatchLogEntry );
+
+            Application.Run( mainView );
         }
     }
 }

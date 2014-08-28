@@ -45,14 +45,23 @@ namespace CK.Monitoring.Tests
             ActivityMonitor.AutoConfiguration += m =>
             {
                 m.UnfilteredLog( ActivityMonitor.Tags.ApplicationSignature, LogLevel.Info, Environment.MachineName, DateTimeStamp.UtcNow, null );
-            };
+            }; 
 
             ActivityMonitor monitor = new ActivityMonitor();
             for( int i = 0; i < 10000; ++i )
             {
-                Thread.Sleep( 500 );
+                Thread.Sleep( 20 );
 
                 monitor.Info().Send( Path.GetRandomFileName() );
+                using( monitor.OpenTrace().Send( "Open a group" ) )
+                {
+                    monitor.Warn().Send( "Warn this !" );
+                    using( monitor.OpenInfo().Send( "Info group" ) )
+                    {
+                        monitor.Info().Send( "Info info info info" );
+                        monitor.Info().Send( "Info 2 info 2 info 2 info 2" );
+                    }
+                }
             }
         }
 
