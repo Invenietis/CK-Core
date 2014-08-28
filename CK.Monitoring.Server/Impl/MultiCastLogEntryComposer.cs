@@ -8,7 +8,7 @@ using CK.Monitoring.Udp;
 
 namespace CK.Monitoring.Server
 {
-    public class MultiCastLogEntryComposer : UdpPacketComposer<IMulticastLogEntry>
+    class MultiCastLogEntryComposer : UdpPacketComposer<IMulticastLogEntry>
     {
         protected override IMulticastLogEntry Recompose( UdpPacketEnvelope[] envelopes )
         {

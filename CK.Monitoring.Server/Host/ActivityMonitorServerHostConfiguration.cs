@@ -9,5 +9,7 @@ namespace CK.Monitoring.Server
     public class ActivityMonitorServerHostConfiguration
     {
         public int Port { get; set; }
+
+        public int CrititcalErrorPort { get; set; }
     }
 }

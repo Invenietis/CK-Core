@@ -20,11 +20,27 @@ namespace CK.Monitoring.Server.UI
         public void BindClients( ClientMonitorDatabase clients )
         {
             clients.Applications.CollectionChanged += Applications_CollectionChanged;
-
+            clients.CriticalErrors.CollectionChanged += CriticalErrors_CollectionChanged;
             foreach( var appli in clients.Applications )
             {
                 IClientApplicationView view =  CreateClientApplicationView( appli );
                 view.BindClientApplication( appli );
+            }
+            var errorView = FindOrCreateCriticalErrorView();
+            foreach( var error in clients.CriticalErrors )
+            {
+                errorView.AddCriticalError( error );
+            }
+        }
+
+        void CriticalErrors_CollectionChanged( object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e )
+        {
+            if( e.Action == System.Collections.Specialized.NotifyCollectionChangedAction.Add )
+            {
+                foreach( string error in e.NewItems )
+                {
+                    FindOrCreateCriticalErrorView().AddCriticalError( error );
+                }
             }
         }
 
@@ -35,11 +51,27 @@ namespace CK.Monitoring.Server.UI
                 foreach( ClientApplication appli in e.NewItems )
                 {
                     var view = CreateClientApplicationView( appli );
-                    view.BindClientApplication( appli);
+                    view.BindClientApplication( appli );
                 }
             }
         }
 
+        private ICriticalErrorView FindOrCreateCriticalErrorView()
+        {
+            TabPage criticalTabPage = Clients.TabPages["CriticalErrors"];
+            if( criticalTabPage == null )
+            {
+                criticalTabPage = new TabPage( "CriticalErrors" )
+                {
+                    Name = "CriticalErrors"
+                };
+                var content = new CriticalErrorControl();
+                content.Dock = DockStyle.Fill;
+                criticalTabPage.Controls.Add( content );
+                Clients.TabPages.Add( criticalTabPage );
+            }
+            return (ICriticalErrorView)criticalTabPage.Controls[0];
+        }
 
         private IClientApplicationView CreateClientApplicationView( ClientApplication appli )
         {

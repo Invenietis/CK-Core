@@ -46,6 +46,13 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Views\CriticalErrorControl.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="Views\CriticalErrorControl.Designer.cs">
+      <DependentUpon>CriticalErrorControl.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Views\ICriticalErrorView.cs" />
     <Compile Include="Views\IMainView.cs" />
     <Compile Include="Views\IClientApplicationView.cs" />
     <Compile Include="Views\MainForm.cs">
@@ -63,6 +70,9 @@
     <Compile Include="Views\TabContentControl.Designer.cs">
       <DependentUpon>TabContentControl.cs</DependentUpon>
     </Compile>
+    <EmbeddedResource Include="Views\CriticalErrorControl.resx">
+      <DependentUpon>CriticalErrorControl.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="Views\MainForm.resx">
       <DependentUpon>MainForm.cs</DependentUpon>
     </EmbeddedResource>

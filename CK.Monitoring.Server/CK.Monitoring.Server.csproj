@@ -49,10 +49,12 @@
     <Compile Include="Host\ActivityMonitorServerHost.cs" />
     <Compile Include="Host\ActivityMonitorServerHostConfiguration.cs" />
     <Compile Include="ILogReceiver.cs" />
+    <Compile Include="Impl\CriticalErrorComposer.cs" />
     <Compile Include="Impl\MultiCastLogEntryComposer.cs" />
     <Compile Include="Impl\ReceivePump.cs" />
     <Compile Include="Impl\UdpLogReceiver.cs" />
     <Compile Include="IUdpPacketComposer.cs" />
+    <Compile Include="Model\CriticalErrorEventArgs.cs" />
     <Compile Include="Model\LogEntryEventArgs.cs" />
     <Compile Include="Model\LogEntryDispatcher.cs" />
     <Compile Include="Model\InMemory\ClientMonitor.cs" />

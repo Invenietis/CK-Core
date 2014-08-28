@@ -6,10 +6,10 @@ using System.Threading.Tasks;
 
 namespace CK.Monitoring.Server
 {
-    public interface ILogReceiver : IDisposable
+    public interface ILogReceiver<T> : IDisposable
     {
-        void ReceiveLog( Action<IMulticastLogEntry> onLogEntryReceived );
+        void ReceiveLog( Action<T> onLogEntryReceived );
 
-        void ReceiveLogAsync( Func<IMulticastLogEntry, Task> onLogEntryReceived );
+        void ReceiveLogAsync( Func<T, Task> onLogEntryReceived );
     }
 }

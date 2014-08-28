@@ -9,13 +9,13 @@ using CK.Core;
 
 namespace CK.Monitoring.Udp
 {
-    class UdpLogSender : ILogSender
+    abstract class UdpLogSenderBase<T> : ILogSender<T>
     {
         readonly int _port;
         readonly UdpClient _client;
         readonly UdpPacketSplitter _splitter;
 
-        public UdpLogSender( int port, int maxUdpPacketSize = 1280 )
+        public UdpLogSenderBase( int port, int maxUdpPacketSize )
         {
             _port = port;
             _client = new UdpClient();
@@ -31,7 +31,7 @@ namespace CK.Monitoring.Udp
             monitor.Trace().Send( "Connected." );
         }
 
-        public void SendLog( IMulticastLogEntry entry )
+        public virtual void SendLog( T entry )
         {
             var buffer = PrepareSend( entry );
             foreach( var envelope in _splitter.Split( buffer ) )
@@ -41,7 +41,7 @@ namespace CK.Monitoring.Udp
             }
         }
 
-        public async Task SendLogAsync( IMulticastLogEntry entry )
+        public virtual async Task SendLogAsync( T entry )
         {
             var buffer = PrepareSend( entry );
             foreach( var envelope in _splitter.Split( buffer ) )
@@ -51,25 +51,14 @@ namespace CK.Monitoring.Udp
             }
         }
 
-        private byte[] PrepareSend( IMulticastLogEntry entry )
-        {
-            IPEndPoint groupEP = new IPEndPoint( IPAddress.Broadcast, _port );
-
-            using( System.IO.MemoryStream ms = new System.IO.MemoryStream() )
-            using( System.IO.BinaryWriter w = new System.IO.BinaryWriter( ms ) )
-            {
-                entry.WriteLogEntry( w );
-                w.Flush();
-                return ms.ToArray();
-            }
-        }
+        protected abstract byte[] PrepareSend( T entry );
 
         public void Dispose()
         {
             Close( null );
         }
 
-        public void Close( IActivityMonitor monitor )
+        public virtual void Close( IActivityMonitor monitor )
         {
             try
             {

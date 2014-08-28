@@ -7,20 +7,20 @@ using CK.Core;
 
 namespace CK.Monitoring.Udp
 {
-    public interface ILogSender : IDisposable
+    public interface ILogSender<T> : IDisposable
     {
         /// <summary>
         /// Sends a log
         /// </summary>
         /// <param name="entry"></param>
-        void SendLog( IMulticastLogEntry entry );
+        void SendLog( T entry );
 
         /// <summary>
         /// Sends a log asynchronous
         /// </summary>
         /// <param name="entry"></param>
         /// <returns></returns>
-        Task SendLogAsync( IMulticastLogEntry entry );
+        Task SendLogAsync( T entry );
 
         /// <summary>
         /// Initializes this log sender

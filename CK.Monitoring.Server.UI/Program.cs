@@ -21,7 +21,8 @@ namespace CK.Monitoring.Server.UI
 
             ActivityMonitorServerHostConfiguration config = new ActivityMonitorServerHostConfiguration
             {
-                Port = 3712
+                Port = 3712,
+                CrititcalErrorPort = 3713
             };
 
             LogEntryDispatcher dispatcher = new LogEntryDispatcher();
@@ -31,7 +32,7 @@ namespace CK.Monitoring.Server.UI
             presenter.Start();
 
             ActivityMonitorServerHost server = new ActivityMonitorServerHost( config );
-            server.Open( dispatcher.DispatchLogEntry );
+            server.Open( dispatcher.DispatchLogEntry, dispatcher.DispatchCriticalError );
 
             Application.Run( mainView );
         }

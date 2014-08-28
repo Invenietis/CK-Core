@@ -21,6 +21,7 @@ namespace CK.Monitoring.GrandOutputHandlers
             : base( name )
         {
             Port = 3712;
+            CriticalErrorsPort = 3713;
             MaxPacketSize = 1280;
         }
 
@@ -28,6 +29,11 @@ namespace CK.Monitoring.GrandOutputHandlers
         /// Gets or sets the Udp Port. Defaults to 3712.
         /// </summary>
         public int Port { get; set; }
+
+        /// <summary>
+        /// Gets or sets the Udp Critical error Port. Defaults to 3713.
+        /// </summary>
+        public int CriticalErrorsPort { get; set; }
 
         /// <summary>
         /// Gets or sets the max Udp Packet Size. Defaults to 1280

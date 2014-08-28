@@ -13,18 +13,31 @@ namespace CK.Monitoring.Server
     {
         LogEntryDispatcher _dispatcher;
         ObservableCollection<ClientApplication> _applications;
+        ObservableCollection<string> _errors;
 
         public ObservableCollection<ClientApplication> Applications
         {
             get { return _applications; }
         }
 
+        public ObservableCollection<string> CriticalErrors
+        {
+            get { return _errors; }
+        }
+
         public ClientMonitorDatabase( LogEntryDispatcher dispatcher )
         {
             _applications = new ObservableCollection<ClientApplication>();
+            _errors = new ObservableCollection<string>();
 
             _dispatcher = dispatcher;
             _dispatcher.LogEntryReceived += OnLogEntryReceived;
+            _dispatcher.CriticalErrorReceived += OnCriticalErrorReceived;
+        }
+
+        void OnCriticalErrorReceived( object sender, CriticalErrorEventArgs e )
+        {
+            _errors.Add( e.Error );
         }
 
         void OnLogEntryReceived( object sender, LogEntryEventArgs e )
@@ -42,7 +55,7 @@ namespace CK.Monitoring.Server
             var app = _applications.FirstOrDefault( x => x.Signature == signature );
             if( app == null )
             {
-                app =  new ClientApplication( signature );
+                app = new ClientApplication( signature );
                 _applications.Add( app );
             }
             app.RegisterMonitor( monitorId );

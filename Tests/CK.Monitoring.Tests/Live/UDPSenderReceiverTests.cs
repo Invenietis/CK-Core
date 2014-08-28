@@ -30,7 +30,7 @@ namespace CK.Monitoring.Tests.Live
         public void SendLogThroughUdpAndReceiveTest()
         {
             AutoResetEvent e = new AutoResetEvent( false );
-            using( ILogReceiver receiver = new UdpLogReceiver( 3712 ) )
+            using( var receiver = new UdpLogReceiver<IMulticastLogEntry>( new MultiCastLogEntryComposer(), 3712 ) )
             {
                 receiver.ReceiveLog( ( logEntry ) =>
                 {
@@ -38,7 +38,7 @@ namespace CK.Monitoring.Tests.Live
                     e.Set();
                 } );
 
-                using( ILogSender sender = new UdpLogSender( 3712 ) )
+                using( var sender = new UdpLogEntrySender( 3712 ) )
                 {
                     sender.Initialize( new ActivityMonitor() );
                     sender.SendLog( "This is a log entry" );
@@ -55,7 +55,7 @@ namespace CK.Monitoring.Tests.Live
             {
                 Thread t = new Thread( () =>
                 {
-                    ILogReceiver receiver = new UdpLogReceiver( 3712 );
+                    var receiver = new UdpLogReceiver<IMulticastLogEntry>( new MultiCastLogEntryComposer(), 3712 );
                     receiver.ReceiveLogAsync( async ( logEntry ) =>
                     {
                         Assert.That( logEntry.Text, Is.EqualTo( "This is a log entry" ) );
@@ -75,7 +75,7 @@ namespace CK.Monitoring.Tests.Live
                 } );
                 t.Start();
 
-                using( ILogSender sender = new UdpLogSender( 3712 ) )
+                using( var sender = new UdpLogEntrySender( 3712 ) )
                 {
                     sender.Initialize(  new ActivityMonitor() );
                     await sender.SendLogAsync( "This is a log entry" );
@@ -94,7 +94,7 @@ namespace CK.Monitoring.Tests.Live
             {
                 Thread server = new Thread( () =>
                 {
-                    ILogReceiver receiver = new UdpLogReceiver( 3712 );
+                    var receiver =new UdpLogReceiver<IMulticastLogEntry>( new MultiCastLogEntryComposer(), 3712 );
                     receiver.ReceiveLog( ( logEntry ) =>
                     {
                         if( logEntry.Text == "This is a log entry" )
@@ -111,7 +111,7 @@ namespace CK.Monitoring.Tests.Live
                 } );
                 server.Start();
 
-                using( ILogSender sender = new UdpLogSender( 3712 ) )
+                using( var sender = new UdpLogEntrySender( 3712 ) )
                 {
                     sender.Initialize( new ActivityMonitor() );
                     sender.SendLog( "This is a log entry" );
@@ -132,7 +132,7 @@ namespace CK.Monitoring.Tests.Live
             {
                 Thread server = new Thread( () =>
                 {
-                    ILogReceiver receiver = new UdpLogReceiver( 3712 );
+                    var receiver = new UdpLogReceiver<IMulticastLogEntry>( new MultiCastLogEntryComposer(), 3712 );
                     Stopwatch receiverWatch = new Stopwatch();
                     receiverWatch.Start();
                     receiver.ReceiveLog( ( logEntry ) =>
@@ -159,7 +159,7 @@ namespace CK.Monitoring.Tests.Live
 
                 server.Start();
 
-                using( ILogSender sender = new UdpLogSender( 3712 ) )
+                using( ILogSender<IMulticastLogEntry> sender = new UdpLogEntrySender( 3712 ) )
                 {
                     sender.Initialize( new ActivityMonitor() );
                     Stopwatch senderWatch = new Stopwatch();
@@ -188,13 +188,13 @@ namespace CK.Monitoring.Tests.Live
             exception = CKExceptionData.CreateFrom( UDPPacketSplitterTest.ThrowAggregatedException() );
         }
 
-        public static void SendLog( this ILogSender sender, string logEntry )
+        public static void SendLog( this ILogSender<IMulticastLogEntry> sender, string logEntry )
         {
             var e = LogEntry.CreateMulticastLog( Guid.NewGuid(), LogEntryType.Line, DateTimeStamp.UtcNow, 0, logEntry, DateTimeStamp.UtcNow, LogLevel.Info, "", 0, null, exception );
             sender.SendLog( e );
         }
 
-        public static Task SendLogAsync( this ILogSender sender, string logEntry )
+        public static Task SendLogAsync( this ILogSender<IMulticastLogEntry> sender, string logEntry )
         {
             var e = LogEntry.CreateMulticastLog( Guid.NewGuid(), LogEntryType.Line, DateTimeStamp.UtcNow, 0, logEntry, DateTimeStamp.UtcNow, LogLevel.Info, "", 0, null, exception );
             return sender.SendLogAsync( e );

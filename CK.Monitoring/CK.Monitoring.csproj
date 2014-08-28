@@ -62,7 +62,8 @@
     <Compile Include="GlobalSuppressions.cs" />
     <Compile Include="GrandOutput.XAppDomain.cs" />
     <Compile Include="GrandOutputHandlers\UdpHandlerConfiguration.cs" />
-    <Compile Include="Udp\UdpLogSender.cs" />
+    <Compile Include="Udp\UdpCriticalErrorSender.cs" />
+    <Compile Include="Udp\UdpLogEntrySender.cs" />
     <Compile Include="Udp\ILogSender.cs" />
     <Compile Include="GrandOutputHandlers\UdpHandler.cs" />
     <Compile Include="IGrandOutputBridgeTarget.cs" />
@@ -137,6 +138,7 @@
     <Compile Include="GrandOutputHandlers\HandlerTypeAttribute.cs" />
     <Compile Include="GrandOutputHandlers\Impl\SequenceHandler.cs" />
     <Compile Include="GrandOutputHandlers\Impl\ParallelHandler.cs" />
+    <Compile Include="Udp\UdpLogSenderBase.cs" />
     <Compile Include="Udp\UdpPacketSplitter.cs" />
     <Compile Include="Udp\UdpPacketEnvelope.cs" />
   </ItemGroup>

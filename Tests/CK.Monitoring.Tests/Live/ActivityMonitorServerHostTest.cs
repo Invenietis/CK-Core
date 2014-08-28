@@ -62,6 +62,11 @@ namespace CK.Monitoring.Tests
                         monitor.Info().Send( "Info 2 info 2 info 2 info 2" );
                     }
                 }
+
+                if( i % 5 == 0 )
+                {
+                    ActivityMonitor.CriticalErrorCollector.Add( new CKException( "The-Test-Exception-Message" ), "Produced by ActivityMonitorServerHostTest.SendLogsThroughUdp" );
+                }
             }
         }
 

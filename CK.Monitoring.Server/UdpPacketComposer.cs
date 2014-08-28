@@ -7,7 +7,7 @@ using CK.Monitoring.Udp;
 
 namespace CK.Monitoring.Server
 {
-    public abstract class UdpPacketComposer<T> : IUdpPacketComposer<T>
+    abstract class UdpPacketComposer<T> : IUdpPacketComposer<T>
     {
         Action<T> _callback;
         Dictionary<Guid, UdpPacketEnvelope[]> _envelopes = new Dictionary<Guid, UdpPacketEnvelope[]>();
