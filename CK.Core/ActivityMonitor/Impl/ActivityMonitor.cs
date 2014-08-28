@@ -127,7 +127,7 @@ namespace CK.Core
         public static readonly CriticalErrorCollector CriticalErrorCollector;
 
         static LogFilter _defaultFilterLevel;
-        
+
         /// <summary>
         /// Internal event used by ActivityMonitorBridgeTarget that have at least one ActivityMonitorBridge in another application domain.
         /// </summary>
@@ -143,7 +143,7 @@ namespace CK.Core
         public static LogFilter DefaultFilter
         {
             get { return _defaultFilterLevel; }
-            set 
+            set
             {
                 lock( _lockDefaultFilterLevel )
                 {
@@ -164,7 +164,7 @@ namespace CK.Core
                         }
                     }
                 }
-            } 
+            }
         }
 
         /// <summary>
@@ -231,7 +231,7 @@ namespace CK.Core
         /// <param name="output">The output to use. Can be null.</param>
         /// <param name="tags">Initial tags.</param>
         /// <param name="applyAutoConfigurations">Whether <see cref="AutoConfiguration"/> should be applied.</param>
-        protected ActivityMonitor( ActivityMonitorOutput output, CKTrait tags = null, bool applyAutoConfigurations = true  )
+        protected ActivityMonitor( ActivityMonitorOutput output, CKTrait tags = null, bool applyAutoConfigurations = true )
         {
             Build( output, tags, applyAutoConfigurations );
         }
@@ -298,17 +298,17 @@ namespace CK.Core
         /// <summary>
         /// Gets the last <see cref="DateTimeStamp"/> for this monitor.
         /// </summary>
-        public DateTimeStamp LastLogTime 
+        public DateTimeStamp LastLogTime
         {
-            get { return _lastLogTime; } 
+            get { return _lastLogTime; }
         }
-        
+
         /// <summary>
         /// Gets the current topic for this monitor. This can be any non null string (null topic is mapped to the empty string) that describes
         /// the current activity. It must be set with <see cref="SetTopic"/> and unlike <see cref="MinimalFilter"/> and <see cref="AutoTags"/>, 
         /// the topic is not reseted when groups are closed.
         /// </summary>
-        public string Topic 
+        public string Topic
         {
             get { return _topic; }
         }
@@ -351,7 +351,7 @@ namespace CK.Core
         /// Modifications to this property are scoped to the current Group since when a Group is closed, this
         /// property (like <see cref="MinimalFilter"/>) is automatically restored to its original value (captured when the Group was opened).
         /// </summary>
-        public CKTrait AutoTags 
+        public CKTrait AutoTags
         {
             get { return _currentTag; }
             set
@@ -428,13 +428,13 @@ namespace CK.Core
         /// This global default must be used if this ActualFilter is <see cref="LogLevelFilter.None"/> for <see cref="LogFilter.Line"/> or <see cref="LogFilter.Group"/>: 
         /// the <see cref="ActivityMonitorExtension.ShouldLogLine">ShouldLog</see> extension method takes it into account.
         /// </remarks>
-        public LogFilter ActualFilter 
+        public LogFilter ActualFilter
         {
-            get 
+            get
             {
                 if( _actualFilterIsDirty ) ResyncActualFilter();
-                return _actualFilter; 
-            } 
+                return _actualFilter;
+            }
         }
 
         void ResyncActualFilter()
@@ -485,7 +485,7 @@ namespace CK.Core
         LogFilter DoGetBoundClientMinimalFilter()
         {
             Debug.Assert( _enteredThreadId == Thread.CurrentThread.ManagedThreadId );
-            
+
             LogFilter minimal = LogFilter.Undefined;
             List<IActivityMonitorClient> buggyClients = null;
             foreach( var l in _output.Clients )
@@ -595,7 +595,7 @@ namespace CK.Core
         {
             Debug.Assert( _enteredThreadId == Thread.CurrentThread.ManagedThreadId );
             Debug.Assert( data.Level != LogLevel.None );
-            Debug.Assert( !String.IsNullOrEmpty( data.Text ) );
+            Debug.Assert( data.Text != null );
 
             if( !data.IsFilteredLog )
             {
@@ -685,7 +685,7 @@ namespace CK.Core
             _lastLogTime = data.CombineTagsAndAdjustLogTime( _currentTag, _lastLogTime );
             _current.Initialize( data );
             _currentUnfiltered = _current;
-            MonoParameterSafeCall( ( client, group ) => client.OnOpenGroup( group ), _current ); 
+            MonoParameterSafeCall( ( client, group ) => client.OnOpenGroup( group ), _current );
             return _current;
         }
 
