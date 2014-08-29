@@ -38,9 +38,8 @@ namespace CK.Monitoring.Tests.Live
                     e.Set();
                 } );
 
-                using( var sender = new UdpLogEntrySender( 3712 ) )
+                using( var sender = new UdpLogEntrySender( "127.0.0.1", 3712 ) )
                 {
-                    sender.Initialize( new ActivityMonitor() );
                     sender.SendLog( "This is a log entry" );
                 }
 
@@ -75,9 +74,8 @@ namespace CK.Monitoring.Tests.Live
                 } );
                 t.Start();
 
-                using( var sender = new UdpLogEntrySender( 3712 ) )
+                using( var sender = new UdpLogEntrySender( "127.0.0.1", 3712 ) )
                 {
-                    sender.Initialize(  new ActivityMonitor() );
                     await sender.SendLogAsync( "This is a log entry" );
                 }
 
@@ -111,10 +109,10 @@ namespace CK.Monitoring.Tests.Live
                 } );
                 server.Start();
 
-                using( var sender = new UdpLogEntrySender( 3712 ) )
+                using( var sender = new UdpLogEntrySender( "127.0.0.1", 3712 ) )
                 {
-                    sender.Initialize( new ActivityMonitor() );
                     sender.SendLog( "This is a log entry" );
+                    Thread.Sleep( 20 );
                     sender.SendLog( "This is a log entry with no exception." );
                 }
 
@@ -145,6 +143,7 @@ namespace CK.Monitoring.Tests.Live
                         string subString = textEntry.Remove( 0, part.Length );
 
                         int logEntryInc = Int32.Parse( subString );
+                        Console.WriteLine( subString );
                         if( logEntryInc == entries )
                         {
                             receiverWatch.Stop();
@@ -159,20 +158,20 @@ namespace CK.Monitoring.Tests.Live
 
                 server.Start();
 
-                using( ILogSender<IMulticastLogEntry> sender = new UdpLogEntrySender( 3712 ) )
+                using( ILogSender<IMulticastLogEntry> sender = new UdpLogEntrySender( "127.0.0.1", 3712 ) )
                 {
-                    sender.Initialize( new ActivityMonitor() );
                     Stopwatch senderWatch = new Stopwatch();
                     senderWatch.Start();
                     for( int i = 1; i <= entries; ++i )
                     {
                         sender.SendLog( String.Format( "This is log entry n°{0}", i ) );
+                        Thread.Sleep( 20 );
                     }
                     senderWatch.Stop();
                     Console.WriteLine( "Send {0} log entries in {1}", entries, senderWatch.Elapsed );
                 }
 
-                Assert.That( e.WaitOne( 15000 ) );
+                Assert.That( e.WaitOne( 30000 ) );
 
                 server.Abort();
             }

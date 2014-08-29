@@ -21,18 +21,5 @@ namespace CK.Monitoring.Udp
         /// <param name="entry"></param>
         /// <returns></returns>
         Task SendLogAsync( T entry );
-
-        /// <summary>
-        /// Initializes this log sender
-        /// </summary>
-        /// <param name="monitor">The monitor used during initialization phasis</param>
-        void Initialize( IActivityMonitor monitor );
-
-        /// <summary>
-        /// Closes this log sender
-        /// </summary>
-        /// <param name="monitor">The monitor used during the close phasis</param>
-        void Close( IActivityMonitor monitor );
     }
-
 }

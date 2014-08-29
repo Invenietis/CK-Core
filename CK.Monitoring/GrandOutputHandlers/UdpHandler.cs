@@ -11,10 +11,12 @@ namespace CK.Monitoring.GrandOutputHandlers
     /// <summary>
     /// UDP Handler
     /// </summary>
-    public class UdpHandler : HandlerBase
+    public sealed class UdpHandler : HandlerBase
     {
         ILogSender<IMulticastLogEntry> _logSender;
         ILogSender<string> _crititcalErrorSender;
+
+        readonly UdpHandlerConfiguration _config;
 
         /// <summary>
         /// Initializes a new <see cref="UdpHandler"/> bound to its <see cref="UdpHandlerConfiguration"/>.
@@ -23,16 +25,21 @@ namespace CK.Monitoring.GrandOutputHandlers
         public UdpHandler( UdpHandlerConfiguration config )
             : base( config )
         {
-            _logSender = new UdpLogEntrySender( config.Port, config.MaxPacketSize );
-            _crititcalErrorSender = new UdpCriticalErrorSender( config.CriticalErrorsPort, config.MaxPacketSize );
+            if( config == null ) throw new ArgumentNullException( "config" );
+
+            _config = config;
         }
 
         public override void Initialize( Core.IActivityMonitor monitor )
         {
+            if( monitor == null ) throw new ArgumentNullException( "monitor" );
+
             using( monitor.OpenTrace().Send( "Initializing Udp Handler '{0}'", Name ) )
             {
-                _logSender.Initialize( monitor );
-                _crititcalErrorSender.Initialize( monitor );
+                UdpHandlerConfiguration c = _config;
+                _logSender = new UdpLogEntrySender( c.ServerIPAddress, c.Port, c.MaxPacketSize, monitor );
+                _crititcalErrorSender = new UdpCriticalErrorSender( c.ServerIPAddress, c.CriticalErrorsPort, c.MaxPacketSize, monitor );
+
                 SystemActivityMonitor.OnError += SystemActivityMonitor_OnError;
             }
         }
@@ -44,18 +51,18 @@ namespace CK.Monitoring.GrandOutputHandlers
 
         public override void Close( IActivityMonitor monitor )
         {
+            if( monitor == null ) throw new ArgumentNullException( "monitor" );
+
             monitor.Info().Send( "Closing UdpClient for UDP handler '{0}'.", Name );
-            _logSender.Close( monitor );
+            _logSender.Dispose();
 
             SystemActivityMonitor.OnError -= SystemActivityMonitor_OnError;
-            _crititcalErrorSender.Close( monitor );
+            _crititcalErrorSender.Dispose();
         }
-
 
         void SystemActivityMonitor_OnError( object sender, SystemActivityMonitor.LowLevelErrorEventArgs e )
         {
             _crititcalErrorSender.SendLog( e.ErrorMessage );
         }
-
     }
 }

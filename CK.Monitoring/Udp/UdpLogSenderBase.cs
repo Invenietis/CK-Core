@@ -11,25 +11,34 @@ namespace CK.Monitoring.Udp
 {
     abstract class UdpLogSenderBase<T> : ILogSender<T>
     {
-        readonly int _port;
         readonly UdpClient _client;
         readonly UdpPacketSplitter _splitter;
+        readonly IActivityMonitor _monitor;
 
-        public UdpLogSenderBase( int port, int maxUdpPacketSize )
+        public UdpLogSenderBase( string serverAddress, int port, int maxUdpPacketSize = 1280, IActivityMonitor monitor = null )
         {
-            _port = port;
+            if( String.IsNullOrEmpty( serverAddress ) ) throw new ArgumentNullException( "serverAddress" );
+
+            _monitor = monitor ?? new ActivityMonitor();
             _client = new UdpClient();
             _splitter = new UdpPacketSplitter( maxUdpPacketSize );
+
+            IPAddress address;
+            if( !IPAddress.TryParse( serverAddress, out address ) )
+            {
+                _monitor.Error().Send( "The IPAddress: {0} is not valid... Fallback to Loopback address." );
+                address = IPAddress.Loopback;
+            }
+            else
+            {
+                IPEndPoint endPoint = new IPEndPoint( address, port );
+
+                _monitor.Trace().Send( "Connecting UdpClient to IPAddress: {0}.", endPoint.ToString() );
+                _client.Connect( endPoint );
+                _monitor.Trace().Send( "Connected." );
+            }
         }
 
-        public void Initialize( Core.IActivityMonitor monitor )
-        {
-            IPEndPoint endPoint = new IPEndPoint( IPAddress.Broadcast, _port );
-
-            monitor.Trace().Send( "Connecting UdpClient to {0}.", endPoint.ToString() );
-            _client.Connect( endPoint );
-            monitor.Trace().Send( "Connected." );
-        }
 
         public virtual void SendLog( T entry )
         {
@@ -55,20 +64,15 @@ namespace CK.Monitoring.Udp
 
         public void Dispose()
         {
-            Close( null );
-        }
-
-        public virtual void Close( IActivityMonitor monitor )
-        {
             try
             {
                 _client.Close();
             }
             catch( Exception ex )
             {
-                if( monitor != null )
+                if( _monitor != null )
                 {
-                    monitor.Error().Send( ex );
+                    _monitor.Error().Send( ex );
                 }
             }
         }

@@ -31,7 +31,7 @@ namespace CK.Monitoring.Tests
                  <GrandOutputConfiguration>
                     <Channel MinimalFilter=""Debug"">
                         <Add Type=""BinaryFile"" Name=""All-1"" Path=""Test""/>
-                        <Add Type=""UdpHandler"" Name=""All-2""/>
+                        <Add Type=""UdpHandler"" Name=""All-2"" ServerIPAddress=""127.0.0.1"" />
                     </Channel>
                 </GrandOutputConfiguration>" );
 

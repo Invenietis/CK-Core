@@ -11,15 +11,9 @@ namespace CK.Monitoring.Udp
 {
     class UdpLogEntrySender : UdpLogSenderBase<IMulticastLogEntry>
     {
-        readonly int _port;
-        readonly UdpClient _client;
-        readonly UdpPacketSplitter _splitter;
-
-        public UdpLogEntrySender( int port, int maxUdpPacketSize = 1280 )
-            : base( port, maxUdpPacketSize )
+        public UdpLogEntrySender( string serverAddress, int port, int maxUdpPacketSize = 1280, IActivityMonitor monitor = null )
+            : base( serverAddress, port, maxUdpPacketSize, monitor )
         {
-            _port = port;
-            _client = new UdpClient();
         }
 
         protected override byte[] PrepareSend( IMulticastLogEntry entry )
