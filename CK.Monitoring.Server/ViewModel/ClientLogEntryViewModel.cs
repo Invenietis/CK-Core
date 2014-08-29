@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace CK.Monitoring.Server
 {
-    public class ClientLogEntry
+    public class ClientLogEntryViewModel
     {
         readonly IMulticastLogEntry _logEntry;
 
@@ -20,16 +20,16 @@ namespace CK.Monitoring.Server
             get { return LogEntry == null; }
         }
 
-        private ClientLogEntry()
+        private ClientLogEntryViewModel()
         {
         }
 
-        public ClientLogEntry( IMulticastLogEntry logEntry )
+        public ClientLogEntryViewModel( IMulticastLogEntry logEntry )
         {
             _logEntry = logEntry;
         }
 
 
-        public static ClientLogEntry Missing = new ClientLogEntry();
+        public static ClientLogEntryViewModel Missing = new ClientLogEntryViewModel();
     }
 }

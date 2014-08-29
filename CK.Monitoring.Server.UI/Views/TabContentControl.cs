@@ -20,7 +20,7 @@ namespace CK.Monitoring.Server.UI
 
         public delegate void InvokeDelegate();
 
-        public void BindClientApplication( ClientApplication model )
+        public void BindClientApplication( ClientApplicationViewModel model )
         {
             model.Monitors.CollectionChanged += Monitors_CollectionChanged;
 
@@ -43,7 +43,7 @@ namespace CK.Monitoring.Server.UI
             {
                 BeginInvoke( new InvokeDelegate( () =>
                 {
-                    foreach( ClientMonitor mon in e.NewItems )
+                    foreach( ClientMonitorViewModel mon in e.NewItems )
                     {
                         AddMonitorNode( this.ClientMonitorTreeView, mon );
                     }
@@ -56,7 +56,7 @@ namespace CK.Monitoring.Server.UI
         /// </summary>
         /// <param name="treeView"></param>
         /// <param name="m"></param>
-        void AddMonitorNode( TreeView treeView, ClientMonitor m )
+        void AddMonitorNode( TreeView treeView, ClientMonitorViewModel m )
         {
             TreeNode node = new TreeNode( m.MonitorId.ToString() );
             node.Name = m.MonitorId.ToString();
@@ -65,7 +65,7 @@ namespace CK.Monitoring.Server.UI
         }
 
         ActivityMonitor _replay;
-        ClientMonitor _currentMonitor;
+        ClientMonitorViewModel _currentMonitor;
 
         /// <summary>
         /// When a monitor is selected, display the logs of this monitor. 
@@ -77,7 +77,7 @@ namespace CK.Monitoring.Server.UI
         {
             if( _currentMonitor != null ) _currentMonitor.Entries.CollectionChanged -= Entries_CollectionChanged;
 
-            _currentMonitor = e.Node.Tag as ClientMonitor;
+            _currentMonitor = e.Node.Tag as ClientMonitorViewModel;
 
             if( _currentMonitor != null )
             {
@@ -88,8 +88,8 @@ namespace CK.Monitoring.Server.UI
                 LogView.Nodes.Clear();
 
                 _currentMonitor.Entries.CollectionChanged += Entries_CollectionChanged;
-                var currentEntries = new List<ClientLogEntry>( _currentMonitor.Entries );
-                foreach( ClientLogEntry log in currentEntries ) LogToReplayMonitor( log );
+                var currentEntries = new List<ClientLogEntryViewModel>( _currentMonitor.Entries );
+                foreach( ClientLogEntryViewModel log in currentEntries ) LogToReplayMonitor( log );
             }
         }
 
@@ -105,7 +105,7 @@ namespace CK.Monitoring.Server.UI
             {
                 BeginInvoke( new InvokeDelegate( () =>
                 {
-                    foreach( ClientLogEntry log in e.NewItems )
+                    foreach( ClientLogEntryViewModel log in e.NewItems )
                     {
                         LogToReplayMonitor( log );
                     }
@@ -119,7 +119,7 @@ namespace CK.Monitoring.Server.UI
         /// </summary>
         /// <param name="replay"></param>
         /// <param name="log"></param>
-        private void LogToReplayMonitor( ClientLogEntry clientLog )
+        private void LogToReplayMonitor( ClientLogEntryViewModel clientLog )
         {
             if( _replay != null )
             {

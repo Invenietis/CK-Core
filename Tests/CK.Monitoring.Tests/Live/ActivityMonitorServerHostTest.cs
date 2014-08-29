@@ -21,7 +21,6 @@ namespace CK.Monitoring.Tests
         {
             TestHelper.InitalizePaths();
             Directory.CreateDirectory( SystemActivityMonitor.RootLogPath );
-
         }
 
         [Test]
@@ -83,7 +82,7 @@ namespace CK.Monitoring.Tests
                     };
 
                     LogEntryDispatcher dispatcher = new LogEntryDispatcher();
-                    ClientMonitorDatabase database = new ClientMonitorDatabase( dispatcher );
+                    ClientMonitorViewModelRoot database = new ClientMonitorViewModelRoot( dispatcher );
 
                     dispatcher.LogEntryReceived += ( sender, e ) =>
                     {

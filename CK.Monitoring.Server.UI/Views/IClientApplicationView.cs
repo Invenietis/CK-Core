@@ -8,6 +8,6 @@ namespace CK.Monitoring.Server.UI
 {
     public interface IClientApplicationView
     {
-        void BindClientApplication( ClientApplication model );
+        void BindClientApplication( ClientApplicationViewModel model );
     }
 }

@@ -4,11 +4,11 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{0B548291-2915-4E55-9F8A-6422ACA5061B}</ProjectGuid>
+    <ProjectGuid>{2552F665-8722-49F0-A6FA-98407663E347}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>CK.Monitoring.Server</RootNamespace>
-    <AssemblyName>CK.Monitoring.Server</AssemblyName>
+    <RootNamespace>CK.Monitoring.Server.Index</RootNamespace>
+    <AssemblyName>CK.Monitoring.Server.Index</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <TargetFrameworkProfile />
@@ -30,13 +30,13 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
-  <PropertyGroup>
-    <SignAssembly>true</SignAssembly>
-  </PropertyGroup>
-  <PropertyGroup>
-    <AssemblyOriginatorKeyFile>SharedKey.snk</AssemblyOriginatorKeyFile>
-  </PropertyGroup>
   <ItemGroup>
+    <Reference Include="ICSharpCode.SharpZipLib">
+      <HintPath>..\packages\SharpZipLib.0.86.0\lib\20\ICSharpCode.SharpZipLib.dll</HintPath>
+    </Reference>
+    <Reference Include="Lucene.Net">
+      <HintPath>..\packages\Lucene.Net.3.0.3\lib\NET40\Lucene.Net.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />
@@ -46,39 +46,28 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Host\ActivityMonitorServerHost.cs" />
-    <Compile Include="Host\ActivityMonitorServerHostConfiguration.cs" />
-    <Compile Include="Model\LogEntryModel.cs" />
-    <Compile Include="Receivers\ILogReceiver.cs" />
-    <Compile Include="Receivers\CriticalErrorComposer.cs" />
-    <Compile Include="Receivers\MultiCastLogEntryComposer.cs" />
-    <Compile Include="Receivers\ReceivePump.cs" />
-    <Compile Include="Receivers\UdpLogReceiver.cs" />
-    <Compile Include="Receivers\IUdpPacketComposer.cs" />
-    <Compile Include="Events\CriticalErrorEventArgs.cs" />
-    <Compile Include="ViewModel\ClientLogEntryViewModel.cs" />
-    <Compile Include="Events\LogEntryEventArgs.cs" />
-    <Compile Include="Events\LogEntryDispatcher.cs" />
-    <Compile Include="ViewModel\ClientMonitorViewModel.cs" />
-    <Compile Include="ViewModel\ClientApplicationViewModel.cs" />
-    <Compile Include="ViewModel\ClientMonitorViewModelRoot.cs" />
+    <Compile Include="IndexStoreFactory.cs" />
+    <Compile Include="LogIndexer.cs" />
+    <Compile Include="LogSearcher.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Receivers\UdpPacketComposer.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\CK.Core\CK.Core.csproj">
       <Project>{97578828-71ec-46b3-bd9a-44e58292386f}</Project>
       <Name>CK.Core</Name>
     </ProjectReference>
+    <ProjectReference Include="..\CK.Monitoring.Server\CK.Monitoring.Server.csproj">
+      <Project>{0b548291-2915-4e55-9f8a-6422aca5061b}</Project>
+      <Name>CK.Monitoring.Server</Name>
+    </ProjectReference>
     <ProjectReference Include="..\CK.Monitoring\CK.Monitoring.csproj">
       <Project>{dd23f681-55a9-49f3-95d7-9344980a0f97}</Project>
       <Name>CK.Monitoring</Name>
     </ProjectReference>
   </ItemGroup>
-  <ItemGroup>
-    <None Include="SharedKey.snk" />
-  </ItemGroup>
-  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

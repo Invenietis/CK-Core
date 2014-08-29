@@ -10,7 +10,7 @@ namespace CK.Monitoring.Server.UI
     {
         void BindCriticalError( string error );
 
-        void BindClientApplication( ClientApplication appli );
+        void BindClientApplication( ClientApplicationViewModel appli );
     }
 
 }

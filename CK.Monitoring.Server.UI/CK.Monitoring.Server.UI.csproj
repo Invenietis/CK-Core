@@ -9,9 +9,10 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>CK.Monitoring.Server.UI</RootNamespace>
     <AssemblyName>CK.Monitoring.Server.UI</AssemblyName>
-    <TargetFrameworkVersion>v4.5.1</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
+    <TargetFrameworkProfile />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -84,6 +85,7 @@
     <Compile Include="Properties\Resources.Designer.cs">
       <AutoGen>True</AutoGen>
       <DependentUpon>Resources.resx</DependentUpon>
+      <DesignTime>True</DesignTime>
     </Compile>
     <EmbeddedResource Include="Views\TabContentControl.resx">
       <DependentUpon>TabContentControl.cs</DependentUpon>
@@ -105,6 +107,10 @@
     <ProjectReference Include="..\CK.Core\CK.Core.csproj">
       <Project>{97578828-71ec-46b3-bd9a-44e58292386f}</Project>
       <Name>CK.Core</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\CK.Monitoring.Server.Index\CK.Monitoring.Server.Index.csproj">
+      <Project>{2552f665-8722-49f0-a6fa-98407663e347}</Project>
+      <Name>CK.Monitoring.Server.Index</Name>
     </ProjectReference>
     <ProjectReference Include="..\CK.Monitoring.Server\CK.Monitoring.Server.csproj">
       <Project>{0b548291-2915-4e55-9f8a-6422aca5061b}</Project>

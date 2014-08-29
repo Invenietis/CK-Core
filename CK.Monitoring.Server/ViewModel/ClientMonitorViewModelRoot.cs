@@ -9,13 +9,13 @@ using CK.Core;
 
 namespace CK.Monitoring.Server
 {
-    public class ClientMonitorDatabase
+    public class ClientMonitorViewModelRoot
     {
         LogEntryDispatcher _dispatcher;
-        ObservableCollection<ClientApplication> _applications;
+        ObservableCollection<ClientApplicationViewModel> _applications;
         ObservableCollection<string> _errors;
 
-        public ObservableCollection<ClientApplication> Applications
+        public ObservableCollection<ClientApplicationViewModel> Applications
         {
             get { return _applications; }
         }
@@ -25,9 +25,9 @@ namespace CK.Monitoring.Server
             get { return _errors; }
         }
 
-        public ClientMonitorDatabase( LogEntryDispatcher dispatcher )
+        public ClientMonitorViewModelRoot( LogEntryDispatcher dispatcher )
         {
-            _applications = new ObservableCollection<ClientApplication>();
+            _applications = new ObservableCollection<ClientApplicationViewModel>();
             _errors = new ObservableCollection<string>();
 
             _dispatcher = dispatcher;
@@ -55,7 +55,7 @@ namespace CK.Monitoring.Server
             var app = _applications.FirstOrDefault( x => x.Signature == signature );
             if( app == null )
             {
-                app = new ClientApplication( signature );
+                app = new ClientApplicationViewModel( signature );
                 _applications.Add( app );
             }
             app.RegisterMonitor( monitorId );
@@ -63,7 +63,7 @@ namespace CK.Monitoring.Server
 
         void AddLog( IMulticastLogEntry entry )
         {
-            ClientMonitor monitor = _applications
+            ClientMonitorViewModel monitor = _applications
                 .SelectMany( x => x.Monitors )
                 .FirstOrDefault( x => x.MonitorId == entry.MonitorId );
 

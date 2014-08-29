@@ -7,23 +7,23 @@ using System.Text;
 
 namespace CK.Monitoring.Server
 {
-    public class ClientApplication
+    public class ClientApplicationViewModel
     {
-        public ClientApplication( string signature )
+        public ClientApplicationViewModel( string signature )
         {
             Signature = signature;
-            Monitors = new ObservableCollection<ClientMonitor>();
+            Monitors = new ObservableCollection<ClientMonitorViewModel>();
         }
 
         public string Signature { get; set; }
 
-        public ObservableCollection<ClientMonitor> Monitors { get; set; }
+        public ObservableCollection<ClientMonitorViewModel> Monitors { get; set; }
 
         public void RegisterMonitor( Guid monitorId )
         {
             if( !Monitors.Any( x => x.MonitorId == monitorId ) )
             {
-                Monitors.Add( new ClientMonitor( monitorId ) );
+                Monitors.Add( new ClientMonitorViewModel( monitorId ) );
             }
         }
     }

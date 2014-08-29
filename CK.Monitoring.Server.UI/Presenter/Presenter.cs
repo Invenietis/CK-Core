@@ -12,9 +12,9 @@ namespace CK.Monitoring.Server.UI
     public class Presenter
     {
         readonly IMainView _appView;
-        readonly ClientMonitorDatabase _database;
+        readonly ClientMonitorViewModelRoot _database;
 
-        public Presenter( IMainView applicationView, ClientMonitorDatabase database )
+        public Presenter( IMainView applicationView, ClientMonitorViewModelRoot database )
         {
             _appView = applicationView;
             _database = database;
@@ -51,7 +51,7 @@ namespace CK.Monitoring.Server.UI
         {
             if( e.Action == System.Collections.Specialized.NotifyCollectionChangedAction.Add )
             {
-                foreach( ClientApplication appli in e.NewItems )
+                foreach( ClientApplicationViewModel appli in e.NewItems )
                 {
                     _appView.BindClientApplication( appli );
                 }

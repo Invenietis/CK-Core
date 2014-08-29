@@ -100,6 +100,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CK.Monitoring.Server", "CK.
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CK.Monitoring.Server.UI", "CK.Monitoring.Server.UI\CK.Monitoring.Server.UI.csproj", "{1246A455-4C61-4299-A775-EE0C63F534D3}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CK.Monitoring.Server.Index", "CK.Monitoring.Server.Index\CK.Monitoring.Server.Index.csproj", "{2552F665-8722-49F0-A6FA-98407663E347}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -238,6 +240,10 @@ Global
 		{1246A455-4C61-4299-A775-EE0C63F534D3}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{1246A455-4C61-4299-A775-EE0C63F534D3}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{1246A455-4C61-4299-A775-EE0C63F534D3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2552F665-8722-49F0-A6FA-98407663E347}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2552F665-8722-49F0-A6FA-98407663E347}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2552F665-8722-49F0-A6FA-98407663E347}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2552F665-8722-49F0-A6FA-98407663E347}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

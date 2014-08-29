@@ -7,24 +7,24 @@ using CK.Core;
 
 namespace CK.Monitoring.Server
 {
-    public class ClientMonitor
+    public class ClientMonitorViewModel
     {
-        public ClientMonitor( Guid monitorId )
+        public ClientMonitorViewModel( Guid monitorId )
         {
             MonitorId = monitorId;
-            Entries = new ObservableCollection<ClientLogEntry>();
+            Entries = new ObservableCollection<ClientLogEntryViewModel>();
         }
 
         public Guid MonitorId { get; set; }
 
-        public ObservableCollection<ClientLogEntry> Entries { get; set; }
+        public ObservableCollection<ClientLogEntryViewModel> Entries { get; set; }
 
         public void AddEntry( IMulticastLogEntry entry )
         {
             // TODO Optim.
             lock( this )
             {
-                var clientLogEntry = new ClientLogEntry( entry );
+                var clientLogEntry = new ClientLogEntryViewModel( entry );
                 var lastEntry = Entries.Where( x => x.IsMissingEntry == false ).FirstOrDefault( x => x.LogEntry.LogTime > entry.LogTime );
                 if( lastEntry == null )
                 {
@@ -38,7 +38,7 @@ namespace CK.Monitoring.Server
                 var previousEntry = Entries.Where( x => x.IsMissingEntry == false ).FirstOrDefault( x => x.LogEntry.LogTime == entry.PreviousLogTime );
                 if( previousEntry == null )
                 {
-                    Entries.Insert( Entries.IndexOf( clientLogEntry ), ClientLogEntry.Missing );
+                    Entries.Insert( Entries.IndexOf( clientLogEntry ), ClientLogEntryViewModel.Missing );
                 }
             }
         }

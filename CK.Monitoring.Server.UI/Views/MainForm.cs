@@ -27,7 +27,7 @@ namespace CK.Monitoring.Server.UI
             } ) );
         }
 
-        public void BindClientApplication( ClientApplication appli )
+        public void BindClientApplication( ClientApplicationViewModel appli )
         {
             BeginInvoke( new InvokeDelegate( () =>
             {
@@ -53,7 +53,7 @@ namespace CK.Monitoring.Server.UI
             return (ICriticalErrorView)criticalTabPage.Controls[0];
         }
 
-        private IClientApplicationView CreateClientApplicationView( ClientApplication appli )
+        private IClientApplicationView CreateClientApplicationView( ClientApplicationViewModel appli )
         {
             var page = new TabPage( appli.Signature );
             page.Name = appli.Signature;
