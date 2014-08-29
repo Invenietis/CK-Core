@@ -22,7 +22,40 @@ namespace CK.Monitoring.Server.UI
 
         public void Start()
         {
-            _appView.BindClients( _database );
+            _database.Applications.CollectionChanged += Applications_CollectionChanged;
+            _database.CriticalErrors.CollectionChanged += CriticalErrors_CollectionChanged;
+            
+            foreach( var appli in _database.Applications )
+            {
+                _appView.BindClientApplication( appli );
+            }
+            foreach( var error in _database.CriticalErrors )
+            {
+                _appView.BindCriticalError( error );
+            }
+        }
+
+
+        void CriticalErrors_CollectionChanged( object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e )
+        {
+            if( e.Action == System.Collections.Specialized.NotifyCollectionChangedAction.Add )
+            {
+                foreach( string error in e.NewItems )
+                {
+                    _appView.BindCriticalError( error );
+                }
+            }
+        }
+
+        void Applications_CollectionChanged( object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e )
+        {
+            if( e.Action == System.Collections.Specialized.NotifyCollectionChangedAction.Add )
+            {
+                foreach( ClientApplication appli in e.NewItems )
+                {
+                    _appView.BindClientApplication( appli );
+                }
+            }
         }
     }
 }

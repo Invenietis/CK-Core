@@ -55,6 +55,7 @@
     <Compile Include="Impl\UdpLogReceiver.cs" />
     <Compile Include="IUdpPacketComposer.cs" />
     <Compile Include="Model\CriticalErrorEventArgs.cs" />
+    <Compile Include="Model\InMemory\ClientLogEntry.cs" />
     <Compile Include="Model\LogEntryEventArgs.cs" />
     <Compile Include="Model\LogEntryDispatcher.cs" />
     <Compile Include="Model\InMemory\ClientMonitor.cs" />

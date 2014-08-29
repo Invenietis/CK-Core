@@ -9,31 +9,36 @@ namespace CK.Monitoring.Server
 {
     public class ClientMonitor
     {
-        static object _lock = new object();
-
         public ClientMonitor( Guid monitorId )
         {
             MonitorId = monitorId;
-            Entries = new ObservableCollection<IMulticastLogEntry>();
+            Entries = new ObservableCollection<ClientLogEntry>();
         }
 
         public Guid MonitorId { get; set; }
 
-        public ObservableCollection<IMulticastLogEntry> Entries { get; set; }
+        public ObservableCollection<ClientLogEntry> Entries { get; set; }
 
         public void AddEntry( IMulticastLogEntry entry )
         {
             // TODO Optim.
-            lock( _lock )
+            lock( this )
             {
-                var lastEntry = Entries.FirstOrDefault( x => x.LogTime > entry.LogTime );
+                var clientLogEntry = new ClientLogEntry( entry );
+                var lastEntry = Entries.Where( x => x.IsMissingEntry == false ).FirstOrDefault( x => x.LogEntry.LogTime > entry.LogTime );
                 if( lastEntry == null )
                 {
-                    Entries.Add( entry );
+                    Entries.Add( clientLogEntry );
                 }
                 else
                 {
-                    Entries.Insert( Entries.IndexOf( lastEntry ), entry );
+                    Entries.Insert( Entries.IndexOf( lastEntry ), clientLogEntry );
+                }
+
+                var previousEntry = Entries.Where( x => x.IsMissingEntry == false ).FirstOrDefault( x => x.LogEntry.LogTime == entry.PreviousLogTime );
+                if( previousEntry == null )
+                {
+                    Entries.Insert( Entries.IndexOf( clientLogEntry ), ClientLogEntry.Missing );
                 }
             }
         }

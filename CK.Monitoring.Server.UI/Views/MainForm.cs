@@ -17,43 +17,23 @@ namespace CK.Monitoring.Server.UI
             InitializeComponent();
         }
 
-        public void BindClients( ClientMonitorDatabase clients )
+        public delegate void InvokeDelegate();
+
+        public void BindCriticalError( string error )
         {
-            clients.Applications.CollectionChanged += Applications_CollectionChanged;
-            clients.CriticalErrors.CollectionChanged += CriticalErrors_CollectionChanged;
-            foreach( var appli in clients.Applications )
+            BeginInvoke( new InvokeDelegate( () =>
+            {
+                FindOrCreateCriticalErrorView().AddCriticalError( error );
+            } ) );
+        }
+
+        public void BindClientApplication( ClientApplication appli )
+        {
+            BeginInvoke( new InvokeDelegate( () =>
             {
                 IClientApplicationView view =  CreateClientApplicationView( appli );
                 view.BindClientApplication( appli );
-            }
-            var errorView = FindOrCreateCriticalErrorView();
-            foreach( var error in clients.CriticalErrors )
-            {
-                errorView.AddCriticalError( error );
-            }
-        }
-
-        void CriticalErrors_CollectionChanged( object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e )
-        {
-            if( e.Action == System.Collections.Specialized.NotifyCollectionChangedAction.Add )
-            {
-                foreach( string error in e.NewItems )
-                {
-                    FindOrCreateCriticalErrorView().AddCriticalError( error );
-                }
-            }
-        }
-
-        void Applications_CollectionChanged( object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e )
-        {
-            if( e.Action == System.Collections.Specialized.NotifyCollectionChangedAction.Add )
-            {
-                foreach( ClientApplication appli in e.NewItems )
-                {
-                    var view = CreateClientApplicationView( appli );
-                    view.BindClientApplication( appli );
-                }
-            }
+            } ) );
         }
 
         private ICriticalErrorView FindOrCreateCriticalErrorView()
@@ -85,6 +65,5 @@ namespace CK.Monitoring.Server.UI
             Clients.TabPages.Add( page );
             return content;
         }
-
     }
 }

@@ -8,6 +8,8 @@ namespace CK.Monitoring.Server.UI
 {
     static class Program
     {
+        static ActivityMonitorServerHost _server;
+
         /// <summary>
         /// The main entry point for the application.
         /// </summary>
@@ -31,10 +33,16 @@ namespace CK.Monitoring.Server.UI
             Presenter presenter = new Presenter( mainView, database );
             presenter.Start();
 
-            ActivityMonitorServerHost server = new ActivityMonitorServerHost( config );
-            server.Open( dispatcher.DispatchLogEntry, dispatcher.DispatchCriticalError );
+            _server = new ActivityMonitorServerHost( config );
+            _server.Open( dispatcher.DispatchLogEntry, dispatcher.DispatchCriticalError );
 
+            Application.ApplicationExit += OnApplicationExit;
             Application.Run( mainView );
+        }
+
+        private static void OnApplicationExit( object sender, EventArgs e )
+        {
+            _server.Dispose();
         }
     }
 }

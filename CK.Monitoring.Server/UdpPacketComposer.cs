@@ -14,26 +14,29 @@ namespace CK.Monitoring.Server
 
         public void PushUdpDataGram( byte[] dataGram )
         {
-            UdpPacketEnvelope e = UdpPacketEnvelope.FromByteArray( dataGram );
+            lock( this )
+            {
+                UdpPacketEnvelope e = UdpPacketEnvelope.FromByteArray( dataGram );
 
-            UdpPacketEnvelope[] col;
-            if( _envelopes.TryGetValue( e.CorrelationId, out col ) )
-            {
-                col[e.SequenceNumber] = e;
-            }
-            else
-            {
-                var ar = new UdpPacketEnvelope[e.Count];
-                ar[e.SequenceNumber] = e;
-                _envelopes.Add( e.CorrelationId, ar );
-            }
+                UdpPacketEnvelope[] col;
+                if( _envelopes.TryGetValue( e.CorrelationId, out col ) )
+                {
+                    col[e.SequenceNumber] = e;
+                }
+                else
+                {
+                    var ar = new UdpPacketEnvelope[e.Count];
+                    ar[e.SequenceNumber] = e;
+                    _envelopes.Add( e.CorrelationId, ar );
+                }
 
-            T entry;
-            if( TryGetFullItem( e.CorrelationId, out entry ) )
-            {
-                _callback( entry );
-                // Cleanup the dictionary
-                _envelopes.Remove( e.CorrelationId );
+                T entry;
+                if( TryGetFullItem( e.CorrelationId, out entry ) )
+                {
+                    _callback( entry );
+                    // Cleanup the dictionary
+                    _envelopes.Remove( e.CorrelationId );
+                }
             }
         }
 

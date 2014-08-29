@@ -12,12 +12,14 @@ namespace CK.Monitoring.Server
     class ReceivePump<T> : IDisposable
     {
         bool _shouldReceive;
+        Thread _thread;
 
         readonly IActivityMonitor _monitor;
         readonly UdpClient _client;
         readonly Action<T> _syncCallback;
         readonly Func<T, Task> _taskCallback;
 
+        readonly CancellationTokenSource _cancellationToken;
 
         public ReceivePump( int port, IActivityMonitor monitor, Action<T> syncCallback )
             : this( port, monitor )
@@ -38,8 +40,10 @@ namespace CK.Monitoring.Server
             _client = new UdpClient( port );
         }
 
-        public async void Start( IUdpPacketComposer<T> composer )
+        public void Start( IUdpPacketComposer<T> composer )
         {
+            var monitorReceiverToken = _monitor.DependentActivity().CreateTokenWithTopic( "ReceivePump Receiver Thread" );
+
             composer.OnObjectRestored( async logEntry =>
             {
                 try
@@ -53,27 +57,34 @@ namespace CK.Monitoring.Server
                 }
             } );
 
-            using( _monitor.OpenInfo().Send( "Start receiver loop." ).ConcludeWith( () => "Receiver loop stopped" ) )
+            _thread = new Thread( async () =>
             {
-                while( _shouldReceive )
+                var m = monitorReceiverToken.CreateDependentMonitor();
+                using( m.OpenInfo().Send( "Start receiver loop." ).ConcludeWith( () => "Receiver loop stopped" ) )
                 {
-                    try
+                    while( _shouldReceive )
                     {
-                        UdpReceiveResult receiveResult = await _client.ReceiveAsync();
-                        _monitor.Trace().Send( "Received {0} bytes", receiveResult.Buffer.Length );
+                        try
+                        {
+                            UdpReceiveResult result = await _client.ReceiveAsync();
+                            m.Trace().Send( "Received {0} bytes", result.Buffer.Length );
 
-                        composer.PushUdpDataGram( receiveResult.Buffer );
-                    }
-                    catch( ObjectDisposedException )
-                    {
-                        _monitor.Warn().Send( "The underlying socket has been closed" );
-                    }
-                    catch( SocketException se )
-                    {
-                        _monitor.Error().Send( se );
+                            composer.PushUdpDataGram( result.Buffer );
+                        }
+                        catch( ObjectDisposedException )
+                        {
+                            m.Warn().Send( "The underlying socket has been closed" );
+                        }
+                        catch( SocketException se )
+                        {
+                            m.Error().Send( se );
+                        }
                     }
                 }
-            }
+            } );
+            _thread.IsBackground = true;
+            _thread.Priority = ThreadPriority.Normal;
+            _thread.Start();
         }
 
         public void Stop()
@@ -85,14 +96,22 @@ namespace CK.Monitoring.Server
         {
             Stop();
 
-            lock( _receiveLock )
+            _client.Close();
+            if( _thread != null )
             {
-                _client.Close();
+                _thread.Join();
+                GC.SuppressFinalize( this );
             }
-
         }
 
-        static object _receiveLock = new object();
+        ~ReceivePump()
+        {
+            if( _thread != null )
+            {
+                _thread.Abort();
+            }
+        }
+
     }
 
 }

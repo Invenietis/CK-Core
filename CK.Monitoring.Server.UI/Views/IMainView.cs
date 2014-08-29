@@ -8,7 +8,9 @@ namespace CK.Monitoring.Server.UI
 {
     public interface IMainView
     {
-        void BindClients( ClientMonitorDatabase _database );
+        void BindCriticalError( string error );
+
+        void BindClientApplication( ClientApplication appli );
     }
 
 }

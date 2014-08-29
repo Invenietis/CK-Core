@@ -18,6 +18,8 @@ namespace CK.Monitoring.Server.UI
             InitializeComponent();
         }
 
+        public delegate void InvokeDelegate();
+
         public void BindClientApplication( ClientApplication model )
         {
             model.Monitors.CollectionChanged += Monitors_CollectionChanged;
@@ -39,10 +41,13 @@ namespace CK.Monitoring.Server.UI
         {
             if( e.Action == System.Collections.Specialized.NotifyCollectionChangedAction.Add )
             {
-                foreach( ClientMonitor mon in e.NewItems )
+                BeginInvoke( new InvokeDelegate( () =>
                 {
-                    AddMonitorNode( this.ClientMonitorTreeView, mon );
-                }
+                    foreach( ClientMonitor mon in e.NewItems )
+                    {
+                        AddMonitorNode( this.ClientMonitorTreeView, mon );
+                    }
+                } ) );
             }
         }
 
@@ -81,9 +86,10 @@ namespace CK.Monitoring.Server.UI
                 _replay.Output.RegisterClient( new TreeNodeClient( this.LogView ) );
 
                 LogView.Nodes.Clear();
-                foreach( IMulticastLogEntry log in _currentMonitor.Entries ) LogToReplayMonitor( log );
 
                 _currentMonitor.Entries.CollectionChanged += Entries_CollectionChanged;
+                var currentEntries = new List<ClientLogEntry>( _currentMonitor.Entries );
+                foreach( ClientLogEntry log in currentEntries ) LogToReplayMonitor( log );
             }
         }
 
@@ -97,33 +103,46 @@ namespace CK.Monitoring.Server.UI
         {
             if( e.Action == System.Collections.Specialized.NotifyCollectionChangedAction.Add )
             {
-                foreach( IMulticastLogEntry log in e.NewItems )
+                BeginInvoke( new InvokeDelegate( () =>
                 {
-                    LogToReplayMonitor( log );
-                }
+                    foreach( ClientLogEntry log in e.NewItems )
+                    {
+                        LogToReplayMonitor( log );
+                    }
+                } ) );
             }
         }
+
 
         /// <summary>
         /// Log a <see cref="IMulticastLogEntry"/> to the replay monitor
         /// </summary>
         /// <param name="replay"></param>
         /// <param name="log"></param>
-        private void LogToReplayMonitor( IMulticastLogEntry log )
+        private void LogToReplayMonitor( ClientLogEntry clientLog )
         {
             if( _replay != null )
             {
-                if( log.LogType == LogEntryType.OpenGroup )
+                if( clientLog.IsMissingEntry )
                 {
-                    _replay.UnfilteredOpenGroup( log.Tags, log.LogLevel, null, log.Text, log.LogTime, CKException.CreateFrom( log.Exception ), log.FileName, log.LineNumber );
+                    _replay.Info().Send( "Missing data" );
                 }
-                if( log.LogType == LogEntryType.Line )
+                else
                 {
-                    _replay.UnfilteredLog( log.Tags, log.LogLevel, log.Text ?? String.Empty, log.LogTime, CKException.CreateFrom( log.Exception ), log.FileName, log.LineNumber );
-                }
-                if( log.LogType == LogEntryType.CloseGroup )
-                {
-                    _replay.CloseGroup( log.LogTime, log.Conclusions );
+                    IMulticastLogEntry log = clientLog.LogEntry;
+
+                    if( log.LogType == LogEntryType.OpenGroup )
+                    {
+                        _replay.UnfilteredOpenGroup( log.Tags, log.LogLevel, null, log.Text, log.LogTime, CKException.CreateFrom( log.Exception ), log.FileName, log.LineNumber );
+                    }
+                    if( log.LogType == LogEntryType.Line )
+                    {
+                        _replay.UnfilteredLog( log.Tags, log.LogLevel, log.Text ?? String.Empty, log.LogTime, CKException.CreateFrom( log.Exception ), log.FileName, log.LineNumber );
+                    }
+                    if( log.LogType == LogEntryType.CloseGroup )
+                    {
+                        _replay.CloseGroup( log.LogTime, log.Conclusions );
+                    }
                 }
             }
         }
