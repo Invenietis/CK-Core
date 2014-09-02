@@ -20,12 +20,17 @@ namespace CK.Monitoring.Server.Index
         Lucene.Net.Store.Directory _indexDirectory;
         Thread _indexerThread;
 
+        IndexStoreFactory _storeFactory;
         IActivityMonitor _monitor;
         EnglishAnalyzer _analyzer;
 
         public LogIndexer( LogEntryDispatcher dispatcher, IndexStoreFactory storeFactory )
         {
-            _indexDirectory = storeFactory.GetStore( DateTime.UtcNow.Date );
+            if( dispatcher == null ) throw new ArgumentNullException( "dispatcher" );
+            if( storeFactory == null ) throw new ArgumentNullException( "storeFactory" );
+
+            _storeFactory = storeFactory;
+            _indexDirectory = _storeFactory.GetStore( DateTime.UtcNow.Date );
             _dispatcher = dispatcher;
 
             _indexerThread = new Thread( Index );
@@ -52,9 +57,7 @@ namespace CK.Monitoring.Server.Index
                                 doc.Add( new Field( "Text", e.LogEntry.Text, Field.Store.YES, Field.Index.ANALYZED ) );
                                 _monitor.Trace().Send( "Add Text Field." );
 
-                                doc.Add( new Field( "LogTime",
-                                    DateTools.DateToString( e.LogEntry.LogTime.TimeUtc, DateTools.Resolution.MILLISECOND ),
-                                    Field.Store.YES, Field.Index.NOT_ANALYZED ) );
+                                doc.Add( new NumericField( "LogTime", Field.Store.YES, true ).SetLongValue( log.LogTime.TimeUtc.Ticks ) );
                                 _monitor.Trace().Send( "Add LogTime Field." );
 
                                 doc.Add( new Field( "Version", LogReader.CurrentStreamVersion.ToString(), Field.Store.YES, Field.Index.NO ) );
@@ -99,9 +102,10 @@ namespace CK.Monitoring.Server.Index
 
         public void Dispose()
         {
-            _analyzer.Dispose();
-            _indexDirectory.Dispose();
             _indexerThread.Join();
+
+            if( _analyzer != null ) _analyzer.Dispose();
+            _storeFactory.ReleaseStore( _indexDirectory );
         }
     }
 }

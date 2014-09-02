@@ -55,7 +55,7 @@ namespace CK.Monitoring.Server.UI
             _uiRefreshTicker.Interval = 2000;
             _uiRefreshTicker.Tick += ( sender, e ) =>
             {
-                var entries = searcher.Search( "*", 0, 1000 );
+                var entries = searcher.Search( "*", TimeSpan.FromSeconds( _uiRefreshTicker.Interval ) );
                 foreach( var entry in entries )
                 {
                     uiDispatcher.DispatchLogEntry( entry );

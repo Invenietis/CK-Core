@@ -43,6 +43,13 @@
     <AssemblyOriginatorKeyFile>..\..\SharedKey.snk</AssemblyOriginatorKeyFile>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="ICSharpCode.SharpZipLib">
+      <HintPath>..\..\packages\SharpZipLib.0.86.0\lib\20\ICSharpCode.SharpZipLib.dll</HintPath>
+    </Reference>
+    <Reference Include="Lucene.Net, Version=3.0.3.0, Culture=neutral, PublicKeyToken=85089178b9ac3181, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\packages\Lucene.Net.3.0.3\lib\NET40\Lucene.Net.dll</HintPath>
+    </Reference>
     <Reference Include="nunit.framework, Version=2.6.3.13283, Culture=neutral, PublicKeyToken=96d09a1eb7f44a77, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\packages\NUnit.2.6.3\lib\nunit.framework.dll</HintPath>
@@ -62,6 +69,8 @@
     <Compile Include="DocumentationCodeSnippets.cs" />
     <Compile Include="GrandOutputTests.cs" />
     <Compile Include="Live\ActivityMonitorServerHostTest.cs" />
+    <Compile Include="Live\LogIndexerTest.cs" />
+    <Compile Include="Live\LogSearcherTest.cs" />
     <Compile Include="Live\UDPGrantOutputHandlerTests.cs" />
     <Compile Include="Live\UDPPacketSplitterTest.cs" />
     <Compile Include="Live\UDPSenderReceiverTests.cs" />
@@ -77,6 +86,10 @@
     <Compile Include="TestHelper.cs" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\CK.Monitoring.Server.Index\CK.Monitoring.Server.Index.csproj">
+      <Project>{2552f665-8722-49f0-a6fa-98407663e347}</Project>
+      <Name>CK.Monitoring.Server.Index</Name>
+    </ProjectReference>
     <ProjectReference Include="..\..\CK.Monitoring.Server\CK.Monitoring.Server.csproj">
       <Project>{0b548291-2915-4e55-9f8a-6422aca5061b}</Project>
       <Name>CK.Monitoring.Server</Name>

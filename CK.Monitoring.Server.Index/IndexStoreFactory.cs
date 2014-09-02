@@ -18,7 +18,14 @@ namespace CK.Monitoring.Server.Index
 
         public Lucene.Net.Store.Directory GetStore( DateTime date )
         {
-            return GetStore( Path.Combine( _basePath, date.ToString( "yyyy-MM-dd" ) ) );
+            var directoryPath = Path.Combine( _basePath, date.ToString( "yyyy-MM-dd" ) );
+            EnsureDirectory( directoryPath);
+            return GetStore( directoryPath );
+        }
+
+        private void EnsureDirectory( string directoryPath )
+        {
+            if( !Directory.Exists( directoryPath ) ) Directory.CreateDirectory( directoryPath );
         }
 
         public void ReleaseStore( Lucene.Net.Store.Directory store )
