@@ -43,50 +43,50 @@ namespace CK.Core
         /// that checks the name of the closing element. This "helper" forces the developper to explicitely
         /// write this name.
         /// </summary>
-        /// <param name="r">This <see cref="XmlReader"/>.</param>
+        /// <param name="this">This <see cref="XmlReader"/>.</param>
         /// <param name="name">Name of the closing element.</param>
-        static public void ReadEndElement( this XmlReader r, string name )
+        static public void ReadEndElement( this XmlReader @this, string name )
         {
-            if( r.NodeType != XmlNodeType.EndElement || r.Name != name )
+            if( @this.NodeType != XmlNodeType.EndElement || @this.Name != name )
             {
                 throw new XmlException( String.Format( R.ExpectedXmlEndElement, name ) );
             }
-            r.ReadEndElement();
+            @this.ReadEndElement();
         }
 
         /// <summary>
         /// Gets a boolean attribute by name.
         /// </summary>
-        /// <param name="r">This <see cref="XmlReader"/>.</param>
+        /// <param name="this">This <see cref="XmlReader"/>.</param>
         /// <param name="name">Name of the attribute.</param>
         /// <param name="defaultValue">Default value if the attribute does not exist.</param>
-        static public bool GetAttributeBoolean( this XmlReader r, string name, bool defaultValue )
+        static public bool GetAttributeBoolean( this XmlReader @this, string name, bool defaultValue )
         {
-            string s = r.GetAttribute( name );
+            string s = @this.GetAttribute( name );
             return s != null ? XmlConvert.ToBoolean( s ) : defaultValue;
         }
 
         /// <summary>
         /// Gets a <see cref="DateTime"/> attribute by name. It uses <see cref="XmlDateTimeSerializationMode.RoundtripKind"/>.
         /// </summary>
-        /// <param name="r">This <see cref="XmlReader"/>.</param>
+        /// <param name="this">This <see cref="XmlReader"/>.</param>
         /// <param name="name">Name of the attribute.</param>
         /// <param name="defaultValue">Default value if the attribute does not exist.</param>
-        static public DateTime GetAttributeDateTime( this XmlReader r, string name, DateTime defaultValue )
+        static public DateTime GetAttributeDateTime( this XmlReader @this, string name, DateTime defaultValue )
         {
-            string s = r.GetAttribute( name );
+            string s = @this.GetAttribute( name );
             return s != null ? XmlConvert.ToDateTime( s, XmlDateTimeSerializationMode.RoundtripKind ) : defaultValue;
         }
 
         /// <summary>
         /// Gets a <see cref="Version"/> attribute by name.
         /// </summary>
-        /// <param name="r">This <see cref="XmlReader"/>.</param>
+        /// <param name="this">This <see cref="XmlReader"/>.</param>
         /// <param name="name">Name of the attribute.</param>
         /// <param name="defaultValue">Default value if the attribute does not exist.</param>
-        static public Version GetAttributeVersion( this XmlReader r, string name, Version defaultValue )
+        static public Version GetAttributeVersion( this XmlReader @this, string name, Version defaultValue )
         {
-            string s = r.GetAttribute( name );
+            string s = @this.GetAttribute( name );
             return s != null ? new Version( s ) : defaultValue;
         }
 
@@ -109,14 +109,14 @@ namespace CK.Core
         /// </summary>
         /// <typeparam name="T">Type of the enum. There is no way (in c#) to constraint the type to Enum - nor to Delegate, this is why 
         /// the constraint restricts only the type to be a value type.</typeparam>
-        /// <param name="r">This <see cref="XmlReader"/>.</param>
+        /// <param name="this">This <see cref="XmlReader"/>.</param>
         /// <param name="name">Name of the attribute.</param>
         /// <param name="defaultValue">Default value if the attribute does not exist or can not be parsed.</param>
         /// <returns>The parsed value or the default value.</returns>
-        static public T GetAttributeEnum<T>( this XmlReader r, string name, T defaultValue ) where T : struct
+        static public T GetAttributeEnum<T>( this XmlReader @this, string name, T defaultValue ) where T : struct
         {
             T result;
-            string s = r.GetAttribute( name );
+            string s = @this.GetAttribute( name );
             if( s == null || !Enum.TryParse( s, out result ) ) result = defaultValue;
             return result;
         }
@@ -141,60 +141,60 @@ namespace CK.Core
         /// <summary>
         /// Gets the attribute by its name or throws an <see cref="XmlException"/> if it does not exist.
         /// </summary>
-        /// <param name="r">This <see cref="XElement"/>.</param>
+        /// <param name="this">This <see cref="XElement"/>.</param>
         /// <param name="name">Name of the attribute.</param>
-        static public XAttribute AttributeRequired( this XElement r, XName name )
+        static public XAttribute AttributeRequired( this XElement @this, XName name )
         {
-            XAttribute a = r.Attribute( name );
-            if( a == null ) throw new XmlException( String.Format( R.ExpectedXmlAttribute, name ) + r.GetLineColumString() );
+            XAttribute a = @this.Attribute( name );
+            if( a == null ) throw new XmlException( String.Format( R.ExpectedXmlAttribute, name ) + @this.GetLineColumString() );
             return a;
         }
 
         /// <summary>
         /// Gets a string attribute by name.
         /// </summary>
-        /// <param name="r">This <see cref="XElement"/>.</param>
+        /// <param name="this">This <see cref="XElement"/>.</param>
         /// <param name="name">Name of the attribute.</param>
         /// <param name="defaultValue">Default value if the attribute does not exist.</param>
-        static public string GetAttribute( this XElement r, XName name, string defaultValue )
+        static public string GetAttribute( this XElement @this, XName name, string defaultValue )
         {
-            XAttribute a = r.Attribute( name );
+            XAttribute a = @this.Attribute( name );
             return a != null ? a.Value : defaultValue;
         }
 
         /// <summary>
         /// Gets a boolean attribute by name.
         /// </summary>
-        /// <param name="r">This <see cref="XElement"/>.</param>
+        /// <param name="this">This <see cref="XElement"/>.</param>
         /// <param name="name">Name of the attribute.</param>
         /// <param name="defaultValue">Default value if the attribute does not exist.</param>
-        static public bool GetAttributeBoolean( this XElement r, XName name, bool defaultValue )
+        static public bool GetAttributeBoolean( this XElement @this, XName name, bool defaultValue )
         {
-            XAttribute a = r.Attribute( name );
+            XAttribute a = @this.Attribute( name );
             return a != null ? XmlConvert.ToBoolean( a.Value ) : defaultValue;
         }
 
         /// <summary>
         /// Gets a <see cref="DateTime"/> attribute by name. It uses <see cref="XmlDateTimeSerializationMode.RoundtripKind"/>.
         /// </summary>
-        /// <param name="r">This <see cref="XElement"/>.</param>
+        /// <param name="this">This <see cref="XElement"/>.</param>
         /// <param name="name">Name of the attribute.</param>
         /// <param name="defaultValue">Default value if the attribute does not exist.</param>
-        static public DateTime GetAttributeDateTime( this XElement r, XName name, DateTime defaultValue )
+        static public DateTime GetAttributeDateTime( this XElement @this, XName name, DateTime defaultValue )
         {
-            XAttribute a = r.Attribute( name );
+            XAttribute a = @this.Attribute( name );
             return a != null ? XmlConvert.ToDateTime( a.Value, XmlDateTimeSerializationMode.RoundtripKind ) : defaultValue;
         }
 
         /// <summary>
         /// Gets an <see cref="Int32"/> attribute by name.
         /// </summary>
-        /// <param name="r">This <see cref="XElement"/>.</param>
+        /// <param name="this">This <see cref="XElement"/>.</param>
         /// <param name="name">Name of the attribute.</param>
         /// <param name="defaultValue">Default value if the attribute does not exist.</param>
-        static public int GetAttributeInt( this XElement r, XName name, int defaultValue )
+        static public int GetAttributeInt( this XElement @this, XName name, int defaultValue )
         {
-            XAttribute a = r.Attribute( name );
+            XAttribute a = @this.Attribute( name );
             int i;
             if( a != null && int.TryParse( a.Value, NumberStyles.Integer, NumberFormatInfo.InvariantInfo, out i ) ) return i;
             return defaultValue;
@@ -205,14 +205,14 @@ namespace CK.Core
         /// </summary>
         /// <typeparam name="T">Type of the enum. There is no way (in c#) to constraint the type to Enum - nor to Delegate, this is why 
         /// the constraint restricts only the type to be a value type.</typeparam>
-        /// <param name="r">This <see cref="XElement"/>.</param>
+        /// <param name="this">This <see cref="XElement"/>.</param>
         /// <param name="name">Name of the attribute.</param>
         /// <param name="defaultValue">Default value if the attribute does not exist or can not be parsed.</param>
         /// <returns>The parsed value or the default value.</returns>
-        static public T GetAttributeEnum<T>( this XElement r, XName name, T defaultValue ) where T : struct
+        static public T GetAttributeEnum<T>( this XElement @this, XName name, T defaultValue ) where T : struct
         {
             T result;
-            XAttribute a = r.Attribute( name );
+            XAttribute a = @this.Attribute( name );
             if( a == null || !Enum.TryParse( a.Value, out result ) ) result = defaultValue;
             return result;
         }

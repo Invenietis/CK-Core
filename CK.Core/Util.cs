@@ -148,12 +148,12 @@ namespace CK.Core
         /// Wraps an action in a predicate that returns always the provided result.
         /// </summary>
         /// <typeparam name="T">The type of the action's parameter.</typeparam>
-        /// <param name="a">The action (a method that accepts <typeparamref name="T"/> as its only argument).</param>
+        /// <param name="this">The action (a method that accepts <typeparamref name="T"/> as its only argument).</param>
         /// <param name="result">result that will be returned.</param>
         /// <returns>A predicate that performs the action and returns true.</returns>
-        static public Func<T,bool> ToPredicate<T>( this Action<T> a, bool result )
+        static public Func<T,bool> ToPredicate<T>( this Action<T> @this, bool result )
         {
-            return delegate( T o ) { a( o ); return result; };
+            return delegate( T o ) { @this( o ); return result; };
         }
 
         /// <summary>

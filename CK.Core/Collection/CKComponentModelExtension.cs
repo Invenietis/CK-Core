@@ -36,12 +36,12 @@ namespace CK.Core
         /// <summary>
         /// Strongly typed version of <see cref="IServiceProvider.GetService"/>.
         /// </summary>
-        /// <param name="source">This service provider.</param>
+        /// <param name="this">This service provider.</param>
         /// <param name="throwOnNull">True to throw an exception if the service can not be provided (otherwise null is returned).</param>
         /// <returns>A service object of the required type or null if not found and <paramref name="throwOnNull"/> is false.</returns>
-        public static T GetService<T>( this IServiceProvider source, bool throwOnNull )
+        public static T GetService<T>( this IServiceProvider @this, bool throwOnNull )
         {
-            T s = (T)source.GetService( typeof( T ) );
+            T s = (T)@this.GetService( typeof( T ) );
             if( throwOnNull && s == null ) throw new CKException( R.UnregisteredServiceInServiceProvider, typeof( T ).FullName );
             return s;
         }
@@ -50,37 +50,37 @@ namespace CK.Core
         /// Strongly typed version of <see cref="IServiceProvider.GetService"/> that returns null if service is not found.
         /// (Same behavior as <see cref="IServiceProvider.GetService"/>.)
         /// </summary>
-        /// <param name="source">This service provider.</param>
+        /// <param name="this">This service provider.</param>
         /// <returns>A service object of the required type or null if not found.</returns>
-        public static T GetService<T>( this IServiceProvider source )
+        public static T GetService<T>( this IServiceProvider @this )
         {
-            return (T)source.GetService( typeof( T ) );
+            return (T)@this.GetService( typeof( T ) );
         }
 
         /// <summary>
         /// Type safe version to register a service implementation (type of the service is the type of the implementation).
         /// </summary>
-        /// <param name="c">This <see cref="ISimpleServiceContainer"/> object.</param>
+        /// <param name="this">This <see cref="ISimpleServiceContainer"/> object.</param>
         /// <param name="serviceInstance">Implementation of the service. Can not be null.</param>
         /// <returns>This object to enable fluent syntax.</returns>
-        public static ISimpleServiceContainer Add<T>( this ISimpleServiceContainer c, T serviceInstance )
+        public static ISimpleServiceContainer Add<T>( this ISimpleServiceContainer @this, T serviceInstance )
         {
-            c.Add( typeof( T ), serviceInstance, null );
-            return c;
+            @this.Add( typeof( T ), serviceInstance, null );
+            return @this;
         }
 
         /// <summary>
         /// Type safe version to register a service implementation (type of the service is the type of the implementation), 
         /// and an optional callback that will be called when the service will be removed.
         /// </summary>
-        /// <param name="c">This <see cref="ISimpleServiceContainer"/> object.</param>
+        /// <param name="this">This <see cref="ISimpleServiceContainer"/> object.</param>
         /// <param name="serviceInstance">Implementation of the service. Can not be null.</param>
         /// <param name="onRemove">Optional action that will be called whenever <see cref="ISimpleServiceContainer.Remove"/>, <see cref="ISimpleServiceContainer.Clear"/> or <see cref="IDisposable.Dispose"/>.</param>
         /// <returns>This object to enable fluent syntax.</returns>
-        public static ISimpleServiceContainer Add<T>( this ISimpleServiceContainer c, T serviceInstance, Action<T> onRemove )
+        public static ISimpleServiceContainer Add<T>( this ISimpleServiceContainer @this, T serviceInstance, Action<T> onRemove )
         {
-            c.Add( typeof( T ), serviceInstance, o => onRemove( (T)o ) );
-            return c;
+            @this.Add( typeof( T ), serviceInstance, o => onRemove( (T)o ) );
+            return @this;
         }
 
         /// <summary>
@@ -88,16 +88,16 @@ namespace CK.Core
         /// The <paramref name="serviceInstance"/> is called as long as no service has been obtained (serviceInstance returns null). 
         /// Once the actual service has been obtained, it is kept and serviceInstance is not called anymore.
         /// </summary>
-        /// <param name="c">This <see cref="ISimpleServiceContainer"/> object.</param>
+        /// <param name="this">This <see cref="ISimpleServiceContainer"/> object.</param>
         /// <param name="serviceInstance">Delegate to call when needed. Can not be null.</param>
         /// <returns>This object to enable fluent syntax.</returns>
-        public static ISimpleServiceContainer Add<T>( this ISimpleServiceContainer c, Func<T> serviceInstance ) where T : class
+        public static ISimpleServiceContainer Add<T>( this ISimpleServiceContainer @this, Func<T> serviceInstance ) where T : class
         {
             // It is the overloaded version that takes a Func<object> serviceInstance 
             // that is called (unit tests asserts this).
             // To allow the covariance, we MUST constrain the type T to be a reference class (hence the where clause).
-            c.Add( typeof( T ), serviceInstance, null );
-            return c;
+            @this.Add( typeof( T ), serviceInstance, null );
+            return @this;
         }
 
         /// <summary>
@@ -105,12 +105,12 @@ namespace CK.Core
         /// The <paramref name="serviceInstance"/> is called as long as no service has been obtained (serviceInstance returns null). 
         /// Once the actual service has been obtained, it is kept and serviceInstance is not called anymore.
         /// </summary>
-        /// <param name="c">This <see cref="ISimpleServiceContainer"/> object.</param>
+        /// <param name="this">This <see cref="ISimpleServiceContainer"/> object.</param>
         /// <param name="serviceInstance">Delegate to call when needed. Can not be null.</param>
         /// <param name="onRemove">Optional action that will be called whenever <see cref="ISimpleServiceContainer.Remove"/>, <see cref="ISimpleServiceContainer.Clear"/> or <see cref="IDisposable.Dispose"/>
         /// is called and a service as been successfuly obtained.</param>
         /// <returns>This object to enable fluent syntax.</returns>
-        public static ISimpleServiceContainer Add<T>( this ISimpleServiceContainer c, Func<T> serviceInstance, Action<T> onRemove ) where T : class
+        public static ISimpleServiceContainer Add<T>( this ISimpleServiceContainer @this, Func<T> serviceInstance, Action<T> onRemove ) where T : class
         {
             // It is the overloaded version that takes a Func<object> serviceInstance 
             // that is called (unit tests asserts this).
@@ -119,8 +119,8 @@ namespace CK.Core
             // On the other hand, for the onRemove action we can not do any miracle: we need to adapt the call.
             //
             if( onRemove == null ) throw new ArgumentNullException( "onRemove" );
-            c.Add( typeof( T ), serviceInstance, o => onRemove( (T)o ) );
-            return c;
+            @this.Add( typeof( T ), serviceInstance, o => onRemove( (T)o ) );
+            return @this;
         }
 
     }
