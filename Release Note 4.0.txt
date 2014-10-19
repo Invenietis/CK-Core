@@ -1,3 +1,8 @@
+CK.Core 4.0.1 - Release Notes
+
+- Fixed AsReadOnlyList: returns null for a null @this.
+- Fixed a brken test
+
 CK.Core 4.0 - Release Notes
 
 - This is the first release of CK-Core packages on nuget.org.

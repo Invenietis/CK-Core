@@ -238,7 +238,7 @@ namespace CK.Mon2Htm.Tests
             }
 
             // GrandOutput is closed, files should be written.
-            Assert.That( GetSystemActivityMonitorDumpPaths().Length == 0, "No SystemActivityMonitor dumps were created, logging system did not encounter any error." );
+            Assert.That( GetCriticalErrorsDumpPaths().Length == 0, "No SystemActivityMonitor dumps were created, logging system did not encounter any error." );
             Assert.That( Directory.Exists( Path.Combine( SystemActivityMonitor.RootLogPath, dirName ) ), "Configured ActivityMonitor folder was created." );
 
             string[] ckmonFiles = GetCkmonFilesFromDirectory( dirName );
@@ -299,9 +299,10 @@ namespace CK.Mon2Htm.Tests
 
         #region Static utilities
 
-        public static string[] GetSystemActivityMonitorDumpPaths()
+        public static string[] GetCriticalErrorsDumpPaths()
         {
-            string path = Path.Combine( SystemActivityMonitor.RootLogPath, "SystemActivityMonitor" );
+            Assert.That( SystemActivityMonitor.SubDirectoryName, Is.EqualTo( "CriticalErrors/" ) );
+            string path = Path.Combine( SystemActivityMonitor.RootLogPath, "CriticalErrors/" );
 
             return Directory.GetFiles( path );
         }

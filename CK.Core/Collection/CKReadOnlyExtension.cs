@@ -90,6 +90,7 @@ namespace CK.Core
         /// <returns>A read only list that is the original list or contains the elements from the original list.</returns>
         static public IReadOnlyList<T> AsReadOnlyList<T>( this IList<T> @this )
         {
+            if( @this == null ) return null;
             IReadOnlyList<T> rl = @this as IReadOnlyList<T>;
             return rl ?? new CKReadOnlyListOnIList<T>( @this );
         }

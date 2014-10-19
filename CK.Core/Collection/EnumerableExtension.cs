@@ -37,22 +37,22 @@ namespace CK.Core
         /// Checks whether the enumerable is in strict (no duplicates) ascending order (uses the <see cref="Comparer{T}.Default"/> Compare method).
         /// </summary>
         /// <typeparam name="T">Element type of the enumerable.</typeparam>
-        /// <param name="source">This enumerable.</param>
+        /// <param name="this">This enumerable.</param>
         /// <returns>True if the enumerable is empty or is in strict ascending order.</returns>
-        public static bool IsSortedStrict<T>( this IEnumerable<T> source )
+        public static bool IsSortedStrict<T>( this IEnumerable<T> @this )
         {
-            return IsSortedStrict( source, Comparer<T>.Default.Compare );
+            return IsSortedStrict( @this, Comparer<T>.Default.Compare );
         }
 
         /// <summary>
         /// Checks whether the enumerable is in large (duplicates allowed) ascending order (uses the <see cref="Comparer{T}.Default"/> Compare method).
         /// </summary>
         /// <typeparam name="T">Element type of the enumerable.</typeparam>
-        /// <param name="source">This enumerable.</param>
+        /// <param name="this">This enumerable.</param>
         /// <returns>True if the enumerable is empty or is in large ascending order.</returns>
-        public static bool IsSortedLarge<T>( this IEnumerable<T> source )
+        public static bool IsSortedLarge<T>( this IEnumerable<T> @this )
         {
-            return IsSortedLarge( source, Comparer<T>.Default.Compare );
+            return IsSortedLarge( @this, Comparer<T>.Default.Compare );
         }
 
         /// <summary>

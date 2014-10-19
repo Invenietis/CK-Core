@@ -37,23 +37,23 @@ namespace CK.Core
         /// Adds multiple items to a collection.
         /// </summary>
         /// <typeparam name="T">Collection items' type.</typeparam>
-        /// <param name="c">This collection.</param>
+        /// <param name="this">This collection.</param>
         /// <param name="items">Multiple items to add. Can not be null.</param>
-        public static void AddRange<T>( this ICollection<T> c, IEnumerable<T> items )
+        public static void AddRange<T>( this ICollection<T> @this, IEnumerable<T> items )
         {
             if( items == null ) throw new ArgumentNullException( "items" );
-            foreach( var i in items ) c.Add( i );
+            foreach( var i in items ) @this.Add( i );
         }
 
         /// <summary>
         /// Adds multiple items to a collection.
         /// </summary>
         /// <typeparam name="T">Collection items' type.</typeparam>
-        /// <param name="c">This collection.</param>
+        /// <param name="this">This collection.</param>
         /// <param name="items">Items to add.</param>
-        public static void AddRangeArray<T>( this ICollection<T> c, params T[] items )
+        public static void AddRangeArray<T>( this ICollection<T> @this, params T[] items )
         {
-            foreach( var i in items ) c.Add( i );
+            foreach( var i in items ) @this.Add( i );
         }
 
         /// <summary>
