@@ -31,6 +31,8 @@ using System.Runtime.Serialization.Formatters.Binary;
 using System.Text;
 using System.Threading.Tasks;
 using CK.Monitoring.Impl;
+using System.IO.Compression;
+using System.Diagnostics;
 
 namespace CK.Monitoring
 {
@@ -54,48 +56,34 @@ namespace CK.Monitoring
         /// </summary>
         public const int CurrentStreamVersion = 5;
 
-        #if net40
-
         /// <summary>
-        /// Initializes a new <see cref="LogReader"/> on a stream that must start with the version number.
+        /// The file header for .ckmon files starting from CurrentStreamVersion = 5.
+        /// That's C, K, M, O and N (ASCII).
         /// </summary>
-        /// <param name="stream">Stream to read logs from.</param>
-        public LogReader( Stream stream )
-            : this( stream, -1 )
-        {
-        }
+        public static readonly byte[] FileHeader = new byte[] { 0x43, 0x4b, 0x4d, 0x4f, 0x4e };
 
         /// <summary>
-        /// Initializes a new <see cref="LogReader"/> on a stream with an explicit version number.
+        /// The file header for gzipped .ckmon files.
+        /// </summary>
+        public static readonly byte[] GzipFileHeader = new byte[] { 0x1f, 0x8b };
+
+#if net40
+        /// <summary>
+        /// Initializes a new <see cref="LogReader"/> on an uncompressed stream with an explicit version number.
         /// </summary>
         /// <param name="stream">Stream to read logs from.</param>
         /// <param name="streamVersion">Version of the log stream. Use -1 to read the version if the stream starts with it.</param>
         public LogReader( Stream stream, int streamVersion )
         {
-            if( streamVersion < 4 && streamVersion != -1 ) 
-                throw new ArgumentException( "Must be -1 or greater or equal to 4 (the first version).", "streamVersion" );
+            if( streamVersion < 4 ) 
+                throw new ArgumentException( "Must be greater or equal to 4 (the first version).", "streamVersion" );
             _stream = stream;
             _binaryReader = new BinaryReader( stream, Encoding.UTF8 );
             _streamVersion = streamVersion;
         }
-
-        #else
-
+#else
         /// <summary>
-        /// Initializes a new <see cref="LogReader"/> on a stream that must start with the version number.
-        /// </summary>
-        /// <param name="stream">Stream to read logs from.</param>
-        /// <param name="mustClose">
-        /// Defaults to true (the stream will be automatically closed).
-        /// False to let the stream opened once this reader is disposed, the end of the log data is reached or an error is encountered.
-        /// </param>
-        public LogReader( Stream stream, bool mustClose = true )
-            : this( stream, -1, mustClose )
-        {
-        }
-
-        /// <summary>
-        /// Initializes a new <see cref="LogReader"/> on a stream with an explicit version number.
+        /// Initializes a new <see cref="LogReader"/> on an uncompressed stream with an explicit version number.
         /// </summary>
         /// <param name="stream">Stream to read logs from.</param>
         /// <param name="streamVersion">Version of the log stream. Use -1 to read the version if the stream starts with it.</param>
@@ -105,37 +93,106 @@ namespace CK.Monitoring
         /// </param>
         public LogReader( Stream stream, int streamVersion, bool mustClose = true )
         {
-            if( streamVersion < 5 && streamVersion != -1 ) 
-                throw new ArgumentException( "Must be -1 or greater or equal to 5 (the first version).", "streamVersion" );
+            if( streamVersion < 5 )
+                throw new ArgumentException( "Must be greater or equal to 5 (the first version).", "streamVersion" );
             _stream = stream;
             _binaryReader = new BinaryReader( stream, Encoding.UTF8, !mustClose );
             _streamVersion = streamVersion;
         }
-        #endif
+#endif
+
         /// <summary>
-        /// Opens a <see cref="LogReader"/> to read the content of a file.
+        /// Opens a <see cref="LogReader"/> to read the content of a compressed or uncompressed file.
         /// The file will be closed when <see cref="LogReader.Dispose"/> will be called.
         /// </summary>
         /// <param name="path">Path of the log file.</param>
         /// <returns>A <see cref="LogReader"/> that will close the file when disposed.</returns>
         public static LogReader Open( string path )
         {
-            return Open( path, -1 );
+            /**
+             * .ckmon files exist in different file versions, depending on headers.
+             * The file can be compressed using GZipStream, in which case the header will be set accordingly to 1F 8B.
+             * Starting from version 6, the file will start with 43 4B 4D 4F 4E, followed by the version number, instead of only the version number.
+             * */
+
+            FileStream fs = new FileStream( path, FileMode.Open, FileAccess.Read, FileShare.Read, 8, FileOptions.SequentialScan );
+
+            LogStreamInfo i = OpenLogStream( fs );
+
+            return new LogReader( i.LogStream, i.KnownVersion );
         }
 
         /// <summary>
-        /// Opens a <see cref="LogReader"/> to read the content of a file for which the version is known.
+        /// Creates a log stream while trying to guess version and compression.
+        /// Supports headers:
+        /// - Old version header (05 00 00 00)
+        /// - CKMOD ID header (43 4B 4D 4F 4E) followed by version
+        /// - RFC 1952 GZIP header (1F 8B), will recurse with a decompressed stream
         /// </summary>
-        /// <param name="path">Path of the log file.</param>
-        /// <param name="version">Version of the log data: the file must not start with the version.</param>
-        /// <returns>A <see cref="LogReader"/> that will close the file when disposed.</returns>
-        public static LogReader Open( string path, int version )
+        /// <param name="s">Log stream</param>
+        /// <param name="isInsideGzip">Whether the GZIP header has been already parsed and the given stream is decompressed. If true, gzip headers will not be checked.</param>
+        /// <returns>LogReader, set before the first log entry.</returns>
+        static LogStreamInfo OpenLogStream( Stream s, bool isInsideGzip = false )
         {
-            return new LogReader( new FileStream( path, FileMode.Open, FileAccess.Read, FileShare.Read, 8, FileOptions.SequentialScan ), version );
+            // Find if uncompressed byte is 05 (raw version) or 43 (log header version)
+            int firstByte = s.ReadByte(); // ReadByte casts to int to handle EOF (-1).
+
+            if( !isInsideGzip && firstByte == 0x1f )
+            {
+                // GZIP Magic number is 0x1f8b.
+                int secondByte = s.ReadByte(); // Read 2:8B
+                if( secondByte == 0x8b )
+                {
+                    GZipStream gzip = new GZipStream( s, CompressionMode.Decompress );
+                    return OpenLogStream( gzip, true );
+                }
+                else
+                {
+                    throw new InvalidDataException( "Invalid compression header." );
+                }
+            }
+            else if( firstByte == 0x43 )
+            {
+                // CKMON header is 43 4B 4D 4F 4E. That's C, K, M, O and N (ASCII).
+                int b = s.ReadByte(); // 2:4B
+                if( b != 0x4b ) { throw new InvalidDataException( "Invalid header." ); }
+                b = s.ReadByte(); // 3:4D
+                if( b != 0x4d ) { throw new InvalidDataException( "Invalid header." ); }
+                b = s.ReadByte(); // 4:4F
+                if( b != 0x4f ) { throw new InvalidDataException( "Invalid header." ); }
+                b = s.ReadByte(); // 5:4E
+                if( b != 0x4e ) { throw new InvalidDataException( "Invalid header." ); }
+
+                // Read version number. Note: We don't have a BinaryReader on hand.
+                byte[] versionBytes = new byte[4];
+                s.Read( versionBytes, 0, 4 );
+                int version = BitConverter.ToInt32( versionBytes, 0 );
+
+                return LogStreamInfo.From( s, isInsideGzip, version );
+            }
+            else if( firstByte <= 0x05 ) // Old versions without CKMON header
+            {
+                // BinaryWriter/Reader always uses little endian, so (int)5 will be 05 00 00 00 instead of 00 00 00 05.
+                // See http://msdn.microsoft.com/en-us/library/24e33k1w%28v=vs.110%29.aspx
+
+                // Read version number. Note: We don't have a BinaryReader on hand.
+                byte[] versionBytes = new byte[4];
+                versionBytes[0] = (byte)firstByte;
+                s.Read( versionBytes, 1, 3 );
+                int version = BitConverter.ToInt32( versionBytes, 0 );
+
+                if( version <= 0 || version > 5 )
+                {
+                    throw new InvalidDataException( String.Format( "Invalid uncompressed version header ({0}).", version ) );
+                }
+
+                return LogStreamInfo.From( s, isInsideGzip, version );
+            }
+            throw new InvalidDataException( String.Format( "Invalid CKMON header. Expected byte header to be 0x1f, 0x43 or <= 0x05, but got 0x{0:x2}.", firstByte ) );
         }
 
         /// <summary>
-        /// Opens a <see cref="LogReader"/> to read the content of a file starting at the specified offset. 
+        /// Opens a <see cref="LogReader"/> to read the content of an compressed or uncompressed file starting at the specified offset. 
         /// The file version must known since the header of the file will not be read.
         /// </summary>
         /// <param name="path">Path of the log file.</param>
@@ -145,7 +202,11 @@ namespace CK.Monitoring
         /// <returns>A <see cref="LogReader"/> that will close the file when disposed.</returns>
         public static LogReader Open( string path, long offset, int version, MulticastFilter filter = null )
         {
-            FileStream s = new FileStream( path, FileMode.Open, FileAccess.Read, FileShare.Read, 8, FileOptions.SequentialScan );
+            FileStream fileStream = new FileStream( path, FileMode.Open, FileAccess.Read, FileShare.Read, 8, FileOptions.SequentialScan );
+
+            LogStreamInfo info = OpenLogStream( fileStream );
+            Stream s = info.LogStream;
+
             try
             {
                 s.Position = offset;
@@ -251,17 +312,17 @@ namespace CK.Monitoring
         /// </summary>
         public MulticastLogEntryWithOffset CurrentMulticastWithOffset
         {
-            get 
-            {                 
+            get
+            {
                 if( _currentMulticast == null ) throw new InvalidOperationException();
-                return new MulticastLogEntryWithOffset( _currentMulticast, _currentPosition ); 
+                return new MulticastLogEntryWithOffset( _currentMulticast, _currentPosition );
             }
         }
 
         /// <summary>
         /// Gets the inner <see cref="Stream.Position"/> of the <see cref="Current"/> entry.
         /// </summary>
-        public long StreamOffset 
+        public long StreamOffset
         {
             get { return _currentPosition; }
         }
@@ -273,14 +334,11 @@ namespace CK.Monitoring
         public bool MoveNext()
         {
             if( _stream == null ) return false;
-            if( _streamVersion == -1 )
+            if( _streamVersion != CurrentStreamVersion )
             {
-                _streamVersion = _binaryReader.ReadInt32();
-                if( _streamVersion != CurrentStreamVersion )
-                {
-                    throw new InvalidOperationException( String.Format( "Stream is not a log stream or its version is not handled (Current Version = {0}).", CurrentStreamVersion ) );
-                }
+                throw new InvalidOperationException( String.Format( "Stream is not a log stream or its version is not handled (Current Version = {0}).", CurrentStreamVersion ) );
             }
+
             _currentPosition = _stream.Position;
             ReadNextEntry();
             _currentMulticast = _current as IMulticastLogEntry;
@@ -344,5 +402,51 @@ namespace CK.Monitoring
             throw new NotSupportedException();
         }
 
+    }
+
+    /// <summary>
+    /// Container for an uncompressed log stream and other meta-information.
+    /// </summary>
+    struct LogStreamInfo
+    {
+        /// <summary>
+        /// Gets the log stream.
+        /// </summary>
+        /// <value>
+        /// The open, uncompressed log stream. Its position is before the version number if Version is equal to -1; otherwise, it is after.
+        /// </value>
+        internal Stream LogStream { get; private set; }
+
+        /// <summary>
+        /// Gets a value indicating whether the log stream is contained in a compressed stream.
+        /// </summary>
+        /// <value>
+        /// <c>true</c> if the log stream is contained in a compressed stream; otherwise, <c>false</c>.
+        /// </value>
+        internal bool IsCompressed { get; private set; }
+
+        /// <summary>
+        /// Gets the known version.
+        /// </summary>
+        /// <value>
+        /// The known version.
+        /// </value>
+        internal int KnownVersion { get; private set; }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="LogStreamInfo"/> struct.
+        /// </summary>
+        /// <param name="s">The open, uncompressed log stream..</param>
+        /// <param name="isCompressed">Tf set to <c>true</c>, indicates that the log stream is contained in a compressed stream.</param>
+        /// <param name="knownVersion">The known version. If -1, indicated that the version is unknown and appears after the current position in the stream.</param>
+        internal static LogStreamInfo From( Stream s, bool isCompressed = false, int knownVersion = -1 )
+        {
+            return new LogStreamInfo()
+            {
+                LogStream = s,
+                IsCompressed = isCompressed,
+                KnownVersion = knownVersion
+            };
+        }
     }
 }

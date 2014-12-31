@@ -64,6 +64,7 @@
     <Compile Include="Performance\EventDispatcherAdaptiveStrategy.cs" />
     <Compile Include="Performance\FakeHandler.cs" />
     <Compile Include="Performance\FakeHandlerConfiguration.cs" />
+    <Compile Include="Performance\GzipFileTests.cs" />
     <Compile Include="Performance\StressTests.cs" />
     <Compile Include="Persistence\MultiFileReaderTests.cs" />
     <Compile Include="Persistence\ReadWriteTests.cs" />

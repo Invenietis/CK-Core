@@ -60,9 +60,14 @@ namespace CK.Monitoring.Tests.Persistence
                 e1.WriteLogEntry( w );
                 e2.WriteLogEntry( w );
                 w.Write( (byte)0 );
+                w.Flush();
 
+                byte[] versionBytes = new byte[4];
                 mem.Position = 0;
-                using( var reader = new LogReader( mem ) )
+                mem.Read( versionBytes, 0, 4 );
+                Assert.That( BitConverter.ToInt32( versionBytes, 0 ), Is.EqualTo( LogReader.CurrentStreamVersion ) );
+
+                using( var reader = new LogReader( mem, LogReader.CurrentStreamVersion ) )
                 {
                     Assert.That( reader.MoveNext() );
                     Assert.That( reader.Current.Text, Is.EqualTo( e1.Text ) );

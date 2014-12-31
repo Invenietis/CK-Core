@@ -24,8 +24,10 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.IO.Compression;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using CK.Core;
 
@@ -132,10 +134,10 @@ namespace CK.Monitoring
         public int FileBufferSize
         {
             get { return _fileBufferSize; }
-            set 
+            set
             {
                 if( value < 0 ) throw new ArgumentException();
-                _fileBufferSize = value; 
+                _fileBufferSize = value;
             }
         }
 
@@ -262,7 +264,10 @@ namespace CK.Monitoring
             _openedTimeUtc = DateTime.UtcNow;
             _output = new FileStream( _basePath + Guid.NewGuid().ToString() + _fileNameSuffix + ".tmp", FileMode.CreateNew, FileAccess.Write, FileShare.Read, _fileBufferSize, opt );
             _writer = new BinaryWriter( _output );
+
+            _writer.Write( LogReader.FileHeader );
             _writer.Write( LogReader.CurrentStreamVersion );
+
             _countRemainder = _maxCountPerFile;
         }
 
