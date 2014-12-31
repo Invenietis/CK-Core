@@ -240,8 +240,11 @@ namespace CK.Core
             _uniqueId = Guid.NewGuid();
             _topic = String.Empty;
             _lastLogTime = DateTimeStamp.MinValue;
-            var autoConf = AutoConfiguration;
-            if( autoConf != null && applyAutoConfigurations ) autoConf( this );
+            if( applyAutoConfigurations )
+            {
+                var autoConf = AutoConfiguration;
+                if( autoConf != null ) autoConf( this );
+            }
         }
 
         Guid IUniqueId.UniqueId

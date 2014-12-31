@@ -26,10 +26,10 @@ using System.Reflection;
 
 [assembly: AssemblyCompany( "Invenietis" )]
 [assembly: AssemblyProduct( "Civikey" )]
-[assembly: AssemblyCopyright( "Copyright © Invenietis 2007-2014" )]
+[assembly: AssemblyCopyright( "Copyright © Invenietis 2007-2015" )]
 [assembly: AssemblyTrademark( "" )]
 [assembly: CLSCompliant( true )]
-[assembly: AssemblyVersion( "4.0.1" )]
+[assembly: AssemblyVersion( "4.1.0" )]
 
 
 #if DEBUG

@@ -44,6 +44,10 @@ namespace CK.Core
     /// This is the base class for <see cref="CKSortedArrayKeyList{T,TKey}"/> but also for their observable versions: <see cref="CKObservableSortedArrayList{T}"/> 
     /// and <see cref="CKObservableSortedArrayKeyList{T,TKey}"/>.
     /// </para>
+    /// <para>
+    /// Specialized classes may use protected <see cref="Store"/>, <see cref="StoreCount"/> and <see cref="StoreVersion"/> to have a direct, uncontrolled, access
+    /// to the whole state of this object.
+    /// </para>
     /// </remarks>
     [DebuggerTypeProxy( typeof( Impl.CKReadOnlyCollectionDebuggerView<> ) ), DebuggerDisplay( "Count = {Count}" )]
     public class CKSortedArrayList<T> : IList<T>, ICKReadOnlyList<T>, ICKWritableCollection<T>
@@ -386,10 +390,37 @@ namespace CK.Core
         }
 
         /// <summary>
-        /// Gives access to the internal array to specialized classes.
+        /// Direct access to the internal array to specialized classes.
+        /// This must be used with care.
         /// </summary>
-        protected T[] Store { get { return _tab; } }
-        
+        protected T[] Store 
+        {
+            get { return _tab; }
+            set { _tab = value; } 
+        }
+
+        /// <summary>
+        /// Direct access to the <see cref="Count"/> to specialized classes.
+        /// This must be used with care.
+        /// </summary>
+        protected int StoreCount
+        {
+            get { return _count; }
+            set { _count = value; }
+        }
+
+        /// <summary>
+        /// Direct access to the internal version to specialized classes.
+        /// LSB (StoreVersion &amp;  1) is <see cref="AllowDuplicates"/>: the version 
+        /// is incremented by two whenever the content change.
+        /// This must be used with care.
+        /// </summary>
+        protected int StoreVersion
+        {
+            get { return _version; }
+            set { _version = value; }
+        }
+
         /// <summary>
         /// Sets a value at a given position.
         /// </summary>

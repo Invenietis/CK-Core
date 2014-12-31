@@ -23,6 +23,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using System.Text;
 
@@ -78,5 +79,15 @@ namespace CK.Core
                 }
             }
         }
+
+        /// <summary>
+        /// Immutable reusable PropertyChangedEventArgs for "Item[]".
+        /// </summary>
+        public static readonly PropertyChangedEventArgs ItemArrayChangedEventArgs = new PropertyChangedEventArgs( "Item[]" );
+
+        /// <summary>
+        /// Immutable reusable PropertyChangedEventArgs for "Count".
+        /// </summary>
+        public static readonly PropertyChangedEventArgs CountChangedEventArgs = new PropertyChangedEventArgs( "Count" );
     }
 }

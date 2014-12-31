@@ -150,7 +150,7 @@ namespace CK.Core
             }
 
             /// <summary>
-            /// Captures the log message when created with a delayed launch so that DependentSender.Launch( token ) can logs it.
+            /// Captures the log message when created with a delayed launch so that DependentSender.Launch( token ) can log it.
             /// </summary>
             internal string DelayedLaunchMessage
             {
