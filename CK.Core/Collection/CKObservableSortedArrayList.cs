@@ -110,7 +110,7 @@ namespace CK.Core
         /// </summary>
         /// <param name="index">Inserted index.</param>
         /// <param name="value">Inserted item.</param>
-        protected void RaiseAdd( int index, T value )
+        protected virtual void RaiseAdd( int index, T value )
         {
             OnPropertyChanged( CollectionExtension.CountChangedEventArgs );
             OnPropertyChanged( CollectionExtension.ItemArrayChangedEventArgs );
@@ -133,7 +133,7 @@ namespace CK.Core
         /// </summary>
         /// <param name="index">Removed index.</param>
         /// <param name="value">Removed item.</param>
-        protected void RaiseRemove( int index, T value )
+        protected virtual void RaiseRemove( int index, T value )
         {
             OnPropertyChanged( CollectionExtension.CountChangedEventArgs );
             OnPropertyChanged( CollectionExtension.ItemArrayChangedEventArgs );
@@ -159,7 +159,7 @@ namespace CK.Core
         /// <param name="index">Replaced index.</param>
         /// <param name="newValue">New item.</param>
         /// <param name="oldValue">Replaced item.</param>
-        protected void RaiseReplace( int index, T newValue, T oldValue )
+        protected virtual void RaiseReplace( int index, T newValue, T oldValue )
         {
             OnPropertyChanged( CollectionExtension.ItemArrayChangedEventArgs );
             OnCollectionChanged( new NotifyCollectionChangedEventArgs( NotifyCollectionChangedAction.Replace, oldValue, newValue, index ) );
@@ -183,7 +183,7 @@ namespace CK.Core
         /// </summary>
         /// <param name="from">Original index.</param>
         /// <param name="newIndex">Target index.</param>
-        protected void RaiseMove( int from, int newIndex )
+        protected virtual void RaiseMove( int from, int newIndex )
         {
             OnPropertyChanged( CollectionExtension.ItemArrayChangedEventArgs );
             OnCollectionChanged( new NotifyCollectionChangedEventArgs( NotifyCollectionChangedAction.Move, Store[newIndex], newIndex, from ) );
@@ -201,7 +201,7 @@ namespace CK.Core
         /// <summary>
         /// Raises the event corresponding to <see cref="DoClear"/> (<see cref="NotifyCollectionChangedAction.Reset"/>).
         /// </summary>
-        protected void RaiseReset()
+        protected virtual void RaiseReset()
         {
             OnPropertyChanged( CollectionExtension.CountChangedEventArgs );
             OnPropertyChanged( CollectionExtension.ItemArrayChangedEventArgs );
