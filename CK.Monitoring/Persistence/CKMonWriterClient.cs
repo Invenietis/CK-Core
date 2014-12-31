@@ -95,7 +95,7 @@ namespace CK.Monitoring
                     // If initialization failed, we let the file null: this monitor will not 
                     // work (the error will appear in the Critical errors) but this avoids 
                     // an exception to be thrown here.
-                    var f = new MonitorBinaryFileOutput( _path, ((IUniqueId)_source).UniqueId, _maxCountPerFile );
+                    var f = new MonitorBinaryFileOutput( _path, ((IUniqueId)_source).UniqueId, _maxCountPerFile, false );
                     if( f.Initialize( new SystemActivityMonitor( false, null ) ) )
                     {
                         var g = _source.CurrentGroup;
@@ -116,7 +116,7 @@ namespace CK.Monitoring
             {
                 if( _source == null ) throw new InvalidOperationException( "CKMonWriterClient must be registered in an ActivityMonitor." );
                 if( _file != null ) return true;
-                _file = new MonitorBinaryFileOutput( _path, _source.UniqueId, _maxCountPerFile );
+                _file = new MonitorBinaryFileOutput( _path, _source.UniqueId, _maxCountPerFile, false );
                 _prevLogType = LogEntryType.None;
                 _prevlogTime = DateTimeStamp.Unknown;
             }

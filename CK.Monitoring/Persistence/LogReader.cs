@@ -62,11 +62,6 @@ namespace CK.Monitoring
         /// </summary>
         public static readonly byte[] FileHeader = new byte[] { 0x43, 0x4b, 0x4d, 0x4f, 0x4e };
 
-        /// <summary>
-        /// The file header for gzipped .ckmon files.
-        /// </summary>
-        public static readonly byte[] GzipFileHeader = new byte[] { 0x1f, 0x8b };
-
 #if net40
         /// <summary>
         /// Initializes a new <see cref="LogReader"/> on an uncompressed stream with an explicit version number.

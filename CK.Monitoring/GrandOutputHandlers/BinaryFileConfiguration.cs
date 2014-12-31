@@ -45,6 +45,7 @@ namespace CK.Monitoring.GrandOutputHandlers
         {
             MaxCountPerFile = 20000;
             FileBufferSize = 4096;
+            UseGzipCompression = false;
         }
 
         /// <summary>
@@ -73,6 +74,12 @@ namespace CK.Monitoring.GrandOutputHandlers
         public int FileBufferSize { get; set; }
 
         /// <summary>
+        /// Gets or sets whether to use Gzip compression after closing log files.
+        /// Defaults to false.
+        /// </summary>
+        public bool UseGzipCompression { get; set; }
+
+        /// <summary>
         /// Initializes (or reinitializes) this <see cref="BinaryFileConfiguration"/> from a <see cref="XElement"/>.
         /// </summary>
         /// <param name="monitor">Monitor to report errors or warnings.</param>
@@ -81,6 +88,7 @@ namespace CK.Monitoring.GrandOutputHandlers
         {
             Path = xml.AttributeRequired( "Path" ).Value;
             MaxCountPerFile = xml.GetAttributeInt( "MaxCountPerFile", MaxCountPerFile );
+            UseGzipCompression = xml.GetAttributeBoolean( "UseGzipCompression", UseGzipCompression );
         }
     }
 }

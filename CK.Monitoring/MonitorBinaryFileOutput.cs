@@ -43,6 +43,7 @@ namespace CK.Monitoring
         readonly string _configPath;
         readonly int _maxCountPerFile;
         readonly string _fileNameSuffix;
+        readonly bool _useGzipCompression;
 
         string _basePath;
         FileStream _output;
@@ -52,13 +53,14 @@ namespace CK.Monitoring
         int _fileBufferSize;
         bool _fileWriteThrough;
 
-        MonitorBinaryFileOutput( string configuredPath, string fileNameSuffix, int maxCountPerFile )
+        MonitorBinaryFileOutput( string configuredPath, string fileNameSuffix, int maxCountPerFile, bool useGzipCompression )
         {
             if( maxCountPerFile < 1 ) throw new ArgumentException( "Must be greater than 0.", "maxCountPerFile" );
             _configPath = configuredPath;
             _maxCountPerFile = maxCountPerFile;
             _fileNameSuffix = fileNameSuffix + ".ckmon";
             _fileBufferSize = 4096;
+            _useGzipCompression = useGzipCompression;
         }
 
         /// <summary>
@@ -67,8 +69,8 @@ namespace CK.Monitoring
         /// </summary>
         /// <param name="configuredPath">The path: it can be absolute and when relative, it will be under <see cref="SystemActivityMonitor.RootLogPath"/> (that must be set).</param>
         /// <param name="maxCountPerFile">Maximum number of entries per file. Must be greater than 1.</param>
-        public MonitorBinaryFileOutput( string configuredPath, int maxCountPerFile )
-            : this( configuredPath, String.Empty, maxCountPerFile )
+        public MonitorBinaryFileOutput( string configuredPath, int maxCountPerFile, bool useGzipCompression )
+            : this( configuredPath, String.Empty, maxCountPerFile, useGzipCompression )
         {
         }
 
@@ -81,8 +83,8 @@ namespace CK.Monitoring
         /// <param name="configuredPath">The path. Can be absolute. When relative, it will be under <see cref="SystemActivityMonitor.RootLogPath"/> that must be set.</param>
         /// <param name="monitorId">Monitor identifier.</param>
         /// <param name="maxCountPerFile">Maximum number of entries per file. Must be greater than 1.</param>
-        public MonitorBinaryFileOutput( string configuredPath, Guid monitorId, int maxCountPerFile )
-            : this( configuredPath, '-' + monitorId.ToString( "B" ), maxCountPerFile )
+        public MonitorBinaryFileOutput( string configuredPath, Guid monitorId, int maxCountPerFile, bool useGzipCompression )
+            : this( configuredPath, '-' + monitorId.ToString( "B" ), maxCountPerFile, useGzipCompression )
         {
         }
 
@@ -291,7 +293,21 @@ namespace CK.Monitoring
             }
             else
             {
-                FileUtil.MoveToUniqueTimedFile( fName, _basePath, _fileNameSuffix, _openedTimeUtc );
+                if( _useGzipCompression == true )
+                {
+                    string newPath = FileUtil.EnsureUniqueTimedFile( _basePath, _fileNameSuffix, _openedTimeUtc );
+
+                    // Start a task to compress in background
+#if net40
+                    Task compressTask = Task.Factory.StartNew( () => { FileUtil.CompressFileToGzipFile( fName, newPath, true, 8000 ); } );
+#else
+                    Task compressTask = FileUtil.CompressFileToGzipFileAsync( fName, newPath, CancellationToken.None, true, 8000 );
+#endif
+                }
+                else
+                {
+                    FileUtil.MoveToUniqueTimedFile( fName, _basePath, _fileNameSuffix, _openedTimeUtc );
+                }
             }
             _writer = null;
         }

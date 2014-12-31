@@ -47,7 +47,7 @@ namespace CK.Monitoring.GrandOutputHandlers
             : base( config )
         {
             if( config == null ) throw new ArgumentNullException( "config" );
-            _file = new MonitorBinaryFileOutput( config.Path, config.MaxCountPerFile );
+            _file = new MonitorBinaryFileOutput( config.Path, config.MaxCountPerFile, config.UseGzipCompression );
             _file.FileWriteThrough = config.FileWriteThrough;
             _file.FileBufferSize = config.FileBufferSize;
         }

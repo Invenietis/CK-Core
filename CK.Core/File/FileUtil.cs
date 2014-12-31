@@ -47,6 +47,11 @@ namespace CK.Core
         static readonly public FileAttributes InexistingFile = FileAttributes.Normal | FileAttributes.Offline;
 
         /// <summary>
+        /// The file header for gzipped files.
+        /// </summary>
+        static readonly public byte[] GzipFileHeader = new byte[] { 0x1f, 0x8b };
+
+        /// <summary>
         /// Returns files in a directory according to multiple file masks (separated by ';'). 
         /// </summary>
         /// <param name="path">Path of the directory to read.</param>
@@ -294,6 +299,37 @@ namespace CK.Core
             return FindUniqueTimedFile( pathPrefix, fileSuffix, time, maxTryBeforeGuid, p => TryMoveTo( sourceFilePath, p ) );
         }
 
+        /// <summary>
+        /// Gets a path to a necessarily unique named file.
+        /// The file name is based on a <see cref="DateTime"/>, with an eventual uniquifier if a file already exists with the same name.
+        /// </summary>
+        /// <param name="pathPrefix">The path prefix. Must not be null. Must be a valid path and may ends with a prefix for the file name itself.</param>
+        /// <param name="fileSuffix">Suffix for the file name. Must not be null. Typically an extension (like ".txt").</param>
+        /// <param name="time">The time that will be used to create the file name. It must be an UTC time.</param>
+        /// <param name="maxTryBeforeGuid">
+        /// Maximum value for short hexadecimal uniquifier before using a base 64 guid suffix. Must greater than 0.
+        /// </param>
+        /// <returns>A string to a necessarily unique named file path.</returns>
+        public static string EnsureUniqueTimedFile( string pathPrefix, string fileSuffix, DateTime time, int maxTryBeforeGuid = 512 )
+        {
+            return FindUniqueTimedFile( pathPrefix, fileSuffix, time, maxTryBeforeGuid, p => TryCreateFile( p ) );
+        }
+
+        static bool TryCreateFile( string path )
+        {
+            try
+            {
+                if( File.Exists( path ) ) return false;
+                using( File.Create( path ) ) { } // Dispose immediately
+                return true;
+            }
+            catch( IOException ex )
+            {
+                if( ex is PathTooLongException || ex is DirectoryNotFoundException ) throw;
+            }
+            return false;
+        }
+
         static bool TryMoveTo( string sourceFilePath, string timedPath )
         {
             try
@@ -420,6 +456,7 @@ namespace CK.Core
             {
                 using( FileStream destination = new FileStream( destinationPath, FileMode.Create, FileAccess.Write, FileShare.Read, bufferSize ) )
                 {
+                    await destination.WriteAsync( GzipFileHeader, 0, GzipFileHeader.Length );
                     using( GZipStream gZipStream = new GZipStream( destination, CompressionLevel.Optimal ) )
                     {
                         await source.CopyToAsync( gZipStream, bufferSize, cancellationToken );
@@ -434,48 +471,24 @@ namespace CK.Core
         }
 #endif
 
-        // No CompressionLevel in 4.0.
+        /// <summary>
+        /// Compresses a file to another file, using GZip at the given compression level.
+        /// </summary>
+        /// <param name="sourceFilePath">The source file path.</param>
+        /// <param name="destinationPath">The destination path. If it doesn't exist, it will be created. If it exists, it will be replaced.</param>
+        /// <param name="deleteSourceFileOnSuccess">if set to <c>true</c>, will delete source file if no errors occured suring compression.</param>
+        /// <param name="bufferSize">Size of the buffer, in bytes.</param>
+        public static void CompressFileToGzipFile( string sourceFilePath, string destinationPath, bool deleteSourceFileOnSuccess = true, int bufferSize = 4096 )
+        {
+            using( FileStream source = new FileStream( sourceFilePath, FileMode.Open, FileAccess.Read, FileShare.None, bufferSize, true ) )
+            {
+                using( FileStream destination = new FileStream( destinationPath, FileMode.Create, FileAccess.Write, FileShare.Read, bufferSize, true ) )
+                {
 #if net40
-        /// <summary>
-        /// Compresses a file to another file, using GZip at the given compression level.
-        /// </summary>
-        /// <param name="sourceFilePath">The source file path.</param>
-        /// <param name="destinationPath">The destination path. If it doesn't exist, it will be created. If it exists, it will be replaced.</param>
-        /// <param name="deleteSourceFileOnSuccess">if set to <c>true</c>, will delete source file if no errors occured suring compression.</param>
-        /// <param name="bufferSize">Size of the buffer, in bytes.</param>
-        public static void CompressFileToGzipFile( string sourceFilePath, string destinationPath, bool deleteSourceFileOnSuccess = true, int bufferSize = 4096 )
-        {
-            using( FileStream source = new FileStream( sourceFilePath, FileMode.Open, FileAccess.Read, FileShare.None, bufferSize, true ) )
-            {
-                using( FileStream destination = new FileStream( destinationPath, FileMode.Create, FileAccess.Write, FileShare.Read, bufferSize, true ) )
-                {
                     using( GZipStream gZipStream = new GZipStream( destination, CompressionMode.Compress ) )
-                    {
-                        source.CopyTo( gZipStream, bufferSize );
-                    }
-                }
-            }
-
-            if( deleteSourceFileOnSuccess == true )
-            {
-                File.Delete( sourceFilePath );
-            }
-        }
 #else
-        /// <summary>
-        /// Compresses a file to another file, using GZip at the given compression level.
-        /// </summary>
-        /// <param name="sourceFilePath">The source file path.</param>
-        /// <param name="destinationPath">The destination path. If it doesn't exist, it will be created. If it exists, it will be replaced.</param>
-        /// <param name="deleteSourceFileOnSuccess">if set to <c>true</c>, will delete source file if no errors occured suring compression.</param>
-        /// <param name="bufferSize">Size of the buffer, in bytes.</param>
-        public static void CompressFileToGzipFile( string sourceFilePath, string destinationPath, bool deleteSourceFileOnSuccess = true, int bufferSize = 4096 )
-        {
-            using( FileStream source = new FileStream( sourceFilePath, FileMode.Open, FileAccess.Read, FileShare.None, bufferSize, true ) )
-            {
-                using( FileStream destination = new FileStream( destinationPath, FileMode.Create, FileAccess.Write, FileShare.Read, bufferSize, true ) )
-                {
                     using( GZipStream gZipStream = new GZipStream( destination, CompressionLevel.Optimal ) )
+#endif
                     {
                         source.CopyTo( gZipStream, bufferSize );
                     }
@@ -487,7 +500,6 @@ namespace CK.Core
                 File.Delete( sourceFilePath );
             }
         }
-#endif
 
     }
 
