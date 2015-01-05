@@ -23,6 +23,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Specialized;
 using System.Linq;
 using System.Text;
 using CK.Core.Tests;
@@ -95,38 +96,42 @@ namespace CK.Core.Tests.Collection
         public void ObservableSortedArrayListDoSetTest()
         {
             var a = new CKObservableSortedArrayList<int>();
+
+            List<NotifyCollectionChangedAction> collectionChangedActions = new List<NotifyCollectionChangedAction>();
+            List<string> propertyChangedNames = new List<string>();
+
+            a.PropertyChanged += ( o, e ) => propertyChangedNames.Add( e.PropertyName );
+            a.CollectionChanged += ( o, e ) => collectionChangedActions.Add( e.Action );
+
             a.AddRangeArray( 12, -34, 7, 545, 12 );
+            Assert.That( collectionChangedActions.Count, Is.EqualTo( 4 ) );
+            Assert.That( collectionChangedActions.All( action => action == NotifyCollectionChangedAction.Add ) );
+            Assert.That( propertyChangedNames.Count, Is.EqualTo( 4*2 ) );
+            Assert.That( propertyChangedNames.Where( n => n == "Count" ).Count(), Is.EqualTo( 4 ) );
+            Assert.That( propertyChangedNames.Where( n => n == "Item[]" ).Count(), Is.EqualTo( 4 ) );
 
-            //Cast IList
+            collectionChangedActions.Clear();
+            propertyChangedNames.Clear();
+
             IList<int> listToTest = (IList<int>)a;
-
-            bool collectionChangedPass = false;
-            bool propertyChangedPass = false;
-
-            a.PropertyChanged += ( o, e ) => propertyChangedPass = true;
-            a.CollectionChanged += ( o, e ) => collectionChangedPass = true;
-
-            Assert.That( collectionChangedPass, Is.False );
-            Assert.That( propertyChangedPass, Is.False );
-
             listToTest[0] = -33;
             Assert.That( listToTest[0], Is.EqualTo( -33 ) );
             listToTest[0] = 123456;
             Assert.That( listToTest[0], Is.EqualTo( 123456 ) );
 
-            Assert.That( collectionChangedPass, Is.True );
-            Assert.That( propertyChangedPass, Is.True );
+            Assert.That( collectionChangedActions.Count, Is.EqualTo( 2 ) );
+            Assert.That( collectionChangedActions.All( action => action == NotifyCollectionChangedAction.Replace ) );
+            Assert.That( propertyChangedNames.Count, Is.EqualTo( 2 ) );
+            Assert.That( propertyChangedNames.All( n => n == "Item[]" ) );
 
-            collectionChangedPass = false;
-            propertyChangedPass = false;
+            collectionChangedActions.Clear();
+            propertyChangedNames.Clear();
 
-            //Cast ICollection
             a.Clear();
 
-            Assert.That( collectionChangedPass, Is.True );
-            Assert.That( propertyChangedPass, Is.False );
-            collectionChangedPass = false;
-
+            Assert.That( collectionChangedActions.Count, Is.EqualTo( 1 ) );
+            Assert.That( collectionChangedActions.All( action => action == NotifyCollectionChangedAction.Reset ) );
+            Assert.That( propertyChangedNames.Count, Is.EqualTo( 2 ) );
         }
 
         private static void CheckList( TestMammals a, string p )

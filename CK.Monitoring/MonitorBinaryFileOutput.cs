@@ -69,6 +69,7 @@ namespace CK.Monitoring
         /// </summary>
         /// <param name="configuredPath">The path: it can be absolute and when relative, it will be under <see cref="SystemActivityMonitor.RootLogPath"/> (that must be set).</param>
         /// <param name="maxCountPerFile">Maximum number of entries per file. Must be greater than 1.</param>
+        /// <param name="useGzipCompression">True to gzip the file.</param>
         public MonitorBinaryFileOutput( string configuredPath, int maxCountPerFile, bool useGzipCompression )
             : this( configuredPath, String.Empty, maxCountPerFile, useGzipCompression )
         {
@@ -83,6 +84,7 @@ namespace CK.Monitoring
         /// <param name="configuredPath">The path. Can be absolute. When relative, it will be under <see cref="SystemActivityMonitor.RootLogPath"/> that must be set.</param>
         /// <param name="monitorId">Monitor identifier.</param>
         /// <param name="maxCountPerFile">Maximum number of entries per file. Must be greater than 1.</param>
+        /// <param name="useGzipCompression">True to gzip the file.</param>
         public MonitorBinaryFileOutput( string configuredPath, Guid monitorId, int maxCountPerFile, bool useGzipCompression )
             : this( configuredPath, '-' + monitorId.ToString( "B" ), maxCountPerFile, useGzipCompression )
         {
@@ -299,9 +301,9 @@ namespace CK.Monitoring
 
                     // Start a task to compress in background
 #if net40
-                    Task compressTask = Task.Factory.StartNew( () => { FileUtil.CompressFileToGzipFile( fName, newPath, true, 8000 ); } );
+                    Task compressTask = Task.Factory.StartNew( () => { FileUtil.CompressFileToGzipFile( fName, newPath, true, 8192 ); } );
 #else
-                    Task compressTask = FileUtil.CompressFileToGzipFileAsync( fName, newPath, CancellationToken.None, true, 8000 );
+                    Task compressTask = FileUtil.CompressFileToGzipFileAsync( fName, newPath, CancellationToken.None, true, 8192 );
 #endif
                 }
                 else

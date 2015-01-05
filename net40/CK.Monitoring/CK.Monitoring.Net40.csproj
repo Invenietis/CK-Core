@@ -156,6 +156,9 @@
     <Compile Include="..\..\CK.Monitoring\Persistence\CKMonWriterClient.cs">
       <Link>CKMonWriterClient.cs</Link>
     </Compile>
+    <Compile Include="..\..\CK.Monitoring\Persistence\GZipStreamReader.cs">
+      <Link>GZipStreamReader.cs</Link>
+    </Compile>
     <Compile Include="..\..\CK.Monitoring\Persistence\Impl\LECloseGroup.cs">
       <Link>LECloseGroup.cs</Link>
     </Compile>

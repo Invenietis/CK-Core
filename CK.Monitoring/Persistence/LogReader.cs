@@ -101,20 +101,47 @@ namespace CK.Monitoring
         /// The file will be closed when <see cref="LogReader.Dispose"/> will be called.
         /// </summary>
         /// <param name="path">Path of the log file.</param>
+        /// <param name="offset">An optional offset where the stream position must be initially set.</param>
+        /// <param name="filter">An optional <see cref="MulticastFilter"/>.</param>
         /// <returns>A <see cref="LogReader"/> that will close the file when disposed.</returns>
-        public static LogReader Open( string path )
+        /// <remarks>
+        /// .ckmon files exist in different file versions, depending on headers.
+        /// The file can be compressed using GZipStream, in which case the header will be set accordingly to 1F 8B.
+        /// Starting from version 6, the file will start with 43 4B 4D 4F 4E, followed by the version number, instead of only the version number.
+        /// </remarks>
+        public static LogReader Open( string path, long offset = 0, MulticastFilter filter = null )
         {
-            /**
-             * .ckmon files exist in different file versions, depending on headers.
-             * The file can be compressed using GZipStream, in which case the header will be set accordingly to 1F 8B.
-             * Starting from version 6, the file will start with 43 4B 4D 4F 4E, followed by the version number, instead of only the version number.
-             * */
-
-            FileStream fs = new FileStream( path, FileMode.Open, FileAccess.Read, FileShare.Read, 8, FileOptions.SequentialScan );
-
-            LogStreamInfo i = OpenLogStream( fs );
-
-            return new LogReader( i.LogStream, i.KnownVersion );
+            FileStream fs = null;
+            try
+            {
+                fs = new FileStream( path, FileMode.Open, FileAccess.Read, FileShare.Read, 8192, FileOptions.SequentialScan );
+                LogStreamInfo i = OpenLogStream( fs );
+                var s = i.LogStream;
+                if( offset > 0 )
+                {
+                    if( s.CanSeek )
+                    {
+                        s.Seek( offset, SeekOrigin.Begin );
+                    }
+                    else
+                    {
+                        var buffer = new byte[8192];
+                        int toRead;
+                        while( (toRead = (int)Math.Min( 8192, offset )) > 0 && s.Read( buffer, 0, toRead ) == toRead )
+                        {
+                            offset -= toRead;
+                        }
+                    }
+                }
+                var r = new LogReader( s, i.KnownVersion );
+                r.CurrentFilter = filter;
+                return r;
+            }
+            catch
+            {
+                if( fs != null ) fs.Dispose();
+                throw;
+            }
         }
 
         /// <summary>
@@ -138,31 +165,26 @@ namespace CK.Monitoring
                 int secondByte = s.ReadByte(); // Read 2:8B
                 if( secondByte == 0x8b )
                 {
-                    GZipStream gzip = new GZipStream( s, CompressionMode.Decompress );
-                    return OpenLogStream( gzip, true );
+                    return OpenLogStream( new GZipStreamReader( s ), true );
                 }
-                else
-                {
-                    throw new InvalidDataException( "Invalid compression header." );
-                }
+                throw new InvalidDataException( "Invalid compression header." );
             }
             else if( firstByte == 0x43 )
             {
                 // CKMON header is 43 4B 4D 4F 4E. That's C, K, M, O and N (ASCII).
                 int b = s.ReadByte(); // 2:4B
-                if( b != 0x4b ) { throw new InvalidDataException( "Invalid header." ); }
+                if( b != 0x4b ) throw new InvalidDataException( "Invalid header." );
                 b = s.ReadByte(); // 3:4D
-                if( b != 0x4d ) { throw new InvalidDataException( "Invalid header." ); }
+                if( b != 0x4d ) throw new InvalidDataException( "Invalid header." );
                 b = s.ReadByte(); // 4:4F
-                if( b != 0x4f ) { throw new InvalidDataException( "Invalid header." ); }
+                if( b != 0x4f ) throw new InvalidDataException( "Invalid header." ); 
                 b = s.ReadByte(); // 5:4E
-                if( b != 0x4e ) { throw new InvalidDataException( "Invalid header." ); }
+                if( b != 0x4e ) throw new InvalidDataException( "Invalid header." ); 
 
                 // Read version number. Note: We don't have a BinaryReader on hand.
                 byte[] versionBytes = new byte[4];
-                s.Read( versionBytes, 0, 4 );
+                if( s.Read( versionBytes, 0, 4 ) < 4 ) throw new InvalidDataException( "Invalid header." );
                 int version = BitConverter.ToInt32( versionBytes, 0 );
-
                 return LogStreamInfo.From( s, isInsideGzip, version );
             }
             else if( firstByte <= 0x05 ) // Old versions without CKMON header
@@ -173,47 +195,16 @@ namespace CK.Monitoring
                 // Read version number. Note: We don't have a BinaryReader on hand.
                 byte[] versionBytes = new byte[4];
                 versionBytes[0] = (byte)firstByte;
-                s.Read( versionBytes, 1, 3 );
-                int version = BitConverter.ToInt32( versionBytes, 0 );
-
-                if( version <= 0 || version > 5 )
+                int version = 0;
+                if( s.Read( versionBytes, 1, 3 ) < 3 
+                    || (version = BitConverter.ToInt32( versionBytes, 0 )) <= 0 
+                    || version > 5 )
                 {
                     throw new InvalidDataException( String.Format( "Invalid uncompressed version header ({0}).", version ) );
                 }
-
                 return LogStreamInfo.From( s, isInsideGzip, version );
             }
             throw new InvalidDataException( String.Format( "Invalid CKMON header. Expected byte header to be 0x1f, 0x43 or <= 0x05, but got 0x{0:x2}.", firstByte ) );
-        }
-
-        /// <summary>
-        /// Opens a <see cref="LogReader"/> to read the content of an compressed or uncompressed file starting at the specified offset. 
-        /// The file version must known since the header of the file will not be read.
-        /// </summary>
-        /// <param name="path">Path of the log file.</param>
-        /// <param name="offset">Offset where the stream position must be initially set.</param>
-        /// <param name="version">Version of the log data.</param>
-        /// <param name="filter">An optional <see cref="MulticastFilter"/>.</param>
-        /// <returns>A <see cref="LogReader"/> that will close the file when disposed.</returns>
-        public static LogReader Open( string path, long offset, int version, MulticastFilter filter = null )
-        {
-            FileStream fileStream = new FileStream( path, FileMode.Open, FileAccess.Read, FileShare.Read, 8, FileOptions.SequentialScan );
-
-            LogStreamInfo info = OpenLogStream( fileStream );
-            Stream s = info.LogStream;
-
-            try
-            {
-                s.Position = offset;
-            }
-            catch
-            {
-                s.Dispose();
-                throw;
-            }
-            var r = new LogReader( s, version );
-            r.CurrentFilter = filter;
-            return r;
         }
 
         /// <summary>
@@ -333,7 +324,6 @@ namespace CK.Monitoring
             {
                 throw new InvalidOperationException( String.Format( "Stream is not a log stream or its version is not handled (Current Version = {0}).", CurrentStreamVersion ) );
             }
-
             _currentPosition = _stream.Position;
             ReadNextEntry();
             _currentMulticast = _current as IMulticastLogEntry;

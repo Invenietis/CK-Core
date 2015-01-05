@@ -1,26 +1,25 @@
 #region LGPL License
 /*----------------------------------------------------------------------------
-* This file (CK.Monitoring\Persistence\CKMonWriterClient.cs) is part of CiviKey. 
-*  
-* CiviKey is free software: you can redistribute it and/or modify 
-* it under the terms of the GNU Lesser General Public License as published 
-* by the Free Software Foundation, either version 3 of the License, or 
-* (at your option) any later version. 
-*  
-* CiviKey is distributed in the hope that it will be useful, 
+* This file (CK.Monitoring\Persistence\CKMonWriterClient.cs) is part of CiviKey.
+*
+* CiviKey is free software: you can redistribute it and/or modify
+* it under the terms of the GNU Lesser General Public License as published
+* by the Free Software Foundation, either version 3 of the License, or
+* (at your option) any later version.
+*
+* CiviKey is distributed in the hope that it will be useful,
 * but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
-* GNU Lesser General Public License for more details. 
-* You should have received a copy of the GNU Lesser General Public License 
-* along with CiviKey.  If not, see <http://www.gnu.org/licenses/>. 
-*  
-* Copyright © 2007-2014, 
-*     Invenietis <http://www.invenietis.com>,
-*     In’Tech INFO <http://www.intechinfo.fr>,
-* All rights reserved. 
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+* GNU Lesser General Public License for more details.
+* You should have received a copy of the GNU Lesser General Public License
+* along with CiviKey. If not, see <http://www.gnu.org/licenses/>.
+*
+* Copyright © 2007-2014,
+* Invenietis <http://www.invenietis.com>,
+* In’Tech INFO <http://www.intechinfo.fr>,
+* All rights reserved.
 *-----------------------------------------------------------------------------*/
 #endregion
-
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -30,7 +29,6 @@ using System.Text;
 using CK.Core;
 using CK.Core.Impl;
 using CK.Monitoring.Impl;
-
 namespace CK.Monitoring
 {
     /// <summary>
@@ -42,6 +40,7 @@ namespace CK.Monitoring
         readonly string _path;
         readonly int _maxCountPerFile;
         readonly LogFilter _minimalFilter;
+        readonly bool _useGzipCompression;
         IActivityMonitorImpl _source;
         MonitorBinaryFileOutput _file;
         int _currentGroupDepth;
@@ -49,33 +48,32 @@ namespace CK.Monitoring
         DateTimeStamp _prevlogTime;
 
         /// <summary>
-        /// Initializes a new instance of <see cref="CKMonWriterClient"/> that can be registered to write .ckmon file for this monitor.
+        /// Initializes a new instance of <see cref="CKMonWriterClient"/> that can be registered to write uncompressed .ckmon file for this monitor.
         /// </summary>
         /// <param name="path">The path. Can be absolute. When relative, it will be under <see cref="SystemActivityMonitor.RootLogPath"/> that must be set.</param>
         /// <param name="maxCountPerFile">Maximum number of entries per file. Must be greater than 1.</param>
         public CKMonWriterClient( string path, int maxCountPerFile )
-            : this( path, maxCountPerFile, LogFilter.Undefined )
+            : this( path, maxCountPerFile, LogFilter.Undefined, false )
         {
         }
-
         /// <summary>
-        /// Initializes a new instance of <see cref="CKMonWriterClient"/> that can be registered to write .ckmon file for this monitor.
+        /// Initializes a new instance of <see cref="CKMonWriterClient"/> that can be registered to write compressed or uncompressed .ckmon file for this monitor.
         /// </summary>
         /// <param name="path">The path. Can be absolute. When relative, it will be under <see cref="SystemActivityMonitor.RootLogPath"/> that must be set.</param>
         /// <param name="maxCountPerFile">Maximum number of entries per file. Must be greater than 1.</param>
         /// <param name="minimalFilter">Minimal filter for this client.</param>
-        public CKMonWriterClient( string path, int maxCountPerFile, LogFilter minimalFilter )
+        /// <param name="useGzipCompression">Whether to output compressed .ckmon files. Defaults to false (do not compress).</param>
+        public CKMonWriterClient( string path, int maxCountPerFile, LogFilter minimalFilter, bool useGzipCompression = false )
         {
             _path = path;
             _maxCountPerFile = maxCountPerFile;
             _minimalFilter = minimalFilter;
+            _useGzipCompression = useGzipCompression;
         }
-
         /// <summary>
         /// Gets the minimal filter set by the constructor.
         /// </summary>
         public LogFilter MinimalFilter { get { return _minimalFilter; } }
-
         void IActivityMonitorBoundClient.SetMonitor( IActivityMonitorImpl source, bool forceBuggyRemove )
         {
             if( source != null && _source != null ) throw ActivityMonitorClient.CreateMultipleRegisterOnBoundClientException( this );
@@ -92,10 +90,10 @@ namespace CK.Monitoring
                 }
                 else
                 {
-                    // If initialization failed, we let the file null: this monitor will not 
-                    // work (the error will appear in the Critical errors) but this avoids 
+                    // If initialization failed, we let the file null: this monitor will not
+                    // work (the error will appear in the Critical errors) but this avoids
                     // an exception to be thrown here.
-                    var f = new MonitorBinaryFileOutput( _path, ((IUniqueId)_source).UniqueId, _maxCountPerFile, false );
+                    var f = new MonitorBinaryFileOutput( _path, ((IUniqueId)_source).UniqueId, _maxCountPerFile, _useGzipCompression );
                     if( f.Initialize( new SystemActivityMonitor( false, null ) ) )
                     {
                         var g = _source.CurrentGroup;
@@ -105,7 +103,6 @@ namespace CK.Monitoring
                 }
             }
         }
-
         /// <summary>
         /// Opens this writer if it is not already opened.
         /// </summary>
@@ -116,7 +113,7 @@ namespace CK.Monitoring
             {
                 if( _source == null ) throw new InvalidOperationException( "CKMonWriterClient must be registered in an ActivityMonitor." );
                 if( _file != null ) return true;
-                _file = new MonitorBinaryFileOutput( _path, _source.UniqueId, _maxCountPerFile, false );
+                _file = new MonitorBinaryFileOutput( _path, _source.UniqueId, _maxCountPerFile, _useGzipCompression );
                 _prevLogType = LogEntryType.None;
                 _prevlogTime = DateTimeStamp.Unknown;
             }
@@ -134,7 +131,6 @@ namespace CK.Monitoring
             }
             return _file != null;
         }
-
         /// <summary>
         /// Closes this writer if it <see cref="IsOpened"/>.
         /// It can be re-<see cref="Open"/>ed later.
@@ -147,7 +143,6 @@ namespace CK.Monitoring
                 _file = null;
             }
         }
-
         /// <summary>
         /// Gets whether this writer is opened.
         /// </summary>
@@ -155,27 +150,24 @@ namespace CK.Monitoring
         {
             get { return _file != null; }
         }
-        
-        #region Auto implementation of IMulticastLogInfo to call UnicastWrite on file.
 
+        #region Auto implementation of IMulticastLogInfo to call UnicastWrite on file.
         Guid IMulticastLogInfo.MonitorId
         {
-            get 
+            get
             {
                 Debug.Assert( _source != null && _file != null );
-                return _source.UniqueId; 
+                return _source.UniqueId;
             }
         }
-
         int IMulticastLogInfo.GroupDepth
         {
-            get 
+            get
             {
                 Debug.Assert( _source != null && _file != null );
                 return _currentGroupDepth;
             }
         }
-
         LogEntryType IMulticastLogInfo.PreviousEntryType
         {
             get
@@ -184,7 +176,6 @@ namespace CK.Monitoring
                 return _prevLogType;
             }
         }
-
         DateTimeStamp IMulticastLogInfo.PreviousLogTime
         {
             get
@@ -194,7 +185,6 @@ namespace CK.Monitoring
             }
         }
         #endregion
-
         void IActivityMonitorClient.OnUnfilteredLog( ActivityMonitorLogData data )
         {
             if( _file != null )
@@ -204,7 +194,6 @@ namespace CK.Monitoring
                 _prevLogType = LogEntryType.Line;
             }
         }
-
         void IActivityMonitorClient.OnOpenGroup( IActivityLogGroup group )
         {
             if( _file != null )
@@ -215,7 +204,6 @@ namespace CK.Monitoring
                 _prevLogType = LogEntryType.OpenGroup;
             }
         }
-
         void IActivityMonitorClient.OnGroupClosed( IActivityLogGroup group, IReadOnlyList<ActivityLogGroupConclusion> conclusions )
         {
             if( _file != null )
@@ -226,16 +214,13 @@ namespace CK.Monitoring
                 _prevLogType = LogEntryType.CloseGroup;
             }
         }
-
         void IActivityMonitorClient.OnGroupClosing( IActivityLogGroup group, ref List<ActivityLogGroupConclusion> conclusions )
         {
         }
-
         void IActivityMonitorClient.OnTopicChanged( string newTopic, string fileName, int lineNumber )
         {
             // Does nothing.
         }
-
         void IActivityMonitorClient.OnAutoTagsChanged( CKTrait newTrait )
         {
             // Does nothing.

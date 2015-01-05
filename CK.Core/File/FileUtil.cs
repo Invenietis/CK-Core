@@ -450,11 +450,11 @@ namespace CK.Core
         /// <param name="cancellationToken">The cancellation token for the task.</param>
         /// <param name="deleteSourceFileOnSuccess">if set to <c>true</c>, will delete source file if no errors occured suring compression.</param>
         /// <param name="bufferSize">Size of the buffer, in bytes.</param>
-        public static async Task CompressFileToGzipFileAsync( string sourceFilePath, string destinationPath, CancellationToken cancellationToken, bool deleteSourceFileOnSuccess = true, int bufferSize = 4096 )
+        public static async Task CompressFileToGzipFileAsync( string sourceFilePath, string destinationPath, CancellationToken cancellationToken, bool deleteSourceFileOnSuccess = true, int bufferSize = 8192 )
         {
-            using( FileStream source = new FileStream( sourceFilePath, FileMode.Open, FileAccess.Read, FileShare.None, bufferSize ) )
+            using( FileStream source = new FileStream( sourceFilePath, FileMode.Open, FileAccess.Read, FileShare.None, bufferSize, useAsync: true ) )
             {
-                using( FileStream destination = new FileStream( destinationPath, FileMode.Create, FileAccess.Write, FileShare.Read, bufferSize ) )
+                using( FileStream destination = new FileStream( destinationPath, FileMode.Create, FileAccess.Write, FileShare.None, bufferSize, useAsync: true ) )
                 {
                     await destination.WriteAsync( GzipFileHeader, 0, GzipFileHeader.Length );
                     using( GZipStream gZipStream = new GZipStream( destination, CompressionLevel.Optimal ) )
@@ -464,7 +464,7 @@ namespace CK.Core
                 }
             }
 
-            if( cancellationToken.IsCancellationRequested == false && deleteSourceFileOnSuccess == true )
+            if( !cancellationToken.IsCancellationRequested && deleteSourceFileOnSuccess )
             {
                 File.Delete( sourceFilePath );
             }
@@ -476,13 +476,13 @@ namespace CK.Core
         /// </summary>
         /// <param name="sourceFilePath">The source file path.</param>
         /// <param name="destinationPath">The destination path. If it doesn't exist, it will be created. If it exists, it will be replaced.</param>
-        /// <param name="deleteSourceFileOnSuccess">if set to <c>true</c>, will delete source file if no errors occured suring compression.</param>
+        /// <param name="deleteSourceFileOnSuccess">if set to <c>true</c>, will delete source file if no errors occured during compression.</param>
         /// <param name="bufferSize">Size of the buffer, in bytes.</param>
-        public static void CompressFileToGzipFile( string sourceFilePath, string destinationPath, bool deleteSourceFileOnSuccess = true, int bufferSize = 4096 )
+        public static void CompressFileToGzipFile( string sourceFilePath, string destinationPath, bool deleteSourceFileOnSuccess, int bufferSize = 8192 )
         {
-            using( FileStream source = new FileStream( sourceFilePath, FileMode.Open, FileAccess.Read, FileShare.None, bufferSize, true ) )
+            using( FileStream source = new FileStream( sourceFilePath, FileMode.Open, FileAccess.Read, FileShare.None, bufferSize, useAsync: false ) )
             {
-                using( FileStream destination = new FileStream( destinationPath, FileMode.Create, FileAccess.Write, FileShare.Read, bufferSize, true ) )
+                using( FileStream destination = new FileStream( destinationPath, FileMode.Create, FileAccess.Write, FileShare.None, bufferSize, useAsync: false ) )
                 {
 #if net40
                     using( GZipStream gZipStream = new GZipStream( destination, CompressionMode.Compress ) )
@@ -495,7 +495,7 @@ namespace CK.Core
                 }
             }
 
-            if( deleteSourceFileOnSuccess == true )
+            if( deleteSourceFileOnSuccess )
             {
                 File.Delete( sourceFilePath );
             }
