@@ -42,6 +42,8 @@ namespace CK.Monitoring
         readonly string _path;
         readonly int _maxCountPerFile;
         readonly LogFilter _minimalFilter;
+        readonly bool _useGzipCompression;
+
         IActivityMonitorImpl _source;
         MonitorBinaryFileOutput _file;
         int _currentGroupDepth;
@@ -49,26 +51,28 @@ namespace CK.Monitoring
         DateTimeStamp _prevlogTime;
 
         /// <summary>
-        /// Initializes a new instance of <see cref="CKMonWriterClient"/> that can be registered to write .ckmon file for this monitor.
+        /// Initializes a new instance of <see cref="CKMonWriterClient"/> that can be registered to write uncompressed .ckmon file for this monitor.
         /// </summary>
         /// <param name="path">The path. Can be absolute. When relative, it will be under <see cref="SystemActivityMonitor.RootLogPath"/> that must be set.</param>
         /// <param name="maxCountPerFile">Maximum number of entries per file. Must be greater than 1.</param>
         public CKMonWriterClient( string path, int maxCountPerFile )
-            : this( path, maxCountPerFile, LogFilter.Undefined )
+            : this( path, maxCountPerFile, LogFilter.Undefined, false )
         {
         }
 
         /// <summary>
-        /// Initializes a new instance of <see cref="CKMonWriterClient"/> that can be registered to write .ckmon file for this monitor.
+        /// Initializes a new instance of <see cref="CKMonWriterClient"/> that can be registered to write compressed or uncompressed .ckmon file for this monitor.
         /// </summary>
         /// <param name="path">The path. Can be absolute. When relative, it will be under <see cref="SystemActivityMonitor.RootLogPath"/> that must be set.</param>
         /// <param name="maxCountPerFile">Maximum number of entries per file. Must be greater than 1.</param>
         /// <param name="minimalFilter">Minimal filter for this client.</param>
-        public CKMonWriterClient( string path, int maxCountPerFile, LogFilter minimalFilter )
+        /// <param name="useGzipCompression">Whether to output compressed .ckmon files. Defaults to false (do not compress).</param>
+        public CKMonWriterClient( string path, int maxCountPerFile, LogFilter minimalFilter, bool useGzipCompression = false )
         {
             _path = path;
             _maxCountPerFile = maxCountPerFile;
             _minimalFilter = minimalFilter;
+            _useGzipCompression = useGzipCompression;
         }
 
         /// <summary>
@@ -95,7 +99,7 @@ namespace CK.Monitoring
                     // If initialization failed, we let the file null: this monitor will not 
                     // work (the error will appear in the Critical errors) but this avoids 
                     // an exception to be thrown here.
-                    var f = new MonitorBinaryFileOutput( _path, ((IUniqueId)_source).UniqueId, _maxCountPerFile, false );
+                    var f = new MonitorBinaryFileOutput( _path, ((IUniqueId)_source).UniqueId, _maxCountPerFile, _useGzipCompression );
                     if( f.Initialize( new SystemActivityMonitor( false, null ) ) )
                     {
                         var g = _source.CurrentGroup;
@@ -116,7 +120,7 @@ namespace CK.Monitoring
             {
                 if( _source == null ) throw new InvalidOperationException( "CKMonWriterClient must be registered in an ActivityMonitor." );
                 if( _file != null ) return true;
-                _file = new MonitorBinaryFileOutput( _path, _source.UniqueId, _maxCountPerFile, false );
+                _file = new MonitorBinaryFileOutput( _path, _source.UniqueId, _maxCountPerFile, _useGzipCompression );
                 _prevLogType = LogEntryType.None;
                 _prevlogTime = DateTimeStamp.Unknown;
             }

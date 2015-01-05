@@ -30,6 +30,7 @@ using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using CK.Monitoring;
 
 namespace CK.Mon2Htm
 {
@@ -79,6 +80,7 @@ namespace CK.Mon2Htm
 
                 if( mustRun )
                 {
+                    GrandOutput.EnsureActiveDefaultWithDefaultSettings();
                     // Run a new instance
                     Application.EnableVisualStyles();
                     Application.SetCompatibleTextRenderingDefault( false );

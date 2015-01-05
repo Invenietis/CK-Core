@@ -102,8 +102,8 @@ namespace CK.Mon2Htm
             _hasUpdatedResources = false;
 
             _m = new ActivityMonitor();
-            _m.SetMinimalFilter( LogFilter.Debug );
             //_m.Output.RegisterClient( new ActivityMonitorConsoleClient() );
+            _m.Info().Send( "Starting CKMon2Htm." );
 
             InitializeComponent();
 

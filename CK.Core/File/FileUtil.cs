@@ -456,7 +456,6 @@ namespace CK.Core
             {
                 using( FileStream destination = new FileStream( destinationPath, FileMode.Create, FileAccess.Write, FileShare.Read, bufferSize ) )
                 {
-                    await destination.WriteAsync( GzipFileHeader, 0, GzipFileHeader.Length );
                     using( GZipStream gZipStream = new GZipStream( destination, CompressionLevel.Optimal ) )
                     {
                         await source.CopyToAsync( gZipStream, bufferSize, cancellationToken );

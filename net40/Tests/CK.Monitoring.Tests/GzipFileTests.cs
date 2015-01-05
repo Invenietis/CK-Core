@@ -35,7 +35,11 @@ namespace CK.Monitoring.Tests.Performance
                     {
                         fileBuffer = new byte[fileSize];
                         r.NextBytes( fileBuffer );
+#if net40
+                        using( var f = File.OpenWrite( tf.Path ) ) { f.Write( fileBuffer, 0, fileBuffer.Length ); }
+#else
                         using( var f = File.OpenWrite( tf.Path ) ) { await f.WriteAsync( fileBuffer, 0, fileBuffer.Length ); }
+#endif
 
                         foreach( int bufferSize in bufferSizes )
                         {
@@ -47,7 +51,11 @@ namespace CK.Monitoring.Tests.Performance
 
                             sw.Reset();
                             sw.Start();
+#if net40
+                            FileUtil.CompressFileToGzipFile( tf.Path, tfOut.Path, false, bufferSize );
+#else
                             await FileUtil.CompressFileToGzipFileAsync( tf.Path, tfOut.Path, CancellationToken.None, false, bufferSize );
+#endif
                             sw.Stop();
 
                             TestHelper.ConsoleMonitor.Info().Send( "Asynchronous Gzip write: {0} ms / File size: {1} bytes / Buffer: {2} bytes", sw.ElapsedMilliseconds, fileSize, bufferSize );

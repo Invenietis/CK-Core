@@ -138,8 +138,21 @@ namespace CK.Monitoring
                 int secondByte = s.ReadByte(); // Read 2:8B
                 if( secondByte == 0x8b )
                 {
-                    GZipStream gzip = new GZipStream( s, CompressionMode.Decompress );
-                    return OpenLogStream( gzip, true );
+                    // To open a Gzip stream, the magic number must be ahead of the stream. We've already read it -- we have to seek back.
+                    // In addition, a sequential LogReader ctor uses the Position property, which is understandably not available on compressed streams.
+                    // As a workaround, we decompress everything, and put this in a memory stream.
+                    // TODO: THIS HAS OBVIOUS GRAVE PERFORMANCE ISSUES. Especially when we call many LogReaders.
+                    // ...but it works as a temporary workaround.
+
+                    s.Seek( -2, SeekOrigin.Current ); // TODO: Find a way to roll back without seeking?
+
+                    MemoryStream ms = new MemoryStream();
+                    using( GZipStream gzip = new GZipStream( s, CompressionMode.Decompress ) )
+                    {
+                        gzip.CopyTo( ms );
+                    }
+                    ms.Seek( 0, SeekOrigin.Begin );
+                    return OpenLogStream( ms, true );
                 }
                 else
                 {
