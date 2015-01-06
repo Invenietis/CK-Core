@@ -186,6 +186,9 @@
     <Compile Include="..\..\CK.Monitoring\Persistence\LogReader.cs">
       <Link>LogReader.cs</Link>
     </Compile>
+    <Compile Include="..\..\CK.Monitoring\Persistence\LogReaderStreamInfo.cs">
+      <Link>LogReaderStreamInfo.cs</Link>
+    </Compile>
     <Compile Include="..\..\CK.Monitoring\Persistence\MulticastLogEntryWithOffset.cs">
       <Link>MulticastLogEntryWithOffset.cs</Link>
     </Compile>

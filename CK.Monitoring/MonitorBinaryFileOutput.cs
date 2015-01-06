@@ -298,7 +298,8 @@ namespace CK.Monitoring
                 if( _useGzipCompression )
                 {
                     string newPath = FileUtil.EnsureUniqueTimedFile( _basePath, _fileNameSuffix, _openedTimeUtc );
-                    ThreadPool.QueueUserWorkItem( _ => FileUtil.CompressFileToGzipFile( fName, newPath, true ) );
+                    string fileName = fName;
+                    ThreadPool.QueueUserWorkItem( _ => FileUtil.CompressFileToGzipFile( fileName, newPath, true ) );
                 }
                 else
                 {

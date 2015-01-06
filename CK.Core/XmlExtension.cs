@@ -171,7 +171,11 @@ namespace CK.Core
         static public bool GetAttributeBoolean( this XElement @this, XName name, bool defaultValue )
         {
             XAttribute a = @this.Attribute( name );
-            return a != null ? XmlConvert.ToBoolean( a.Value ) : defaultValue;
+            if( a == null ) return defaultValue;
+            var v = a.Value;
+            if( v == "0" || StringComparer.InvariantCultureIgnoreCase.Equals( v, "false" ) ) return false;
+            if( v == "1" || StringComparer.InvariantCultureIgnoreCase.Equals( v, "true" ) ) return true;
+            throw new FormatException( "Boolean value expected: false, true, 0 or 1 (case insensitive)." );
         }
 
         /// <summary>

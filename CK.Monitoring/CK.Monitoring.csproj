@@ -70,6 +70,7 @@
     <Compile Include="IMulticastLogInfo.cs" />
     <Compile Include="MonitorBinaryFileOutput.cs" />
     <Compile Include="Persistence\GZipStreamReader.cs" />
+    <Compile Include="Persistence\LogReaderStreamInfo.cs" />
     <Compile Include="Persistence\MulticastLogEntryWithOffset.cs" />
     <Compile Include="Persistence\MultiLogReader.ActivityMap.cs" />
     <Compile Include="Persistence\Impl\LEMCOpenGroup.cs" />

@@ -27,6 +27,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using CK.Core;
 using NUnit.Framework;
 
@@ -111,6 +112,25 @@ namespace CK.Monitoring.Tests
                 return m;
             }, TestHelper.ConsoleMonitor );
             return logs;
+        }
+
+        public static string[] WaitForCkmonFilesInDirectory( string directoryPath, int minFileCount )
+        {
+            string[] files;
+            for( ; ; )
+            {
+                files = Directory.GetFiles( directoryPath, "*.ckmon", SearchOption.TopDirectoryOnly );
+                if( files.Length >= minFileCount ) break;
+                Thread.Sleep( 200 );
+            }
+            foreach( var f in files )
+            {
+                if( !FileUtil.WaitForWriteAcccess( f, 3 ) )
+                {
+                    throw new CKException( "WaitForWriteAcccess excceds 3 seconds..." );
+                }
+            }
+            return files;
         }
 
         public static void ReplayLogs( DirectoryInfo directory, bool recurse, Func<MultiLogReader.Monitor, ActivityMonitor> monitorProvider, IActivityMonitor m = null )

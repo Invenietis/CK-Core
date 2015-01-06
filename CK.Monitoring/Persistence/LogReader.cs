@@ -43,9 +43,10 @@ namespace CK.Monitoring
     {
         Stream _stream;
         BinaryReader _binaryReader;
+        readonly int _streamVersion;
+        readonly int _headerLength;
         ILogEntry _current;
         IMulticastLogEntry _currentMulticast;
-        int _streamVersion;
         long _currentPosition;
         Exception _readException;
         bool _badEndOfFille;
@@ -67,32 +68,36 @@ namespace CK.Monitoring
         /// Initializes a new <see cref="LogReader"/> on an uncompressed stream with an explicit version number.
         /// </summary>
         /// <param name="stream">Stream to read logs from.</param>
-        /// <param name="streamVersion">Version of the log stream. Use -1 to read the version if the stream starts with it.</param>
-        public LogReader( Stream stream, int streamVersion )
+        /// <param name="streamVersion">Version of the log stream.</param>
+        /// <param name="headerLength">Length of the header. This will be substracted to the actual stream position to compute the <see cref="StreamOffset"/>.</param>
+        public LogReader( Stream stream, int streamVersion, int headerLength )
         {
             if( streamVersion < 4 ) 
                 throw new ArgumentException( "Must be greater or equal to 4 (the first version).", "streamVersion" );
             _stream = stream;
             _binaryReader = new BinaryReader( stream, Encoding.UTF8 );
             _streamVersion = streamVersion;
+            _headerLength = headerLength;
         }
 #else
         /// <summary>
         /// Initializes a new <see cref="LogReader"/> on an uncompressed stream with an explicit version number.
         /// </summary>
         /// <param name="stream">Stream to read logs from.</param>
-        /// <param name="streamVersion">Version of the log stream. Use -1 to read the version if the stream starts with it.</param>
+        /// <param name="streamVersion">Version of the log stream.</param>
+        /// <param name="headerLength">Length of the header. This will be substracted to the actual stream position to compute the <see cref="StreamOffset"/>.</param>
         /// <param name="mustClose">
         /// Defaults to true (the stream will be automatically closed).
         /// False to let the stream opened once this reader is disposed, the end of the log data is reached or an error is encountered.
         /// </param>
-        public LogReader( Stream stream, int streamVersion, bool mustClose = true )
+        public LogReader( Stream stream, int streamVersion, int headerLength, bool mustClose = true )
         {
             if( streamVersion < 5 )
                 throw new ArgumentException( "Must be greater or equal to 5 (the first version).", "streamVersion" );
             _stream = stream;
             _binaryReader = new BinaryReader( stream, Encoding.UTF8, !mustClose );
             _streamVersion = streamVersion;
+            _headerLength = headerLength;
         }
 #endif
 
@@ -101,7 +106,10 @@ namespace CK.Monitoring
         /// The file will be closed when <see cref="LogReader.Dispose"/> will be called.
         /// </summary>
         /// <param name="path">Path of the log file.</param>
-        /// <param name="offset">An optional offset where the stream position must be initially set.</param>
+        /// <param name="dataOffset">
+        /// An optional offset where the stream position must be initially set: this is the position of an entry in the actual (potentially uncompressed stream),
+        /// not the offset in the original stream.
+        /// </param>
         /// <param name="filter">An optional <see cref="MulticastFilter"/>.</param>
         /// <returns>A <see cref="LogReader"/> that will close the file when disposed.</returns>
         /// <remarks>
@@ -109,33 +117,14 @@ namespace CK.Monitoring
         /// The file can be compressed using GZipStream, in which case the header will be the magic GZIP header: 1F 8B.
         /// New header (applies to version 5), the file will start with 43 4B 4D 4F 4E (CKMON in ASCII), followed by the version number, instead of only the version number.
         /// </remarks>
-        public static LogReader Open( string path, long offset = 0, MulticastFilter filter = null )
+        public static LogReader Open( string path, long dataOffset = 0, MulticastFilter filter = null )
         {
+            if( path == null ) throw new ArgumentNullException( "path" );
             FileStream fs = null;
             try
             {
                 fs = new FileStream( path, FileMode.Open, FileAccess.Read, FileShare.Read, 8192, FileOptions.SequentialScan );
-                LogStreamInfo i = OpenLogStream( fs );
-                var s = i.LogStream;
-                if( offset > 0 )
-                {
-                    if( s.CanSeek )
-                    {
-                        s.Seek( offset, SeekOrigin.Begin );
-                    }
-                    else
-                    {
-                        var buffer = new byte[8192];
-                        int toRead;
-                        while( (toRead = (int)Math.Min( 8192, offset )) > 0 && s.Read( buffer, 0, toRead ) == toRead )
-                        {
-                            offset -= toRead;
-                        }
-                    }
-                }
-                var r = new LogReader( s, i.KnownVersion );
-                r.CurrentFilter = filter;
-                return r;
+                return Open( fs, dataOffset, filter );
             }
             catch
             {
@@ -145,67 +134,46 @@ namespace CK.Monitoring
         }
 
         /// <summary>
-        /// Creates a log stream while trying to guess version and compression.
-        /// Supports headers:
-        /// - Old version header (05 00 00 00)
-        /// - CKMOD header (43 4B 4D 4F 4E) followed by version
-        /// - RFC 1952 GZIP header (1F 8B), will recurse with a decompressed stream
+        /// Opens a <see cref="LogReader"/> to read the content of a compressed or uncompressed stream.
+        /// The stream will be closed when <see cref="LogReader.Dispose"/> will be called.
         /// </summary>
-        /// <param name="s">Log stream</param>
-        /// <param name="isInsideGzip">Whether the GZIP header has been already parsed and the given stream is decompressed. If true, gzip headers will not be checked.</param>
-        /// <returns>LogReader, set before the first log entry.</returns>
-        static LogStreamInfo OpenLogStream( Stream s, bool isInsideGzip = false )
+        /// <param name="seekableStream">Stream that must support Seek operations (<see cref="Stream.CanSeek"/> must be true).</param>
+        /// <param name="dataOffset">
+        /// An optional offset where the stream position must be initially set: this is the position of an entry in the actual (potentially uncompressed stream),
+        /// not the offset in the original stream.
+        /// </param>
+        /// <param name="filter">An optional <see cref="MulticastFilter"/>.</param>
+        /// <returns>A <see cref="LogReader"/> that will close the file when disposed.</returns>
+        /// <remarks>
+        /// .ckmon files exist in different file versions, depending on headers.
+        /// The file can be compressed using GZipStream, in which case the header will be the magic GZIP header: 1F 8B.
+        /// New header (applies to version 5), the file will start with 43 4B 4D 4F 4E (CKMON in ASCII), followed by the version number, instead of only the version number.
+        /// </remarks>
+        public static LogReader Open( Stream seekableStream, long dataOffset = 0, MulticastFilter filter = null )
         {
-            // Find if uncompressed byte is 05 (raw version) or 43 (log header version)
-            int firstByte = s.ReadByte(); // ReadByte casts to int to handle EOF (-1).
-
-            if( !isInsideGzip && firstByte == 0x1f )
+            if( seekableStream == null ) throw new ArgumentNullException( "seekableStream" );
+            if( !seekableStream.CanSeek ) throw new ArgumentException( "Stream must support seek operations.", "seekableStream" );
+            LogReaderStreamInfo i = LogReaderStreamInfo.OpenStream( seekableStream );
+            var s = i.LogStream;
+            if( dataOffset > 0 )
             {
-                // GZIP Magic number is 0x1f8b.
-                int secondByte = s.ReadByte(); // Read 2:8B
-                if( secondByte == 0x8b )
+                if( s.CanSeek )
                 {
-                    s.Seek( 0, SeekOrigin.Begin );
-                    return OpenLogStream( new GZipStreamReader( s ), true );
+                    s.Seek( dataOffset, SeekOrigin.Current );
                 }
-                throw new InvalidDataException( "Invalid compression header." );
-            }
-            else if( firstByte == 0x43 )
-            {
-                // CKMON header is 43 4B 4D 4F 4E. That's C, K, M, O and N (ASCII).
-                int b = s.ReadByte(); // 2:4B
-                if( b != 0x4b ) throw new InvalidDataException( "Invalid header." );
-                b = s.ReadByte(); // 3:4D
-                if( b != 0x4d ) throw new InvalidDataException( "Invalid header." );
-                b = s.ReadByte(); // 4:4F
-                if( b != 0x4f ) throw new InvalidDataException( "Invalid header." ); 
-                b = s.ReadByte(); // 5:4E
-                if( b != 0x4e ) throw new InvalidDataException( "Invalid header." ); 
-
-                // Read version number. Note: We don't have a BinaryReader on hand.
-                byte[] versionBytes = new byte[4];
-                if( s.Read( versionBytes, 0, 4 ) < 4 ) throw new InvalidDataException( "Invalid header." );
-                int version = BitConverter.ToInt32( versionBytes, 0 );
-                return LogStreamInfo.From( s, isInsideGzip, version );
-            }
-            else if( firstByte <= 0x05 ) // Old versions without CKMON header
-            {
-                // BinaryWriter/Reader always uses little endian, so (int)5 will be 05 00 00 00 instead of 00 00 00 05.
-                // See http://msdn.microsoft.com/en-us/library/24e33k1w%28v=vs.110%29.aspx
-
-                // Read version number. Note: We don't have a BinaryReader on hand.
-                byte[] versionBytes = new byte[4];
-                versionBytes[0] = (byte)firstByte;
-                int version = 0;
-                if( s.Read( versionBytes, 1, 3 ) < 3 
-                    || (version = BitConverter.ToInt32( versionBytes, 0 )) <= 0 
-                    || version > 5 )
+                else
                 {
-                    throw new InvalidDataException( String.Format( "Invalid uncompressed version header ({0}).", version ) );
+                    var buffer = new byte[8192];
+                    int toRead;
+                    while( (toRead = (int)Math.Min( 8192, dataOffset )) > 0 && s.Read( buffer, 0, toRead ) == toRead )
+                    {
+                        dataOffset -= toRead;
+                    }
                 }
-                return LogStreamInfo.From( s, isInsideGzip, version );
             }
-            throw new InvalidDataException( String.Format( "Invalid CKMON header. Expected byte header to be 0x1f, 0x43 or <= 0x05, but got 0x{0:x2}.", firstByte ) );
+            var r = new LogReader( s, i.Version, i.HeaderLength );
+            r.CurrentFilter = filter;
+            return r;
         }
 
         /// <summary>
@@ -325,7 +293,7 @@ namespace CK.Monitoring
             {
                 throw new InvalidOperationException( String.Format( "Stream is not a log stream or its version is not handled (Current Version = {0}).", CurrentStreamVersion ) );
             }
-            _currentPosition = _stream.Position;
+            _currentPosition = _stream.Position - _headerLength;
             ReadNextEntry();
             _currentMulticast = _current as IMulticastLogEntry;
             var f = CurrentFilter;
@@ -390,49 +358,4 @@ namespace CK.Monitoring
 
     }
 
-    /// <summary>
-    /// Container for an uncompressed log stream and other meta-information.
-    /// </summary>
-    struct LogStreamInfo
-    {
-        /// <summary>
-        /// Gets the log stream.
-        /// </summary>
-        /// <value>
-        /// The open, uncompressed log stream. Its position is before the version number if Version is equal to -1; otherwise, it is after.
-        /// </value>
-        internal Stream LogStream { get; private set; }
-
-        /// <summary>
-        /// Gets a value indicating whether the log stream is contained in a compressed stream.
-        /// </summary>
-        /// <value>
-        /// <c>true</c> if the log stream is contained in a compressed stream; otherwise, <c>false</c>.
-        /// </value>
-        internal bool IsCompressed { get; private set; }
-
-        /// <summary>
-        /// Gets the known version.
-        /// </summary>
-        /// <value>
-        /// The known version.
-        /// </value>
-        internal int KnownVersion { get; private set; }
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="LogStreamInfo"/> struct.
-        /// </summary>
-        /// <param name="s">The open, uncompressed log stream..</param>
-        /// <param name="isCompressed">Tf set to <c>true</c>, indicates that the log stream is contained in a compressed stream.</param>
-        /// <param name="knownVersion">The known version. If -1, indicated that the version is unknown and appears after the current position in the stream.</param>
-        internal static LogStreamInfo From( Stream s, bool isCompressed = false, int knownVersion = -1 )
-        {
-            return new LogStreamInfo()
-            {
-                LogStream = s,
-                IsCompressed = isCompressed,
-                KnownVersion = knownVersion
-            };
-        }
-    }
 }

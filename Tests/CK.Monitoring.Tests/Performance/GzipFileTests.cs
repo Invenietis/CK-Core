@@ -14,12 +14,12 @@ namespace CK.Monitoring.Tests.Performance
     [TestFixture]
     public class GzipFileTests
     {
-        #if net45
+#if net45
         [Test, Explicit]
         public async void GzipSyncAsyncPerformanceTests()
         {
-            int[] fileSizes = new int[] { 5*1024*1024, 10*1024*1024, 30*1024*1024 };
-            int[] bufferSizes = new int[] { 1 * 1024, 2 * 1024, 4 * 1024, 32 * 1024, 64*1024 };
+            int[] fileSizes = new int[] { 5 * 1024 * 1024, 10 * 1024 * 1024, 30 * 1024 * 1024 };
+            int[] bufferSizes = new int[] { 1 * 1024, 2 * 1024, 4 * 1024, 32 * 1024, 64 * 1024 };
 
             byte[] fileBuffer = new byte[fileSizes.Max()];
             new Random().NextBytes( fileBuffer );
@@ -35,7 +35,7 @@ namespace CK.Monitoring.Tests.Performance
                     {
                         using( var f = File.OpenWrite( tf.Path ) ) { await f.WriteAsync( fileBuffer, 0, fileSize ); }
                         Thread.Sleep( 10 );
-                        using( TestHelper.ConsoleMonitor.OpenInfo().Send( "File Size = {0} MiB", fileSize/1024/1024 ) )
+                        using( TestHelper.ConsoleMonitor.OpenInfo().Send( "File Size = {0} MiB", fileSize / 1024 / 1024 ) )
                         {
                             foreach( int bufferSize in bufferSizes )
                             {
@@ -58,7 +58,7 @@ namespace CK.Monitoring.Tests.Performance
                 }
             }
         }
-        #endif
+#endif
 
         [Test, Timeout( 30000 )]
         public void CompressedReadWriteTests()
@@ -76,7 +76,7 @@ namespace CK.Monitoring.Tests.Performance
             // on a thread from the ThreadPool.
             Assert.That( client.IsOpened );
             m.Output.UnregisterClient( client );
-            string ckmonPath = WaitForCkmonFileInDirectory( directoryPath );
+            string ckmonPath = TestHelper.WaitForCkmonFilesInDirectory( directoryPath, 1 )[0];
             LogReader r = LogReader.Open( ckmonPath );
             r.MoveNext();
             Assert.That( r.Current.LogType, Is.EqualTo( LogEntryType.OpenGroup ) );
@@ -88,26 +88,6 @@ namespace CK.Monitoring.Tests.Performance
             Assert.That( r.Current.LogType, Is.EqualTo( LogEntryType.CloseGroup ) );
             bool hasRemainingEntries = r.MoveNext();
             Assert.That( hasRemainingEntries, Is.False );
-        }
-
-        string WaitForCkmonFileInDirectory( string directoryPath )
-        {
-            string filePath = String.Empty;
-            do
-            {
-                var files = Directory.GetFiles( directoryPath, "*.ckmon", SearchOption.TopDirectoryOnly );
-                if( files.Length > 0 )
-                {
-                    // Check if file exists
-                    filePath = files[0];
-                }
-                else
-                {
-                    Thread.Sleep( 200 );
-                }
-            } while( String.IsNullOrEmpty( filePath ) );
-            FileUtil.WaitForWriteAcccess( filePath, 5 );
-            return filePath;
         }
 
     }

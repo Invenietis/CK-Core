@@ -67,7 +67,7 @@ namespace CK.Monitoring.Tests.Persistence
                 mem.Read( versionBytes, 0, 4 );
                 Assert.That( BitConverter.ToInt32( versionBytes, 0 ), Is.EqualTo( LogReader.CurrentStreamVersion ) );
 
-                using( var reader = new LogReader( mem, LogReader.CurrentStreamVersion ) )
+                using( var reader = new LogReader( mem, LogReader.CurrentStreamVersion, 4 ) )
                 {
                     Assert.That( reader.MoveNext() );
                     Assert.That( reader.Current.Text, Is.EqualTo( e1.Text ) );
