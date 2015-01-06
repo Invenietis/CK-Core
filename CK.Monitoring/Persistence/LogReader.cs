@@ -106,8 +106,8 @@ namespace CK.Monitoring
         /// <returns>A <see cref="LogReader"/> that will close the file when disposed.</returns>
         /// <remarks>
         /// .ckmon files exist in different file versions, depending on headers.
-        /// The file can be compressed using GZipStream, in which case the header will be set accordingly to 1F 8B.
-        /// Starting from version 6, the file will start with 43 4B 4D 4F 4E, followed by the version number, instead of only the version number.
+        /// The file can be compressed using GZipStream, in which case the header will be the magic GZIP header: 1F 8B.
+        /// New header (applies to version 5), the file will start with 43 4B 4D 4F 4E (CKMON in ASCII), followed by the version number, instead of only the version number.
         /// </remarks>
         public static LogReader Open( string path, long offset = 0, MulticastFilter filter = null )
         {
@@ -148,7 +148,7 @@ namespace CK.Monitoring
         /// Creates a log stream while trying to guess version and compression.
         /// Supports headers:
         /// - Old version header (05 00 00 00)
-        /// - CKMOD ID header (43 4B 4D 4F 4E) followed by version
+        /// - CKMOD header (43 4B 4D 4F 4E) followed by version
         /// - RFC 1952 GZIP header (1F 8B), will recurse with a decompressed stream
         /// </summary>
         /// <param name="s">Log stream</param>
@@ -165,6 +165,7 @@ namespace CK.Monitoring
                 int secondByte = s.ReadByte(); // Read 2:8B
                 if( secondByte == 0x8b )
                 {
+                    s.Seek( 0, SeekOrigin.Begin );
                     return OpenLogStream( new GZipStreamReader( s ), true );
                 }
                 throw new InvalidDataException( "Invalid compression header." );

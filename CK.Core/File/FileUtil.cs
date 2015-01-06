@@ -415,12 +415,12 @@ namespace CK.Core
         }
 
         /// <summary>
-        /// Waits for a file to be writable. Do not open the file.
+        /// Waits for a file to be writable or not exist (it can then be created). Do not open the file.
         /// Waits approximately the number of seconds given before leaving and returning false.
         /// </summary>
         /// <param name="path">The path of the file to write to.</param>
         /// <param name="nbMaxSecond">Maximum number of seconds to wait before returning false.</param>
-        /// <returns>True if the file has been correctly opened in write mode.</returns>
+        /// <returns>True if the file has been correctly opened (and closed) in write mode.</returns>
         static public bool WaitForWriteAcccess( string path, int nbMaxSecond )
         {
             if( path == null ) throw new ArgumentNullException( "path" );
@@ -440,8 +440,8 @@ namespace CK.Core
             }
         }
 
-        // No async in 4.0.
-#if net45
+        // No async nor CompressionLevel in 4.0.
+        #if net45
         /// <summary>
         /// Compresses a file to another file asynchronously, using GZip at the given compression level.
         /// </summary>
@@ -449,15 +449,16 @@ namespace CK.Core
         /// <param name="destinationPath">The destination path. If it doesn't exist, it will be created. If it exists, it will be replaced.</param>
         /// <param name="cancellationToken">The cancellation token for the task.</param>
         /// <param name="deleteSourceFileOnSuccess">if set to <c>true</c>, will delete source file if no errors occured suring compression.</param>
+        /// <param name="level">Compression level to use.</param>
         /// <param name="bufferSize">Size of the buffer, in bytes.</param>
-        public static async Task CompressFileToGzipFileAsync( string sourceFilePath, string destinationPath, CancellationToken cancellationToken, bool deleteSourceFileOnSuccess = true, int bufferSize = 8192 )
+        public static async Task CompressFileToGzipFileAsync( string sourceFilePath, string destinationPath, CancellationToken cancellationToken, bool deleteSourceFileOnSuccess = true, CompressionLevel level = CompressionLevel.Optimal, int bufferSize = 64*1024 )
         {
-            using( FileStream source = new FileStream( sourceFilePath, FileMode.Open, FileAccess.Read, FileShare.None, bufferSize, useAsync: true ) )
+            using( FileStream source = new FileStream( sourceFilePath, FileMode.Open, FileAccess.Read, FileShare.None, bufferSize, FileOptions.Asynchronous|FileOptions.SequentialScan ) )
             {
-                using( FileStream destination = new FileStream( destinationPath, FileMode.Create, FileAccess.Write, FileShare.None, bufferSize, useAsync: true ) )
+                using( FileStream destination = new FileStream( destinationPath, FileMode.Create, FileAccess.Write, FileShare.None, bufferSize, FileOptions.Asynchronous | FileOptions.SequentialScan ) )
                 {
-                    await destination.WriteAsync( GzipFileHeader, 0, GzipFileHeader.Length );
-                    using( GZipStream gZipStream = new GZipStream( destination, CompressionLevel.Optimal ) )
+                    // GZipStream writes the GZipFileGeader.
+                    using( GZipStream gZipStream = new GZipStream( destination, level ) )
                     {
                         await source.CopyToAsync( gZipStream, bufferSize, cancellationToken );
                     }
@@ -469,7 +470,6 @@ namespace CK.Core
                 File.Delete( sourceFilePath );
             }
         }
-#endif
 
         /// <summary>
         /// Compresses a file to another file, using GZip at the given compression level.
@@ -477,18 +477,43 @@ namespace CK.Core
         /// <param name="sourceFilePath">The source file path.</param>
         /// <param name="destinationPath">The destination path. If it doesn't exist, it will be created. If it exists, it will be replaced.</param>
         /// <param name="deleteSourceFileOnSuccess">if set to <c>true</c>, will delete source file if no errors occured during compression.</param>
+        /// <param name="level">Compression level to use.</param>
         /// <param name="bufferSize">Size of the buffer, in bytes.</param>
-        public static void CompressFileToGzipFile( string sourceFilePath, string destinationPath, bool deleteSourceFileOnSuccess, int bufferSize = 8192 )
+        public static void CompressFileToGzipFile( string sourceFilePath, string destinationPath, bool deleteSourceFileOnSuccess, CompressionLevel level = CompressionLevel.Optimal, int bufferSize = 64*1024 )
         {
             using( FileStream source = new FileStream( sourceFilePath, FileMode.Open, FileAccess.Read, FileShare.None, bufferSize, useAsync: false ) )
             {
                 using( FileStream destination = new FileStream( destinationPath, FileMode.Create, FileAccess.Write, FileShare.None, bufferSize, useAsync: false ) )
                 {
-#if net40
-                    using( GZipStream gZipStream = new GZipStream( destination, CompressionMode.Compress ) )
-#else
-                    using( GZipStream gZipStream = new GZipStream( destination, CompressionLevel.Optimal ) )
+                    using( GZipStream gZipStream = new GZipStream( destination, level ) )
+                    {
+                        source.CopyTo( gZipStream, bufferSize );
+                    }
+                }
+            }
+            if( deleteSourceFileOnSuccess )
+            {
+                File.Delete( sourceFilePath );
+            }
+        }
+
 #endif
+
+        #if net40
+        /// <summary>
+        /// Compresses a file to another file, using GZip.
+        /// </summary>
+        /// <param name="sourceFilePath">The source file path.</param>
+        /// <param name="destinationPath">The destination path. If it doesn't exist, it will be created. If it exists, it will be replaced.</param>
+        /// <param name="deleteSourceFileOnSuccess">if set to <c>true</c>, will delete source file if no errors occured during compression.</param>
+        /// <param name="bufferSize">Size of the buffer, in bytes.</param>
+        public static void CompressFileToGzipFile( string sourceFilePath, string destinationPath, bool deleteSourceFileOnSuccess, int bufferSize = 64*1024 )
+        {
+            using( FileStream source = new FileStream( sourceFilePath, FileMode.Open, FileAccess.Read, FileShare.None, bufferSize, useAsync: false ) )
+            {
+                using( FileStream destination = new FileStream( destinationPath, FileMode.Create, FileAccess.Write, FileShare.None, bufferSize, useAsync: false ) )
+                {
+                    using( GZipStream gZipStream = new GZipStream( destination, CompressionMode.Compress ) )
                     {
                         source.CopyTo( gZipStream, bufferSize );
                     }
@@ -500,6 +525,7 @@ namespace CK.Core
                 File.Delete( sourceFilePath );
             }
         }
+#endif
 
     }
 

@@ -14,11 +14,12 @@ namespace CK.Monitoring.Tests.Performance
     [TestFixture]
     public class GzipFileTests
     {
+        #if net45
         [Test, Explicit]
         public async void GzipSyncAsyncPerformanceTests()
         {
             int[] fileSizes = new int[] { 5*1024*1024, 10*1024*1024, 30*1024*1024 };
-            int[] bufferSizes = new int[] { 1 * 1024, 2 * 1024, 3 * 1024, 4 * 1024, 8 * 1024, 32 * 1024 };
+            int[] bufferSizes = new int[] { 1 * 1024, 2 * 1024, 4 * 1024, 32 * 1024, 64*1024 };
 
             byte[] fileBuffer = new byte[fileSizes.Max()];
             new Random().NextBytes( fileBuffer );
@@ -41,12 +42,12 @@ namespace CK.Monitoring.Tests.Performance
                                 using( TestHelper.ConsoleMonitor.OpenInfo().Send( "Buffer Size = {0} bytes", bufferSize ) )
                                 {
                                     sw.Start();
-                                    FileUtil.CompressFileToGzipFile( tf.Path, tfOut.Path, false, bufferSize );
+                                    FileUtil.CompressFileToGzipFile( tf.Path, tfOut.Path, false, CompressionLevel.Optimal, bufferSize );
                                     sw.Stop();
                                     TestHelper.ConsoleMonitor.Info().Send( "-Synchronous Gzip write: {0:######} ms.", sw.ElapsedMilliseconds );
                                     sw.Reset();
                                     sw.Start();
-                                    await FileUtil.CompressFileToGzipFileAsync( tf.Path, tfOut.Path, CancellationToken.None, false, bufferSize );
+                                    await FileUtil.CompressFileToGzipFileAsync( tf.Path, tfOut.Path, CancellationToken.None, false, CompressionLevel.Optimal, bufferSize );
                                     sw.Stop();
                                     TestHelper.ConsoleMonitor.Info().Send( "Asynchronous Gzip write: {0:######} ms.", sw.ElapsedMilliseconds );
                                     sw.Reset();
@@ -57,6 +58,8 @@ namespace CK.Monitoring.Tests.Performance
                 }
             }
         }
+        #endif
+
         [Test, Timeout( 30000 )]
         public void CompressedReadWriteTests()
         {
@@ -69,8 +72,10 @@ namespace CK.Monitoring.Tests.Performance
             {
                 m.Info().Send( "Line test" );
             }
+            // This closes the client: the file is then compressed asynchronously
+            // on a thread from the ThreadPool.
+            Assert.That( client.IsOpened );
             m.Output.UnregisterClient( client );
-            client.Close();
             string ckmonPath = WaitForCkmonFileInDirectory( directoryPath );
             LogReader r = LogReader.Open( ckmonPath );
             r.MoveNext();
@@ -84,6 +89,7 @@ namespace CK.Monitoring.Tests.Performance
             bool hasRemainingEntries = r.MoveNext();
             Assert.That( hasRemainingEntries, Is.False );
         }
+
         string WaitForCkmonFileInDirectory( string directoryPath )
         {
             string filePath = String.Empty;
@@ -100,31 +106,9 @@ namespace CK.Monitoring.Tests.Performance
                     Thread.Sleep( 200 );
                 }
             } while( String.IsNullOrEmpty( filePath ) );
-            WaitForFileRelease( filePath );
+            FileUtil.WaitForWriteAcccess( filePath, 5 );
             return filePath;
         }
-        void WaitForFileRelease( string filePath )
-        {
-            bool isInUse = false;
-            FileStream stream = null;
-            do
-            {
-                try
-                {
-                    stream = File.Open( filePath, FileMode.Open, FileAccess.Read, FileShare.None );
-                    isInUse = false;
-                }
-                catch( IOException )
-                {
-                    isInUse = true;
-                    Thread.Sleep( 300 );
-                }
-                finally
-                {
-                    if( stream != null )
-                        stream.Close();
-                }
-            } while( isInUse == true );
-        }
+
     }
 }

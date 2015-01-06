@@ -295,16 +295,10 @@ namespace CK.Monitoring
             }
             else
             {
-                if( _useGzipCompression == true )
+                if( _useGzipCompression )
                 {
                     string newPath = FileUtil.EnsureUniqueTimedFile( _basePath, _fileNameSuffix, _openedTimeUtc );
-
-                    // Start a task to compress in background
-#if net40
-                    Task compressTask = Task.Factory.StartNew( () => { FileUtil.CompressFileToGzipFile( fName, newPath, true, 8192 ); } );
-#else
-                    Task compressTask = FileUtil.CompressFileToGzipFileAsync( fName, newPath, CancellationToken.None, true, 8192 );
-#endif
+                    ThreadPool.QueueUserWorkItem( _ => FileUtil.CompressFileToGzipFile( fName, newPath, true ) );
                 }
                 else
                 {
