@@ -30,6 +30,7 @@ using System.Runtime.Remoting.Lifetime;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Xml.Linq;
 using CK.Core;
 using CK.Monitoring.GrandOutputHandlers;
 using CK.RouteConfig;
@@ -135,7 +136,7 @@ namespace CK.Monitoring.Tests
 
             internal void SendLine( LogLevel level, string msg )
             {
-                if( _localMonitor.ShouldLogLine( level ) ) _localMonitor.UnfilteredLog( ActivityMonitor.Tags.Empty, level|LogLevel.IsFiltered, msg, _localMonitor.NextLogTime(), null );
+                if( _localMonitor.ShouldLogLine( level ) ) _localMonitor.UnfilteredLog( ActivityMonitor.Tags.Empty, level | LogLevel.IsFiltered, msg, _localMonitor.NextLogTime(), null );
             }
 
             public void RunWithConfigFileReleaseFilter()
@@ -211,7 +212,7 @@ namespace CK.Monitoring.Tests
 
                 // 2 - Removes GrandOutputConfig file.
                 SetDomainConfigTextFile( null );
-                
+
                 exec.WaitForNextConfiguration( confCount + 2 );
                 Assert.That( exec.GetConfigurationAttemptCount(), Is.EqualTo( confCount + 2 ) );
 
@@ -235,7 +236,7 @@ namespace CK.Monitoring.Tests
 
                 // 4 - Renames GrandOutputConfig: it disapeared.
                 SetDomainConfigTextFile( "rename" );
-                
+
                 exec.WaitForNextConfiguration( confCount + 4 );
                 Assert.That( exec.GetConfigurationAttemptCount(), Is.EqualTo( confCount + 4 ) );
 
@@ -244,7 +245,7 @@ namespace CK.Monitoring.Tests
 
                 // 5 - Restores the file.
                 SetDomainConfigTextFile( "renameBack" );
-                
+
                 exec.WaitForNextConfiguration( confCount + 5 );
                 Assert.That( exec.GetConfigurationAttemptCount(), Is.EqualTo( confCount + 5 ) );
 
@@ -255,7 +256,8 @@ namespace CK.Monitoring.Tests
             }
             finally
             {
-                try { exec.Close(); } catch {}
+                try { exec.Close(); }
+                catch { }
                 AppDomain.Unload( domain );
             }
 
@@ -273,8 +275,112 @@ namespace CK.Monitoring.Tests
                         "TraceSinceDebug1",  
                         "ErrorWithTerseFilter1", 
                         "TraceSinceDebug2",
-                        "ErrorWithTerseFilter2" }, 
+                        "ErrorWithTerseFilter2" },
                 logs[0].Entries.Select( e => e.Text ), StringComparer.OrdinalIgnoreCase );
+        }
+
+        [Test]
+        public void GrandOutputHasSameCompressedAndUncompressedLogs()
+        {
+            string rootPath = SystemActivityMonitor.RootLogPath + @"\GrandOutputGzip";
+
+            TestHelper.CleanupFolder( rootPath );
+
+            GrandOutputConfiguration c = new GrandOutputConfiguration();
+            Assert.That( c.Load( XDocument.Parse( @"
+                <GrandOutputConfiguration AppDomainDefaultFilter=""Release"" >
+                    <Channel>
+                        <Add Type=""BinaryFile"" Name=""GzipGlobalCatch"" Path=""" + rootPath + @"\OutputGzip"" MaxCountPerFile=""200000"" UseGzipCompression=""True"" />
+                        <Add Type=""BinaryFile"" Name=""RawGlobalCatch"" Path=""" + rootPath + @"\OutputRaw"" MaxCountPerFile=""200000"" UseGzipCompression=""False"" />
+                    </Channel>
+                </GrandOutputConfiguration>"
+                ).Root, TestHelper.ConsoleMonitor ) );
+            Assert.That( c.ChannelsConfiguration.Configurations.Count, Is.EqualTo( 2 ) );
+
+            using( GrandOutput g = new GrandOutput() )
+            {
+                Assert.That( g.SetConfiguration( c, TestHelper.ConsoleMonitor ), Is.True );
+
+                var taskA = Task.Run( () => DumpMonitorOutput( CreateMonitorAndRegisterGrandOutput( "Task A", g ) ) );
+                var taskB = Task.Run( () => DumpMonitorOutput( CreateMonitorAndRegisterGrandOutput( "Task B", g ) ) );
+                var taskC = Task.Run( () => DumpMonitorOutput( CreateMonitorAndRegisterGrandOutput( "Task C", g ) ) );
+
+                Task.WaitAll( taskA, taskB, taskC );
+            }
+
+            string[] gzipCkmons = TestHelper.WaitForCkmonFilesInDirectory( rootPath + @"\OutputGzip", 1 );
+            string[] rawCkmons = TestHelper.WaitForCkmonFilesInDirectory( rootPath + @"\OutputRaw", 1 );
+
+            Assert.That( gzipCkmons, Has.Length.EqualTo( 1 ) );
+            Assert.That( rawCkmons, Has.Length.EqualTo( 1 ) );
+
+            FileInfo gzipCkmonFile = new FileInfo( gzipCkmons.Single() );
+            FileInfo rawCkmonFile = new FileInfo( rawCkmons.Single() );
+
+            Assert.That( gzipCkmonFile.Exists, Is.True );
+            Assert.That( rawCkmonFile.Exists, Is.True );
+
+            // Test file size
+            Assert.That( gzipCkmonFile.Length, Is.LessThan( rawCkmonFile.Length ) );
+
+            // Test de-duplication between Gzip and non-Gzip
+            MultiLogReader mlr = new MultiLogReader();
+            var fileList = mlr.Add( new string[] { gzipCkmonFile.FullName, rawCkmonFile.FullName } );
+            Assert.That( fileList, Has.Count.EqualTo( 2 ) );
+
+            var map = mlr.GetActivityMap();
+
+            Assert.That( map.Monitors, Has.Count.EqualTo( 3 ) );
+
+        }
+
+        static IActivityMonitor CreateMonitorAndRegisterGrandOutput( string topic, GrandOutput go )
+        {
+            var m = new ActivityMonitor( topic );
+            go.Register( m );
+            return m;
+        }
+
+        static void DumpMonitorOutput( IActivityMonitor monitor )
+        {
+            Exception exception1;
+            Exception exception2;
+
+            try
+            {
+                throw new InvalidOperationException( "Exception!" );
+            }
+            catch( Exception e )
+            {
+                exception1 = e;
+            }
+
+            try
+            {
+                throw new InvalidOperationException( "Inception!", exception1 );
+            }
+            catch( Exception e )
+            {
+                exception2 = e;
+            }
+
+            for( int i = 0; i < 5; i++ )
+            {
+                using( monitor.OpenTrace().Send( "Dump output loop {0}", i ) )
+                {
+                    for( int j = 0; j < 1000; j++ )
+                    {
+                        monitor.Trace().Send( "Trace log! {0}", j );
+                        monitor.Info().Send( "Info log! {0}", j );
+                        monitor.Warn().Send( "Warn log! {0}", j );
+                        monitor.Error().Send( "Error log! {0}", j );
+                        monitor.Error().Send( "Fatal log! {0}", j );
+
+                        monitor.Error().Send( exception2, "Exception log! {0}", j );
+
+                    }
+                }
+            }
         }
 
         private static void CreateDomainAndExecutor( out AppDomain domain, out RunInAnotherAppDomain exec )
