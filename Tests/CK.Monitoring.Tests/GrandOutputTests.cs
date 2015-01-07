@@ -301,9 +301,9 @@ namespace CK.Monitoring.Tests
             {
                 Assert.That( g.SetConfiguration( c, TestHelper.ConsoleMonitor ), Is.True );
 
-                var taskA = Task.Run( () => DumpMonitorOutput( CreateMonitorAndRegisterGrandOutput( "Task A", g ) ) );
-                var taskB = Task.Run( () => DumpMonitorOutput( CreateMonitorAndRegisterGrandOutput( "Task B", g ) ) );
-                var taskC = Task.Run( () => DumpMonitorOutput( CreateMonitorAndRegisterGrandOutput( "Task C", g ) ) );
+                var taskA = Task.Factory.StartNew<int>( () => { DumpMonitorOutput( CreateMonitorAndRegisterGrandOutput( "Task A", g ) ); return 1; } );
+                var taskB = Task.Factory.StartNew<int>( () => { DumpMonitorOutput( CreateMonitorAndRegisterGrandOutput( "Task B", g ) ); return 1; } );
+                var taskC = Task.Factory.StartNew<int>( () => { DumpMonitorOutput( CreateMonitorAndRegisterGrandOutput( "Task C", g ) ); return 1; } );
 
                 Task.WaitAll( taskA, taskB, taskC );
             }
