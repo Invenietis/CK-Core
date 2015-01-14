@@ -102,7 +102,7 @@ namespace CK.Mon2Htm
             _hasUpdatedResources = false;
 
             _m = new ActivityMonitor();
-            _m.SetMinimalFilter( LogFilter.Debug );
+            _m.Info().Send( "Instanciating form" );
             //_m.Output.RegisterClient( new ActivityMonitorConsoleClient() );
 
             InitializeComponent();
