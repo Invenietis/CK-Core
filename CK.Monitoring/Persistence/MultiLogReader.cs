@@ -14,7 +14,7 @@
 * You should have received a copy of the GNU Lesser General Public License 
 * along with CiviKey.  If not, see <http://www.gnu.org/licenses/>. 
 *  
-* Copyright © 2007-2014, 
+* Copyright © 2007-2015, 
 *     Invenietis <http://www.invenietis.com>,
 *     In’Tech INFO <http://www.intechinfo.fr>,
 * All rights reserved. 
@@ -143,7 +143,7 @@ namespace CK.Monitoring
             /// <returns>A log reader that will read only entries from this monitor.</returns>
             public LogReader CreateFilteredReader( long streamOffset )
             {
-                return LogReader.Open( LogFile.FileName, streamOffset != -1 ? streamOffset : FirstOffset, LogFile.FileVersion, new LogReader.MulticastFilter( MonitorId, LastOffset ) );
+                return LogReader.Open( LogFile.FileName, streamOffset != -1 ? streamOffset : FirstOffset, new LogReader.MulticastFilter( MonitorId, LastOffset ) );
             }
 
             /// <summary>
@@ -154,7 +154,7 @@ namespace CK.Monitoring
             /// <returns>A log reader that will read only entries from this monitor.</returns>
             public LogReader CreateFilteredReaderAndMoveTo( DateTimeStamp logTime )
             {
-                var r = LogReader.Open( LogFile.FileName, FirstOffset, LogFile.FileVersion, new LogReader.MulticastFilter( MonitorId, LastOffset ) );
+                var r = LogReader.Open( LogFile.FileName, FirstOffset, new LogReader.MulticastFilter( MonitorId, LastOffset ) );
                 while( r.MoveNext() && r.Current.LogTime < logTime ) ;
                 return r;
             }

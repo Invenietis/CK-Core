@@ -14,7 +14,7 @@
 * You should have received a copy of the GNU Lesser General Public License 
 * along with CiviKey.  If not, see <http://www.gnu.org/licenses/>. 
 *  
-* Copyright © 2007-2014, 
+* Copyright © 2007-2015, 
 *     Invenietis <http://www.invenietis.com>,
 *     In’Tech INFO <http://www.intechinfo.fr>,
 * All rights reserved. 
@@ -171,7 +171,11 @@ namespace CK.Core
         static public bool GetAttributeBoolean( this XElement @this, XName name, bool defaultValue )
         {
             XAttribute a = @this.Attribute( name );
-            return a != null ? XmlConvert.ToBoolean( a.Value ) : defaultValue;
+            if( a == null ) return defaultValue;
+            var v = a.Value;
+            if( v == "0" || StringComparer.InvariantCultureIgnoreCase.Equals( v, "false" ) ) return false;
+            if( v == "1" || StringComparer.InvariantCultureIgnoreCase.Equals( v, "true" ) ) return true;
+            throw new FormatException( "Boolean value expected: false, true, 0 or 1 (case insensitive)." );
         }
 
         /// <summary>

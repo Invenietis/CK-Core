@@ -132,12 +132,6 @@
     <Compile Include="IObservableReadOnlyCollection.cs" />
     <Compile Include="IObservableReadOnlyList.cs" />
     <Compile Include="GlobalSuppressions.cs" />
-    <Compile Include="LegacySupport\IReadOnlyCollection.cs">
-      <SubType>Code</SubType>
-    </Compile>
-    <Compile Include="LegacySupport\IReadOnlyList.cs">
-      <SubType>Code</SubType>
-    </Compile>
     <Compile Include="Util.Empty.cs" />
     <Compile Include="CriticalErrorCollector.cs" />
     <Compile Include="ICKReadOnlyCollection.cs" />

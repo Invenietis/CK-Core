@@ -14,7 +14,7 @@
 * You should have received a copy of the GNU Lesser General Public License 
 * along with CiviKey.  If not, see <http://www.gnu.org/licenses/>. 
 *  
-* Copyright © 2007-2014, 
+* Copyright © 2007-2015, 
 *     Invenietis <http://www.invenietis.com>,
 *     In’Tech INFO <http://www.intechinfo.fr>,
 * All rights reserved. 
@@ -27,8 +27,11 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
+using System.IO.Compression;
 using System.Runtime.InteropServices;
 using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace CK.Core
 {
@@ -42,6 +45,11 @@ namespace CK.Core
         /// tag non existing files among other existing (i.e. valid) file attributes.
         /// </summary>
         static readonly public FileAttributes InexistingFile = FileAttributes.Normal | FileAttributes.Offline;
+
+        /// <summary>
+        /// The file header for gzipped files.
+        /// </summary>
+        static readonly public byte[] GzipFileHeader = new byte[] { 0x1f, 0x8b };
 
         /// <summary>
         /// Returns files in a directory according to multiple file masks (separated by ';'). 
@@ -101,7 +109,7 @@ namespace CK.Core
             path = path.Replace( Path.AltDirectorySeparatorChar, Path.DirectorySeparatorChar );
             if( ensureTrailingBackslash && path[path.Length - 1] != Path.DirectorySeparatorChar )
             {
-                path += Path.DirectorySeparatorChar;   
+                path += Path.DirectorySeparatorChar;
             }
             return path;
         }
@@ -132,7 +140,7 @@ namespace CK.Core
         /// From MSDN: If the file described in the path parameter does not exist, this method returns 12:00 midnight, January 1, 1601 A.D. (C.E.) Coordinated Universal Time (UTC).
         /// </summary>
         public static readonly DateTime MissingFileLastWriteTimeUtc = new DateTime( 1601, 1, 1, 0, 0, 0, DateTimeKind.Utc );
-        
+
         /// <summary>
         /// Tries to match a DateTime that follows the <see cref="FileNameUniqueTimeUtcFormat"/> in a string at a given position.
         /// </summary>
@@ -291,6 +299,37 @@ namespace CK.Core
             return FindUniqueTimedFile( pathPrefix, fileSuffix, time, maxTryBeforeGuid, p => TryMoveTo( sourceFilePath, p ) );
         }
 
+        /// <summary>
+        /// Gets a path to a necessarily unique named file.
+        /// The file name is based on a <see cref="DateTime"/>, with an eventual uniquifier if a file already exists with the same name.
+        /// </summary>
+        /// <param name="pathPrefix">The path prefix. Must not be null. Must be a valid path and may ends with a prefix for the file name itself.</param>
+        /// <param name="fileSuffix">Suffix for the file name. Must not be null. Typically an extension (like ".txt").</param>
+        /// <param name="time">The time that will be used to create the file name. It must be an UTC time.</param>
+        /// <param name="maxTryBeforeGuid">
+        /// Maximum value for short hexadecimal uniquifier before using a base 64 guid suffix. Must greater than 0.
+        /// </param>
+        /// <returns>A string to a necessarily unique named file path.</returns>
+        public static string EnsureUniqueTimedFile( string pathPrefix, string fileSuffix, DateTime time, int maxTryBeforeGuid = 512 )
+        {
+            return FindUniqueTimedFile( pathPrefix, fileSuffix, time, maxTryBeforeGuid, p => TryCreateFile( p ) );
+        }
+
+        static bool TryCreateFile( string path )
+        {
+            try
+            {
+                if( File.Exists( path ) ) return false;
+                using( File.Create( path ) ) { } // Dispose immediately
+                return true;
+            }
+            catch( IOException ex )
+            {
+                if( ex is PathTooLongException || ex is DirectoryNotFoundException ) throw;
+            }
+            return false;
+        }
+
         static bool TryMoveTo( string sourceFilePath, string timedPath )
         {
             try
@@ -306,7 +345,7 @@ namespace CK.Core
             return false;
         }
 
-        static string FindUniqueTimedFile( string pathPrefix, string fileSuffix, DateTime time, int maxTryBeforeGuid, Func<string,bool> tester )
+        static string FindUniqueTimedFile( string pathPrefix, string fileSuffix, DateTime time, int maxTryBeforeGuid, Func<string, bool> tester )
         {
             if( pathPrefix == null ) throw new ArgumentNullException( "pathPrefix" );
             if( fileSuffix == null ) throw new ArgumentNullException( "fileSuffix" );
@@ -350,7 +389,7 @@ namespace CK.Core
         /// <param name="withHiddenFolders">False to skip hidden folders.</param>
         /// <param name="fileFilter">Optional predicate for directories.</param>
         /// <param name="dirFilter">Optional predicate for files.</param>
-        public static void CopyDirectory( DirectoryInfo src, DirectoryInfo target, bool withHiddenFiles = true, bool withHiddenFolders = true, Func<FileInfo,bool> fileFilter = null, Func<DirectoryInfo,bool> dirFilter = null )
+        public static void CopyDirectory( DirectoryInfo src, DirectoryInfo target, bool withHiddenFiles = true, bool withHiddenFolders = true, Func<FileInfo, bool> fileFilter = null, Func<DirectoryInfo, bool> dirFilter = null )
         {
             if( src == null ) throw new ArgumentNullException( "src" );
             if( target == null ) throw new ArgumentNullException( "target" );
@@ -376,12 +415,12 @@ namespace CK.Core
         }
 
         /// <summary>
-        /// Waits for a file to be writable. Do not open the file.
+        /// Waits for a file to be writable or not exist (it can then be created). Do not open the file.
         /// Waits approximately the number of seconds given before leaving and returning false.
         /// </summary>
         /// <param name="path">The path of the file to write to.</param>
         /// <param name="nbMaxSecond">Maximum number of seconds to wait before returning false.</param>
-        /// <returns>True if the file has been correctly opened in write mode.</returns>
+        /// <returns>True if the file has been correctly opened (and closed) in write mode.</returns>
         static public bool WaitForWriteAcccess( string path, int nbMaxSecond )
         {
             if( path == null ) throw new ArgumentNullException( "path" );
@@ -400,6 +439,93 @@ namespace CK.Core
                 }
             }
         }
+
+        // No async nor CompressionLevel in 4.0.
+        #if net45
+        /// <summary>
+        /// Compresses a file to another file asynchronously, using GZip at the given compression level.
+        /// </summary>
+        /// <param name="sourceFilePath">The source file path.</param>
+        /// <param name="destinationPath">The destination path. If it doesn't exist, it will be created. If it exists, it will be replaced.</param>
+        /// <param name="cancellationToken">The cancellation token for the task.</param>
+        /// <param name="deleteSourceFileOnSuccess">if set to <c>true</c>, will delete source file if no errors occured suring compression.</param>
+        /// <param name="level">Compression level to use.</param>
+        /// <param name="bufferSize">Size of the buffer, in bytes.</param>
+        public static async Task CompressFileToGzipFileAsync( string sourceFilePath, string destinationPath, CancellationToken cancellationToken, bool deleteSourceFileOnSuccess = true, CompressionLevel level = CompressionLevel.Optimal, int bufferSize = 64*1024 )
+        {
+            using( FileStream source = new FileStream( sourceFilePath, FileMode.Open, FileAccess.Read, FileShare.None, bufferSize, FileOptions.Asynchronous|FileOptions.SequentialScan ) )
+            {
+                using( FileStream destination = new FileStream( destinationPath, FileMode.Create, FileAccess.Write, FileShare.None, bufferSize, FileOptions.Asynchronous | FileOptions.SequentialScan ) )
+                {
+                    // GZipStream writes the GZipFileGeader.
+                    using( GZipStream gZipStream = new GZipStream( destination, level ) )
+                    {
+                        await source.CopyToAsync( gZipStream, bufferSize, cancellationToken );
+                    }
+                }
+            }
+
+            if( !cancellationToken.IsCancellationRequested && deleteSourceFileOnSuccess )
+            {
+                File.Delete( sourceFilePath );
+            }
+        }
+
+        /// <summary>
+        /// Compresses a file to another file, using GZip at the given compression level.
+        /// </summary>
+        /// <param name="sourceFilePath">The source file path.</param>
+        /// <param name="destinationPath">The destination path. If it doesn't exist, it will be created. If it exists, it will be replaced.</param>
+        /// <param name="deleteSourceFileOnSuccess">if set to <c>true</c>, will delete source file if no errors occured during compression.</param>
+        /// <param name="level">Compression level to use.</param>
+        /// <param name="bufferSize">Size of the buffer, in bytes.</param>
+        public static void CompressFileToGzipFile( string sourceFilePath, string destinationPath, bool deleteSourceFileOnSuccess, CompressionLevel level = CompressionLevel.Optimal, int bufferSize = 64*1024 )
+        {
+            using( FileStream source = new FileStream( sourceFilePath, FileMode.Open, FileAccess.Read, FileShare.None, bufferSize, useAsync: false ) )
+            {
+                using( FileStream destination = new FileStream( destinationPath, FileMode.Create, FileAccess.Write, FileShare.None, bufferSize, useAsync: false ) )
+                {
+                    using( GZipStream gZipStream = new GZipStream( destination, level ) )
+                    {
+                        source.CopyTo( gZipStream, bufferSize );
+                    }
+                }
+            }
+            if( deleteSourceFileOnSuccess )
+            {
+                File.Delete( sourceFilePath );
+            }
+        }
+
+#endif
+
+        #if net40
+        /// <summary>
+        /// Compresses a file to another file, using GZip.
+        /// </summary>
+        /// <param name="sourceFilePath">The source file path.</param>
+        /// <param name="destinationPath">The destination path. If it doesn't exist, it will be created. If it exists, it will be replaced.</param>
+        /// <param name="deleteSourceFileOnSuccess">if set to <c>true</c>, will delete source file if no errors occured during compression.</param>
+        /// <param name="bufferSize">Size of the buffer, in bytes.</param>
+        public static void CompressFileToGzipFile( string sourceFilePath, string destinationPath, bool deleteSourceFileOnSuccess, int bufferSize = 64*1024 )
+        {
+            using( FileStream source = new FileStream( sourceFilePath, FileMode.Open, FileAccess.Read, FileShare.None, bufferSize, useAsync: false ) )
+            {
+                using( FileStream destination = new FileStream( destinationPath, FileMode.Create, FileAccess.Write, FileShare.None, bufferSize, useAsync: false ) )
+                {
+                    using( GZipStream gZipStream = new GZipStream( destination, CompressionMode.Compress ) )
+                    {
+                        source.CopyTo( gZipStream, bufferSize );
+                    }
+                }
+            }
+
+            if( deleteSourceFileOnSuccess )
+            {
+                File.Delete( sourceFilePath );
+            }
+        }
+#endif
 
     }
 

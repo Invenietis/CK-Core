@@ -8,7 +8,7 @@
       </MemberNameLabel>
     </AssociationLine>
     <TypeIdentifier>
-      <HashCode>AAAAAAAAAAAAAAQUgAAIBAAAAABAAAAAAAAAACAAAIA=</HashCode>
+      <HashCode>AAAAAAAAAAAAAAQUgAAIBAAAAABAAAAAAAAQACAAAIA=</HashCode>
       <FileName>ActivityMonitor\IActivityMonitor.cs</FileName>
     </TypeIdentifier>
     <ShowAsAssociation>
@@ -18,8 +18,8 @@
   <Interface Name="CK.Core.IActivityMonitorOutput">
     <Position X="5.25" Y="1.25" Width="2.5" />
     <AssociationLine Name="Clients" Type="CK.Core.IActivityMonitorClient">
-      <MemberNameLabel ManuallyPlaced="true" ManuallySized="true">
-        <Position X="0.704" Y="0.008" Height="0.162" Width="0.673" />
+      <MemberNameLabel ManuallyPlaced="true">
+        <Position X="0.635" Y="0.033" />
       </MemberNameLabel>
     </AssociationLine>
     <TypeIdentifier>
@@ -35,6 +35,13 @@
     <TypeIdentifier>
       <HashCode>AAAAEIABAAAAAAAAAAAgAAAAAAAAAAAQAAACAAAAAAA=</HashCode>
       <FileName>ActivityMonitor\IActivityMonitorClient.cs</FileName>
+    </TypeIdentifier>
+  </Interface>
+  <Interface Name="CK.Core.IActivityMonitorBoundClient">
+    <Position X="8.75" Y="4" Width="2.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAQAAAAAAAAAAAAAAAAAAAAAAAAAAAI=</HashCode>
+      <FileName>ActivityMonitor\IActivityMonitorBoundClient.cs</FileName>
     </TypeIdentifier>
   </Interface>
   <Font Name="Segoe UI" Size="9" />

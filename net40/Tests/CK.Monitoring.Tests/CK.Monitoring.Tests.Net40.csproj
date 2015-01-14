@@ -83,6 +83,9 @@
     <Compile Include="..\..\..\Tests\CK.Monitoring.Tests\Performance\FakeHandlerConfiguration.cs">
       <Link>FakeHandlerConfiguration.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\Tests\CK.Monitoring.Tests\Performance\GzipFileTests.cs">
+      <Link>GzipFileTests.cs</Link>
+    </Compile>
     <Compile Include="..\..\..\Tests\CK.Monitoring.Tests\Performance\StressTests.cs">
       <Link>StressTests.cs</Link>
     </Compile>

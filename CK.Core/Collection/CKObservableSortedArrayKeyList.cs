@@ -14,7 +14,7 @@
 * You should have received a copy of the GNU Lesser General Public License 
 * along with CiviKey.  If not, see <http://www.gnu.org/licenses/>. 
 *  
-* Copyright © 2007-2014, 
+* Copyright © 2007-2015, 
 *     Invenietis <http://www.invenietis.com>,
 *     In’Tech INFO <http://www.intechinfo.fr>,
 * All rights reserved. 
@@ -70,7 +70,7 @@ namespace CK.Core
         /// Raises the <see cref="CollectionChanged"/> event.
         /// </summary>
         /// <param name="e">Event argument.</param>
-        protected void OnCollectionChanged( NotifyCollectionChangedEventArgs e )
+        protected virtual void OnCollectionChanged( NotifyCollectionChangedEventArgs e )
         {
             var h = CollectionChanged;
             if( h != null ) h( this, e );
@@ -86,11 +86,6 @@ namespace CK.Core
             if( h != null ) h( this, e );
         }
 
-        private void OnPropertyChanged( string propertyName )
-        {
-            OnPropertyChanged( new PropertyChangedEventArgs( propertyName ) );
-        }
-
         /// <summary>
         /// Overridden to trigger the necessary events.
         /// </summary>
@@ -99,8 +94,18 @@ namespace CK.Core
         protected override void DoInsert( int index, T value )
         {
             base.DoInsert( index, value );
-            OnPropertyChanged( "Count" );
-            OnPropertyChanged( "Item[]" );
+            RaiseAdd( index, value );
+        }
+
+        /// <summary>
+        /// Raises the event corresponding to <see cref="DoInsert"/> (<see cref="NotifyCollectionChangedAction.Add"/>).
+        /// </summary>
+        /// <param name="index">Inserted index.</param>
+        /// <param name="value">Inserted item.</param>
+        protected virtual void RaiseAdd( int index, T value )
+        {
+            OnPropertyChanged( CollectionExtension.CountChangedEventArgs );
+            OnPropertyChanged( CollectionExtension.ItemArrayChangedEventArgs );
             OnCollectionChanged( new NotifyCollectionChangedEventArgs( NotifyCollectionChangedAction.Add, value, index ) );
         }
 
@@ -112,9 +117,19 @@ namespace CK.Core
         {
             var item = this[index];
             base.DoRemoveAt( index );
-            OnPropertyChanged( "Item[]" );
-            OnPropertyChanged( "Count" );
-            OnCollectionChanged( new NotifyCollectionChangedEventArgs( NotifyCollectionChangedAction.Remove, item, index ) );
+            RaiseRemove( index, item );
+        }
+
+        /// <summary>
+        /// Raises the event corresponding to <see cref="DoRemoveAt"/> (<see cref="NotifyCollectionChangedAction.Remove"/>).
+        /// </summary>
+        /// <param name="index">Removed index.</param>
+        /// <param name="value">Removed item.</param>
+        protected virtual void RaiseRemove( int index, T value )
+        {
+            OnPropertyChanged( CollectionExtension.CountChangedEventArgs );
+            OnPropertyChanged( CollectionExtension.ItemArrayChangedEventArgs );
+            OnCollectionChanged( new NotifyCollectionChangedEventArgs( NotifyCollectionChangedAction.Remove, value, index ) );
         }
 
         /// <summary>
@@ -126,9 +141,20 @@ namespace CK.Core
         protected override T DoSet( int index, T newValue )
         {
             T oldValue = base.DoSet( index, newValue );
-            OnPropertyChanged( "Item[]" );
-            OnCollectionChanged( new NotifyCollectionChangedEventArgs( NotifyCollectionChangedAction.Replace, oldValue, newValue, index ) );
+            RaiseReplace( index, newValue, oldValue );
             return oldValue;
+        }
+
+        /// <summary>
+        /// Raises the event corresponding to <see cref="DoSet"/> (<see cref="NotifyCollectionChangedAction.Replace"/>).
+        /// </summary>
+        /// <param name="index">Replaced index.</param>
+        /// <param name="newValue">New item.</param>
+        /// <param name="oldValue">Replaced item.</param>
+        protected virtual void RaiseReplace( int index, T newValue, T oldValue )
+        {
+            OnPropertyChanged( CollectionExtension.ItemArrayChangedEventArgs );
+            OnCollectionChanged( new NotifyCollectionChangedEventArgs( NotifyCollectionChangedAction.Replace, oldValue, newValue, index ) );
         }
 
         /// <summary>
@@ -140,12 +166,19 @@ namespace CK.Core
         protected override int DoMove( int from, int newIndex )
         {
             newIndex = base.DoMove( from, newIndex );
-            if( newIndex != from )
-            {
-                OnPropertyChanged( "Item[]" );
-                OnCollectionChanged( new NotifyCollectionChangedEventArgs( NotifyCollectionChangedAction.Move, Store[newIndex], newIndex, from ) );
-            }
+            if( newIndex != from ) RaiseMove( from, newIndex );
             return newIndex;
+        }
+
+        /// <summary>
+        /// Raises the event corresponding to <see cref="DoMove"/> (<see cref="NotifyCollectionChangedAction.Move"/>).
+        /// </summary>
+        /// <param name="from">Original index.</param>
+        /// <param name="newIndex">Target index.</param>
+        protected virtual void RaiseMove( int from, int newIndex )
+        {
+            OnPropertyChanged( CollectionExtension.ItemArrayChangedEventArgs );
+            OnCollectionChanged( new NotifyCollectionChangedEventArgs( NotifyCollectionChangedAction.Move, Store[newIndex], newIndex, from ) );
         }
 
         /// <summary>
@@ -154,6 +187,16 @@ namespace CK.Core
         protected override void DoClear()
         {
             base.DoClear();
+            RaiseReset();
+        }
+
+        /// <summary>
+        /// Raises the event corresponding to <see cref="DoClear"/> (<see cref="NotifyCollectionChangedAction.Reset"/>).
+        /// </summary>
+        protected virtual void RaiseReset()
+        {
+            OnPropertyChanged( CollectionExtension.CountChangedEventArgs );
+            OnPropertyChanged( CollectionExtension.ItemArrayChangedEventArgs );
             OnCollectionChanged( new NotifyCollectionChangedEventArgs( NotifyCollectionChangedAction.Reset ) );
         }
     }

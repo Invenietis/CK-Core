@@ -14,7 +14,7 @@
 * You should have received a copy of the GNU Lesser General Public License 
 * along with CiviKey.  If not, see <http://www.gnu.org/licenses/>. 
 *  
-* Copyright © 2007-2014, 
+* Copyright © 2007-2015, 
 *     Invenietis <http://www.invenietis.com>,
 *     In’Tech INFO <http://www.intechinfo.fr>,
 * All rights reserved. 
@@ -33,6 +33,53 @@ namespace CK.Core.Tests.Monitoring
     [TestFixture]
     public class DependentActivityTests
     {
+
+        [Test]
+        public void DependentTokenAPI()
+        {
+            var monitor = new ActivityMonitor();
+            monitor.Output.CreateBridgeTo( TestHelper.ConsoleMonitor.Output.BridgeTarget );
+
+            using( monitor.OpenTrace().Send( "Create token and dependent monitor." ) )
+            {
+                // Creates the token.
+                var token = monitor.DependentActivity().CreateToken();
+                // Creates a dependent monitor.
+                using( var monitorDep = token.CreateDependentMonitor( m => m.Output.CreateBridgeTo( TestHelper.ConsoleMonitor.Output.BridgeTarget ) ) )
+                {
+                    monitor.Trace().Send( "Doing something..." );
+                    // ...
+                }
+            }
+            using( monitor.OpenTrace().Send( "Create token with delayed launch of the dependent activity." ) )
+            {
+                // Creates the token.
+                var token = monitor.DependentActivity().CreateToken( delayedLaunch: true );
+                // Signals the launch of the dependent activity.
+                monitor.DependentActivity().Launch( token );
+                // Creates a dependent monitor.
+                using( var monitorDep = token.CreateDependentMonitor( m => m.Output.CreateBridgeTo( TestHelper.ConsoleMonitor.Output.BridgeTarget ) ) )
+                {
+                    monitor.Trace().Send( "Doing something..." );
+                    // ...
+                }
+            }
+            using( monitor.OpenTrace().Send( "Starting a dependent activity on an existing monitor." ) )
+            {
+                // Creates the token.
+                var token = monitor.DependentActivity().CreateToken();
+            
+                IActivityMonitor wMonitor = monitor;
+                using( wMonitor.StartDependentActivity( token ) )
+                {
+                    wMonitor.Trace().Send( "Doing something..." );
+                    // ...
+                }
+
+            }
+
+
+        }
 
         [Test]
         public void ParseDependentMessageWithUniquifier()

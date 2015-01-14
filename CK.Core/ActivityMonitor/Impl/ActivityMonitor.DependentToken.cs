@@ -14,7 +14,7 @@
 * You should have received a copy of the GNU Lesser General Public License 
 * along with CiviKey.  If not, see <http://www.gnu.org/licenses/>. 
 *  
-* Copyright © 2007-2014, 
+* Copyright © 2007-2015, 
 *     Invenietis <http://www.invenietis.com>,
 *     In’Tech INFO <http://www.intechinfo.fr>,
 * All rights reserved. 
@@ -150,7 +150,7 @@ namespace CK.Core
             }
 
             /// <summary>
-            /// Captures the log message when created with a delayed launch so that DependentSender.Launch( token ) can logs it.
+            /// Captures the log message when created with a delayed launch so that DependentSender.Launch( token ) can log it.
             /// </summary>
             internal string DelayedLaunchMessage
             {

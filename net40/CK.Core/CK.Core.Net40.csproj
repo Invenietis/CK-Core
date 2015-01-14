@@ -311,12 +311,6 @@
     <Compile Include="..\..\CK.Core\ISimpleTypeNaming.cs">
       <Link>ISimpleTypeNaming.cs</Link>
     </Compile>
-    <Compile Include="..\..\CK.Core\LegacySupport\IReadOnlyCollection.cs">
-      <Link>IReadOnlyCollection.cs</Link>
-    </Compile>
-    <Compile Include="..\..\CK.Core\LegacySupport\IReadOnlyList.cs">
-      <Link>IReadOnlyList.cs</Link>
-    </Compile>
     <Compile Include="..\..\CK.Core\R.Designer.cs">
       <Link>R.Designer.cs</Link>
     </Compile>
@@ -386,6 +380,8 @@
     <Compile Include="..\..\SharedAssemblyInfo.cs">
       <Link>Properties\SharedAssemblyInfo.cs</Link>
     </Compile>
+    <Compile Include="Net40Specific\IReadOnlyCollection.cs" />
+    <Compile Include="Net40Specific\IReadOnlyList.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

@@ -14,7 +14,7 @@
 * You should have received a copy of the GNU Lesser General Public License 
 * along with CiviKey.  If not, see <http://www.gnu.org/licenses/>. 
 *  
-* Copyright © 2007-2014, 
+* Copyright © 2007-2015, 
 *     Invenietis <http://www.invenietis.com>,
 *     In’Tech INFO <http://www.intechinfo.fr>,
 * All rights reserved. 
@@ -60,9 +60,14 @@ namespace CK.Monitoring.Tests.Persistence
                 e1.WriteLogEntry( w );
                 e2.WriteLogEntry( w );
                 w.Write( (byte)0 );
+                w.Flush();
 
+                byte[] versionBytes = new byte[4];
                 mem.Position = 0;
-                using( var reader = new LogReader( mem ) )
+                mem.Read( versionBytes, 0, 4 );
+                Assert.That( BitConverter.ToInt32( versionBytes, 0 ), Is.EqualTo( LogReader.CurrentStreamVersion ) );
+
+                using( var reader = new LogReader( mem, LogReader.CurrentStreamVersion, 4 ) )
                 {
                     Assert.That( reader.MoveNext() );
                     Assert.That( reader.Current.Text, Is.EqualTo( e1.Text ) );

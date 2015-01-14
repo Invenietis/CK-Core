@@ -14,7 +14,7 @@
 * You should have received a copy of the GNU Lesser General Public License 
 * along with CiviKey.  If not, see <http://www.gnu.org/licenses/>. 
 *  
-* Copyright © 2007-2014, 
+* Copyright © 2007-2015, 
 *     Invenietis <http://www.invenietis.com>,
 *     In’Tech INFO <http://www.intechinfo.fr>,
 * All rights reserved. 
@@ -240,8 +240,11 @@ namespace CK.Core
             _uniqueId = Guid.NewGuid();
             _topic = String.Empty;
             _lastLogTime = DateTimeStamp.MinValue;
-            var autoConf = AutoConfiguration;
-            if( autoConf != null && applyAutoConfigurations ) autoConf( this );
+            if( applyAutoConfigurations )
+            {
+                var autoConf = AutoConfiguration;
+                if( autoConf != null ) autoConf( this );
+            }
         }
 
         Guid IUniqueId.UniqueId

@@ -156,6 +156,9 @@
     <Compile Include="..\..\CK.Monitoring\Persistence\CKMonWriterClient.cs">
       <Link>CKMonWriterClient.cs</Link>
     </Compile>
+    <Compile Include="..\..\CK.Monitoring\Persistence\GZipStreamReader.cs">
+      <Link>GZipStreamReader.cs</Link>
+    </Compile>
     <Compile Include="..\..\CK.Monitoring\Persistence\Impl\LECloseGroup.cs">
       <Link>LECloseGroup.cs</Link>
     </Compile>
@@ -182,6 +185,9 @@
     </Compile>
     <Compile Include="..\..\CK.Monitoring\Persistence\LogReader.cs">
       <Link>LogReader.cs</Link>
+    </Compile>
+    <Compile Include="..\..\CK.Monitoring\Persistence\LogReaderStreamInfo.cs">
+      <Link>LogReaderStreamInfo.cs</Link>
     </Compile>
     <Compile Include="..\..\CK.Monitoring\Persistence\MulticastLogEntryWithOffset.cs">
       <Link>MulticastLogEntryWithOffset.cs</Link>
