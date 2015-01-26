@@ -32,6 +32,7 @@ namespace CK.Core
     /// Implements a mono element <see cref="IReadOnlyList{T}"/>.
     /// </summary>
     /// <typeparam name="T">The type of element in the read only list.</typeparam>
+    [Serializable]
     [DebuggerTypeProxy( typeof( Impl.CKReadOnlyCollectionDebuggerView<> ) ), DebuggerDisplay( "Count = 1" )]
     public sealed class CKReadOnlyListMono<T> : ICKReadOnlyList<T>
     {

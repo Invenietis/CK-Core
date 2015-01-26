@@ -82,6 +82,9 @@
     <Compile Include="..\..\..\Tests\CK.Core.Tests\Collection\ReadOnlyTests.cs">
       <Link>ReadOnlyTests.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\Tests\CK.Core.Tests\Collection\SerializationTests.cs">
+      <Link>SerializationTests.cs</Link>
+    </Compile>
     <Compile Include="..\..\..\Tests\CK.Core.Tests\Collection\SortedArrayKeyListTests.cs">
       <Link>SortedArrayKeyListTests.cs</Link>
     </Compile>

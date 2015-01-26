@@ -25,6 +25,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System;
 using System.Diagnostics;
+using System.Runtime.Serialization;
 
 namespace CK.Core
 {
@@ -34,8 +35,9 @@ namespace CK.Core
     /// as a read only list of T where TInner is a T.
     /// </summary>
     /// <typeparam name="T">Type of the element.</typeparam>
+    [Serializable]
     [DebuggerTypeProxy( typeof( Impl.CKReadOnlyCollectionDebuggerView<> ) ), DebuggerDisplay( "Count = {Count}" )]
-    public sealed class CKReadOnlyListOnIList<T> : ICKReadOnlyList<T>, IList<T>
+    public sealed class CKReadOnlyListOnIList<T> : ICKReadOnlyList<T>, IList<T>, ISerializable
     {
 		IList<T> _inner;
 
@@ -116,7 +118,6 @@ namespace CK.Core
 			return _inner.GetEnumerator();
 		}
 
-
         #region IList<T> Members
 
         int IList<T>.IndexOf( T item )
@@ -181,6 +182,25 @@ namespace CK.Core
         }
 
         #endregion
+
+        CKReadOnlyListOnIList( SerializationInfo info, StreamingContext context )
+        {
+            _inner = (IList<T>)info.GetValue( "_inner", typeof( object ) );
+        }
+
+        void ISerializable.GetObjectData( SerializationInfo info, StreamingContext context )
+        {
+            if( _inner.GetType().IsSerializable )
+            {
+                info.AddValue( "_inner", _inner );
+            }
+            else 
+            {
+                var a = new T[_inner.Count];
+                _inner.CopyTo( a, 0 );
+                info.AddValue( "_inner", a );
+            }
+        }
 
     }
 

@@ -25,6 +25,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System;
 using System.Diagnostics;
+using System.Runtime.Serialization;
 
 namespace CK.Core
 {
@@ -33,8 +34,9 @@ namespace CK.Core
     /// by casting it, it also provides an empty read only <see cref="IList{T}"/>.
     /// </summary>
     /// <typeparam name="T">Contained elements type.</typeparam>
+    [Serializable]
     [DebuggerTypeProxy( typeof( Impl.CKReadOnlyCollectionDebuggerView<> ) ), DebuggerDisplay( "Count = 0" )]
-    public sealed class CKReadOnlyListEmpty<T> : ICKReadOnlyList<T>, IList<T>
+    public sealed class CKReadOnlyListEmpty<T> : ICKReadOnlyList<T>, IList<T>, ISerializable
     {
         /// <summary>
         /// Static empty <see cref="CKReadOnlyListEmpty{T}"/>. Can also be used as an 
@@ -153,6 +155,21 @@ namespace CK.Core
         }
 
         #endregion
+
+
+        void ISerializable.GetObjectData( SerializationInfo info, StreamingContext context )
+        {
+            info.SetType( typeof( SingletonSerializationHelper ) );
+        }
+
+        [Serializable]
+        sealed class SingletonSerializationHelper : IObjectReference
+        {
+            public object GetRealObject( StreamingContext context )
+            {
+                return Empty;
+            }
+        }
     }
 }
 

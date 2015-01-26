@@ -27,6 +27,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Runtime;
+using System.Runtime.Serialization;
 
 namespace CK.Core
 {
@@ -34,8 +35,9 @@ namespace CK.Core
 	/// Adapts a <see cref="ICollection{T}"/> object to the <see cref="IReadOnlyCollection{T}"/> interface.
 	/// </summary>
 	/// <typeparam name="T">Type of the element.</typeparam>
+    [Serializable]
     [DebuggerTypeProxy( typeof( Impl.CKReadOnlyCollectionDebuggerView<> ) ), DebuggerDisplay( "Count = {Count}" )]
-    public sealed class CKReadOnlyCollectionOnICollection<T> : ICKReadOnlyCollection<T>, ICollection<T>
+    public sealed class CKReadOnlyCollectionOnICollection<T> : ICKReadOnlyCollection<T>, ICollection<T>, ISerializable
     {
 		ICollection<T> _inner;
 
@@ -129,6 +131,24 @@ namespace CK.Core
 
         #endregion
 
+        CKReadOnlyCollectionOnICollection( SerializationInfo info, StreamingContext context )
+        {
+            _inner = (ICollection<T>)info.GetValue( "_inner", typeof( object ) );
+        }
+
+        void ISerializable.GetObjectData( SerializationInfo info, StreamingContext context )
+        {
+            if( _inner.GetType().IsSerializable )
+            {
+                info.AddValue( "_inner", _inner );
+            }
+            else 
+            {
+                var a = new T[_inner.Count];
+                _inner.CopyTo( a, 0 );
+                info.AddValue( "_inner", a );
+            }
+        }
     }
 
 }
