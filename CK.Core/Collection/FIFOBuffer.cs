@@ -25,6 +25,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Runtime.Serialization;
 
 namespace CK.Core
 {
@@ -35,8 +36,9 @@ namespace CK.Core
     /// This can easily be used as a LIFO stack thanks to <see cref="PopLast"/> and <see cref="PeekLast"/> methods.
     /// </summary>
     /// <typeparam name="T">Type of the items.</typeparam>
+    [Serializable]
     [DebuggerTypeProxy( typeof( Impl.CKReadOnlyCollectionDebuggerView<> ) )]
-    public class FIFOBuffer<T> : ICKReadOnlyList<T>, ICKWritableCollector<T>
+    public class FIFOBuffer<T> : ICKReadOnlyList<T>, ICKWritableCollector<T>, ISerializable
     {
         int _count;
         int _first;
@@ -442,6 +444,36 @@ namespace CK.Core
         public override string ToString()
         {
             return String.Format( "Count = {0} (Capacity = {1})", _count, _buffer.Length );
+        }
+
+        /// <summary>
+        /// Deserialization constructor.
+        /// </summary>
+        /// <param name="info">Serialization information.</param>
+        /// <param name="context">Serialization context.</param>
+        protected FIFOBuffer( SerializationInfo info, StreamingContext context )
+        {
+            _buffer = new T[info.GetInt32( "c" )];
+            _count = info.GetInt32( "n" );
+            T[] a = (T[])info.GetValue( "d", typeof(object) );
+            a.CopyTo( _buffer, 0 );
+        }
+
+        void ISerializable.GetObjectData( SerializationInfo info, StreamingContext context )
+        {
+            GetObjectData( info, context );
+        }
+        
+        /// <summary>
+        /// Serialization.
+        /// </summary>
+        /// <param name="info">Serialization information.</param>
+        /// <param name="context">Serialization context.</param>
+        protected virtual void GetObjectData( SerializationInfo info, StreamingContext context )
+        {
+            info.AddValue( "c", _buffer.Length );
+            info.AddValue( "n", _count );
+            info.AddValue( "d", ToArray() );
         }
     }
 }

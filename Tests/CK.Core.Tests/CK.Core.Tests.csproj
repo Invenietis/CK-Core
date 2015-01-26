@@ -61,6 +61,7 @@
     </Compile>
     <Compile Include="AppSettingsTests.cs" />
     <Compile Include="CKExceptionTests.cs" />
+    <Compile Include="Collection\SerializationTests.cs" />
     <Compile Include="InternalsVisibleToChecks.cs" />
     <Compile Include="Monitoring\SourceFilteringTests.cs" />
     <Compile Include="UtilMatcherTests.cs" />

@@ -26,6 +26,7 @@ using System.Collections;
 using System;
 using System.Diagnostics;
 using System.Runtime;
+using System.Runtime.Serialization;
 
 namespace CK.Core
 {
@@ -33,8 +34,9 @@ namespace CK.Core
 	/// Adapts a <see cref="HashSet{T}"/> (or any <see cref="ISet{T}"/>) object to the <see cref="IReadOnlyCollection{T}"/> interface.
 	/// </summary>
 	/// <typeparam name="T">Type of the element.</typeparam>
+    [Serializable]
     [DebuggerTypeProxy( typeof( Impl.CKReadOnlyCollectionDebuggerView<> ) ), DebuggerDisplay( "Count = {Count}" )]
-    public sealed class CKReadOnlyCollectionOnISet<T> : ICKReadOnlyCollection<T>, ICollection<T>
+    public sealed class CKReadOnlyCollectionOnISet<T> : ICKReadOnlyCollection<T>, ICollection<T>, ISerializable
     {
 		ISet<T> _inner;
 
@@ -127,6 +129,23 @@ namespace CK.Core
         }
 
         #endregion
+
+        CKReadOnlyCollectionOnISet( SerializationInfo info, StreamingContext context )
+        {
+            _inner = (ISet<T>)info.GetValue( "_inner", typeof( object ) );
+        }
+
+        void ISerializable.GetObjectData( SerializationInfo info, StreamingContext context )
+        {
+            if( _inner.GetType().IsSerializable )
+            {
+                info.AddValue( "_inner", _inner );
+            }
+            else 
+            {
+                info.AddValue( "_inner", new HashSet<T>( _inner ) );
+            }
+        }
 
     }
 }

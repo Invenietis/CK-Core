@@ -26,6 +26,7 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
+using System.Runtime.Serialization.Formatters.Binary;
 using System.Text;
 using CK.Core;
 using NUnit.Framework;
@@ -82,6 +83,17 @@ namespace CK.Core.Tests
                     Assert.That( timer, Is.Not.Null );
                     timer.Change( 0, -1 );
                 }
+            }
+        }
+
+        public static T SerializationCopy<T>( T o )
+        {
+            using( var s = new MemoryStream() )
+            {
+                BinaryFormatter f = new BinaryFormatter();
+                f.Serialize( s, o );
+                s.Position = 0;
+                return (T)f.Deserialize( s );
             }
         }
 
