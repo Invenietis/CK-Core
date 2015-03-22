@@ -421,6 +421,7 @@ namespace CK.Core
         /// <param name="path">The path of the file to write to.</param>
         /// <param name="nbMaxSecond">Maximum number of seconds to wait before returning false.</param>
         /// <returns>True if the file has been correctly opened (and closed) in write mode.</returns>
+        [Obsolete( "Use CheckForWriteAcccess (that uses MilliSeconds instead of seconds) method instead. This will be removed in a future version." )]
         static public bool WaitForWriteAcccess( string path, int nbMaxSecond )
         {
             if( path == null ) throw new ArgumentNullException( "path" );
@@ -436,6 +437,47 @@ namespace CK.Core
                 {
                     if( --nbMaxSecond < 0 ) return false;
                     System.Threading.Thread.Sleep( 990 );
+                }
+            }
+        }
+
+        /// <summary>
+        /// Waits for a file to be writable or does not exist (if it does not exist, it can be created!).
+        /// The file is opened and close.
+        /// Waits the number of <param name="nbMaxMilliSecond"/> before leaving and returning false: when 0 (the default),
+        /// there is no wai. A nbMaxMilliSecond below 20 ~ 30 milliseconds is not accurate: even with nbMaxMilliSecond = 1
+        /// this method will return true if the file becomes writeable during the next 10 or 20 milliseconds.
+        /// </summary>
+        /// <param name="path">The path of the file to write to.</param>
+        /// <param name="nbMaxMilliSecond">Maximum number of milliseconds to wait before returning false.</param>
+        /// <returns>True if the file has been correctly opened (and closed) in write mode.</returns>
+        static public bool CheckForWriteAcccess( string path, int nbMaxMilliSecond = 0 )
+        {
+            if( path == null ) throw new ArgumentNullException( "path" );
+            DateTime start = DateTime.UtcNow;
+            if( !File.Exists( path ) ) return true;
+            try
+            {
+                using( Stream s = File.OpenWrite( path ) ) { return true; }
+            }
+            catch
+            {
+                int waitTime = nbMaxMilliSecond / 100;
+                if( nbMaxMilliSecond <= 0 ) return false;
+                long stop = start.AddMilliseconds( nbMaxMilliSecond ).Ticks;
+                for( ; ; )
+                {
+                    if( waitTime > 0 ) System.Threading.Thread.Sleep( waitTime );
+                    if( !File.Exists( path ) ) return true;
+                    try
+                    {
+                        using( Stream s = File.OpenWrite( path ) ) { return true; }
+                    }
+                    catch
+                    {
+                        if( DateTime.UtcNow.Ticks > stop ) return false;
+                        if( waitTime < 20 ) waitTime += 1;
+                    }
                 }
             }
         }
