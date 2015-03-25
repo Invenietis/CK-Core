@@ -958,6 +958,18 @@ namespace CK.Core.Tests.Monitoring
 
         }
 
+        [Test]
+        public void OnError_works_does_not_wait_for_Dispose()
+        {
+            var m = new ActivityMonitor( false );
+            bool hasError = false;
+            using( m.OnError( () => hasError = true ) )
+            using( m.OpenInfo().Send( "Handling StObj objects." ) )
+            {
+                m.Fatal().Send( "Oops!" );
+                Assert.That( hasError );
+            }
+        }
 
         [Test]
         public void AsyncSetMininimalFilter()
