@@ -254,32 +254,6 @@ namespace CK.Core.Tests
         }
 
         [Test]
-        public void WaitForWriteAccessTest()
-        {
-            Assert.Throws<ArgumentNullException>( () => FileUtil.WaitForWriteAcccess( null, 0 ) );
-
-            TestHelper.CleanupTestFolder();
-
-            string path = Path.Combine( TestHelper.TestFolder, "Locked.txt" );
-            Assert.That( FileUtil.WaitForWriteAcccess( path, 1 ), Is.True );
-            
-            object startLock = new object();
-            Task.Factory.StartNew( () =>
-                {
-                    FileStream fs = File.Create( path );
-                    Thread.Sleep( 2 );
-                    lock( startLock ) Monitor.Pulse( startLock );
-                    Thread.Sleep( 1000 );
-                    fs.Close();
-                } );
-            lock( startLock ) Monitor.Wait( startLock );
-            Assert.That( FileUtil.WaitForWriteAcccess( path, 0 ), Is.False );
-            Assert.That( FileUtil.WaitForWriteAcccess( path, 2 ), Is.True );
-
-            TestHelper.CleanupTestFolder();
-        }
-
-        [Test]
         public void CheckForWriteAcccess_is_immediately_true_when_file_does_not_exist_or_is_writeable()
         {
             Assert.Throws<ArgumentNullException>( () => FileUtil.CheckForWriteAcccess( null, 0 ) );

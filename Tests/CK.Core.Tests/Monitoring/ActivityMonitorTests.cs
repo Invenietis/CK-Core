@@ -900,66 +900,7 @@ namespace CK.Core.Tests.Monitoring
         }
 
         [Test]
-        public void CatchTests()
-        {
-            IActivityMonitor d = new ActivityMonitor();
-
-            d.Error().Send( "Pouf" );
-            using( d.CatchCounter( e => Assert.That( e == 2 ) ) )
-            using( d.CatchCounter( ( f, e ) => Assert.That( f == 1 && e == 1 ) ) )
-            using( d.CatchCounter( ( f, e, w ) => Assert.That( f == 1 && e == 1 && w == 1 ) ) )
-            using( d.Catch( e => Assert.That( String.Join( ",", e.Select( t => t.Text ) ) == "One,Two" ) ) )
-            {
-                d.Error().Send( "One" );
-                d.Warn().Send( "Warn" );
-                d.Fatal().Send( "Two" );
-            }
-            d.Error().Send( "Out..." );
-            using( d.CatchCounter( e => Assert.That( e == 2 ) ) )
-            using( d.CatchCounter( ( f, e ) => Assert.That( f == 1 && e == 1 ) ) )
-            using( d.CatchCounter( ( f, e, w ) => Assert.That( f == 1 && e == 1 && w == 1 ) ) )
-            using( d.Catch( e => e.Single( t => t.Text == "Two" ), LogLevelFilter.Fatal ) )
-            {
-                d.Error().Send( "One" );
-                d.Warn().Send( "Warn" );
-                d.Fatal().Send( "Two" );
-            }
-
-            using( d.CatchCounter( e => Assert.Fail( "No Error occurred." ) ) )
-            using( d.CatchCounter( ( f, e ) => Assert.Fail( "No Error occurred." ) ) )
-            using( d.CatchCounter( ( f, e, w ) => Assert.That( f == 0 && e == 0 && w == 1 ) ) )
-            using( d.Catch( e => Assert.Fail( "No Error occurred." ) ) )
-            {
-                d.Trace().Send( "One" );
-                d.Warn().Send( "Warn" );
-            }
-
-            using( d.CatchCounter( e => Assert.That( e == 1 ) ) )
-            using( d.CatchCounter( ( f, e ) => Assert.That( f == 0 && e == 1 ) ) )
-            using( d.CatchCounter( ( f, e, w ) => Assert.That( f == 0 && e == 1 && w == 1 ) ) )
-            using( d.Catch( e => Assert.Fail( "No Fatal occurred." ), LogLevelFilter.Fatal ) )
-            {
-                d.Error().Send( "One" );
-                d.Warn().Send( "Warn" );
-            }
-
-            Assert.Throws<ArgumentNullException>( () => d.Catch( null ) );
-            Action<int> f1Null = null;
-            Assert.Throws<ArgumentNullException>( () => d.CatchCounter( f1Null ) );
-            Action<int,int> f2Null = null;
-            Assert.Throws<ArgumentNullException>( () => d.CatchCounter( f2Null ) );
-            Action<int,int,int> f3Null = null;
-            Assert.Throws<ArgumentNullException>( () => d.CatchCounter( f3Null ) );
-            d = null;
-            Assert.Throws<NullReferenceException>( () => d.Catch( e => Console.Write( "" ) ) );
-            Assert.Throws<NullReferenceException>( () => d.CatchCounter( eOrF => Console.Write( "" ) ) );
-            Assert.Throws<NullReferenceException>( () => d.CatchCounter( ( f, e ) => Console.Write( "" ) ) );
-            Assert.Throws<NullReferenceException>( () => d.CatchCounter( ( f, e, w ) => Console.Write( "" ) ) );
-
-        }
-
-        [Test]
-        public void OnError_works_does_not_wait_for_Dispose()
+        public void OnError_fires_synchronously()
         {
             var m = new ActivityMonitor( false );
             bool hasError = false;
@@ -968,7 +909,31 @@ namespace CK.Core.Tests.Monitoring
             {
                 m.Fatal().Send( "Oops!" );
                 Assert.That( hasError );
+                hasError = false;
+                m.OpenFatal().Send( "Oops! (Group)" ).Dispose();
+                Assert.That( hasError );
+                hasError = false;
             }
+            hasError = false;
+            m.Fatal().Send( "Oops!" );
+            Assert.That( hasError, Is.False );
+            
+            bool hasFatal = false;
+            using( m.OnError( () => hasFatal = true, () => hasError = true ) )
+            {
+                m.Fatal().Send( "Big Oops!" );
+                Assert.That( hasFatal && !hasError );
+                m.Error().Send( "Oops!" );
+                Assert.That( hasFatal && hasError );
+                hasFatal = hasError = false;
+                m.OpenError().Send( "Oops! (Group)" ).Dispose();
+                Assert.That( !hasFatal && hasError );
+                m.OpenFatal().Send( "Oops! (Group)" ).Dispose();
+                Assert.That( hasFatal && hasError );
+                hasFatal = hasError = false;
+            }
+            m.Fatal().Send( "Oops!" );
+            Assert.That( hasFatal || hasError, Is.False );
         }
 
         [Test]

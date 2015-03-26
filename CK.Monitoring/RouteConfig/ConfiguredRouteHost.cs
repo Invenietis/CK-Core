@@ -420,8 +420,8 @@ namespace CK.RouteConfig
                     int i = 0;
                     foreach( var d in _futureAllActions )
                     {
-                        int errorCount = 0;
-                        using( monitor.CatchCounter( nbError => errorCount = nbError ) )
+                        bool hasError = false;
+                        using( monitor.OnError( () => hasError = true ) )
                         {
                             try
                             {
@@ -432,7 +432,7 @@ namespace CK.RouteConfig
                                 monitor.Fatal().Send( ex );
                             }
                         }
-                        if( errorCount > 0 )
+                        if( hasError )
                         {
                             if( failed == null ) failed = new List<int>();
                             failed.Add( i );

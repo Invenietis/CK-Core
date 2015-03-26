@@ -117,7 +117,7 @@ namespace CK.Core.Tests.Monitoring
                 IActivityMonitor m = new ActivityMonitor();
 
                 int errorCount = 0;
-                using( m.CatchCounter( fatalOrErrorCount => errorCount = fatalOrErrorCount ) )
+                using( m.OnError( () => ++errorCount ) )
                 {
                     m.Fatal().Send( "An horrible error occurred." );
                 }
