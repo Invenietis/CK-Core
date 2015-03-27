@@ -12,7 +12,8 @@
     <RootNamespace>CK.Reflection.Tests</RootNamespace>
     <AssemblyName>CK.Reflection.Tests</AssemblyName>
     <FileAlignment>512</FileAlignment>
-    <TargetFrameworkProfile></TargetFrameworkProfile>
+    <TargetFrameworkProfile>
+    </TargetFrameworkProfile>
     <SolutionDir Condition="$(SolutionDir) == '' Or $(SolutionDir) == '*Undefined*'">..\..\</SolutionDir>
     <RestorePackages>true</RestorePackages>
   </PropertyGroup>
@@ -56,6 +57,7 @@
     </Compile>
     <Compile Include="AttributesBehavior.cs" />
     <Compile Include="AutoImplementorTests.cs" />
+    <Compile Include="CovariantMessageHandling.cs" />
     <Compile Include="ObjectAndTypeTest.cs" />
     <Compile Include="HelperTest.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
