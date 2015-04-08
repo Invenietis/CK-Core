@@ -23,19 +23,22 @@ namespace CK.Core
         /// Appends a set of strings with an internal separator.
         /// </summary>
         /// <param name="this">The <see cref="StringBuilder"/> to append to.</param>
-        /// <param name="strings">Set of strings.</param>
+        /// <param name="strings">Set of strings. Can be null.</param>
         /// <param name="separator">The separator string.</param>
         /// <returns>The builder itself.</returns>
         public static StringBuilder Append( this StringBuilder @this, IEnumerable<string> strings, string separator = ", " )
         {
-            using( var e = strings.GetEnumerator() )
+            if( strings != null )
             {
-                if( e.MoveNext() )
+                using( var e = strings.GetEnumerator() )
                 {
-                    @this.Append( e.Current );
-                    while( e.MoveNext() )
+                    if( e != null && e.MoveNext() )
                     {
-                        @this.Append( separator ).Append( e.Current );
+                        @this.Append( e.Current );
+                        while( e.MoveNext() )
+                        {
+                            @this.Append( separator ).Append( e.Current );
+                        }
                     }
                 }
             }
