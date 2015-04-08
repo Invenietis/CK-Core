@@ -76,6 +76,7 @@
     <Compile Include="ActivityMonitor\SourceLogFilter.cs" />
     <Compile Include="GrantLevel.cs" />
     <Compile Include="IFluentInterface.cs" />
+    <Compile Include="StringAndStringBuilderExtension.cs" />
     <Compile Include="Util.Matcher.cs" />
     <Compile Include="DateTimeStamp.cs" />
     <Compile Include="ActivityMonitor\IDisposableActivityMonitor.cs" />

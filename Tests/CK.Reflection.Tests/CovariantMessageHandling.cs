@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
@@ -20,6 +21,95 @@ namespace CK.Reflection.Tests
         interface IMessageHandler<in T> : IMessageHandler where T : class
         {
             void Handle( T m );
+        }
+
+        class MessageHandlerMap
+        {
+            readonly ConcurrentDictionary<Type,Delegate[]> _cache;
+            readonly ConcurrentDictionary<Type,byte> _availableHandlers;
+
+            public MessageHandlerMap()
+            {
+                _cache = new ConcurrentDictionary<Type, Delegate[]>();
+                _availableHandlers = new ConcurrentDictionary<Type, byte>();
+            }
+
+            public void AddHandlerType( Type messageHandlerType )
+            {
+                if( _availableHandlers.TryAdd( messageHandlerType, 0 ) )
+                {
+                    _cache.Clear();
+                }
+            }
+            
+            public void AddHandlerType( IEnumerable<Type> messageHandlerTypes )
+            {
+                bool atLeastOne = false;
+                foreach( var h in messageHandlerTypes )
+                {
+                    atLeastOne |= _availableHandlers.TryAdd( h, 0 );
+                }
+                if( atLeastOne )
+                {
+                    _cache.Clear();
+                }
+            }
+
+            public void AddHandlerType( params Type[] messageHandlerType )
+            {
+                AddHandlerType( (IEnumerable<Type>)messageHandlerType );
+            }
+
+            public void RemoveHandlerType( Type messageHandlerType )
+            {
+                byte dummy;
+                if( _availableHandlers.TryRemove( messageHandlerType, out dummy ) )
+                {
+                    _cache.Clear();
+                }
+            }
+
+            public void ClearCachedHandlers()
+            {
+                _cache.Clear();
+            }
+
+            public void ClearHandlerTypes()
+            {
+                _availableHandlers.Clear();
+                _cache.Clear();
+            }
+
+            public void HandleMessage( object message )
+            {
+                var messageType = message.GetType();
+                var handlers = _cache.GetOrAdd( messageType, t => GetCovariantHandlers( t ) );
+                foreach( var d in handlers )
+                {
+                    d.DynamicInvoke( message );
+                }
+            }
+
+            Delegate[] GetCovariantHandlers( Type t )
+            {
+                return _availableHandlers.Keys.Select( h => new
+                {
+                    Delegates = h.GetType().GetInterfaces()
+                                            .Where( i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof( IMessageHandler<> ) )
+                                            .Select( i => new { HInterface = i, HType = i.GetGenericArguments()[0] } )
+                                            .Where( i => Reflection.ReflectionHelper.CovariantMatch( i.HType, t ) )
+                                            //.Select( i =>
+                                            //{
+                                            //    Console.WriteLine( "T = {0}, Message = {1}", i.HType, t );
+                                            //    return i;
+                                            //} )
+                                            .Select( i => h.GetType().GetInterfaceMap( i.HInterface ).TargetMethods[0] )
+                                            .Select( m => Delegate.CreateDelegate( typeof( Action<> ).MakeGenericType( t ), h, m ) )
+                } )
+                .SelectMany( o => o.Delegates )
+                .ToArray();
+            }
+
         }
 
         class StringHandler : IMessageHandler<string>
