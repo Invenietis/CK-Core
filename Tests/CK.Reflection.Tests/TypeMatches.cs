@@ -180,6 +180,13 @@ namespace CK.Reflection.Tests
             Assert.That( test == (msg[0] == 'T'), msg );
         }
 
+
+        [Test]
+        public void MemberInfoEqualityTests()
+        {
+            Assert.That( MemberInfoEqualityComparer.Default.Equals( GetType(), GetType() ) );
+        }
+
     }
 
 }

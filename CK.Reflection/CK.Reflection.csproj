@@ -53,7 +53,7 @@
     </Compile>
     <Compile Include="EmitHelper.cs" />
     <Compile Include="LegacySupport\CustomAttributeExtensions.cs" />
-    <Compile Include="MethodInfoEqualityComparer.cs" />
+    <Compile Include="MemberInfoEqualityComparer.cs" />
     <Compile Include="ReflectionHelper.cs" />
     <Compile Include="ILGeneratorExtension.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
