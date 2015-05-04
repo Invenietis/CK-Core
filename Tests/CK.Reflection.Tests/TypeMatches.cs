@@ -152,6 +152,13 @@ namespace CK.Reflection.Tests
             AssertCheck( "False - CloseBase<bool>, Close2", ReflectionHelper.CovariantMatch( typeof( CloseBase<bool> ), tC2 ) );
             AssertCheck( "False - CloseBase<ValueType>, Close2", ReflectionHelper.CovariantMatch( typeof( CloseBase<ValueType> ), tC2 ) );
 
+            Assert.That( ReflectionHelper.CovariantMatch( typeof( void ), typeof( void ) ), Is.True );
+            Assert.That( ReflectionHelper.CovariantMatch( typeof( int ), typeof( void ) ), Is.False );
+            Assert.That( ReflectionHelper.CovariantMatch( typeof( string ), typeof( void ) ), Is.False );
+            Assert.That( ReflectionHelper.CovariantMatch( typeof( void ), typeof( int ) ), Is.False );
+            Assert.That( ReflectionHelper.CovariantMatch( typeof( void ), typeof( string ) ), Is.False );
+            Assert.That( ReflectionHelper.CovariantMatch( typeof( CloseBase<A> ), typeof( void ) ), Is.False );
+            Assert.That( ReflectionHelper.CovariantMatch( typeof( void ), typeof( CloseBase<A> ) ), Is.False );
         }
 
         private static void CommonToCloseAndClose2( Type tC, string name )
