@@ -458,9 +458,32 @@ namespace CK.Core.Tests.Collection
             Assert.That( export.Contains( SimpleUniqueId.InvalidId ) );
             Assert.That( !export.Contains( SimpleUniqueId.InvalidId.UniqueId ), "Inner object is hidden." );
             Assert.That( export.First( u => u.UniqueId == SimpleUniqueId.InvalidId.UniqueId ) == SimpleUniqueId.InvalidId );
+        }
 
 
+        class StringInt : IComparable<int>
+        {
+            public readonly string Value;
+            public StringInt( string value ) { Value = value; }
 
+            public int CompareTo( int other )
+            {
+                return Int32.Parse( Value ).CompareTo( other );
+            }
+        }
+
+        [TestCase( "", 5, ~0 )]
+        [TestCase( "1", 5, ~1 )]
+        [TestCase( "1", -5, ~0 )]
+        [TestCase( "1,2,5", 5, 2 )]
+        [TestCase( "1,2,5", 4, ~2 )]
+        [TestCase( "1,2,5", 2, 1 )]
+        [TestCase( "1,2,5", 1, 0 )]
+        [TestCase( "1,2,5", 0, ~0 )]
+        public void BinarySearch_on_IComparable_TValue_items( string values, int search, int resultIndex )
+        {
+            var a = values.Split( new[]{','},StringSplitOptions.RemoveEmptyEntries ).Select( v => new StringInt( v ) ).ToReadOnlyList();
+            Assert.That( Util.BinarySearch( a, search ), Is.EqualTo( resultIndex ) );
         }
     }
 }

@@ -136,8 +136,7 @@ namespace CK.Core
         /// </summary>
         /// <remarks>
         /// If more than one element has the maximal projected value, the first
-        /// one encountered will be returned. This overload uses the default comparer
-        /// for the projected type. This operator uses immediate execution, but
+        /// one encountered will be returned. This operator uses immediate execution, but
         /// only buffers a single result (the current maximal element).
         /// </remarks>
         /// <typeparam name="TSource">Type of the source sequence.</typeparam>
