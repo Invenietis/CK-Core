@@ -48,10 +48,10 @@ namespace CK.Core
         /// the log should eventually be emitted.
         /// </summary>
         /// <param name="this">This <see cref="IActivityMonitor"/>.</param>
-        /// <param name="lineNumber">Line number in the source file (automatically injected by C# compiler).</param>
         /// <param name="fileName">Source file name of the emitter (automatically injected by C# compiler).</param>
+        /// <param name="lineNumber">Line number in the source file (automatically injected by C# compiler).</param>
         /// <returns>A <see cref="ActivityMonitorLineSender"/> or null if the log must not be emitted.</returns>
-        static public IActivityMonitorLineSender <#= level #>( this IActivityMonitor @this, [CallerLineNumber]int lineNumber = 0, [CallerFilePath]string fileName = null )
+        static public IActivityMonitorLineSender <#= level #>( this IActivityMonitor @this, [CallerFilePath]string fileName = null, [CallerLineNumber]int lineNumber = 0 )
         {
             return FilterLogLine( @this, LogLevel.<#= level #>, fileName, lineNumber );
         }
@@ -61,10 +61,10 @@ namespace CK.Core
         /// the log should eventually be emitted.
         /// </summary>
         /// <param name="this">This <see cref="IActivityMonitor"/>.</param>
-        /// <param name="lineNumber">Line number in the source file (automatically injected by C# compiler).</param>
         /// <param name="fileName">Source file name of the emitter (automatically injected by C# compiler).</param>
+        /// <param name="lineNumber">Line number in the source file (automatically injected by C# compiler).</param>
         /// <returns>A <see cref="ActivityMonitorGroupSender"/> or null if the group must not be emitted.</returns>
-		static public IActivityMonitorGroupSender Open<#= level #>( this IActivityMonitor @this, [CallerLineNumber]int lineNumber = 0, [CallerFilePath]string fileName = null )
+		static public IActivityMonitorGroupSender Open<#= level #>( this IActivityMonitor @this, [CallerFilePath]string fileName = null, [CallerLineNumber]int lineNumber = 0 )
         {
             return FilteredGroup( @this, LogLevel.<#= level #>, fileName, lineNumber );
         }

@@ -269,9 +269,9 @@ namespace CK.Core.Tests
         [TestCase( 10, 20, true )]
         [TestCase( 1000, 1050, true )]
         [TestCase( 10, 10, true )]
-        [TestCase( 20, 1, true, Description = "20 millisecond lock is not enough to make the difference." )]
-        [TestCase( 20, 5, true, Description = "20 millisecond lock is not enough to make the difference." )]
-        [TestCase( 20, 10, true, Description = "20 millisecond lock is not enough to make the difference." )]
+        //[TestCase( 20, 1, true, Description = "20 millisecond lock is not enough to make the difference." )]
+        //[TestCase( 20, 5, true, Description = "20 millisecond lock is not enough to make the difference." )]
+        //[TestCase( 20, 10, true, Description = "20 millisecond lock is not enough to make the difference." )]
         [TestCase( 20, 0, false, Description = "20 millisecond lock works only with nbMaxMilliSecond = 0." )]
         public void CheckForWriteAcccess_is_not_exact_but_works( int lockTimeMilliSecond, int nbMaxMilliSecond, bool result )
         {

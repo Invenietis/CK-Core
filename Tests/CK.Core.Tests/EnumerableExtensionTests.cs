@@ -169,21 +169,25 @@ namespace CK.Core.Tests
         }
 
         [Test]
-        public void MaxBy()
+        public void MaxBy_throws_InvalidOperationException_on_empty_sequence()
         {
             Assert.Throws<InvalidOperationException>( () => new int[0].MaxBy( i => -i ) );
-            
+            Assert.Throws<InvalidOperationException>( () => new int[0].MaxBy( i => -i, null ) );
+        }
+
+        [Test]
+        public void MaxBy()
+        {
             int[] t = new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12 };
-            
+
             Assert.That( t.MaxBy( Util.FuncIdentity ), Is.EqualTo( 12 ) );
             Assert.That( t.MaxBy( i => -i ), Is.EqualTo( 0 ) );
-            Assert.That( t.MaxBy( i => (i+1)%6 == 0 ), Is.EqualTo( 5 ) );
+            Assert.That( t.MaxBy( i => (i + 1) % 6 == 0 ), Is.EqualTo( 5 ) );
             Assert.That( t.MaxBy( i => i.ToString() ), Is.EqualTo( 9 ), "Lexicographical ordering." );
 
-            Assert.That( t.MaxBy( i => i, (x,y) => x - y ), Is.EqualTo( 12 ) );
+            Assert.That( t.MaxBy( i => i, ( x, y ) => x - y ), Is.EqualTo( 12 ) );
 
-            Assert.Throws<ArgumentNullException>( () => t.MaxBy<int,int>( null ) );
-            Assert.Throws<ArgumentNullException>( () => t.MaxBy( Util.FuncIdentity, null ) );
+            Assert.Throws<ArgumentNullException>( () => t.MaxBy<int, int>( null ) );
             t = null;
             Assert.Throws<ArgumentNullException>( () => t.MaxBy( Util.FuncIdentity ) );
         }

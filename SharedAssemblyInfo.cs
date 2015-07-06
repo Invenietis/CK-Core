@@ -29,8 +29,6 @@ using System.Reflection;
 [assembly: AssemblyCopyright( "Copyright © Invenietis 2007-2015" )]
 [assembly: AssemblyTrademark( "" )]
 [assembly: CLSCompliant( true )]
-[assembly: AssemblyVersion( "4.3.0" )]
-
 
 #if DEBUG
     [assembly: AssemblyConfiguration("Debug")]
@@ -38,5 +36,3 @@ using System.Reflection;
     [assembly: AssemblyConfiguration( "Release" )]
 #endif
 
-// Added by CKReleaser.
-[assembly: AssemblyInformationalVersion( "%ck-standard%" )]

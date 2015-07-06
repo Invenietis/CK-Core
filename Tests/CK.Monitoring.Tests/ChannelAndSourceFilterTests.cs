@@ -75,7 +75,7 @@ namespace CK.Monitoring.Tests
 
                 m.Fatal( fileName: "SourceFile-Off.cs" ).Send( "NOSHOW" );
                 m.SetTopic( "This is a hidden topic..." );
-                m.Trace( 0, "SourceFile-Debug.cs" ).Send( "Trace-1" );
+                m.Trace( "SourceFile-Debug.cs", 0 ).Send( "Trace-1" );
                 m.Trace().Send( "NOSHOW" );
                 m.SetTopic( "Please, hide this topic!" );
                 m.Trace( fileName: "SourceFile-Strange.cs" ).Send( "NOSHOW" );
