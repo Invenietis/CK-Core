@@ -116,7 +116,7 @@ namespace CK.Core
         /// only buffers a single result (the current maximal element).
         /// </remarks>
         /// <typeparam name="TSource">Type of the source sequence.</typeparam>
-        /// <typeparam name="TKey">Type of the projected element. Must be <see cref="ICompararable{TKey}"/>.</typeparam>
+        /// <typeparam name="TKey">Type of the projected element. Must be <see cref="IComparable{TKey}"/>.</typeparam>
         /// <param name="this">Source sequence.</param>
         /// <param name="selector">Selector to use to pick the results to compare</param>
         /// <returns>The maximal element, according to the projection.</returns>
