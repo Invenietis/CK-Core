@@ -37,17 +37,45 @@ namespace CodeCake
                                         .Where( p => p.Name != "CodeCakeBuilder" 
                                                      && p.Name != "CKMon2Htm.ConsoleDemo"
                                                      && !p.Path.Segments.Contains( "Tests" ) );
-
             SimpleRepositoryInfo gitInfo = null;
             string configuration = null;
 
             Task( "Check-Repository" )
                 .Does( () =>
                 {
+                    configuration = "Debug";
+                    Cake.MSBuild( projectsToPublish.Single( p => p.Name == "CKMon2Htm" ).Path, new MSBuildSettings()
+                        .WithTarget( "Publish" )
+                            .SetConfiguration( configuration )
+                            //.WithProperty( "PublishUrl", @"CodeCakeBuilder\Release\CKMon2Htm\" + configuration )
+                    );
+
+                    var assembliesToSign = projectsToPublish
+                               .Select( p => p.Path.GetDirectory() + "/bin/" + configuration + "/" + p.Name.Replace( ".Net40", "" ) )
+                               .SelectMany( p => new[] { p + ".dll", p + ".exe" } )
+                               .Where( p => Cake.FileExists( p ) );
+
+                    Cake.Information( "Publishing {0} projects with version={1} and configuration={2}: {3}", 
+                        projectsToPublish.Count(), 
+                        "ppp", //gitInfo.SemVer, 
+                        configuration, 
+                        String.Join( ", ", projectsToPublish.Select( p => p.Name ) ) );
+
+                    Cake.Information( "Publishing {0} projects with version={1} and configuration={2}: {3}", 
+                        projectsToPublish.Count(), 
+                        "pppp", //gitInfo.SemVer, 
+                        configuration, 
+                        String.Join( ", ", assembliesToSign ) );
+
                     gitInfo = Cake.GetSimpleRepositoryInfo();
                     if( !gitInfo.IsValid ) throw new Exception( "Repository is not ready to be published." );
                     configuration = gitInfo.IsValidRelease && gitInfo.PreReleaseName.Length == 0 ? "Release" : "Debug";
-                    Cake.Information( "Publishing {0} in {1}.", gitInfo.SemVer, configuration );
+
+                    Cake.Information( "Publishing {0} projects with version={1} and configuration={2}: {3}", 
+                        projectsToPublish.Count(), 
+                        gitInfo.SemVer, 
+                        configuration, 
+                        String.Join( ", ", projectsToPublish.Select( p => p.Name ) ) );
                 } );
 
             Task( "Clean" )
@@ -65,7 +93,7 @@ namespace CodeCake
                 {
                     using( var tempSln = Cake.CreateTemporarySolutionFile( "CK-Core.sln" ) )
                     {
-                        tempSln.ExcludeProjectsFromBuild( "CodeCakeBuilder" );
+                        tempSln.ExcludeProjectsFromBuild( "CodeCakeBuilder", "CKMon2Htm" );
                         Cake.MSBuild( tempSln.FullPath, new MSBuildSettings()
                                 .SetConfiguration( configuration )
                                 .SetVerbosity( Verbosity.Minimal )
@@ -77,6 +105,11 @@ namespace CodeCake
                                 // </PropertyGroup>
                                 //
                                 .WithProperty( "GenerateDocumentation", "true" ) );
+                        Cake.MSBuild( projectsToPublish.Single( p => p.Name == "CKMon2Htm" ).Path, new MSBuildSettings()
+                            .WithTarget( "Publish" )
+                                .SetConfiguration( configuration )
+                                .WithProperty( "PublishUrl", @"CodeCakeBuilder\Release\CKMon2Htm\" + configuration )
+                        );
                     }
                 } );
 
@@ -84,17 +117,26 @@ namespace CodeCake
                 .IsDependentOn( "Build" )
                 .Does( () =>
                 {
-                    Cake.NUnit( "Tests/*.Tests/bin/" + configuration + "/*.Tests.dll", new NUnitSettings() { Framework = "v4.5" } );
+                    Cake.NUnit( "Tests/*.Tests/bin/" + configuration + "/*.Tests.dll", new NUnitSettings() {
+                        Framework = "v4.5",
+                        OutputFile = nugetOutputDir.Path + "/TestResult.txt",
+                        StopOnError = true
+                    } );
+                    Cake.NUnit( "net40/Tests/*.Tests/bin/" + configuration + "/*.Tests.dll", new NUnitSettings() {
+                        Framework = "v4.0",
+                        OutputFile = nugetOutputDir.Path + "/TestResult.net40.txt",
+                        StopOnError = true
+                    } );
                 } );
 
 
             Task( "Sign-Assemblies" )
-                .IsDependentOn( "Unit-Testing" )
+                .IsDependentOn( "Build" )
                 .WithCriteria( () => !gitInfo.IsValidCIBuild )
                 .Does( () =>
                 {
                     var assembliesToSign = projectsToPublish
-                               .Select( p => p.Path.GetDirectory() + "/bin/" + configuration + "/" + p.Name )
+                               .Select( p => p.Path.GetDirectory() + "/bin/" + configuration + "/" + p.Name.Replace( ".Net40", "" ) )
                                .SelectMany( p => new[] { p + ".dll", p + ".exe" } )
                                .Where( p => Cake.FileExists( p ) );
 
@@ -109,7 +151,8 @@ namespace CodeCake
                 } );
 
             Task( "Create-NuGet-Packages" )
-                .IsDependentOn( "Build" )
+                .IsDependentOn( "Sign-Assemblies" )
+                .IsDependentOn( "Unit-Testing" )
                 .Does( () =>
                 {
                     Cake.CreateDirectory( nugetOutputDir );
