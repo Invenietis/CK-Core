@@ -15,7 +15,7 @@
     <IsWebBootstrapper>true</IsWebBootstrapper>
     <NuGetPackageImportStamp>
     </NuGetPackageImportStamp>
-    <PublishUrl>..\..\CodeCakeBuilder\Release\CKMon2Htm\Release</PublishUrl>
+    <PublishDir>..\..\CodeCakeBuilder\Release\CKMon2Htm\Release</PublishDir>
     <Install>true</Install>
     <InstallFrom>Web</InstallFrom>
     <UpdateEnabled>true</UpdateEnabled>
@@ -36,8 +36,6 @@
     <UseApplicationTrust>true</UseApplicationTrust>
     <PublishWizardCompleted>true</PublishWizardCompleted>
     <BootstrapperEnabled>true</BootstrapperEnabled>
-    <!-- This is ignored. -->
-    <!-- This is redefined in AfterBuild with the SGVFileVersion. -->
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -72,16 +70,7 @@
     <GenerateManifests>true</GenerateManifests>
   </PropertyGroup>
   <PropertyGroup>
-    <SignManifests>true</SignManifests>
-  </PropertyGroup>
-  <PropertyGroup>
-    <ManifestTimestampUrl>http://timestamp.verisign.com/scripts/timstamp.dll</ManifestTimestampUrl>
-  </PropertyGroup>
-  <PropertyGroup>
-    <ManifestCertificateThumbprint>0B1F20237019856DD3E05FA766094C5D20CC1D56</ManifestCertificateThumbprint>
-  </PropertyGroup>
-  <PropertyGroup>
-    <ManifestKeyFile>Invenietis-Authenticode.pfx</ManifestKeyFile>
+    <SignManifests>false</SignManifests>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
@@ -141,7 +130,6 @@
     <None Include="..\..\SharedKey.snk">
       <Link>SharedKey.snk</Link>
     </None>
-    <None Include="Invenietis-Authenticode.pfx" />
     <None Include="packages.config" />
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
@@ -225,10 +213,18 @@
        Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">
   </Target> -->
-  <Target Name="AfterBuild">
+  <Target Name="AfterSimpleGitVersion" AfterTargets="SimpleGitVersionBeforeCompile" BeforeTargets="CoreCompile">
     <PropertyGroup>
       <!-- Redefines the application version for the Publish target. -->
       <ApplicationVersion>$(SGVFileVersion)</ApplicationVersion>
+      <PublishDir>..\..\CodeCakeBuilder\Release\CKMon2Htm\Release\</PublishDir>
+      <ProductName>$(ProductName) - $(SGVSemVer)</ProductName>
     </PropertyGroup>
+    <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
+      <AssemblyName>$(AssemblyName).PreRelease</AssemblyName>
+      <ProductName>$(ProductName) - PreRelease</ProductName>
+      <PublishDir>..\..\CodeCakeBuilder\Release\CKMon2Htm\PreRelease\</PublishDir>
+    </PropertyGroup>
+    <Message Text="ApplicationVersion = $(ApplicationVersion), PublishDir = $(PublishDir), AssemblyName = $(AssemblyName), ProductName = $(ProductName)." Importance="high" />
   </Target>
 </Project>
