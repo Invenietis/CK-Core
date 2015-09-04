@@ -43,30 +43,6 @@ namespace CodeCake
             Task( "Check-Repository" )
                 .Does( () =>
                 {
-                    configuration = "Debug";
-                    Cake.MSBuild( projectsToPublish.Single( p => p.Name == "CKMon2Htm" ).Path, new MSBuildSettings()
-                        .WithTarget( "Publish" )
-                            .SetConfiguration( configuration )
-                            //.WithProperty( "PublishUrl", @"CodeCakeBuilder\Release\CKMon2Htm\" + configuration )
-                    );
-
-                    var assembliesToSign = projectsToPublish
-                               .Select( p => p.Path.GetDirectory() + "/bin/" + configuration + "/" + p.Name.Replace( ".Net40", "" ) )
-                               .SelectMany( p => new[] { p + ".dll", p + ".exe" } )
-                               .Where( p => Cake.FileExists( p ) );
-
-                    Cake.Information( "Publishing {0} projects with version={1} and configuration={2}: {3}", 
-                        projectsToPublish.Count(), 
-                        "ppp", //gitInfo.SemVer, 
-                        configuration, 
-                        String.Join( ", ", projectsToPublish.Select( p => p.Name ) ) );
-
-                    Cake.Information( "Publishing {0} projects with version={1} and configuration={2}: {3}", 
-                        projectsToPublish.Count(), 
-                        "pppp", //gitInfo.SemVer, 
-                        configuration, 
-                        String.Join( ", ", assembliesToSign ) );
-
                     gitInfo = Cake.GetSimpleRepositoryInfo();
                     if( !gitInfo.IsValid ) throw new Exception( "Repository is not ready to be published." );
                     configuration = gitInfo.IsValidRelease && gitInfo.PreReleaseName.Length == 0 ? "Release" : "Debug";
@@ -105,11 +81,10 @@ namespace CodeCake
                                 // </PropertyGroup>
                                 //
                                 .WithProperty( "GenerateDocumentation", "true" ) );
+
                         Cake.MSBuild( projectsToPublish.Single( p => p.Name == "CKMon2Htm" ).Path, new MSBuildSettings()
                             .WithTarget( "Publish" )
-                                .SetConfiguration( configuration )
-                                .WithProperty( "PublishUrl", @"CodeCakeBuilder\Release\CKMon2Htm\" + configuration )
-                        );
+                            .SetConfiguration( configuration ) );
                     }
                 } );
 
