@@ -68,10 +68,14 @@
     <Compile Include="Build.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="SecureFile.cs" />
+    <Compile Include="SecureFileAliases.cs" />
+    <Compile Include="TemporaryFile.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
     <None Include="Bootstrap.ps1" />
+    <None Include="Invenietis-Authenticode.pfx.enc" />
     <None Include="NuSpec\CK.Core.ActivityMonitor.CommonLoggingAdapter.nuspec" />
     <None Include="NuSpec\CK.Core.ActivityMonitor.NLogAdapter.nuspec" />
     <None Include="NuSpec\CK.Core.nuspec" />
