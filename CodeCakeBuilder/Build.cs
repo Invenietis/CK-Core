@@ -16,6 +16,7 @@ using Cake.Core.Diagnostics;
 using Cake.Common.Tools.NUnit;
 using Cake.Common.Text;
 using Cake.Common.Tools.NuGet.Push;
+using System.IO;
 
 namespace CodeCake
 {
@@ -113,25 +114,25 @@ namespace CodeCake
                 .WithCriteria( () => gitInfo.IsValidRelease )
                 .Does( () =>
                 {
-                    var assembliesToSign = projectsToPublish
-                               .Select( p => p.Path.GetDirectory() + "/bin/" + configuration + "/" + p.Name.Replace( ".Net40", "" ) )
-                               .SelectMany( p => new[] { p + ".dll", p + ".exe" } )
-                               .Where( p => Cake.FileExists( p ) );
+                    //var assembliesToSign = projectsToPublish
+                    //           .Select( p => p.Path.GetDirectory() + "/bin/" + configuration + "/" + p.Name.Replace( ".Net40", "" ) )
+                    //           .SelectMany( p => new[] { p + ".dll", p + ".exe" } )
+                    //           .Where( p => Cake.FileExists( p ) );
 
-                    if( secureFilePassPhrase == null )
-                        secureFilePassPhrase = Cake.InteractiveEnvironmentVariable( "SECURE-FILE-PASSPHRASE" );
-                    if( string.IsNullOrEmpty( secureFilePassPhrase ) ) throw new InvalidOperationException( "Could not resolve SECURE-FILE-PASSPHRASE." );
+                    //if( secureFilePassPhrase == null )
+                    //    secureFilePassPhrase = Cake.InteractiveEnvironmentVariable( "SECURE-FILE-PASSPHRASE" );
+                    //if( string.IsNullOrEmpty( secureFilePassPhrase ) ) throw new InvalidOperationException( "Could not resolve SECURE-FILE-PASSPHRASE." );
 
-                    using( TemporaryFile pfx = Cake.SecureFileUncrypt( "CodeCakeBuilder/Invenietis-Authenticode.pfx.enc", secureFilePassPhrase ) )
-                    {
-                        var signSettingsForRelease = new SignToolSignSettings()
-                        {
-                            TimeStampUri = new Uri( "http://timestamp.verisign.com/scripts/timstamp.dll" ),
-                            CertPath = pfx.Path,
-                            Password = Cake.InteractiveEnvironmentVariable( "AUTHENTICODE-PASSPHRASE" )
-                        };
-                        Cake.Sign( assembliesToSign, signSettingsForRelease );
-                    }
+                    //using( TemporaryFile pfx = Cake.SecureFileUncrypt( "CodeCakeBuilder/Invenietis-Authenticode.pfx.enc", secureFilePassPhrase ) )
+                    //{
+                    //    var signSettingsForRelease = new SignToolSignSettings()
+                    //    {
+                    //        TimeStampUri = new Uri( "http://timestamp.verisign.com/scripts/timstamp.dll" ),
+                    //        CertPath = pfx.Path,
+                    //        Password = Cake.InteractiveEnvironmentVariable( "AUTHENTICODE-PASSPHRASE" )
+                    //    };
+                    //    Cake.Sign( assembliesToSign, signSettingsForRelease );
+                    //}
                 } );
 
             Task( "Create-NuGet-Packages" )
@@ -160,19 +161,36 @@ namespace CodeCake
                 .WithCriteria( () => gitInfo.IsValidRelease )
                 .Does( () =>
                 {
-                    // Resolve the API key.
+                    if( Cake.IsInteractiveMode() )
+                    {
+                        string localFeed = Cake.FindDirectoryAbove( "LocalFeed" );
+                        if( localFeed != null )
+                        {
+                            Cake.Information( "Local feed directory found: {0}", localFeed );
+                            if( Cake.ReadInteractiveOption( "Press Y to copy nuget packages to LocalFeed.", 'Y', 'N' ) == 'Y' )
+                            {
+                                Cake.CopyFiles( nugetOutputDir.Path + "/*.nupkg", localFeed );
+                            }
+                        }
+                    }
+                    // Resolves the API key.
                     var apiKey = Cake.InteractiveEnvironmentVariable( "NUGET_API_KEY" );
-                    if( string.IsNullOrEmpty( apiKey ) ) throw new InvalidOperationException( "Could not resolve NuGet API key." );
-
-                    var settings = new NuGetPushSettings
+                    if( string.IsNullOrEmpty( apiKey ) )
                     {
-                        Source = "https://www.nuget.org/api/v2/package",
-                        ApiKey = apiKey
-                    };
-
-                    foreach( var nupkg in Cake.GetFiles( nugetOutputDir.Path + "/*.nupkg" ) )
+                        Cake.Information( "Could not resolve NuGet API key. Push to NuGet is skipped." );
+                    }
+                    else
                     {
-                        Cake.NuGetPush( nupkg, settings );
+                        var settings = new NuGetPushSettings
+                        {
+                            Source = "https://www.nuget.org/api/v2/package",
+                            ApiKey = apiKey
+                        };
+
+                        foreach( var nupkg in Cake.GetFiles( nugetOutputDir.Path + "/*.nupkg" ) )
+                        {
+                            Cake.NuGetPush( nupkg, settings );
+                        }
                     }
                 } );
 
@@ -185,6 +203,7 @@ namespace CodeCake
                     Cake.MSBuild( projectsToPublish.Single( p => p.Name == "CKMon2Htm" ).Path, new MSBuildSettings()
                         .WithTarget( "Publish" )
                         .SetConfiguration( configuration ) );
+
                 } );
 
             // The Default task for this script can be set here.

@@ -268,7 +268,6 @@ namespace CK.Core.Tests
         [TestCase( 100, 50, false )]
         [TestCase( 10, 20, true )]
         [TestCase( 1000, 1050, true )]
-        [TestCase( 10, 10, true )]
         //[TestCase( 20, 1, true, Description = "20 millisecond lock is not enough to make the difference." )]
         //[TestCase( 20, 5, true, Description = "20 millisecond lock is not enough to make the difference." )]
         //[TestCase( 20, 10, true, Description = "20 millisecond lock is not enough to make the difference." )]

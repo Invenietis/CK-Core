@@ -44,7 +44,7 @@
       <Private>True</Private>
     </Reference>
     <Reference Include="Code.Cake, Version=0.1.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Code.Cake.0.1.0-beta\lib\net45\Code.Cake.dll</HintPath>
+      <HintPath>..\packages\Code.Cake.0.1.0-r02\lib\net45\Code.Cake.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="SimpleGitVersion.Cake, Version=0.5.0.0, Culture=neutral, processorArchitecture=MSIL">
@@ -68,9 +68,6 @@
     <Compile Include="Build.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="SecureFile.cs" />
-    <Compile Include="SecureFileAliases.cs" />
-    <Compile Include="TemporaryFile.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
