@@ -2,4 +2,7 @@
 <RepositoryInfo xmlns="http://csemver.org/schemas/2015">
 	<StartingVersionForCSemVer>v4.2.0</StartingVersionForCSemVer>
   <!--<Debug IgnoreDirtyWorkingFolder="true"/>-->
+  <Branches>
+    <Branch Name="develop" CIVersionMode="LastReleaseBased" />
+  </Branches>
 </RepositoryInfo>

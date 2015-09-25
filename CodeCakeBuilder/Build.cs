@@ -114,25 +114,25 @@ namespace CodeCake
                 .WithCriteria( () => gitInfo.IsValidRelease )
                 .Does( () =>
                 {
-                    //var assembliesToSign = projectsToPublish
-                    //           .Select( p => p.Path.GetDirectory() + "/bin/" + configuration + "/" + p.Name.Replace( ".Net40", "" ) )
-                    //           .SelectMany( p => new[] { p + ".dll", p + ".exe" } )
-                    //           .Where( p => Cake.FileExists( p ) );
+                    var assembliesToSign = projectsToPublish
+                               .Select( p => p.Path.GetDirectory() + "/bin/" + configuration + "/" + p.Name.Replace( ".Net40", "" ) )
+                               .SelectMany( p => new[] { p + ".dll", p + ".exe" } )
+                               .Where( p => Cake.FileExists( p ) );
 
-                    //if( secureFilePassPhrase == null )
-                    //    secureFilePassPhrase = Cake.InteractiveEnvironmentVariable( "SECURE-FILE-PASSPHRASE" );
-                    //if( string.IsNullOrEmpty( secureFilePassPhrase ) ) throw new InvalidOperationException( "Could not resolve SECURE-FILE-PASSPHRASE." );
+                    if( secureFilePassPhrase == null )
+                        secureFilePassPhrase = Cake.InteractiveEnvironmentVariable( "SECURE-FILE-PASSPHRASE" );
+                    if( string.IsNullOrEmpty( secureFilePassPhrase ) ) throw new InvalidOperationException( "Could not resolve SECURE-FILE-PASSPHRASE." );
 
-                    //using( TemporaryFile pfx = Cake.SecureFileUncrypt( "CodeCakeBuilder/Invenietis-Authenticode.pfx.enc", secureFilePassPhrase ) )
-                    //{
-                    //    var signSettingsForRelease = new SignToolSignSettings()
-                    //    {
-                    //        TimeStampUri = new Uri( "http://timestamp.verisign.com/scripts/timstamp.dll" ),
-                    //        CertPath = pfx.Path,
-                    //        Password = Cake.InteractiveEnvironmentVariable( "AUTHENTICODE-PASSPHRASE" )
-                    //    };
-                    //    Cake.Sign( assembliesToSign, signSettingsForRelease );
-                    //}
+                    using( TemporaryFile pfx = Cake.SecureFileUncrypt( "CodeCakeBuilder/Invenietis-Authenticode.pfx.enc", secureFilePassPhrase ) )
+                    {
+                        var signSettingsForRelease = new SignToolSignSettings()
+                        {
+                            TimeStampUri = new Uri( "http://timestamp.verisign.com/scripts/timstamp.dll" ),
+                            CertPath = pfx.Path,
+                            Password = Cake.InteractiveEnvironmentVariable( "AUTHENTICODE-PASSPHRASE" )
+                        };
+                        Cake.Sign( assembliesToSign, signSettingsForRelease );
+                    }
                 } );
 
             Task( "Create-NuGet-Packages" )
@@ -167,7 +167,7 @@ namespace CodeCake
                         if( localFeed != null )
                         {
                             Cake.Information( "Local feed directory found: {0}", localFeed );
-                            if( Cake.ReadInteractiveOption( "Press Y to copy nuget packages to LocalFeed.", 'Y', 'N' ) == 'Y' )
+                            if( Cake.ReadInteractiveOption( "Press Y to copy nuget packages to LocalFeed.", 'y', 'n' ) == 'y' )
                             {
                                 Cake.CopyFiles( nugetOutputDir.Path + "/*.nupkg", localFeed );
                             }
