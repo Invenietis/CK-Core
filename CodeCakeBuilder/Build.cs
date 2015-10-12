@@ -24,7 +24,7 @@ namespace CodeCake
     /// Sample build "script".
     /// It can be decorated with AddPath attributes that inject paths into the PATH environment variable. 
     /// </summary>
-    [AddPath( "%LOCALAPPDATA%/NuGet" )]
+    [AddPath( "CodeCakeBuilder/Tools" )]
     [AddPath( "packages/**/tools*" )]
     public class Build : CodeCakeHost
     {

@@ -32,6 +32,7 @@ using System.Threading.Tasks;
 using CK.Core;
 using CK.Monitoring.GrandOutputHandlers;
 using CK.RouteConfig;
+using System.Threading;
 
 namespace CK.Monitoring
 {
@@ -142,9 +143,17 @@ namespace CK.Monitoring
             ActivityMonitor.CriticalErrorCollector.Add( e.GetException(), String.Format( "While monitoring GrandOutput.Default configuration file '{0}'.", _watcher.Path ) );
         }
 
-        static void _watcher_Changed( object sender, FileSystemEventArgs e )
+        static void _watcher_Changed( object sender, FileSystemEventArgs unusedEventArgs )
         {
             if( _watcher == null ) return;
+            ThreadPool.UnsafeQueueUserWorkItem( Reload, null );
+        }
+        static void Reload( object state )
+        {
+            if( _watcher == null ) return;
+            // Quick and dirty trick to handle Renamed events
+            // or too quick events.
+            Thread.Sleep( 100 );
             var time = File.GetLastWriteTimeUtc( _configPath );
             if( time != _lastConfigFileWriteTime )
             {

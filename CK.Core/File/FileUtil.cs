@@ -367,16 +367,28 @@ namespace CK.Core
                     if( counter == maxTryBeforeGuid + 1 ) throw new CKException( R.FileUtilUnableToCreateUniqueTimedFile );
                     if( counter == maxTryBeforeGuid )
                     {
-                        Debug.Assert( Convert.ToBase64String( Guid.NewGuid().ToByteArray() ).Length == 24 );
-                        Debug.Assert( Convert.ToBase64String( Guid.NewGuid().ToByteArray() ).EndsWith( "==" ) );
-                        // Use http://en.wikipedia.org/wiki/Base64#URL_applications encoding.
-                        string dedup = Convert.ToBase64String( Guid.NewGuid().ToByteArray() ).Remove( 22 ).Replace( '+', '-' ).Replace( '/', '_' );
-                        result = pathPrefix + time.ToString( FileNameUniqueTimeUtcFormat, CultureInfo.InvariantCulture ) + "-" + dedup + fileSuffix;
+                        result = pathPrefix + FormatTimedUniqueFilePart( time ) + fileSuffix;
                     }
                 }
                 ++counter;
             }
             return result;
+        }
+
+        /// <summary>
+        /// Formats a string that is file name compatible from the given time and a <see cref="Guid.NewGuid()"/>
+        /// where time uses <see cref="FileNameUniqueTimeUtcFormat"/> and the new Guid is 
+        /// encoded with http://en.wikipedia.org/wiki/Base64#URL_applications.
+        /// </summary>
+        /// <param name="time">The date time to use.</param>
+        /// <returns>A string with the time and a new guid in a file system compatible format.</returns>
+        public static string FormatTimedUniqueFilePart( DateTime time )
+        {
+            Debug.Assert( Convert.ToBase64String( Guid.NewGuid().ToByteArray() ).Length == 24 );
+            Debug.Assert( Convert.ToBase64String( Guid.NewGuid().ToByteArray() ).EndsWith( "==" ) );
+            // Use http://en.wikipedia.org/wiki/Base64#URL_applications encoding.
+            string dedup = Convert.ToBase64String( Guid.NewGuid().ToByteArray() ).Remove( 22 ).Replace( '+', '-' ).Replace( '/', '_' );
+            return time.ToString( FileNameUniqueTimeUtcFormat, CultureInfo.InvariantCulture ) + "-" + dedup;
         }
 
         /// <summary>

@@ -248,7 +248,6 @@ namespace CK.Monitoring.Tests
 
                 exec.WaitForNextConfiguration( confCount + 5 );
                 Assert.That( exec.GetConfigurationAttemptCount(), Is.EqualTo( confCount + 5 ) );
-
                 Assert.That( exec.GetLocalMonitorActualFilter(), Is.EqualTo( LogFilter.Terse ) );
                 exec.SendLine( LogLevel.Warn, "NOSHOW (since it now defaults to Terse filter)" );
                 exec.SendLine( LogLevel.Error, "ErrorWithTerseFilter2" );
@@ -260,7 +259,7 @@ namespace CK.Monitoring.Tests
                 catch { }
                 AppDomain.Unload( domain );
             }
-
+            Thread.Sleep( 200 );
             List<StupidStringClient> logs = TestHelper.ReadAllLogs( new DirectoryInfo( RunInAnotherAppDomain.DomainRootLogPath + "GrandOutputDefault" ), false );
 
             Assert.That( logs.Count, Is.EqualTo( 6 ), "It contains the test monitor but also the monitoring of the reconfiguration due to the 5 file changes." );
