@@ -159,6 +159,25 @@ namespace CK.Reflection.Tests
             Assert.That( ReflectionHelper.CovariantMatch( typeof( void ), typeof( string ) ), Is.False );
             Assert.That( ReflectionHelper.CovariantMatch( typeof( CloseBase<A> ), typeof( void ) ), Is.False );
             Assert.That( ReflectionHelper.CovariantMatch( typeof( void ), typeof( CloseBase<A> ) ), Is.False );
+
+            IList<List<object>> l1 = new List<List<object>>(); //Intellisense sample
+            Assert.That( ReflectionHelper.CovariantMatch( typeof( IList<List<object>> ), typeof( List<List<object>> ) ), Is.True, "L1 typeof( IList<List<object>> ), typeof( List<List<object>> )" ); 
+
+            //fail, todo fix
+            IList<ICollection<object>> l2 = new List<ICollection<object>>(); //Intellisense sample
+            Assert.That( ReflectionHelper.CovariantMatch( typeof( IList<ICollection<object>> ), typeof( List<ICollection<object>> ) ), Is.True, "L2 typeof( IList<ICollection<object>> ), typeof( List<ICollection<object>> )" );
+
+            //fail, todo fix
+            ICollection<IEnumerable<object>> l3 = new List<IEnumerable<object>>(); //Intellisense sample
+            Assert.That( ReflectionHelper.CovariantMatch( typeof( ICollection<IEnumerable<object>> ), typeof( List<IEnumerable<object>> ) ), Is.True, "L3 typeof( ICollection<IEnumerable<object>> ), typeof( List<IEnumerable<object>> )" );
+
+            IEnumerable<IEnumerable<object>> l4 = new List<ICollection<object>>(); //Intellisense sample
+            Assert.That( ReflectionHelper.CovariantMatch( typeof( IEnumerable<IEnumerable<object>> ), typeof( List<ICollection<object>> ) ), Is.True, "L4 typeof( IEnumerable<IEnumerable<object>> ), typeof( List<ICollection<object>> )" );
+
+            //fail, todo fix
+            ICollection<ICollection<object>> l5 = new List<ICollection<object>>(); //Intellisense sample
+            Assert.That( ReflectionHelper.CovariantMatch( typeof( ICollection<ICollection<object>> ), typeof( List<ICollection<object>> ) ), Is.True, "L5 typeof( ICollection<ICollection<object>> ), typeof( List<ICollection<object>> )" );
+
         }
 
         private static void CommonToCloseAndClose2( Type tC, string name )
