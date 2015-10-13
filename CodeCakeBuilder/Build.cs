@@ -66,8 +66,15 @@ namespace CodeCake
                     Cake.CleanDirectories( nugetOutputDir );
                 } );
 
+            Task( "Restore-NuGet-Packages" )
+                .Does( () =>
+                {
+                    Cake.NuGetRestore( "CK-Core.sln" );
+                } );
+
             Task( "Build" )
                 .IsDependentOn( "Clean" )
+                .IsDependentOn( "Restore-NuGet-Packages" )
                 .Does( () =>
                 {
                     // Builds the assemblies, not the CKMon2Htm application.
@@ -196,6 +203,7 @@ namespace CodeCake
 
             Task( "Publish-CKMon" )
                 .IsDependentOn( "Clean" )
+                .IsDependentOn( "Restore-NuGet-Packages" )
                 .WithCriteria( () => gitInfo.IsValidRelease && gitInfo.PreReleaseName == "" )
                 .Does( () =>
                 {
