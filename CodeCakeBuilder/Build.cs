@@ -101,6 +101,7 @@ namespace CodeCake
                 .IsDependentOn( "Build" )
                 .Does( () =>
                 {
+                    Cake.CreateDirectory( nugetOutputDir );
                     Cake.NUnit( "Tests/*.Tests/bin/" + configuration + "/*.Tests.dll", new NUnitSettings()
                     {
                         Framework = "v4.5",
@@ -147,7 +148,6 @@ namespace CodeCake
                 .IsDependentOn( "Unit-Testing" )
                 .Does( () =>
                 {
-                    Cake.CreateDirectory( nugetOutputDir );
                     var settings = new NuGetPackSettings()
                     {
                         Version = gitInfo.NuGetVersion,
