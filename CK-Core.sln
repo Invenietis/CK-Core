@@ -32,6 +32,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CK.Storage.Tests.ExternalDl
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Shared Items", "Shared Items", "{E3559EF9-ED4A-4169-9287-6F94CFBD09FA}"
 	ProjectSection(SolutionItems) = preProject
+		appveyor.yml = appveyor.yml
 		Release Note 3.0.txt = Release Note 3.0.txt
 		Release Note 4.0.txt = Release Note 4.0.txt
 		RepositoryInfo.xml = RepositoryInfo.xml

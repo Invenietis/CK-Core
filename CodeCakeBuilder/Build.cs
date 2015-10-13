@@ -128,8 +128,8 @@ namespace CodeCake
                                .Where( p => Cake.FileExists( p ) );
 
                     if( secureFilePassPhrase == null )
-                        secureFilePassPhrase = Cake.InteractiveEnvironmentVariable( "SECURE-FILE-PASSPHRASE" );
-                    if( string.IsNullOrEmpty( secureFilePassPhrase ) ) throw new InvalidOperationException( "Could not resolve SECURE-FILE-PASSPHRASE." );
+                        secureFilePassPhrase = Cake.InteractiveEnvironmentVariable( "SECURE_FILE_PASSPHRASE" );
+                    if( string.IsNullOrEmpty( secureFilePassPhrase ) ) throw new InvalidOperationException( "Could not resolve SECURE_FILE_PASSPHRASE." );
 
                     using( TemporaryFile pfx = Cake.SecureFileUncrypt( "CodeCakeBuilder/Invenietis-Authenticode.pfx.enc", secureFilePassPhrase ) )
                     {
@@ -137,7 +137,7 @@ namespace CodeCake
                         {
                             TimeStampUri = new Uri( "http://timestamp.verisign.com/scripts/timstamp.dll" ),
                             CertPath = pfx.Path,
-                            Password = Cake.InteractiveEnvironmentVariable( "AUTHENTICODE-PASSPHRASE" )
+                            Password = Cake.InteractiveEnvironmentVariable( "AUTHENTICODE_PASSPHRASE" )
                         };
                         Cake.Sign( assembliesToSign, signSettingsForRelease );
                     }
