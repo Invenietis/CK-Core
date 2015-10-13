@@ -167,7 +167,7 @@ namespace CodeCake
                         if( localFeed != null )
                         {
                             Cake.Information( "Local feed directory found: {0}", localFeed );
-                            if( Cake.ReadInteractiveOption( "Press Y to copy nuget packages to LocalFeed.", 'y', 'n' ) == 'y' )
+                            if( Cake.ReadInteractiveOption( "Press Y to copy nuget packages to LocalFeed.", 'Y', 'N' ) == 'Y' )
                             {
                                 Cake.CopyFiles( nugetOutputDir.Path + "/*.nupkg", localFeed );
                             }
@@ -203,7 +203,8 @@ namespace CodeCake
                     Cake.MSBuild( projectsToPublish.Single( p => p.Name == "CKMon2Htm" ).Path, new MSBuildSettings()
                         .WithTarget( "Publish" )
                         .SetConfiguration( configuration ) );
-
+                    // TODO: Resign the published project.
+                    // TODO:Push the application.
                 } );
 
             // The Default task for this script can be set here.
