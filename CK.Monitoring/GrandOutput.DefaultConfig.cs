@@ -165,20 +165,27 @@ namespace CK.Monitoring
                     _lastConfigFileWriteTime = time;
                 }
                 var monitor = new SystemActivityMonitor( true, "GrandOutput.Default.Reconfiguration" ) { MinimalFilter = GrandOutputMinimalFilter };
-                using( monitor.OpenInfo().Send( "AppDomain '{0}',  file '{1}' changed (change n°{2}).", AppDomain.CurrentDomain.FriendlyName, _configPath, _default.ConfigurationAttemptCount ) )
+                try
                 {
-                    def = CreateDefaultConfig();
-                    if( File.Exists( _configPath ) )
+                    using( monitor.OpenInfo().Send( "AppDomain '{0}',  file '{1}' changed (change n°{2}).", AppDomain.CurrentDomain.FriendlyName, _configPath, _default.ConfigurationAttemptCount ) )
                     {
-                        if( time == FileUtil.MissingFileLastWriteTimeUtc ) _lastConfigFileWriteTime = File.GetLastWriteTimeUtc( _configPath );
-                        def.LoadFromFile( _configPath, monitor );
+                        def = CreateDefaultConfig();
+                        if( File.Exists( _configPath ) )
+                        {
+                            if( time == FileUtil.MissingFileLastWriteTimeUtc ) _lastConfigFileWriteTime = File.GetLastWriteTimeUtc( _configPath );
+                            def.LoadFromFile( _configPath, monitor );
+                        }
+                        else
+                        {
+                            _lastConfigFileWriteTime = FileUtil.MissingFileLastWriteTimeUtc;
+                            monitor.Trace().Send( "File missing: applying catch-all default configuration." );
+                        }
+                        if( !_default._channelHost.IsDisposed ) _default.SetConfiguration( def, monitor );
                     }
-                    else
-                    {
-                        _lastConfigFileWriteTime = FileUtil.MissingFileLastWriteTimeUtc;
-                        monitor.Trace().Send( "File missing: applying catch-all default configuration." );
-                    }
-                    if( !_default._channelHost.IsDisposed ) _default.SetConfiguration( def, monitor );
+                }
+                catch( Exception ex )
+                {
+                    monitor.Error().Send( ex );
                 }
             }
         }
