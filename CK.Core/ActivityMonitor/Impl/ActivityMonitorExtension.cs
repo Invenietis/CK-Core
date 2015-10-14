@@ -283,7 +283,7 @@ namespace CK.Core
 
         #region Catch & CatchCounter
 
-        [Obsolete( "Use less ambiguous CollectEntries method instead.", false )]
+        [Obsolete( "Use less ambiguous CollectEntries method instead.", true )]
         public static IDisposable Catch( this IActivityMonitor @this, Action<IReadOnlyList<ActivityMonitorSimpleCollector.Entry>> errorHandler, LogLevelFilter level = LogLevelFilter.Error )
         {
             return Catch( @this, errorHandler, level );
@@ -310,7 +310,7 @@ namespace CK.Core
             } );
         }
 
-        [Obsolete( "Use OnError method instead.", false )]
+        [Obsolete( "Use OnError method instead.", true )]
         public static IDisposable CatchCounter( this IActivityMonitor @this, Action<int, int, int> fatalErrorWarnCount )
         {
             if( @this == null ) throw new NullReferenceException( "this" );
@@ -325,7 +325,7 @@ namespace CK.Core
             } );
         }
 
-        [Obsolete( "Use OnError method instead.", false )]
+        [Obsolete( "Use OnError method instead.", true )]
         public static IDisposable CatchCounter( this IActivityMonitor @this, Action<int, int> fatalErrorCount )
         {
             if( @this == null ) throw new NullReferenceException( "this" );
@@ -339,7 +339,7 @@ namespace CK.Core
             } );
         }
 
-        [Obsolete( "Use OnError method instead.", false )]
+        [Obsolete( "Use OnError method instead.", true )]
         public static IDisposable CatchCounter( this IActivityMonitor @this, Action<int> fatalOrErrorCount )
         {
             if( @this == null ) throw new NullReferenceException( "this" );

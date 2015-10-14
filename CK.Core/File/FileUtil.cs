@@ -433,7 +433,7 @@ namespace CK.Core
         /// <param name="path">The path of the file to write to.</param>
         /// <param name="nbMaxSecond">Maximum number of seconds to wait before returning false.</param>
         /// <returns>True if the file has been correctly opened (and closed) in write mode.</returns>
-        [Obsolete( "Use CheckForWriteAcccess (that uses MilliSeconds instead of seconds) method instead. This will be removed in a future version." )]
+        [Obsolete( "Use CheckForWriteAcccess (that uses MilliSeconds instead of seconds) method instead.", true )]
         static public bool WaitForWriteAcccess( string path, int nbMaxSecond )
         {
             if( path == null ) throw new ArgumentNullException( "path" );

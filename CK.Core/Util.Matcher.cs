@@ -48,7 +48,7 @@ namespace CK.Core
             /// </summary>
             /// <param name="s">The string. Can not be null.</param>
             /// <param name="startAt">Can not be negative.</param>
-            /// <param name="maxLength">Can not be greater than the length of the string, but may be 0 or negative (the match fails)</param>
+            /// <param name="maxLength">Can not be greater than the length of the string, but may be 0 or negative (the match fails).</param>
             /// <returns>False if startAt is greater or equal to maxLength. True if the match is possible.</returns>
             public static bool CheckMatchArguments( string s, int startAt, int maxLength )
             {
