@@ -30,8 +30,9 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CK.Storage.Tests", "Tests\C
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CK.Storage.Tests.ExternalDll", "Tests\CK.Storage.Tests\ExternalDll\CK.Storage.Tests.ExternalDll.csproj", "{3AA52F84-605A-44B6-AF0E-004E6A3A7B45}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Shared Items", "Shared Items", "{E3559EF9-ED4A-4169-9287-6F94CFBD09FA}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{E3559EF9-ED4A-4169-9287-6F94CFBD09FA}"
 	ProjectSection(SolutionItems) = preProject
+		.gitignore = .gitignore
 		appveyor.yml = appveyor.yml
 		Release Note 3.0.txt = Release Note 3.0.txt
 		Release Note 4.0.txt = Release Note 4.0.txt
