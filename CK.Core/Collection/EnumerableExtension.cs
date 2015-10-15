@@ -339,7 +339,7 @@ namespace CK.Core
         /// <typeparam name="TSource">Type of source sequence.</typeparam>
         /// <param name="this">Source sequence.</param>
         /// <param name="item">Item to append.</param>
-        /// <returns>An enumerable that appends the item to trhe sequence.</returns>
+        /// <returns>An enumerable that appends the item to the sequence.</returns>
         public static IEnumerable<TSource> Append<TSource>( this IEnumerable<TSource> @this, TSource item )
         {
             if( @this == null ) throw new ArgumentNullException( "@this" );

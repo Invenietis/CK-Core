@@ -62,7 +62,7 @@ namespace CK.Core
             if( getConfigurationObject == null ) throw new ArgumentNullException( "getConfigurationObject" );
             lock( _lock )
             {
-                if( _initialized ) throw new CKException( "AppSettingsAlreadyInitialied" );
+                if( _initialized ) throw new CKException( "AppSettingsAlreadyInitialized" );
                 _initializedGetObject = _getObject = getConfigurationObject;
                 _initialized = true;
             }
@@ -191,12 +191,12 @@ namespace CK.Core
 
         void DoDefaultInitialize()
         {
-            Type configMananger = SimpleTypeFinder.Default.ResolveType( _defType, false );
+            Type configManager = SimpleTypeFinder.Default.ResolveType( _defType, false );
             // Type op_equality is not portable: use ReferenceEquals.
-            if( !ReferenceEquals( configMananger, null ) )
+            if( !ReferenceEquals( configManager, null ) )
             {
                 Type[] stringParams = new Type[] { typeof( string ) };
-                MethodInfo getAppSettings = configMananger.GetProperty( "AppSettings", BindingFlags.Public | BindingFlags.Static ).GetGetMethod();
+                MethodInfo getAppSettings = configManager.GetProperty( "AppSettings", BindingFlags.Public | BindingFlags.Static ).GetGetMethod();
                 MethodInfo indexer = getAppSettings.ReturnType.GetProperty( "Item", typeof( string ), stringParams ).GetGetMethod();
 
                 DynamicMethod getter = new DynamicMethod( "CK-ReadConfigurationManagerAppSettings", typeof( string ), stringParams, true );
