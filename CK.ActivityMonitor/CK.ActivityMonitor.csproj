@@ -45,7 +45,9 @@
     <Compile Include="CK.Core\AppSettings.cs" />
     <Compile Include="CK.Core\CKException.cs" />
     <Compile Include="CK.Core\CKExceptionData.cs" />
+    <Compile Include="CK.Core\CKSortedArrayList.cs" />
     <Compile Include="CK.Core\CollectionExtension.cs" />
+    <Compile Include="CK.Core\DateTimeStampMatcherExtension.cs" />
     <Compile Include="CK.Core\DictionaryExtension.cs" />
     <Compile Include="CK.Core\EnumerableExtension.cs" />
     <Compile Include="CK.Core\FileUtil.cs" />
@@ -61,8 +63,9 @@
     <Compile Include="CK.Core\IWritableCollector.cs" />
     <Compile Include="CK.Core\SetOperation.cs" />
     <Compile Include="CK.Core\TemporaryFile.cs" />
-    <Compile Include="CK.Core\TextMatcher.cs" />
+    <Compile Include="CK.Core\StringMatcher.cs" />
     <Compile Include="CK.Core\Util.cs" />
+    <Compile Include="CK.Core\XmlExtension.cs" />
     <Compile Include="Client\ActivityMonitorClient.cs" />
     <Compile Include="Client\ActivityMonitorConsoleClient.cs" />
     <Compile Include="Client\ActivityMonitorErrorCounter.cs" />
@@ -109,6 +112,7 @@
     <Compile Include="Impl\IActivityMonitorBridgeCallback.cs" />
     <Compile Include="Impl\IActivityMonitorImpl.cs" />
     <Compile Include="LogFilter.cs" />
+    <Compile Include="LogFilterMatcherExtension.cs" />
     <Compile Include="LogLevel.cs" />
     <Compile Include="LogLevelFilter.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

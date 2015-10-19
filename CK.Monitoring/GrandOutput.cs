@@ -43,7 +43,7 @@ namespace CK.Monitoring
     /// </summary>
     public sealed partial class GrandOutput : IDisposable
     {
-        readonly List<WeakRef<GrandOutputClient>> _clients;
+        readonly List<WeakReference<GrandOutputClient>> _clients;
         readonly ChannelHost _channelHost;
         readonly BufferingChannel _bufferingChannel;
         readonly EventDispatcher _dispatcher;
@@ -101,7 +101,7 @@ namespace CK.Monitoring
         /// <param name="dispatcherStrategy">Strategy to use to handle the throughput.</param>
         public GrandOutput( IGrandOutputDispatcherStrategy dispatcherStrategy = null )
         {
-            _clients = new List<WeakRef<GrandOutputClient>>();
+            _clients = new List<WeakReference<GrandOutputClient>>();
             _dispatcher = new EventDispatcher( dispatcherStrategy ?? new EventDispatcherBasicStrategy(), null );
             CommonSink = new GrandOutputCompositeSink();
             var factory = new ChannelFactory( this, _dispatcher );
@@ -137,7 +137,7 @@ namespace CK.Monitoring
             Func<GrandOutputClient> reg = () =>
                 {
                     var c = new GrandOutputClient( this );
-                    lock( _clients ) _clients.Add( new WeakRef<GrandOutputClient>( c ) ); 
+                    lock( _clients ) _clients.Add( new WeakReference<GrandOutputClient>( c ) ); 
                     return c;
                 };
             return monitor.Output.RegisterUniqueClient( b => b.Central == this, reg );
@@ -303,13 +303,13 @@ namespace CK.Monitoring
         /// </summary>
         bool SignalConfigurationChanged()
         {
-            WeakRef<GrandOutputClient>[] current;
+            WeakReference<GrandOutputClient>[] current;
             lock( _clients ) current = _clients.ToArray();
             bool hasDeadClients = false;
             foreach( var cw in current )
             {
-                GrandOutputClient c = cw.Target;
-                if( c != null ) hasDeadClients |= !c.OnChannelConfigurationChanged();
+                GrandOutputClient c;
+                if( cw.TryGetTarget( out c ) ) hasDeadClients |= !c.OnChannelConfigurationChanged();
                 else hasDeadClients = true;
             }
             return hasDeadClients;
@@ -331,8 +331,8 @@ namespace CK.Monitoring
             int count = 0;
             for( int i = 0; i < _clients.Count; ++i )
             {
-                var cw = _clients[i].Target;
-                if( cw == null || !cw.IsBoundToMonitor )
+                GrandOutputClient cw;
+                if( !_clients[i].TryGetTarget( out cw ) || !cw.IsBoundToMonitor )
                 {
                     _clients.RemoveAt( i-- );
                     ++count;

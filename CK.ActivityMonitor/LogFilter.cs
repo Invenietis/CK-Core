@@ -238,12 +238,12 @@ namespace CK.Core
         /// or as {GroupLogLevelFilter,LineLogLevelFilter} pairs like "{None,None}", "{Error,Trace}".
         /// </summary>
         /// <param name="filter">Predefined filter as (Undefined, Debug, Verbose, etc.) or as {LineLogLevelFilter,GroupLogLevelFilter} like {None,None}, {Error,Trace}.</param>
+        /// <param name="allowSuffix">True to allow characters after the filter.</param>
         /// <returns>The filter.</returns>
-        public static LogFilter Parse( string filter )
+        public static LogFilter Parse( string filter, bool allowSuffix = false )
         {
-            if( filter == null ) throw new ArgumentNullException( filter );
             LogFilter f;
-            if( !TryParse( filter, out f ) ) throw new CKException( "Invalid filter: '{0}'.", filter );
+            if( !TryParse( filter, out f, allowSuffix ) ) throw new CKException( "Invalid filter: '{0}'.", filter );
             return f;
         }
 
@@ -253,138 +253,14 @@ namespace CK.Core
         /// </summary>
         /// <param name="s">Filter to parse.</param>
         /// <param name="f">Resulting filter.</param>
+        /// <param name="allowSuffix">True to allow characters after the filter.</param>
         /// <returns>True on success, false on error.</returns>
-        public static bool TryParse( string s, out LogFilter f )
+        public static bool TryParse( string s, out LogFilter f, bool allowSuffix = false )
         {
-            int startAt = 0;
-            return Match( s, ref startAt, s.Length, out f ) && startAt == s.Length;
+            var m = new StringMatcher( s );
+            return m.MatchLogFilter( out f ) && (allowSuffix || m.IsEnd);
         }
 
-        /// <summary>
-        /// Tries to parse a <see cref="LogFilter"/>: it can be a predefined filter as ("Undefined", "Debug", "Verbose", etc.)  
-        /// or as {GroupLogLevelFilter,LineLogLevelFilter} pairs like "{None,None}", "{Error,Trace}".
-        /// </summary>
-        /// <param name="s">Filter to parse.</param>
-        /// <param name="startAt">
-        /// Index where the match must start (can be equal to or greater than the length of the string: the match fails).
-        /// On success, index of the end of the match.
-        /// </param>
-        /// <param name="maxLength">
-        /// Maximum index to consider in the string (it shortens the default <see cref="String.Length"/>), it can be zero or negative.
-        /// If maxLength is greater than String.Length an <see cref="ArgumentException"/> is thrown.
-        /// </param>
-        /// <param name="f">Resulting filter.</param>
-        /// <returns>True on success, false on error.</returns>
-        public static bool Match( string s, ref int startAt, int maxLength, out LogFilter f )
-        {
-            f = Undefined;
-            if( !Util.Matcher.CheckMatchArguments( s, startAt, maxLength ) ) return false;
-            if( !Util.Matcher.Match( s, ref startAt, maxLength, "Undefined" ) )
-            {
-                if( Util.Matcher.Match( s, ref startAt, maxLength, "Debug" ) )
-                {
-                    f = Debug;
-                }
-                else if( Util.Matcher.Match( s, ref startAt, maxLength, "Verbose" ) )
-                {
-                    f = Verbose;
-                }
-                else if( Util.Matcher.Match( s, ref startAt, maxLength, "Monitor" ) )
-                {
-                    f = Monitor;
-                }
-                else if( Util.Matcher.Match( s, ref startAt, maxLength, "Terse" ) )
-                {
-                    f = Terse;
-                }
-                else if( Util.Matcher.Match( s, ref startAt, maxLength, "Release" ) )
-                {
-                    f = Release;
-                }
-                else if( Util.Matcher.Match( s, ref startAt, maxLength, "Off" ) )
-                {
-                    f = Off;
-                }
-                else if( Util.Matcher.Match( s, ref startAt, maxLength, "Invalid" ) )
-                {
-                    f = Invalid;
-                }
-                else
-                {
-                    if( s[startAt] != '{' || startAt > maxLength - 9 ) return false;
-                    int idx = startAt + 1;
-                    LogLevelFilter group, line;
-                    
-                    Util.Matcher.MatchWhiteSpaces( s, ref idx, maxLength );
-                    if( !Match( s, ref idx, maxLength, out group ) ) return false;
-
-                    Util.Matcher.MatchWhiteSpaces( s, ref idx, maxLength );
-                    if( idx == s.Length || s[idx++] != ',' ) return false;
-
-                    Util.Matcher.MatchWhiteSpaces( s, ref idx, maxLength );
-                    if( !Match( s, ref idx, maxLength, out line ) ) return false;
-                    Util.Matcher.MatchWhiteSpaces( s, ref idx, maxLength );
-
-                    if( idx == maxLength || s[idx++] != '}' ) return false;
-                    startAt = idx;
-                    f = new LogFilter( group, line );
-                }
-            }
-            return true;
-        }
-
-        /// <summary>
-        /// Tries to parse a <see cref="LogLevelFilter"/>.
-        /// </summary>
-        /// <param name="s">Filter level to parse.</param>
-        /// <param name="startAt">
-        /// Index where the match must start (can be equal to or greater than the length of the string: the match fails).
-        /// On success, index of the end of the match.
-        /// </param>
-        /// <param name="maxLength">
-        /// Maximum index to consider in the string (it shortens the default <see cref="String.Length"/>), it can be zero or negative.
-        /// If maxLength is greater than String.Length an <see cref="ArgumentException"/> is thrown.
-        /// </param>
-        /// <param name="level">Resulting level.</param>
-        /// <returns>True on success, false on error.</returns>
-        public static bool Match( string s, ref int startAt, int maxLength, out LogLevelFilter level )
-        {
-            level = LogLevelFilter.None;
-            if( !Util.Matcher.CheckMatchArguments( s, startAt, maxLength ) ) return false;
-            if( !Util.Matcher.Match( s, ref startAt, maxLength, "None" ) )
-            {
-                if( Util.Matcher.Match( s, ref startAt, maxLength, "Trace" ) )
-                {
-                    level = LogLevelFilter.Trace;
-                }
-                else if( Util.Matcher.Match( s, ref startAt, maxLength, "Info" ) )
-                {
-                    level = LogLevelFilter.Info;
-                }
-                else if( Util.Matcher.Match( s, ref startAt, maxLength, "Warn" ) )
-                {
-                    level = LogLevelFilter.Warn;
-                }
-                else if( Util.Matcher.Match( s, ref startAt, maxLength, "Error" ) )
-                {
-                    level = LogLevelFilter.Error;
-                }
-                else if( Util.Matcher.Match( s, ref startAt, maxLength, "Fatal" ) )
-                {
-                    level = LogLevelFilter.Fatal;
-                }
-                else if( Util.Matcher.Match( s, ref startAt, maxLength, "Off" ) )
-                {
-                    level = LogLevelFilter.Off;
-                }
-                else if( Util.Matcher.Match( s, ref startAt, maxLength, "Invalid" ) )
-                {
-                    level = LogLevelFilter.Invalid;
-                }
-                else return false;
-            }
-            return true;
-        }
     }
 
 }

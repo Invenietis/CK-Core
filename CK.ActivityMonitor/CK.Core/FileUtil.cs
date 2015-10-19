@@ -111,32 +111,20 @@ namespace CK.Core
         public static readonly DateTime MissingFileLastWriteTimeUtc = new DateTime( 1601, 1, 1, 0, 0, 0, DateTimeKind.Utc );
 
         /// <summary>
-        /// Tries to match a DateTime that follows the <see cref="FileNameUniqueTimeUtcFormat"/> in a string at a given position.
+        /// Matches a DateTime in the <see cref="FileNameUniqueTimeUtcFormat"/> format.
         /// </summary>
-        /// <param name="s">The string to match.</param>
-        /// <param name="startAt">
-        /// Index where the match must start (can be equal to or greater than the length of the string: the match fails).
-        /// On success, index of the end of the match.
-        /// </param>
-        /// <param name="maxLength">
-        /// Maximum index to consider in the string (it can shorten the default <see cref="String.Length"/> if 
-        /// set to a positive value, otherwise it is set to String.Length).
-        /// If maxLength is greater than String.Length an <see cref="ArgumentException"/> is thrown.
-        /// </param>
-        /// <param name="time">Result time.</param>
+        /// <param name="this">This <see cref="StringMatcher"/>.</param>
+        /// <param name="time">Result time on success; otherwise <see cref="Util.UtcMinValue"/>.</param>
         /// <returns>True if the time has been matched.</returns>
-        public static bool MatchFileNameUniqueTimeUtcFormat( string s, ref int startAt, int maxLength, out DateTime time )
+        public static bool MatchFileNameUniqueTimeUtcFormat( this StringMatcher @this, out DateTime time )
         {
             time = Util.UtcMinValue;
-            if( !Util.Matcher.CheckMatchArguments( s, startAt, maxLength ) ) return false;
+            if( @this.IsEnd ) return false;
             Debug.Assert( FileNameUniqueTimeUtcFormat.Replace( "\\", "" ).Length == 27 );
-            if( startAt + 27 > maxLength ) return false;
-            if( DateTime.TryParseExact( s.Substring( startAt, 27 ), FileUtil.FileNameUniqueTimeUtcFormat, CultureInfo.InvariantCulture, DateTimeStyles.AdjustToUniversal | DateTimeStyles.AssumeUniversal, out time ) )
-            {
-                startAt += 27;
-                return true;
-            }
-            return false;
+            if( @this.Length < 27 ) return false;
+            return DateTime.TryParseExact( @this.Text.Substring( @this.StartIndex, 27 ), FileUtil.FileNameUniqueTimeUtcFormat, CultureInfo.InvariantCulture, DateTimeStyles.AdjustToUniversal | DateTimeStyles.AssumeUniversal, out time )
+                ? @this.Forward( 27 )
+                : @this.SetError();
         }
 
         /// <summary>
@@ -149,8 +137,8 @@ namespace CK.Core
         /// <returns>True if the string has been successfully parsed.</returns>
         public static bool TryParseFileNameUniqueTimeUtcFormat( string s, out DateTime time, bool allowSuffix = false )
         {
-            int startAt = 0;
-            return MatchFileNameUniqueTimeUtcFormat( s, ref startAt, s.Length, out time ) && (allowSuffix || startAt == s.Length);
+            var m = new StringMatcher( s );
+            return m.MatchFileNameUniqueTimeUtcFormat( out time ) && (allowSuffix || m.IsEnd);
         }
 
         /// <summary>

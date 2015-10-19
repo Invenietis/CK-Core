@@ -243,4 +243,7 @@
   <data name="RootLogPathMustBeSet" xml:space="preserve">
     <value>{0} must be set to a valid, writeable, folder. You can set it programmatically at the start of your program or use the &lt;appSettings&gt; section of the application config file: &lt;configuration&gt;\r\n &lt;appSettings&gt;\r\n  &lt;add key="{0}" value="(path)" /&gt;\r\n &lt;/appSettings&gt;\r\n&lt;/configuration&gt;</value>
   </data>
+  <data name="StringMatcherForwardPastEnd" xml:space="preserve">
+    <value>Unable to forward past the end of the string.</value>
+  </data>
 </root>

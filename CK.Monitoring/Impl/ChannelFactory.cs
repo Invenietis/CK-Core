@@ -71,7 +71,7 @@ namespace CK.Monitoring.Impl
         {
             _grandOutput = grandOutput;
             _dispatcher = dispatcher;
-            CommonSinkOnlyReceiver = new EventDispatcher.FinalReceiver( grandOutput.CommonSink, Util.EmptyArray<HandlerBase>.Empty, null );
+            CommonSinkOnlyReceiver = new EventDispatcher.FinalReceiver( grandOutput.CommonSink, Array.Empty<HandlerBase>(), null );
         }
 
         protected internal override IChannel DoCreateEmptyFinalRoute()

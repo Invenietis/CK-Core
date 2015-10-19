@@ -384,7 +384,7 @@ namespace CK.Monitoring
         static ILogEntry ReadGroupClosed( BinaryReader r, StreamLogType t, LogLevel logLevel )
         {
             DateTimeStamp time = new DateTimeStamp( DateTime.FromBinary( r.ReadInt64() ), (t & StreamLogType.HasUniquifier) != 0 ? r.ReadByte() : (Byte)0 );
-            ActivityLogGroupConclusion[] conclusions = Util.EmptyArray<ActivityLogGroupConclusion>.Empty;
+            ActivityLogGroupConclusion[] conclusions = Array.Empty<ActivityLogGroupConclusion>();
             if( (t & StreamLogType.HasConclusions) != 0 )
             {
                 int conclusionsCount = r.ReadInt32();
@@ -398,7 +398,7 @@ namespace CK.Monitoring
             }
             if( (t & StreamLogType.IsMultiCast) == 0 )
             {
-                return new LECloseGroup( time, logLevel, conclusions.AsReadOnlyList() );
+                return new LECloseGroup( time, logLevel, conclusions );
             }
             Guid mId;
             int depth;
@@ -406,7 +406,7 @@ namespace CK.Monitoring
             DateTimeStamp prevTime;
             ReadMulticastFooter( r, t, out mId, out depth, out prevType, out prevTime );
 
-            return new LEMCCloseGroup( mId, depth, prevTime, prevType, time, logLevel, conclusions.AsReadOnlyList() );
+            return new LEMCCloseGroup( mId, depth, prevTime, prevType, time, logLevel, conclusions );
         }
 
         static void WriteLogTypeAndLevel( BinaryWriter w, StreamLogType t, LogLevel level )
@@ -440,7 +440,7 @@ namespace CK.Monitoring
 
         static readonly string _missingLineText = "<Missing log data>";
         static readonly string _missingGroupText = "<Missing group>";
-        static readonly IReadOnlyList<ActivityLogGroupConclusion> _missingConclusions = new CKReadOnlyListOnIList<ActivityLogGroupConclusion>( Util.EmptyArray<ActivityLogGroupConclusion>.Empty );
+        static readonly IReadOnlyList<ActivityLogGroupConclusion> _missingConclusions = Array.Empty<ActivityLogGroupConclusion>();
 
         static internal ILogEntry CreateMissingLine( DateTimeStamp knownTime )
         {

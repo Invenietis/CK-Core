@@ -155,42 +155,6 @@ namespace CK.Core
         }
 
         /// <summary>
-        /// Tries to match a <see cref="DateTimeStamp"/> at a given index in the string.
-        /// </summary>
-        /// <param name="s">The string to parse.</param>
-        /// <param name="startAt">Index where the match must start. On success, index of the end of the match.</param>
-        /// <param name="maxLength">
-        /// Maximum index to consider in the string (it shortens the default <see cref="String.Length"/>), it can be zero or negative.
-        /// If maxLength is greater than String.Length an <see cref="ArgumentException"/> is thrown.
-        /// </param>
-        /// <param name="time">Result time.</param>
-        /// <returns>True if the time has been matched.</returns>
-        static public bool Match( string s, ref int startAt, int maxLength, out DateTimeStamp time )
-        {
-            bool ret = false;
-            DateTime t;
-            Byte uniquifier = 0;
-            if( FileUtil.MatchFileNameUniqueTimeUtcFormat( s, ref startAt, maxLength, out t ) )
-            {
-                if( startAt < maxLength - 2 && s[startAt] == '(' )
-                {
-                    int iStartNum = startAt + 1;
-                    int iCloseB = s.IndexOf( ')', iStartNum );
-                    if( iCloseB > 0 )
-                    {
-                        if( Byte.TryParse( s.Substring( iStartNum, iCloseB - iStartNum ), out uniquifier ) )
-                        {
-                            startAt = iCloseB + 1;
-                        }
-                    }
-                }
-                ret = true;
-            }
-            time = new DateTimeStamp( t, uniquifier );
-            return ret;
-        }
-
-        /// <summary>
         /// Compares this <see cref="DateTimeStamp"/> to another one.
         /// </summary>
         /// <param name="other">The other DateTimeStamp to compare.</param>

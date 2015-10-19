@@ -89,7 +89,7 @@ namespace CK.Monitoring
             if( monitor == null ) throw new ArgumentNullException( "monitor" );
             try
             {
-                if( e.Name != "GrandOutputConfiguration" ) throw new XmlException( "Element name must be <GrandOutputConfiguration>." + e.GetLineColumString() );
+                if( e.Name != "GrandOutputConfiguration" ) throw new XmlException( "Element name must be <GrandOutputConfiguration>." + e.GetLineColumnString() );
                 LogFilter? appDomainFilter = e.GetAttributeLogFilter( "AppDomainDefaultFilter", false );
 
                 SourceFilterApplyMode applyMode;
@@ -102,7 +102,7 @@ namespace CK.Monitoring
                     XElement channelElement = e.Element( "Channel" );
                     if( channelElement == null )
                     {
-                        monitor.Error().Send( "Missing <Channel /> element." + e.GetLineColumString() );
+                        monitor.Error().Send( "Missing <Channel /> element." + e.GetLineColumnString() );
                         return false;
                     }
                     routeConfig = FillRoute( monitor, channelElement, new RouteConfiguration() );
@@ -184,7 +184,7 @@ namespace CK.Monitoring
                     var stranger =  e.Elements( "SourceOverrideFilter" ).Elements().FirstOrDefault( f => f.Name != "Add" && f.Name != "Remove" );
                     if( stranger != null )
                     {
-                        throw new XmlException( "SourceOverrideFilter element must contain only Add and Remove elements." + stranger.GetLineColumString() );
+                        throw new XmlException( "SourceOverrideFilter element must contain only Add and Remove elements." + stranger.GetLineColumnString() );
                     }
                     var result = e.Elements( "SourceOverrideFilter" )
                                     .Elements()
@@ -222,7 +222,7 @@ namespace CK.Monitoring
                     case "Sequence":
                     case "Add": DoSequenceOrParallelOrAdd( monitor, a => route.AddAction( a ), e );
                         break;
-                    default: throw new XmlException( "Element name must be <Add>, <Parallel>, <Sequence> or <Channel>." + e.GetLineColumString() );
+                    default: throw new XmlException( "Element name must be <Add>, <Parallel>, <Sequence> or <Channel>." + e.GetLineColumnString() );
                 }
             }
             return route;
@@ -237,7 +237,7 @@ namespace CK.Monitoring
                 var regex = xml.GetAttribute( "TopicRegex", null );
                 if( (filter == null) == (regex == null) )
                 {
-                    throw new XmlException( "Subordinated Channel must define one TopicFilter or TopicRegex attribute (and not both)." + xml.GetLineColumString() );
+                    throw new XmlException( "Subordinated Channel must define one TopicFilter or TopicRegex attribute (and not both)." + xml.GetLineColumnString() );
                 }
                 RegexOptions opt = RegexOptions.IgnoreCase | RegexOptions.CultureInvariant | RegexOptions.Multiline | RegexOptions.ExplicitCapture;
                 if( !String.IsNullOrWhiteSpace( matchOptions ) )
@@ -245,7 +245,7 @@ namespace CK.Monitoring
                     if( !Enum.TryParse( matchOptions, true, out opt ) )
                     {
                         var expected = String.Join( ", ", Enum.GetNames( typeof( RegexOptions ) ).Where( n => n != "None" ) );
-                        throw new XmlException( "MatchOptions value must be a subset of: " + expected + xml.GetLineColumString() );
+                        throw new XmlException( "MatchOptions value must be a subset of: " + expected + xml.GetLineColumnString() );
                     }
                     monitor.Trace().Send( "MatchOptions for Channel '{0}' is: {1}.", sub.Name, opt );
                 }

@@ -30,6 +30,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using CK.Core;
+using System.Collections.ObjectModel;
 
 namespace CK.Monitoring
 {
@@ -51,10 +52,10 @@ namespace CK.Monitoring
             {
                 // ConcurrentDictionary.Values is a snapshot (a ReadOnlyCollection), this is why 
                 // it is safe to wrap it in a IReadOnlyCollection wrapper.
-                _allFiles = new CKReadOnlyCollectionOnICollection<RawLogFile>( reader._files.Values );
-                _validFiles = _allFiles.Where( f => f.Error == null && f.TotalEntryCount > 0 ).ToReadOnlyList();
+                _allFiles = (ReadOnlyCollection<RawLogFile>)reader._files.Values;
+                _validFiles = _allFiles.Where( f => f.Error == null && f.TotalEntryCount > 0 ).ToArray();
                 _monitors = reader._monitors.ToDictionary( e => e.Key, e => new Monitor( e.Value ) );
-                _monitorList = _monitors.Values.OrderBy( m => m.FirstEntryTime ).ToReadOnlyList();
+                _monitorList = _monitors.Values.OrderBy( m => m.FirstEntryTime ).ToArray();
                 _firstEntryDate = reader._globalFirstEntryTime;
                 _lastEntryDate = reader._globalLastEntryTime;
             }
@@ -111,12 +112,12 @@ namespace CK.Monitoring
             internal Monitor( LiveIndexedMonitor m )
             {
                 _monitorId = m.MonitorId;
-                _files = m._files.OrderBy( f => f.FirstEntryTime ).ToReadOnlyList();
+                _files = m._files.OrderBy( f => f.FirstEntryTime ).ToArray();
                 _firstEntryTime = m._firstEntryTime;
                 _firstDepth = m._firstDepth;
                 _lastEntryTime = m._lastEntryTime;
                 _lastDepth = m._lastDepth;
-                _tags = m._tags != null ? m._tags.OrderByDescending( k => k.Key ).ToReadOnlyList() : CKReadOnlyListEmpty<KeyValuePair<CKTrait, int>>.Empty;
+                _tags = m._tags != null ? m._tags.OrderByDescending( k => k.Key ).ToArray() : Array.Empty<KeyValuePair<CKTrait, int>>();
             }
 
             /// <summary>
@@ -150,7 +151,7 @@ namespace CK.Monitoring
             public int LastDepth { get { return _lastDepth; } }
 
             /// <summary>
-            /// Gets the weighted occurences of each tags that have been logged in this monitor.
+            /// Gets the weighted occurrences of each tags that have been logged in this monitor.
             /// </summary>
             public IReadOnlyList<KeyValuePair<CKTrait, int>> AllTags { get { return _tags; } }
 

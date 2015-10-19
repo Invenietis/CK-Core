@@ -216,8 +216,8 @@ namespace CK.Core
                 int timeIdx = iIdBracket + 38 + 4;
                 int len = s.Length;
                 if( timeIdx >= len ) return false;
-                if( !DateTimeStamp.Match( s, ref timeIdx, len, out time ) ) return false;
-                
+                if( !new StringMatcher( s, timeIdx ).MatchDateTimeStamp( out time ) ) return false;
+
                 int remainder = s.Length - iIdBracket;
                 if( String.CompareOrdinal( s, iIdBracket+38, " at ", 0, 4 ) != 0 || !Guid.TryParseExact( s.Substring( iIdBracket, 38 ), "B", out id ) ) return false;
                 return true;
