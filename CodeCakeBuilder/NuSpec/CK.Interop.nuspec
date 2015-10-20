@@ -13,22 +13,13 @@
     <language>en-US</language>
 
 	<dependencies> 
-   		<group targetFramework="net40">
-      			<dependency id="Microsoft.Bcl" version="1.1.10" />
-      			<dependency id="Microsoft.Bcl.Build" version="1.0.21" />
-      			<dependency id="CK.Reflection" version="$version$" />
-   		</group>
    		<group targetFramework="net45">
       			<dependency id="CK.Reflection" version="$version$" />
    		</group>
 	</dependencies>
 
   </metadata>
-  <files>
-	<file src="net40\CK.Interop\bin\{{configuration}}\CK.Interop.dll" target="lib\net40" />
-	<file src="net40\CK.Interop\bin\{{configuration}}\CK.Interop.pdb" target="lib\net40" />
-	<file src="net40\CK.Interop\bin\{{configuration}}\CK.Interop.xml" target="lib\net40" />
-	
+  <files>	
 	<file src="CK.Interop\bin\{{configuration}}\CK.Interop.dll" target="lib\net45" />
 	<file src="CK.Interop\bin\{{configuration}}\CK.Interop.pdb" target="lib\net45" />
 	<file src="CK.Interop\bin\{{configuration}}\CK.Interop.xml" target="lib\net45" />

@@ -13,12 +13,6 @@
     <language>en-US</language>
 
     <dependencies>
-      <group targetFramework="net40">
-            <dependency id="Microsoft.Bcl" version="1.1.6" />
-            <dependency id="Microsoft.Bcl.Build" version="1.0.21" />
-            <dependency id="CK.Core" version="$version$" />
-            <dependency id="Common.Logging" version="3.2.0" />
-      </group>
       <group targetFramework="net45">
 	          <dependency id="CK.Core" version="$version$" />
             <dependency id="Common.Logging" version="3.2.0" />
@@ -27,10 +21,6 @@
 
   </metadata>
   <files>	
-    <file src="net40\ActivityMonitorAdapters\CK.Core.ActivityMonitor.CommonLoggingAdapter\bin\{{configuration}}\CK.Core.ActivityMonitor.CommonLoggingAdapter.dll" target="lib\net40" />
-    <file src="net40\ActivityMonitorAdapters\CK.Core.ActivityMonitor.CommonLoggingAdapter\bin\{{configuration}}\CK.Core.ActivityMonitor.CommonLoggingAdapter.pdb" target="lib\net40" />
-    <file src="net40\ActivityMonitorAdapters\CK.Core.ActivityMonitor.CommonLoggingAdapter\bin\{{configuration}}\CK.Core.ActivityMonitor.CommonLoggingAdapter.xml" target="lib\net40" />
-
     <file src="ActivityMonitorAdapters\CK.Core.ActivityMonitor.CommonLoggingAdapter\bin\{{configuration}}\CK.Core.ActivityMonitor.CommonLoggingAdapter.dll" target="lib\net45" />
     <file src="ActivityMonitorAdapters\CK.Core.ActivityMonitor.CommonLoggingAdapter\bin\{{configuration}}\CK.Core.ActivityMonitor.CommonLoggingAdapter.pdb" target="lib\net45" />
     <file src="ActivityMonitorAdapters\CK.Core.ActivityMonitor.CommonLoggingAdapter\bin\{{configuration}}\CK.Core.ActivityMonitor.CommonLoggingAdapter.xml" target="lib\net45" />

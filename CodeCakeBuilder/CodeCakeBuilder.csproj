@@ -77,9 +77,9 @@
     <None Include="NuSpec\CK.Core.ActivityMonitor.NLogAdapter.nuspec" />
     <None Include="NuSpec\CK.Core.nuspec" />
     <None Include="NuSpec\CK.Interop.nuspec" />
+    <None Include="NuSpec\CK.ActivityMonitor.nuspec" />
     <None Include="NuSpec\CK.Monitoring.nuspec" />
     <None Include="NuSpec\CK.Reflection.nuspec" />
-    <None Include="NuSpec\CK.Storage.nuspec" />
     <None Include="NuSpec\nuspec.xsd">
       <SubType>Designer</SubType>
     </None>

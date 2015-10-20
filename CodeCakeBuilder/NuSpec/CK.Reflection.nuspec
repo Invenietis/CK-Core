@@ -13,10 +13,6 @@
     <language>en-US</language>
   </metadata>
   <files>
-	<file src="net40\CK.Reflection\bin\{{configuration}}\CK.Reflection.dll" target="lib\net40" />
-	<file src="net40\CK.Reflection\bin\{{configuration}}\CK.Reflection.pdb" target="lib\net40" />
-	<file src="net40\CK.Reflection\bin\{{configuration}}\CK.Reflection.xml" target="lib\net40" />
-
 	<file src="CK.Reflection\bin\{{configuration}}\CK.Reflection.dll" target="lib\net45" />
 	<file src="CK.Reflection\bin\{{configuration}}\CK.Reflection.pdb" target="lib\net45" />
 	<file src="CK.Reflection\bin\{{configuration}}\CK.Reflection.xml" target="lib\net45" />
