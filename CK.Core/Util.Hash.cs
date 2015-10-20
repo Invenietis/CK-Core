@@ -28,9 +28,6 @@ using System.Collections;
 
 namespace CK.Core
 {
-    /// <summary>
-    /// Utility class.
-    /// </summary>
 	static public partial class Util
 	{    
         /// <summary>

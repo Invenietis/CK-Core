@@ -79,7 +79,7 @@ namespace CK.RouteConfig.Impl
         /// <summary>
         /// Gets children (items of this composite) actions.
         /// </summary>
-        public IReadOnlyList<ActionConfiguration> Children { get { return _children.AsReadOnlyList(); } }
+        public IReadOnlyList<ActionConfiguration> Children { get { return _children; } }
 
         /// <summary>
         /// Checks that children are valid (action's name must be unique).

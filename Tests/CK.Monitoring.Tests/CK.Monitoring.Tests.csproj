@@ -16,14 +16,6 @@
     <SolutionDir Condition="$(SolutionDir) == '' Or $(SolutionDir) == '*Undefined*'">..\..\</SolutionDir>
     <RestorePackages>true</RestorePackages>
   </PropertyGroup>
-  <PropertyGroup>
-    <OutputPath>bin\$(Configuration)\</OutputPath>
-  </PropertyGroup>
-  <PropertyGroup>
-    <StartAction>Program</StartAction>
-    <StartProgram>$(SolutionDir)packages\NUnit.Runners.Net4.2.6.4\tools\nunit.exe</StartProgram>
-    <StartArguments>CK.Monitoring.Tests.dll</StartArguments>
-  </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
@@ -41,12 +33,16 @@
     <WarningLevel>4</WarningLevel>
     <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
+
   <PropertyGroup>
+    <OutputPath>bin\$(Configuration)\</OutputPath>
     <SignAssembly>true</SignAssembly>
-  </PropertyGroup>
-  <PropertyGroup>
     <AssemblyOriginatorKeyFile>..\..\SharedKey.snk</AssemblyOriginatorKeyFile>
+    <StartAction>Program</StartAction>
+    <StartProgram>$(SolutionDir)\packages\NUnit.Runners.Net4.2.6.4\tools\nunit.exe</StartProgram>
+    <StartArguments>CK.Monitoring.Tests.dll</StartArguments>
   </PropertyGroup>
+
   <ItemGroup>
     <Reference Include="nunit.framework, Version=2.6.4.14350, Culture=neutral, PublicKeyToken=96d09a1eb7f44a77, processorArchitecture=MSIL">
       <HintPath>..\..\packages\NUnit.2.6.4\lib\nunit.framework.dll</HintPath>
@@ -79,6 +75,10 @@
     <Compile Include="TestHelper.cs" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\CK.ActivityMonitor\CK.ActivityMonitor.csproj">
+      <Project>{00262f15-69f2-4a4f-b08f-9873e1bfc803}</Project>
+      <Name>CK.ActivityMonitor</Name>
+    </ProjectReference>
     <ProjectReference Include="..\..\CK.Monitoring\CK.Monitoring.csproj">
       <Project>{dd23f681-55a9-49f3-95d7-9344980a0f97}</Project>
       <Name>CK.Monitoring</Name>

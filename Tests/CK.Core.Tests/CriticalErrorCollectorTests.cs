@@ -35,7 +35,7 @@ namespace CK.Core.Tests
     {
 
         [Test]
-        public void ValidArguments()
+        public void simple_add_exception_to_CriticalErrorCollector()
         {
             CriticalErrorCollector c = new CriticalErrorCollector();
             Assert.Throws<ArgumentNullException>( () => c.Add( null, "" ) );

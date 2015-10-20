@@ -249,7 +249,7 @@ namespace CK.Monitoring.Tests
 
             public static bool SynchronousRoute = false;
 
-            public static readonly FinalRoute Empty = new FinalRoute( null, Util.EmptyArray<ITestIt>.Empty, String.Empty );
+            public static readonly FinalRoute Empty = new FinalRoute( null, Array.Empty<ITestIt>(), String.Empty );
 
             internal FinalRoute( IRouteConfigurationLock useLock, ITestIt[] actions, string name )
             {

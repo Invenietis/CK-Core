@@ -43,7 +43,7 @@ namespace CK.RouteConfig
         {
             _root = root;
             _namedSubRoutes = namedSubRoutes;
-            _namedSubRoutesEx = new CKReadOnlyCollectionOnICollection<SubRouteConfigurationResolved>( _namedSubRoutes.Values );
+            _namedSubRoutesEx = _namedSubRoutes.Values;
         }
 
         /// <summary>

@@ -161,7 +161,7 @@ namespace CK.RouteConfig.Impl
 
             IReadOnlyList<MetaConfiguration> IProtoRoute.MetaConfigurations
             {
-                get { return _metaConfigurations.AsReadOnlyList(); }
+                get { return _metaConfigurations; }
             }
 
             ActionConfiguration IProtoRoute.FindDeclaredAction( string name )
@@ -172,7 +172,7 @@ namespace CK.RouteConfig.Impl
 
             IReadOnlyList<IProtoSubRoute> IProtoRoute.SubRoutes
             {
-                get { return _subRoutes.AsReadOnlyList(); }
+                get { return _subRoutes; }
             }
 
             #endregion

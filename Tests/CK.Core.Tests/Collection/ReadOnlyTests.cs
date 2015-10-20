@@ -31,7 +31,7 @@ using System.Diagnostics.CodeAnalysis;
 
 namespace CK.Core.Tests.Collection
 {
-    public class TestCollection<T> : IReadOnlyCollection<T>
+    public class TestCollection<T> : ICKReadOnlyCollection<T>
     {
         public List<T> Content;
 
@@ -71,7 +71,7 @@ namespace CK.Core.Tests.Collection
 
     }
 
-    public class TestCollectionThatImplementsICollection<T> : IReadOnlyCollection<T>, ICollection<T>
+    public class TestCollectionThatImplementsICollection<T> : ICKReadOnlyCollection<T>, ICollection<T>
     {
         public List<T> Content;
 
@@ -149,7 +149,7 @@ namespace CK.Core.Tests.Collection
     public class ReadOnlyTests
     {
         [Test]
-        public void TestImplementationNaked()
+        public void linq_with_mere_IReadOnlyCollection_implementation_is_not_optimal_for_Count()
         {
             TestCollection<int> c = new TestCollection<int>();
             c.Content.Add( 2 );
@@ -187,7 +187,7 @@ namespace CK.Core.Tests.Collection
         }
 
         [Test]
-        public void TestImplementationWithICollection()
+        public void linq_on_ICollection_implementation_uses_Count_property()
         {
             TestCollectionThatImplementsICollection<int> c = new TestCollectionThatImplementsICollection<int>();
             c.Content.Add( 2 );
@@ -226,7 +226,7 @@ namespace CK.Core.Tests.Collection
         }
 
         [Test]
-        public void TestReferenceTypes()
+        public void covariant_Contains_accepts_any_types()
         {
             TestCollection<Animal> c = new TestCollection<Animal>();
             Animal oneElement = new Animal(null);
@@ -241,225 +241,6 @@ namespace CK.Core.Tests.Collection
             Assert.That( !c.Contains( null ), "Contains should accept ANY object without any error." );
             Assert.That( containsCalled ); containsCalled = false;
         }
-
-        [Test]
-        public void TestToReadOnly()
-        {
-            Func<int,int> nullConvertor = null;
-            {
-                IList<int> source = new int[0];
-                Assert.That( source.ToReadOnlyCollection( Util.FuncIdentity ).SequenceEqual( source ) );
-                Assert.That( ((IEnumerable<int>)source).ToReadOnlyCollection().SequenceEqual( source ) );
-            }
-            {
-                IList<int> source = new int[]{ 1 }; 
-                Assert.That( source.ToReadOnlyCollection( Util.FuncIdentity ).SequenceEqual( source ) );
-            }
-            {
-                IList<int> source = new int[] { 0, 1, 2, 3, 4, 5 };
-                Assert.That( source.ToReadOnlyCollection().SequenceEqual( source ) );
-                Assert.That( source.ToReadOnlyCollection( 0 ).SequenceEqual( source ) );
-                Assert.That( source.ToReadOnlyCollection( 1 ).SequenceEqual( new int[] { 1, 2, 3, 4, 5 } ) );
-                Assert.That( source.ToReadOnlyCollection( 2 ).SequenceEqual( new int[] { 2, 3, 4, 5 } ) );
-                Assert.That( source.ToReadOnlyCollection( 3 ).SequenceEqual( new int[] { 3, 4, 5 } ) );
-                Assert.That( source.ToReadOnlyCollection( 4 ).SequenceEqual( new int[] { 4, 5 } ) );
-                Assert.That( source.ToReadOnlyCollection( 5 ).SequenceEqual( new int[] { 5 } ) );
-                Assert.That( source.ToReadOnlyCollection( 6 ).SequenceEqual( new int[] { } ) );
-                Assert.Throws<ArgumentOutOfRangeException>( () => source.ToReadOnlyCollection( 7 ) );
-
-                Assert.That( source.ToReadOnlyCollection( 0, 5 ).SequenceEqual( new int[] { 0, 1, 2, 3, 4 } ) );
-                Assert.That( source.ToReadOnlyCollection( 1, 4 ).SequenceEqual( new int[] { 1, 2, 3, 4 } ) );
-                Assert.That( source.ToReadOnlyCollection( 2, 3 ).SequenceEqual( new int[] { 2, 3, 4 } ) );
-                Assert.That( source.ToReadOnlyCollection( 3, 2 ).SequenceEqual( new int[] { 3, 4 } ) );
-                Assert.That( source.ToReadOnlyCollection( 3, 1 ).SequenceEqual( new int[] { 3 } ) );
-                Assert.That( source.ToReadOnlyCollection( 3, 0 ).SequenceEqual( new int[] { } ) );
-
-                Assert.Throws<ArgumentOutOfRangeException>( () => source.ToReadOnlyCollection( 3, 98 ) );
-                Assert.Throws<ArgumentOutOfRangeException>( () => source.ToReadOnlyCollection( 3, -1 ) );
-                Assert.Throws<ArgumentOutOfRangeException>( () => source.ToReadOnlyCollection( 77, 1 ) );
-                Assert.Throws<ArgumentOutOfRangeException>( () => source.ToReadOnlyCollection( 1, -1 ) );
-                Assert.Throws<ArgumentOutOfRangeException>( () => source.ToReadOnlyCollection( -1, 1 ) );
-                Assert.Throws<ArgumentOutOfRangeException>( () => source.ToReadOnlyCollection( -1, 1, Util.FuncIdentity ) );
-                Assert.Throws<ArgumentOutOfRangeException>( () => source.ToReadOnlyCollection( 0, -1, Util.FuncIdentity ) );
-
-                int[] squareSource = new int[] { 0, 1, 2 * 2, 3 * 3, 4 * 4, 5 * 5 };
-                Assert.That( source.ToReadOnlyCollection( i => i * i ).SequenceEqual( squareSource ) );
-                Assert.That( source.ToReadOnlyCollection( 0, i => i * i ).SequenceEqual( squareSource ) );
-                Assert.That( source.ToReadOnlyCollection( 1, i => i * i ).SequenceEqual( squareSource.Skip( 1 ) ) );
-                Assert.That( source.ToReadOnlyCollection( 2, i => i * i ).SequenceEqual( squareSource.Skip( 2 ) ) );
-                Assert.That( source.ToReadOnlyCollection( 3, i => i * i ).SequenceEqual( squareSource.Skip( 3 ) ) );
-                Assert.That( source.ToReadOnlyCollection( 4, i => i * i ).SequenceEqual( squareSource.Skip( 4 ) ) );
-                Assert.That( source.ToReadOnlyCollection( 5, i => i * i ).SequenceEqual( squareSource.Skip( 5 ) ) );
-                Assert.That( source.ToReadOnlyCollection( 6, i => i * i ).SequenceEqual( squareSource.Skip( 6 ) ) );
-
-                Assert.That( source.ToReadOnlyCollection( 0, 5, i => i * i ).SequenceEqual( squareSource.Take( 5 ) ) );
-                Assert.That( source.ToReadOnlyCollection( 1, 4, i => i * i ).SequenceEqual( squareSource.Skip( 1 ).Take( 4 ) ) );
-                Assert.That( source.ToReadOnlyCollection( 2, 3, i => i * i ).SequenceEqual( squareSource.Skip( 2 ).Take( 3 ) ) );
-                Assert.That( source.ToReadOnlyCollection( 3, 2, i => i * i ).SequenceEqual( squareSource.Skip( 3 ).Take( 2 ) ) );
-                Assert.That( source.ToReadOnlyCollection( 3, 1, i => i * i ).SequenceEqual( squareSource.Skip( 3 ).Take( 1 ) ) );
-                Assert.That( source.ToReadOnlyCollection( 3, 0, i => i * i ).SequenceEqual( squareSource.Skip( 3 ).Take( 0 ) ) );
-
-                Assert.Throws<ArgumentNullException>( () => source.ToReadOnlyCollection( nullConvertor ) );
-                Assert.Throws<ArgumentNullException>( () => source.ToReadOnlyCollection( 1, nullConvertor ) );
-                Assert.Throws<ArgumentNullException>( () => source.ToReadOnlyCollection( 1, 2, nullConvertor ) );
-
-                source = null;
-                Assert.Throws<NullReferenceException>( () => source.ToReadOnlyCollection() );
-                Assert.Throws<NullReferenceException>( () => source.ToReadOnlyCollection( Util.FuncIdentity ) );
-                Assert.Throws<NullReferenceException>( () => source.ToReadOnlyCollection( 0, Util.FuncIdentity ) );
-                Assert.Throws<NullReferenceException>( () => source.ToReadOnlyCollection( 0, 1, Util.FuncIdentity ) );
-            }
-            {
-                ICollection<int> source = new int[] { 0, 1, 2, 3, 4, 5 };
-                Assert.That( source.ToReadOnlyCollection().SequenceEqual( source ) );
-
-                int[] squareSource = new int[] { 0, 1, 2 * 2, 3 * 3, 4 * 4, 5 * 5 };
-                Assert.That( source.ToReadOnlyCollection( i => i * i ).SequenceEqual( squareSource ) );
-
-                source = new int[0];
-                Assert.That( source.ToReadOnlyCollection().SequenceEqual( source ) );
-                Assert.That( source.ToReadOnlyCollection( i => i * i ).SequenceEqual( source ) );
-
-                source = new int[]{ 1 };
-                Assert.That( source.ToReadOnlyCollection().SequenceEqual( source ) );
-                Assert.That( source.ToReadOnlyCollection( i => i * i ).SequenceEqual( source ) );
-                Assert.Throws<ArgumentNullException>( () => source.ToReadOnlyCollection( nullConvertor ) );
-
-                source = null;
-                Assert.Throws<NullReferenceException>( () => source.ToReadOnlyCollection() );
-                Assert.Throws<NullReferenceException>( () => source.ToReadOnlyCollection( Util.FuncIdentity ) );
-            }
-            {
-                IEnumerable<int> source = new int[] { 0, 1, 2, 3, 4, 5 };
-                Assert.That( source.ToReadOnlyCollection().SequenceEqual( source ) );
-                Assert.That( source.Skip( 1 ).ToReadOnlyCollection().SequenceEqual( source.Skip( 1 ) ) );
-                Assert.That( source.Skip( 2 ).ToReadOnlyCollection().SequenceEqual( source.Skip( 2 ) ) );
-                Assert.That( source.Skip( 3 ).ToReadOnlyCollection().SequenceEqual( source.Skip( 3 ) ) );
-                Assert.That( source.Skip( 4 ).ToReadOnlyCollection().SequenceEqual( source.Skip( 4 ) ) );
-                Assert.That( source.Skip( 5 ).ToReadOnlyCollection().SequenceEqual( source.Skip( 5 ) ) );
-                Assert.That( source.Skip( 6 ).ToReadOnlyCollection().SequenceEqual( source.Skip( 6 ) ) );
-
-                source = null;
-                Assert.Throws<NullReferenceException>( () => source.ToReadOnlyCollection() );
-            }
-        }
-
-
-        [Test]
-        public void ToAndAsReadOnlyList()
-        {
-            List<int> netList = new List<int>();
-            CKSortedArrayList<int> ckList = new CKSortedArrayList<int>();
-            int[] array = new int[1];
-
-            IReadOnlyList<int> r;
-            {
-                r = netList.ToReadOnlyList();
-                Assert.That( r, Is.Not.SameAs( netList ), "ToReadOnlyList always duplicates the content." );
-                r = ckList.ToReadOnlyList();
-                Assert.That( r, Is.Not.SameAs( ckList ), "ToReadOnlyList always duplicates the content." );
-                r = array.ToReadOnlyList();
-                Assert.That( r, Is.Not.SameAs( array ), "ToReadOnlyList always duplicates the content." );
-            }
-#if net40
-            r = netList.AsReadOnlyList();
-            Assert.That( r, Is.Not.SameAs( CKReadOnlyListEmpty<int>.Empty ), "In Net40, the List<T> is NOT a IReadOnlyList." );
-            r = ckList.AsReadOnlyList();
-            Assert.That( r, Is.SameAs( ckList ), "Lists from CK.Core are already IReadOnlyList<T>." );
-            
-            netList.Add( 1 );
-            ckList.Add( 1 );
-            r = netList.AsReadOnlyList();
-            Assert.That( r, Is.Not.SameAs( netList ).And.Not.Empty );
-            r = ckList.AsReadOnlyList();
-            Assert.That( r, Is.SameAs( ckList ).And.Not.Empty );
-            r = array.AsReadOnlyList();
-            Assert.That( r, Is.Not.SameAs( array ).And.Not.Empty, "In 4.0, an array is NOT a IReadOnlyList." );
-#else
-            r = netList.AsReadOnlyList();
-            Assert.That( r, Is.SameAs( netList ), "In Net45, List<T> IS A IReadOnlyList<T>." );
-            r = ckList.AsReadOnlyList();
-            Assert.That( r, Is.SameAs( ckList ) );
-
-            netList.Add( 1 );
-            ckList.Add( 1 );
-            r = netList.AsReadOnlyList();
-            Assert.That( r, Is.SameAs( netList ).And.Not.Empty );
-            r = ckList.AsReadOnlyList();
-            Assert.That( r, Is.SameAs( ckList ).And.Not.Empty );
-            r = array.AsReadOnlyList();
-            Assert.That( r, Is.SameAs( array ).And.Not.Empty, "In 4.5, an array IS a IReadOnlyList :-)." );
-
-            {
-                IReadOnlyList<int> roNetList = netList, roCkList = ckList, roArray = array;
-                r = roNetList.ToReadOnlyList();
-                Assert.That( r, Is.Not.SameAs( roNetList ), "ToReadOnlyList always duplicates the content." );
-                r = roCkList.ToReadOnlyList();
-                Assert.That( r, Is.Not.SameAs( roCkList ), "ToReadOnlyList always duplicates the content." );
-                r = roArray.ToReadOnlyList();
-                Assert.That( r, Is.Not.SameAs( roArray ), "ToReadOnlyList always duplicates the content." );
-            }
-
-#endif
-        }
-        
-        [Test]
-        public void TestToReadOnlyListAdapter()
-        {
-            var john = new Mammal( "John" );
-            List<Mammal> m = new List<Mammal>() { john, new Mammal( "Paul" ) };
-            var a = new CKReadOnlyListOnIList<Animal, Mammal>( m );
-            Assert.That( a.Count, Is.EqualTo( 2 ) );
-            Assert.That( a[0].Name, Is.EqualTo( "John" ) );
-            Assert.That( a.IndexOf( john ), Is.EqualTo( 0 ) );
-            Assert.That( a.IndexOf( this ), Is.EqualTo( Int32.MinValue ) );
-            CollectionAssert.AreEqual( a, m );
-            Assert.That( a.Inner, Is.SameAs( m ) );
-
-            Assert.That( a.Contains( john ) );
-            Assert.That( a.Contains( this ), Is.False );
-
-            Assert.That( ((IList<Animal>)a).IndexOf( john ), Is.EqualTo( 0 ) );
-            Assert.That( ((IList<Animal>)a).Contains( john ), Is.True );
-            Assert.That( ((IList<Animal>)a)[1].Name, Is.EqualTo( "Paul" ) );
-            Assert.That( ((IList<Animal>)a).IsReadOnly );
-            var copy = new Animal[2];
-            ((IList<Animal>)a).CopyTo( copy, 0 );
-            Assert.That( copy[0], Is.SameAs( john ) );
-            Assert.That( copy[1].Name, Is.EqualTo( "Paul" ) );
-            
-            Assert.Throws<ArgumentNullException>( () => a.Inner = null );
-            Assert.Throws<NotSupportedException>( () => a.AddRange( m ) );
-            Assert.Throws<NotSupportedException>( () => ((IList<Animal>)a).Clear() );
-            Assert.Throws<NotSupportedException>( () => ((IList<Animal>)a).Remove( john ) );
-            Assert.Throws<NotSupportedException>( () => ((IList<Animal>)a).RemoveAt( 5 ) );
-            Assert.Throws<NotSupportedException>( () => ((IList<Animal>)a).Insert( 1, john ) );
-            Assert.Throws<NotSupportedException>( () => ((IList<Animal>)a)[0] = john );
-        }
-
-        [Test]
-        public void TestReadOnlyConverter()
-        {
-            Dictionary<Guid,IUniqueId> dic = new Dictionary<Guid, IUniqueId>();
-            CKReadOnlyCollectionTypeConverter<IUniqueId,Guid> export = new CKReadOnlyCollectionTypeConverter<IUniqueId, Guid>( dic.Keys, g => dic[g], uid => uid.UniqueId );
-
-            dic.Add( SimpleUniqueId.Empty.UniqueId, SimpleUniqueId.Empty );
-            Assert.That( export.Count == 1 );
-            Assert.That( export.Contains( SimpleUniqueId.Empty ) );
-            Assert.That( !export.Contains( Guid.Empty ), "Inner object is hidden." );
-            Assert.That( export.First( u => u.UniqueId == Guid.Empty ) == SimpleUniqueId.Empty );
-
-            dic.Add( SimpleUniqueId.InvalidId.UniqueId, SimpleUniqueId.InvalidId );
-            Assert.That( export.Count == 2 );
-
-            Assert.That( export.Contains( SimpleUniqueId.Empty ) );
-            Assert.That( export.First( u => u.UniqueId == Guid.Empty ) == SimpleUniqueId.Empty );
-
-            Assert.That( export.Contains( SimpleUniqueId.InvalidId ) );
-            Assert.That( !export.Contains( SimpleUniqueId.InvalidId.UniqueId ), "Inner object is hidden." );
-            Assert.That( export.First( u => u.UniqueId == SimpleUniqueId.InvalidId.UniqueId ) == SimpleUniqueId.InvalidId );
-        }
-
 
         class StringInt : IComparable<int>
         {
@@ -482,7 +263,7 @@ namespace CK.Core.Tests.Collection
         [TestCase( "1,2,5", 0, ~0 )]
         public void BinarySearch_on_IComparable_TValue_items( string values, int search, int resultIndex )
         {
-            var a = values.Split( new[]{','},StringSplitOptions.RemoveEmptyEntries ).Select( v => new StringInt( v ) ).ToReadOnlyList();
+            var a = values.Split( new[]{','},StringSplitOptions.RemoveEmptyEntries ).Select( v => new StringInt( v ) ).ToArray();
             Assert.That( Util.BinarySearch( a, search ), Is.EqualTo( resultIndex ) );
         }
     }

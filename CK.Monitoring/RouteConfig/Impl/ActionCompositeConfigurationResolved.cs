@@ -42,7 +42,7 @@ namespace CK.RouteConfig.Impl
         {
             _isParallel = a.IsParallel;
             _children = new List<ActionConfigurationResolved>();
-            AppendChildren( monitor, a, path.Append( a.Name ).ToReadOnlyList(), flattenUselessComposite );
+            AppendChildren( monitor, a, path.Append( a.Name ).ToArray(), flattenUselessComposite );
         }
 
         void AppendChildren( IActivityMonitor monitor, ActionCompositeConfiguration a, IReadOnlyList<string> childPath, bool flattenUselessComposite )
@@ -52,7 +52,7 @@ namespace CK.RouteConfig.Impl
                 ActionCompositeConfiguration composite = child as ActionCompositeConfiguration;
                 if( flattenUselessComposite && composite != null && composite.IsParallel == a.IsParallel )
                 {
-                    AppendChildren( monitor, composite, childPath = childPath.Append( composite.Name ).ToReadOnlyList(), true );
+                    AppendChildren( monitor, composite, childPath = childPath.Append( composite.Name ).ToArray(), true );
                 }
                 else _children.Add( ActionConfigurationResolved.Create( monitor, child, flattenUselessComposite, _children.Count, childPath ) );
             }
@@ -60,7 +60,7 @@ namespace CK.RouteConfig.Impl
 
         public new ActionCompositeConfiguration ActionConfiguration { get { return (ActionCompositeConfiguration)base.ActionConfiguration; } }
 
-        public IReadOnlyList<ActionConfigurationResolved> Children { get { return _children.AsReadOnlyList(); } }
+        public IReadOnlyList<ActionConfigurationResolved> Children { get { return _children; } }
 
 
      }

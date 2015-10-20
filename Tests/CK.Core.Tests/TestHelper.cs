@@ -39,30 +39,8 @@ namespace CK.Core.Tests
         static string _testFolder;
         static string _solutionFolder;
         
-        static IActivityMonitor _monitor;
-        static ActivityMonitorConsoleClient _console;
-
         static TestHelper()
         {
-            _monitor = new ActivityMonitor();
-            _monitor.Output.BridgeTarget.HonorMonitorFilter = false;
-            _console = new ActivityMonitorConsoleClient();
-            _monitor.Output.RegisterClients( _console );
-        }
-
-        public static IActivityMonitor ConsoleMonitor
-        {
-            get { return _monitor; }
-        }
-
-        public static bool LogsToConsole
-        {
-            get { return _monitor.Output.Clients.Contains( _console ); }
-            set
-            {
-                if( value ) _monitor.Output.RegisterUniqueClient( c => c ==_console, () => _console );
-                else _monitor.Output.UnregisterClient( _console );
-            }
         }
 
         /// <summary>
@@ -120,6 +98,11 @@ namespace CK.Core.Tests
             DeleteFolder( TestFolder, true );
         }
 
+        static public void ForceGCFullCollect()
+        {
+            GC.Collect( GC.MaxGeneration, GCCollectionMode.Forced, true );
+        }
+
         public static void DeleteFolder( string directoryPath, bool recreate = false )
         {
             int tryCount = 0;
@@ -139,7 +122,7 @@ namespace CK.Core.Tests
                 catch( Exception ex )
                 {
                     if( ++tryCount == 20 ) throw;
-                    ConsoleMonitor.Info().Send( ex, "While cleaning up directory '{0}'. Retrying.", directoryPath );
+                    Console.WriteLine( "{1} - While cleaning up directory '{0}'. Retrying.", directoryPath, ex.Message );
                     System.Threading.Thread.Sleep( 100 );
                 }
             }
@@ -163,7 +146,7 @@ namespace CK.Core.Tests
             while( !File.Exists( Path.Combine( p, "CK-Core.sln" ) ) );
             _solutionFolder = p;
 
-            ConsoleMonitor.Info().Send( "SolutionFolder is: {1}\r\nTestFolder is: {0}", _testFolder, _solutionFolder );
+            Console.WriteLine( "SolutionFolder is: {1}\r\nTestFolder is: {0}", _testFolder, _solutionFolder );
             CleanupTestFolder();
         }
     }

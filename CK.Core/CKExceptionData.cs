@@ -75,11 +75,11 @@ namespace CK.Core
             CKExceptionData[] loaderExceptions,
             CKExceptionData[] aggregatedExceptions )
         {
-            if( message == null ) throw new ArgumentNullException( "message" );
-            if( String.IsNullOrWhiteSpace( exceptionTypeName ) ) throw new ArgumentNullException( "exceptionTypeName" );
-            if( String.IsNullOrWhiteSpace( exceptionTypeAssemblyQualifiedName ) ) throw new ArgumentNullException( "exceptionTypeFullName" );
-            if( aggregatedExceptions != null && aggregatedExceptions.Length == 0 ) throw new ArgumentException( R.AggregatedExceptionsMustContainAtLeastOne, "aggregatedExceptions" );
-            if( innerException != null && aggregatedExceptions != null && aggregatedExceptions[0] != innerException ) throw new ArgumentException( R.InnerExceptionMustBeTheFirstAggregatedException );
+            if( message == null ) throw new ArgumentNullException( nameof( message ) );
+            if( String.IsNullOrWhiteSpace( exceptionTypeName ) ) throw new ArgumentNullException( nameof( exceptionTypeName ) );
+            if( String.IsNullOrWhiteSpace( exceptionTypeAssemblyQualifiedName ) ) throw new ArgumentNullException( nameof( exceptionTypeAssemblyQualifiedName ) );
+            if( aggregatedExceptions != null && aggregatedExceptions.Length == 0 ) throw new ArgumentException( Resources.AggregatedExceptionsMustContainAtLeastOne, nameof( aggregatedExceptions ) );
+            if( innerException != null && aggregatedExceptions != null && aggregatedExceptions[0] != innerException ) throw new ArgumentException( Resources.InnerExceptionMustBeTheFirstAggregatedException );
             // No empty array for loaderExceptions: null or at least one inside.
             if( loaderExceptions != null && loaderExceptions.Length == 0 ) loaderExceptions = null;
             _message = message;
@@ -238,14 +238,14 @@ namespace CK.Core
         /// Gets all the the exceptions that occurred while dynamically loading a type or an assembly if the exception is a <see cref="System.Reflection.ReflectionTypeLoadException"/>.
         /// Null otherwise.
         /// </summary>
-        public IReadOnlyList<CKExceptionData> LoaderExceptions { get { return _loaderExceptions.AsReadOnlyList(); } }
+        public IReadOnlyList<CKExceptionData> LoaderExceptions { get { return _loaderExceptions; } }
 
         /// <summary>
         /// Gets all the the aggregated exceptions if the exception is a <see cref="System.AggregateException"/>.
         /// This corresponds to the <see cref="System.AggregateException.InnerExceptions"/> property.
         /// Null if this exception is not a an AggregatedException.
         /// </summary>
-        public IReadOnlyList<CKExceptionData> AggregatedExceptions { get { return _aggregatedExceptions.AsReadOnlyList(); } }
+        public IReadOnlyList<CKExceptionData> AggregatedExceptions { get { return _aggregatedExceptions; } }
 
         /// <summary>
         /// Writes this exception data into a <see cref="BinaryWriter"/>.

@@ -57,8 +57,8 @@ namespace CK.RouteConfig
 
             internal RouteHost( RouteActionFactory<TAction, TRoute> factory )
             {
-                Actions = Util.EmptyArray<TAction>.Empty;
-                Routes = Util.EmptyArray<SubRouteHost>.Empty;
+                Actions = Array.Empty<TAction>();
+                Routes = Array.Empty<SubRouteHost>();
                 FinalRoute = factory.DoCreateEmptyFinalRoute();
             }
 
@@ -69,7 +69,7 @@ namespace CK.RouteConfig
                     try
                     {
                         Actions = c.ActionsResolved.Select( r => factory.Create( monitor, r.ActionConfiguration ) ).ToArray();
-                        FinalRoute = factory.DoCreateFinalRoute( monitor, configLock, Actions, c.Name, c.ConfigData, routePath.AsReadOnlyList() );
+                        FinalRoute = factory.DoCreateFinalRoute( monitor, configLock, Actions, c.Name, c.ConfigData, routePath );
                         routePath.Add( FinalRoute ); 
                         Routes = c.SubRoutes.Where( r => r.ActionsResolved.Any() ).Select( r => new SubRouteHost( monitor, routePath, configLock, factory, r ) ).ToArray();
                         routePath.RemoveAt( routePath.Count-1 );
@@ -143,7 +143,7 @@ namespace CK.RouteConfig
             _configLock = new CountdownEvent( 0 );
             _emptyHost = new RouteHost( actionFactory );
             _root = _emptyHost;
-            _allActions = Util.EmptyArray<TAction>.Empty;
+            _allActions = Array.Empty<TAction>();
         }
 
         /// <summary>
@@ -469,7 +469,7 @@ namespace CK.RouteConfig
             }
             _configLock.Reset( 0 );
             _futureRoot = _emptyHost;
-            _futureAllActions = Util.EmptyArray<TAction>.Empty;
+            _futureAllActions = Array.Empty<TAction>();
             return false;
         }
 

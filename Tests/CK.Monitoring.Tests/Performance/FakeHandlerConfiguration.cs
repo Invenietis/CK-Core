@@ -42,7 +42,7 @@ namespace CK.Monitoring.GrandOutputHandlers
 
         protected override void Initialize( IActivityMonitor m, XElement xml )
         {
-            int s = xml.GetAttributeInt( "ExtraLoad", -1 );
+            int s = (int?)xml.Attribute( "ExtraLoad" ) ?? -1;
             ExtraLoad = s < 0 ? -1 : s;
         }
 

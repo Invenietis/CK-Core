@@ -1,8 +1,8 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
-    <TargetFrameworkVersion Condition=" '$(TargetFrameworkVersion)' == '' ">v4.5</TargetFrameworkVersion>
+    <TargetFrameworkVersion Condition=" '$(TargetFrameworkVersion)' == '' ">v4.6</TargetFrameworkVersion>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
     <ProductVersion>8.0.30703</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
@@ -18,14 +18,11 @@
     <RestorePackages>true</RestorePackages>
     <NuGetPackageImportStamp>fd721984</NuGetPackageImportStamp>
   </PropertyGroup>
-  <PropertyGroup>
-    <OutputPath>bin\$(Configuration)\</OutputPath>
-  </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
-    <DefineConstants>DEBUG;TRACE;net45</DefineConstants>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <Prefer32Bit>false</Prefer32Bit>
@@ -33,16 +30,18 @@
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
-    <DefineConstants>TRACE;net45</DefineConstants>
+    <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <PropertyGroup>
+    <OutputPath>bin\$(Configuration)\</OutputPath>
     <SignAssembly>true</SignAssembly>
-  </PropertyGroup>
-  <PropertyGroup>
     <AssemblyOriginatorKeyFile>..\..\SharedKey.snk</AssemblyOriginatorKeyFile>
+    <StartAction>Program</StartAction>
+    <StartProgram>$(SolutionDir)\packages\NUnit.Runners.Net4.2.6.4\tools\nunit.exe</StartProgram>
+    <StartArguments>CK.Core.Tests.dll</StartArguments>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="nunit.framework, Version=2.6.4.14350, Culture=neutral, PublicKeyToken=96d09a1eb7f44a77, processorArchitecture=MSIL">
@@ -62,42 +61,20 @@
     </Compile>
     <Compile Include="AppSettingsTests.cs" />
     <Compile Include="CKExceptionTests.cs" />
-    <Compile Include="Collection\SerializationTests.cs" />
-    <Compile Include="InternalsVisibleToChecks.cs" />
-    <Compile Include="Monitoring\SourceFilteringTests.cs" />
-    <Compile Include="UtilMatcherTests.cs" />
-    <Compile Include="Monitoring\ActivityMonitorTimestamp.cs" />
-    <Compile Include="Monitoring\DocumentationCodeSnippets.cs" />
-    <Compile Include="TestHelper.LegacySupport.cs" />
-    <Compile Include="Monitoring\ActivityMonitorClientTester.cs" />
-    <Compile Include="Monitoring\ActivityMonitorCrossAppDomain.cs" />
-    <Compile Include="Monitoring\ActivityLoggerMultiThreadTests.cs" />
-    <Compile Include="Collection\ObservableSortedArrayListTests.cs" />
+    <Compile Include="StringMatcherTests.cs" />
     <Compile Include="Collection\SortedArrayKeyListTests.cs" />
     <Compile Include="Collection\FIFOTests.cs" />
-    <Compile Include="Monitoring\ActivityMonitorFilterPropagation.cs" />
-    <Compile Include="Monitoring\ActivityMonitorTests.cs" />
     <Compile Include="Collection\SortedArrayListTests.cs" />
-    <Compile Include="Monitoring\ActivityMonitorErrorLogs.cs" />
     <Compile Include="CollectionExtensionTests.cs" />
-    <Compile Include="MarshallByRefPlayground.cs" />
-    <Compile Include="Monitoring\DependentActivityTests.cs" />
-    <Compile Include="Monitoring\LogFilterTests.cs" />
-    <Compile Include="Monitoring\StupidXmlClient.cs" />
     <Compile Include="CriticalErrorCollectorTests.cs" />
     <Compile Include="EnumerableExtensionTests.cs" />
     <Compile Include="FileUtilTests.cs" />
     <Compile Include="Animals.cs" />
-    <Compile Include="Monitoring\SystemActivityMonitorTests.cs" />
-    <Compile Include="ServiceContainerTests.cs" />
-    <Compile Include="CoreExtensionTests.cs" />
     <Compile Include="Collection\ReadOnlyTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Monitoring\StupidStringClient.cs" />
     <Compile Include="TemporaryFileTests.cs" />
     <Compile Include="TestHelper.cs" />
-    <Compile Include="Traits.cs" />
-    <Compile Include="UriHelperTests.cs" />
+    <Compile Include="TraitsTests.cs" />
     <Compile Include="UtilInterlockedTests.cs" />
   </ItemGroup>
   <ItemGroup>

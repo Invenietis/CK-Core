@@ -125,9 +125,9 @@ namespace CK.Monitoring.Tests
             }
             foreach( var f in files )
             {
-                if( !FileUtil.CheckForWriteAcccess( f, 3000 ) )
+                if( !FileUtil.CheckForWriteAccess( f, 3000 ) )
                 {
-                    throw new CKException( "CheckForWriteAcccess excceds 3000 milliseconds..." );
+                    throw new CKException( "CheckForWriteAccess exceeds 3000 milliseconds..." );
                 }
             }
             return files;

@@ -34,7 +34,7 @@ namespace CK.Core.Tests
     public class CollectionExtensionTests
     {
         [Test]
-        public void RemoveWhereAndReturnsRemovedTests()
+        public void testing_RemoveWhereAndReturnsRemoved_extension_method()
         {
             {
                 List<int> l = new List<int>();

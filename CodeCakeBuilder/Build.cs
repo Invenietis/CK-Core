@@ -36,7 +36,6 @@ namespace CodeCake
             var projectsToPublish = Cake.ParseSolution( "CK-Core.sln" )
                                         .Projects
                                         .Where( p => p.Name != "CodeCakeBuilder" 
-                                                     && p.Name != "CKMon2Htm.ConsoleDemo"
                                                      && !p.Path.Segments.Contains( "Tests" ) );
             string secureFilePassPhrase = null;
 
@@ -82,7 +81,7 @@ namespace CodeCake
                     // It is built only on actual release (not CI build and not on prerelease).
                     using( var tempSln = Cake.CreateTemporarySolutionFile( "CK-Core.sln" ) )
                     {
-                        tempSln.ExcludeProjectsFromBuild( "CodeCakeBuilder", "CKMon2Htm" );
+                        tempSln.ExcludeProjectsFromBuild( "CodeCakeBuilder" );
                         Cake.MSBuild( tempSln.FullPath, new MSBuildSettings()
                                 .SetConfiguration( configuration )
                                 .SetVerbosity( Verbosity.Minimal )
@@ -108,12 +107,6 @@ namespace CodeCake
                         OutputFile = nugetOutputDir.Path + "/TestResult.txt",
                         StopOnError = true
                     } );
-                    Cake.NUnit( "net40/Tests/*.Tests/bin/" + configuration + "/*.Tests.dll", new NUnitSettings()
-                    {
-                        Framework = "v4.0",
-                        OutputFile = nugetOutputDir.Path + "/TestResult.net40.txt",
-                        StopOnError = true
-                    } );
                 } );
 
 
@@ -123,7 +116,7 @@ namespace CodeCake
                 .Does( () =>
                 {
                     var assembliesToSign = projectsToPublish
-                               .Select( p => p.Path.GetDirectory() + "/bin/" + configuration + "/" + p.Name.Replace( ".Net40", "" ) )
+                               .Select( p => p.Path.GetDirectory() + "/bin/" + configuration + "/" )
                                .SelectMany( p => new[] { p + ".dll", p + ".exe" } )
                                .Where( p => Cake.FileExists( p ) );
 
@@ -201,24 +194,9 @@ namespace CodeCake
                     }
                 } );
 
-            Task( "Publish-CKMon" )
-                .IsDependentOn( "Clean" )
-                .IsDependentOn( "Restore-NuGet-Packages" )
-                .WithCriteria( () => gitInfo.IsValidRelease && gitInfo.PreReleaseName == "" )
-                .Does( () =>
-                {
-                    // Builds and Publish the CKMon2Htm application.
-                    Cake.MSBuild( projectsToPublish.Single( p => p.Name == "CKMon2Htm" ).Path, new MSBuildSettings()
-                        .WithTarget( "Publish" )
-                        .SetConfiguration( configuration ) );
-                    // TODO: Resign the published project.
-                    // TODO:Push the application.
-                } );
-
             // The Default task for this script can be set here.
             Task( "Default" )
-                .IsDependentOn( "Push-NuGet-Packages" )
-                .IsDependentOn( "Publish-CKMon" );
+                .IsDependentOn( "Push-NuGet-Packages" );
         }
     }
 }

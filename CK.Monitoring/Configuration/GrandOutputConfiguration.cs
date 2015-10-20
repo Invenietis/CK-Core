@@ -179,7 +179,7 @@ namespace CK.Monitoring
                         monitor.CloseGroup( "No source filtering (ApplyMode is None)." );
                         return new Dictionary<string, LogFilter>();
                     }
-                    apply = s.GetAttributeEnum( "ApplyMode", SourceFilterApplyMode.Apply );
+                    apply = s.AttributeEnum( "ApplyMode", SourceFilterApplyMode.Apply );
 
                     var stranger =  e.Elements( "SourceOverrideFilter" ).Elements().FirstOrDefault( f => f.Name != "Add" && f.Name != "Remove" );
                     if( stranger != null )
@@ -232,9 +232,9 @@ namespace CK.Monitoring
         {
             using( monitor.OpenTrace().Send( "Reading subordinated channel '{0}'.", sub.Name ) )
             {
-                var matchOptions = xml.GetAttribute( "MatchOptions", null );
-                var filter = xml.GetAttribute( "TopicFilter", null );
-                var regex = xml.GetAttribute( "TopicRegex", null );
+                var matchOptions = (string)xml.Attribute( "MatchOptions" );
+                var filter = (string)xml.Attribute( "TopicFilter" );
+                var regex = (string)xml.Attribute( "TopicRegex" );
                 if( (filter == null) == (regex == null) )
                 {
                     throw new XmlException( "Subordinated Channel must define one TopicFilter or TopicRegex attribute (and not both)." + xml.GetLineColumnString() );
@@ -302,7 +302,7 @@ namespace CK.Monitoring
 
         static Type FindConfigurationType( string type )
         {
-            Type t = SimpleTypeFinder.WeakDefault.ResolveType( type, false );
+            Type t = SimpleTypeFinder.WeakResolver( type, false );
             if( t == null )
             {
                 string fullTypeName, assemblyFullName;
@@ -312,10 +312,10 @@ namespace CK.Monitoring
                     assemblyFullName = "CK.Monitoring";
                 }
                 if( !fullTypeName.EndsWith( "Configuration" ) ) fullTypeName += "Configuration";
-                t = SimpleTypeFinder.WeakDefault.ResolveType( fullTypeName + ", " + assemblyFullName, false );
+                t = SimpleTypeFinder.WeakResolver( fullTypeName + ", " + assemblyFullName, false );
                 if( t == null )
                 {
-                    t = SimpleTypeFinder.WeakDefault.ResolveType( "CK.Monitoring.GrandOutputHandlers." + fullTypeName + ", " + assemblyFullName, true );
+                    t = SimpleTypeFinder.WeakResolver( "CK.Monitoring.GrandOutputHandlers." + fullTypeName + ", " + assemblyFullName, true );
                 }
             }
             return t;

@@ -68,12 +68,12 @@ namespace CK.Monitoring
                 _lastEntryTime = DateTimeStamp.MinValue;
             }
 
-            internal void Register( RawLogFileMonitorOccurence fileOccurence, bool newOccurence, long streamOffset, IMulticastLogEntry log )
+            internal void Register( RawLogFileMonitorOccurence fileOccurrence, bool newOccurrence, long streamOffset, IMulticastLogEntry log )
             {
                 lock( _files )
                 {
-                    Debug.Assert( newOccurence == !_files.Contains( fileOccurence ) ); 
-                    if( newOccurence ) _files.Add( fileOccurence );
+                    Debug.Assert( newOccurrence == !_files.Contains( fileOccurrence ) ); 
+                    if( newOccurrence ) _files.Add( fileOccurrence );
                     if( _firstEntryTime > log.LogTime )
                     {
                         _firstEntryTime = log.LogTime;
@@ -242,8 +242,8 @@ namespace CK.Monitoring
             {
                 try
                 {
-                    var monitorOccurences = new Dictionary<Guid, RawLogFileMonitorOccurence>();
-                    var monitorOccurenceList = new List<RawLogFileMonitorOccurence>();
+                    var monitorOccurrences = new Dictionary<Guid, RawLogFileMonitorOccurence>();
+                    var monitorOccurrenceList = new List<RawLogFileMonitorOccurence>();
                     using( var r = LogReader.Open( _fileName ) )
                     {
                         if( r.MoveNext() )
@@ -257,7 +257,7 @@ namespace CK.Monitoring
                                     ++_totalEntryCount;
                                     if( _firstEntryTime > log.LogTime ) _firstEntryTime = log.LogTime;
                                     if( _lastEntryTime < log.LogTime ) _lastEntryTime = log.LogTime;
-                                    UpdateMonitor( reader, r.StreamOffset, monitorOccurences, monitorOccurenceList, log );
+                                    UpdateMonitor( reader, r.StreamOffset, monitorOccurrences, monitorOccurrenceList, log );
                                 }
                             }
                             while( r.MoveNext() );
@@ -265,7 +265,7 @@ namespace CK.Monitoring
                         _badEndOfFile = r.BadEndOfFileMarker;
                         _error = r.ReadException;
                     }
-                    _monitors = monitorOccurenceList.ToReadOnlyList();
+                    _monitors = monitorOccurrenceList.ToArray();
                 }
                 catch( Exception ex )
                 {
@@ -273,21 +273,21 @@ namespace CK.Monitoring
                 }
             }
 
-            void UpdateMonitor( MultiLogReader reader, long streamOffset, Dictionary<Guid, RawLogFileMonitorOccurence> monitorOccurence, List<RawLogFileMonitorOccurence> monitorOccurenceList, IMulticastLogEntry log )
+            void UpdateMonitor( MultiLogReader reader, long streamOffset, Dictionary<Guid, RawLogFileMonitorOccurence> monitorOccurrence, List<RawLogFileMonitorOccurence> monitorOccurenceList, IMulticastLogEntry log )
             {
-                bool newOccurence = false;
+                bool newOccurrence = false;
                 RawLogFileMonitorOccurence occ;
-                if( !monitorOccurence.TryGetValue( log.MonitorId, out occ ) )
+                if( !monitorOccurrence.TryGetValue( log.MonitorId, out occ ) )
                 {
                     occ = new RawLogFileMonitorOccurence( this, log.MonitorId, streamOffset );
-                    monitorOccurence.Add( log.MonitorId, occ );
+                    monitorOccurrence.Add( log.MonitorId, occ );
                     monitorOccurenceList.Add( occ );
-                    newOccurence = true;
+                    newOccurrence = true;
                 }
                 if( occ.FirstEntryTime > log.LogTime ) occ.FirstEntryTime = log.LogTime;
                 if( occ.LastEntryTime < log.LogTime ) occ.LastEntryTime = log.LogTime;
                 occ.LastOffset = streamOffset;
-                reader.RegisterOneLog( occ, newOccurence, streamOffset, log );
+                reader.RegisterOneLog( occ, newOccurrence, streamOffset, log );
             }
 
             /// <summary>
@@ -370,12 +370,12 @@ namespace CK.Monitoring
             return f;
         }
 
-        LiveIndexedMonitor RegisterOneLog( RawLogFileMonitorOccurence fileOccurence, bool newOccurence, long streamOffset, IMulticastLogEntry log )
+        LiveIndexedMonitor RegisterOneLog( RawLogFileMonitorOccurence fileOccurrence, bool newOccurrence, long streamOffset, IMulticastLogEntry log )
         {
-            Debug.Assert( fileOccurence.MonitorId == log.MonitorId );
-            Debug.Assert( !newOccurence || (fileOccurence.FirstEntryTime == log.LogTime && fileOccurence.LastEntryTime == log.LogTime ) );
+            Debug.Assert( fileOccurrence.MonitorId == log.MonitorId );
+            Debug.Assert( !newOccurrence || (fileOccurrence.FirstEntryTime == log.LogTime && fileOccurrence.LastEntryTime == log.LogTime ) );
             LiveIndexedMonitor m = _monitors.GetOrAdd( log.MonitorId, id => new LiveIndexedMonitor( id, this ) );
-            m.Register( fileOccurence, newOccurence, streamOffset, log );
+            m.Register( fileOccurrence, newOccurrence, streamOffset, log );
             return m;
         }
 

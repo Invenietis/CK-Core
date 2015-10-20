@@ -100,7 +100,7 @@ namespace CK.Core
         {
             internal ErrorEventArgs( Error[] e )
             {
-                LoggingErrors = e.ToReadOnlyList();
+                LoggingErrors = e;
             }
 
             /// <summary>
@@ -225,7 +225,7 @@ namespace CK.Core
                                     lock( _collector )
                                     {
                                         if( _collector.Count == _collector.Capacity ) Interlocked.Increment( ref _lostErrorCount );
-                                        else _collector.Push( new Error( R.ErrorWhileCollectorRaiseError, ex2, _seqNumber++, _lostErrorCount ) );
+                                        else _collector.Push( new Error( Resources.ErrorWhileCollectorRaiseError, ex2, _seqNumber++, _lostErrorCount ) );
                                     }
                                     again = true;
                                 }

@@ -329,7 +329,7 @@ namespace CK.Monitoring.Tests
 
             var map = mlr.GetActivityMap();
 
-            Assert.That( map.Monitors, Has.Count.EqualTo( 3 ) );
+            Assert.That( map.Monitors.Count, Is.EqualTo( 3 ) );
 
         }
 

@@ -28,7 +28,7 @@ using System.Reflection;
 namespace CK.Reflection
 {
     /// <summary>
-    /// Provides actual comparison of <see cref="MemberInfo"/> without  considering the <see cref="MemberInfo.ReflectedType"/>.
+    /// Provides actual comparison of <see cref="MemberInfo"/> without considering the <see cref="MemberInfo.ReflectedType"/>.
     /// </summary>
     /// <remarks>
     /// This code comes from re-motion Core Framework (LGPL). It has been slightly modified, but the credits is for them.
@@ -44,7 +44,8 @@ namespace CK.Reflection
         public static readonly MemberInfoEqualityComparer Default = new MemberInfoEqualityComparer();
 
         /// <summary>
-        /// Checks two <see cref="MemberInfo"/> instances for logical equality, without considering the <see cref="MemberInfo.ReflectedType"/>.
+        /// Checks two <see cref="MemberInfo"/> instances for logical equality, without considering 
+        /// the <see cref="MemberInfo.ReflectedType"/>.
         /// </summary>
         /// <param name="x">First <see cref="MemberInfo"/> to compare.</param>
         /// <param name="y">Second <see cref="MemberInfo"/> to compare.</param>

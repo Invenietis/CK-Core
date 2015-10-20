@@ -35,7 +35,7 @@ namespace CK.Core.Tests.Collection
     public class FIFOTests
     {
         [Test]
-        public void FIFOToArray()
+        public void FIFO_ToArray_method()
         {
             int[] initialArray = new int[7];
             initialArray[0] = initialArray[6] = -1;
@@ -105,7 +105,7 @@ namespace CK.Core.Tests.Collection
         }
 
         [Test]
-        public void FIFOChangeCapacity()
+        public void FIFO_change_capacity_preserves_items()
         {
             FIFOBuffer<int> f = new FIFOBuffer<int>( 0 );
             Assert.That( f.Capacity, Is.EqualTo( 0 ) );
@@ -188,7 +188,7 @@ namespace CK.Core.Tests.Collection
         }
 
         [Test]
-        public void FIFORemoveAt()
+        public void FIFO_supports_removeAt()
         {
             FIFOBuffer<int> f = new FIFOBuffer<int>( 0 );
             Assert.Throws<IndexOutOfRangeException>( () => f.RemoveAt( 0 ) );
@@ -270,7 +270,7 @@ namespace CK.Core.Tests.Collection
         }
 
         [Test]
-        public void FIFOPeekAndIndex()
+        public void FIFO_supports_Peek_and_PeekLast()
         {
             FIFOBuffer<int> f = new FIFOBuffer<int>( 0 );
             Assert.Throws<IndexOutOfRangeException>( () => Console.Write( f[-1] ) );
@@ -407,7 +407,7 @@ namespace CK.Core.Tests.Collection
         }
 
         [Test]
-        public void FIFOSupportNull()
+        public void FIFO_supports_Null_entries()
         {
             CultureInfo c0 = CultureInfo.InvariantCulture;
             CultureInfo c1 = CultureInfo.GetCultureInfo( "fr" );
@@ -451,7 +451,7 @@ namespace CK.Core.Tests.Collection
         }
 
         [Test]
-        public void FIFOOneValueType()
+        public void FIFO_with_one_and_only_one_Value_Type()
         {
             FIFOBuffer<int> f = new FIFOBuffer<int>( 1 );
             AssertEmpty( f );

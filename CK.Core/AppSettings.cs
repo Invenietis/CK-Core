@@ -62,7 +62,7 @@ namespace CK.Core
             if( getConfigurationObject == null ) throw new ArgumentNullException( "getConfigurationObject" );
             lock( _lock )
             {
-                if( _initialized ) throw new CKException( "AppSettingsAlreadyInitialized" );
+                if( _initialized ) throw new CKException( "AppSettingsAlreadyInitialied" );
                 _initializedGetObject = _getObject = getConfigurationObject;
                 _initialized = true;
             }
@@ -106,7 +106,7 @@ namespace CK.Core
         {
             lock( _lock )
             {
-                if( _initialized ) throw new CKException( R.AppSettingsAlreadyInitialized );
+                if( _initialized ) throw new CKException( Resources.AppSettingsAlreadyInitialized );
                 DoDefaultInitialize();
             }
         }
@@ -160,7 +160,7 @@ namespace CK.Core
         {
             if( !_initialized ) DefaultInitialization();
             var o = _getObject( key );
-            if( o == null ) throw new CKException( R.AppSettingsRequiredConfigurationMissing, key );
+            if( o == null ) throw new CKException( Resources.AppSettingsRequiredConfigurationMissing, key );
             return o;
         }
 
@@ -173,8 +173,8 @@ namespace CK.Core
         {
             if( !_initialized ) DefaultInitialization();
             var o = _getObject( key );
-            if( o == null ) throw new CKException( R.AppSettingsRequiredConfigurationMissing, key );
-            if( !(o is T) ) throw new CKException( R.AppSettingsRequiredConfigurationBadType, key, typeof(T).FullName );
+            if( o == null ) throw new CKException( Resources.AppSettingsRequiredConfigurationMissing, key );
+            if( !(o is T) ) throw new CKException( Resources.AppSettingsRequiredConfigurationBadType, key, typeof(T).FullName );
             return (T)o;
         }
 
@@ -191,12 +191,12 @@ namespace CK.Core
 
         void DoDefaultInitialize()
         {
-            Type configManager = SimpleTypeFinder.Default.ResolveType( _defType, false );
+            Type configMananger = SimpleTypeFinder.WeakResolver( _defType, false );
             // Type op_equality is not portable: use ReferenceEquals.
-            if( !ReferenceEquals( configManager, null ) )
+            if( !ReferenceEquals( configMananger, null ) )
             {
                 Type[] stringParams = new Type[] { typeof( string ) };
-                MethodInfo getAppSettings = configManager.GetProperty( "AppSettings", BindingFlags.Public | BindingFlags.Static ).GetGetMethod();
+                MethodInfo getAppSettings = configMananger.GetProperty( "AppSettings", BindingFlags.Public | BindingFlags.Static ).GetGetMethod();
                 MethodInfo indexer = getAppSettings.ReturnType.GetProperty( "Item", typeof( string ), stringParams ).GetGetMethod();
 
                 DynamicMethod getter = new DynamicMethod( "CK-ReadConfigurationManagerAppSettings", typeof( string ), stringParams, true );
@@ -208,7 +208,7 @@ namespace CK.Core
                 _initializedGetObject = _getObject = (Func<string, object>)getter.CreateDelegate( typeof( Func<string, object> ) );
                 _initialized = true;
             }
-            else throw new CKException( R.AppSettingsDefaultInitializationFailed );
+            else throw new CKException( Resources.AppSettingsDefaultInitializationFailed );
         }
 
     }

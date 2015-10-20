@@ -120,16 +120,16 @@ namespace CK.RouteConfig.Impl
                     using( monitor.OpenInfo().Send( "Building final routes." ) )
                     {
                         var preRoot = new PreRoute( monitor, protoResolver.Root );
-                        Root = new RouteConfigurationResolved( protoResolver.Root.FullName, c.ConfigData, preRoot.FinalizeActions().AsReadOnlyList() );
+                        Root = new RouteConfigurationResolved( protoResolver.Root.FullName, c.ConfigData, preRoot.FinalizeActions() );
                         foreach( IProtoSubRoute sub in protoResolver.NamedSubRoutes.Values )
                         {
                             var preRoute = new PreRoute( monitor, sub );
-                            NamedSubRoutes.Add( sub.FullName, new SubRouteConfigurationResolved( sub, preRoute.FinalizeActions().AsReadOnlyList() ) );
+                            NamedSubRoutes.Add( sub.FullName, new SubRouteConfigurationResolved( sub, preRoute.FinalizeActions() ) );
                         }
-                        Root.SubRoutes = protoResolver.Root.SubRoutes.Select( p => NamedSubRoutes[p.FullName] ).ToArray().AsReadOnlyList();
+                        Root.SubRoutes = protoResolver.Root.SubRoutes.Select( p => NamedSubRoutes[p.FullName] ).ToArray();
                         foreach( IProtoSubRoute sub in protoResolver.NamedSubRoutes.Values )
                         {
-                            NamedSubRoutes[sub.FullName].SubRoutes = sub.SubRoutes.Select( p => NamedSubRoutes[p.FullName] ).ToArray().AsReadOnlyList();
+                            NamedSubRoutes[sub.FullName].SubRoutes = sub.SubRoutes.Select( p => NamedSubRoutes[p.FullName] ).ToArray();
                         }
                     }
                 }

@@ -35,7 +35,7 @@ namespace CK.Core.Tests.Collection
     public class SortedArrayKeyListTests
     {
         [Test]
-        public void LexicographicIntegers()
+        public void sorting_Lexicographic_integers()
         {
             var a = new CKSortedArrayKeyList<int,string>( i => i.ToString() );
             a.AddRangeArray( 1, 2, 3 );
@@ -55,7 +55,7 @@ namespace CK.Core.Tests.Collection
         }
 
         [Test]
-        public void SortedArrayKeyListSimpleTest()
+        public void SortedArrayKeyList_can_allow_duplicates()
         {
             var a = new CKSortedArrayKeyList<int, string>( i => i.ToString() );
 
@@ -89,8 +89,11 @@ namespace CK.Core.Tests.Collection
             Assert.That( a.KeyCount( "100" ), Is.EqualTo( 0 ) );
             CheckList( a, 1, 1000, 10000, 2, 3, 30, 46, 56 );
             Assert.That( a.Remove( "Nothing" ), Is.False );
+        }
 
-            //Exception Test
+        [Test]
+        public void SortedArrayKeyList_does_not_accept_null_entries()
+        {
             var b = new CKSortedArrayKeyList<ClassToTest, string>( i => i.ToString(), false );
             ClassToTest classToTest = new ClassToTest( "A" );
 
@@ -103,12 +106,9 @@ namespace CK.Core.Tests.Collection
         }
 
         [Test]
-        public void NoDuplicateKeyedCollection()
+        public void SortedArrayKeyList_without_duplicates()
         {
-            // Uses an ObservableSortedArrayKeyList just for fun and
-            // to challenge inheritance of DebuggerTypeProxy: the ObservableSortedArrayKeyList is not attributed
-            // but it inherits the DebuggerTypeProxy of its SortedArrayKeyList base class.
-            var a = new CKObservableSortedArrayKeyList<int, string>( i => i.ToString() );
+            var a = new CKSortedArrayKeyList<int, string>( i => i.ToString() );
             a.AddRangeArray( 3, 2, 1 );
 
             bool exists;
@@ -141,7 +141,7 @@ namespace CK.Core.Tests.Collection
 
 
         [Test]
-        public void DuplicateKeyedCollection()
+        public void another_test_with_duplicates_in_SortedArrayKeyList()
         {
             var a = new CKSortedArrayKeyList<int, string>( i => (i%100).ToString(), true );
             a.AddRangeArray( 2, 1 );

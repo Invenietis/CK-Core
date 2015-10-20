@@ -511,7 +511,7 @@ namespace CK.Monitoring
                 {
                     return new LivePage( _firstDepth, new ParentedLogEntry[pageLength], r, pageLength );
                 }
-                return new LivePage( _firstDepth, Util.EmptyArray<ParentedLogEntry>.Empty, null, pageLength );
+                return new LivePage( _firstDepth, Array.Empty<ParentedLogEntry>(), null, pageLength );
             }
 
             /// <summary>

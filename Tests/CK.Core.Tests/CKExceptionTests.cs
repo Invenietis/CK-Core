@@ -37,7 +37,7 @@ namespace CK.Core.Tests
     {
 
         [Test]
-        public void FromSimplestException()
+        public void creating_a_CKExceptionData_from_simple_Exception()
         {
             CheckSimpleExceptionData( CKExceptionData.CreateFrom( new Exception( "" ) ), s => s == "", false, false );
 
@@ -66,7 +66,7 @@ namespace CK.Core.Tests
         }
 
         [Test]
-        public void WithInnerExceptions()
+        public void testing_inner_exception_data()
         {
             Exception e = ThrowExceptionWithInner();
             var d = CKExceptionData.CreateFrom( e );
@@ -75,7 +75,7 @@ namespace CK.Core.Tests
         }
 
         [Test]
-        public void AggregatedExceptions()
+        public void CKExceptionData_handles_AggregatedExceptions()
         {
             AggregateException eAgg = ThrowAggregatedException();
             var d = CKExceptionData.CreateFrom( eAgg );
@@ -92,7 +92,7 @@ namespace CK.Core.Tests
 
 
         [Test]
-        public void SerializeCKException()
+        public void CKException_can_be_serialized()
         {
             CKException ckEx;
             try { throw new CKException( ThrowExceptionWithInner(), "CK-MostOuter" ); } 
@@ -109,7 +109,7 @@ namespace CK.Core.Tests
         }
 
         [Test]
-        public void SerializeCKExceptionData()
+        public void CKExceptionData_can_be_serialized()
         {
             var data = CKExceptionData.CreateFrom( ThrowAggregatedException() );
 
@@ -124,7 +124,7 @@ namespace CK.Core.Tests
         }
 
         [Test]
-        public void BinaryReadWriteCKExceptionData()
+        public void CKExceptionData_supports_Binary_ReadWrite()
         {
             var data = CKExceptionData.CreateFrom( ThrowAggregatedException() );
             using( var mem = new MemoryStream() )

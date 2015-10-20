@@ -270,13 +270,11 @@ namespace CK.Reflection
 
         private class DelegateBuilder<T> where T : class
         {
-            #region Constants
             private const BindingFlags ALL_STATIC_METHOD =
                 BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static | BindingFlags.InvokeMethod;
 
             private const BindingFlags ALL_INSTANCE_METHOD =
                 BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.InvokeMethod;
-            #endregion
 
             private readonly bool _throwOnError;
             private readonly string _methodName;

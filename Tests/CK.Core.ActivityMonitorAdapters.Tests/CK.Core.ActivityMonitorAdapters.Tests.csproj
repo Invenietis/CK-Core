@@ -9,14 +9,14 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>CK.Core.ActivityMonitorAdapters.Tests</RootNamespace>
     <AssemblyName>CK.Core.ActivityMonitorAdapters.Tests</AssemblyName>
-    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
+    <TargetFrameworkProfile />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
-    <OutputPath>bin\Debug\</OutputPath>
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
@@ -24,16 +24,17 @@
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
-    <OutputPath>bin\Release\</OutputPath>
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <PropertyGroup>
-    <SignAssembly>false</SignAssembly>
-  </PropertyGroup>
-  <PropertyGroup>
+    <OutputPath>bin\$(Configuration)\</OutputPath>
+    <SignAssembly>true</SignAssembly>
     <AssemblyOriginatorKeyFile>..\..\SharedKey.snk</AssemblyOriginatorKeyFile>
+    <StartAction>Program</StartAction>
+    <StartProgram>$(SolutionDir)\packages\NUnit.Runners.Net4.2.6.4\tools\nunit.exe</StartProgram>
+    <StartArguments>CK.Core.ActivityMonitorAdapters.Tests.dll</StartArguments>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="Common.Logging, Version=3.3.0.0, Culture=neutral, PublicKeyToken=af08829b84f0328e, processorArchitecture=MSIL">
@@ -74,7 +75,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="..\..\SharedKey.snk">
-      <Link>SharedKey.snk</Link>
+      <Link>Properties\SharedKey.snk</Link>
     </None>
     <None Include="app.config" />
     <None Include="packages.config" />
@@ -87,6 +88,10 @@
     <ProjectReference Include="..\..\ActivityMonitorAdapters\CK.Core.ActivityMonitor.NLogAdapter\CK.Core.ActivityMonitor.NLogAdapter.csproj">
       <Project>{bdf27ffd-e2ea-4070-bc7b-e2dcfb00daaf}</Project>
       <Name>CK.Core.ActivityMonitor.NLogAdapter</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\CK.ActivityMonitor\CK.ActivityMonitor.csproj">
+      <Project>{00262f15-69f2-4a4f-b08f-9873e1bfc803}</Project>
+      <Name>CK.ActivityMonitor</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\CK.Core\CK.Core.csproj">
       <Project>{97578828-71ec-46b3-bd9a-44e58292386f}</Project>

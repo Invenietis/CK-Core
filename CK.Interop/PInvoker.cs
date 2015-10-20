@@ -50,7 +50,7 @@ namespace CK.Interop
             // The DLLImportAttribute type.
             Type iType = typeof( System.Runtime.InteropServices.DllImportAttribute );
 
-            // Create a ConstuctorInfo for the DLLImportAttribute, specifying
+            // Create a ConstructorInfo for the DLLImportAttribute, specifying
             // the constructor that takes a string argument.
             _impAttrCtor = iType.GetConstructor( new Type[] { typeof( string ) } );
             // Create an array containing the fields of the DLLImportAttribute class.

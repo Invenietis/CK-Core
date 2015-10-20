@@ -35,7 +35,7 @@ namespace CK.Core.Tests
     public class EnumerableExtensionTests
     {
         [Test]
-        public void IsSorted()
+        public void test_IsSortedStrict_and_IsSortedLarge_extension_methods()
         {
             List<int> listWithDuplicate = new List<int>();
             listWithDuplicate.AddRangeArray<int>( 1, 2, 2, 3, 3, 5 );
@@ -109,7 +109,7 @@ namespace CK.Core.Tests
         }
 
         [Test]
-        public void IndexOf()
+        public void test_IndexOf_extension_method()
         {
             List<int> listToTest = new List<int>();
             listToTest.AddRangeArray<int>( 1, 2 );
@@ -136,7 +136,7 @@ namespace CK.Core.Tests
         }
 
         [Test]
-        public void Append()
+        public void test_Append_extension_method()
         {
             int[] t = new int[0];
             CollectionAssert.AreEqual( t.Append( 5 ), new[] { 5 } );
@@ -176,7 +176,7 @@ namespace CK.Core.Tests
         }
 
         [Test]
-        public void MaxBy()
+        public void test_MaxBy_extension_method()
         {
             int[] t = new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12 };
 
@@ -189,7 +189,7 @@ namespace CK.Core.Tests
 
             Assert.Throws<ArgumentNullException>( () => t.MaxBy<int, int>( null ) );
             t = null;
-            Assert.Throws<ArgumentNullException>( () => t.MaxBy( Util.FuncIdentity ) );
+            Assert.Throws<NullReferenceException>( () => t.MaxBy( Util.FuncIdentity ) );
         }
     }
 }

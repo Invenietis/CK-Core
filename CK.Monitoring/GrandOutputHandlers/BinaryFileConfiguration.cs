@@ -87,8 +87,8 @@ namespace CK.Monitoring.GrandOutputHandlers
         protected override void Initialize( IActivityMonitor monitor, XElement xml )
         {
             Path = xml.AttributeRequired( "Path" ).Value;
-            MaxCountPerFile = xml.GetAttributeInt( "MaxCountPerFile", MaxCountPerFile );
-            UseGzipCompression = xml.GetAttributeBoolean( "UseGzipCompression", UseGzipCompression );
+            MaxCountPerFile = (int?)xml.Attribute( "MaxCountPerFile" ) ?? MaxCountPerFile;
+            UseGzipCompression = (bool?)xml.Attribute( "UseGzipCompression" ) ?? UseGzipCompression;
         }
     }
 }

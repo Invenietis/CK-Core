@@ -9,10 +9,11 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>CK.Core.ActivityMonitorAdapters.NLogImpl</RootNamespace>
     <AssemblyName>CK.Core.ActivityMonitor.NLogAdapter</AssemblyName>
-    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <NuGetPackageImportStamp>
     </NuGetPackageImportStamp>
+    <TargetFrameworkProfile />
   </PropertyGroup>
   <PropertyGroup>
     <OutputPath>bin\$(Configuration)</OutputPath>
@@ -64,6 +65,10 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\CK.ActivityMonitor\CK.ActivityMonitor.csproj">
+      <Project>{00262f15-69f2-4a4f-b08f-9873e1bfc803}</Project>
+      <Name>CK.ActivityMonitor</Name>
+    </ProjectReference>
     <ProjectReference Include="..\..\CK.Core\CK.Core.csproj">
       <Project>{97578828-71ec-46b3-bd9a-44e58292386f}</Project>
       <Name>CK.Core</Name>

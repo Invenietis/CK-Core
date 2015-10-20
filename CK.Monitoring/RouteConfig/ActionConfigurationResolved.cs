@@ -79,7 +79,7 @@ namespace CK.RouteConfig
         /// </summary>
         internal static ActionConfigurationResolved Create( IActivityMonitor monitor, ActionConfiguration a, bool flattenUselessComposite, int index = 0, IReadOnlyList<string> path = null )
         {
-            if( path == null ) path = CKReadOnlyListEmpty<string>.Empty;
+            if( path == null ) path = Array.Empty<string>();
             Impl.ActionCompositeConfiguration c = a as Impl.ActionCompositeConfiguration;
             if( c != null ) return new Impl.ActionCompositeConfigurationResolved( monitor, index, path, c, flattenUselessComposite );
             return new ActionConfigurationResolved( index, path, a );

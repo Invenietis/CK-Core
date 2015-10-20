@@ -35,7 +35,7 @@ namespace CK.Core.Tests
     public class TemporaryFileTests
     {
         [Test]
-        public void TemporaryFileSimpleTest()
+        public void TemporaryFile_are_disposable_and_use_FileAttributes_Temporary_flag()
         {
             string path = string.Empty;
             using( TemporaryFile temporaryFile = new TemporaryFile( true, null ) )
@@ -64,7 +64,7 @@ namespace CK.Core.Tests
         }
 
         [Test]
-        public void TemporaryFileExtensionTest()
+        public void TemporaryFile_can_specify_an_extension()
         {
             string path = string.Empty;
             using( TemporaryFile temporaryFile = new TemporaryFile( " " ) )
@@ -104,7 +104,7 @@ namespace CK.Core.Tests
         }
 
         [Test]
-        public void TemporaryFileDetachTest()
+        public void TemporaryFile_can_be_detached()
         {
             string path = string.Empty;
             using( TemporaryFile temporaryFile = new TemporaryFile( true, null ) )

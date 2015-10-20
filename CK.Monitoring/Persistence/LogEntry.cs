@@ -109,7 +109,7 @@ namespace CK.Monitoring
         }
 
         /// <summary>
-        /// Creates a <see cref="ILogEntry"/> for an opend group.
+        /// Creates a <see cref="ILogEntry"/> for an opened group.
         /// </summary>
         /// <param name="monitorId">Identifier of the monitor.</param>
         /// <param name="previousEntryType">Log type of the previous entry in the monitor..</param>

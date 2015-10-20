@@ -43,7 +43,7 @@ namespace CK.Core.Tests
         }
 
         [Test]
-        public void StandardStringInitialization()
+        public void initializing_with_a_function_getter()
         {
             AppSettings settings = new AppSettings();
             settings.Initialize( s => s + "OK" );
@@ -51,7 +51,7 @@ namespace CK.Core.Tests
         }
         
         [Test]
-        public void StandardObjectInitialization()
+        public void Get_with_default_value()
         {
             AppSettings settings = new AppSettings();
             settings.Initialize( s => s == "Test" ? (object)3712 : null );
@@ -69,7 +69,7 @@ namespace CK.Core.Tests
         }
 
         [Test]
-        public void DoubleInitialization()
+        public void AppSettings_can_be_initialized_once_and_only_once()
         {
             AppSettings settings = new AppSettings();
             settings.Initialize( s => s == "Test" );
@@ -77,7 +77,7 @@ namespace CK.Core.Tests
         }
 
         [Test]
-        public void OverrideAndRevert()
+        public void AppSettings_can_be_overridden_and_restored()
         {
             AppSettings settings = new AppSettings();
             settings.Initialize( s => s == "Test" ? "OK" : null );
@@ -98,7 +98,7 @@ namespace CK.Core.Tests
         }
 
         [Test]
-        public void DefaultInitializationOnConfigurationMananger()
+        public void using_unconfigured_AppSettings_binds_to_ConfigurationManager()
         {
             AppSettings settings = new AppSettings();
             // Here, ConfigurationManager has been late bound.
@@ -106,7 +106,7 @@ namespace CK.Core.Tests
         }
 
         [Test]
-        public void DefaultInitializationOnConfigurationManangerIsDynamic()
+        public void default_initialization_on_ConfigurationMananger_is_dynamic()
         {
             AppSettings settings = new AppSettings();
             // Here, ConfigurationManager has been late bound.
@@ -119,7 +119,7 @@ namespace CK.Core.Tests
         }
 
         [Test]
-        public void OverideDefaultInitialization()
+        public void Override_of_the_DefaultInitialization_is_possible()
         {
             AppSettings settings = new AppSettings();
             SetConfigurationManagerSettings( "Test", "Murfn will be overridden." );

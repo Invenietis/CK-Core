@@ -17,7 +17,6 @@
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
-    <OutputPath>bin\Debug\</OutputPath>
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
@@ -25,11 +24,21 @@
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
-    <OutputPath>bin\Release\</OutputPath>
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
+
+  <PropertyGroup>
+    <OutputPath>bin\$(Configuration)</OutputPath>
+    <SignAssembly>true</SignAssembly>
+    <AssemblyOriginatorKeyFile>..\SharedKey.snk</AssemblyOriginatorKeyFile>
+  </PropertyGroup>
+  <PropertyGroup Condition=" $(GenerateDocumentation) != '' ">
+    <DocumentationFile>bin\$(Configuration)\$(AssemblyName).xml</DocumentationFile>
+  </PropertyGroup>
+
+
   <ItemGroup>
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -39,33 +48,12 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="..\SharedAssemblyInfo.cs">
+      <Link>Properties\SharedAssemblyInfo.cs</Link>
+    </Compile>
     <Compile Include="ActivityLogGroupConclusion.cs" />
     <Compile Include="ActivityMonitorGroupData.cs" />
     <Compile Include="ActivityMonitorLogData.cs" />
-    <Compile Include="CK.Core\AppSettings.cs" />
-    <Compile Include="CK.Core\CKException.cs" />
-    <Compile Include="CK.Core\CKExceptionData.cs" />
-    <Compile Include="CK.Core\CKSortedArrayList.cs" />
-    <Compile Include="CK.Core\CollectionExtension.cs" />
-    <Compile Include="CK.Core\DateTimeStampMatcherExtension.cs" />
-    <Compile Include="CK.Core\DictionaryExtension.cs" />
-    <Compile Include="CK.Core\EnumerableExtension.cs" />
-    <Compile Include="CK.Core\FileUtil.cs" />
-    <Compile Include="CK.Core\ReadOnlyCollectionDebuggerView.cs" />
-    <Compile Include="CK.Core\CKTrait.cs" />
-    <Compile Include="CK.Core\CKTraitContext.cs" />
-    <Compile Include="CK.Core\CriticalErrorCollector.cs" />
-    <Compile Include="CK.Core\DateTimeStamp.cs" />
-    <Compile Include="CK.Core\FIFOBuffer.cs" />
-    <Compile Include="CK.Core\IFluentInterface.cs" />
-    <Compile Include="CK.Core\IUniqueId.cs" />
-    <Compile Include="CK.Core\IWritableCollection.cs" />
-    <Compile Include="CK.Core\IWritableCollector.cs" />
-    <Compile Include="CK.Core\SetOperation.cs" />
-    <Compile Include="CK.Core\TemporaryFile.cs" />
-    <Compile Include="CK.Core\StringMatcher.cs" />
-    <Compile Include="CK.Core\Util.cs" />
-    <Compile Include="CK.Core\XmlExtension.cs" />
     <Compile Include="Client\ActivityMonitorClient.cs" />
     <Compile Include="Client\ActivityMonitorConsoleClient.cs" />
     <Compile Include="Client\ActivityMonitorErrorCounter.cs" />
@@ -125,6 +113,9 @@
     <Compile Include="SystemActivityMonitor.cs" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="..\SharedKey.snk">
+      <Link>Properties\SharedKey.snk</Link>
+    </None>
     <None Include="ActivityMonitorOverview.cd" />
     <None Include="Impl\ActivityMonitorExtension-Gen.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
@@ -153,6 +144,12 @@
       <CustomToolNamespace>CK.Core</CustomToolNamespace>
       <SubType>Designer</SubType>
     </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\CK.Core\CK.Core.csproj">
+      <Project>{97578828-71ec-46b3-bd9a-44e58292386f}</Project>
+      <Name>CK.Core</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

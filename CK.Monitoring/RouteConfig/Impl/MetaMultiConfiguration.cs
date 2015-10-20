@@ -51,7 +51,7 @@ namespace CK.RouteConfig.Impl
         /// </summary>
         protected IReadOnlyList<T> Items
         {
-            get { return _items.AsReadOnlyList(); }
+            get { return _items; }
         }
 
         /// <summary>

@@ -90,7 +90,7 @@ namespace CK.RouteConfig
         /// Gets the content of this configuration: a list of <see cref="MetaConfiguration"/> that 
         /// encapsulates <see cref="ActionConfiguration"/> and/or <see cref="SubRouteConfiguration"/>.
         /// </summary>
-        public IReadOnlyList<MetaConfiguration> Configurations { get { return _configurations.AsReadOnlyList(); } }
+        public IReadOnlyList<MetaConfiguration> Configurations { get { return _configurations; } }
 
         /// <summary>
         /// Adds one or more <see cref="ActionConfiguration"/>.

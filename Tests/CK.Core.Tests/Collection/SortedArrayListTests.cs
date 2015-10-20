@@ -79,7 +79,7 @@ namespace CK.Core.Tests.Collection
         }
 
         [Test]
-        public void Covariance()
+        public void Covariance_support_via_ICKReadOnlyList_and_ICKWritableCollection()
         {
             var a = new CKSortedArrayList<Mammal>( ( a1, a2 ) => a1.Name.CompareTo( a2.Name ) );
             a.Add( new Mammal( "B", 12 ) );
@@ -103,7 +103,7 @@ namespace CK.Core.Tests.Collection
         }
 
         [Test]
-        public void CheckPos()
+        public void CheckPosition_locally_reorders_the_items()
         {
             var a = new TestMammals( ( a1, a2 ) => a1.Name.CompareTo( a2.Name ) );
             a.Add( new Mammal( "B" ) );
@@ -192,7 +192,7 @@ namespace CK.Core.Tests.Collection
         }
 
         [Test]
-        public void IndexOfWithComparison()
+        public void using_binary_search_algorithms_on_SortedArrayList()
         {
             var a = new TestMammals( ( a1, a2 ) => a1.Name.CompareTo( a2.Name ) );
             a.Add( new Mammal( "B" ) );
@@ -274,7 +274,7 @@ namespace CK.Core.Tests.Collection
         }
 
         [Test]
-        public void AddRemove()
+        public void testing_add_and_remove_items()
         {
             var a = new TestInt();
             a.CheckList();
@@ -350,7 +350,7 @@ namespace CK.Core.Tests.Collection
         }
 
         [Test]
-        public void SortedArrayListChangeCapacityTest()
+        public void testing_capacity_changes()
         {
             var a = new CKSortedArrayList<Mammal>( ( a1, a2 ) => a1.Name.CompareTo( a2.Name ) );
 
@@ -388,7 +388,7 @@ namespace CK.Core.Tests.Collection
         }
 
         [Test]
-        public void SortedArrayListThrowExceptionTest()
+        public void testing_expected_Argument_InvalidOperation_and_IndexOutOfRangeException()
         {
             var a = new CKSortedArrayList<Mammal>( ( a1, a2 ) => a1.Name.CompareTo( a2.Name ) );
 
@@ -414,11 +414,20 @@ namespace CK.Core.Tests.Collection
             a.Clear(); //change _version
             Assert.Throws<InvalidOperationException>( () => enumerator.Reset() );
             Assert.Throws<InvalidOperationException>( () => enumerator.MoveNext() );
-            
+
+            //Exception
+            IList<Mammal> testException = new CKSortedArrayList<Mammal>();
+            testException.Add( new Mammal( "Nothing" ) );
+            Assert.Throws<IndexOutOfRangeException>( () => testException[-1] = new Mammal( "A" ) );
+            Assert.Throws<IndexOutOfRangeException>( () => testException[1] = new Mammal( "A" ) );
+            Assert.Throws<ArgumentNullException>( () => testException[0] = null );
+            Assert.Throws<IndexOutOfRangeException>( () => testException.Insert( -1, new Mammal( "A" ) ) );
+            Assert.Throws<IndexOutOfRangeException>( () => testException.Insert( 2, new Mammal( "A" ) ) );
+            Assert.Throws<ArgumentNullException>( () => testException.Insert( 0, null ) );
         }
 
         [Test]
-        public void SortedArrayListCastTest()
+        public void SortedArrayList_can_be_cast_into_IList_or_ICollection()
         {
             var a = new CKSortedArrayList<int>();
             a.AddRangeArray( 12, -34, 7, 545, 12 );
@@ -457,17 +466,6 @@ namespace CK.Core.Tests.Collection
             Assert.That( collectionToTest.Contains( 123 ), Is.True );
             Assert.That( collectionToTest.Contains( -34 ), Is.True );
             Assert.That( collectionToTest.Contains( 7 ), Is.True );
-
-            //Exception
-            IList<Mammal> testException = new CKSortedArrayList<Mammal>();
-            testException.Add( new Mammal( "Nothing" ) );
-            Assert.Throws<IndexOutOfRangeException>( () => testException[-1] = new Mammal( "A" ) );
-            Assert.Throws<IndexOutOfRangeException>( () => testException[1] = new Mammal( "A" ) );
-            Assert.Throws<ArgumentNullException>( () => testException[0] = null );
-            Assert.Throws<IndexOutOfRangeException>( () => testException.Insert( -1, new Mammal( "A" ) ) );
-            Assert.Throws<IndexOutOfRangeException>( () => testException.Insert( 2, new Mammal( "A" ) ) );
-            Assert.Throws<ArgumentNullException>( () => testException.Insert( 0, null ) );
-
         }
 
     }

@@ -22,61 +22,79 @@
 #endregion
 
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 
 namespace CK.Core
 {
     /// <summary>
-    /// Very simple default implementation of the <see cref="ISimpleTypeFinder"/>: it can be used as a base class.
-    /// Static <see cref="Default"/> and <see cref="WeakDefault"/> are available.
+    /// Offers a global <see cref="Resolver"/> function that replaces <see cref="Type.GetType(string, bool)"/>. 
+    /// Default implementation is set to <see cref="WeakResolver(string, bool)"/>.
     /// </summary>
-    public class SimpleTypeFinder : ISimpleTypeFinder
+    public static class SimpleTypeFinder
     {
-        /// <summary>
-        /// Default implementation for <see cref="ISimpleTypeFinder"/>.
-        /// </summary>
-        public static readonly ISimpleTypeFinder Default = new SimpleTypeFinder();
+        static Func<string, bool, Type> _resolver = WeakResolver;
+        static Func<string, bool, Type> _coreResolver = Type.GetType;
 
-        class WeakTypeFinder : SimpleTypeFinder
+        /// <summary>
+        /// Gets or sets a global resolver. This resolver MUST always throw a <see cref="TypeLoadException"/> 
+        /// when the boolean parameter is true: this is what <see cref="StandardResolver(string, bool)"/> do.
+        /// Defaults to <see cref="WeakResolver(string, bool)"/>.
+        /// </summary>
+        public static Func<string, bool, Type> Resolver
         {
-            public override Type ResolveType( string assemblyQualifiedName, bool throwOnError )
+            get { return _resolver; }
+            set
             {
-                Type done = base.ResolveType( assemblyQualifiedName, false );
-                if( ReferenceEquals( done, null ) )
-                {
-                    string weakTypeName;
-                    if( !WeakenAssemblyQualifiedName( assemblyQualifiedName, out weakTypeName ) && throwOnError )
-                    {
-                        throw new ArgumentException( String.Format( R.InvalidAssemblyQualifiedName, assemblyQualifiedName ), "assemblyQualifiedName" );
-                    }
-                    done = base.ResolveType( weakTypeName, throwOnError );
-                }
-                return done;
+                if( value == null ) value = WeakResolver;
+                _resolver = value;
             }
         }
+
         /// <summary>
-        /// An implementation of <see cref="ISimpleTypeFinder"/> that can be used to load types regardless of 
+        /// The <see cref="Type.GetType(string, bool)"/> function that <see cref="StandardResolver(string, bool)"/> 
+        /// and <see cref="WeakResolver(string, bool)"/> use. Another function may be injected in advanced scenario if needed.
+        /// </summary>
+        public static Func<string, bool, Type> RawGetType
+        {
+            get { return _coreResolver; }
+            set
+            {
+                if( value == null ) value = Type.GetType;
+                _coreResolver = value;
+            }
+        }
+
+        /// <summary>
+        /// An implementation of <see cref="Resolver"/> that can be used to load types regardless of 
         /// the version, culture, architecture and public key token (strongly-named assemblies) of the type names.
         /// (See <see cref="WeakenAssemblyQualifiedName"/>.)
         /// </summary>
         /// <remarks>
-        /// The type name used is in the following format: "TypeNamespace.TypeName, AssemblyName".
+        /// The type name used is: "NamespaceOfTheType.TypeName, AssemblyName".
         /// </remarks>
-        public static readonly ISimpleTypeFinder WeakDefault = new WeakTypeFinder();
-
-        private static void CheckAssemblyQualifiedNameValid( string assemblyQualifiedName )
+        /// <returns>The type or null if not found and <paramref name="throwOnError"/> is false.</returns>
+        /// <exception cref="TypeLoadException">
+        /// When <paramref name="throwOnError"/> is true, always throws a type load exception.
+        /// The original error (not a <see cref="TypeLoadException"/>) is available in the <see cref="Exception.InnerException"/>.
+        /// </exception>
+        public static Type WeakResolver( string assemblyQualifiedName, bool throwOnError )
         {
-            if( assemblyQualifiedName == null ) throw new ArgumentNullException( "assemblyQualifiedName" );
-            if( assemblyQualifiedName.Length == 0 || !assemblyQualifiedName.Contains( "," ) )
+            Type done = StandardResolver( assemblyQualifiedName, false );
+            if( ReferenceEquals( done, null ) )
             {
-                throw new ArgumentException( String.Format( R.InvalidAssemblyQualifiedName, assemblyQualifiedName ), "assemblyQualifiedName" );
+                string weakTypeName;
+                if( !WeakenAssemblyQualifiedName( assemblyQualifiedName, out weakTypeName ) && throwOnError )
+                {
+                    throw new ArgumentException( String.Format( Resources.InvalidAssemblyQualifiedName, assemblyQualifiedName ), "assemblyQualifiedName" );
+                }
+                done = StandardResolver( weakTypeName, throwOnError );
             }
+            return done;
         }
 
         /// <summary>
-        /// Simple implementation that checks that the assembly qualified name set as parameter is valid, then calls <see cref="Type.GetType(string,bool)"/>.
+        /// Direct implementation that checks that the assembly qualified name set as parameter is valid, 
+        /// then calls <see cref="Type.GetType(string,bool)"/> and converts any exception that may be raised
+        /// to <see cref="TypeLoadException"/>.
         /// </summary>
         /// <param name="assemblyQualifiedName">The assembly qualified name of a type.</param>
         /// <param name="throwOnError">
@@ -86,26 +104,35 @@ namespace CK.Core
         /// </param>
         /// <returns>The type or null if not found and <paramref name="throwOnError"/> is false.</returns>
         /// <exception cref="TypeLoadException">
-        /// When <paramref name="throwOnError"/> is true, always throws this kind of exception.
+        /// When <paramref name="throwOnError"/> is true, always throws a type load exception.
         /// The original error (not a <see cref="TypeLoadException"/>) is available in the <see cref="Exception.InnerException"/>.
         /// </exception>
-        public virtual Type ResolveType( string assemblyQualifiedName, bool throwOnError )
+        public static Type StandardResolver( string assemblyQualifiedName, bool throwOnError )
         {
             if( throwOnError ) CheckAssemblyQualifiedNameValid( assemblyQualifiedName );
             try
             {
-                return Type.GetType( assemblyQualifiedName, throwOnError );
+                return RawGetType( assemblyQualifiedName, throwOnError );
             }
             catch( Exception ex )
             {
                 if( !throwOnError ) return null;
                 if( ex is TypeLoadException ) throw;
-                throw new TypeLoadException( String.Format( R.ExceptionWhileResolvingType, assemblyQualifiedName ), ex );
+                throw new TypeLoadException( String.Format( Resources.ExceptionWhileResolvingType, assemblyQualifiedName ), ex );
+            }
+        }
+
+        private static void CheckAssemblyQualifiedNameValid( string assemblyQualifiedName )
+        {
+            if( assemblyQualifiedName == null ) throw new ArgumentNullException( "assemblyQualifiedName" );
+            if( assemblyQualifiedName.Length == 0 || !assemblyQualifiedName.Contains( "," ) )
+            {
+                throw new ArgumentException( String.Format( Resources.InvalidAssemblyQualifiedName, assemblyQualifiedName ), "assemblyQualifiedName" );
             }
         }
 
         /// <summary>
-        /// Helper method to remove version, architecture, publiTokenKey and culture from the assembly qualified name into its assembly name passed as parameter.
+        /// Helper method to remove version, architecture, publicTokenKey and culture from the assembly qualified name into its assembly name passed as parameter.
         /// "CK.Core.SimpleTypeFinder, CK.Core, version=1.0.0, culture='fr-FR'" gives "CK.Core.SimpleTypeFinder, CK.Core".
         /// Used to remove strong name from an strongly-named assembly qualified name
         /// </summary>
