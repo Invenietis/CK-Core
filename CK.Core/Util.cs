@@ -41,7 +41,7 @@ namespace CK.Core
             #else
             public static T[] Empty<T>()
             {
-                return Array.Empty<T>();
+                return System.Array.Empty<T>();
             }
             #endif
         }
