@@ -1,6 +1,6 @@
 ﻿using System;
 
-#if DOTNET
+#if DOTNET || DNXCORE50
 
 namespace System.Runtime.Serialization
 {

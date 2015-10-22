@@ -6,7 +6,7 @@ using System.Runtime.Serialization;
 namespace CK.Core
 {
     /// <summary>
-    /// Basic <see cref="Exception"/> that eases message formatting thanks to its contructors
+    /// Basic <see cref="Exception"/> that eases message formatting thanks to its constructors
     /// and provides an Exception wrapper around <see cref="CKExceptionData"/>.
     /// </summary>
     [Serializable]
@@ -22,7 +22,7 @@ namespace CK.Core
         public CKException( string message )
             : base( message )
         {
-            #if !DOTNET
+            #if !DOTNET && !DNXCORE50
             SerializeObjectState += DoSerialize;
             #endif
         }
@@ -35,7 +35,7 @@ namespace CK.Core
         public CKException( string message, Exception innerException )
             : base( message, innerException )
         {
-            #if !DOTNET
+            #if !DOTNET && !DNXCORE50
             SerializeObjectState += DoSerialize;
             #endif
         }
@@ -105,7 +105,7 @@ namespace CK.Core
             return _exceptionData; 
         }
 
-        #if !DOTNET
+        #if !DOTNET && !DNXCORE50
         void DoSerialize( object sender, SafeSerializationEventArgs e )
         {
             if( _exceptionData != null ) e.AddSerializedState( new SerialData() { ExData = _exceptionData } );
