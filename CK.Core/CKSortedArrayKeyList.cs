@@ -148,7 +148,7 @@ namespace CK.Core
         public IReadOnlyCollection<T> GetAllByKey( TKey key )
         {
             int idx = Util.BinarySearch( Store, 0, Count, key, ComparisonKey );
-            if( idx < 0 ) return Array.Empty<T>();
+            if( idx < 0 ) return Util.Array.Empty<T>();
             if( !AllowDuplicates ) return new T[] { Store[idx] };
             int min = idx - 1;
             while( min >= 0 && ComparisonKey( Store[min], key ) == 0 ) --min;

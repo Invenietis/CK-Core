@@ -1,6 +1,0 @@
-﻿<Error>@2015-10-20 07h17.03.7000494
-Produced by SystemActivityMonitorTests.SimpleTest
- ┌──────────────────────────■ Exception : CKException ■──────────────────────────
- | Message: The-Test-Exception-Message
- └───────────────────────────────────────────────────────────────────────────────
-</Error>

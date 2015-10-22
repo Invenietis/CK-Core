@@ -334,7 +334,7 @@ namespace CK.Core
             else count = count - i;
             if( count != traits.Length )
             {
-                if( count <= 0 ) return Array.Empty<string>();
+                if( count <= 0 ) return Util.Array.Empty<string>();
                 string[] m = new string[count];
                 Array.Copy( traits, i, m, 0, count );
                 traits = m;

@@ -41,7 +41,6 @@ namespace CK.Core
     /// a static object that exists in the origin application domain. A CKTrait must be serialized as its <see cref="ToString"/> representation and it is up to the 
     /// code to call <see cref="CKTraitContext.FindOrCreate(string)"/> on the appropriate context when deserializing it.
     /// </remarks>
-    [ImmutableObject( true )]
     public sealed class CKTrait : IComparable<CKTrait>, IEquatable<CKTrait>
     {
         readonly CKTraitContext _context;
@@ -56,7 +55,7 @@ namespace CK.Core
             Debug.Assert( ctx.EmptyTrait == null, "There is only one empty trait per context." );
             _context = ctx;
             _trait = String.Empty;
-            _traits = Array.Empty<CKTrait>();
+            _traits = Util.Array.Empty<CKTrait>();
         }
 
         /// <summary>

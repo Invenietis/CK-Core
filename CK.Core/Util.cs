@@ -24,6 +24,28 @@ namespace CK.Core
         /// </summary>
         static public readonly DateTime UtcMaxValue = new DateTime( 0x2bca2875f4373fffL, DateTimeKind.Utc );
 
+        /// <summary>
+        /// Supports Empty&lt;T&gt;() for all DNX targets.
+        /// </summary>
+        public static class Array
+        {
+            #if !DOTNET && !DNX46
+            static class E<T> 
+            {
+                public readonly static T[] Value = new T[0]; 
+            }
+            public static T[] Empty<T>()
+            {
+                return E<T>.Value;
+            }
+            #else
+            public static T[] Empty<T>()
+            {
+                return Array.Empty<T>();
+            }
+            #endif
+        }
+
 
         /// <summary>
         /// Centralized <see cref="IDisposable.Dispose"/> action call: it adapts an <see cref="IDisposable"/> interface to an <see cref="Action"/>.
@@ -268,12 +290,12 @@ namespace CK.Core
             return InterlockedSet( ref items, o, ( current, item ) =>
             {
                 if( current == null || current.Length == 0 ) return current;
-                int idx = Array.IndexOf( current, item );
+                int idx = System.Array.IndexOf( current, item );
                 if( idx < 0 ) return current;
                 if( current.Length == 1 ) return Array.Empty<T>();
                 var newArray = new T[current.Length - 1];
-                Array.Copy( current, 0, newArray, 0, idx );
-                Array.Copy( current, idx + 1, newArray, idx, newArray.Length - idx );
+                System.Array.Copy( current, 0, newArray, 0, idx );
+                System.Array.Copy( current, idx + 1, newArray, idx, newArray.Length - idx );
                 return newArray;
             } );
         }
@@ -295,8 +317,8 @@ namespace CK.Core
                 if( idx < 0 ) return current;
                 if( current.Length == 1 ) return Array.Empty<T>();
                 var newArray = new T[current.Length - 1];
-                Array.Copy( current, 0, newArray, 0, idx );
-                Array.Copy( current, idx + 1, newArray, idx, newArray.Length - idx );
+                System.Array.Copy( current, 0, newArray, 0, idx );
+                System.Array.Copy( current, idx + 1, newArray, idx, newArray.Length - idx );
                 return newArray;
             } );
         }
@@ -345,9 +367,9 @@ namespace CK.Core
             return InterlockedSet( ref items, o, ( oldItems, item ) =>
             {
                 if( oldItems == null || oldItems.Length == 0 ) return new T[] { item };
-                if( Array.IndexOf( oldItems, item ) >= 0 ) return oldItems;
+                if( System.Array.IndexOf( oldItems, item ) >= 0 ) return oldItems;
                 T[] newArray = new T[oldItems.Length + 1];
-                Array.Copy( oldItems, 0, newArray, prepend ? 1 : 0, oldItems.Length );
+                System.Array.Copy( oldItems, 0, newArray, prepend ? 1 : 0, oldItems.Length );
                 newArray[prepend ? 0 : oldItems.Length] = item;
                 return newArray;
             } );
@@ -367,7 +389,7 @@ namespace CK.Core
             {
                 if( oldItems == null || oldItems.Length == 0 ) return new T[] { item };
                 T[] newArray = new T[oldItems.Length + 1];
-                Array.Copy( oldItems, 0, newArray, prepend ? 1 : 0, oldItems.Length );
+                System.Array.Copy( oldItems, 0, newArray, prepend ? 1 : 0, oldItems.Length );
                 newArray[prepend ? 0 : oldItems.Length] = item;
                 return newArray;
             } );
@@ -411,7 +433,7 @@ namespace CK.Core
                 else
                 {
                     newArray = new T[oldItems.Length + 1];
-                    Array.Copy( oldItems, 0, newArray, prepend ? 1 : 0, oldItems.Length );
+                    System.Array.Copy( oldItems, 0, newArray, prepend ? 1 : 0, oldItems.Length );
                     newArray[prepend ? 0 : oldItems.Length] = newE;
                 }
                 return newArray;

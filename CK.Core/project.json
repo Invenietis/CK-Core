@@ -1,0 +1,48 @@
+{
+  "version": "0.0.0-Absolutely-Invalid",
+  "description": "CK.Core Class Library",
+  "authors": [ "Olivier Spinelli" ],
+  "owners": ["Invenietis"],
+  "tags": [ "" ],
+  "projectUrl": "",
+  "licenseUrl": "",
+  "scripts": { },
+  "frameworks": {
+    "dnx451": {
+      "frameworkAssemblies": {
+        "System.Runtime": "4.0.0.0",
+        "System.XML": "4.0.0.0",
+        "System.Xml.Linq": "4.0.0.0"
+      }
+    },
+    "dnx46": {
+      "frameworkAssemblies": {
+        "System.Runtime": "4.0.0.0",
+        "System.XML": "4.0.0.0",
+        "System.Xml.Linq": "4.0.0.0"
+      }
+    },
+    "dotnet": {
+      "dependencies": {
+        "Microsoft.CSharp": "4.0.1-beta-23409",
+        "System.Collections": "4.0.11-beta-23409",
+        "System.Linq": "4.0.1-beta-23409",
+        "System.Runtime": "4.0.21-beta-23409",
+        "System.Threading": "4.0.11-beta-23409",
+        "System.Reflection.Emit.Lightweight": "4.0.1-beta-23409",
+        "System.IO": "4.0.11-beta-23409",
+        "System.IO.FileSystem": "4.0.1-beta-23409",
+        "System.IO.Compression": "4.0.1-beta-23409",
+        "System.Diagnostics.Tools": "4.0.1-beta-23409",
+        "System.ComponentModel": "4.0.1-beta-23409",
+        "System.Threading.Thread": "4.0.0-beta-23409",
+        "System.Threading.ThreadPool": "4.0.10-beta-23409",
+        "System.Text.RegularExpressions": "4.0.11-beta-23409",
+        "System.Collections.Concurrent": "4.0.11-beta-23409",
+        "System.Globalization.Extensions": "4.0.1-beta-23409",
+        "System.Xml.ReaderWriter": "4.0.11-beta-23409",
+        "System.Xml.XDocument": "4.0.11-beta-23409"
+      }
+    }
+  }
+}

@@ -81,7 +81,7 @@ namespace CK.Core
         /// <param name="allowDuplicates">True to allow duplicate elements.</param>
         public CKSortedArrayList( Comparison<T> comparison, bool allowDuplicates = false )
         {
-            _tab = Array.Empty<T>();
+            _tab = Util.Array.Empty<T>();
             Comparator = comparison;
             if( allowDuplicates ) _version = 1;
         }
@@ -218,7 +218,7 @@ namespace CK.Core
                 if( _tab.Length != value )
                 {
                     if( value < _count ) throw new ArgumentException( "Capacity less than Count." );
-                    if( value == 0 ) _tab = Array.Empty<T>();
+                    if( value == 0 ) _tab = Util.Array.Empty<T>();
                     else 
                     {
                         T[] tempValues = new T[value];
