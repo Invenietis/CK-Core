@@ -6,10 +6,6 @@ using System.Reflection.Emit;
 using System.Text;
 using System.Threading.Tasks;
 
-[assembly:AssemblyFileVersion("1.2.3.4")]
-[assembly:AssemblyVersion("1.2.3.4")]
-[assembly:AssemblyInformationalVersion("1.2.3.4")]
-
 namespace CK.Core
 {
     /// <summary>

@@ -2,11 +2,16 @@
   "version": "0.0.0-Absolutely-Invalid",
   "description": "CK.Core Class Library",
   "authors": [ "Olivier Spinelli" ],
-  "owners": ["Invenietis"],
+  "owners": [ "Invenietis" ],
   "tags": [ "" ],
   "projectUrl": "",
   "licenseUrl": "",
-  "scripts": { },
+  "scripts": {
+    "prepack": "sgv prepack",
+    "prebuild": "sgv prebuild",
+    "postpack": "sgv postpack"
+  },
+
   "frameworks": {
     "dnx451": {
       "frameworkAssemblies": {
@@ -44,7 +49,7 @@
         "System.Xml.XDocument": "4.0.11-beta-23409"
       }
     },
-        "dnxcore50": {
+    "dnxcore50": {
       "dependencies": {
         "Microsoft.CSharp": "4.0.1-beta-23409",
         "System.Collections": "4.0.11-beta-23409",
