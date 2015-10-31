@@ -6,6 +6,9 @@
   "tags": [ "" ],
   "projectUrl": "",
   "licenseUrl": "",
+  "compilationOptions": {   
+    "keyFile": "../SharedKey.snk"
+  },
   "scripts": {
     "prepack": "sgv prepack",
     "prebuild": "sgv prebuild",
