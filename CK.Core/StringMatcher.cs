@@ -301,6 +301,62 @@ namespace CK.Core
             return SetError();
         }
 
+        public bool MatchJSONQuotedString( out string content )
+        {
+            content = null;
+            if( !MatchChar( '"' ) )
+            {
+                return MatchString( "null" );
+            }
+            int i = _startIndex;
+            StringBuilder b = null;
+            while( i <= _length )
+            {
+                if( i == _length ) return false;
+                char c = _text[i++];
+                if( c == '"' ) break;
+                if( c == '\\' )
+                {
+                    if( b == null ) b = new StringBuilder( _text.Substring( _startIndex + 1, i - _startIndex - 2 ) );
+                    switch( (c = _text[i]) )
+                    {
+                        case 'r': c = '\r'; break;
+                        case 'n': c = '\n'; break;
+                        case 'b': c = '\b'; break;
+                        case 't': c = '\t'; break;
+                        case 'f': c = '\f'; break;
+                        case 'u':
+                            {
+                                if( ++i == _length ) return false;
+                                int cN = _text[i] - '0';
+                                if( cN < 0 || cN > 9 ) return false;
+                                int val = cN << 12;
+                                if( ++i == _length ) return false;
+                                cN = _text[i] - '0';
+                                if( cN < 0 || cN > 9 ) return false;
+                                val |= cN << 8;
+                                if( ++i == _length ) return false;
+                                cN = _text[i] - '0';
+                                if( cN < 0 || cN > 9 ) return false;
+                                val |= cN << 4;
+                                if( ++i == _length ) return false;
+                                cN = _text[i] - '0';
+                                if( cN < 0 || cN > 9 ) return false;
+                                val |= cN;
+                                c = (char)val;
+                                break;
+                            }
+                    }
+                }
+                if( b != null ) b.Append( c );
+            }
+            int lenS = i - _startIndex;
+            if( b != null ) content = b.ToString();
+            else content = _text.Substring( _startIndex + 1, lenS - 2 );
+            return Forward( lenS );
+        }
+
+
         public override string ToString()
         {
             StringBuilder b = new StringBuilder();
