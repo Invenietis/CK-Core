@@ -1,21 +1,26 @@
 {
-  "version": "5.0.0-alpha.0.0.ci-dnx.4",
-  "description": "CK.Core Class Library",
+  "version": "0.0.0-Absolutely-Invalid",
+  "description": "CK.ActivityMonitor Class Library",
   "authors": [ "Olivier Spinelli" ],
   "owners": [ "Invenietis" ],
   "tags": [ "" ],
   "projectUrl": "",
-  "compilationOptions": {   
+  "compilationOptions": {
     "keyFile": "../SharedKey.snk"
   },
   "licenseUrl": "",
-    "scripts": {
+  "scripts": {
     "prebuild": "sgv prebuild",
     "postbuild": "sgv restore"
   },
 
+  "dependencies": {
+    "CK.Core": "0.0.0-Absolutely-Invalid"
+  },
+
   "frameworks": {
     "dnx451": { },
+    "dnx46": { },
     "dnxcore50": {
       "dependencies": {
         "Microsoft.CSharp": "4.0.1-beta-23409",
@@ -24,10 +29,17 @@
         "System.Runtime": "4.0.21-beta-23409",
         "System.Threading": "4.0.11-beta-23409",
         "System.Console": "4.0.0-beta-23409"
+      },
+      "dotnet": {
+        "dependencies": {
+          "Microsoft.CSharp": "4.0.1-beta-23409",
+          "System.Collections": "4.0.11-beta-23409",
+          "System.Linq": "4.0.1-beta-23409",
+          "System.Runtime": "4.0.21-beta-23409",
+          "System.Threading": "4.0.11-beta-23409",
+          "System.Console": "4.0.0-beta-23409"
+        }
       }
     }
-  },
-  "dependencies": {
-    "CK.Core": "5.0.0-alpha.0.0.ci-dnx.4"
   }
 }
