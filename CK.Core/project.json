@@ -1,5 +1,5 @@
 {
-  "version": "0.0.0-Absolutely-Invalid",
+  "version": "5.0.0-alpha.0.0.ci-dnx.4",
   "description": "CK.Core Class Library",
   "authors": [ "Olivier Spinelli" ],
   "owners": [ "Invenietis" ],
@@ -10,9 +10,8 @@
     "keyFile": "../SharedKey.snk"
   },
   "scripts": {
-    "prepack": "sgv prepack",
     "prebuild": "sgv prebuild",
-    "postpack": "sgv postpack"
+    "postbuild": "sgv restore"
   },
 
   "frameworks": {

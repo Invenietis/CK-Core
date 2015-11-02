@@ -4,6 +4,7 @@ using System.Globalization;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 namespace CK.Core
@@ -45,7 +46,7 @@ namespace CK.Core
         public StringMatcher( string text, int startIndex, int length )
         {
             if( text == null ) throw new ArgumentNullException( nameof( text ) );
-            if( startIndex < 0 || startIndex >= text.Length ) throw new ArgumentOutOfRangeException( nameof( startIndex ) );
+            if( startIndex < 0 || startIndex > text.Length ) throw new ArgumentOutOfRangeException( nameof( startIndex ) );
             if( startIndex + length > text.Length ) throw new ArgumentException( nameof( length ) );
             _text = text;
             _startIndex = startIndex;
@@ -116,7 +117,6 @@ namespace CK.Core
             {
                 d += ": expected '" + tail + "'.";
             }
-
             return d;
         }
 
@@ -179,6 +179,7 @@ namespace CK.Core
             int newLen = _length - charCount;
             if( newLen < 0 ) throw new InvalidOperationException( Resources.StringMatcherForwardPastEnd );
             _startIndex += charCount;
+            _length = newLen;
             _errorDescription = null;
             return true;
         }
@@ -205,7 +206,7 @@ namespace CK.Core
         }
 
         /// <summary>
-        /// Attempts to match a string.
+        /// Matches a string without setting an error if match fails.
         /// </summary>
         /// <param name="s">The string that must match. Can not be null nor empty.</param>
         /// <param name="comparisonType">Specifies the culture, case, and sort rules.</param>
@@ -250,6 +251,19 @@ namespace CK.Core
                 return true;
             }
             return SetError( minCount + " whitespace(s)" );
+        }
+
+        static readonly Regex _rDouble = new Regex( @"^-?(0|[1-9][0-9]*)(\.[0-9]+)((e|E)(\+|-)?\[0-9]+)?", RegexOptions.Compiled | RegexOptions.CultureInvariant | RegexOptions.ExplicitCapture );
+
+        /// <summary>
+        /// Matches a double without getting its value nor setting an error if match fails.
+        /// </summary>
+        /// <returns><c>true</c> when matched, <c>false</c> otherwise.</returns>
+        public bool TryMatchDoubleValue()
+        {
+            Match m = _rDouble.Match( _text, _startIndex, _length );
+            if( !m.Success ) return false;
+            return UncheckedMove( m.Length );
         }
 
         /// <summary>
@@ -299,6 +313,100 @@ namespace CK.Core
                 return SetSuccess();
             }
             return SetError();
+        }
+
+        /// <summary>
+        /// Matches a quoted string.
+        /// </summary>
+        /// <param name="content">Extracted content.</param>
+        /// <param name="allowNull">True to allow 'null'.</param>
+        /// <returns><c>true</c> when matched, <c>false</c> otherwise.</returns>
+        public bool TryMatchJSONQuotedString( out string content, bool allowNull = false )
+        {
+            content = null;
+            if( IsEnd ) return false;
+            int i = _startIndex;
+            if( _text[i++] != '"' )
+            {
+                return allowNull && TryMatchString( "null" );
+            }
+            int len = _length - 1;
+            StringBuilder b = null;
+            while( len >= 0 )
+            {
+                if( len == 0 ) return false;
+                char c = _text[i++];
+                --len;
+                if( c == '"' ) break;
+                if( c == '\\' )
+                {
+                    if( len == 0 ) return false;
+                    if( b == null ) b = new StringBuilder( _text.Substring( _startIndex + 1, i - _startIndex - 2 ) );
+                    switch( (c = _text[i]) )
+                    {
+                        case 'r': c = '\r'; break;
+                        case 'n': c = '\n'; break;
+                        case 'b': c = '\b'; break;
+                        case 't': c = '\t'; break;
+                        case 'f': c = '\f'; break;
+                        case 'u':
+                            {
+                                if( --len == 0 ) return false;
+                                int cN = _text[++i] - '0';
+                                if( cN < 0 || cN > 9 ) return false;
+                                int val = cN << 12;
+                                if( --len == 0 ) return false;
+                                cN = _text[++i] - '0';
+                                if( cN < 0 || cN > 9 ) return false;
+                                val |= cN << 8;
+                                if( --len == 0 ) return false;
+                                cN = _text[++i] - '0';
+                                if( cN < 0 || cN > 9 ) return false;
+                                val |= cN << 4;
+                                if( --len == 0 ) return false;
+                                cN = _text[++i] - '0';
+                                if( cN < 0 || cN > 9 ) return false;
+                                val |= cN;
+                                c = (char)val;
+                                break;
+                            }
+                    }
+                }
+                if( b != null ) b.Append( c );
+            }
+            int lenS = i - _startIndex;
+            if( b != null ) content = b.ToString();
+            else content = _text.Substring( _startIndex + 1, lenS - 2 );
+            return UncheckedMove( lenS );
+        }
+
+        /// <summary>
+        /// Matches a quoted string without extracting its content.
+        /// </summary>
+        /// <param name="allowNull">True to allow 'null'.</param>
+        /// <returns><c>true</c> when matched, <c>false</c> otherwise.</returns>
+        public bool TryMatchJSONQuotedString( bool allowNull = false )
+        {
+            int i = _startIndex;
+            if( IsEnd ) return false;
+            if( _text[i++] != '"' )
+            {
+                return allowNull && TryMatchString( "null" );
+            }
+            int len = _length - 1;
+            while( len >= 0 )
+            {
+                if( len == 0 ) return false;
+                char c = _text[i++];
+                --len;
+                if( c == '"' ) break;
+                if( c == '\\' )
+                {
+                    i++;
+                    --len;
+                }
+            }
+            return UncheckedMove( i - _startIndex );
         }
 
         public bool MatchJSONQuotedString( out string content )
