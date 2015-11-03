@@ -9,9 +9,14 @@
     "keyFile": "../SharedKey.snk"
   },
   "licenseUrl": "",
+
+  "commands": {
+    "sgv-update": "sgv update",
+    "sgv-restore": "sgv restore"
+  },
+
   "scripts": {
-    "prebuild": "sgv prebuild",
-    "postbuild": "sgv restore"
+    "prebuild": "sgv prebuild"
   },
 
   "dependencies": {

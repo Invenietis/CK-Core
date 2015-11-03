@@ -6,13 +6,15 @@
   "tags": [ "" ],
   "projectUrl": "",
   "licenseUrl": "",
-  "compilationOptions": {   
+  "compilationOptions": {
     "keyFile": "../SharedKey.snk"
   },
+  "commands": {
+    "sgv-update": "sgv update",
+    "sgv-restore": "sgv restore"
+  },
   "scripts": {
-    "prepack": "sgv -v prepack",
-    "prebuild": "sgv -v prebuild",
-    "postbuild": "sgv -v restore"
+    "prebuild": "sgv prebuild"
   },
 
   "frameworks": {
