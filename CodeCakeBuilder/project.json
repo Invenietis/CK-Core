@@ -1,0 +1,25 @@
+{
+  "version": "0.0.0-Absolutely-Invalid",
+  "description": "CodeCakeBuilder Console Application",
+  "authors": [ "olivi" ],
+  "tags": [ "" ],
+  "projectUrl": "",
+  "licenseUrl": "",
+
+  "commands": {
+    "CodeCakeBuilder": "CodeCakeBuilder"
+  },
+
+  "dependencies": {
+    "Code.Cake": "0.6.1",
+    "Microsoft.Dnx.Runtime.Abstractions": "1.0.0-beta8",
+    "SimpleGitVersion.Cake": "0.8.1-Cexplore-0002"
+  },
+
+  "frameworks": {
+    "dnx451": {
+      "dependencies": {
+      }
+    }
+  }
+}
