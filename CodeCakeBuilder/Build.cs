@@ -66,7 +66,7 @@ namespace CodeCake
             Task( "Set-ProjectVersion" )
                 .Does( () =>
                 {
-                    if( dnxSolution.UpdateProjectFiles() > 0 )
+                    if( dnxSolution.UpdateProjectFiles( true ) > 0 )
                     {
                         Cake.DNURestore( c =>
                         {

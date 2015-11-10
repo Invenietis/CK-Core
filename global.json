@@ -1,0 +1,4 @@
+{
+  "projects": [ "Ck.Core", "Tests", "." ],
+  "sdk": {"runtime": "clr" }
+}
