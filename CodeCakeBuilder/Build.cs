@@ -66,7 +66,7 @@ namespace CodeCake
             Task( "Set-ProjectVersion" )
                 .Does( () =>
                 {
-                    if( dnxSolution.UpdateProjectFiles( true ) > 0 )
+                    if( dnxSolution.UpdateProjectFiles() > 0 )
                     {
                         Cake.DNURestore( c =>
                         {
@@ -95,7 +95,7 @@ namespace CodeCake
                         c.GeneratePackage = true;
                         c.Configurations.Add( configuration );
                         c.ProjectPaths.UnionWith( dnxSolution.Projects.Select( p => p.ProjectDir ) );
-                        //c.Quiet = true;
+                        c.Quiet = true;
                     } );
                 } );
 
