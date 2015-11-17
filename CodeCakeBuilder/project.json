@@ -11,9 +11,9 @@
   },
 
   "dependencies": {
-    "Code.Cake": "0.6.1",
+    "Code.Cake": "0.6.2",
     "Microsoft.Dnx.Runtime.Abstractions": "1.0.0-beta8",
-    "SimpleGitVersion.Cake": "0.8.1-Cexplore-0005"
+    "SimpleGitVersion.Cake": "0.9.0"
   },
 
   "frameworks": {

@@ -77,6 +77,5 @@
     }
   },
   "dependencies": {
-    "SimpleGitVersionTask": "0.8.1-Cexplore-0002"
   }
 }

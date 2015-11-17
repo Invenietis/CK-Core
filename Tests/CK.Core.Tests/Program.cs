@@ -16,9 +16,7 @@ namespace CK.Core.Tests
 #if DNX451
             result = new AutoRun().Execute( arguments );
 #else
-            var sw = new StringWriter();
-            var sr = new StringReader("");
-            result = new AutoRun().Execute( typeof(Program).GetTypeInfo().Assembly, sw, sr, arguments );
+            result = new AutoRun().Execute( typeof(Program).GetTypeInfo().Assembly, Console.Out, Console.In, arguments );
 #endif
             return result;
         }

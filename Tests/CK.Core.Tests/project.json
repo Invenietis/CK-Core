@@ -1,7 +1,7 @@
 {
-  "version": "1.0.0-*",
+  "version": "0.0.0-Absolutely-Invalid",
   "description": "CK.Core.Tests Class Library",
-  "authors": [ "olivi" ],
+  "authors": [ "Olivier Spinelli" ],
   "tags": [ "" ],
   "projectUrl": "",
   "licenseUrl": "",
@@ -20,15 +20,15 @@
         "System.Linq": "4.0.1-beta-23409",
         "System.Runtime": "4.0.21-beta-23409",
         "System.Threading": "4.0.11-beta-23409",
-        "System.Threading.Tasks": "4.0",
-        "Microsoft.Dnx.Runtime.Abstractions": "1.0.0-rc1-15958",
-        "System.Threading.Tasks.Parallel": "4.0"
+        "System.Threading.Tasks": "4.0.10",
+        "Microsoft.Dnx.Runtime.Abstractions": "1.0.0-beta8",
+        "System.Threading.Tasks.Parallel": "4.0",
+        "System.Console": "4.0.0-beta-23409"
       }
     }
   },
   "dependencies": {
     "CK.Core": "0.0.0-Absolutely-Invalid",
-    "NUnit": "3.0.0-rc-2",
-    "NUnitLite": "3.0.0-rc-2"
+    "NUnitLite": "3.0.0"
   }
 }

@@ -53,9 +53,16 @@ namespace CodeCake
                 .Does( () =>
                 {
                     gitInfo = dnxSolution.RepositoryInfo;
-                    if( !gitInfo.IsValid ) throw new Exception( "Repository is not ready to be published." );
+                    if( !gitInfo.IsValid )
+                    {
+                        if( Cake.IsInteractiveMode()
+                            && Cake.ReadInteractiveOption( "Repository is not ready to be published. Proceed anyway?", 'Y', 'N' ) == 'Y' )
+                        {
+                            Cake.Warning( "GitInfo is not valid, but you choose to continue..." );
+                        }
+                        else throw new Exception( "Repository is not ready to be published." );
+                    }
                     configuration = gitInfo.IsValidRelease && gitInfo.PreReleaseName.Length == 0 ? "Release" : "Debug";
-
                     Cake.Information( "Publishing {0} projects with version={1} and configuration={2}: {3}",
                         projectsToPublish.Count(),
                         gitInfo.SemVer,
