@@ -115,6 +115,7 @@ namespace CodeCake
 
             Task( "Push-NuGet-Packages" )
                 .IsDependentOn( "Unit-Testing" )
+                .WithCriteria( () => gitInfo.IsValid )
                 .Does( () =>
                 {
                     var nugetPackages = Cake.GetFiles( nugetOutputDir.Path + "/*.nupkg" ).Select( f => f.FullPath );
