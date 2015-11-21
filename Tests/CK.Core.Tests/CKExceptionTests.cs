@@ -52,13 +52,37 @@ namespace CK.Core.Tests
             CheckSimpleExceptionData( d.InnerException, s => s == "Inner", false );
         }
 
+        //#if DNXCORE50
+        //        [Test]
+        //        public void TestTestTestTestTestTestTestDNXCORE50()
+        //        {
+        //            Assert.That( false, "Stupid test fail in DNXCORE50" );
+        //        }
+        //#endif
+
+        //#if DNX46
+        //        [Test]
+        //        public void TestTestTestTestTestTestTestDNX46()
+        //        {
+        //            Assert.That( false, "Stupid test fail in DNX46" );
+        //        }
+        //#endif
+
+        //#if RELEASE
+        //        [Test]
+        //        public void TestTestTestTestTestTestTestRELEASE()
+        //        {
+        //            Assert.That( false, "Stupid test fail in RELEASE" );
+        //        }
+        //#endif
+
         [Test]
         public void AggregatedExceptions()
         {
             AggregateException eAgg = ThrowAggregatedException();
             var d = CKExceptionData.CreateFrom( eAgg );
 
-            Assert.That( d.ExceptionTypeAssemblyQualifiedName, Is.Not.EqualTo( typeof(AggregateException).AssemblyQualifiedName ) );
+            Assert.That( d.ExceptionTypeAssemblyQualifiedName, Is.EqualTo( typeof(AggregateException).AssemblyQualifiedName ) );
             Assert.That( d.ExceptionTypeName, Is.EqualTo( typeof( AggregateException ).Name ) );
             Assert.That( d.AggregatedExceptions.Count, Is.GreaterThanOrEqualTo( 1 ) );
             Assert.That( d.InnerException, Is.SameAs( d.AggregatedExceptions[0] ) );
@@ -68,7 +92,7 @@ namespace CK.Core.Tests
             }
         }
 
-        #if DNX451
+#if DNX451
         [Test]
         public void SerializeCKException()
         {
@@ -100,7 +124,7 @@ namespace CK.Core.Tests
                 Assert.AreEqual( data2.ToString(), data.ToString() );
             }
         }
-        #endif
+#endif
 
         [Test]
         public void BinaryReadWriteCKExceptionData()

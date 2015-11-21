@@ -13,12 +13,12 @@ using System;
 using System.Linq;
 using Cake.Common.Tools.SignTool;
 using Cake.Core.Diagnostics;
-using Cake.Common.Tools.NUnit;
 using Cake.Common.Text;
 using Cake.Common.Tools.NuGet.Push;
 using System.IO;
 using System.Collections.Generic;
 using System.Diagnostics;
+using Microsoft.Extensions.PlatformAbstractions;
 
 namespace CodeCake
 {
@@ -71,6 +71,7 @@ namespace CodeCake
                 } );
 
             Task( "Set-ProjectVersion" )
+                .IsDependentOn( "Check-Repository" )
                 .Does( () =>
                 {
                     if( dnxSolution.UpdateProjectFiles() > 0 )
@@ -84,16 +85,35 @@ namespace CodeCake
                 } );
 
             Task( "Clean" )
-                .IsDependentOn( "Check-Repository" )
                 .Does( () =>
                 {
                     Cake.CleanDirectories( "**/bin/" + configuration, d => !d.Path.Segments.Contains( "CodeCakeBuilder" ) );
                     Cake.CleanDirectories( "**/obj/" + configuration, d => !d.Path.Segments.Contains( "CodeCakeBuilder" ) );
-                    Cake.CleanDirectories( nugetOutputDir );
+                    Cake.DeleteFiles( "Tests/**/TestResult.xml" );
+                } );
+
+            Task( "Unit-Testing" )
+                .IsDependentOn( "Check-Repository" )
+                .Does( () =>
+                {
+                    var testProjects = dnxSolution.Projects.Where( p => p.ProjectName.EndsWith( ".Tests" ) );
+                    foreach( var p in testProjects )
+                    {
+                        foreach( var framework in p.Frameworks )
+                        {
+                            Cake.DNXRun( c => {
+                                c.Arguments = "test";
+                                c.Configuration = configuration;
+                                c.Framework = framework;
+                                c.Project = p.ProjectFilePath;
+                            } );
+                        }
+                    }
                 } );
 
             Task( "Build-And-Pack" )
                 .IsDependentOn( "Clean" )
+                .IsDependentOn( "Unit-Testing" )
                 .IsDependentOn( "Set-ProjectVersion" )
                 .Does( () =>
                 {
@@ -106,39 +126,38 @@ namespace CodeCake
                     } );
                 } );
 
-            Task( "Unit-Testing" )
+            Task( "Push-NuGet-Packages" )
                 .IsDependentOn( "Build-And-Pack" )
                 .Does( () =>
                 {
-                    Cake.CreateDirectory( nugetOutputDir );
-                } );
-
-            Task( "Push-NuGet-Packages" )
-                .IsDependentOn( "Unit-Testing" )
-                .WithCriteria( () => gitInfo.IsValid )
-                .Does( () =>
-                {
-                    var nugetPackages = Cake.GetFiles( nugetOutputDir.Path + "/*.nupkg" ).Select( f => f.FullPath );
-                    if( Cake.IsInteractiveMode() )
+                    var nugetPackages = Cake.GetFiles( "**/*.nupkg" ).Select( f => f.FullPath );
+                    if( gitInfo.IsValid )
                     {
-                        var localFeed = Cake.FindDirectoryAbove( "LocalFeed" );
-                        if( localFeed != null )
+                        if( Cake.IsInteractiveMode() )
                         {
-                            Cake.Information( "LocalFeed directory found: {0}", localFeed );
-                            if( Cake.ReadInteractiveOption( "Do you want to publish to LocalFeed?", 'Y', 'N' ) == 'Y' )
+                            var localFeed = Cake.FindDirectoryAbove( "LocalFeed" );
+                            if( localFeed != null )
                             {
-                                Cake.CopyFiles( nugetPackages, localFeed );
+                                Cake.Information( "LocalFeed directory found: {0}", localFeed );
+                                if( Cake.ReadInteractiveOption( "Do you want to publish to LocalFeed?", 'Y', 'N' ) == 'Y' )
+                                {
+                                    Cake.CopyFiles( nugetPackages, localFeed );
+                                }
                             }
                         }
-                    }
-                    if( gitInfo.IsValidRelease )
-                    {
-                        PushNuGetPackages( "NUGET_API_KEY", "https://www.nuget.org/api/v2/package", nugetPackages );
+                        if( gitInfo.IsValidRelease )
+                        {
+                            PushNuGetPackages( "NUGET_API_KEY", "https://www.nuget.org/api/v2/package", nugetPackages );
+                        }
+                        else
+                        {
+                            Debug.Assert( gitInfo.IsValidCIBuild );
+                            PushNuGetPackages( "MYGET_EXPLORE_API_KEY", "https://www.myget.org/F/invenietis-explore/api/v2/package", nugetPackages );
+                        }
                     }
                     else
                     {
-                        Debug.Assert( gitInfo.IsValidCIBuild );
-                        PushNuGetPackages( "MYGET_EXPLORE_API_KEY", "https://www.myget.org/F/invenietis-explore/api/v2/package", nugetPackages );
+                        Cake.Information( "Push-NuGet-Packages step is skipped since Git repository info is not valid." );
                     }
                 } );
 
@@ -147,6 +166,15 @@ namespace CodeCake
                 .IsDependentOn( "Push-NuGet-Packages" );
 
         }
+
+        private static string GetRunningRuntimeFramework()
+        {
+            string f = PlatformServices.Default.Runtime.RuntimePath;
+            if( f[f.Length - 1] == Path.DirectorySeparatorChar ) f = Path.GetDirectoryName( f );
+            f = Path.GetFileName( Path.GetDirectoryName( f ) );
+            return f.Substring( f.IndexOf( '.' ) + 1 );
+        }
+
         private void PushNuGetPackages( string apiKeyName, string pushUrl, IEnumerable<string> nugetPackages )
         {
             // Resolves the API key.

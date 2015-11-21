@@ -13,7 +13,7 @@
   "dependencies": {
     "Code.Cake": "0.6.2",
     "Microsoft.Extensions.PlatformAbstractions": "1.0.0-rc1-final",
-    "SimpleGitVersion.Cake": "0.9.0"
+    "SimpleGitVersion.Cake": "0.10.0"
   },
 
   "frameworks": {

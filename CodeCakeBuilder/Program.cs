@@ -9,18 +9,12 @@ using Microsoft.Extensions.PlatformAbstractions;
 
 namespace CodeCakeBuilder
 {
-    public class Program
+    public static class Program
     {
-        string _solutionDir;
-
-        public Program( IApplicationEnvironment appEnv )
+        public static int Main( string[] args )
         {
-            _solutionDir = Path.GetDirectoryName( appEnv.ApplicationBasePath );
-        }
-
-        public int Main( string[] args )
-        {
-            var app = new CodeCakeApplication( _solutionDir, typeof(Program).Assembly );
+            string solutionDir = Path.GetDirectoryName( PlatformServices.Default.Application.ApplicationBasePath );
+            var app = new CodeCakeApplication( solutionDir, typeof(Program).Assembly );
             bool interactive = !args.Contains( '-' + InteractiveAliases.NoInteractionArgument, StringComparer.OrdinalIgnoreCase );
             int result = app.Run( args );
             Console.WriteLine();

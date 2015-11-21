@@ -1,4 +1,4 @@
 {
-  "projects": [ "CK.Core", "Tests", "." ],
+  "projects": [ "." ],
   "sdk": { "runtime": "clr", "version": "1.0.0-rc1-final" }
 }
