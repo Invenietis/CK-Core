@@ -15,7 +15,7 @@ environment:
 install:
 - CodeCakeBuilder/Bootstrap.cmd
 - dnvm use -p -r clr 1.0.0-rc1-final
-- dnu feeds list
+- dnu commands install SimpleGitVersion.DNXCommands
 - dnu restore
 build_script:
 - dnx -p CodeCakeBuilder CodeCakeBuilder -nointeraction
