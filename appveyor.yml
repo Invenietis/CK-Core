@@ -12,7 +12,7 @@ environment:
   AUTHENTICODE_PASSPHRASE:
     secure: nx7+K80AgL8z2eb2rQMmlQ==
 install:
-- ps: CodeCakeBuilder\Bootstrap.ps1
+- CodeCakeBuilder\Bootstrap.cmd
 build_script:
-- CodeCakeBuilder\bin\Release\CodeCakeBuilder.exe -nointeraction
+- dnx CodeCakeBuilder -nointeraction
 test: off
