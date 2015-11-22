@@ -15,5 +15,5 @@ environment:
 install:
 - CodeCakeBuilder\Bootstrap.cmd
 build_script:
-- dnx CodeCakeBuilder -nointeraction
+- dnx -p CodeCakeBuilder -nointeraction
 test: off
