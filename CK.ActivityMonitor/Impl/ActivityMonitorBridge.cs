@@ -27,7 +27,7 @@ namespace CK.Core
         readonly bool _pushTopicAndAutoTagsToTarget;
         readonly bool _applyTargetFilterToUnfilteredLogs;
 
-        #if DNX451
+        #if DNX451 || DNX46
         // The callback is this object if we are in the same AppDomain
         // otherwise it is a CrossAppDomainCallback.
         readonly CrossAppDomainCallback _crossADCallback;
@@ -122,7 +122,7 @@ namespace CK.Core
             _pullTargetTopicAndAutoTagsFromTarget = pullTargetTopicAndAutoTagsFromTarget;
             _pushTopicAndAutoTagsToTarget = pushTopicAndAutoTagsToTarget;
             _applyTargetFilterToUnfilteredLogs = applyTargetFilterToUnfilteredLogs;
-            #if DNX451
+            #if DNX451 || DNX46
             if( System.Runtime.Remoting.RemotingServices.IsTransparentProxy( bridge ) )
             {
                 _crossADCallback = new CrossAppDomainCallback( this, bridge );
@@ -131,7 +131,7 @@ namespace CK.Core
             {
             #endif
                 _targetMonitor = _bridgeTarget.TargetMonitor;
-            #if DNX451
+            #if DNX451 || DNX46
             }
             #endif
             _openedGroups = new List<bool>();
@@ -194,14 +194,14 @@ namespace CK.Core
             if( source != null && _source != null ) throw ActivityMonitorClient.CreateMultipleRegisterOnBoundClientException( this );
             if( _source != null )
             {
-#if DNX451
+                #if DNX451 || DNX46
                 if(_crossADCallback != null)
                 {
                     _bridgeTarget.RemoveCallback( _crossADCallback );
                     _crossADCallback.InUse = false;
                 }
                 else
-#endif
+                #endif
                     _bridgeTarget.RemoveCallback( this );
                 // Unregistering.
                 for( int i = 0; i < _openedGroups.Count; ++i )
@@ -216,7 +216,7 @@ namespace CK.Core
             }
             else
             {
-                #if DNX451
+                #if DNX451 || DNX46
                 if( _crossADCallback != null )
                 {
                     _crossADCallback.InUse = true;
@@ -230,7 +230,7 @@ namespace CK.Core
                 {
                     string targetTopic;
                     CKTrait targetTags;
-                    #if DNX451
+                    #if DNX451 || DNX46
                     if( IsCrossAppDomain ) 
                     {
                         string marshalledTags;

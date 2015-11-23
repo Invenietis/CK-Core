@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-#if DNX451
+#if DNX451 || DNX46
 using System.Runtime.Serialization.Formatters.Binary;
 #endif
 using System.Text;
@@ -92,7 +92,7 @@ namespace CK.Core.Tests
             }
         }
 
-#if DNX451
+#if DNX451 || DNX46
         [Test]
         public void SerializeCKException()
         {

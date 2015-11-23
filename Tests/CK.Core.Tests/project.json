@@ -14,34 +14,26 @@
   "frameworks": {
     "dnx451": {
       "dependencies": {
-        "System.Threading": "4.0.11-beta-23516"
       }
     },
     "dnx46": {
       "dependencies": {
-        "System.Console": "4.0.0-beta-23516",
-        "System.Threading": "4.0.11-beta-23516"
       }
     },
     "dnxcore50": {
       "dependencies": {
-        "System.Collections": "4.0.11-beta-23409",
-        "System.Console": "4.0.0-beta-23409",
-        "System.Linq": "4.0.1-beta-23409",
-        "System.Runtime": "4.0.21-beta-23409",
-        "System.Threading": "4.0.10",
-        "System.Threading.Tasks": "4.0.10",
-        "System.Threading.Tasks.Parallel": "4.0"
+        "System.Collections": "4.0.0-beta-23516",
+        "System.Console": "4.0.0-beta-23516",
+        "System.Linq": "4.0.1-beta-23516",
+        "System.Runtime": "4.0.21-beta-23516",
+        "System.Threading": "4.0.11-beta-23516",
+        "System.Threading.Tasks": "4.0.11-beta-23516",
+        "System.Threading.Tasks.Parallel": "4.0.1-beta-23516"
       }
     }
   },
   "dependencies": {
     "CK.Core": "0.0.0-Absolutely-Invalid",
-    "NUnitLite": "3.0.0",
-    "System.Collections": "4.0.11-beta-23516",
-    "System.Linq": "4.0.1-beta-23516",
-    "System.Runtime": "4.0.21-beta-23516",
-    "System.Threading.Tasks": "4.0.11-beta-23516",
-    "System.Threading.Tasks.Parallel": "4.0.1-beta-23516"
+    "NUnitLite": "3.0.0"
   }
 }

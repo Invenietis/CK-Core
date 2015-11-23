@@ -1,6 +1,6 @@
 ﻿using System;
 
-#if DOTNET || DNXCORE50
+#if DNXCORE50
 
 namespace System.Runtime.Remoting
 {

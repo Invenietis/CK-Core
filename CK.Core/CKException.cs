@@ -22,7 +22,7 @@ namespace CK.Core
         public CKException( string message )
             : base( message )
         {
-            #if !DOTNET && !DNXCORE50
+            #if !DNXCORE50
             SerializeObjectState += DoSerialize;
             #endif
         }
@@ -35,7 +35,7 @@ namespace CK.Core
         public CKException( string message, Exception innerException )
             : base( message, innerException )
         {
-            #if !DOTNET && !DNXCORE50
+            #if !DNXCORE50
             SerializeObjectState += DoSerialize;
             #endif
         }
@@ -105,7 +105,7 @@ namespace CK.Core
             return _exceptionData; 
         }
 
-        #if !DOTNET && !DNXCORE50
+        #if !DNXCORE50
         void DoSerialize( object sender, SafeSerializationEventArgs e )
         {
             if( _exceptionData != null ) e.AddSerializedState( new SerialData() { ExData = _exceptionData } );

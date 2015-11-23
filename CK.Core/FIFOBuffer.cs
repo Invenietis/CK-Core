@@ -423,7 +423,7 @@ namespace CK.Core
             return String.Format( "Count = {0} (Capacity = {1})", _count, _buffer.Length );
         }
 
-        #if !DOTNET && !DNXCORE50
+        #if !DNXCORE50
         /// <summary>
         /// Deserialization constructor.
         /// </summary>

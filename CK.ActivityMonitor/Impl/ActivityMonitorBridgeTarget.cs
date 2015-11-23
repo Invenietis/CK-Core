@@ -25,7 +25,7 @@ namespace CK.Core
     /// </para>
     /// </remarks>
     public sealed class ActivityMonitorBridgeTarget
-        #if DNX451
+        #if DNX451 || DNX46
         : MarshalByRefObject, ISponsor
         #endif
     {
@@ -229,7 +229,7 @@ namespace CK.Core
 
         #endregion
 
-        #if DNX451
+        #if DNX451 || DNX46
         /// <summary>
         /// Gets the lease for this object.
         /// </summary>
