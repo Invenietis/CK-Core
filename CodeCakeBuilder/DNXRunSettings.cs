@@ -32,7 +32,7 @@ namespace Code.Cake
         {
             get
             {
-                return Framework == null || Regex.IsMatch( Framework, @"^dnx\d+$" );
+                return Framework == null || Regex.IsMatch( Framework, @"^(dnx|net)\d+$" );
             }
         }
 
