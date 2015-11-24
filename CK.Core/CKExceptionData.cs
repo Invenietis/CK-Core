@@ -150,7 +150,7 @@ namespace CK.Core
                 if( fileNFEx != null )
                 {
                     fileName = fileNFEx.FileName;
-                    #if DNX451 || DNX46
+                    #if NET451 || NET46
                     detailedInfo = fileNFEx.FusionLog;
                     #endif
                 }
@@ -160,13 +160,13 @@ namespace CK.Core
                     if( loadFileEx != null )
                     {
                         fileName = loadFileEx.FileName;
-                        #if DNX451 || DNX46
+                        #if NET451 || NET46
                         detailedInfo = loadFileEx.FusionLog;
                         #endif
                     }
                     else
                     {
-                        #if DNX451 || DNX46
+                        #if NET451 || NET46
                         var configEx = ex as System.Configuration.ConfigurationException;
                         if( configEx != null )
                         {

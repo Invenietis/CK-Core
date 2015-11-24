@@ -14,10 +14,16 @@
   "frameworks": {
     "dnx451": {
       "dependencies": {
+      },
+      "frameworkAssemblies": {
+        "System.Configuration":  "4.0.0.0"
       }
     },
     "dnx46": {
       "dependencies": {
+      },
+      "frameworkAssemblies": {
+        "System.Configuration": "4.0.0.0"
       }
     },
     "dnxcore50": {

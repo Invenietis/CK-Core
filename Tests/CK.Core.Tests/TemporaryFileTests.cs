@@ -12,7 +12,7 @@ namespace CK.Core.Tests
     public class TemporaryFileTests
     {
         [Test]
-        public void TemporaryFileSimpleTest()
+        public void TemporaryFile_has_FileAttributes_Temporary_by_default()
         {
             string path = string.Empty;
             using( TemporaryFile temporaryFile = new TemporaryFile( true, null ) )
@@ -32,6 +32,19 @@ namespace CK.Core.Tests
             Assert.That( File.Exists( path ), Is.False );
 
             using( TemporaryFile temporaryFile = new TemporaryFile( true ) )
+            {
+                path = temporaryFile.Path;
+                Assert.That( File.Exists( temporaryFile.Path ), Is.True );
+                Assert.That( (File.GetAttributes( temporaryFile.Path ) & FileAttributes.Temporary) == FileAttributes.Temporary, Is.True );
+            }
+            Assert.That( File.Exists( path ), Is.False );
+        }
+
+        [Test]
+        public void an_empty_extension_is_like_no_extension()
+        {
+            string path = string.Empty;
+            using( TemporaryFile temporaryFile = new TemporaryFile( " " ) )
             {
                 path = temporaryFile.Path;
                 Assert.That( File.Exists( temporaryFile.Path ), Is.True );

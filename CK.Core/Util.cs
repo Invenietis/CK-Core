@@ -29,7 +29,7 @@ namespace CK.Core
         /// </summary>
         public static class Array
         {
-            #if !DNX46 && !DNXCORE50
+            #if !NET46 && !DOTNET5_4
             static class E<T> 
             {
                 public readonly static T[] Value = new T[0]; 

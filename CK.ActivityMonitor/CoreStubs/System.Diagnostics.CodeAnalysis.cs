@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-#if DNXCORE50
+#if DOTNET5_4
 
 namespace System.Diagnostics.CodeAnalysis
 {

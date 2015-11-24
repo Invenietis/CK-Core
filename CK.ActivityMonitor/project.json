@@ -19,15 +19,15 @@
   },
 
   "frameworks": {
-    "dnx451": {
+    "net451": {
       "dependencies": {
       }
     },
-    "dnx46": {
+    "net46": {
       "dependencies": {
       }
     },
-    "dnxcore50": {
+    "dotnet5.4": {
       "dependencies": {
         "Microsoft.CSharp": "4.0.1-beta-23516",
         "System.Collections": "4.0.11-beta-23516",
