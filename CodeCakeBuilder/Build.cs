@@ -41,7 +41,7 @@ namespace CodeCake
             {
                 dnxSolution = Cake.GetDNXSolution( p => p.ProjectName != "CodeCakeBuilder" );
                 if( !dnxSolution.IsValid ) throw new Exception( "Unable to initialize solution." );
-                projectsToPublish = dnxSolution.Projects.Where( p => !p.ProjectName.EndsWith( "Tests" ) );
+                projectsToPublish = dnxSolution.Projects.Where( p => !p.ProjectName.EndsWith( ".Tests" ) );
             } );
 
             Teardown( () =>
@@ -103,6 +103,7 @@ namespace CodeCake
                         {
                             Cake.DNXRun( c => {
                                 c.Arguments = "test";
+                                //c.Debug = true;
                                 c.Configuration = configuration;
                                 c.Framework = framework;
                                 c.Project = p.ProjectFilePath;
@@ -121,7 +122,7 @@ namespace CodeCake
                     {
                         c.GeneratePackage = true;
                         c.Configurations.Add( configuration );
-                        c.ProjectPaths.UnionWith( dnxSolution.Projects.Select( p => p.ProjectDir ) );
+                        c.ProjectPaths.UnionWith( projectsToPublish.Select( p => p.ProjectDir ) );
                         c.Quiet = true;
                     } );
                 } );

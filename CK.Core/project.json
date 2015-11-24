@@ -34,24 +34,24 @@
     "dotnet5.4": {
       "dependencies": {
         "System.Collections": "4.0.11-beta-23516",
-        "System.Linq": "4.0.1-beta-23516",
-        "System.Runtime": "4.0.21-beta-23516",
-        "System.Threading": "4.0.11-beta-23516",
-        "System.Reflection.Emit.Lightweight": "4.0.1-beta-23516",
-        "System.IO": "4.0.11-beta-23516",
-        "System.IO.FileSystem": "4.0.1-beta-23516",
-        "System.IO.Compression": "4.1.0-beta-23516",
-        "System.Diagnostics.Tools": "4.0.1-beta-23516",
+        "System.Collections.Concurrent": "4.0.11-beta-23516",
         "System.ComponentModel": "4.0.1-beta-23516",
+        "System.Diagnostics.Tools": "4.0.1-beta-23516",
+        "System.Globalization.Extensions": "4.0.1-beta-23516",
+        "System.IO": "4.0.11-beta-23516",
+        "System.IO.Compression": "4.1.0-beta-23516",
+        "System.IO.FileSystem": "4.0.1-beta-23516",
+        "System.Linq": "4.0.1-beta-23516",
+        "System.ObjectModel": "4.0.11-beta-23516",
+        "System.Reflection.Emit.Lightweight": "4.0.1-beta-23516",
+        "System.Reflection.TypeExtensions": "4.1.0-beta-23516",
+        "System.Runtime": "4.0.21-beta-23516",
+        "System.Text.RegularExpressions": "4.0.11-beta-23516",
+        "System.Threading": "4.0.11-beta-23516",
         "System.Threading.Thread": "4.0.0-beta-23516",
         "System.Threading.ThreadPool": "4.0.10-beta-23516",
-        "System.Text.RegularExpressions": "4.0.11-beta-23516",
-        "System.Collections.Concurrent": "4.0.11-beta-23516",
-        "System.Globalization.Extensions": "4.0.1-beta-23516",
         "System.Xml.ReaderWriter": "4.0.11-beta-23516",
-        "System.Xml.XDocument": "4.0.11-beta-23516",
-        "System.Reflection.TypeExtensions": "4.1.0-beta-23516",
-        "System.ObjectModel": "4.0.11-beta-23516"
+        "System.Xml.XDocument": "4.0.11-beta-23516"
       }
     }
   },

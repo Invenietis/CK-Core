@@ -1,10 +1,6 @@
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace CK.Core
 {
@@ -164,10 +160,11 @@ namespace CK.Core
             }
         }
 
-        const string _defType = "System.Configuration.ConfigurationManager, System.Configuration, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a";
 
         void DoDefaultInitialize()
         {
+#if NET451 || NET46
+            const string _defType = "System.Configuration.ConfigurationManager, System.Configuration, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a";
             Type configMananger = SimpleTypeFinder.WeakResolver( _defType, false );
             // Type op_equality is not portable: use ReferenceEquals.
             if( !ReferenceEquals( configMananger, null ) )
@@ -186,6 +183,8 @@ namespace CK.Core
                 _initialized = true;
             }
             else throw new CKException( Resources.AppSettingsDefaultInitializationFailed );
+#endif
+            throw new CKException( Resources.AppSettingsDefaultInitializationFailed );
         }
 
     }

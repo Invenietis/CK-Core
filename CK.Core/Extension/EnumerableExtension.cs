@@ -313,6 +313,7 @@ namespace CK.Core
         /// <returns>An enumerable that appends the item to trhe sequence.</returns>
         public static IEnumerable<TSource> Append<TSource>( this IEnumerable<TSource> @this, TSource item )
         {
+            if( @this == null ) throw new NullReferenceException();
             return new EAppend<TSource>( @this, item );
         }
     }

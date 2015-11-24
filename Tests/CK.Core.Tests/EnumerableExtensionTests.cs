@@ -103,8 +103,8 @@ namespace CK.Core.Tests
             Assert.That( listWithoutDuplicate.IsSortedLarge(), Is.True );
 
             listWithDuplicate = null;
-            Assert.Throws<ArgumentNullException>( () => listWithDuplicate.IsSortedLarge() );
-            Assert.Throws<ArgumentNullException>( () => listWithDuplicate.IsSortedStrict() );
+            Assert.Throws<NullReferenceException>( () => listWithDuplicate.IsSortedLarge() );
+            Assert.Throws<NullReferenceException>( () => listWithDuplicate.IsSortedStrict() );
         }
 
         [Test]
@@ -130,8 +130,8 @@ namespace CK.Core.Tests
             Assert.Throws<ArgumentNullException>( () => listToTest.IndexOf( nullFunc ) );
             Assert.Throws<ArgumentNullException>( () => listToTest.IndexOf( nullFuncWithIndex ) );
             listToTest = null;
-            Assert.Throws<ArgumentNullException>( () => listToTest.IndexOf( a => a == 0 ) );
-            Assert.Throws<ArgumentNullException>( () => listToTest.IndexOf( (a,idx) => a == 0 ) );
+            Assert.Throws<NullReferenceException>( () => listToTest.IndexOf( a => a == 0 ) );
+            Assert.Throws<NullReferenceException>( () => listToTest.IndexOf( (a,idx) => a == 0 ) );
         }
 
         [Test]
@@ -163,7 +163,7 @@ namespace CK.Core.Tests
             Assert.Throws<InvalidOperationException>( () => e.MoveNext() );
 
             t = null;
-            Assert.Throws<ArgumentNullException>( () => t.Append( 5 ) );
+            Assert.Throws<NullReferenceException>( () => t.Append( 5 ) );
 
         }
 

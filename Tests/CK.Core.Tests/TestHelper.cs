@@ -96,15 +96,7 @@ namespace CK.Core.Tests
 
         private static void InitalizePaths()
         {
-#if DNX451 || DNX46
-            string p = new Uri( System.Reflection.Assembly.GetExecutingAssembly().CodeBase ).LocalPath;
-            // => CK.XXX.Tests/bin/Debug/
-            p = Path.GetDirectoryName( p );
-            // => CK.XXX.Tests/bin/
-            p = Path.GetDirectoryName( p );
-            // => CK.XXX.Tests/
-            p = Path.GetDirectoryName( p );
-            // ==> CK.XXX.Tests/TestDir
+            string p = Microsoft.Extensions.PlatformAbstractions.PlatformServices.Default.Application.ApplicationBasePath;
             _testFolder = Path.Combine( p, "TestDir" );
             do
             {
@@ -115,7 +107,6 @@ namespace CK.Core.Tests
 
             Console.WriteLine( "SolutionFolder is: {1}\r\nTestFolder is: {0}", _testFolder, _solutionFolder );
             CleanupTestFolder();
-#endif
         }
     }
 }
