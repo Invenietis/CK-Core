@@ -1,0 +1,116 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ClassDiagram MajorVersion="1" MinorVersion="1">
+  <Class Name="CK.RouteConfig.ActionConfiguration" Collapsed="true">
+    <Position X="10" Y="0.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAIEAAAAAAAAAAAAAAAAQAAAAAAAABAAAAAAAAABA=</HashCode>
+      <FileName>RouteConfig\ActionConfiguration.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="CK.Monitoring.GrandOutputHandlers.HandlerConfiguration" Collapsed="true">
+    <Position X="13.25" Y="2.5" Width="2" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAQQAAAAAAgAAAAAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>GrandOutputHandlers\HandlerConfiguration.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="CK.RouteConfig.Impl.ActionCompositeConfiguration" Collapsed="true">
+    <Position X="9" Y="1.75" Width="2.5" />
+    <TypeIdentifier>
+      <HashCode>ACISAEAAAQAAAAAAAAAEAACAAABAACABAAAAABAAABA=</HashCode>
+      <FileName>RouteConfig\Impl\ActionCompositeConfiguration.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="CK.RouteConfig.ActionParallelConfiguration" Collapsed="true">
+    <Position X="8.25" Y="3.25" Width="2.25" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAgAAA=</HashCode>
+      <FileName>RouteConfig\ActionParallelConfiguration.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="CK.RouteConfig.ActionSequenceConfiguration" Collapsed="true">
+    <Position X="10.75" Y="3.25" Width="2.25" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAgAAA=</HashCode>
+      <FileName>RouteConfig\ActionSequenceConfiguration.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="CK.Monitoring.GrandOutputHandlers.BinaryFileConfiguration" Collapsed="true">
+    <Position X="13.25" Y="4" Width="2" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAQIAAAAAAAAAAAAAAAAAAAAAAAAABAA=</HashCode>
+      <FileName>GrandOutputHandlers\BinaryFileConfiguration.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="CK.RouteConfig.MetaAddActionConfiguration" Collapsed="true">
+    <Position X="1" Y="6" Width="2.75" />
+    <TypeIdentifier>
+      <HashCode>AAIAAAAAIBAAAAAAAAAAAAAAAAAAAAABAAAAAAAAAAA=</HashCode>
+      <FileName>RouteConfig\MetaAddActionConfiguration.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="CK.RouteConfig.MetaDeclareActionConfiguration" Collapsed="true">
+    <Position X="4.25" Y="6" Width="2.75" />
+    <TypeIdentifier>
+      <HashCode>AAAIAAAAIBAAAAAAAAAAAAAAAAAAAAABAAAAAAAAAAA=</HashCode>
+      <FileName>RouteConfig\MetaDeclareActionConfiguration.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="CK.RouteConfig.MetaDeclareRouteConfiguration" Collapsed="true">
+    <Position X="0.75" Y="1.5" Width="2.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAFAAAAAAAAAAAEAAAAAAAAABAAAAAAAAAAA=</HashCode>
+      <FileName>RouteConfig\MetaDeclareRouteConfiguration.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="CK.RouteConfig.MetaInsertActionConfiguration" Collapsed="true">
+    <Position X="2" Y="2.5" Width="2.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAIAAACBAAAAAAAAAAAAAAAAAAAAABAAACAAAAAAA=</HashCode>
+      <FileName>RouteConfig\MetaInsertActionConfiguration.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="CK.RouteConfig.MetaOverrideActionConfiguration" Collapsed="true">
+    <Position X="5.75" Y="5" Width="2.75" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAIRAAAAAAAAAAAAAAAAAAAAABAAAAAAAAAAA=</HashCode>
+      <FileName>RouteConfig\MetaOverrideActionConfiguration.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="CK.RouteConfig.MetaRemoveActionConfiguration" Collapsed="true">
+    <Position X="2.75" Y="5" Width="2.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAABAAAAAAAAAABAAAAAgAAAABAAAAAAAAAAA=</HashCode>
+      <FileName>RouteConfig\MetaRemoveActionConfiguration.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="CK.RouteConfig.RouteConfiguration" Collapsed="true">
+    <Position X="6.5" Y="0.75" Width="2" />
+    <TypeIdentifier>
+      <HashCode>AAAAIEAAABDAAAAAAQAAAARAAAABIAIAAAEAgAAkCAA=</HashCode>
+      <FileName>RouteConfig\RouteConfiguration.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="CK.RouteConfig.Impl.MetaMultiConfiguration&lt;T&gt;" Collapsed="true">
+    <Position X="3.75" Y="3.5" Width="2" />
+    <TypeIdentifier>
+      <HashCode>AAIAAAAAAAAACAAAAAAAAAAAABAAAAAAAAAAAAAAAAA=</HashCode>
+      <FileName>RouteConfig\Impl\MetaMultiConfiguration.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="CK.RouteConfig.Impl.MetaConfiguration" Collapsed="true">
+    <Position X="2.75" Y="0.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAABAAAAAAAAAAAAAAAAAAAAABEAAAAAAAAAA=</HashCode>
+      <FileName>RouteConfig\Impl\MetaConfiguration.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="CK.RouteConfig.SubRouteConfiguration" Collapsed="true">
+    <Position X="6.5" Y="2" Width="2" />
+    <TypeIdentifier>
+      <HashCode>AAAAAEAAQAAAAAAgAAAAAQBAQCABAAABAAAAgAAkAAA=</HashCode>
+      <FileName>RouteConfig\SubRouteConfiguration.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Font Name="Segoe UI" Size="9" />
+</ClassDiagram>
