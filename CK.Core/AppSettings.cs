@@ -35,7 +35,7 @@ namespace CK.Core
             if( getConfigurationObject == null ) throw new ArgumentNullException( "getConfigurationObject" );
             lock( _lock )
             {
-                if( _initialized ) throw new Exception( "AppSettingsAlreadyInitialized" );
+                if( _initialized ) throw new CKException( Resources.AppSettingsAlreadyInitialized );
                 _initializedGetObject = _getObject = getConfigurationObject;
                 _initialized = true;
             }

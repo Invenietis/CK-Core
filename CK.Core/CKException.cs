@@ -22,7 +22,7 @@ namespace CK.Core
         public CKException( string message )
             : base( message )
         {
-            #if !DOTNET5_4
+            #if NET451 || NET46
             SerializeObjectState += DoSerialize;
             #endif
         }
@@ -35,7 +35,7 @@ namespace CK.Core
         public CKException( string message, Exception innerException )
             : base( message, innerException )
         {
-            #if !DOTNET5_4
+            #if NET451 || NET46
             SerializeObjectState += DoSerialize;
             #endif
         }
@@ -105,7 +105,7 @@ namespace CK.Core
             return _exceptionData; 
         }
 
-        #if !DOTNET5_4
+        #if NET451 || NET46
         void DoSerialize( object sender, SafeSerializationEventArgs e )
         {
             if( _exceptionData != null ) e.AddSerializedState( new SerialData() { ExData = _exceptionData } );

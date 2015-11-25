@@ -259,14 +259,21 @@ namespace CK.Core
 
         #region Catch & CatchCounter
 
+        [Obsolete( "Use less ambiguous CollectEntries method instead.", true )]
+        public static IDisposable Catch( this IActivityMonitor @this, Action<IReadOnlyList<ActivityMonitorSimpleCollector.Entry>> errorHandler, LogLevelFilter level = LogLevelFilter.Error )
+        {
+            return Catch( @this, errorHandler, level );
+        }
+
         /// <summary>
-        /// Enables simple "using" syntax to easily catch any <see cref="LogLevel"/> (or above) entries (defaults to <see cref="LogLevel.Error"/>).
+        /// Enables simple "using" syntax to easily collect any <see cref="LogLevel"/> (or above) entries (defaults to <see cref="LogLevel.Error"/>) around operations.
+        /// The callback is called when the the returned IDisposable is disposed and there are at least one collected entry.
         /// </summary>
         /// <param name="this">This <see cref="IActivityMonitor"/>.</param>
         /// <param name="errorHandler">An action that accepts a list of fatal or error <see cref="ActivityMonitorSimpleCollector.Entry">entries</see>.</param>
-        /// <param name="level">Defines the level of the entries caught (by default fatal or error entries).</param>
+        /// <param name="level">Defines the level of the collected entries (by default fatal or error entries).</param>
         /// <returns>A <see cref="IDisposable"/> object used to manage the scope of this handler.</returns>
-        public static IDisposable Catch( this IActivityMonitor @this, Action<IReadOnlyList<ActivityMonitorSimpleCollector.Entry>> errorHandler, LogLevelFilter level = LogLevelFilter.Error )
+        public static IDisposable CollectEntries( this IActivityMonitor @this, Action<IReadOnlyList<ActivityMonitorSimpleCollector.Entry>> errorHandler, LogLevelFilter level = LogLevelFilter.Error )
         {
             if( @this == null ) throw new NullReferenceException( "this" );
             if( errorHandler == null ) throw new ArgumentNullException( "errorHandler" );
@@ -279,12 +286,7 @@ namespace CK.Core
             } );
         }
 
-        /// <summary>
-        /// Enables simple "using" syntax to easily detect <see cref="LogLevel.Fatal"/>, <see cref="LogLevel.Error"/> or <see cref="LogLevel.Warn"/>.
-        /// </summary>
-        /// <param name="this">This <see cref="IActivityMonitor"/>.</param>
-        /// <param name="fatalErrorWarnCount">An action that accepts three counts for fatals, errors and warnings.</param>
-        /// <returns>A <see cref="IDisposable"/> object used to manage the scope of this handler.</returns>
+        [Obsolete( "Use OnError method instead.", true )]
         public static IDisposable CatchCounter( this IActivityMonitor @this, Action<int, int, int> fatalErrorWarnCount )
         {
             if( @this == null ) throw new NullReferenceException( "this" );
@@ -299,12 +301,7 @@ namespace CK.Core
             } );
         }
 
-        /// <summary>
-        /// Enables simple "using" syntax to easily detect <see cref="LogLevel.Fatal"/> and <see cref="LogLevel.Error"/>.
-        /// </summary>
-        /// <param name="this">This <see cref="IActivityMonitor"/>.</param>
-        /// <param name="fatalErrorCount">An action that accepts two counts for fatals and errors.</param>
-        /// <returns>A <see cref="IDisposable"/> object used to manage the scope of this handler.</returns>
+        [Obsolete( "Use OnError method instead.", true )]
         public static IDisposable CatchCounter( this IActivityMonitor @this, Action<int, int> fatalErrorCount )
         {
             if( @this == null ) throw new NullReferenceException( "this" );
@@ -318,12 +315,7 @@ namespace CK.Core
             } );
         }
 
-        /// <summary>
-        /// Enables simple "using" syntax to easily detect <see cref="LogLevel.Fatal"/> or <see cref="LogLevel.Error"/>.
-        /// </summary>
-        /// <param name="this">This <see cref="IActivityMonitor"/>.</param>
-        /// <param name="fatalOrErrorCount">An action that accepts one count that sums fatals and errors.</param>
-        /// <returns>A <see cref="IDisposable"/> object used to manage the scope of this handler.</returns>
+        [Obsolete( "Use OnError method instead.", true )]
         public static IDisposable CatchCounter( this IActivityMonitor @this, Action<int> fatalOrErrorCount )
         {
             if( @this == null ) throw new NullReferenceException( "this" );
@@ -336,7 +328,77 @@ namespace CK.Core
                 if( errorCounter.Current.HasError ) fatalOrErrorCount( errorCounter.Current.FatalCount + errorCounter.Current.ErrorCount );
             } );
         }
-        
+
+        class ErrorTracker : IActivityMonitorClient
+        {
+            readonly Action _onFatal;
+            readonly Action _onError;
+
+            public ErrorTracker( Action onFatal, Action onError )
+            {
+                _onFatal = onFatal;
+                _onError = onError;
+            }
+
+            public void OnUnfilteredLog( ActivityMonitorLogData data )
+            {
+                if( data.MaskedLevel == LogLevel.Error ) _onError();
+                else if( data.MaskedLevel == LogLevel.Fatal ) _onFatal();
+            }
+
+            public void OnOpenGroup( IActivityLogGroup group )
+            {
+                if( group.MaskedGroupLevel == LogLevel.Error ) _onError();
+                else if( group.MaskedGroupLevel == LogLevel.Fatal ) _onFatal();
+            }
+
+            public void OnGroupClosing( IActivityLogGroup group, ref List<ActivityLogGroupConclusion> conclusions )
+            {
+            }
+
+            public void OnGroupClosed( IActivityLogGroup group, IReadOnlyList<ActivityLogGroupConclusion> conclusions )
+            {
+            }
+
+            public void OnTopicChanged( string newTopic, string fileName, int lineNumber )
+            {
+            }
+
+            public void OnAutoTagsChanged( CKTrait newTrait )
+            {
+            }
+        }
+
+        /// <summary>
+        /// Enables simple "using" syntax to easily detect <see cref="LogLevel.Fatal"/> or <see cref="LogLevel.Error"/>.
+        /// </summary>
+        /// <param name="this">This <see cref="IActivityMonitor"/>.</param>
+        /// <param name="onFatalOrError">An action that is called whenever an Error or Fatal error occurs.</param>
+        /// <returns>A <see cref="IDisposable"/> object used to manage the scope of this handler.</returns>
+        public static IDisposable OnError( this IActivityMonitor @this, Action onFatalOrError )
+        {
+            if( @this == null ) throw new NullReferenceException( "this" );
+            if( onFatalOrError == null ) throw new ArgumentNullException( "onError" );
+            ErrorTracker tracker = new ErrorTracker( onFatalOrError, onFatalOrError );
+            @this.Output.RegisterClient( tracker );
+            return Util.CreateDisposableAction( () => @this.Output.UnregisterClient( tracker ) );
+        }
+
+        /// <summary>
+        /// Enables simple "using" syntax to easily detect <see cref="LogLevel.Fatal"/> or <see cref="LogLevel.Error"/>.
+        /// </summary>
+        /// <param name="this">This <see cref="IActivityMonitor"/>.</param>
+        /// <param name="onFatal">An action that is called whenever a Fatal error occurs.</param>
+        /// <param name="onError">An action that is called whenever an Error occurs.</param>
+        /// <returns>A <see cref="IDisposable"/> object used to manage the scope of this handler.</returns>
+        public static IDisposable OnError( this IActivityMonitor @this, Action onFatal, Action onError )
+        {
+            if( @this == null ) throw new NullReferenceException( "this" );
+            if( onFatal == null || onError == null ) throw new ArgumentNullException();
+            ErrorTracker tracker = new ErrorTracker( onFatal, onError );
+            @this.Output.RegisterClient( tracker );
+            return Util.CreateDisposableAction( () => @this.Output.UnregisterClient( tracker ) );
+        }
         #endregion
 
 
