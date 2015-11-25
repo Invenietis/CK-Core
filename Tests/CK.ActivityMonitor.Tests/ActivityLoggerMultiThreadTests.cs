@@ -96,7 +96,7 @@ namespace CK.Core.Tests.Monitoring
         }
 
         [Test]
-        public void ExhibeReentrancyAndMultiThreadErrors()
+        public void buggy_clients_are_removed_from_Output()
         {
             ActivityMonitor.AutoConfiguration = null;
             ActivityMonitor monitor = new ActivityMonitor();
@@ -144,7 +144,7 @@ namespace CK.Core.Tests.Monitoring
             } ) );
 
             monitor.Info().Send( "Test must work after reentrant client" );
-            Assert.That( monitor.Output.Clients.Count, Is.EqualTo( 3 ), "The BUGGY RegisterClient action above is NOT ok: it let the a reentrant call exception => We have removed it." );
+            Assert.That( monitor.Output.Clients.Count, Is.EqualTo( 3 ), "The BUGGY RegisterClient action above is NOT ok: it triggers a reentrant call exception => We have removed it." );
 
         }
 
@@ -197,7 +197,7 @@ namespace CK.Core.Tests.Monitoring
         }
 
         [Test]
-        public void ReentrancyMonoThread()
+        public void simple_reentrancy_detection()
         {
             IActivityMonitor monitor = new ActivityMonitor();
             using( monitor.Output.CreateBridgeTo( TestHelper.ConsoleMonitor.Output.BridgeTarget ) )

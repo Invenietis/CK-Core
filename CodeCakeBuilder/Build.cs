@@ -103,7 +103,6 @@ namespace CodeCake
                         {
                             Cake.DNXRun( c => {
                                 c.Arguments = "test";
-                                //c.Debug = true;
                                 c.Configuration = configuration;
                                 c.Framework = framework;
                                 c.Project = p.ProjectFilePath;
@@ -164,7 +163,8 @@ namespace CodeCake
 
             // The Default task for this script can be set here.
             Task( "Default" )
-                .IsDependentOn( "Push-NuGet-Packages" );
+                .IsDependentOn( "Clean" );
+                //.IsDependentOn( "Push-NuGet-Packages" );
 
         }
 

@@ -217,7 +217,7 @@ namespace CK.Core
         /// <remarks>
         /// <para>
         /// When setting it, the path must be valid (when it is not an absolute path, it is combined 
-        /// with the <see cref="AppDomain.BaseDirectory">AppDomain.CurrentDomain.BaseDirectory</see>).
+        /// with the AppDomain.CurrentDomain.BaseDirectory or the application base path).
         /// </para>
         /// <para>
         /// The subordinate directory "CriticalErrors" is created (if not already here) and a test file is created (and deleted) inside it 
