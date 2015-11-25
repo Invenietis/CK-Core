@@ -29,7 +29,7 @@ using System.Text;
 namespace CK.Core
 {
     /// <summary>
-    /// Provides extension methods for <see cref="ICKReadOnlyCollection{T}"/>, <see cref="ICKReadOnlyList{T}"/> and <see cref="ICKReadOnlyUniqueKeyedCollection{T,TKey}"/>.
+    /// Provides extension methods for <see cref="ICKReadOnlyCollection{T}"/>, <see cref="IReadOnlyList{T}"/> and <see cref="ICKReadOnlyUniqueKeyedCollection{T,TKey}"/>.
     /// </summary>
     public static class CKReadOnlyExtension
     {

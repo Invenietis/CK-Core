@@ -13,6 +13,8 @@ namespace CK.Core.Impl
 
         public static readonly string AppSettingsDefaultInitializationFailed = "Unable to initialize AppSettings, the default fallback to System.Configuration.ConfigurationManager.AppSettings can not be generated since System.Configuration assembly is not available.";
 
+        public static readonly string AppSettingsNoDefaultInitializationOnNetCore = "Unable to automatically initialize AppSettings on .Net standard platform. It must be explicitly initialized.";        
+
         public static readonly string AppSettingsRequiredConfigurationBadType = "Required AppSettings configuration named '{0}' is missing: it must be a '{1}'.";
 
         public static readonly string AppSettingsRequiredConfigurationMissing = "Required AppSettings configuration named '{0}' is missing.";

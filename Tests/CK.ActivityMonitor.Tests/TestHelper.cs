@@ -10,7 +10,6 @@ using NUnit.Framework;
 
 namespace CK.Core.Tests
 {
-    [ExcludeFromCodeCoverage]
     static class TestHelper
     {
         static string _testFolder;

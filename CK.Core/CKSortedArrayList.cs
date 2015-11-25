@@ -6,7 +6,7 @@ using System.Diagnostics;
 namespace CK.Core
 {
     /// <summary>
-    /// Simple sorted array list implementation that supports covariance through <see cref="IReadOnlyList{T}"/> and contra-variance 
+    /// Simple sorted array list implementation that supports covariance through <see cref="ICKReadOnlyList{T}"/> and contra-variance 
     /// with <see cref="ICKWritableCollection{T}"/>. This is a "dangerous" class since to keep the correct ordering, <see cref="CheckPosition(int)"/> 
     /// must be explicitly called whenever something changes on any item that impacts the <see cref="Comparator"/> result.
     /// See the remarks for other caveats.
@@ -26,7 +26,7 @@ namespace CK.Core
     /// </para>
     /// </remarks>
     [DebuggerTypeProxy( typeof( Debugging.ReadOnlyCollectionDebuggerView<> ) ), DebuggerDisplay( "Count = {Count}" )]
-    public class CKSortedArrayList<T> : IList<T>, ICKReadOnlyList<T>, ICKWritableCollection<T>
+    public class CKSortedArrayList<T> : IList<T>, IReadOnlyList<T>, ICKWritableCollection<T>
     {
         const int _defaultCapacity = 4;
 
@@ -144,7 +144,7 @@ namespace CK.Core
         /// <summary>
         /// Covariant compatible overload of <see cref="IndexOf(T)"/>  (logarithmic).
         /// If the item is not <typeparamref name="T"/> compatible, the 
-        /// value <see cref="Int32.MinValue"/> is returned. See <see cref="ICKReadOnlyList{T}.IndexOf"/>.
+        /// value <see cref="Int32.MinValue"/> is returned. See <see cref="IReadOnlyList{T}.IndexOf"/>.
         /// </summary>
         /// <param name="item">The item to locate.</param>
         /// <returns>

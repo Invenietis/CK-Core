@@ -72,6 +72,15 @@ namespace CK.Core
         }
 
         /// <summary>
+        /// Gets whether this AppSettings object has been initialized.
+        /// It can be initialized only once.
+        /// </summary>
+        public bool IsInitialzed
+        {
+            get { return _initialized; }
+        }
+
+        /// <summary>
         /// Automatically bind to standard ConfigurationManager.AppSettings to obtain configuration strings.
         /// This method is automatically called when this object is not yet initialized on any access other than <see cref="Initialize"/>.
         /// </summary>
@@ -184,7 +193,7 @@ namespace CK.Core
             }
             else throw new CKException( Impl.CoreResources.AppSettingsDefaultInitializationFailed );
 #endif
-            throw new CKException( Impl.CoreResources.AppSettingsDefaultInitializationFailed );
+            throw new CKException( Impl.CoreResources.AppSettingsNoDefaultInitializationOnNetCore );
         }
 
     }

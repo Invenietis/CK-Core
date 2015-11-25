@@ -230,3 +230,4 @@ _Pvt_Extensions
 .fake/
 SGVVersionInfo.cs
 Tests/CK.Core.Tests/TestDir/
+Tests/CK.ActivityMonitor.Tests/TestFolder/CriticalErrors/

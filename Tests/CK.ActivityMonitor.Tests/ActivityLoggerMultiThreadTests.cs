@@ -9,8 +9,7 @@ using NUnit.Framework;
 
 namespace CK.Core.Tests.Monitoring
 {
-    [TestFixture]
-    [ExcludeFromCodeCoverage]
+    [TestFixture] 
     [Category( "ActivityMonitor" )]
     public class ActivityMonitorMultiThreadTests
     {
