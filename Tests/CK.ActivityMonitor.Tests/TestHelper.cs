@@ -21,7 +21,9 @@ namespace CK.Core.Tests
         static TestHelper()
         {
             _monitor = new ActivityMonitor();
-            _console = _monitor.Output.RegisterClient( new ActivityMonitorConsoleClient() );
+            // Do not pollute the console by default...
+            // ... but this may be useful sometimes: LogsToConsole does the job.
+            _console = new ActivityMonitorConsoleClient();
         }
 
         public static IActivityMonitor ConsoleMonitor

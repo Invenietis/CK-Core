@@ -291,8 +291,11 @@ namespace CK.Core.Tests.Monitoring
                 }
 
 
-                //Console.WriteLine( monitor.Output.Clients.OfType<StupidStringClient>().Single().Writer );
-                //Console.WriteLine( monitor.Output.Clients.OfType<StupidXmlClient>().Single().InnerWriter );
+                if( TestHelper.LogsToConsole )
+                {
+                    Console.WriteLine( monitor.Output.Clients.OfType<StupidStringClient>().Single().Writer );
+                    Console.WriteLine( monitor.Output.Clients.OfType<StupidXmlClient>().Single().InnerWriter );
+                }
 
                 IReadOnlyList<XElement> elements = monitor.Output.Clients.OfType<StupidXmlClient>().Single().XElements;                
 

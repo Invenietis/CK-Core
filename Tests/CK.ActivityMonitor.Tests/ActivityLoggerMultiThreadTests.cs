@@ -38,7 +38,7 @@ namespace CK.Core.Tests.Monitoring
 
             protected override void OnUnfilteredLog( ActivityMonitorLogData data )
             {
-                Console.WriteLine( "NotBuggyActivityMonitorClient.OnUnfilteredLog n°{0}: {1}", _number, data.Text );
+                if( TestHelper.LogsToConsole ) Console.WriteLine( "NotBuggyActivityMonitorClient.OnUnfilteredLog n°{0}: {1}", _number, data.Text );
             }
         }
 
@@ -100,10 +100,17 @@ namespace CK.Core.Tests.Monitoring
         {
             ActivityMonitor.AutoConfiguration = null;
             ActivityMonitor monitor = new ActivityMonitor();
-            monitor.Output.RegisterClient( new ActivityMonitorConsoleClient() );
+
+            int clientCount = 0;
+            if( TestHelper.LogsToConsole )
+            {
+                ++clientCount;
+                monitor.Output.RegisterClient( new ActivityMonitorConsoleClient() );
+            }
+            ++clientCount;
             WaitActivityMonitorClient client = monitor.Output.RegisterClient( new WaitActivityMonitorClient() );
 
-            Assert.That( monitor.Output.Clients.Count, Is.EqualTo( 2 ) );
+            Assert.That( monitor.Output.Clients.Count, Is.EqualTo( clientCount ) );
 
             try
             {
@@ -118,7 +125,7 @@ namespace CK.Core.Tests.Monitoring
                     Throws.TypeOf( typeof( InvalidOperationException ) ).
                         And.Message.EqualTo( Impl.ActivityMonitorResources.ActivityMonitorConcurrentThreadAccess ) );
                 
-                Assert.That( monitor.Output.Clients.Count, Is.EqualTo( 2 ), "Still 2: Concurrent call: not the fault of the Client." );
+                Assert.That( monitor.Output.Clients.Count, Is.EqualTo( clientCount ), "Still " + clientCount + ": Concurrent call: not the fault of the Client." );
             }
             finally
             {
@@ -128,6 +135,7 @@ namespace CK.Core.Tests.Monitoring
             Thread.Sleep( 50 );
             monitor.Info().Send( "Test must work after task" );
 
+            ++clientCount;
             monitor.Output.RegisterClient( new ActionActivityMonitorClient( () =>
             {
                 Assert.That( () => monitor.Info().Send( "Test must fail reentrant client" ),
@@ -136,15 +144,16 @@ namespace CK.Core.Tests.Monitoring
             } ) );
 
             monitor.Info().Send( "Test must work after reentrant client" );
-            Assert.That( monitor.Output.Clients.Count, Is.EqualTo( 3 ), "The RegisterClient action above is ok: it checks that it triggered a reentrant call." );
+            Assert.That( monitor.Output.Clients.Count, Is.EqualTo( clientCount ), "The RegisterClient action above is ok: it checks that it triggered a reentrant call." );
 
+            ++clientCount;
             monitor.Output.RegisterClient( new ActionActivityMonitorClient( () =>
             {
                 monitor.Info().Send( "Test must fail reentrant client" );
             } ) );
 
             monitor.Info().Send( "Test must work after reentrant client" );
-            Assert.That( monitor.Output.Clients.Count, Is.EqualTo( 3 ), "The BUGGY RegisterClient action above is NOT ok: it triggers a reentrant call exception => We have removed it." );
+            Assert.That( monitor.Output.Clients.Count, Is.EqualTo( clientCount - 1 ), "The BUGGY RegisterClient action above is NOT ok: it triggers a reentrant call exception => We have removed it." );
 
         }
 
@@ -152,7 +161,7 @@ namespace CK.Core.Tests.Monitoring
         public void concurrent_access_are_detected()
         {
             IActivityMonitor monitor = new ActivityMonitor();
-            monitor.Output.RegisterClient( new ActivityMonitorConsoleClient() );
+            if( TestHelper.LogsToConsole ) monitor.Output.RegisterClient( new ActivityMonitorConsoleClient() );
             // Artficially slows down logging to ensure that concurrent access occurs.
             monitor.Output.RegisterClient( new ActionActivityMonitorClient( () => Thread.Sleep( 50 )) );
 

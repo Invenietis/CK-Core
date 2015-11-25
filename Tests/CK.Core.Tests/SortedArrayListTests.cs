@@ -86,8 +86,10 @@ namespace CK.Core.Tests.Collection
             a.Add( new Canidae( "A", 12, true ) );
 
             IReadOnlyList<Animal> baseObjects = a;
-            for( int i = 0; i < baseObjects.Count; ++i ) Console.Write( baseObjects[i].Name );
-
+            for( int i = 0; i < baseObjects.Count; ++i )
+            {
+                Assert.That( baseObjects[i] is Animal, "This does not test anything. It's just to be read." );
+            }
             ICKWritableCollection<Canidae> dogs = a;
             dogs.Add( new Canidae( "C", 8, false ) );
         }

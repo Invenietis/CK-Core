@@ -192,8 +192,9 @@ namespace CK.Core
                 _initialized = true;
             }
             else throw new CKException( Impl.CoreResources.AppSettingsDefaultInitializationFailed );
-#endif
+#else
             throw new CKException( Impl.CoreResources.AppSettingsNoDefaultInitializationOnNetCore );
+#endif
         }
 
     }

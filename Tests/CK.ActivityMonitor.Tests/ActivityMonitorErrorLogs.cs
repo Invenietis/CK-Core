@@ -253,21 +253,24 @@ namespace CK.Core.Tests.Monitoring
             ActivityMonitor.CriticalErrorCollector.OnErrorFromBackgroundThreads -= SafeOnErrorHandler;
             ActivityMonitor.CriticalErrorCollector.OnErrorFromBackgroundThreads -= BuggyOnErrorHandler;
 
-            Console.WriteLine( @"ActivityMonitor.LoggingError Test:
-            ThreadCount: {0}
-            DispatchQueuedWorkItemCount: {1}
-            OptimizedDispatchQueuedWorkItemCount: {2}
-            Errors handled: {3}
-            Errors from Error handler: {4}
-            Errors Cleared while raised: {5}
-            Errors not Cleared while raised: {6}", 
-                threadCount,
-                ActivityMonitor.CriticalErrorCollector.DispatchQueuedWorkItemCount,
-                ActivityMonitor.CriticalErrorCollector.OptimizedDispatchQueuedWorkItemCount,
-                ActivityMonitor.CriticalErrorCollector.NextSequenceNumber - nextSeq,
-                _buggyOnErrorHandlerReceivedCount,
-                _nbClearedWhileRaised,
-                _nbNotClearedWhileRaised );
+            if( TestHelper.LogsToConsole )
+            {
+                Console.WriteLine( @"ActivityMonitor.LoggingError Test:
+                ThreadCount: {0}
+                DispatchQueuedWorkItemCount: {1}
+                OptimizedDispatchQueuedWorkItemCount: {2}
+                Errors handled: {3}
+                Errors from Error handler: {4}
+                Errors Cleared while raised: {5}
+                Errors not Cleared while raised: {6}",
+                    threadCount,
+                    ActivityMonitor.CriticalErrorCollector.DispatchQueuedWorkItemCount,
+                    ActivityMonitor.CriticalErrorCollector.OptimizedDispatchQueuedWorkItemCount,
+                    ActivityMonitor.CriticalErrorCollector.NextSequenceNumber - nextSeq,
+                    _buggyOnErrorHandlerReceivedCount,
+                    _nbClearedWhileRaised,
+                    _nbNotClearedWhileRaised );
+            }
 
             CollectionAssert.IsEmpty( _errorsFromBackground );
             var buggyClientMismatch = _buggyClients.Where( c => c.Failed != c.FailureHasBeenReceivedThroughEvent ).ToArray();

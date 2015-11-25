@@ -159,7 +159,7 @@ namespace CodeCake
                     //    {
                     //        Debug.Assert( gitInfo.IsValidCIBuild );
                     //        PushNuGetPackages( "MYGET_EXPLORE_API_KEY", "https://www.myget.org/F/invenietis-explore/", nugetPackages );
-                    //        PushNuGetPackages( "MYGET_EXPLORE_API_KEY", "https://nuget.gw.symbolsource.org/MyGet/invenietis-explore", packagesSymbols );
+                    //        PushNuGetPackages( "MYGET_EXPLORE_API_KEY", "https://nuget.gw.symbolsource.org/MyGet/invenietis-explore/", packagesSymbols );
                     //    }
                     //}
                     //else

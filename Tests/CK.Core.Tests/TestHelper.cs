@@ -18,29 +18,6 @@ namespace CK.Core.Tests
         {
         }
 
-#if DNX451 || DNX46
-        /// <summary>
-        /// Use reflection to actually set <see cref="System.Runtime.Remoting.Lifetime.LifetimeServices.LeaseManagerPollTime"/> to 5 milliseconds.
-        /// This triggers an immediate polling from the internal .Net framework LeaseManager.
-        /// Note that the LeaseManager is per AppDomain.
-        /// </summary>
-        public static void SetRemotingLeaseManagerVeryShortPollTime()
-        {
-            System.Runtime.Remoting.Lifetime.LifetimeServices.LeaseManagerPollTime = TimeSpan.FromMilliseconds( 5 );
-            object remotingData = typeof( AppDomain ).GetProperty( "RemotingData", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance ).GetGetMethod( true ).Invoke( System.Threading.Thread.GetDomain(), null );
-            if( remotingData != null )
-            {
-                object leaseManager = remotingData.GetType().GetProperty( "LeaseManager", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance ).GetGetMethod( true ).Invoke( remotingData, null );
-                if( leaseManager != null )
-                {
-                    System.Threading.Timer timer = (System.Threading.Timer)leaseManager.GetType().GetField( "leaseTimer", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance ).GetValue( leaseManager );
-                    Assert.That( timer, Is.Not.Null );
-                    timer.Change( 0, -1 );
-                }
-            }
-        }
-#endif
-
         public static string TestFolder
         {
             get

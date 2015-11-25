@@ -1,11 +1,8 @@
 
-#if NET45 || NET46
+#if DNX451 || DNX46
+
 using System;
-using System.Collections.Generic;
 using System.Configuration;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using NUnit.Framework;
 
 namespace CK.Core.Tests
