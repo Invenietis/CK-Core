@@ -13,7 +13,7 @@ environment:
   AUTHENTICODE_PASSPHRASE:
     secure: nx7+K80AgL8z2eb2rQMmlQ==
 install:
-- CodeCakeBuilder/Bootstrap.cmd
+- ps: CodeCakeBuilder/Bootstrap.ps1
 - dnvm use -p -r clr 1.0.0-rc1-final
 - dnu commands install SimpleGitVersion.DNXCommands
 - dnu restore

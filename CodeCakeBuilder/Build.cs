@@ -131,41 +131,41 @@ namespace CodeCake
                 .IsDependentOn( "Build-And-Pack" )
                 .Does( () =>
                 {
-                    var allPackages = Cake.GetFiles( "**/bin/" + configuration + "/*.nupkg" ).Select( f => f.FullPath ).ToList();
-                    var nugetPackages = allPackages.Where( fileName => !fileName.EndsWith( ".symbols.nupkg" ) ).ToList();
-                    var packagesSymbols = allPackages.Where( fileName => fileName.EndsWith( ".symbols.nupkg" ) ).ToList();
+                    //var allPackages = Cake.GetFiles( "**/bin/" + configuration + "/*.nupkg" ).Select( f => f.FullPath ).ToList();
+                    //var nugetPackages = allPackages.Where( fileName => !fileName.EndsWith( ".symbols.nupkg" ) ).ToList();
+                    //var packagesSymbols = allPackages.Where( fileName => fileName.EndsWith( ".symbols.nupkg" ) ).ToList();
 
-                    Cake.Information( "Found {0} packages (and {1} symbols) to push in {2}.", nugetPackages.Count, packagesSymbols.Count, configuration );
-                    if( gitInfo.IsValid )
-                    {
-                        if( Cake.IsInteractiveMode() )
-                        {
-                            var localFeed = Cake.FindDirectoryAbove( "LocalFeed" );
-                            if( localFeed != null )
-                            {
-                                Cake.Information( "LocalFeed directory found: {0}", localFeed );
-                                if( Cake.ReadInteractiveOption( "Do you want to publish to LocalFeed?", 'Y', 'N' ) == 'Y' )
-                                {
-                                    Cake.CopyFiles( nugetPackages, localFeed );
-                                    Cake.CopyFiles( packagesSymbols, localFeed );
-                                }
-                            }
-                        }
-                        if( gitInfo.IsValidRelease )
-                        {
-                            PushNuGetPackages( "NUGET_API_KEY", "https://www.nuget.org/api/v2/package", nugetPackages.Concat( packagesSymbols ) );
-                        }
-                        else
-                        {
-                            Debug.Assert( gitInfo.IsValidCIBuild );
-                            PushNuGetPackages( "MYGET_EXPLORE_API_KEY", "https://www.myget.org/F/invenietis-explore/", nugetPackages );
-                            PushNuGetPackages( "MYGET_EXPLORE_API_KEY", "https://nuget.gw.symbolsource.org/MyGet/invenietis-explore", packagesSymbols );
-                        }
-                    }
-                    else
-                    {
-                        Cake.Information( "Push-NuGet-Packages step is skipped since Git repository info is not valid." );
-                    }
+                    //Cake.Information( "Found {0} packages (and {1} symbols) to push in {2}.", nugetPackages.Count, packagesSymbols.Count, configuration );
+                    //if( gitInfo.IsValid )
+                    //{
+                    //    if( Cake.IsInteractiveMode() )
+                    //    {
+                    //        var localFeed = Cake.FindDirectoryAbove( "LocalFeed" );
+                    //        if( localFeed != null )
+                    //        {
+                    //            Cake.Information( "LocalFeed directory found: {0}", localFeed );
+                    //            if( Cake.ReadInteractiveOption( "Do you want to publish to LocalFeed?", 'Y', 'N' ) == 'Y' )
+                    //            {
+                    //                Cake.CopyFiles( nugetPackages, localFeed );
+                    //                Cake.CopyFiles( packagesSymbols, localFeed );
+                    //            }
+                    //        }
+                    //    }
+                    //    if( gitInfo.IsValidRelease )
+                    //    {
+                    //        PushNuGetPackages( "NUGET_API_KEY", "https://www.nuget.org/api/v2/package", nugetPackages.Concat( packagesSymbols ) );
+                    //    }
+                    //    else
+                    //    {
+                    //        Debug.Assert( gitInfo.IsValidCIBuild );
+                    //        PushNuGetPackages( "MYGET_EXPLORE_API_KEY", "https://www.myget.org/F/invenietis-explore/", nugetPackages );
+                    //        PushNuGetPackages( "MYGET_EXPLORE_API_KEY", "https://nuget.gw.symbolsource.org/MyGet/invenietis-explore", packagesSymbols );
+                    //    }
+                    //}
+                    //else
+                    //{
+                    //    Cake.Information( "Push-NuGet-Packages step is skipped since Git repository info is not valid." );
+                    //}
                 } );
 
             // The Default task for this script can be set here.
