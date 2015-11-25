@@ -44,15 +44,15 @@ namespace CK.Core.Tests.Monitoring
 
         internal class ActionActivityMonitorClient : ActivityMonitorClient
         {
-            Action _log;
+            Action _action;
             internal ActionActivityMonitorClient( Action log )
             {
-                _log = log;
+                _action = log;
             }
 
             protected override void OnUnfilteredLog( ActivityMonitorLogData data )
             {
-                _log();
+                _action();
             }
         }
 
@@ -149,10 +149,12 @@ namespace CK.Core.Tests.Monitoring
         }
 
         [Test]
-        public void ReentrancyMultiThread()
+        public void concurrent_access_are_detected()
         {
             IActivityMonitor monitor = new ActivityMonitor();
             monitor.Output.RegisterClient( new ActivityMonitorConsoleClient() );
+            // Artficially slows down logging to ensure that concurrent access occurs.
+            monitor.Output.RegisterClient( new ActionActivityMonitorClient( () => Thread.Sleep( 50 )) );
 
             object lockTasks = new object();
             object lockRunner = new object();
@@ -173,20 +175,7 @@ namespace CK.Core.Tests.Monitoring
             {            
                 new Task( () => { getLock(); monitor.Info().Send( "Test T1" ); } ),
                 new Task( () => { getLock(); monitor.Info().Send( new Exception(), "Test T2" ); } ),
-                new Task( () => { getLock(); monitor.Info().Send( "Test T3" ); } ),
-                new Task( () => { getLock(); monitor.Info().Send( new Exception(), "Test T4" ); } ),
-                new Task( () => { getLock(); monitor.Info().Send( "Test T5" ); } ),
-                new Task( () => { getLock(); monitor.Info().Send( new Exception(), "Test T6" ); } ),
-                new Task( () => { getLock(); monitor.Info().Send( "Test T7" ); } ),
-                new Task( () => { getLock(); monitor.Info().Send( new Exception(), "Test T8" ); } ),
-                new Task( () => { getLock(); monitor.Info().Send( "Test T9" ); } ),
-                new Task( () => { getLock(); monitor.Info().Send( new Exception(), "Test T10" ); } ),
-                new Task( () => { getLock(); monitor.Info().Send( "Test T11" ); } ),
-                new Task( () => { getLock(); monitor.Info().Send( new Exception(), "Test T12" ); } ),
-                new Task( () => { getLock(); monitor.Info().Send( "Test T13" ); } ),
-                new Task( () => { getLock(); monitor.Info().Send( new Exception(), "Test T14" ); } ),
-                new Task( () => { getLock(); monitor.Info().Send( "Test T15" ); } ),
-                new Task( () => { getLock(); monitor.Info().Send( new Exception(), "Test T16" ); } )
+                new Task( () => { getLock(); monitor.Info().Send( "Test T3" ); } )
             };
 
             Parallel.ForEach( tasks, t => t.Start() );
