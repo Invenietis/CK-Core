@@ -71,7 +71,7 @@ namespace CK.Core
                 }
                 catch( Exception ex )
                 {
-                    autoText = String.Format( R.ActivityMonitorErrorWhileGetConclusionText, ex.Message );
+                    autoText = String.Format( Impl.ActivityMonitorResources.ActivityMonitorErrorWhileGetConclusionText, ex.Message );
                 }
                 _getConclusion = null;
             }

@@ -57,7 +57,7 @@ namespace CK.Core
         /// <param name="separator">Separator if it must differ from '|'.</param>
         public CKTraitContext( string name, char separator = '|' )
         {
-            if( String.IsNullOrWhiteSpace( name ) ) throw new ArgumentException( Resources.ArgumentMustNotBeNullOrWhiteSpace, "uniqueName" );
+            if( String.IsNullOrWhiteSpace( name ) ) throw new ArgumentException( Impl.CoreResources.ArgumentMustNotBeNullOrWhiteSpace, "uniqueName" );
             _uniqueName = name.Normalize();
             _uniqueIndex = Interlocked.Increment( ref _index );
             _separator = separator;

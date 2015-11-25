@@ -158,7 +158,7 @@ namespace CK.Core
         public ActivityMonitorLogData( LogLevel level, Exception exception, CKTrait tags, string text, DateTimeStamp logTime, string fileName, int lineNumber )
             : this( level, fileName, lineNumber )
         {
-            if( MaskedLevel == LogLevel.None || MaskedLevel == LogLevel.Mask ) throw new ArgumentException( R.ActivityMonitorInvalidLogLevel, "level" );
+            if( MaskedLevel == LogLevel.None || MaskedLevel == LogLevel.Mask ) throw new ArgumentException( Impl.ActivityMonitorResources.ActivityMonitorInvalidLogLevel, "level" );
             Initialize( text, exception, tags, logTime );
         }
 

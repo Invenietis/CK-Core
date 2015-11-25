@@ -71,7 +71,7 @@ namespace CK.Core
             /// <param name="token">Dependent token.</param>
             public void Launch( ActivityMonitor.DependentToken token )
             {
-                if( token.DelayedLaunchMessage == null ) throw new InvalidOperationException( R.ActivityMonitorDependentTokenMustBeDelayedLaunch );
+                if( token.DelayedLaunchMessage == null ) throw new InvalidOperationException( Impl.ActivityMonitorResources.ActivityMonitorDependentTokenMustBeDelayedLaunch );
                 _monitor.UnfilteredLog( ActivityMonitor.Tags.CreateDependentActivity, LogLevel.Info, token.DelayedLaunchMessage, _monitor.NextLogTime(), null, _fileName, _lineNumber );
             }
 

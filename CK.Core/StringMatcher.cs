@@ -177,7 +177,7 @@ namespace CK.Core
         {
             if( charCount < 0 ) throw new ArgumentException( nameof( charCount ) );
             int newLen = _length - charCount;
-            if( newLen < 0 ) throw new InvalidOperationException( Resources.StringMatcherForwardPastEnd );
+            if( newLen < 0 ) throw new InvalidOperationException( Impl.CoreResources.StringMatcherForwardPastEnd );
             _startIndex += charCount;
             _length = newLen;
             _errorDescription = null;

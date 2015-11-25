@@ -354,7 +354,7 @@ namespace CK.Core
             set
             {
                 if( value == null ) value = Tags.Empty;
-                else if( value.Context != Tags.Context ) throw new ArgumentException( R.ActivityMonitorTagMustBeRegistered, "value" );
+                else if( value.Context != Tags.Context ) throw new ArgumentException( ActivityMonitorResources.ActivityMonitorTagMustBeRegistered, "value" );
                 if( _currentTag != value )
                 {
                     ReentrantAndConcurrentCheck();
@@ -868,7 +868,7 @@ namespace CK.Core
 
         void RentrantOnlyCheck()
         {
-            if( _enteredThreadId != Thread.CurrentThread.ManagedThreadId ) throw new InvalidOperationException( R.ActivityMonitorReentrancyCallOnly );
+            if( _enteredThreadId != Thread.CurrentThread.ManagedThreadId ) throw new InvalidOperationException( ActivityMonitorResources.ActivityMonitorReentrancyCallOnly );
         }
 
         void ReentrantAndConcurrentCheck()
@@ -879,11 +879,11 @@ namespace CK.Core
             {
                 if( alreadyEnteredId == currentThreadId )
                 {
-                    throw new InvalidOperationException( R.ActivityMonitorReentrancyError );
+                    throw new InvalidOperationException( ActivityMonitorResources.ActivityMonitorReentrancyError );
                 }
                 else
                 {
-                    throw new InvalidOperationException( R.ActivityMonitorConcurrentThreadAccess );
+                    throw new InvalidOperationException( ActivityMonitorResources.ActivityMonitorConcurrentThreadAccess );
                 }
             }
         }
@@ -905,7 +905,7 @@ namespace CK.Core
                 }
                 else
                 {
-                    throw new InvalidOperationException( R.ActivityMonitorConcurrentThreadAccess );
+                    throw new InvalidOperationException( ActivityMonitorResources.ActivityMonitorConcurrentThreadAccess );
                 }
             }
             return true;
@@ -916,7 +916,7 @@ namespace CK.Core
             int currentThreadId = Thread.CurrentThread.ManagedThreadId;
             if( Interlocked.CompareExchange( ref _enteredThreadId, 0, currentThreadId ) != currentThreadId )
             {
-                throw new CKException( R.ActivityMonitorReentrancyReleaseError, _enteredThreadId, Thread.CurrentThread.Name, currentThreadId );
+                throw new CKException( ActivityMonitorResources.ActivityMonitorReentrancyReleaseError, _enteredThreadId, Thread.CurrentThread.Name, currentThreadId );
             }
         }
 

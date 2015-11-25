@@ -249,7 +249,7 @@ namespace CK.Core
                 value = NormalizeRootLogPath( value );
                 if( _logPath != null && value != _logPath )
                 {
-                    throw new CKException( R.SystemActivityMonitorRootLogPathSetOnlyOnce );
+                    throw new CKException( ActivityMonitorResources.SystemActivityMonitorRootLogPathSetOnlyOnce );
                 }
                 try
                 {
@@ -262,7 +262,7 @@ namespace CK.Core
                 }
                 catch( Exception ex )
                 {
-                    throw new CKException( ex, R.InvalidRootLogPath, value, SubDirectoryName, AppSettingsKey );
+                    throw new CKException( ex, ActivityMonitorResources.InvalidRootLogPath, value, SubDirectoryName, AppSettingsKey );
                 }
             }
         }
@@ -286,7 +286,7 @@ namespace CK.Core
         /// </summary>
         public static void AssertRootLogPathIsSet()
         {
-            if( RootLogPath == null ) throw new CKException( R.RootLogPathMustBeSet, AppSettingsKey );
+            if( RootLogPath == null ) throw new CKException( ActivityMonitorResources.RootLogPathMustBeSet, AppSettingsKey );
         }
 
         /// <summary>

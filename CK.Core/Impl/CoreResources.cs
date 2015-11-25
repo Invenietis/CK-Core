@@ -1,11 +1,11 @@
 ﻿using System;
 
-namespace CK.Core
+namespace CK.Core.Impl
 {
     /// <summary>
     /// Resource class, for looking up strings.
     /// </summary>
-    public class Resources
+    public class CoreResources
     {
         public static readonly string AggregatedExceptionsMustContainAtLeastOne = "AggregatedExceptions must contain at least one exception.";
 

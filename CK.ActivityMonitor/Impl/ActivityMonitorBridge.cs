@@ -208,8 +208,8 @@ namespace CK.Core
                 {
                     if( _openedGroups[i] )
                     {
-                        if( _targetMonitor != null ) _targetMonitor.CloseGroup( new ActivityLogGroupConclusion( R.ClosedByBridgeRemoved, TagBridgePrematureClose ) );
-                        else _bridgeTarget.CloseGroup( new string[] { TagBridgePrematureClose.ToString(), R.ClosedByBridgeRemoved } );
+                        if( _targetMonitor != null ) _targetMonitor.CloseGroup( new ActivityLogGroupConclusion( ActivityMonitorResources.ClosedByBridgeRemoved, TagBridgePrematureClose ) );
+                        else _bridgeTarget.CloseGroup( new string[] { TagBridgePrematureClose.ToString(), ActivityMonitorResources.ClosedByBridgeRemoved } );
                     }
                 }
                 _openedGroups.Clear();

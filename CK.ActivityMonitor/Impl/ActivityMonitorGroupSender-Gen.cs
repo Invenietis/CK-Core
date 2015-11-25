@@ -58,7 +58,7 @@ namespace CK.Core
         {
 			ActivityMonitorGroupSender s = (ActivityMonitorGroupSender)@this;
             if( s.IsRejected ) return s.Monitor.UnfilteredOpenGroup( s );
-			if( arg0 is Exception ) throw new ArgumentException( R.PossibleWrongOverloadUseWithException, "arg0" );
+			if( arg0 is Exception ) throw new ArgumentException( Impl.ActivityMonitorResources.PossibleWrongOverloadUseWithException, "arg0" );
 			return s.InitializeAndSend( null, ActivityMonitor.Tags.Empty, String.Format( format, arg0 ) );
         }
 		 
@@ -208,7 +208,7 @@ namespace CK.Core
         {
 			ActivityMonitorGroupSender s = (ActivityMonitorGroupSender)@this;
             if( s.IsRejected ) return s.Monitor.UnfilteredOpenGroup( s );
-			if( arg0 is Exception ) throw new ArgumentException( R.PossibleWrongOverloadUseWithException, "arg0" );
+			if( arg0 is Exception ) throw new ArgumentException( Impl.ActivityMonitorResources.PossibleWrongOverloadUseWithException, "arg0" );
 			return s.InitializeAndSend( null, tags, String.Format( format, arg0 ) );
         }
 		 

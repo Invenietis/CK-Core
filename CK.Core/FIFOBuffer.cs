@@ -47,7 +47,7 @@ namespace CK.Core
                 if( value == _buffer.Length ) return;
 
                 if( value < 0 )
-                    throw new ArgumentException( Resources.CapacityMustBeGreaterThanOrEqualToZero, "value" );
+                    throw new ArgumentException( Impl.CoreResources.CapacityMustBeGreaterThanOrEqualToZero, "value" );
 
                 var dst = new T[value];
                 if( _count > 0 ) CopyTo( dst );
@@ -249,7 +249,7 @@ namespace CK.Core
         /// <returns>The first (oldest) item.</returns>
         public T Pop()
         {
-            if( _count == 0 ) throw new InvalidOperationException( Resources.FIFOBufferEmpty );
+            if( _count == 0 ) throw new InvalidOperationException( Impl.CoreResources.FIFOBufferEmpty );
             var item = _buffer[_first];
             _buffer[_first] = default( T );
             if( ++_first == _buffer.Length ) _first = 0;
@@ -264,7 +264,7 @@ namespace CK.Core
         /// <returns>The last (newest) item.</returns>
         public T PopLast()
         {
-            if( _count == 0 ) throw new InvalidOperationException( Resources.FIFOBufferEmpty );
+            if( _count == 0 ) throw new InvalidOperationException( Impl.CoreResources.FIFOBufferEmpty );
             if( --_next < 0 ) _next = _first + _count - 1;
             var item = _buffer[_next];
             _buffer[_next] = default( T );
@@ -279,7 +279,7 @@ namespace CK.Core
         /// <returns>The first (oldest) item.</returns>
         public T Peek()
         {
-            if( _count == 0 ) throw new InvalidOperationException( Resources.FIFOBufferEmpty );
+            if( _count == 0 ) throw new InvalidOperationException( Impl.CoreResources.FIFOBufferEmpty );
             return _buffer[_first];
         }
 
@@ -290,7 +290,7 @@ namespace CK.Core
         /// <returns>The last (newest) item.</returns>
         public T PeekLast()
         {
-            if( _count == 0 ) throw new InvalidOperationException( Resources.FIFOBufferEmpty );
+            if( _count == 0 ) throw new InvalidOperationException( Impl.CoreResources.FIFOBufferEmpty );
             int t = _next-1;
             if( t < 0 ) t = _first + _count - 1;
             return _buffer[t];

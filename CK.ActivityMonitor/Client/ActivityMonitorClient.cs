@@ -123,7 +123,7 @@ namespace CK.Core
         /// <returns>An exception with an explicit message.</returns>
         static public InvalidOperationException CreateMultipleRegisterOnBoundClientException( IActivityMonitorBoundClient boundClient )
         {
-            return new InvalidOperationException( String.Format( R.ActivityMonitorBoundClientMultipleRegister, boundClient != null ? boundClient.GetType().FullName : String.Empty ) );
+            return new InvalidOperationException( String.Format( Impl.ActivityMonitorResources.ActivityMonitorBoundClientMultipleRegister, boundClient != null ? boundClient.GetType().FullName : String.Empty ) );
         }
 
         #region IActivityMonitorClient Members

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-#if DOTNET5_4
+#if !NET451 && !NET46 
 
 namespace System.Diagnostics.CodeAnalysis
 {

@@ -32,7 +32,7 @@ namespace CK.Core
         {
             if( conclusion == null ) throw new ArgumentNullException( "conclusion" );
             if( tag == null ) tag = ActivityMonitor.Tags.Empty;
-            else if( tag.Context != ActivityMonitor.Tags.Context ) throw new ArgumentException( R.ActivityMonitorTagMustBeRegistered, "tag" );
+            else if( tag.Context != ActivityMonitor.Tags.Context ) throw new ArgumentException( Impl.ActivityMonitorResources.ActivityMonitorTagMustBeRegistered, "tag" );
             Tag = tag;
             Text = conclusion;
         }

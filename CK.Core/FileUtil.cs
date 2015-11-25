@@ -191,7 +191,7 @@ namespace CK.Core
         /// <returns>An opened <see cref="FileStream"/>.</returns>
         public static FileStream CreateAndOpenUniqueTimedFile( string pathPrefix, string fileSuffix, DateTime time, FileAccess access, FileShare share, int bufferSize, FileOptions options, int maxTryBeforeGuid = 512 )
         {
-            if( access == FileAccess.Read ) throw new ArgumentException( Resources.FileUtilNoReadOnlyWhenCreateFile, "access" );
+            if( access == FileAccess.Read ) throw new ArgumentException( Impl.CoreResources.FileUtilNoReadOnlyWhenCreateFile, "access" );
             FileStream f = null;
             FindUniqueTimedFile( pathPrefix, fileSuffix, time, maxTryBeforeGuid, p => TryCreateNew( p, access, share, bufferSize, options, out f ) );
             return f;
@@ -228,7 +228,7 @@ namespace CK.Core
         public static string MoveToUniqueTimedFile( string sourceFilePath, string pathPrefix, string fileSuffix, DateTime time, int maxTryBeforeGuid = 512 )
         {
             if( sourceFilePath == null ) throw new ArgumentNullException( "sourceFilePath" );
-            if( !File.Exists( sourceFilePath ) ) throw new FileNotFoundException( Resources.FileMustExist, sourceFilePath );
+            if( !File.Exists( sourceFilePath ) ) throw new FileNotFoundException( Impl.CoreResources.FileMustExist, sourceFilePath );
             return FindUniqueTimedFile( pathPrefix, fileSuffix, time, maxTryBeforeGuid, p => TryMoveTo( sourceFilePath, p ) );
         }
 
@@ -297,7 +297,7 @@ namespace CK.Core
                 }
                 else
                 {
-                    if( counter == maxTryBeforeGuid + 1 ) throw new CKException( Resources.FileUtilUnableToCreateUniqueTimedFile );
+                    if( counter == maxTryBeforeGuid + 1 ) throw new CKException( Impl.CoreResources.FileUtilUnableToCreateUniqueTimedFile );
                     if( counter == maxTryBeforeGuid )
                     {
                         result = pathPrefix + FormatTimedUniqueFilePart( time ) + fileSuffix;

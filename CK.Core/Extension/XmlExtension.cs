@@ -35,7 +35,7 @@ namespace CK.Core
         static public XAttribute AttributeRequired( this XElement @this, XName name )
         {
             XAttribute a = @this.Attribute( name );
-            if( a == null ) throw new XmlException( String.Format( Resources.ExpectedXmlAttribute, name ) + @this.GetLineColumnString() );
+            if( a == null ) throw new XmlException( String.Format( Impl.CoreResources.ExpectedXmlAttribute, name ) + @this.GetLineColumnString() );
             return a;
         }
 

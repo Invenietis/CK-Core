@@ -202,7 +202,7 @@ namespace CK.Core
                                     lock( _collector )
                                     {
                                         if( _collector.Count == _collector.Capacity ) Interlocked.Increment( ref _lostErrorCount );
-                                        else _collector.Push( new Error( Resources.ErrorWhileCollectorRaiseError, ex2, _seqNumber++, _lostErrorCount ) );
+                                        else _collector.Push( new Error( Impl.CoreResources.ErrorWhileCollectorRaiseError, ex2, _seqNumber++, _lostErrorCount ) );
                                     }
                                     again = true;
                                 }

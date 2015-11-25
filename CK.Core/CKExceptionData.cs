@@ -56,8 +56,8 @@ namespace CK.Core
             if( message == null ) throw new ArgumentNullException( nameof( message ) );
             if( String.IsNullOrWhiteSpace( exceptionTypeName ) ) throw new ArgumentNullException( nameof( exceptionTypeName ) );
             if( String.IsNullOrWhiteSpace( exceptionTypeAssemblyQualifiedName ) ) throw new ArgumentNullException( nameof( exceptionTypeAssemblyQualifiedName ) );
-            if( aggregatedExceptions != null && aggregatedExceptions.Length == 0 ) throw new ArgumentException( Resources.AggregatedExceptionsMustContainAtLeastOne, nameof( aggregatedExceptions ) );
-            if( innerException != null && aggregatedExceptions != null && aggregatedExceptions[0] != innerException ) throw new ArgumentException( Resources.InnerExceptionMustBeTheFirstAggregatedException );
+            if( aggregatedExceptions != null && aggregatedExceptions.Length == 0 ) throw new ArgumentException( Impl.CoreResources.AggregatedExceptionsMustContainAtLeastOne, nameof( aggregatedExceptions ) );
+            if( innerException != null && aggregatedExceptions != null && aggregatedExceptions[0] != innerException ) throw new ArgumentException( Impl.CoreResources.InnerExceptionMustBeTheFirstAggregatedException );
             // No empty array for loaderExceptions: null or at least one inside.
             if( loaderExceptions != null && loaderExceptions.Length == 0 ) loaderExceptions = null;
             _message = message;

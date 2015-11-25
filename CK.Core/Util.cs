@@ -427,7 +427,7 @@ namespace CK.Core
                 {
                     needFactory = false;
                     newE = factory();
-                    if( !tester( newE ) ) throw new InvalidOperationException( Resources.FactoryTesterMismatch );
+                    if( !tester( newE ) ) throw new InvalidOperationException( Impl.CoreResources.FactoryTesterMismatch );
                 }
                 if( oldItems == null || oldItems.Length == 0 ) newArray = new T[] { newE };
                 else

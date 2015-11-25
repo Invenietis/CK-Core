@@ -35,7 +35,7 @@ namespace CK.Core
             if( getConfigurationObject == null ) throw new ArgumentNullException( "getConfigurationObject" );
             lock( _lock )
             {
-                if( _initialized ) throw new CKException( Resources.AppSettingsAlreadyInitialized );
+                if( _initialized ) throw new CKException( Impl.CoreResources.AppSettingsAlreadyInitialized );
                 _initializedGetObject = _getObject = getConfigurationObject;
                 _initialized = true;
             }
@@ -79,7 +79,7 @@ namespace CK.Core
         {
             lock( _lock )
             {
-                if( _initialized ) throw new CKException( Resources.AppSettingsAlreadyInitialized );
+                if( _initialized ) throw new CKException( Impl.CoreResources.AppSettingsAlreadyInitialized );
                 DoDefaultInitialize();
             }
         }
@@ -133,7 +133,7 @@ namespace CK.Core
         {
             if( !_initialized ) DefaultInitialization();
             var o = _getObject( key );
-            if( o == null ) throw new CKException( Resources.AppSettingsRequiredConfigurationMissing, key );
+            if( o == null ) throw new CKException( Impl.CoreResources.AppSettingsRequiredConfigurationMissing, key );
             return o;
         }
 
@@ -146,8 +146,8 @@ namespace CK.Core
         {
             if( !_initialized ) DefaultInitialization();
             var o = _getObject( key );
-            if( o == null ) throw new CKException( Resources.AppSettingsRequiredConfigurationMissing, key );
-            if( !(o is T) ) throw new CKException( Resources.AppSettingsRequiredConfigurationBadType, key, typeof(T).FullName );
+            if( o == null ) throw new CKException( Impl.CoreResources.AppSettingsRequiredConfigurationMissing, key );
+            if( !(o is T) ) throw new CKException( Impl.CoreResources.AppSettingsRequiredConfigurationBadType, key, typeof(T).FullName );
             return (T)o;
         }
 
@@ -182,9 +182,9 @@ namespace CK.Core
                 _initializedGetObject = _getObject = (Func<string, object>)getter.CreateDelegate( typeof( Func<string, object> ) );
                 _initialized = true;
             }
-            else throw new CKException( Resources.AppSettingsDefaultInitializationFailed );
+            else throw new CKException( Impl.CoreResources.AppSettingsDefaultInitializationFailed );
 #endif
-            throw new CKException( Resources.AppSettingsDefaultInitializationFailed );
+            throw new CKException( Impl.CoreResources.AppSettingsDefaultInitializationFailed );
         }
 
     }
