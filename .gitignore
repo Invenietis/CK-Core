@@ -231,3 +231,4 @@ _Pvt_Extensions
 SGVVersionInfo.cs
 Tests/CK.Core.Tests/TestDir/
 Tests/CK.ActivityMonitor.Tests/TestFolder/CriticalErrors/
+Tests/CK.Monitoring.Tests/TestFolder/
