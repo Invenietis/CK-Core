@@ -367,16 +367,28 @@ namespace CK.Core
                     if( counter == maxTryBeforeGuid + 1 ) throw new CKException( R.FileUtilUnableToCreateUniqueTimedFile );
                     if( counter == maxTryBeforeGuid )
                     {
-                        Debug.Assert( Convert.ToBase64String( Guid.NewGuid().ToByteArray() ).Length == 24 );
-                        Debug.Assert( Convert.ToBase64String( Guid.NewGuid().ToByteArray() ).EndsWith( "==" ) );
-                        // Use http://en.wikipedia.org/wiki/Base64#URL_applications encoding.
-                        string dedup = Convert.ToBase64String( Guid.NewGuid().ToByteArray() ).Remove( 22 ).Replace( '+', '-' ).Replace( '/', '_' );
-                        result = pathPrefix + time.ToString( FileNameUniqueTimeUtcFormat, CultureInfo.InvariantCulture ) + "-" + dedup + fileSuffix;
+                        result = pathPrefix + FormatTimedUniqueFilePart( time ) + fileSuffix;
                     }
                 }
                 ++counter;
             }
             return result;
+        }
+
+        /// <summary>
+        /// Formats a string that is file name compatible from the given time and a <see cref="Guid.NewGuid()"/>
+        /// where time uses <see cref="FileNameUniqueTimeUtcFormat"/> and the new Guid is 
+        /// encoded with http://en.wikipedia.org/wiki/Base64#URL_applications.
+        /// </summary>
+        /// <param name="time">The date time to use.</param>
+        /// <returns>A string with the time and a new guid in a file system compatible format.</returns>
+        public static string FormatTimedUniqueFilePart( DateTime time )
+        {
+            Debug.Assert( Convert.ToBase64String( Guid.NewGuid().ToByteArray() ).Length == 24 );
+            Debug.Assert( Convert.ToBase64String( Guid.NewGuid().ToByteArray() ).EndsWith( "==" ) );
+            // Use http://en.wikipedia.org/wiki/Base64#URL_applications encoding.
+            string dedup = Convert.ToBase64String( Guid.NewGuid().ToByteArray() ).Remove( 22 ).Replace( '+', '-' ).Replace( '/', '_' );
+            return time.ToString( FileNameUniqueTimeUtcFormat, CultureInfo.InvariantCulture ) + "-" + dedup;
         }
 
         /// <summary>
@@ -421,6 +433,7 @@ namespace CK.Core
         /// <param name="path">The path of the file to write to.</param>
         /// <param name="nbMaxSecond">Maximum number of seconds to wait before returning false.</param>
         /// <returns>True if the file has been correctly opened (and closed) in write mode.</returns>
+        [Obsolete( "Use CheckForWriteAcccess (that uses MilliSeconds instead of seconds) method instead.", true )]
         static public bool WaitForWriteAcccess( string path, int nbMaxSecond )
         {
             if( path == null ) throw new ArgumentNullException( "path" );
@@ -436,6 +449,47 @@ namespace CK.Core
                 {
                     if( --nbMaxSecond < 0 ) return false;
                     System.Threading.Thread.Sleep( 990 );
+                }
+            }
+        }
+
+        /// <summary>
+        /// Waits for a file to be writable or does not exist (if it does not exist, it can be created!).
+        /// The file is opened and close.
+        /// Waits the number of <paramref name="nbMaxMilliSecond"/> before leaving and returning false: when 0 (the default),
+        /// there is no wai. A nbMaxMilliSecond below 20 ~ 30 milliseconds is not accurate: even with nbMaxMilliSecond = 1
+        /// this method will return true if the file becomes writeable during the next 10 or 20 milliseconds.
+        /// </summary>
+        /// <param name="path">The path of the file to write to.</param>
+        /// <param name="nbMaxMilliSecond">Maximum number of milliseconds to wait before returning false.</param>
+        /// <returns>True if the file has been correctly opened (and closed) in write mode.</returns>
+        static public bool CheckForWriteAcccess( string path, int nbMaxMilliSecond = 0 )
+        {
+            if( path == null ) throw new ArgumentNullException( "path" );
+            DateTime start = DateTime.UtcNow;
+            if( !File.Exists( path ) ) return true;
+            try
+            {
+                using( Stream s = File.OpenWrite( path ) ) { return true; }
+            }
+            catch
+            {
+                int waitTime = nbMaxMilliSecond / 100;
+                if( nbMaxMilliSecond <= 0 ) return false;
+                long stop = start.AddMilliseconds( nbMaxMilliSecond ).Ticks;
+                for( ; ; )
+                {
+                    if( waitTime > 0 ) System.Threading.Thread.Sleep( waitTime );
+                    if( !File.Exists( path ) ) return true;
+                    try
+                    {
+                        using( Stream s = File.OpenWrite( path ) ) { return true; }
+                    }
+                    catch
+                    {
+                        if( DateTime.UtcNow.Ticks > stop ) return false;
+                        if( waitTime < 20 ) waitTime += 1;
+                    }
                 }
             }
         }

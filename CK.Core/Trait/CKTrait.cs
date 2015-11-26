@@ -211,6 +211,7 @@ namespace CK.Core
         /// <returns>The resulting trait.</returns>
         public CKTrait Intersect( CKTrait other )
         {
+            if( ReferenceEquals( other, this ) ) return this;
             if( other == null ) throw new ArgumentNullException( "other" );
             if( other.Context != _context ) throw new InvalidOperationException( R.TraitsMustBelongToTheSameContext );
             List<CKTrait> m = new List<CKTrait>();
@@ -226,6 +227,7 @@ namespace CK.Core
         /// <returns>The resulting trait.</returns>
         public CKTrait Union( CKTrait other )
         {
+            if( ReferenceEquals( other, this ) ) return this;
             if( other == null ) throw new ArgumentNullException( "other" );
             if( other.Context != _context ) throw new InvalidOperationException( R.TraitsMustBelongToTheSameContext );
             List<CKTrait> m = new List<CKTrait>();
@@ -241,6 +243,7 @@ namespace CK.Core
         /// <returns>The resulting trait.</returns>
         public CKTrait Except( CKTrait other )
         {
+            if( ReferenceEquals( other, this ) ) return _context.EmptyTrait;
             if( other == null ) throw new ArgumentNullException( "other" );
             if( other.Context != _context ) throw new InvalidOperationException( R.TraitsMustBelongToTheSameContext );
             List<CKTrait> m = new List<CKTrait>();
@@ -256,6 +259,7 @@ namespace CK.Core
         /// <returns>The resulting trait.</returns>
         public CKTrait SymmetricExcept( CKTrait other )
         {
+            if( ReferenceEquals( other, this ) ) return _context.EmptyTrait;
             if( other == null ) throw new ArgumentNullException( "other" );
             if( other.Context != _context ) throw new InvalidOperationException( R.TraitsMustBelongToTheSameContext );
             List<CKTrait> m = new List<CKTrait>();
@@ -366,6 +370,15 @@ namespace CK.Core
         public int FallbacksCount
         {
             get { return _traits.Count > 1 ? ( 1 << _traits.Count ) - 1 : 1; }
+        }
+
+        /// <summary>
+        /// Gets the number of <see cref="Fallbacks"/>. It is 2^<see cref="AtomicTraits"/>.<see cref="IReadOnlyCollection{T}.Count"/> - 1 since this
+        /// trait itself does not appear in the fallbacks, but it is always 1 for atomic and the empty trait (the empty trait always ends the list).
+        /// </summary>
+        public long FallbacksLongCount
+        {
+            get { return _traits.Count > 1 ? ( 1L << _traits.Count ) - 1L : 1L; }
         }
 
         /// <summary>

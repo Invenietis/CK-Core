@@ -29,7 +29,7 @@ using System.Text;
 namespace CK.Core
 {
     /// <summary>
-    /// Contravariant interface for a collector: one can only add elements to a collector and know how muwh elements
+    /// Contravariant interface for a collector: one can only add elements to a collector and know how much elements
     /// there are (Note that if you do not need the <see cref="Count"/>, you should use a simple Fun&lt;T,bool&gt;).
     /// </summary>
     /// <typeparam name="T">Base type for the elements of the collector.</typeparam>

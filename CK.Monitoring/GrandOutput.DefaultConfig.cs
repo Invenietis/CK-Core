@@ -32,6 +32,7 @@ using System.Threading.Tasks;
 using CK.Core;
 using CK.Monitoring.GrandOutputHandlers;
 using CK.RouteConfig;
+using System.Threading;
 
 namespace CK.Monitoring
 {
@@ -142,9 +143,17 @@ namespace CK.Monitoring
             ActivityMonitor.CriticalErrorCollector.Add( e.GetException(), String.Format( "While monitoring GrandOutput.Default configuration file '{0}'.", _watcher.Path ) );
         }
 
-        static void _watcher_Changed( object sender, FileSystemEventArgs e )
+        static void _watcher_Changed( object sender, FileSystemEventArgs unusedEventArgs )
         {
             if( _watcher == null ) return;
+            ThreadPool.UnsafeQueueUserWorkItem( Reload, null );
+        }
+        static void Reload( object state )
+        {
+            if( _watcher == null ) return;
+            // Quick and dirty trick to handle Renamed events
+            // or too quick events.
+            Thread.Sleep( 100 );
             var time = File.GetLastWriteTimeUtc( _configPath );
             if( time != _lastConfigFileWriteTime )
             {
@@ -156,20 +165,27 @@ namespace CK.Monitoring
                     _lastConfigFileWriteTime = time;
                 }
                 var monitor = new SystemActivityMonitor( true, "GrandOutput.Default.Reconfiguration" ) { MinimalFilter = GrandOutputMinimalFilter };
-                using( monitor.OpenInfo().Send( "AppDomain '{0}',  file '{1}' changed (change n°{2}).", AppDomain.CurrentDomain.FriendlyName, _configPath, _default.ConfigurationAttemptCount ) )
+                try
                 {
-                    def = CreateDefaultConfig();
-                    if( File.Exists( _configPath ) )
+                    using( monitor.OpenInfo().Send( "AppDomain '{0}',  file '{1}' changed (change n°{2}).", AppDomain.CurrentDomain.FriendlyName, _configPath, _default.ConfigurationAttemptCount ) )
                     {
-                        if( time == FileUtil.MissingFileLastWriteTimeUtc ) _lastConfigFileWriteTime = File.GetLastWriteTimeUtc( _configPath );
-                        def.LoadFromFile( _configPath, monitor );
+                        def = CreateDefaultConfig();
+                        if( File.Exists( _configPath ) )
+                        {
+                            if( time == FileUtil.MissingFileLastWriteTimeUtc ) _lastConfigFileWriteTime = File.GetLastWriteTimeUtc( _configPath );
+                            def.LoadFromFile( _configPath, monitor );
+                        }
+                        else
+                        {
+                            _lastConfigFileWriteTime = FileUtil.MissingFileLastWriteTimeUtc;
+                            monitor.Trace().Send( "File missing: applying catch-all default configuration." );
+                        }
+                        if( !_default._channelHost.IsDisposed ) _default.SetConfiguration( def, monitor );
                     }
-                    else
-                    {
-                        _lastConfigFileWriteTime = FileUtil.MissingFileLastWriteTimeUtc;
-                        monitor.Trace().Send( "File missing: applying catch-all default configuration." );
-                    }
-                    if( !_default._channelHost.IsDisposed ) _default.SetConfiguration( def, monitor );
+                }
+                catch( Exception ex )
+                {
+                    monitor.Error().Send( ex );
                 }
             }
         }

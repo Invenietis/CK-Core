@@ -321,6 +321,12 @@ namespace CK.Reflection
             // If this generic is an interface, we try to find the generic interface in all the interfaces.
             if( mainType.IsInterface )
             {
+                if( toMatch.IsGenericType 
+                    && toMatch.GetGenericTypeDefinition() == genDef 
+                    && CovariantMatch( mainTypeArgs, toMatch.GetGenericArguments() ))
+                {
+                    return true;
+                }
                 var compatibles = toMatch.GetInterfaces().Where( t => t.IsGenericType && t.GetGenericTypeDefinition() == genDef );
                 return compatibles.Any( c => CovariantMatch( mainTypeArgs, c.GetGenericArguments() ) );
             }

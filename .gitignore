@@ -33,7 +33,6 @@ _ReSharper*/
 [Tt]est[Rr]esult*
 /packages/
 CK-Core.Tests.VisualState.xml
-*.nuspec
 *.nupkg
 Tests/CK.Core.Tests/TestDir/
 net40/Tests/CK.Core.Tests/TestDir/

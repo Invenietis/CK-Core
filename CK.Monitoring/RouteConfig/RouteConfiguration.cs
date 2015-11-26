@@ -180,14 +180,14 @@ namespace CK.RouteConfig
         public RouteConfigurationResult Resolve( IActivityMonitor monitor )
         {
             if( monitor == null ) throw new ArgumentNullException( "monitor" );
-            int errorCount = 0;
             RouteConfigurationResult result;
-            using( monitor.CatchCounter( e => errorCount = e ) )
+            bool hasError = false;
+            using( monitor.OnError( () => hasError = true ) )
             {
                 var r = new RouteResolver( monitor, this );
                 result = new RouteConfigurationResult( r.Root, r.NamedSubRoutes );
             }
-            return errorCount == 0 ? result : null;
+            return hasError ? null : result;
         }
 
     }

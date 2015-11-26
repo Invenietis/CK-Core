@@ -1,0 +1,38 @@
+<?xml version="1.0"?>
+<package xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <metadata xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
+    <id>CK.Core.ActivityMonitor.CommonLoggingAdapter</id>
+    <version>$version$</version>
+    <authors>Invenietis</authors>
+    <owners>Invenietis</owners>
+    <copyright>Invenietis</copyright>
+    <licenseUrl>http://www.gnu.org/licenses/lgpl.html</licenseUrl>
+    <projectUrl>https://github.com/Invenietis/ck-core</projectUrl>
+    <requireLicenseAcceptance>true</requireLicenseAcceptance>
+    <description>An adapter used to output ActivityMonitor logs to Common.Logging.</description>
+    <language>en-US</language>
+
+    <dependencies>
+      <group targetFramework="net40">
+            <dependency id="Microsoft.Bcl" version="1.1.6" />
+            <dependency id="Microsoft.Bcl.Build" version="1.0.21" />
+            <dependency id="CK.Core" version="$version$" />
+            <dependency id="Common.Logging" version="3.2.0" />
+      </group>
+      <group targetFramework="net45">
+	          <dependency id="CK.Core" version="$version$" />
+            <dependency id="Common.Logging" version="3.2.0" />
+      </group>
+    </dependencies>
+
+  </metadata>
+  <files>	
+    <file src="net40\ActivityMonitorAdapters\CK.Core.ActivityMonitor.CommonLoggingAdapter\bin\{{configuration}}\CK.Core.ActivityMonitor.CommonLoggingAdapter.dll" target="lib\net40" />
+    <file src="net40\ActivityMonitorAdapters\CK.Core.ActivityMonitor.CommonLoggingAdapter\bin\{{configuration}}\CK.Core.ActivityMonitor.CommonLoggingAdapter.pdb" target="lib\net40" />
+    <file src="net40\ActivityMonitorAdapters\CK.Core.ActivityMonitor.CommonLoggingAdapter\bin\{{configuration}}\CK.Core.ActivityMonitor.CommonLoggingAdapter.xml" target="lib\net40" />
+
+    <file src="ActivityMonitorAdapters\CK.Core.ActivityMonitor.CommonLoggingAdapter\bin\{{configuration}}\CK.Core.ActivityMonitor.CommonLoggingAdapter.dll" target="lib\net45" />
+    <file src="ActivityMonitorAdapters\CK.Core.ActivityMonitor.CommonLoggingAdapter\bin\{{configuration}}\CK.Core.ActivityMonitor.CommonLoggingAdapter.pdb" target="lib\net45" />
+    <file src="ActivityMonitorAdapters\CK.Core.ActivityMonitor.CommonLoggingAdapter\bin\{{configuration}}\CK.Core.ActivityMonitor.CommonLoggingAdapter.xml" target="lib\net45" />
+ </files>
+</package>

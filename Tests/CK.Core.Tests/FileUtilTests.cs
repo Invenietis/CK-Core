@@ -254,30 +254,44 @@ namespace CK.Core.Tests
         }
 
         [Test]
-        public void WaitForWriteAccessTest()
+        public void CheckForWriteAcccess_is_immediately_true_when_file_does_not_exist_or_is_writeable()
         {
-            Assert.Throws<ArgumentNullException>( () => FileUtil.WaitForWriteAcccess( null, 0 ) );
-
+            Assert.Throws<ArgumentNullException>( () => FileUtil.CheckForWriteAcccess( null, 0 ) );
             TestHelper.CleanupTestFolder();
-
             string path = Path.Combine( TestHelper.TestFolder, "Locked.txt" );
-            Assert.That( FileUtil.WaitForWriteAcccess( path, 1 ), Is.True );
-            
+            Assert.That( FileUtil.CheckForWriteAcccess( path, 0 ), Is.True, "If the file does not exist, it is writeable." );
+            File.WriteAllText( path, "Locked" );
+            Assert.That( FileUtil.CheckForWriteAcccess( path, 0 ), Is.True, "The is writeable: no need to wait." );
+        }
+
+        [TestCase( 100, 5, false )]
+        [TestCase( 100, 50, false )]
+        [TestCase( 10, 20, true )]
+        [TestCase( 1000, 1050, true )]
+        //[TestCase( 20, 1, true, Description = "20 millisecond lock is not enough to make the difference." )]
+        //[TestCase( 20, 5, true, Description = "20 millisecond lock is not enough to make the difference." )]
+        //[TestCase( 20, 10, true, Description = "20 millisecond lock is not enough to make the difference." )]
+        [TestCase( 20, 0, false, Description = "20 millisecond lock works only with nbMaxMilliSecond = 0." )]
+        public void CheckForWriteAcccess_is_not_exact_but_works( int lockTimeMilliSecond, int nbMaxMilliSecond, bool result )
+        {
+            TestHelper.CleanupTestFolder();
+            string path = Path.Combine( TestHelper.TestFolder, "Locked.txt" );
             object startLock = new object();
             Task.Factory.StartNew( () =>
                 {
-                    FileStream fs = File.Create( path );
+                    FileStream fs = File.OpenWrite( path );
                     Thread.Sleep( 2 );
                     lock( startLock ) Monitor.Pulse( startLock );
-                    Thread.Sleep( 1000 );
+                    Thread.Sleep( lockTimeMilliSecond );
                     fs.Close();
                 } );
             lock( startLock ) Monitor.Wait( startLock );
-            Assert.That( FileUtil.WaitForWriteAcccess( path, 0 ), Is.False );
-            Assert.That( FileUtil.WaitForWriteAcccess( path, 2 ), Is.True );
-
+            Assert.That( FileUtil.CheckForWriteAcccess( path, nbMaxMilliSecond ), Is.EqualTo( result ) );
             TestHelper.CleanupTestFolder();
         }
+
+
+        
 
         [Test]
         public void IndexOfInvalidFileNameCharsTest()

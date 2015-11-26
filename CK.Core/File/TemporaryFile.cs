@@ -26,13 +26,14 @@ using System.IO;
 
 namespace CK.Core
 {
-	/// <summary>
-	/// Small helper to automatically delete a temporary file. 
+    /// <summary>
+    /// Small helper to automatically delete a temporary file. 
     /// It is mainly a secure wrapper around <see cref="System.IO.Path.GetTempFileName">GetTempFileName</see> that 
     /// creates a uniquely named, zero-byte temporary file on disk and returns the full path of that file: the <see cref="P:Path"/>
-    /// property exposes it.
-	/// </summary>
-	public sealed class TemporaryFile : IDisposable
+    /// property exposes it. This file is flagged by default with <see cref="FileAttributes.Temporary"/> (short-lived): it will automatically be 
+    /// deleted by the Operating System during if it is still here on reboot.
+    /// </summary>
+    public sealed class TemporaryFile : IDisposable
 	{
 		string _path;
 
@@ -119,6 +120,8 @@ namespace CK.Core
 
         /// <summary>
         /// Detaches the temporary file: it will no more be automatically destroyed.
+        /// When created short-lived (see <see cref="FileAttributes.Temporary"/>), this flag is not reset: the 
+        /// file will be destroyed by the Operating System on the bext reboot.
         /// </summary>
 		public void Detach()
 		{

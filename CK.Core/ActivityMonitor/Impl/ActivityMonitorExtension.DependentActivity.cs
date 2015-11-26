@@ -141,7 +141,7 @@ namespace CK.Core
             /// </summary>
             /// <param name="token"></param>
             /// <returns></returns>
-            [Obsolete( "Use the IActivityMonitor.StartDependentActivity( token ) extension method instead.", false )]
+            [Obsolete( "Use the IActivityMonitor.StartDependentActivity( token ) extension method instead.", true )]
             public IDisposable StartDependentActivity( ActivityMonitor.DependentToken token )
             {
                 if( token == null ) throw new ArgumentNullException( "token" );

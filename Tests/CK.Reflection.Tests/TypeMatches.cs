@@ -152,6 +152,29 @@ namespace CK.Reflection.Tests
             AssertCheck( "False - CloseBase<bool>, Close2", ReflectionHelper.CovariantMatch( typeof( CloseBase<bool> ), tC2 ) );
             AssertCheck( "False - CloseBase<ValueType>, Close2", ReflectionHelper.CovariantMatch( typeof( CloseBase<ValueType> ), tC2 ) );
 
+            Assert.That( ReflectionHelper.CovariantMatch( typeof( void ), typeof( void ) ), Is.True );
+            Assert.That( ReflectionHelper.CovariantMatch( typeof( int ), typeof( void ) ), Is.False );
+            Assert.That( ReflectionHelper.CovariantMatch( typeof( string ), typeof( void ) ), Is.False );
+            Assert.That( ReflectionHelper.CovariantMatch( typeof( void ), typeof( int ) ), Is.False );
+            Assert.That( ReflectionHelper.CovariantMatch( typeof( void ), typeof( string ) ), Is.False );
+            Assert.That( ReflectionHelper.CovariantMatch( typeof( CloseBase<A> ), typeof( void ) ), Is.False );
+            Assert.That( ReflectionHelper.CovariantMatch( typeof( void ), typeof( CloseBase<A> ) ), Is.False );
+
+            IList<List<object>> l1 = new List<List<object>>(); //Intellisense sample
+            Assert.That( ReflectionHelper.CovariantMatch( typeof( IList<List<object>> ), typeof( List<List<object>> ) ), Is.True, "L1 typeof( IList<List<object>> ), typeof( List<List<object>> )" ); 
+
+            IList<ICollection<object>> l2 = new List<ICollection<object>>(); //Intellisense sample
+            Assert.That( ReflectionHelper.CovariantMatch( typeof( IList<ICollection<object>> ), typeof( List<ICollection<object>> ) ), Is.True, "L2 typeof( IList<ICollection<object>> ), typeof( List<ICollection<object>> )" );
+
+            ICollection<IEnumerable<object>> l3 = new List<IEnumerable<object>>(); //Intellisense sample
+            Assert.That( ReflectionHelper.CovariantMatch( typeof( ICollection<IEnumerable<object>> ), typeof( List<IEnumerable<object>> ) ), Is.True, "L3 typeof( ICollection<IEnumerable<object>> ), typeof( List<IEnumerable<object>> )" );
+
+            IEnumerable<IEnumerable<object>> l4 = new List<ICollection<object>>(); //Intellisense sample
+            Assert.That( ReflectionHelper.CovariantMatch( typeof( IEnumerable<IEnumerable<object>> ), typeof( List<ICollection<object>> ) ), Is.True, "L4 typeof( IEnumerable<IEnumerable<object>> ), typeof( List<ICollection<object>> )" );
+
+            ICollection<ICollection<object>> l5 = new List<ICollection<object>>(); //Intellisense sample
+            Assert.That( ReflectionHelper.CovariantMatch( typeof( ICollection<ICollection<object>> ), typeof( List<ICollection<object>> ) ), Is.True, "L5 typeof( ICollection<ICollection<object>> ), typeof( List<ICollection<object>> )" );
+
         }
 
         private static void CommonToCloseAndClose2( Type tC, string name )
@@ -178,6 +201,13 @@ namespace CK.Reflection.Tests
         static void AssertCheck( string msg, bool test )
         {
             Assert.That( test == (msg[0] == 'T'), msg );
+        }
+
+
+        [Test]
+        public void MemberInfoEqualityTests()
+        {
+            Assert.That( MemberInfoEqualityComparer.Default.Equals( GetType(), GetType() ) );
         }
 
     }

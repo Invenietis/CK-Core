@@ -284,6 +284,44 @@ namespace CK.Core
             return ~low;
         }
 
+        /// <summary>
+        /// Binary search implementation that relies on <see cref="IComparable{TValue}"/> implemented by the <typeparamref name="T"/>.
+        /// </summary>
+        /// <typeparam name="T">Type of the elements. It must implement <see cref="IComparable{TValue}"/>.</typeparam>
+        /// <typeparam name="TValue">Type of the value.</typeparam>
+        /// <param name="sortedList">Read only list of elements.</param>
+        /// <param name="startIndex">The starting index in the list.</param>
+        /// <param name="length">The number of elements to consider in the list.</param>
+        /// <param name="value">The value to locate.</param>
+        /// <returns>Same as <see cref="Array.BinarySearch(Array,object)"/>: negative index if not found which is the bitwise complement of (the index of the next element plus 1).</returns>
+        public static int BinarySearch<T, TValue>( IReadOnlyList<T> sortedList, int startIndex, int length, TValue value ) where T : IComparable<TValue>
+        {
+            int low = startIndex;
+            int high = (startIndex + length) - 1;
+            while( low <= high )
+            {
+                int mid = low + ((high - low) >> 1);
+                int cmp = sortedList[mid].CompareTo( value );
+                if( cmp == 0 ) return mid;
+                if( cmp < 0 ) low = mid + 1;
+                else high = mid - 1;
+            }
+            return ~low;
+        }
+
+        /// <summary>
+        /// Binary search implementation that relies on <see cref="IComparable{TValue}"/> implemented by the <typeparamref name="T"/>.
+        /// </summary>
+        /// <typeparam name="T">Type of the elements. It must implement <see cref="IComparable{TValue}"/>.</typeparam>
+        /// <typeparam name="TValue">Type of the value.</typeparam>
+        /// <param name="sortedList">Read only list of elements.</param>
+        /// <param name="value">The value to locate.</param>
+        /// <returns>Same as <see cref="Array.BinarySearch(Array,object)"/>: negative index if not found which is the bitwise complement of (the index of the next element plus 1).</returns>
+        public static int BinarySearch<T, TValue>( IReadOnlyList<T> sortedList, TValue value ) where T : IComparable<TValue>
+        {
+            return BinarySearch( sortedList, 0, sortedList.Count, value );
+        }
+
         #region Interlocked helpers.
 
         /// <summary>
