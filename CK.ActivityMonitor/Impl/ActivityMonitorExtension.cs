@@ -517,6 +517,7 @@ namespace CK.Core
 
         /// <summary>
         /// Registers a typed <see cref="IActivityMonitorClient"/>.
+        /// Duplicate IActivityMonitorClient instances are ignored.
         /// </summary>
         /// <typeparam name="T">Any type that specializes <see cref="IActivityMonitorClient"/>.</typeparam>
         /// <param name="this">This <see cref="IActivityMonitorOutput"/> object.</param>
@@ -530,6 +531,7 @@ namespace CK.Core
 
         /// <summary>
         /// Registers multiple <see cref="IActivityMonitorClient"/>.
+        /// Duplicate IActivityMonitorClient instances are ignored.
         /// </summary>
         /// <param name="this">This <see cref="IActivityMonitorOutput"/> object.</param>
         /// <param name="clients">Multiple clients to register.</param>
@@ -543,6 +545,7 @@ namespace CK.Core
 
         /// <summary>
         /// Registers multiple <see cref="IActivityMonitorClient"/>.
+        /// Duplicate IActivityMonitorClient instances are ignored.
         /// </summary>
         /// <param name="this">This <see cref="IActivityMonitorOutput"/> object.</param>
         /// <param name="clients">Multiple clients to register.</param>

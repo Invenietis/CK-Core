@@ -11,9 +11,9 @@
   },
 
   "dependencies": {
-    "Code.Cake": "0.6.2",
+    "Code.Cake": "0.7.0",
     "Microsoft.Extensions.PlatformAbstractions": "1.0.0-rc1-final",
-    "SimpleGitVersion.Cake": "0.10.0"
+    "SimpleGitVersion.Cake": "0.11.1"
   },
 
   "frameworks": {
