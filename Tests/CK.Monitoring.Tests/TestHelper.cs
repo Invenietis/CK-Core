@@ -45,7 +45,7 @@ namespace CK.Monitoring.Tests
         static TestHelper()
         {
             _monitor = new ActivityMonitor();
-            _console = _monitor.Output.RegisterClient( new ActivityMonitorConsoleClient() );
+            _console = new ActivityMonitorConsoleClient();
         }
 
         public static IActivityMonitor ConsoleMonitor

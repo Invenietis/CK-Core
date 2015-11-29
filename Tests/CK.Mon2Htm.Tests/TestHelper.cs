@@ -46,7 +46,6 @@ namespace CK.Mon2Htm.Tests
             _monitor = new ActivityMonitor();
             _monitor.Output.BridgeTarget.HonorMonitorFilter = false;
             _console = new ActivityMonitorConsoleClient();
-            _monitor.Output.RegisterClients( _console );
         }
 
         public static IActivityMonitor ConsoleMonitor
