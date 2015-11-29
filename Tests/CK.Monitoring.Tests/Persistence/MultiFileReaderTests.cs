@@ -100,7 +100,7 @@ namespace CK.Monitoring.Tests.Persistence
                 m.Trace().Send( "Trace 1.2" );
                 m.CloseGroup();
                 m.Trace().Send( "Trace 2" );
-                System.Threading.Thread.Sleep( 500 );
+                System.Threading.Thread.Sleep( 100 );
                 m.Output.UnregisterClient( direct );
             }
             var files = TestHelper.WaitForCkmonFilesInDirectory( folder, 3 );

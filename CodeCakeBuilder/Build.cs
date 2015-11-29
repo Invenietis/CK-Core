@@ -85,7 +85,7 @@ namespace CodeCake
                         tempSln.ExcludeProjectsFromBuild( "CodeCakeBuilder", "CKMon2Htm" );
                         Cake.MSBuild( tempSln.FullPath, new MSBuildSettings()
                                 .SetConfiguration( configuration )
-                                .SetVerbosity( Verbosity.Normal )
+                                .SetVerbosity( Verbosity.Minimal )
                                 .SetMaxCpuCount( 1 )
                                 // Always generates Xml documentation. Relies on this definition in the csproj files:
                                 //
