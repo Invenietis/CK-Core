@@ -40,5 +40,24 @@ namespace CK.Core
             return r;
         }
 
+        /// <summary>
+        /// Finds the index of a first item in a <see cref="IReadOnlyList{T}"/>.
+        /// </summary>
+        /// <typeparam name="T">Type of item.</typeparam>
+        /// <param name="this">This list.</param>
+        /// <param name="predicate">Predicate function.</param>
+        /// <returns>Index of the matching item or -1.</returns>
+        static public int IndexOf<T>( this IReadOnlyList<T> @this, Func<T,bool> predicate )
+        {
+            if( predicate == null ) throw new ArgumentNullException( nameof( predicate ) );
+            int i = 0;
+            foreach( var x in @this )
+            {
+                if( predicate( x ) ) return i;
+                ++i;
+            }
+            return -1;
+        }
+
     }
 }

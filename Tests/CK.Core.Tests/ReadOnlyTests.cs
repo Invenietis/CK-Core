@@ -264,5 +264,17 @@ namespace CK.Core.Tests.Collection
             var a = values.Split( new[]{','},StringSplitOptions.RemoveEmptyEntries ).Select( v => new StringInt( v ) ).ToArray();
             Assert.That( Util.BinarySearch( a, search ), Is.EqualTo( resultIndex ) );
         }
+
+        [Test]
+        public void IndexOf_on_IReadOnlyList()
+        {
+            IReadOnlyList<int> l = new[] { 3, 7, 9, 1, 3, 8 };
+            Assert.That( l.IndexOf( i => i == 3 ), Is.EqualTo( 0 ) );
+            Assert.That( l.IndexOf( i => i == 7 ), Is.EqualTo( 1 ) );
+            Assert.That( l.IndexOf( i => i == 8 ), Is.EqualTo( 5 ) );
+            Assert.That( l.IndexOf( i => i == 0 ), Is.EqualTo( -1 ) );
+            Assert.Throws<ArgumentNullException>( () => l.IndexOf( null ) );
+        }
+
     }
 }
