@@ -159,7 +159,6 @@ namespace CodeCake
                         {
                             Debug.Assert( gitInfo.IsValidCIBuild );
                             PushNuGetPackages( "MYGET_DNX_EXPLORE_API_KEY", "https://www.myget.org/F/invenietis-dnx-explore/api/v2/package", nugetPackages );
-                            PushNuGetPackages( "MYGET_DNX_EXPLORE_API_KEY", "https://nuget.gw.symbolsource.org/MyGet/invenietis-dnx-explore/", packagesSymbols );
                         }
                     }
                     else
