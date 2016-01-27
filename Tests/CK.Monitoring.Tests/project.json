@@ -31,6 +31,6 @@
     "CK.Core": "0.0.0-Absolutely-Invalid",
     "CK.Monitoring": "0.0.0-Absolutely-Invalid",
     "Microsoft.Extensions.PlatformAbstractions": "1.0.0-rc1-final",
-    "NUnitLite": "3.0.0"
+    "NUnitLite": "3.0.1"
   }
 }

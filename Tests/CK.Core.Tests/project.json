@@ -40,7 +40,8 @@
   },
   "dependencies": {
     "CK.Core": "0.0.0-Absolutely-Invalid",
-    "NUnitLite": "3.0.0",
-    "Microsoft.Extensions.PlatformAbstractions": "1.0.0-rc1-final"
+    "Microsoft.Extensions.PlatformAbstractions": "1.0.0-rc1-final",
+    "NUnitLite": "3.0.1",
+    "System.Collections": "4.0.11-beta-23516"
   }
 }
