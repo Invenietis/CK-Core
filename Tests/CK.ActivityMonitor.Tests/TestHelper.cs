@@ -10,6 +10,10 @@ using NUnit.Framework;
 
 namespace CK.Core.Tests
 {
+    class TestAttribute : Xunit.FactAttribute
+    {
+    }
+
     static class TestHelper
     {
         static string _testFolder;

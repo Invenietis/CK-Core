@@ -1,47 +1,45 @@
 {
-  "version": "0.0.0-Absolutely-Invalid",
-  "description": "CK.Core.Tests Class Library",
-  "authors": [ "Olivier Spinelli" ],
-  "tags": [ "" ],
-  "projectUrl": "",
-  "licenseUrl": "",
-  "compilationOptions": {
-    "keyFile": "../../SharedKey.snk"
-  },
-  "commands": {
-    "test" :  "CK.Core.Tests"
-  },
-  "frameworks": {
-    "dnx451": {
-      "dependencies": {
-      },
-      "frameworkAssemblies": {
-        "System.Configuration":  "4.0.0.0"
-      }
+    "version": "5.0.0",
+    "description": "CK.Core.Tests Class Library",
+    "authors": [ "Olivier Spinelli" ],
+    "tags": [ "" ],
+    "projectUrl": "",
+    "licenseUrl": "",
+    "compilationOptions": {
+        "keyFile": "../../SharedKey.snk"
     },
-    "dnx46": {
-      "dependencies": {
-      },
-      "frameworkAssemblies": {
-        "System.Configuration": "4.0.0.0"
-      }
+   
+    "testRunner": "xunit",
+
+    "frameworks": {
+        "netstandardapp1.5": {
+            "imports": [
+                "dnxcore50",
+                "portable-net451+win8"
+            ],
+            "dependencies": {
+                "dotnet-test-xunit": "1.0.0-dev-*",
+                "System.Console": "4.0.0-*",
+                "System.Linq": "4.0.1-*",
+                "System.Runtime": "4.1.0-*",
+                "System.Threading": "4.0.11-*",
+                "System.Threading.Tasks": "4.0.11-*",
+                "System.Threading.Tasks.Parallel": "4.0.1-*"
+            }
+        },
+        "net451": {
+            "dependencies": {
+                "xunit.runner.console": "2.1.0"
+
+            },
+            "frameworkAssemblies": { "System.Runtime": "4.0.10.0" }
+        }
     },
-    "dnxcore50": {
-      "dependencies": {
-        "System.Collections": "4.0.0-beta-23516",
-        "System.Console": "4.0.0-beta-23516",
-        "System.Linq": "4.0.1-beta-23516",
-        "System.Runtime": "4.0.21-beta-23516",
-        "System.Threading": "4.0.11-beta-23516",
-        "System.Threading.Tasks": "4.0.11-beta-23516",
-        "System.Threading.Tasks.Parallel": "4.0.1-beta-23516"
-      }
+    "dependencies": {
+        "CK.Core": "5.0.0",
+        "Microsoft.Extensions.PlatformAbstractions": "1.0.0-*",
+        "NUnitLite": "3.0.1",
+        "System.Collections": "4.0.11-*",
+        "xunit": "2.1.0"
     }
-  },
-  "dependencies": {
-    "CK.Core": "0.0.0-Absolutely-Invalid",
-    "Microsoft.Extensions.PlatformAbstractions": "1.0.0-rc1-final",
-    "NUnitLite": "3.0.1",
-    "System.Collections": "4.0.11-beta-23516"
-  }
 }

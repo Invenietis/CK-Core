@@ -7,6 +7,10 @@ using CK.Core;
 
 namespace CK.Monitoring.Tests
 {
+    class TestAttribute : Xunit.FactAttribute
+    {
+    }
+
     static class TestHelper
     {
         static string _testFolder;

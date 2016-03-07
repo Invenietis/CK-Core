@@ -2,7 +2,10 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
+
+#if NET451 || NET46
 using System.Runtime.Remoting.Lifetime;
+#endif
 using System.Threading;
 using CK.Core.Impl;
 
@@ -25,9 +28,9 @@ namespace CK.Core
     /// </para>
     /// </remarks>
     public sealed class ActivityMonitorBridgeTarget
-        #if NET451 || NET46
+#if NET451 || NET46
         : MarshalByRefObject, ISponsor
-        #endif
+#endif
     {
         readonly IActivityMonitorImpl _monitor;
         IActivityMonitorBridgeCallback[] _callbacks;
@@ -59,7 +62,7 @@ namespace CK.Core
         public bool HonorMonitorFilter
         {
             get { return _honorTargetFilter; }
-            set 
+            set
             {
                 if( _honorTargetFilter != value )
                 {
@@ -229,7 +232,7 @@ namespace CK.Core
 
         #endregion
 
-        #if NET451 || NET46
+#if NET451 || NET46
         /// <summary>
         /// Gets the lease for this object.
         /// </summary>
@@ -248,6 +251,6 @@ namespace CK.Core
         {
             return _crossAppDomainBriddges.Length == 0 ? TimeSpan.Zero : TimeSpan.FromMinutes( 2 );
         }
-        #endif
+#endif
     }
 }

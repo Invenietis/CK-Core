@@ -3,14 +3,14 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-#if DOTNET5_4
+#if NETSTANDARD1_3
 
 namespace System.Diagnostics.CodeAnalysis
 {
     /// <summary>
     /// Internal empty stub for .Net core.
     /// </summary>
-    class ExcludeFromCodeCoverageAttribute : Attribute
+    public class ExcludeFromCodeCoverageAttribute : Attribute
     {
     }
 }

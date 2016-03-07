@@ -1,42 +1,44 @@
 {
-  "version": "0.0.0-Absolutely-Invalid",
-  "description": "CK.ActivityMonitor.Tests Class Library",
-  "authors": [ "Olivier Spinelli" ],
-  "tags": [ "" ],
-  "projectUrl": "",
-  "licenseUrl": "",
+    "version": "5.0.0",
+    "description": "CK.ActivityMonitor.Tests Class Library",
+    "authors": [ "Olivier Spinelli" ],
+    "tags": [ "" ],
+    "projectUrl": "",
+    "licenseUrl": "",
 
-  "commands": {
-    "test": "CK.ActivityMonitor.Tests"
-  },
+    "testRunner": "xunit",
 
-  "frameworks": {
-    "dnx451": {
-      "frameworkAssemblies": {
-        "System.Configuration": "4.0.0.0"
-      }
+    "frameworks": {
+        "netstandardapp1.5": {
+            "imports": [
+                "dnxcore50",
+                "portable-net451+win8"
+            ],
+            "dependencies": {
+                "Microsoft.NETCore.Platforms": "1.0.1-*",
+                "dotnet-test-xunit": "1.0.0-dev-*",
+                "Microsoft.CSharp": "4.0.1-*",
+                "System.Collections": "4.0.11-*",
+                "System.Console": "4.0.0-*",
+                "System.Linq": "4.0.1-*",
+                "System.Runtime": "4.1.0-*",
+                "System.Threading": "4.0.11-*",
+                "System.Threading.Tasks.Parallel": "4.0.1-*",
+                "System.Xml.XDocument": "4.0.11-*"
+            }
+        },
+        "net451": {
+            "dependencies": {
+                "xunit.runner.console": "2.1.0"
+
+            },
+            "frameworkAssemblies": { "System.Runtime": "4.0.10.0" }
+        }
     },
-    "dnx46": {
-      "frameworkAssemblies": {
-        "System.Configuration": "4.0.0.0"
-      }
-    },
-    "dnxcore50": {
-      "dependencies": {
-        "Microsoft.CSharp": "4.0.1-beta-23516",
-        "System.Collections": "4.0.11-beta-23516",
-        "System.Console": "4.0.0-beta-23516",
-        "System.Linq": "4.0.1-beta-23516",
-        "System.Runtime": "4.0.21-beta-23516",
-        "System.Threading": "4.0.11-beta-23516",
-        "System.Threading.Tasks.Parallel": "4.0.1-beta-23516",
-        "System.Xml.XDocument": "4.0.11-beta-23516"
-      }
+    "dependencies": {
+        "xunit": "2.1.0",
+        "CK.ActivityMonitor": "5.0.0",
+        "Microsoft.Extensions.PlatformAbstractions": "1.0.0-*",
+        "NUnitLite": "3.0.1"
     }
-  },
-  "dependencies": {
-    "CK.ActivityMonitor": "0.0.0-Absolutely-Invalid",
-    "Microsoft.Extensions.PlatformAbstractions": "1.0.0-rc1-final",
-    "NUnitLite": "3.0.1",
-  }
 }

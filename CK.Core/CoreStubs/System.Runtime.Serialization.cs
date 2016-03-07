@@ -1,6 +1,6 @@
 ﻿using System;
 
-#if DOTNET5_4
+#if NETSTANDARD1_3
 
 namespace System.Runtime.Serialization
 {
@@ -11,21 +11,21 @@ namespace System
     /// <summary>
     /// Internal empty stub for .Net core.
     /// </summary>
-    class SerializableAttribute : Attribute
+    public class SerializableAttribute : Attribute
     {
     }
 
     /// <summary>
     /// Internal empty stub for .Net core.
     /// </summary>
-    class NonSerializedAttribute : Attribute
+    public class NonSerializedAttribute : Attribute
     {
     }
 
     /// <summary>
     /// Internal empty stub for .Net core.
     /// </summary>
-    interface ISerializable
+    public interface ISerializable
     {
     }
 }

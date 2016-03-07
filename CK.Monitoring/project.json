@@ -1,5 +1,5 @@
 {
-  "version": "0.0.0-Absolutely-Invalid",
+  "version": "5.0.0",
   "description": "CK.Monitoring Class Library",
   "authors": [ "Olivier Spinelli" ],
   "tags": [ "" ],
@@ -19,26 +19,19 @@
         "System.Xml.Linq": "4.0.0.0"
       }
     },
-    "net46": {
-      "frameworkAssemblies": {
-        "System.Linq": "4.0.0.0",
-        "System.Xml": "4.0.0.0",
-        "System.Xml.Linq": "4.0.0.0"
-      }
-    },
-    "dotnet5.4": {
+    "netstandard1.3": {
       "dependencies": {
-        "System.Collections": "4.0.11-beta-23516",
-        "System.Linq": "4.0.1-beta-23516",
-        "System.Runtime": "4.0.21-beta-23516",
-        "System.Threading": "4.0.11-beta-23516",
-        "System.Threading.Tasks.Parallel": "4.0.1-beta-23516",
-        "System.Reflection.Extensions": "4.0.1-beta-23516"
+        "System.Collections": "4.0.11-*",
+        "System.Linq": "4.0.1-*",
+        "System.Runtime": "4.1.0-*",
+        "System.Threading": "4.0.11-*",
+        "System.Threading.Tasks.Parallel": "4.0.1-*",
+        "System.Reflection.Extensions": "4.0.1-*"
       }
     }
-  },
+  }, 
   "dependencies": {
-    "CK.ActivityMonitor": "0.0.0-Absolutely-Invalid",
-    "CK.Core": "0.0.0-Absolutely-Invalid"
+    "CK.ActivityMonitor": "5.0.0",
+    "CK.Core": "5.0.0"
   }
 }

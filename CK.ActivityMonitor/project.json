@@ -1,5 +1,5 @@
 {
-  "version": "0.0.0-Absolutely-Invalid",
+  "version": "5.0.0",
   "description": "CK.ActivityMonitor Class Library",
   "authors": [ "Olivier Spinelli" ],
   "owners": [ "Invenietis" ],
@@ -15,7 +15,7 @@
   },
 
   "dependencies": {
-    "CK.Core": "0.0.0-Absolutely-Invalid"
+    "CK.Core": "5.0.0"
   },
 
   "frameworks": {
@@ -23,19 +23,15 @@
       "dependencies": {
       }
     },
-    "net46": {
-      "dependencies": {
-      }
-    },
-    "dotnet5.4": {
-      "dependencies": {
-        "System.Collections": "4.0.11-beta-23516",
-        "Microsoft.Extensions.PlatformAbstractions": "1.0.0-rc1-final",
-        "System.Linq": "4.0.1-beta-23516",
-        "System.Runtime": "4.0.21-beta-23516",
-        "System.Threading": "4.0.11-beta-23516",
-        "System.Console": "4.0.0-beta-23516"
-      }
+    "netstandard1.3": {
+        "dependencies": { 
+            "Microsoft.Extensions.PlatformAbstractions": "1.0.0-*",
+            "System.Collections": "4.0.11-*",
+            "System.Linq": "4.0.1-*",
+            "System.Runtime": "4.1.0-*",
+            "System.Threading": "4.0.11-*",
+            "System.Console": "4.0.0-*"
+        }
     }
   }
 }

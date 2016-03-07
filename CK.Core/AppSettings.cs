@@ -172,7 +172,6 @@ namespace CK.Core
 
         void DoDefaultInitialize()
         {
-#if NET451 || NET46
             const string _defType = "System.Configuration.ConfigurationManager, System.Configuration, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a";
             Type configMananger = SimpleTypeFinder.WeakResolver( _defType, false );
             // Type op_equality is not portable: use ReferenceEquals.
@@ -192,9 +191,6 @@ namespace CK.Core
                 _initialized = true;
             }
             else throw new CKException( Impl.CoreResources.AppSettingsDefaultInitializationFailed );
-#else
-            throw new CKException( Impl.CoreResources.AppSettingsNoDefaultInitializationOnNetCore );
-#endif
         }
 
     }

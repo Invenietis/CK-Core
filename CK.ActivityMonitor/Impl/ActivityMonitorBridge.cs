@@ -2,8 +2,10 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
+#if NET451 || NET46
 using System.Runtime.Remoting;
 using System.Runtime.Remoting.Lifetime;
+#endif
 using System.Threading;
 using CK.Core.Impl;
 
@@ -27,7 +29,7 @@ namespace CK.Core
         readonly bool _pushTopicAndAutoTagsToTarget;
         readonly bool _applyTargetFilterToUnfilteredLogs;
 
-        #if NET451 || NET46
+#if NET451 || NET46
         // The callback is this object if we are in the same AppDomain
         // otherwise it is a CrossAppDomainCallback.
         readonly CrossAppDomainCallback _crossADCallback;
@@ -45,14 +47,14 @@ namespace CK.Core
                 _local = local;
             }
 
-            bool IActivityMonitorBridgeCallback.IsCrossAppDomain 
-            { 
-                get { return true; } 
+            bool IActivityMonitorBridgeCallback.IsCrossAppDomain
+            {
+                get { return true; }
             }
 
-            bool IActivityMonitorBridgeCallback.PullTopicAndAutoTagsFromTarget 
+            bool IActivityMonitorBridgeCallback.PullTopicAndAutoTagsFromTarget
             {
-                get { return _local.PullTopicAndAutoTagsFromTarget; } 
+                get { return _local.PullTopicAndAutoTagsFromTarget; }
             }
 
             void IActivityMonitorBridgeCallback.OnTargetActualFilterChanged()
@@ -91,8 +93,8 @@ namespace CK.Core
             }
 
         }
-        #endif
-        
+#endif
+
         /// <summary>
         /// Tags group conclusions emitted because of premature (unbalanced) removing of a bridge from a source monitor.
         /// </summary>
@@ -122,18 +124,18 @@ namespace CK.Core
             _pullTargetTopicAndAutoTagsFromTarget = pullTargetTopicAndAutoTagsFromTarget;
             _pushTopicAndAutoTagsToTarget = pushTopicAndAutoTagsToTarget;
             _applyTargetFilterToUnfilteredLogs = applyTargetFilterToUnfilteredLogs;
-            #if NET451 || NET46
+#if NET451 || NET46
             if( System.Runtime.Remoting.RemotingServices.IsTransparentProxy( bridge ) )
             {
                 _crossADCallback = new CrossAppDomainCallback( this, bridge );
             }
             else
             {
-            #endif
+#endif
                 _targetMonitor = _bridgeTarget.TargetMonitor;
-            #if NET451 || NET46
+#if NET451 || NET46
             }
-            #endif
+#endif
             _openedGroups = new List<bool>();
         }
 
@@ -194,14 +196,14 @@ namespace CK.Core
             if( source != null && _source != null ) throw ActivityMonitorClient.CreateMultipleRegisterOnBoundClientException( this );
             if( _source != null )
             {
-                #if NET451 || NET46
-                if(_crossADCallback != null)
+#if NET451 || NET46
+                if( _crossADCallback != null )
                 {
                     _bridgeTarget.RemoveCallback( _crossADCallback );
                     _crossADCallback.InUse = false;
                 }
                 else
-                #endif
+#endif
                     _bridgeTarget.RemoveCallback( this );
                 // Unregistering.
                 for( int i = 0; i < _openedGroups.Count; ++i )
@@ -216,29 +218,29 @@ namespace CK.Core
             }
             else
             {
-                #if NET451 || NET46
+#if NET451 || NET46
                 if( _crossADCallback != null )
                 {
                     _crossADCallback.InUse = true;
                     _bridgeTarget.AddCallback( _crossADCallback );
                 }
                 else
-                #endif
+#endif
                     _bridgeTarget.AddCallback( this );
                 _targetActualFilter = IsCrossAppDomain ? _bridgeTarget.TargetFinalFilterCrossAppDomain : _bridgeTarget.TargetFinalFilter;
                 if( _pullTargetTopicAndAutoTagsFromTarget )
                 {
                     string targetTopic;
                     CKTrait targetTags;
-                    #if NET451 || NET46
-                    if( IsCrossAppDomain ) 
+#if NET451 || NET46
+                    if( IsCrossAppDomain )
                     {
                         string marshalledTags;
                         _bridgeTarget.GetTargetAndAutoTags( out targetTopic, out marshalledTags );
                         targetTags = ActivityMonitor.Tags.Register( marshalledTags );
                     }
                     else
-                    #endif
+#endif
                         _bridgeTarget.GetTargetAndAutoTags( out targetTopic, out targetTags );
                     source.InitializeTopicAndAutoTags( targetTopic, targetTags );
                 }
@@ -248,13 +250,13 @@ namespace CK.Core
             Interlocked.MemoryBarrier();
         }
 
-        LogFilter IActivityMonitorBoundClient.MinimalFilter { get { return GetActualTargetFilter(); } }        
+        LogFilter IActivityMonitorBoundClient.MinimalFilter { get { return GetActualTargetFilter(); } }
 
         /// <summary>
         /// This is necessarily called in the context of the activity: we can call the bridge that can call 
         /// the Monitor's ActualFilter that will be resynchronized if needed.
         /// </summary>
-        LogFilter GetActualTargetFilter() 
+        LogFilter GetActualTargetFilter()
         {
             Interlocked.MemoryBarrier();
             var f = _targetActualFilter;
@@ -268,7 +270,7 @@ namespace CK.Core
                 }
                 while( _targetActualFilter == LogFilter.Invalid );
             }
-            return f; 
+            return f;
         }
 
         void IActivityMonitorClient.OnUnfilteredLog( ActivityMonitorLogData data )
@@ -277,7 +279,7 @@ namespace CK.Core
             // If the level is lower: if the log has not been filtered (UnfilteredLog has been called and not an extension method) we must
             // send it to honor the "Unfiltered" contract, but if _applyTargetFilterToUnfilteredLogs is true, we avoid sending it.
             var level = data.Level;
-            if( ((level&LogLevel.IsFiltered) == 0 && !_applyTargetFilterToUnfilteredLogs) || (int)GetActualTargetFilter().Line <= (int)(level & LogLevel.Mask) )
+            if( ((level & LogLevel.IsFiltered) == 0 && !_applyTargetFilterToUnfilteredLogs) || (int)GetActualTargetFilter().Line <= (int)(level & LogLevel.Mask) )
             {
                 if( _targetMonitor != null ) _targetMonitor.UnfilteredLog( data );
                 else
@@ -301,7 +303,7 @@ namespace CK.Core
             // solicitation (and marshaling when crossing application domains).
             // Note: If the group has already been filtered out by extension methods (group.GroupLevel == LogLevel.None),
             // we do not see it here. Checking the LogLevelFilter is ok.
-            if( ( (group.GroupLevel&LogLevel.IsFiltered) == 0 && !_applyTargetFilterToUnfilteredLogs) || (int)GetActualTargetFilter().Group <= (int)group.MaskedGroupLevel )
+            if( ((group.GroupLevel & LogLevel.IsFiltered) == 0 && !_applyTargetFilterToUnfilteredLogs) || (int)GetActualTargetFilter().Group <= (int)group.MaskedGroupLevel )
             {
                 if( _targetMonitor != null )
                     _targetMonitor.UnfilteredOpenGroup( group.GroupTags, group.GroupLevel, null, group.GroupText, group.LogTime, group.Exception, group.FileName, group.LineNumber );

@@ -3,7 +3,9 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+#if NET451 || NET46
 using System.Runtime.Remoting.Lifetime;
+#endif
 using System.Text;
 using System.Threading.Tasks;
 using CK.Core;
@@ -15,7 +17,7 @@ namespace CK.Monitoring
 {
     public sealed partial class GrandOutput
     {
-        #if NET451 || NET46
+#if NET451 || NET46
 
         static object _watcherLock = new object();
         static string _configPath = null;
@@ -72,7 +74,7 @@ namespace CK.Monitoring
             return _default;
         }
 
-        const string _defaultConfig = 
+        const string _defaultConfig =
 @"<GrandOutputConfiguration>
     <Channel MinimalFilter=""Debug"">
         <Add Type=""BinaryFile"" Name=""All"" Path=""GrandOutputDefault"" MaxCountPerFile=""20000"" />
@@ -157,6 +159,6 @@ namespace CK.Monitoring
                 }
             }
         }
-        #endif
+#endif
     }
 }
