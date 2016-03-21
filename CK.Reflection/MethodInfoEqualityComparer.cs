@@ -70,7 +70,8 @@ namespace CK.Reflection
             if( x.DeclaringType != null && x.DeclaringType.IsArray ) return false;
 
             // Equal members always have the same metadata token
-            if( x.MetadataToken != y.MetadataToken ) return false;
+            // REVIEW: MetadataToken does no longer exists in dotnet core.
+            // if( x.MetadataToken != y.MetadataToken ) return false;
 
             // Equal members always have the same declaring type - if any!
             if( x.DeclaringType != y.DeclaringType ) return false;
@@ -107,7 +108,10 @@ namespace CK.Reflection
             {
                 return SafeHashCode( m.DeclaringType ) ^ SafeHashCode( m.Name ) ^ SafeHashCode( m.Module );
             }            
-            return SafeHashCode( m.DeclaringType ) ^ SafeHashCode( m.MetadataToken ) ^ SafeHashCode( m.Module );
+            
+            // REVIEW: MetadataToken does no longer exists in dotnet core.
+            // SafeHashCode( m.MetadataToken ) ^ 
+            return SafeHashCode( m.DeclaringType ) ^  SafeHashCode( m.Module );
         }
 
         static int SafeHashCode( object o )

@@ -272,10 +272,10 @@ namespace CK.Reflection
         {
             #region Constants
             private const BindingFlags ALL_STATIC_METHOD =
-                BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static | BindingFlags.InvokeMethod;
+                BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static ; //REVIEW: does no longer exists.  BindingFlags.InvokeMethod;
 
             private const BindingFlags ALL_INSTANCE_METHOD =
-                BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.InvokeMethod;
+                BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance; //REVIEW: does no longer exists. BindingFlags.InvokeMethod;
             #endregion
 
             private readonly bool _throwOnError;
@@ -301,7 +301,7 @@ namespace CK.Reflection
 
             internal DelegateBuilder( object targetObject, Type targetType, string methodName, bool throwOnError, BindingFlags bindingAttr )
             {
-                if( !typeof( Delegate ).IsAssignableFrom( typeof( T ) ) )
+                if( !typeof( Delegate ).GetTypeInfo().IsAssignableFrom( typeof( T ).GetTypeInfo() ) )
                 {
                     throw new ArgumentException( "Expecting type parameter to be a Delegate type, but got " + typeof( T ).FullName );
                 }
@@ -330,9 +330,7 @@ namespace CK.Reflection
                             dynamicMethod.CreateDelegate( typeof( T ) ) as T :
                             dynamicMethod.CreateDelegate( typeof( T ), _targetObject ) as T;
                     }
-                    return _targetObject == null ?
-                        Delegate.CreateDelegate( typeof( T ), method ) as T :
-                        Delegate.CreateDelegate( typeof( T ), _targetObject, method ) as T;
+                    return _targetObject == null ? method.CreateDelegate( typeof( T ) ) as T : method.CreateDelegate( typeof( T ), _targetObject ) as T;
                 }
                 catch( ArgumentException ex )
                 {
@@ -370,7 +368,7 @@ namespace CK.Reflection
                 }
                 _parameterTypes = instanceToStatic ? ReflectionHelper.CreateParametersType( parameters, 1 ) : ReflectionHelper.CreateParametersType( parameters );
 
-                var method = _targetType.GetMethod( _methodName, _bindingAttr, null, _parameterTypes, null );
+                var method = _targetType.GetMethod( _methodName,  _parameterTypes );
                 var methodFilter = MethodFilter;
                 if( method != null && methodFilter != null && !methodFilter( method ) )
                 {

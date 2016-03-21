@@ -65,7 +65,7 @@ namespace CK.Reflection
                 var genericParameters = mB.DefineGenericParameters( names );
                 for( i = 0; i < names.Length; ++i )
                 {
-                    Type genericTypeArgument = genericArguments[i];
+                    var genericTypeArgument = genericArguments[i].GetTypeInfo();
                     GenericTypeParameterBuilder genericTypeBuilder = genericParameters[i];
 
 
@@ -95,7 +95,7 @@ namespace CK.Reflection
             }
             if( returnType != typeof( void ) )
             {
-                if( returnType.IsValueType )
+                if( returnType.GetTypeInfo().IsValueType )
                 {
                     LocalBuilder retValue = gVM.DeclareLocal( returnType );
                     gVM.Emit( OpCodes.Ldloca_S, retValue.LocalIndex );
@@ -126,7 +126,7 @@ namespace CK.Reflection
 
             FieldBuilder backField = tB.DefineField( "_" + property.Name + property.GetHashCode(), property.PropertyType, FieldAttributes.Private );
 
-            MethodInfo getMethod = property.GetGetMethod( true );
+            MethodInfo getMethod = property.GetMethod;
             MethodBuilder mGet = null;
             if( getMethod != null )
             {
@@ -138,7 +138,7 @@ namespace CK.Reflection
                 g.Emit( OpCodes.Ldfld, backField );
                 g.Emit( OpCodes.Ret );
             }
-            MethodInfo setMethod = property.GetSetMethod( true );
+            MethodInfo setMethod = property.SetMethod;
             MethodBuilder mSet = null;
             if( setMethod != null )
             {

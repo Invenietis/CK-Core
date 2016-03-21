@@ -66,8 +66,9 @@ namespace CK.Reflection
                 else
                 {
                     Type[] parameterTypes = ReflectionHelper.CreateParametersType( parameters );
-                    Type[][] requiredCustomModifiers = parameters.Select( p => p.GetRequiredCustomModifiers() ).ToArray();
-                    Type[][] optionalCustomModifiers = parameters.Select( p => p.GetOptionalCustomModifiers() ).ToArray();
+                    // REVIEW: Type.EmptyTypes replaces GetRequiredCustomModifiers and GetOptionalCustomModifiers 
+                    Type[][] requiredCustomModifiers =  parameters.Select( p => Type.EmptyTypes ).ToArray();
+                    Type[][] optionalCustomModifiers = parameters.Select( p => Type.EmptyTypes ).ToArray();
 
                     var ctor = @this.DefineConstructor( newCtorAttr.Value, baseCtor.CallingConvention, parameterTypes, requiredCustomModifiers, optionalCustomModifiers );
                     for( var i = 0; i < parameters.Length; ++i )
@@ -76,24 +77,24 @@ namespace CK.Reflection
                         ParameterBuilder pBuilder = ctor.DefineParameter( i + 1, parameter.Attributes, parameter.Name );
                         if( (parameter.Attributes & ParameterAttributes.HasDefault) != 0 )
                         {
-                            pBuilder.SetConstant( parameter.RawDefaultValue );
+                            pBuilder.SetConstant( parameter.DefaultValue );
                         }
                         if( parameterAttributesFilter != null )
                         {
-                            ReflectionHelper.GenerateCustomAttributeBuilder( parameter.GetCustomAttributesData(), pBuilder.SetCustomAttribute, a => parameterAttributesFilter( parameter, a ) );
+                            ReflectionHelper.GenerateCustomAttributeBuilder( parameter.CustomAttributes, pBuilder.SetCustomAttribute, a => parameterAttributesFilter( parameter, a ) );
                         }
                         else
                         {
-                            ReflectionHelper.GenerateCustomAttributeBuilder( parameter.GetCustomAttributesData(), pBuilder.SetCustomAttribute );
+                            ReflectionHelper.GenerateCustomAttributeBuilder( parameter.CustomAttributes, pBuilder.SetCustomAttribute );
                         }
                     }
                     if( constructorAttributesFilter != null )
                     {
-                        ReflectionHelper.GenerateCustomAttributeBuilder( baseCtor.GetCustomAttributesData(), ctor.SetCustomAttribute, a => constructorAttributesFilter( baseCtor, a ) );
+                        ReflectionHelper.GenerateCustomAttributeBuilder( baseCtor.CustomAttributes, ctor.SetCustomAttribute, a => constructorAttributesFilter( baseCtor, a ) );
                     }
                     else
                     {
-                        ReflectionHelper.GenerateCustomAttributeBuilder( baseCtor.GetCustomAttributesData(), ctor.SetCustomAttribute );
+                        ReflectionHelper.GenerateCustomAttributeBuilder( baseCtor.CustomAttributes, ctor.SetCustomAttribute );
                     }
                     var g = ctor.GetILGenerator();
                     g.RepushActualParameters( true, parameters.Length + 1 );
