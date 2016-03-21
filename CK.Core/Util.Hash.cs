@@ -29,7 +29,9 @@ using System.Collections;
 namespace CK.Core
 {
 	static public partial class Util
-	{    
+	{
+        public static Version EmptyVersion = new Version(0,0,0,0);
+
         /// <summary>
         /// Provides methods to combine hash values: use <see cref="StartValue"/> and then 
         /// chain calls to the <see cref="M:Combine"/> methods.

@@ -29,21 +29,21 @@ namespace CK.Core
         /// </summary>
         public static class Array
         {
-            #if !NET46 && !DOTNET5_4
-            static class E<T> 
+#if !NET46 && !DOTNET5_4
+            static class E<T>
             {
-                public readonly static T[] Value = new T[0]; 
+                public readonly static T[] Value = new T[0];
             }
             public static T[] Empty<T>()
             {
                 return E<T>.Value;
             }
-            #else
+#else
             public static T[] Empty<T>()
             {
                 return System.Array.Empty<T>();
             }
-            #endif
+#endif
         }
 
 
@@ -86,6 +86,9 @@ namespace CK.Core
         /// A void, immutable, <see cref="IDisposable"/> that does absolutely nothing.
         /// </summary>
         public static readonly IDisposable EmptyDisposable = new VoidDisposable();
+
+        public static DateTime UnixEpoch  = new DateTime(1970,1,1);
+        public static DateTime SqlServerEpoch  = new DateTime(1900,1,1);
 
         /// <summary>
         /// Centralized void action call for any type. 
