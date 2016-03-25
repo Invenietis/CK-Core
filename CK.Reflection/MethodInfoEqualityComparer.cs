@@ -61,7 +61,7 @@ namespace CK.Reflection
             if( ReferenceEquals( x, null ) || ReferenceEquals( null, y ) ) return false;
 
             // Types are always reference equals or not equal at all.
-            if( x is Type || y is Type ) return false;
+            if( x is TypeInfo || y is TypeInfo ) return false;
 
             // Methods defined by concrete arrays (int[].Set (...) etc.) will always succeed in the checks above if they are equal; it doesn't seem to be 
             // possible to get two different MethodInfo references for the same array method. Therefore, return false if an array method got through the 
@@ -69,10 +69,11 @@ namespace CK.Reflection
 
             if( x.DeclaringType != null && x.DeclaringType.IsArray ) return false;
 
+#if NET451
             // Equal members always have the same metadata token
             // REVIEW: MetadataToken does no longer exists in dotnet core.
-            // if( x.MetadataToken != y.MetadataToken ) return false;
-
+            if( x.MetadataToken != y.MetadataToken ) return false;
+#endif
             // Equal members always have the same declaring type - if any!
             if( x.DeclaringType != y.DeclaringType ) return false;
 
