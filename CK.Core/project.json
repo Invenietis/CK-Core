@@ -37,7 +37,6 @@
                 "System.ObjectModel": "4.0.12-*",
                 "System.Reflection.Emit.Lightweight": "4.0.1-*",
                 "System.Reflection.TypeExtensions": "4.1.0-*",
-                "System.Runtime": "4.1.0-*",
                 "System.Text.RegularExpressions": "4.0.12-*",
                 "System.Threading": "4.0.11-*",
                 "System.Threading.Thread": "4.0.0-*",

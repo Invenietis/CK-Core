@@ -50,5 +50,11 @@ namespace CK.Core.Impl
         public static readonly string StringMatcherForwardPastEnd = "Unable to forward past the end of the string.";
 
         public static readonly string TraitsMustBelongToTheSameContext = "Traits must belong to the same context.";
+        
+        public static readonly string ServiceAlreadyDirectlySupported = "Service {0} is directly supported by the container.";
+        public static readonly string DirectServicesCanNotBeDisabled = "Service {0} is direcly supported by the container. It can not be disabled.";
+        public static readonly string ServiceImplCallbackTypeMismatch = "Service {0} is not implemented by object {1} returned by the callback.";
+        public static readonly string ServiceImplTypeMismatch = "Service {0} is not implemented by object {1}.";
+        public static readonly string ServiceAlreadyRegistered = "Service {0} is already registered by the container.";
     }
 }

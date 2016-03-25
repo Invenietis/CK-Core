@@ -44,6 +44,11 @@ namespace CK.Core.Tests
             Context = new CKTraitContext( "Test", '+' );
         }
 
+        public TraitsTests()
+        {
+            Context = new CKTraitContext( "Test", '+' );
+        }
+
         [Test]
         public void Comparing_traits()
         {

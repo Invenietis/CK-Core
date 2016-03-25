@@ -15,7 +15,6 @@
                 "portable-net451+win8"
             ],
             "dependencies": {
-                "Microsoft.NETCore.Platforms": "1.0.1-*",
                 "dotnet-test-xunit": "1.0.0-dev-*",
                 "Microsoft.CSharp": "4.0.1-*",
                 "System.Collections": "4.0.11-*",
@@ -38,7 +37,6 @@
     "dependencies": {
         "xunit": "2.1.0",
         "CK.ActivityMonitor": "5.0.0",
-        "Microsoft.Extensions.PlatformAbstractions": "1.0.0-*",
-        "NUnitLite": "3.0.1"
+        "NUnitLite": "3.2.0"
     }
 }
