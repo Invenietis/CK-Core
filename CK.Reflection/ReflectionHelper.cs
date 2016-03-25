@@ -238,16 +238,16 @@ namespace CK.Reflection
                 var ctorArgs = attr.ConstructorArguments.Select( a => a.Value ).ToArray();
                 
                 var arProperties = attr.NamedArguments
-                    .Select(  a => new { MemberInfo = a.TypedValue.ArgumentType.GetProperty( a.MemberName ), TypedValue = a.TypedValue })
-                    .Where( a => a.MemberInfo != null );
+                    .Select(  a => new { PropertyInfo = attr.AttributeType.GetProperty( a.MemberName ), TypedValue = a.TypedValue })
+                    .Where( a => a.PropertyInfo != null );
                 
                 var arFields = attr.NamedArguments 
-                  .Select( a => new { MemberInfo = a.TypedValue.ArgumentType.GetField( a.MemberName ), TypedValue = a.TypedValue })
-                  .Where( a => a.MemberInfo != null );
+                  .Select( a => new { FieldInfo = attr.AttributeType.GetField( a.MemberName ), TypedValue = a.TypedValue })
+                  .Where( a => a.FieldInfo != null );
                     
-                var namedPropertyInfos = arProperties.Select( a => a.MemberInfo).ToArray();
+                var namedPropertyInfos = arProperties.Select( a => a.PropertyInfo).ToArray();
                 var namedPropertyValues = arProperties.Select( a => a.TypedValue.Value ).ToArray();
-                var namedFieldInfos = arFields.Select( a => a.MemberInfo).ToArray();
+                var namedFieldInfos = arFields.Select( a => a.FieldInfo).ToArray();
                 var namedFieldValues = arFields.Select( a => a.TypedValue.Value ).ToArray();
               
                 var matchedConstructor = attr.AttributeType.GetConstructors().SingleOrDefault( c => ConstructorSignatureMatch( c, attr.ConstructorArguments) );
