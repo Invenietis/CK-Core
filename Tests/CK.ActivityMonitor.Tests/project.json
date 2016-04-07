@@ -1,5 +1,5 @@
 {
-    "version": "5.0.0",
+    "version": "0.0.0-Absolutely-Invalid",
     "description": "CK.ActivityMonitor.Tests Class Library",
     "authors": [ "Olivier Spinelli" ],
     "tags": [ "" ],
@@ -36,7 +36,7 @@
     },
     "dependencies": {
         "xunit": "2.1.0",
-        "CK.ActivityMonitor": "5.0.0",
+        "CK.ActivityMonitor": "0.0.0-Absolutely-Invalid",
         "NUnitLite": "3.2.0"
     }
 }

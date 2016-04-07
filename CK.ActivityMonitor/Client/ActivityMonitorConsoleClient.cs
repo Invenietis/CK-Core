@@ -1,4 +1,3 @@
-#if NET451
 #region LGPL License
 /*----------------------------------------------------------------------------
 * This file (CK.Core\ActivityMonitor\Client\ActivityMonitorConsoleClient.cs) is part of CiviKey. 
@@ -45,4 +44,3 @@ namespace CK.Core
     }
 
 }
-#endif
