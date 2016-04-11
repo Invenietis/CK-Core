@@ -28,7 +28,6 @@ using System.Text;
 using System.Reflection.Emit;
 using System.Reflection;
 using System.Runtime.InteropServices;
-using CK.Reflection;
 
 namespace CK.Interop
 {

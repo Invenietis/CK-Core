@@ -122,16 +122,6 @@
   <ItemGroup>
     <Content Include="ReleaseNotes.txt" />
   </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\..\net40\CK.Core\CK.Core.Net40.csproj">
-      <Project>{56511bee-6107-4cb6-bf05-0fb9c2c88c88}</Project>
-      <Name>CK.Core.Net40</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\net40\CK.Monitoring\CK.Monitoring.Net40.csproj">
-      <Project>{2b933ac0-cfc3-4b2a-91af-9a6f6ef7184b}</Project>
-      <Name>CK.Monitoring.Net40</Name>
-    </ProjectReference>
-  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
     <PropertyGroup>
