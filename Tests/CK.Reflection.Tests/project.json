@@ -1,5 +1,5 @@
 {
-  "version": "0.0.0-Absolutely-Invalid",
+  "version": "5.0.0-beta",
   "description": "CK.Reflection.Tests Class Library",
   "authors": [ "Olivier Spinelli" ],
   "owners": [ "Invenietis" ],
@@ -26,7 +26,7 @@
    "testRunner":"xunit",
     
   "dependencies": {
-      "CK.Reflection":"0.0.0-Absolutely-Invalid",
+      "CK.Reflection":"5.0.0-beta",
       "xunit": "2.1.0",
       "NUnitLite": "3.2.0"
   }

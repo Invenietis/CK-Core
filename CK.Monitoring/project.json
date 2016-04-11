@@ -1,5 +1,5 @@
 {
-  "version": "0.0.0-Absolutely-Invalid",
+  "version": "5.0.0-beta",
   "description": "CK.Monitoring Class Library",
   "authors": [ "Olivier Spinelli" ],
   "tags": [ "" ],
@@ -32,7 +32,7 @@
     }
   }, 
   "dependencies": {
-    "CK.ActivityMonitor": "0.0.0-Absolutely-Invalid",
-    "CK.Core": "0.0.0-Absolutely-Invalid"
+    "CK.ActivityMonitor": "5.0.0-beta",
+    "CK.Core": "5.0.0-beta"
   }
 }
