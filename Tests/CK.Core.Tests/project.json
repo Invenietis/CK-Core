@@ -1,5 +1,5 @@
 {
-    "version": "5.0.0-beta",
+    "version": "0.0.0-Absolutely-Invalid",
     "description": "CK.Core.Tests Class Library",
     "authors": [ "Olivier Spinelli" ],
     "tags": [ "" ],
@@ -36,7 +36,7 @@
         }
     },
     "dependencies": {
-        "CK.Core": "5.0.0-beta",
+        "CK.Core": "0.0.0-Absolutely-Invalid",
         "Microsoft.Extensions.PlatformAbstractions": "1.0.0-*",
         "NUnitLite": "3.2.0",
         "System.Collections": "4.0.11-*",

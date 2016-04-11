@@ -75,7 +75,7 @@ namespace CK.Core.Tests
             }
         }
 
-        private static void InitalizePaths()
+        static void InitalizePaths()
         {
             string p = Microsoft.Extensions.PlatformAbstractions.PlatformServices.Default.Application.ApplicationBasePath;
             _testFolder = Path.Combine( p, "TestDir" );

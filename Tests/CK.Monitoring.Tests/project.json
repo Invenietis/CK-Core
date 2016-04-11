@@ -1,5 +1,5 @@
 {
-    "version": "5.0.0-beta",
+    "version": "0.0.0-Absolutely-Invalid",
     "description": "CK.Monitoring.Tests Class Library",
     "authors": [ "olivi" ],
     "tags": [ "" ],
@@ -29,9 +29,9 @@
         }
     },
     "dependencies": {
-        "CK.ActivityMonitor": "5.0.0-beta",
-        "CK.Core": "5.0.0-beta",
-        "CK.Monitoring": "5.0.0-beta",
+        "CK.ActivityMonitor": "0.0.0-Absolutely-Invalid",
+        "CK.Core": "0.0.0-Absolutely-Invalid",
+        "CK.Monitoring": "0.0.0-Absolutely-Invalid",
         "Microsoft.Extensions.PlatformAbstractions": "1.0.0-*",
         "NUnitLite": "3.0.1",
         "xunit": "2.1.0"

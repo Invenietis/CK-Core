@@ -113,28 +113,22 @@ namespace CK.Core.Tests
             }
         }
 
-        public static void InitializePaths()
+        static void InitializePaths()
         {
-            if( _testFolder != null ) return;
-            var p = _testFolder = GetTestFolder();
+            if( _solutionFolder != null ) return;
+            #if NET451
+            string p = new Uri( System.Reflection.Assembly.GetExecutingAssembly().CodeBase ).LocalPath;
+            #else
+            string p = Microsoft.Extensions.PlatformAbstractions.PlatformServices.Default.Application.ApplicationBasePath;
+            #endif
             do
             {
                 p = Path.GetDirectoryName( p );
             }
             while( !File.Exists( Path.Combine( p, "CK-Core.sln" ) ) );
             _solutionFolder = p;
-
+            _testFolder = Path.Combine( _solutionFolder, "Tests", "CK.ActivityMonitor.Tests", "TestFolder" );
             CleanupTestFolder();
-        }
-
-        /// <summary>
-        /// Can be called from another application domain (does not set SystemActivityMonitor.RootLogPath not initialize statics).
-        /// </summary>
-        /// <returns>The /TestFolder for this project.</returns>
-        public static string GetTestFolder()
-        {
-            string p = Microsoft.Extensions.PlatformAbstractions.PlatformServices.Default.Application.ApplicationBasePath;
-            return Path.Combine( p, "TestFolder" );
         }
 
     }

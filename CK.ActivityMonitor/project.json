@@ -1,5 +1,5 @@
 {
-    "version": "5.0.0-beta",
+    "version": "0.0.0-Absolutely-Invalid",
     "description": "CK.ActivityMonitor Class Library",
     "authors": [ "Olivier Spinelli" ],
     "owners": [ "Invenietis" ],
@@ -15,7 +15,7 @@
     },
 
     "dependencies": {
-        "CK.Core": "5.0.0-beta"
+        "CK.Core": "0.0.0-Absolutely-Invalid"
     },
 
     "frameworks": {

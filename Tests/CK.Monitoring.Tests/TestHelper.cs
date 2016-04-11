@@ -155,30 +155,25 @@ namespace CK.Monitoring.Tests
 
         public static void InitalizePaths()
         {
-            if( _testFolder != null ) return;
-            var p = _testFolder = GetTestFolder();
+            if( _solutionFolder != null ) return;
+            #if NET451
+            string p = new Uri( System.Reflection.Assembly.GetExecutingAssembly().CodeBase ).LocalPath;
+            #else
+            string p = Microsoft.Extensions.PlatformAbstractions.PlatformServices.Default.Application.ApplicationBasePath;
+            #endif
             do
             {
                 p = Path.GetDirectoryName( p );
             }
             while( !File.Exists( Path.Combine( p, "CK-Core.sln" ) ) );
             _solutionFolder = p;
+            _testFolder = Path.Combine( _solutionFolder, "Tests", "CK.Monitoring.Tests", "TestFolder" );
 
             AppSettings.Default.Initialize( _ => null );
-            SystemActivityMonitor.RootLogPath = Path.Combine( TestHelper.TestFolder, "RootLogPath" );
+            SystemActivityMonitor.RootLogPath = Path.Combine( _testFolder, "RootLogPath" );
             ConsoleMonitor.Info().Send( "SolutionFolder is: {1}\r\nTestFolder is: {0}\r\nRootLogPath is: {2}", _testFolder, _solutionFolder, SystemActivityMonitor.RootLogPath );
 
             CleanupTestFolder();
-        }
-
-        /// <summary>
-        /// Can be called from another application domain (does not set SystemActivityMonitor.RootLogPath not initialize statics).
-        /// </summary>
-        /// <returns>The /TestFolder for this project.</returns>
-        public static string GetTestFolder()
-        {
-            string p = Microsoft.Extensions.PlatformAbstractions.PlatformServices.Default.Application.ApplicationBasePath;
-            return Path.Combine( p, "TestFolder" );
         }
 
     }
