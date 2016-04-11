@@ -14,6 +14,10 @@ namespace CK.Core
     /// On a failed match, the <see cref="SetError"/> method sets the <see cref="ErrorMessage"/>.
     /// On a successful match, the <see cref="StartIndex"/> is updated by a call to <see cref="Forward"/> so that 
     /// the <see cref="Head"/> is positioned after the match (and any existing error is cleared).
+    /// There are 2 main kind of methods: TryMatchXXX that when the match fails returns false but do not call 
+    /// <see cref="SetError"/>and MatchXXX that do set an error on failure.
+    /// This class does not actually hide/encapsulate a lot of things: it is designed to be extended through 
+    /// extension methods.
     /// </summary>
     public sealed class StringMatcher
     {
@@ -60,7 +64,8 @@ namespace CK.Core
         public string Text { get { return _text; } }
 
         /// <summary>
-        /// Gets the current start index: this is incremented by <see cref="Forward(int)"/>.
+        /// Gets the current start index: this is incremented by <see cref="Forward(int)"/>
+        /// or <see cref="UncheckedMove(int)"/>.
         /// </summary>
         /// <value>The current start index.</value>
         public int StartIndex { get { return _startIndex; } }
@@ -154,8 +159,8 @@ namespace CK.Core
         }
 
         /// <summary>
-        /// Moves the head without any check and returns always true:  typically called by 
-        /// successful TryMatch methods.
+        /// Moves the head without any check and returns always true: typically called by 
+        /// successful TryMatchXXX methods.
         /// </summary>
         /// <param name="delta">Number of characters.</param>
         /// <returns>Always <c>true</c>.</returns>
@@ -206,31 +211,31 @@ namespace CK.Core
         }
 
         /// <summary>
-        /// Matches a string without setting an error if match fails.
+        /// Matches a text without setting an error if match fails.
         /// </summary>
-        /// <param name="s">The string that must match. Can not be null nor empty.</param>
+        /// <param name="text">The string that must match. Can not be null nor empty.</param>
         /// <param name="comparisonType">Specifies the culture, case, and sort rules.</param>
         /// <returns>True on success, false if the match failed.</returns>
-        public bool TryMatchString( string s, StringComparison comparisonType = StringComparison.OrdinalIgnoreCase )
+        public bool TryMatchText( string text, StringComparison comparisonType = StringComparison.OrdinalIgnoreCase )
         {
-            if( string.IsNullOrEmpty( s ) ) throw new ArgumentException( nameof( s ) );
-            int len = s.Length;
+            if( string.IsNullOrEmpty( text ) ) throw new ArgumentException( nameof( text ) );
+            int len = text.Length;
             return !IsEnd
                     && len <= _length
-                    && String.Compare( _text, _startIndex, s, 0, len, comparisonType ) == 0
+                    && String.Compare( _text, _startIndex, text, 0, len, comparisonType ) == 0
                 ? UncheckedMove( len )
                 : false;
         }
 
         /// <summary>
-        /// Matches a string.
+        /// Matches a text.
         /// </summary>
-        /// <param name="s">The string that must match. Can not be null nor empty.</param>
+        /// <param name="text">The string that must match. Can not be null nor empty.</param>
         /// <param name="comparisonType">Specifies the culture, case, and sort rules.</param>
         /// <returns>True on success, false if the match failed.</returns>
-        public bool MatchString( string s, StringComparison comparisonType = StringComparison.OrdinalIgnoreCase )
+        public bool MatchText( string text, StringComparison comparisonType = StringComparison.OrdinalIgnoreCase )
         {
-            return TryMatchString( s ) ? SetSuccess() : SetError();
+            return TryMatchText( text ) ? SetSuccess() : SetError();
         }
 
         /// <summary>
@@ -253,17 +258,33 @@ namespace CK.Core
             return SetError( minCount + " whitespace(s)" );
         }
 
-        static readonly Regex _rDouble = new Regex( @"^-?(0|[1-9][0-9]*)(\.[0-9]+)((e|E)(\+|-)?\[0-9]+)?", RegexOptions.Compiled | RegexOptions.CultureInvariant | RegexOptions.ExplicitCapture );
+        /// <summary>
+        /// The <see cref="Regex"/> that <see cref="TryMatchDoubleValue()"/> uses to avoid
+        /// calling <see cref="double.TryParse(string, out double)"/> when resolving the value is 
+        /// useless.
+        /// </summary>
+        static public readonly Regex RegexDouble = new Regex( @"^-?(0|[1-9][0-9]*)(\.[0-9]+)?((e|E)(\+|-)?[0-9]+)?", RegexOptions.Compiled | RegexOptions.CultureInvariant | RegexOptions.ExplicitCapture );
 
         /// <summary>
         /// Matches a double without getting its value nor setting an error if match fails.
+        /// This uses <see cref="RegexDouble"/>.
         /// </summary>
         /// <returns><c>true</c> when matched, <c>false</c> otherwise.</returns>
         public bool TryMatchDoubleValue()
         {
-            Match m = _rDouble.Match( _text, _startIndex, _length );
+            Match m = RegexDouble.Match( _text, _startIndex, _length );
             if( !m.Success ) return false;
             return UncheckedMove( m.Length );
+        }
+
+        /// <summary>
+        /// Matches a double and gets its value. No error is set if match fails.
+        /// </summary>
+        /// <returns><c>true</c> when matched, <c>false</c> otherwise.</returns>
+        public bool TryMatchDoubleValue( out double value )
+        {
+            if( !double.TryParse( _text.Substring( _startIndex, _length ), out value ) ) return false;
+            return UncheckedMove( _length );
         }
 
         /// <summary>
@@ -316,7 +337,7 @@ namespace CK.Core
         }
 
         /// <summary>
-        /// Matches a quoted string.
+        /// Matches a quoted string. No error is set if match fails.
         /// </summary>
         /// <param name="content">Extracted content.</param>
         /// <param name="allowNull">True to allow 'null'.</param>
@@ -328,7 +349,7 @@ namespace CK.Core
             int i = _startIndex;
             if( _text[i++] != '"' )
             {
-                return allowNull && TryMatchString( "null" );
+                return allowNull && TryMatchText( "null" );
             }
             int len = _length - 1;
             StringBuilder b = null;
@@ -381,7 +402,7 @@ namespace CK.Core
         }
 
         /// <summary>
-        /// Matches a quoted string without extracting its content.
+        /// Matches a quoted string without extracting its content. No error is set if match fails.
         /// </summary>
         /// <param name="allowNull">True to allow 'null'.</param>
         /// <returns><c>true</c> when matched, <c>false</c> otherwise.</returns>
@@ -391,7 +412,7 @@ namespace CK.Core
             if( IsEnd ) return false;
             if( _text[i++] != '"' )
             {
-                return allowNull && TryMatchString( "null" );
+                return allowNull && TryMatchText( "null" );
             }
             int len = _length - 1;
             while( len >= 0 )
@@ -409,62 +430,12 @@ namespace CK.Core
             return UncheckedMove( i - _startIndex );
         }
 
-        public bool MatchJSONQuotedString( out string content )
-        {
-            content = null;
-            if( !MatchChar( '"' ) )
-            {
-                return MatchString( "null" );
-            }
-            int i = _startIndex;
-            StringBuilder b = null;
-            while( i <= _length )
-            {
-                if( i == _length ) return false;
-                char c = _text[i++];
-                if( c == '"' ) break;
-                if( c == '\\' )
-                {
-                    if( b == null ) b = new StringBuilder( _text.Substring( _startIndex + 1, i - _startIndex - 2 ) );
-                    switch( (c = _text[i]) )
-                    {
-                        case 'r': c = '\r'; break;
-                        case 'n': c = '\n'; break;
-                        case 'b': c = '\b'; break;
-                        case 't': c = '\t'; break;
-                        case 'f': c = '\f'; break;
-                        case 'u':
-                            {
-                                if( ++i == _length ) return false;
-                                int cN = _text[i] - '0';
-                                if( cN < 0 || cN > 9 ) return false;
-                                int val = cN << 12;
-                                if( ++i == _length ) return false;
-                                cN = _text[i] - '0';
-                                if( cN < 0 || cN > 9 ) return false;
-                                val |= cN << 8;
-                                if( ++i == _length ) return false;
-                                cN = _text[i] - '0';
-                                if( cN < 0 || cN > 9 ) return false;
-                                val |= cN << 4;
-                                if( ++i == _length ) return false;
-                                cN = _text[i] - '0';
-                                if( cN < 0 || cN > 9 ) return false;
-                                val |= cN;
-                                c = (char)val;
-                                break;
-                            }
-                    }
-                }
-                if( b != null ) b.Append( c );
-            }
-            int lenS = i - _startIndex;
-            if( b != null ) content = b.ToString();
-            else content = _text.Substring( _startIndex + 1, lenS - 2 );
-            return Forward( lenS );
-        }
-
-
+        /// <summary>
+        /// Overridden to return a detailed string with <see cref="Error"/> (if any),
+        /// the <see cref="Head"/> character, <see cref="StartIndex"/> position and
+        /// whole <see cref="Text"/>.
+        /// </summary>
+        /// <returns>Detailed string.</returns>
         public override string ToString()
         {
             StringBuilder b = new StringBuilder();

@@ -17,33 +17,33 @@ namespace CK.Core
         public static bool MatchLogFilter( this StringMatcher m, out LogFilter f )
         {
             f = LogFilter.Undefined;
-            if( !m.MatchString( "Undefined" ) )
+            if( !m.MatchText( "Undefined" ) )
             {
-                if( m.MatchString( "Debug" ) )
+                if( m.MatchText( "Debug" ) )
                 {
                     f = LogFilter.Debug;
                 }
-                else if( m.MatchString( "Verbose" ) )
+                else if( m.MatchText( "Verbose" ) )
                 {
                     f = LogFilter.Verbose;
                 }
-                else if( m.MatchString( "Monitor" ) )
+                else if( m.MatchText( "Monitor" ) )
                 {
                     f = LogFilter.Monitor;
                 }
-                else if( m.MatchString( "Terse" ) )
+                else if( m.MatchText( "Terse" ) )
                 {
                     f = LogFilter.Terse;
                 }
-                else if( m.MatchString( "Release" ) )
+                else if( m.MatchText( "Release" ) )
                 {
                     f = LogFilter.Release;
                 }
-                else if( m.MatchString( "Off" ) )
+                else if( m.MatchText( "Off" ) )
                 {
                     f = LogFilter.Off;
                 }
-                else if( m.MatchString( "Invalid" ) )
+                else if( m.MatchText( "Invalid" ) )
                 {
                     f = LogFilter.Invalid;
                 }
@@ -80,33 +80,33 @@ namespace CK.Core
         public static bool MatchLogLevelFilter( this StringMatcher @this, out LogLevelFilter level )
         {
             level = LogLevelFilter.None;
-            if( !@this.MatchString( "None" ) )
+            if( !@this.MatchText( "None" ) )
             {
-                if( @this.MatchString( "Trace" ) )
+                if( @this.MatchText( "Trace" ) )
                 {
                     level = LogLevelFilter.Trace;
                 }
-                else if( @this.MatchString( "Info" ) )
+                else if( @this.MatchText( "Info" ) )
                 {
                     level = LogLevelFilter.Info;
                 }
-                else if( @this.MatchString( "Warn" ) )
+                else if( @this.MatchText( "Warn" ) )
                 {
                     level = LogLevelFilter.Warn;
                 }
-                else if( @this.MatchString( "Error" ) )
+                else if( @this.MatchText( "Error" ) )
                 {
                     level = LogLevelFilter.Error;
                 }
-                else if( @this.MatchString( "Fatal" ) )
+                else if( @this.MatchText( "Fatal" ) )
                 {
                     level = LogLevelFilter.Fatal;
                 }
-                else if( @this.MatchString( "Off" ) )
+                else if( @this.MatchText( "Off" ) )
                 {
                     level = LogLevelFilter.Off;
                 }
-                else if( @this.MatchString( "Invalid" ) )
+                else if( @this.MatchText( "Invalid" ) )
                 {
                     level = LogLevelFilter.Invalid;
                 }

@@ -28,25 +28,25 @@ namespace CK.Core.Tests
         {
             string s = " AB  \t\r C";
             var m = new StringMatcher( s );
-            Assert.That( m.MatchString( "A" ), Is.False );
+            Assert.That( m.MatchText( "A" ), Is.False );
             Assert.That( m.StartIndex, Is.EqualTo( 0 ) );
             Assert.That( m.MatchWhiteSpaces(), Is.True );
             Assert.That( m.StartIndex, Is.EqualTo( 1 ) );
-            Assert.That( m.MatchString( "A" ), Is.True );
-            Assert.That( m.MatchString( "B" ), Is.True );
+            Assert.That( m.MatchText( "A" ), Is.True );
+            Assert.That( m.MatchText( "B" ), Is.True );
             Assert.That( m.StartIndex, Is.EqualTo( 3 ) );
             Assert.That( m.MatchWhiteSpaces( 6 ), Is.False );
             Assert.That( m.MatchWhiteSpaces( 5 ), Is.True );
             Assert.That( m.StartIndex, Is.EqualTo( 8 ) );
             Assert.That( m.MatchWhiteSpaces(), Is.False );
             Assert.That( m.StartIndex, Is.EqualTo( 8 ) );
-            Assert.That( m.MatchString( "c" ), Is.True );
+            Assert.That( m.MatchText( "c" ), Is.True );
             Assert.That( m.StartIndex, Is.EqualTo( s.Length ) );
             Assert.That( m.IsEnd, Is.True );
 
-            Assert.DoesNotThrow( () => m.MatchString( "c" ) );
+            Assert.DoesNotThrow( () => m.MatchText( "c" ) );
             Assert.DoesNotThrow( () => m.MatchWhiteSpaces() );
-            Assert.That( m.MatchString( "A" ), Is.False );
+            Assert.That( m.MatchText( "A" ), Is.False );
             Assert.That( m.MatchWhiteSpaces(), Is.False );
         }
 
