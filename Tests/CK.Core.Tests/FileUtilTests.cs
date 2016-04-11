@@ -29,19 +29,19 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using CK.Core.Tests;
 using NUnit.Framework;
 
 namespace CK.Core.Tests
 {
     [TestFixture]
-    [ExcludeFromCodeCoverage]
     [Category("File")]
     public class FileUtilTests
     {
         [Test]
-        public void PathNormalizationTest()
+        public void NormalizePathSeparator_uses_current_environment()
         {
+            Assume.That( Path.DirectorySeparatorChar == '\\' );
+
             Assert.Throws<ArgumentNullException>( () => FileUtil.NormalizePathSeparator( null, true ) );
             Assert.Throws<ArgumentNullException>( () => FileUtil.NormalizePathSeparator( null, false ) );
 
@@ -73,7 +73,7 @@ namespace CK.Core.Tests
         }
 
         [Test]
-        public void WriteUniqueTimedFileClash()
+        public void WriteUniqueTimedFile_automatically_numbers_files()
         {
             TestHelper.CleanupTestFolder();
 
@@ -102,7 +102,7 @@ namespace CK.Core.Tests
         }
 
         [Test]
-        public void WriteUniqueTimedFileClashQuick()
+        public void WriteUniqueTimedFile_clash_never_happen()
         {
             TestHelper.CleanupTestFolder();
             DateTime now = DateTime.UtcNow;
@@ -123,7 +123,7 @@ namespace CK.Core.Tests
         }
 
         [Test]
-        public void CopyDirectoryTest()
+        public void test_CopyDirectory_helper()
         {
             TestHelper.CleanupTestFolder();
             DirectoryInfo copyDir = new DirectoryInfo( Path.Combine( TestHelper.TestFolder, "Cpy" ) );
@@ -203,7 +203,7 @@ namespace CK.Core.Tests
         }
 
         [Test]
-        public void GetLastWriteTimeUtcTest()
+        public void GetLastWriteTimeUtc_returns_FileUtil_MissingFileLastWriteTimeUtc()
         {
             // From MSDN: If the file described in the path parameter does not exist, this method returns 12:00 midnight, January 1, 1601 A.D. (C.E.) Coordinated Universal Time (UTC).
             Assert.That( File.GetLastWriteTimeUtc( Path.Combine( TestHelper.TestFolder, "KExistePAS.txt" ) ), Is.EqualTo( new DateTime( 1601, 1, 1, 0, 0, 0, DateTimeKind.Utc ) ) );
@@ -211,90 +211,46 @@ namespace CK.Core.Tests
         }
 
         [Test]
-        public void GetFilesTest()
+        public void CheckForWriteAccess_is_immediately_true_when_file_does_not_exist_or_is_writeable()
         {
-            TestHelper.CleanupTestFolder();
-            DirectoryInfo testFolder = new DirectoryInfo( TestHelper.TestFolder );
-
-            CreateFiles( testFolder.FullName, "azerty.gif", "azerty.jpg", "azerty.png" );
-            AssertContains( testFolder.FullName, FileUtil.GetFiles( testFolder.FullName, "*.png;*.jpg;*.gif" ), "azerty.gif", "azerty.jpg", "azerty.png" );
-            AssertContains( testFolder.FullName, FileUtil.GetFiles( testFolder.FullName, "azerty.*" ), "azerty.gif", "azerty.jpg", "azerty.png" );
-            AssertContains( testFolder.FullName, FileUtil.GetFiles( testFolder.FullName, "azer*.gif" ), "azerty.gif" );
-            AssertContains( testFolder.FullName, FileUtil.GetFiles( testFolder.FullName, "azer*.*if" ), "azerty.gif" );
-            AssertContains( testFolder.FullName, FileUtil.GetFiles( testFolder.FullName, "azerty.*g" ), "azerty.jpg", "azerty.png" );
-                            
-            AssertContains( testFolder.FullName, FileUtil.GetFiles( testFolder.FullName, "*.png;*.jpg" ), "azerty.jpg", "azerty.png" );
-            AssertContains( testFolder.FullName, FileUtil.GetFiles( testFolder.FullName, "*.png;*.gif" ), "azerty.gif", "azerty.png" );
-            AssertContains( testFolder.FullName, FileUtil.GetFiles( testFolder.FullName, "*.gif" ), "azerty.gif" );
-            AssertContains( testFolder.FullName, FileUtil.GetFiles( testFolder.FullName, string.Empty ) );
-                             
-            AssertContains( testFolder.FullName, FileUtil.GetFiles( testFolder.FullName, "*" ), "azerty.gif", "azerty.jpg", "azerty.png" );
-            AssertContains( testFolder.FullName, FileUtil.GetFiles( testFolder.FullName, "*.*" ), "azerty.gif", "azerty.jpg", "azerty.png" );
-            AssertContains( testFolder.FullName, FileUtil.GetFiles( testFolder.FullName, "*;*.*" ), "azerty.gif", "azerty.jpg", "azerty.png" );
-            AssertContains( testFolder.FullName, FileUtil.GetFiles( testFolder.FullName, "*.png;*" ), "azerty.gif", "azerty.jpg", "azerty.png" );
-            AssertContains( testFolder.FullName, FileUtil.GetFiles( testFolder.FullName, "*.png;*.*" ), "azerty.gif", "azerty.jpg", "azerty.png" );
-                            
-            AssertContains( testFolder.FullName, FileUtil.GetFiles( testFolder.FullName, ";;" ) );
-            AssertContains( testFolder.FullName, FileUtil.GetFiles( testFolder.FullName, ";*;" ), "azerty.gif", "azerty.jpg", "azerty.png" );
-                            
-            AssertContains( testFolder.FullName, FileUtil.GetFiles( testFolder.FullName, "a" ) );
-            AssertContains( testFolder.FullName, FileUtil.GetFiles( testFolder.FullName, "a.z" ) );
-            AssertContains( testFolder.FullName, FileUtil.GetFiles( testFolder.FullName, "" ) );
-
-            TestHelper.CleanupTestFolder();
-
-            CreateFiles( testFolder.FullName, "az.gif", "rty.jpg", "arty.gif", "raz.png" );
-            AssertContains( testFolder.FullName, FileUtil.GetFiles( testFolder.FullName, "*.jpg;*.gif" ), "az.gif", "rty.jpg", "arty.gif" );
-            AssertContains( testFolder.FullName, FileUtil.GetFiles( testFolder.FullName, "a*.gif" ), "az.gif", "arty.gif" );
-            AssertContains( testFolder.FullName, FileUtil.GetFiles( testFolder.FullName, "r*.*" ), "rty.jpg", "raz.png" );
-            AssertContains( testFolder.FullName, FileUtil.GetFiles( testFolder.FullName, "r*.*;a*.gif" ), "raz.png", "az.gif", "rty.jpg", "arty.gif" );
-            AssertContains( testFolder.FullName, FileUtil.GetFiles( testFolder.FullName, "r*.png" ), "raz.png" );
-
-            TestHelper.CleanupTestFolder();
-        }
-
-        [Test]
-        public void CheckForWriteAcccess_is_immediately_true_when_file_does_not_exist_or_is_writeable()
-        {
-            Assert.Throws<ArgumentNullException>( () => FileUtil.CheckForWriteAcccess( null, 0 ) );
+            Assert.Throws<ArgumentNullException>( () => FileUtil.CheckForWriteAccess( null, 0 ) );
             TestHelper.CleanupTestFolder();
             string path = Path.Combine( TestHelper.TestFolder, "Locked.txt" );
-            Assert.That( FileUtil.CheckForWriteAcccess( path, 0 ), Is.True, "If the file does not exist, it is writeable." );
+            Assert.That( FileUtil.CheckForWriteAccess( path, 0 ), Is.True, "If the file does not exist, it is writeable." );
             File.WriteAllText( path, "Locked" );
-            Assert.That( FileUtil.CheckForWriteAcccess( path, 0 ), Is.True, "The is writeable: no need to wait." );
+            Assert.That( FileUtil.CheckForWriteAccess( path, 0 ), Is.True, "The is writeable: no need to wait." );
         }
 
         [TestCase( 100, 5, false )]
         [TestCase( 100, 50, false )]
         [TestCase( 10, 20, true )]
-        [TestCase( 1000, 1050, true )]
+        [TestCase( 1000, 1090, true )]
         //[TestCase( 20, 1, true, Description = "20 millisecond lock is not enough to make the difference." )]
         //[TestCase( 20, 5, true, Description = "20 millisecond lock is not enough to make the difference." )]
         //[TestCase( 20, 10, true, Description = "20 millisecond lock is not enough to make the difference." )]
         [TestCase( 20, 0, false, Description = "20 millisecond lock works only with nbMaxMilliSecond = 0." )]
-        public void CheckForWriteAcccess_is_not_exact_but_works( int lockTimeMilliSecond, int nbMaxMilliSecond, bool result )
+        public void CheckForWriteAccess_is_not_exact_but_works( int lockTimeMilliSecond, int nbMaxMilliSecond, bool result )
         {
             TestHelper.CleanupTestFolder();
             string path = Path.Combine( TestHelper.TestFolder, "Locked.txt" );
             object startLock = new object();
             Task.Factory.StartNew( () =>
                 {
-                    FileStream fs = File.OpenWrite( path );
-                    Thread.Sleep( 2 );
-                    lock( startLock ) Monitor.Pulse( startLock );
-                    Thread.Sleep( lockTimeMilliSecond );
-                    fs.Close();
+                    using( FileStream fs = File.OpenWrite( path ) )
+                    {
+                        Thread.Sleep( 2 );
+                        lock ( startLock ) Monitor.Pulse( startLock );
+                        Thread.Sleep( lockTimeMilliSecond );
+                    }
                 } );
             lock( startLock ) Monitor.Wait( startLock );
-            Assert.That( FileUtil.CheckForWriteAcccess( path, nbMaxMilliSecond ), Is.EqualTo( result ) );
+            Assert.That( FileUtil.CheckForWriteAccess( path, nbMaxMilliSecond ), Is.EqualTo( result ) );
             TestHelper.CleanupTestFolder();
         }
 
 
-        
-
         [Test]
-        public void IndexOfInvalidFileNameCharsTest()
+        public void test_IndexOfInvalidFileNameChars()
         {
             Assert.That( FileUtil.IndexOfInvalidFileNameChars( "" ), Is.EqualTo( -1 ) );
             Assert.That( FileUtil.IndexOfInvalidFileNameChars( "a" ), Is.EqualTo( -1 ) );
@@ -310,7 +266,7 @@ namespace CK.Core.Tests
         }
 
         [Test]
-        public void IndexOfInvalidPathCharsTest()
+        public void test_IndexOfInvalidPathChars()
         {
             Assert.That( FileUtil.IndexOfInvalidPathChars( "" ), Is.EqualTo( -1 ) );
             Assert.That( FileUtil.IndexOfInvalidPathChars( "a" ), Is.EqualTo( -1 ) );
@@ -335,7 +291,7 @@ namespace CK.Core.Tests
         {
             foreach( string s in values )
             {
-                File.Create( Path.Combine( path, s ) ).Close();
+                File.Create( Path.Combine( path, s ) ).Dispose();
             }
         }
 
@@ -344,7 +300,7 @@ namespace CK.Core.Tests
             
             foreach( string s in values )
             {
-                File.Create( Path.Combine( path, s ) ).Close();
+                File.Create( Path.Combine( path, s ) ).Dispose();
                 File.SetAttributes( Path.Combine( path, s ), FileAttributes.Hidden );
             }
 

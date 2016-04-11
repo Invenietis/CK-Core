@@ -1,32 +1,11 @@
-#region LGPL License
-/*----------------------------------------------------------------------------
-* This file (CK.Monitoring\GrandOutput.DefaultConfig.cs) is part of CiviKey. 
-*  
-* CiviKey is free software: you can redistribute it and/or modify 
-* it under the terms of the GNU Lesser General Public License as published 
-* by the Free Software Foundation, either version 3 of the License, or 
-* (at your option) any later version. 
-*  
-* CiviKey is distributed in the hope that it will be useful, 
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
-* GNU Lesser General Public License for more details. 
-* You should have received a copy of the GNU Lesser General Public License 
-* along with CiviKey.  If not, see <http://www.gnu.org/licenses/>. 
-*  
-* Copyright © 2007-2015, 
-*     Invenietis <http://www.invenietis.com>,
-*     In’Tech INFO <http://www.intechinfo.fr>,
-* All rights reserved. 
-*-----------------------------------------------------------------------------*/
-#endregion
-
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+#if NET451 || NET46
 using System.Runtime.Remoting.Lifetime;
+#endif
 using System.Text;
 using System.Threading.Tasks;
 using CK.Core;
@@ -38,22 +17,12 @@ namespace CK.Monitoring
 {
     public sealed partial class GrandOutput
     {
+#if NET451 || NET46
+
         static object _watcherLock = new object();
         static string _configPath = null;
         static DateTime _lastConfigFileWriteTime = FileUtil.MissingFileLastWriteTimeUtc;
-        static LogFilter _fileWatcherMonitoringMinimalFilter = LogFilter.Release;
-
-        /// <summary>
-        /// Gets or sets the minimal filter that monitors created for the 
-        /// GrandOutput itself will use.
-        /// Defaults to <see cref="LogFilter.Release"/> (this should be changed only for debugging reasons).
-        /// Caution: this applies only to the current AppDomain!
-        /// </summary>
-        static public LogFilter GrandOutputMinimalFilter
-        {
-            get { return _fileWatcherMonitoringMinimalFilter; }
-            set { _fileWatcherMonitoringMinimalFilter = value; }
-        }
+        static FileSystemWatcher _watcher;
 
         /// <summary>
         /// Ensures that the <see cref="Default"/> GrandOutput is created (see <see cref="EnsureActiveDefault"/>) and configured with default settings:
@@ -105,7 +74,7 @@ namespace CK.Monitoring
             return _default;
         }
 
-        const string _defaultConfig = 
+        const string _defaultConfig =
 @"<GrandOutputConfiguration>
     <Channel MinimalFilter=""Debug"">
         <Add Type=""BinaryFile"" Name=""All"" Path=""GrandOutputDefault"" MaxCountPerFile=""20000"" />
@@ -148,6 +117,7 @@ namespace CK.Monitoring
             if( _watcher == null ) return;
             ThreadPool.UnsafeQueueUserWorkItem( Reload, null );
         }
+
         static void Reload( object state )
         {
             if( _watcher == null ) return;
@@ -189,5 +159,6 @@ namespace CK.Monitoring
                 }
             }
         }
+#endif
     }
 }

@@ -1,26 +1,3 @@
-#region LGPL License
-/*----------------------------------------------------------------------------
-* This file (CK.Monitoring\RouteConfig\ConfiguredRouteHost.cs) is part of CiviKey. 
-*  
-* CiviKey is free software: you can redistribute it and/or modify 
-* it under the terms of the GNU Lesser General Public License as published 
-* by the Free Software Foundation, either version 3 of the License, or 
-* (at your option) any later version. 
-*  
-* CiviKey is distributed in the hope that it will be useful, 
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
-* GNU Lesser General Public License for more details. 
-* You should have received a copy of the GNU Lesser General Public License 
-* along with CiviKey.  If not, see <http://www.gnu.org/licenses/>. 
-*  
-* Copyright © 2007-2015, 
-*     Invenietis <http://www.invenietis.com>,
-*     In’Tech INFO <http://www.intechinfo.fr>,
-* All rights reserved. 
-*-----------------------------------------------------------------------------*/
-#endregion
-
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -57,8 +34,8 @@ namespace CK.RouteConfig
 
             internal RouteHost( RouteActionFactory<TAction, TRoute> factory )
             {
-                Actions = Util.EmptyArray<TAction>.Empty;
-                Routes = Util.EmptyArray<SubRouteHost>.Empty;
+                Actions = Util.Array.Empty<TAction>();
+                Routes = Util.Array.Empty<SubRouteHost>();
                 FinalRoute = factory.DoCreateEmptyFinalRoute();
             }
 
@@ -69,7 +46,7 @@ namespace CK.RouteConfig
                     try
                     {
                         Actions = c.ActionsResolved.Select( r => factory.Create( monitor, r.ActionConfiguration ) ).ToArray();
-                        FinalRoute = factory.DoCreateFinalRoute( monitor, configLock, Actions, c.Name, c.ConfigData, routePath.AsReadOnlyList() );
+                        FinalRoute = factory.DoCreateFinalRoute( monitor, configLock, Actions, c.Name, c.ConfigData, routePath );
                         routePath.Add( FinalRoute ); 
                         Routes = c.SubRoutes.Where( r => r.ActionsResolved.Any() ).Select( r => new SubRouteHost( monitor, routePath, configLock, factory, r ) ).ToArray();
                         routePath.RemoveAt( routePath.Count-1 );
@@ -143,7 +120,7 @@ namespace CK.RouteConfig
             _configLock = new CountdownEvent( 0 );
             _emptyHost = new RouteHost( actionFactory );
             _root = _emptyHost;
-            _allActions = Util.EmptyArray<TAction>.Empty;
+            _allActions = Util.Array.Empty<TAction>();
         }
 
         /// <summary>
@@ -469,7 +446,7 @@ namespace CK.RouteConfig
             }
             _configLock.Reset( 0 );
             _futureRoot = _emptyHost;
-            _futureAllActions = Util.EmptyArray<TAction>.Empty;
+            _futureAllActions = Util.Array.Empty<TAction>();
             return false;
         }
 

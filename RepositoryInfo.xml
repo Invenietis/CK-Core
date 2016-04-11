@@ -1,9 +1,9 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <RepositoryInfo xmlns="http://csemver.org/schemas/2015">
-	<StartingVersionForCSemVer>v4.2.0</StartingVersionForCSemVer>
+	<StartingVersionForCSemVer>v5.0.0-alpha</StartingVersionForCSemVer>
   <!--<Debug IgnoreDirtyWorkingFolder="true"/>-->
   <PossibleVersionsMode>AllSuccessors</PossibleVersionsMode>
   <Branches>
-    <Branch Name="develop" CIVersionMode="LastReleaseBased" />
+    <Branch Name="dnx-support" VersionName="dnx" CIVersionMode="LastReleaseBased" />
   </Branches>
 </RepositoryInfo>

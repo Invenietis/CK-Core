@@ -30,7 +30,7 @@ namespace CK.Core.Tests
     public class UtilInterlockedTests
     {
         [Test]
-        public void InterlockedAdd()
+        public void InterlockedAdd_atomically_adds_an_item_to_an_array()
         {
             int[] a = null;
             Util.InterlockedAdd( ref a, 1 );
@@ -42,7 +42,7 @@ namespace CK.Core.Tests
         }
         
         [Test]
-        public void InterlockedAddPrepend()
+        public void InterlockedAdd_can_add_an_item_in_front_of_an_array()
         {
             int[] a = null;
             Util.InterlockedAdd( ref a, 1, true );
@@ -54,39 +54,40 @@ namespace CK.Core.Tests
         }
 
         [Test]
-        public void InterlockedAddUnique()
+        public void InterlockedAddUnique_tests_the_occurrence_of_the_item()
         {
-            int[] a = null;
-            Util.InterlockedAddUnique( ref a, 1 );
-            Assert.That( a != null && a.Length == 1 && a[0] == 1 );
-            var theA = a;
-            Util.InterlockedAddUnique( ref a, 1 );
-            Assert.That( a, Is.SameAs( theA ) );
-            Util.InterlockedAddUnique( ref a, 2 );
-            Assert.That( a != null && a.Length == 2 && a[0] == 1 && a[1] == 2 );
-            theA = a;
-            Util.InterlockedAddUnique( ref a, 2 );
-            Assert.That( a, Is.SameAs( theA ) );
+            {
+                // Append
+                int[] a = null;
+                Util.InterlockedAddUnique( ref a, 1 );
+                Assert.That( a != null && a.Length == 1 && a[0] == 1 );
+                var theA = a;
+                Util.InterlockedAddUnique( ref a, 1 );
+                Assert.That( a, Is.SameAs( theA ) );
+                Util.InterlockedAddUnique( ref a, 2 );
+                Assert.That( a != null && a.Length == 2 && a[0] == 1 && a[1] == 2 );
+                theA = a;
+                Util.InterlockedAddUnique( ref a, 2 );
+                Assert.That( a, Is.SameAs( theA ) );
+            }
+            {
+                // Prepend
+                int[] a = null;
+                Util.InterlockedAddUnique( ref a, 1, true );
+                Assert.That( a != null && a.Length == 1 && a[0] == 1 );
+                var theA = a;
+                Util.InterlockedAddUnique( ref a, 1, true );
+                Assert.That( a, Is.SameAs( theA ) );
+                Util.InterlockedAddUnique( ref a, 2, true );
+                Assert.That( a != null && a.Length == 2 && a[0] == 2 && a[1] == 1 );
+                theA = a;
+                Util.InterlockedAddUnique( ref a, 2, true );
+                Assert.That( a, Is.SameAs( theA ) );
+            }
         }
 
         [Test]
-        public void InterlockedAddUniquePrepend()
-        {
-            int[] a = null;
-            Util.InterlockedAddUnique( ref a, 1, true );
-            Assert.That( a != null && a.Length == 1 && a[0] == 1 );
-            var theA = a;
-            Util.InterlockedAddUnique( ref a, 1, true );
-            Assert.That( a, Is.SameAs( theA ) );
-            Util.InterlockedAddUnique( ref a, 2, true );
-            Assert.That( a != null && a.Length == 2 && a[0] == 2 && a[1] == 1 );
-            theA = a;
-            Util.InterlockedAddUnique( ref a, 2, true );
-            Assert.That( a, Is.SameAs( theA ) );
-        }
-
-        [Test]
-        public void InterlockedRemove()
+        public void InterlockedRemove_an_item_from_an_array()
         {
             int[] a = new[] { 1, 2, 3, 4, 5, 6, 7 };
             Util.InterlockedRemove( ref a, 1 );
@@ -106,7 +107,7 @@ namespace CK.Core.Tests
             Util.InterlockedRemove( ref a, 6 );
             CollectionAssert.AreEqual( a, new[] { 2 } );
             Util.InterlockedRemove( ref a, 2 );
-            CollectionAssert.AreEqual( a, Util.EmptyArray<int>.Empty );
+            CollectionAssert.AreEqual( a, Util.Array.Empty<int>() );
 
             var aEmpty = a;
             Util.InterlockedRemove( ref a, 2 );
@@ -122,13 +123,13 @@ namespace CK.Core.Tests
         }
 
         [Test]
-        public void InterlockedRemoveAll()
+        public void InterlockedRemoveAll_items_that_match_a_condition()
         {
             int[] a = new[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
             Util.InterlockedRemoveAll( ref a, i => i % 2 == 0 );
             CollectionAssert.AreEqual( a, new[] { 1, 3, 5, 7, 9 } );
             Util.InterlockedRemoveAll( ref a, i => i % 2 != 0 );
-            CollectionAssert.AreEqual( a, Util.EmptyArray<int>.Empty );
+            CollectionAssert.AreEqual( a, Util.Array.Empty<int>() );
 
             a = null;
             Util.InterlockedRemoveAll( ref a, i => i % 2 != 0 );
@@ -137,7 +138,7 @@ namespace CK.Core.Tests
         }
 
         [Test]
-        public void InterlockedAddWithCondition()
+        public void InterlockedAdd_item_under_condition()
         {
             int[] a = new[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
             var theA = a;

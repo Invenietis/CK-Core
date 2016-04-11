@@ -1,8 +1,0 @@
-﻿==> 4.0
-
-- Added GrandOutput.GrandOutputMinimalFilter.
-
-==> 3.0.28
-- Tags per monitor are collected with their count on each Monitor.
-
-==> 3.0.27

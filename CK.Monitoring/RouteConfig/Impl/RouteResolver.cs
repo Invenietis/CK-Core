@@ -1,31 +1,6 @@
-#region LGPL License
-/*----------------------------------------------------------------------------
-* This file (CK.Monitoring\RouteConfig\Impl\RouteResolver.cs) is part of CiviKey. 
-*  
-* CiviKey is free software: you can redistribute it and/or modify 
-* it under the terms of the GNU Lesser General Public License as published 
-* by the Free Software Foundation, either version 3 of the License, or 
-* (at your option) any later version. 
-*  
-* CiviKey is distributed in the hope that it will be useful, 
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
-* GNU Lesser General Public License for more details. 
-* You should have received a copy of the GNU Lesser General Public License 
-* along with CiviKey.  If not, see <http://www.gnu.org/licenses/>. 
-*  
-* Copyright © 2007-2015, 
-*     Invenietis <http://www.invenietis.com>,
-*     In’Tech INFO <http://www.intechinfo.fr>,
-* All rights reserved. 
-*-----------------------------------------------------------------------------*/
-#endregion
-
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using CK.Core;
 
 namespace CK.RouteConfig.Impl
@@ -120,16 +95,16 @@ namespace CK.RouteConfig.Impl
                     using( monitor.OpenInfo().Send( "Building final routes." ) )
                     {
                         var preRoot = new PreRoute( monitor, protoResolver.Root );
-                        Root = new RouteConfigurationResolved( protoResolver.Root.FullName, c.ConfigData, preRoot.FinalizeActions().AsReadOnlyList() );
+                        Root = new RouteConfigurationResolved( protoResolver.Root.FullName, c.ConfigData, preRoot.FinalizeActions() );
                         foreach( IProtoSubRoute sub in protoResolver.NamedSubRoutes.Values )
                         {
                             var preRoute = new PreRoute( monitor, sub );
-                            NamedSubRoutes.Add( sub.FullName, new SubRouteConfigurationResolved( sub, preRoute.FinalizeActions().AsReadOnlyList() ) );
+                            NamedSubRoutes.Add( sub.FullName, new SubRouteConfigurationResolved( sub, preRoute.FinalizeActions() ) );
                         }
-                        Root.SubRoutes = protoResolver.Root.SubRoutes.Select( p => NamedSubRoutes[p.FullName] ).ToArray().AsReadOnlyList();
+                        Root.SubRoutes = protoResolver.Root.SubRoutes.Select( p => NamedSubRoutes[p.FullName] ).ToArray();
                         foreach( IProtoSubRoute sub in protoResolver.NamedSubRoutes.Values )
                         {
-                            NamedSubRoutes[sub.FullName].SubRoutes = sub.SubRoutes.Select( p => NamedSubRoutes[p.FullName] ).ToArray().AsReadOnlyList();
+                            NamedSubRoutes[sub.FullName].SubRoutes = sub.SubRoutes.Select( p => NamedSubRoutes[p.FullName] ).ToArray();
                         }
                     }
                 }

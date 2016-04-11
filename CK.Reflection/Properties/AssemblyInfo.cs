@@ -23,13 +23,8 @@
 
 using System.Reflection;
 using System.Resources;
-using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
 
 [assembly: AssemblyTitle( "CK.Reflection" )]
 [assembly: AssemblyDescription( "" )]
 [assembly: AssemblyCulture( "" )]
 [assembly: NeutralResourcesLanguage( "en-US" )]
-[assembly: ComVisible( false )]
-[assembly: Guid( "103e2088-003b-4d36-b9d8-071ad89eb190" )]
-

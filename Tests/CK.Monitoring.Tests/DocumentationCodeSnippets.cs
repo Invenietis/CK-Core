@@ -31,7 +31,9 @@ namespace CK.Monitoring.Tests
         public void CodeConfiguration()
         {
             CK.Core.SystemActivityMonitor.RootLogPath = @"C:\Test\Logs";
+            #if NET451 || NET46
             CK.Monitoring.GrandOutput.EnsureActiveDefaultWithDefaultSettings();
+            #endif
         }
 
 

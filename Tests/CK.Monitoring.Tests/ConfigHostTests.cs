@@ -1,36 +1,12 @@
-#region LGPL License
-/*----------------------------------------------------------------------------
-* This file (Tests\CK.Monitoring.Tests\ConfigHostTests.cs) is part of CiviKey. 
-*  
-* CiviKey is free software: you can redistribute it and/or modify 
-* it under the terms of the GNU Lesser General Public License as published 
-* by the Free Software Foundation, either version 3 of the License, or 
-* (at your option) any later version. 
-*  
-* CiviKey is distributed in the hope that it will be useful, 
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
-* GNU Lesser General Public License for more details. 
-* You should have received a copy of the GNU Lesser General Public License 
-* along with CiviKey.  If not, see <http://www.gnu.org/licenses/>. 
-*  
-* Copyright © 2007-2015, 
-*     Invenietis <http://www.invenietis.com>,
-*     In’Tech INFO <http://www.intechinfo.fr>,
-* All rights reserved. 
-*-----------------------------------------------------------------------------*/
-#endregion
-
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using CK.Core;
 using CK.RouteConfig;
 using NUnit.Framework;
+using System.Reflection;
 
 namespace CK.Monitoring.Tests
 {
@@ -249,7 +225,7 @@ namespace CK.Monitoring.Tests
 
             public static bool SynchronousRoute = false;
 
-            public static readonly FinalRoute Empty = new FinalRoute( null, Util.EmptyArray<ITestIt>.Empty, String.Empty );
+            public static readonly FinalRoute Empty = new FinalRoute( null, Util.Array.Empty<ITestIt>(), String.Empty );
 
             internal FinalRoute( IRouteConfigurationLock useLock, ITestIt[] actions, string name )
             {
@@ -290,14 +266,14 @@ namespace CK.Monitoring.Tests
 
         class TestFactory : RouteActionFactory<ITestIt, FinalRoute>
         {
-            protected internal override FinalRoute DoCreateEmptyFinalRoute()
+            protected override FinalRoute DoCreateEmptyFinalRoute()
             {
                 return FinalRoute.Empty;
             }
 
             protected override ITestIt DoCreate( IActivityMonitor monitor, IRouteConfigurationLock configLock, ActionConfiguration c )
             {
-                ActionTypeAttribute a = (ActionTypeAttribute)c.GetType().GetCustomAttributes( typeof( ActionTypeAttribute ), true ).Single();
+                ActionTypeAttribute a = c.GetType().GetTypeInfo().GetCustomAttribute<ActionTypeAttribute>();
                 return (ITestIt)Activator.CreateInstance( a.ActionType, monitor, c );
             }
 
@@ -311,7 +287,7 @@ namespace CK.Monitoring.Tests
                 return new TestSequence( monitor, c, children );
             }
 
-            protected internal override FinalRoute DoCreateFinalRoute( IActivityMonitor monitor, IRouteConfigurationLock configLock, ITestIt[] actions, string configurationName, object configData, IReadOnlyList<FinalRoute> parentPath )
+            protected override FinalRoute DoCreateFinalRoute( IActivityMonitor monitor, IRouteConfigurationLock configLock, ITestIt[] actions, string configurationName, object configData, IReadOnlyList<FinalRoute> parentPath )
             {
                 return new FinalRoute( configLock, actions, configurationName );
             }

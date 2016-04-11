@@ -1,35 +1,9 @@
-#region LGPL License
-/*----------------------------------------------------------------------------
-* This file (CK.Monitoring\Persistence\MultiLogReader.ActivityMap.cs) is part of CiviKey. 
-*  
-* CiviKey is free software: you can redistribute it and/or modify 
-* it under the terms of the GNU Lesser General Public License as published 
-* by the Free Software Foundation, either version 3 of the License, or 
-* (at your option) any later version. 
-*  
-* CiviKey is distributed in the hope that it will be useful, 
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
-* GNU Lesser General Public License for more details. 
-* You should have received a copy of the GNU Lesser General Public License 
-* along with CiviKey.  If not, see <http://www.gnu.org/licenses/>. 
-*  
-* Copyright © 2007-2015, 
-*     Invenietis <http://www.invenietis.com>,
-*     In’Tech INFO <http://www.intechinfo.fr>,
-* All rights reserved. 
-*-----------------------------------------------------------------------------*/
-#endregion
-
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
 using CK.Core;
+using System.Collections.ObjectModel;
 
 namespace CK.Monitoring
 {
@@ -51,10 +25,10 @@ namespace CK.Monitoring
             {
                 // ConcurrentDictionary.Values is a snapshot (a ReadOnlyCollection), this is why 
                 // it is safe to wrap it in a IReadOnlyCollection wrapper.
-                _allFiles = new CKReadOnlyCollectionOnICollection<RawLogFile>( reader._files.Values );
-                _validFiles = _allFiles.Where( f => f.Error == null && f.TotalEntryCount > 0 ).ToReadOnlyList();
+                _allFiles = (ReadOnlyCollection<RawLogFile>)reader._files.Values;
+                _validFiles = _allFiles.Where( f => f.Error == null && f.TotalEntryCount > 0 ).ToArray();
                 _monitors = reader._monitors.ToDictionary( e => e.Key, e => new Monitor( e.Value ) );
-                _monitorList = _monitors.Values.OrderBy( m => m.FirstEntryTime ).ToReadOnlyList();
+                _monitorList = _monitors.Values.OrderBy( m => m.FirstEntryTime ).ToArray();
                 _firstEntryDate = reader._globalFirstEntryTime;
                 _lastEntryDate = reader._globalLastEntryTime;
             }
@@ -111,12 +85,12 @@ namespace CK.Monitoring
             internal Monitor( LiveIndexedMonitor m )
             {
                 _monitorId = m.MonitorId;
-                _files = m._files.OrderBy( f => f.FirstEntryTime ).ToReadOnlyList();
+                _files = m._files.OrderBy( f => f.FirstEntryTime ).ToArray();
                 _firstEntryTime = m._firstEntryTime;
                 _firstDepth = m._firstDepth;
                 _lastEntryTime = m._lastEntryTime;
                 _lastDepth = m._lastDepth;
-                _tags = m._tags != null ? m._tags.OrderByDescending( k => k.Key ).ToReadOnlyList() : CKReadOnlyListEmpty<KeyValuePair<CKTrait, int>>.Empty;
+                _tags = m._tags != null ? m._tags.OrderByDescending( k => k.Key ).ToArray() : Util.Array.Empty<KeyValuePair<CKTrait, int>>();
             }
 
             /// <summary>
@@ -150,7 +124,7 @@ namespace CK.Monitoring
             public int LastDepth { get { return _lastDepth; } }
 
             /// <summary>
-            /// Gets the weighted occurences of each tags that have been logged in this monitor.
+            /// Gets the weighted occurrences of each tags that have been logged in this monitor.
             /// </summary>
             public IReadOnlyList<KeyValuePair<CKTrait, int>> AllTags { get { return _tags; } }
 
@@ -510,7 +484,7 @@ namespace CK.Monitoring
                 {
                     return new LivePage( _firstDepth, new ParentedLogEntry[pageLength], r, pageLength );
                 }
-                return new LivePage( _firstDepth, Util.EmptyArray<ParentedLogEntry>.Empty, null, pageLength );
+                return new LivePage( _firstDepth, Util.Array.Empty<ParentedLogEntry>(), null, pageLength );
             }
 
             /// <summary>

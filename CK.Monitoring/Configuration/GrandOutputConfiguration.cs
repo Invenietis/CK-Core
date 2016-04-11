@@ -1,33 +1,7 @@
-#region LGPL License
-/*----------------------------------------------------------------------------
-* This file (CK.Monitoring\Configuration\GrandOutputConfiguration.cs) is part of CiviKey. 
-*  
-* CiviKey is free software: you can redistribute it and/or modify 
-* it under the terms of the GNU Lesser General Public License as published 
-* by the Free Software Foundation, either version 3 of the License, or 
-* (at your option) any later version. 
-*  
-* CiviKey is distributed in the hope that it will be useful, 
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
-* GNU Lesser General Public License for more details. 
-* You should have received a copy of the GNU Lesser General Public License 
-* along with CiviKey.  If not, see <http://www.gnu.org/licenses/>. 
-*  
-* Copyright © 2007-2015, 
-*     Invenietis <http://www.invenietis.com>,
-*     In’Tech INFO <http://www.intechinfo.fr>,
-* All rights reserved. 
-*-----------------------------------------------------------------------------*/
-#endregion
-
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
-using System.Text;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 using System.Xml;
 using System.Xml.Linq;
 using CK.Core;
@@ -89,7 +63,7 @@ namespace CK.Monitoring
             if( monitor == null ) throw new ArgumentNullException( "monitor" );
             try
             {
-                if( e.Name != "GrandOutputConfiguration" ) throw new XmlException( "Element name must be <GrandOutputConfiguration>." + e.GetLineColumString() );
+                if( e.Name != "GrandOutputConfiguration" ) throw new XmlException( "Element name must be <GrandOutputConfiguration>." + e.GetLineColumnString() );
                 LogFilter? appDomainFilter = e.GetAttributeLogFilter( "AppDomainDefaultFilter", false );
 
                 SourceFilterApplyMode applyMode;
@@ -102,7 +76,7 @@ namespace CK.Monitoring
                     XElement channelElement = e.Element( "Channel" );
                     if( channelElement == null )
                     {
-                        monitor.Error().Send( "Missing <Channel /> element." + e.GetLineColumString() );
+                        monitor.Error().Send( "Missing <Channel /> element." + e.GetLineColumnString() );
                         return false;
                     }
                     routeConfig = FillRoute( monitor, channelElement, new RouteConfiguration() );
@@ -179,12 +153,12 @@ namespace CK.Monitoring
                         monitor.CloseGroup( "No source filtering (ApplyMode is None)." );
                         return new Dictionary<string, LogFilter>();
                     }
-                    apply = s.GetAttributeEnum( "ApplyMode", SourceFilterApplyMode.Apply );
+                    apply = s.AttributeEnum( "ApplyMode", SourceFilterApplyMode.Apply );
 
                     var stranger =  e.Elements( "SourceOverrideFilter" ).Elements().FirstOrDefault( f => f.Name != "Add" && f.Name != "Remove" );
                     if( stranger != null )
                     {
-                        throw new XmlException( "SourceOverrideFilter element must contain only Add and Remove elements." + stranger.GetLineColumString() );
+                        throw new XmlException( "SourceOverrideFilter element must contain only Add and Remove elements." + stranger.GetLineColumnString() );
                     }
                     var result = e.Elements( "SourceOverrideFilter" )
                                     .Elements()
@@ -222,7 +196,7 @@ namespace CK.Monitoring
                     case "Sequence":
                     case "Add": DoSequenceOrParallelOrAdd( monitor, a => route.AddAction( a ), e );
                         break;
-                    default: throw new XmlException( "Element name must be <Add>, <Parallel>, <Sequence> or <Channel>." + e.GetLineColumString() );
+                    default: throw new XmlException( "Element name must be <Add>, <Parallel>, <Sequence> or <Channel>." + e.GetLineColumnString() );
                 }
             }
             return route;
@@ -232,12 +206,12 @@ namespace CK.Monitoring
         {
             using( monitor.OpenTrace().Send( "Reading subordinated channel '{0}'.", sub.Name ) )
             {
-                var matchOptions = xml.GetAttribute( "MatchOptions", null );
-                var filter = xml.GetAttribute( "TopicFilter", null );
-                var regex = xml.GetAttribute( "TopicRegex", null );
+                var matchOptions = (string)xml.Attribute( "MatchOptions" );
+                var filter = (string)xml.Attribute( "TopicFilter" );
+                var regex = (string)xml.Attribute( "TopicRegex" );
                 if( (filter == null) == (regex == null) )
                 {
-                    throw new XmlException( "Subordinated Channel must define one TopicFilter or TopicRegex attribute (and not both)." + xml.GetLineColumString() );
+                    throw new XmlException( "Subordinated Channel must define one TopicFilter or TopicRegex attribute (and not both)." + xml.GetLineColumnString() );
                 }
                 RegexOptions opt = RegexOptions.IgnoreCase | RegexOptions.CultureInvariant | RegexOptions.Multiline | RegexOptions.ExplicitCapture;
                 if( !String.IsNullOrWhiteSpace( matchOptions ) )
@@ -245,7 +219,7 @@ namespace CK.Monitoring
                     if( !Enum.TryParse( matchOptions, true, out opt ) )
                     {
                         var expected = String.Join( ", ", Enum.GetNames( typeof( RegexOptions ) ).Where( n => n != "None" ) );
-                        throw new XmlException( "MatchOptions value must be a subset of: " + expected + xml.GetLineColumString() );
+                        throw new XmlException( "MatchOptions value must be a subset of: " + expected + xml.GetLineColumnString() );
                     }
                     monitor.Trace().Send( "MatchOptions for Channel '{0}' is: {1}.", sub.Name, opt );
                 }
@@ -302,7 +276,7 @@ namespace CK.Monitoring
 
         static Type FindConfigurationType( string type )
         {
-            Type t = SimpleTypeFinder.WeakDefault.ResolveType( type, false );
+            Type t = SimpleTypeFinder.WeakResolver( type, false );
             if( t == null )
             {
                 string fullTypeName, assemblyFullName;
@@ -312,10 +286,10 @@ namespace CK.Monitoring
                     assemblyFullName = "CK.Monitoring";
                 }
                 if( !fullTypeName.EndsWith( "Configuration" ) ) fullTypeName += "Configuration";
-                t = SimpleTypeFinder.WeakDefault.ResolveType( fullTypeName + ", " + assemblyFullName, false );
+                t = SimpleTypeFinder.WeakResolver( fullTypeName + ", " + assemblyFullName, false );
                 if( t == null )
                 {
-                    t = SimpleTypeFinder.WeakDefault.ResolveType( "CK.Monitoring.GrandOutputHandlers." + fullTypeName + ", " + assemblyFullName, true );
+                    t = SimpleTypeFinder.WeakResolver( "CK.Monitoring.GrandOutputHandlers." + fullTypeName + ", " + assemblyFullName, true );
                 }
             }
             return t;

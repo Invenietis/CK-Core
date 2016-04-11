@@ -1,30 +1,7 @@
-#region LGPL License
-/*----------------------------------------------------------------------------
-* This file (CK.Core\DateTimeStamp.cs) is part of CiviKey. 
-*  
-* CiviKey is free software: you can redistribute it and/or modify 
-* it under the terms of the GNU Lesser General Public License as published 
-* by the Free Software Foundation, either version 3 of the License, or 
-* (at your option) any later version. 
-*  
-* CiviKey is distributed in the hope that it will be useful, 
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
-* GNU Lesser General Public License for more details. 
-* You should have received a copy of the GNU Lesser General Public License 
-* along with CiviKey.  If not, see <http://www.gnu.org/licenses/>. 
-*  
-* Copyright © 2007-2015, 
-*     Invenietis <http://www.invenietis.com>,
-*     In’Tech INFO <http://www.intechinfo.fr>,
-* All rights reserved. 
-*-----------------------------------------------------------------------------*/
-#endregion
-
 using System;
-using System.ComponentModel;
 using System.Diagnostics;
 using System.Globalization;
+using System.Runtime.Serialization;
 
 namespace CK.Core
 {
@@ -32,7 +9,6 @@ namespace CK.Core
     /// A date and time stamp encapsulates a <see cref="TimeUtc"/> (<see cref="DateTime"/> guaranteed to be in Utc) and a <see cref="Uniquifier"/>.
     /// </summary>
     [Serializable]
-    [ImmutableObject( true )]
     public struct DateTimeStamp : IComparable<DateTimeStamp>, IEquatable<DateTimeStamp>
     {
         /// <summary>
@@ -79,7 +55,7 @@ namespace CK.Core
         /// <param name="uniquifier">Optional non zero uniquifier.</param>
         public DateTimeStamp( DateTime timeUtc, Byte uniquifier = 0 )
         {
-            if( timeUtc.Kind != DateTimeKind.Utc ) throw new ArgumentException( R.DateTimeMustBeUtc, "timeUtc" );
+            if( timeUtc.Kind != DateTimeKind.Utc ) throw new ArgumentException( Impl.CoreResources.DateTimeMustBeUtc, nameof( timeUtc ) );
             TimeUtc = timeUtc;
             Uniquifier = uniquifier;
         }
@@ -93,7 +69,7 @@ namespace CK.Core
         /// <param name="ensureGreaterThanLastOne">False to only check for time equality collision instead of guarantying ascending log time.</param>
         public DateTimeStamp( DateTimeStamp lastOne, DateTime time, bool ensureGreaterThanLastOne = true )
         {
-            if( time.Kind != DateTimeKind.Utc ) throw new ArgumentException( R.DateTimeMustBeUtc, "time" );
+            if( time.Kind != DateTimeKind.Utc ) throw new ArgumentException( Impl.CoreResources.DateTimeMustBeUtc, nameof( time ) );
             if( ensureGreaterThanLastOne ? time <= lastOne.TimeUtc : time != lastOne.TimeUtc )
             {
                 if( lastOne.Uniquifier == Byte.MaxValue )
@@ -152,42 +128,6 @@ namespace CK.Core
         public static DateTimeStamp UtcNow
         {
             get { return new DateTimeStamp( DateTime.UtcNow ); }
-        }
-
-        /// <summary>
-        /// Tries to match a <see cref="DateTimeStamp"/> at a given index in the string.
-        /// </summary>
-        /// <param name="s">The string to parse.</param>
-        /// <param name="startAt">Index where the match must start. On success, index of the end of the match.</param>
-        /// <param name="maxLength">
-        /// Maximum index to consider in the string (it shortens the default <see cref="String.Length"/>), it can be zero or negative.
-        /// If maxLength is greater than String.Length an <see cref="ArgumentException"/> is thrown.
-        /// </param>
-        /// <param name="time">Result time.</param>
-        /// <returns>True if the time has been matched.</returns>
-        static public bool Match( string s, ref int startAt, int maxLength, out DateTimeStamp time )
-        {
-            bool ret = false;
-            DateTime t;
-            Byte uniquifier = 0;
-            if( FileUtil.MatchFileNameUniqueTimeUtcFormat( s, ref startAt, maxLength, out t ) )
-            {
-                if( startAt < maxLength - 2 && s[startAt] == '(' )
-                {
-                    int iStartNum = startAt + 1;
-                    int iCloseB = s.IndexOf( ')', iStartNum );
-                    if( iCloseB > 0 )
-                    {
-                        if( Byte.TryParse( s.Substring( iStartNum, iCloseB - iStartNum ), out uniquifier ) )
-                        {
-                            startAt = iCloseB + 1;
-                        }
-                    }
-                }
-                ret = true;
-            }
-            time = new DateTimeStamp( t, uniquifier );
-            return ret;
         }
 
         /// <summary>

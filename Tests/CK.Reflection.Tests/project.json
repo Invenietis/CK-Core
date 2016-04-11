@@ -1,0 +1,33 @@
+{
+  "version": "5.0.0-beta",
+  "description": "CK.Reflection.Tests Class Library",
+  "authors": [ "Olivier Spinelli" ],
+  "owners": [ "Invenietis" ],
+  "tags": [ "" ],
+  "projectUrl": "",
+  "licenseUrl": "",
+
+  "scripts": {
+    "prebuild": "sgv prebuild"
+  },
+    "frameworks": {
+        "netstandardapp1.5": {
+            "imports": [
+                "dnxcore50",
+                "portable-net451+win8"
+            ],
+            "dependencies": {
+                "dotnet-test-xunit": "1.0.0-dev-*",
+                "System.Runtime":"4.1.0-*"
+            }
+        }
+    },
+    
+   "testRunner":"xunit",
+    
+  "dependencies": {
+      "CK.Reflection":"5.0.0-beta",
+      "xunit": "2.1.0",
+      "NUnitLite": "3.2.0"
+  }
+}

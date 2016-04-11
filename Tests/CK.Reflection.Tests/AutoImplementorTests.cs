@@ -49,7 +49,9 @@ namespace CK.Reflection.Tests
             {
                 AssemblyName assemblyName = new AssemblyName( "TypeImplementorModule" );
                 assemblyName.Version = new Version( 1, 0, 0, 0 );
-                AssemblyBuilder assemblyBuilder = AppDomain.CurrentDomain.DefineDynamicAssembly( assemblyName, AssemblyBuilderAccess.RunAndSave );
+                // REVIEW: RunAndSave does no longer exists. Uses Run. Not sure about it though... 
+                // Also uses direct static AssemblyBuilder.DefineDynamicAssembly instead of passing from AppDomain.Current since App.Domain does no longer exists.
+                AssemblyBuilder assemblyBuilder = AssemblyBuilder.DefineDynamicAssembly( assemblyName, AssemblyBuilderAccess.Run );
                 _moduleBuilder = assemblyBuilder.DefineDynamicModule( "TypeImplementorModule" );
             }
             return baseType == null 
@@ -156,7 +158,7 @@ namespace CK.Reflection.Tests
             Type t = typeof( A );
             TypeBuilder b = CreateTypeBuilder( t );
             EmitHelper.ImplementEmptyStubMethod( b, t.GetMethod( "FirstMethod", BindingFlags.Instance | BindingFlags.NonPublic ), false );
-            Type builtType = b.CreateType();
+            Type builtType = b.CreateTypeInfo().AsType();
             A o = (A)Activator.CreateInstance( builtType );
             Assert.That( o.CallFirstMethod( 10 ), Is.Null );
         }
@@ -167,7 +169,7 @@ namespace CK.Reflection.Tests
             Type t = typeof( B );
             TypeBuilder b = CreateTypeBuilder( t );
             EmitHelper.ImplementEmptyStubMethod( b, t.GetMethod( "M" ), false );
-            Type builtType = b.CreateType();
+            Type builtType = b.CreateTypeInfo().AsType();
             B o = (B)Activator.CreateInstance( builtType );
             Assert.That( o.M( 10 ), Is.EqualTo( 0 ) );
         }
@@ -178,7 +180,7 @@ namespace CK.Reflection.Tests
             Type t = typeof( C );
             TypeBuilder b = CreateTypeBuilder( t );
             EmitHelper.ImplementEmptyStubMethod( b, t.GetMethod( "M" ), false );
-            Type builtType = b.CreateType();
+            Type builtType = b.CreateTypeInfo().AsType();
             C o = (C)Activator.CreateInstance( builtType );
             Assert.That( o.M( 10 ), Is.EqualTo( 0 ) );
         }
@@ -189,7 +191,7 @@ namespace CK.Reflection.Tests
             Type t = typeof( D );
             TypeBuilder b = CreateTypeBuilder( t );
             EmitHelper.ImplementEmptyStubMethod( b, t.GetMethod( "M" ), false );
-            Type builtType = b.CreateType();
+            Type builtType = b.CreateTypeInfo().AsType();
             D o = (D)Activator.CreateInstance( builtType );
             Assert.That( o.M( 10 ), Is.EqualTo( Guid.Empty ) );
         }
@@ -200,7 +202,7 @@ namespace CK.Reflection.Tests
             Type t = typeof( E );
             TypeBuilder b = CreateTypeBuilder( t );
             EmitHelper.ImplementEmptyStubMethod( b, t.GetMethod( "M" ), false );
-            Type builtType = b.CreateType();
+            Type builtType = b.CreateTypeInfo().AsType();
             E o = (E)Activator.CreateInstance( builtType );
             int i = 3712;
             Assert.That( o.M( ref i ), Is.EqualTo( 0 ) );
@@ -213,7 +215,7 @@ namespace CK.Reflection.Tests
             Type t = typeof( F );
             TypeBuilder b = CreateTypeBuilder( t );
             EmitHelper.ImplementEmptyStubMethod( b, t.GetMethod( "M" ), false );
-            Type builtType = b.CreateType();
+            Type builtType = b.CreateTypeInfo().AsType();
             F o = (F)Activator.CreateInstance( builtType );
             int i = 45;
             Assert.That( o.M( out i ), Is.EqualTo( 0 ) );
@@ -226,7 +228,7 @@ namespace CK.Reflection.Tests
             Type t = typeof( G );
             TypeBuilder b = CreateTypeBuilder( t );
             EmitHelper.ImplementEmptyStubMethod( b, t.GetMethod( "M" ), false );
-            Type builtType = b.CreateType();
+            Type builtType = b.CreateTypeInfo().AsType();
             G o = (G)Activator.CreateInstance( builtType );
             Guid i = Guid.NewGuid();
             Assert.That( o.M( out i ), Is.EqualTo( 0 ) );
@@ -239,7 +241,7 @@ namespace CK.Reflection.Tests
             Type t = typeof( H );
             TypeBuilder b = CreateTypeBuilder( t );
             EmitHelper.ImplementEmptyStubMethod( b, t.GetMethod( "M" ), false );
-            Type builtType = b.CreateType();
+            Type builtType = b.CreateTypeInfo().AsType();
             H o = (H)Activator.CreateInstance( builtType );
             Guid iOrigin = Guid.NewGuid();
             Guid i = iOrigin;
@@ -253,7 +255,7 @@ namespace CK.Reflection.Tests
             Type t = typeof( I );
             TypeBuilder b = CreateTypeBuilder( t );
             EmitHelper.ImplementEmptyStubMethod( b, t.GetMethod( "M" ), false );
-            Type builtType = b.CreateType();
+            Type builtType = b.CreateTypeInfo().AsType();
             I o = (I)Activator.CreateInstance( builtType );
             CultureAttribute cOrigin = new CultureAttribute();
             CultureAttribute c = cOrigin;
@@ -267,7 +269,7 @@ namespace CK.Reflection.Tests
             Type t = typeof( J );
             TypeBuilder b = CreateTypeBuilder( t );
             EmitHelper.ImplementEmptyStubMethod( b, t.GetMethod( "M" ), false );
-            Type builtType = b.CreateType();
+            Type builtType = b.CreateTypeInfo().AsType();
             J o = (J)Activator.CreateInstance( builtType );
             CultureAttribute cOrigin = new CultureAttribute();
             CultureAttribute c = cOrigin;
@@ -281,7 +283,7 @@ namespace CK.Reflection.Tests
             Type t = typeof( K );
             TypeBuilder b = CreateTypeBuilder( t );
             EmitHelper.ImplementEmptyStubMethod( b, t.GetMethod( "M" ), false );
-            Type builtType = b.CreateType();
+            Type builtType = b.CreateTypeInfo().AsType();
             K o = (K)Activator.CreateInstance( builtType );
             CultureAttribute cOrigin = new CultureAttribute();
             CultureAttribute c = cOrigin;
@@ -321,7 +323,7 @@ namespace CK.Reflection.Tests
             TypeBuilder bA = CreateTypeBuilder( tA );
             EmitHelper.ImplementStubProperty( bA, tA.GetProperty( "PublicWriteableValue" ), true );
             EmitHelper.ImplementStubProperty( bA, tA.GetProperty( "ProtectedWriteableValue" ), true );
-            Type builtTypeA = bA.CreateType();
+            Type builtTypeA = bA.CreateTypeInfo().AsType();
             PA oA = (PA)Activator.CreateInstance( builtTypeA );
             oA.PublicWriteableValue = 4548;
             oA.SetProtectedValues( 2121 );
@@ -332,7 +334,7 @@ namespace CK.Reflection.Tests
             TypeBuilder bB = CreateTypeBuilder( tB );
             EmitHelper.ImplementStubProperty( bB, tB.GetProperty( "PublicWriteableValue" ), true );
             EmitHelper.ImplementStubProperty( bB, tB.GetProperty( "ProtectedWriteableValue" ), true );
-            Type builtTypeB = bB.CreateType();
+            Type builtTypeB = bB.CreateTypeInfo().AsType();
             PB oB = (PB)Activator.CreateInstance( builtTypeB );
             oB.PublicWriteableValue = 4548;
             oB.SetProtectedValues( 2121 );
@@ -359,7 +361,7 @@ namespace CK.Reflection.Tests
             Type tN = typeof( CNonVirtualProperty );
             TypeBuilder bN = CreateTypeBuilder( tN );
             EmitHelper.ImplementStubProperty( bN, tN.GetProperty( "PublicProperty" ), true );
-            Type builtTypeN = bN.CreateType();
+            Type builtTypeN = bN.CreateTypeInfo().AsType();
             CNonVirtualProperty oN = (CNonVirtualProperty)Activator.CreateInstance( builtTypeN );
             Assert.That( oN.PublicProperty, Is.EqualTo( 654312 * 2 ) );
             oN.PublicProperty = 2;
@@ -384,7 +386,7 @@ namespace CK.Reflection.Tests
             Type t = typeof( CVirtualProperty );
             TypeBuilder b = CreateTypeBuilder( t );
             EmitHelper.ImplementStubProperty( b, t.GetProperty( "PublicProperty" ), false );
-            Type builtType = b.CreateType();
+            Type builtType = b.CreateTypeInfo().AsType();
             CVirtualProperty o = (CVirtualProperty)Activator.CreateInstance( builtType );
             Assert.That( o.PublicProperty, Is.EqualTo( 0 ), "Initial value is lost." );
             o.PublicProperty = 2;
@@ -449,8 +451,8 @@ namespace CK.Reflection.Tests
 
             [CustAttr( "OnCtorByParam" )]
             [CustAttr( Name = "OnCtorByProperty" )]
-            [CustAttr( Name = "OnCtorByField" )]
-            public BaseThree( [CustAttr( "OnParamByParam" )]string s0, [CustAttr( Name = "OnParamByProperty" )]string s1, [CustAttr( Name = "OnCtorByField" )]string s2 )
+            [CustAttr( FieldName = "OnCtorByField" )]
+            public BaseThree( [CustAttr( "OnParamByParam" )]string s0, [CustAttr( Name = "OnParamByProperty" )]string s1, [CustAttr( FieldName = "OnParamByField" )]string s2 )
             {
                 CtorMessage = s0 + s1 + s2;
             }
@@ -462,7 +464,7 @@ namespace CK.Reflection.Tests
             {
                 TypeBuilder b = CreateTypeBuilder( typeof( BaseOne ) );
                 b.DefinePassThroughConstructors( c => c.Attributes | MethodAttributes.Public );
-                Type t = b.CreateType();
+                Type t = b.CreateTypeInfo().AsType();
                 BaseOne one1 = (BaseOne)Activator.CreateInstance( t, 5 );
                 Assert.That( one1.CtorMessage, Is.EqualTo( ".private.protected" ) );
                 BaseOne one2 = (BaseOne)Activator.CreateInstance( t, "a string" );
@@ -471,38 +473,43 @@ namespace CK.Reflection.Tests
             {
                 TypeBuilder b = CreateTypeBuilder( typeof( BaseTwo ) );
                 b.DefinePassThroughConstructors( c => c.Attributes | MethodAttributes.Public );
-                Type t = b.CreateType();
+                Type t = b.CreateTypeInfo().AsType();
                 var ctor = t.GetConstructors()[0];
                 BaseTwo two = (BaseTwo)ctor.Invoke( new object[]{ new int[] { 1, 2, 3, 4 } } );
                 Assert.That( two.CtorMessage, Is.EqualTo( "4" ) );
             }
             {
                 TypeBuilder b = CreateTypeBuilder( typeof( BaseThree ) );
-                b.DefinePassThroughConstructors( c => c.Attributes | MethodAttributes.Public );
-                Type t = b.CreateType();
-                var ctor = t.GetConstructors()[0];
-                BaseThree three = (BaseThree)ctor.Invoke( new object[]{ "s0", "s1", "s2" } );
-                Assert.That( three.CtorMessage, Is.EqualTo( "s0s1s2" ) );
-                // Everything is defined.
-                CollectionAssert.AreEquivalent( ctor.GetCustomAttributes<CustAttr>().Select( a => a.Name ?? a.FieldName ), new string[] { "OnCtorByParam", "OnCtorByProperty", "OnCtorByField" } );
-                Assert.That( ctor.GetParameters()[0].GetCustomAttributes<CustAttr>().Single().Name, Is.EqualTo( "OnParamByParam" ) );
-                Assert.That( ctor.GetParameters()[1].GetCustomAttributes<CustAttr>().Single().Name, Is.EqualTo( "OnParamByProperty" ) );
-                Assert.That( ctor.GetParameters()[2].GetCustomAttributes<CustAttr>().Single().Name, Is.EqualTo( "OnCtorByField" ) );
-            }
-            {
-                TypeBuilder b = CreateTypeBuilder( typeof( BaseThree ) );
-                b.DefinePassThroughConstructors( c => c.Attributes | MethodAttributes.Public, ( ctor, attrData ) => attrData.NamedArguments.Any(), ( param, attrData ) => attrData.ConstructorArguments.Any() );
-                Type t = b.CreateType();
+                b.DefinePassThroughConstructors( 
+                    c => c.Attributes | MethodAttributes.Public, 
+                    ( ctor, attrData ) => attrData.NamedArguments.Any(), 
+                    ( param, attrData ) => attrData.ConstructorArguments.Any() );
+                    
+                Type t = b.CreateTypeInfo().AsType();
                 var theCtor = t.GetConstructors()[0];
                 BaseThree three = (BaseThree)theCtor.Invoke( new object[]{ "s0", "s1", "s2" } );
                 Assert.That( three.CtorMessage, Is.EqualTo( "s0s1s2" ) );
                 // Only attribute defined via Named arguments are defined on the final ctor.
-                CollectionAssert.AreEquivalent( theCtor.GetCustomAttributes<CustAttr>().Select( a => a.Name ?? a.FieldName ), new string[] { "OnCtorByProperty", "OnCtorByField" } );
+                CollectionAssert.AreEquivalent( new string[] { "OnCtorByProperty", "OnCtorByField" }, theCtor.GetCustomAttributes<CustAttr>().Select( a => a.Name ?? a.FieldName ) );
                 // Only the one defined by constructor argument is redefined.
                 Assert.That( theCtor.GetParameters()[0].GetCustomAttributes<CustAttr>().Single().Name, Is.EqualTo( "OnParamByParam" ) );
                 Assert.That( theCtor.GetParameters()[1].GetCustomAttributes<CustAttr>(), Is.Empty );
                 Assert.That( theCtor.GetParameters()[2].GetCustomAttributes<CustAttr>(), Is.Empty );
             }
+            {
+                TypeBuilder b = CreateTypeBuilder( typeof( BaseThree ) );
+                b.DefinePassThroughConstructors( c => c.Attributes | MethodAttributes.Public );
+                Type t = b.CreateTypeInfo().AsType();
+                var ctor = t.GetConstructors()[0];
+                BaseThree three = (BaseThree)ctor.Invoke( new object[]{ "s0", "s1", "s2" } );
+                Assert.That( three.CtorMessage, Is.EqualTo( "s0s1s2" ) );
+                // Everything is defined.
+                CollectionAssert.AreEquivalent( new string[] { "OnCtorByParam", "OnCtorByProperty", "OnCtorByField" }, ctor.GetCustomAttributes<CustAttr>().Select( a => a.Name ?? a.FieldName ) );
+                Assert.That( ctor.GetParameters()[0].GetCustomAttributes<CustAttr>().Single().Name, Is.EqualTo( "OnParamByParam" ) );
+                Assert.That( ctor.GetParameters()[1].GetCustomAttributes<CustAttr>().Single().Name, Is.EqualTo( "OnParamByProperty" ) );
+                Assert.That( ctor.GetParameters()[2].GetCustomAttributes<CustAttr>().Single().FieldName, Is.EqualTo( "OnParamByField" ) );
+            }
+
         }
     }
 }

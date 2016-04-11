@@ -1,31 +1,10 @@
-#region LGPL License
-/*----------------------------------------------------------------------------
-* This file (Tests\CK.Core.Tests\CKExceptionTests.cs) is part of CiviKey. 
-*  
-* CiviKey is free software: you can redistribute it and/or modify 
-* it under the terms of the GNU Lesser General Public License as published 
-* by the Free Software Foundation, either version 3 of the License, or 
-* (at your option) any later version. 
-*  
-* CiviKey is distributed in the hope that it will be useful, 
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
-* GNU Lesser General Public License for more details. 
-* You should have received a copy of the GNU Lesser General Public License 
-* along with CiviKey.  If not, see <http://www.gnu.org/licenses/>. 
-*  
-* Copyright © 2007-2015, 
-*     Invenietis <http://www.invenietis.com>,
-*     In’Tech INFO <http://www.intechinfo.fr>,
-* All rights reserved. 
-*-----------------------------------------------------------------------------*/
-#endregion
-
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+#if DNX451 || DNX46
 using System.Runtime.Serialization.Formatters.Binary;
+#endif
 using System.Text;
 using System.Threading.Tasks;
 using NUnit.Framework;
@@ -50,7 +29,6 @@ namespace CK.Core.Tests
             Assert.That( message(simpleData.Message), "Invalid message." );
             Assert.That( simpleData.ExceptionTypeName, Is.EqualTo( "Exception" ) );
             Assert.That( simpleData.ExceptionTypeAssemblyQualifiedName, Is.EqualTo( typeof( Exception ).AssemblyQualifiedName ) );
-            Assert.That( simpleData.FusionLog, Is.Null );
             
             if( hasStack ) 
                 Assert.That( simpleData.StackTrace, Is.Not.Null, "Stack trace is not null when the exception has actually been thrown." );
@@ -74,6 +52,30 @@ namespace CK.Core.Tests
             CheckSimpleExceptionData( d.InnerException, s => s == "Inner", false );
         }
 
+        //#if DNXCORE50
+        //        [Test]
+        //        public void TestTestTestTestTestTestTestDNXCORE50()
+        //        {
+        //            Assert.That( false, "Stupid test fail in DNXCORE50" );
+        //        }
+        //#endif
+
+        //#if DNX46
+        //        [Test]
+        //        public void TestTestTestTestTestTestTestDNX46()
+        //        {
+        //            Assert.That( false, "Stupid test fail in DNX46" );
+        //        }
+        //#endif
+
+        //#if RELEASE
+        //        [Test]
+        //        public void TestTestTestTestTestTestTestRELEASE()
+        //        {
+        //            Assert.That( false, "Stupid test fail in RELEASE" );
+        //        }
+        //#endif
+
         [Test]
         public void AggregatedExceptions()
         {
@@ -90,7 +92,7 @@ namespace CK.Core.Tests
             }
         }
 
-
+#if DNX451 || DNX46
         [Test]
         public void SerializeCKException()
         {
@@ -122,6 +124,7 @@ namespace CK.Core.Tests
                 Assert.AreEqual( data2.ToString(), data.ToString() );
             }
         }
+#endif
 
         [Test]
         public void BinaryReadWriteCKExceptionData()

@@ -4,15 +4,17 @@ branches:
   only:
   - master
   - develop
+  - dnx-support
 environment:
-  NUGET_API_KEY:
-    secure: Cx0q/gQZQpP3eDf6H9lzIDpYYki+sGCpruxgDcFUJRoYdpH7l5aDh7afloH3uNLD
-  SECURE_FILE_PASSPHRASE:
-    secure: /SvQY99W0yhSjNXEQgD3xQ==
-  AUTHENTICODE_PASSPHRASE:
-    secure: nx7+K80AgL8z2eb2rQMmlQ==
+  MYGET_DNX_API_KEY:
+    secure: BmENGV1y8uv5cLhMhwpoDLwQiLJh4C66c53+FW8FuuVfu5Lf4Ac6NvSuqO/1MbPm
+  MYGET_DNX_EXPLORE_API_KEY:
+    secure: BmENGV1y8uv5cLhMhwpoDLwQiLJh4C66c53+FW8FuuVfu5Lf4Ac6NvSuqO/1MbPm
 install:
-- ps: CodeCakeBuilder\Bootstrap.ps1
+- ps: CodeCakeBuilder/Bootstrap.ps1
+- dnvm use -p -r clr 1.0.0-rc1-final
+- dnu commands install SimpleGitVersion.DNXCommands
+- dnu restore
 build_script:
-- CodeCakeBuilder\bin\Release\CodeCakeBuilder.exe -nointeraction
+- dnx -p CodeCakeBuilder CodeCakeBuilder -nointeraction
 test: off

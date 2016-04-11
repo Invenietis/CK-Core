@@ -1,26 +1,3 @@
-#region LGPL License
-/*----------------------------------------------------------------------------
-* This file (Tests\CK.Core.Tests\TemporaryFileTests.cs) is part of CiviKey. 
-*  
-* CiviKey is free software: you can redistribute it and/or modify 
-* it under the terms of the GNU Lesser General Public License as published 
-* by the Free Software Foundation, either version 3 of the License, or 
-* (at your option) any later version. 
-*  
-* CiviKey is distributed in the hope that it will be useful, 
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
-* GNU Lesser General Public License for more details. 
-* You should have received a copy of the GNU Lesser General Public License 
-* along with CiviKey.  If not, see <http://www.gnu.org/licenses/>. 
-*  
-* Copyright © 2007-2015, 
-*     Invenietis <http://www.invenietis.com>,
-*     In’Tech INFO <http://www.intechinfo.fr>,
-* All rights reserved. 
-*-----------------------------------------------------------------------------*/
-#endregion
-
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -35,7 +12,7 @@ namespace CK.Core.Tests
     public class TemporaryFileTests
     {
         [Test]
-        public void TemporaryFileSimpleTest()
+        public void TemporaryFile_has_FileAttributes_Temporary_by_default()
         {
             string path = string.Empty;
             using( TemporaryFile temporaryFile = new TemporaryFile( true, null ) )
@@ -55,6 +32,19 @@ namespace CK.Core.Tests
             Assert.That( File.Exists( path ), Is.False );
 
             using( TemporaryFile temporaryFile = new TemporaryFile( true ) )
+            {
+                path = temporaryFile.Path;
+                Assert.That( File.Exists( temporaryFile.Path ), Is.True );
+                Assert.That( (File.GetAttributes( temporaryFile.Path ) & FileAttributes.Temporary) == FileAttributes.Temporary, Is.True );
+            }
+            Assert.That( File.Exists( path ), Is.False );
+        }
+
+        [Test]
+        public void an_empty_extension_is_like_no_extension()
+        {
+            string path = string.Empty;
+            using( TemporaryFile temporaryFile = new TemporaryFile( " " ) )
             {
                 path = temporaryFile.Path;
                 Assert.That( File.Exists( temporaryFile.Path ), Is.True );

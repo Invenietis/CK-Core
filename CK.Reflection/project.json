@@ -1,0 +1,30 @@
+{
+  "version": "5.0.0-beta",
+  "description": "CK.Reflection Class Library",
+  "authors": [ "Olivier Spinelli" ],
+  "owners": [ "Invenietis" ],
+  "tags": [ "" ],
+  "projectUrl": "",
+  "licenseUrl": "",
+  "compilationOptions": {
+    "keyFile": "../SharedKey.snk"
+  },
+  "scripts": {
+    "prebuild": "sgv prebuild"
+  },
+    "frameworks": {
+        "netstandard1.3": {
+            "imports": [ "dotnet5.4", "portable-net451+win8" ],
+            "dependencies": {
+                "System.Linq": "4.1.0-*",
+                "System.Reflection.Emit": "4.0.1-*",
+                "System.Reflection.Emit.Lightweight": "4.0.1-*",
+                "System.Dynamic.Runtime": "4.0.11-*"
+            }
+        },
+        "net451" :{
+        }
+    },
+  "dependencies": {
+  }
+}

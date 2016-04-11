@@ -1,34 +1,7 @@
-#region LGPL License
-/*----------------------------------------------------------------------------
-* This file (Tests\CK.Monitoring.Tests\GrandOutputTests.cs) is part of CiviKey. 
-*  
-* CiviKey is free software: you can redistribute it and/or modify 
-* it under the terms of the GNU Lesser General Public License as published 
-* by the Free Software Foundation, either version 3 of the License, or 
-* (at your option) any later version. 
-*  
-* CiviKey is distributed in the hope that it will be useful, 
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
-* GNU Lesser General Public License for more details. 
-* You should have received a copy of the GNU Lesser General Public License 
-* along with CiviKey.  If not, see <http://www.gnu.org/licenses/>. 
-*  
-* Copyright © 2007-2015, 
-*     Invenietis <http://www.invenietis.com>,
-*     In’Tech INFO <http://www.intechinfo.fr>,
-* All rights reserved. 
-*-----------------------------------------------------------------------------*/
-#endregion
-
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Runtime.Remoting.Lifetime;
-using System.Text;
-using System.Threading;
 using System.Threading.Tasks;
 using System.Xml.Linq;
 using CK.Core;
@@ -89,6 +62,7 @@ namespace CK.Monitoring.Tests
             return def;
         }
 
+#if NET451 || NET46
         class RunInAnotherAppDomain : MarshalByRefObject, ISponsor
         {
             static ActivityMonitor _callerMonitor;
@@ -278,6 +252,34 @@ namespace CK.Monitoring.Tests
                 logs[0].Entries.Select( e => e.Text ), StringComparer.OrdinalIgnoreCase );
         }
 
+        private static void CreateDomainAndExecutor( out AppDomain domain, out RunInAnotherAppDomain exec )
+        {
+            AppDomainSetup setup = new AppDomainSetup()
+            {
+                ApplicationBase = AppDomain.CurrentDomain.SetupInformation.ApplicationBase,
+                PrivateBinPath = AppDomain.CurrentDomain.SetupInformation.PrivateBinPath
+            };
+            domain = AppDomain.CreateDomain( "GrandOutputConfigTests", null, setup );
+            exec = (RunInAnotherAppDomain)domain.CreateInstanceAndUnwrap( typeof( RunInAnotherAppDomain ).Assembly.FullName, typeof( RunInAnotherAppDomain ).FullName );
+        }
+
+        private static void SetDomainConfigTextFile( string config )
+        {
+            if( config != null )
+            {
+                Thread.Sleep( 100 );
+                if( config.StartsWith( "rename" ) )
+                {
+                    if( config == "rename" )
+                        File.Move( RunInAnotherAppDomain.DomainGrandOutputConfig, RunInAnotherAppDomain.DomainRootLogPath + "rename" );
+                    else File.Move( RunInAnotherAppDomain.DomainRootLogPath + "rename", RunInAnotherAppDomain.DomainGrandOutputConfig );
+                }
+                else File.WriteAllText( RunInAnotherAppDomain.DomainGrandOutputConfig, config );
+            }
+            else File.Delete( RunInAnotherAppDomain.DomainGrandOutputConfig );
+        }
+#endif
+
         [Test]
         public void GrandOutputHasSameCompressedAndUncompressedLogs()
         {
@@ -329,7 +331,7 @@ namespace CK.Monitoring.Tests
 
             var map = mlr.GetActivityMap();
 
-            Assert.That( map.Monitors, Has.Count.EqualTo( 3 ) );
+            Assert.That( map.Monitors.Count, Is.EqualTo( 3 ) );
 
         }
 
@@ -380,33 +382,6 @@ namespace CK.Monitoring.Tests
                     }
                 }
             }
-        }
-
-        private static void CreateDomainAndExecutor( out AppDomain domain, out RunInAnotherAppDomain exec )
-        {
-            AppDomainSetup setup = new AppDomainSetup()
-            {
-                ApplicationBase = AppDomain.CurrentDomain.SetupInformation.ApplicationBase,
-                PrivateBinPath = AppDomain.CurrentDomain.SetupInformation.PrivateBinPath
-            };
-            domain = AppDomain.CreateDomain( "GrandOutputConfigTests", null, setup );
-            exec = (RunInAnotherAppDomain)domain.CreateInstanceAndUnwrap( typeof( RunInAnotherAppDomain ).Assembly.FullName, typeof( RunInAnotherAppDomain ).FullName );
-        }
-
-        private static void SetDomainConfigTextFile( string config )
-        {
-            if( config != null )
-            {
-                Thread.Sleep( 100 );
-                if( config.StartsWith( "rename" ) )
-                {
-                    if( config == "rename" )
-                        File.Move( RunInAnotherAppDomain.DomainGrandOutputConfig, RunInAnotherAppDomain.DomainRootLogPath + "rename" );
-                    else File.Move( RunInAnotherAppDomain.DomainRootLogPath + "rename", RunInAnotherAppDomain.DomainGrandOutputConfig );
-                }
-                else File.WriteAllText( RunInAnotherAppDomain.DomainGrandOutputConfig, config );
-            }
-            else File.Delete( RunInAnotherAppDomain.DomainGrandOutputConfig );
         }
 
     }

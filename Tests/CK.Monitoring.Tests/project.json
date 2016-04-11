@@ -1,0 +1,39 @@
+{
+    "version": "5.0.0-beta",
+    "description": "CK.Monitoring.Tests Class Library",
+    "authors": [ "olivi" ],
+    "tags": [ "" ],
+    "projectUrl": "",
+    "licenseUrl": "",
+
+    "compilationOptions": {
+        "keyFile": "../../SharedKey.snk"
+    },
+
+    "testRunner": "xunit",
+    "frameworks": {
+        "netstandardapp1.5": {
+            "imports": [
+                "dnxcore50",
+                "portable-net451+win8"
+            ],
+            "dependencies": {
+                "dotnet-test-xunit": "1.0.0-dev-*",
+                "Microsoft.CSharp": "4.0.1-*",
+                "System.Collections": "4.0.11-*",
+                "System.Linq": "4.0.1-*",
+                "System.Runtime": "4.1.0-*",
+                "System.Threading": "4.0.11-*",
+                "System.Reflection.Extensions": "4.0.1-*"
+            }
+        }
+    },
+    "dependencies": {
+        "CK.ActivityMonitor": "5.0.0-beta",
+        "CK.Core": "5.0.0-beta",
+        "CK.Monitoring": "5.0.0-beta",
+        "Microsoft.Extensions.PlatformAbstractions": "1.0.0-*",
+        "NUnitLite": "3.0.1",
+        "xunit": "2.1.0"
+    }
+}

@@ -1,0 +1,34 @@
+{
+    "version": "5.0.0-beta",
+    "description": "CK.ActivityMonitor Class Library",
+    "authors": [ "Olivier Spinelli" ],
+    "owners": [ "Invenietis" ],
+    "tags": [ "" ],
+    "projectUrl": "",
+    "compilationOptions": {
+        "keyFile": "../SharedKey.snk"
+    },
+    "licenseUrl": "",
+
+    "scripts": {
+        "prebuild": "sgv prebuild"
+    },
+
+    "dependencies": {
+        "CK.Core": "5.0.0-beta"
+    },
+
+    "frameworks": {
+        "net451": {
+            "dependencies": {
+            }
+        },
+        "netstandard1.3": {
+            "imports": [ "dotnet5.4", "portable-net451+win8" ],
+            "dependencies": {
+                "Microsoft.Extensions.PlatformAbstractions": "1.0.0-*",
+                "System.Console": "4.0.0-*"
+            }
+        }
+    }
+}
