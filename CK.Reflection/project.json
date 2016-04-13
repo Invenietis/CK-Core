@@ -9,8 +9,10 @@
   "compilationOptions": {
     "keyFile": "../SharedKey.snk"
   },
+  "dependencies": {
+  },
   "frameworks": {
-        "netstandard1.3": {
+        "netstandard1.5": {
             "imports": [ "dotnet5.4", "portable-net451+win8" ],
             "dependencies": {
                 "System.Linq": "4.1.0-*",
@@ -21,7 +23,5 @@
         },
         "net451" :{
         }
-    },
-  "dependencies": {
-  }
+    }
 }

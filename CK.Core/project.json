@@ -10,7 +10,7 @@
         "keyFile": "../SharedKey.snk"
     },
     "frameworks": {
-        "netstandard1.3": {
+        "netstandard1.5": {
             "imports": [ "dnxcore50", "portable-net451+win8" ],
             "dependencies": {
                 "System.Collections": "4.0.11-*",
