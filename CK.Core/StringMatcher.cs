@@ -336,8 +336,9 @@ namespace CK.Core
             return SetError();
         }
 
+
         /// <summary>
-        /// Matches a quoted string. No error is set if match fails.
+        /// Matches a quoted string without setting an error if match fails.
         /// </summary>
         /// <param name="content">Extracted content.</param>
         /// <param name="allowNull">True to allow 'null'.</param>
@@ -363,7 +364,7 @@ namespace CK.Core
                 {
                     if( len == 0 ) return false;
                     if( b == null ) b = new StringBuilder( _text.Substring( _startIndex + 1, i - _startIndex - 2 ) );
-                    switch( (c = _text[i]) )
+                    switch( (c = _text[i++]) )
                     {
                         case 'r': c = '\r'; break;
                         case 'n': c = '\n'; break;
@@ -373,20 +374,21 @@ namespace CK.Core
                         case 'u':
                             {
                                 if( --len == 0 ) return false;
-                                int cN = _text[++i] - '0';
-                                if( cN < 0 || cN > 9 ) return false;
+                                int cN;
+                                cN = ReadHexDigit( _text[i++] );
+                                if( cN < 0 || cN > 15 ) return false;
                                 int val = cN << 12;
                                 if( --len == 0 ) return false;
-                                cN = _text[++i] - '0';
-                                if( cN < 0 || cN > 9 ) return false;
+                                cN = ReadHexDigit( _text[i++] );
+                                if( cN < 0 || cN > 15 ) return false;
                                 val |= cN << 8;
                                 if( --len == 0 ) return false;
-                                cN = _text[++i] - '0';
-                                if( cN < 0 || cN > 9 ) return false;
+                                cN = ReadHexDigit( _text[i++] );
+                                if( cN < 0 || cN > 15 ) return false;
                                 val |= cN << 4;
                                 if( --len == 0 ) return false;
-                                cN = _text[++i] - '0';
-                                if( cN < 0 || cN > 9 ) return false;
+                                cN = ReadHexDigit( _text[i++] );
+                                if( cN < 0 || cN > 15 ) return false;
                                 val |= cN;
                                 c = (char)val;
                                 break;
@@ -401,8 +403,16 @@ namespace CK.Core
             return UncheckedMove( lenS );
         }
 
+        static int ReadHexDigit( char c )
+        {
+            int cN = c - '0';
+            if( cN >= 49 ) cN -= 39;
+            else if( cN >= 17 ) cN -= 7;
+            return cN;
+        }
+
         /// <summary>
-        /// Matches a quoted string without extracting its content. No error is set if match fails.
+        /// Matches a quoted string without extracting its content.
         /// </summary>
         /// <param name="allowNull">True to allow 'null'.</param>
         /// <returns><c>true</c> when matched, <c>false</c> otherwise.</returns>
@@ -431,7 +441,7 @@ namespace CK.Core
         }
 
         /// <summary>
-        /// Overridden to return a detailed string with <see cref="Error"/> (if any),
+        /// Overridden to return a detailed string with <see cref="ErrorMessage"/> (if any),
         /// the <see cref="Head"/> character, <see cref="StartIndex"/> position and
         /// whole <see cref="Text"/>.
         /// </summary>
