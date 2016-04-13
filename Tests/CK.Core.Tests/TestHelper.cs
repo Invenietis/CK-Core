@@ -77,7 +77,11 @@ namespace CK.Core.Tests
 
         static void InitalizePaths()
         {
+#if NET451
+            string p = new Uri( System.Reflection.Assembly.GetExecutingAssembly().CodeBase ).LocalPath;
+#else
             string p = Microsoft.Extensions.PlatformAbstractions.PlatformServices.Default.Application.ApplicationBasePath;
+#endif
             _testFolder = Path.Combine( p, "TestDir" );
             do
             {
