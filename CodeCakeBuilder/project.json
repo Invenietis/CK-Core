@@ -11,14 +11,14 @@
   },
 
   "dependencies": {
-    "Code.Cake": "0.8.1",
-    "Microsoft.Extensions.PlatformAbstractions": "1.0.0-rc3-20541",
-    "SimpleGitVersion.Cake": "0.14.5-Cexplore-0003"
   },
 
   "frameworks": {
     "dnx451": {
       "dependencies": {
+        "Code.Cake": "0.8.1",
+        "Microsoft.Extensions.PlatformAbstractions": "1.0.0-rc3-20541",
+        "SimpleGitVersion.Cake": "0.14.5-Cexplore-0003"
       }
     }
   }

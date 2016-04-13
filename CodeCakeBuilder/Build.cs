@@ -76,11 +76,10 @@ namespace CodeCake
                 {
                     if( dnxSolution.UpdateProjectFiles( true ) > 0 )
                     {
-                        Cake.DNURestore( c =>
+                        foreach( var p in dnxSolution.Projects )
                         {
-                            c.Quiet = true;
-                            c.ProjectPaths.UnionWith( dnxSolution.Projects.Select( p => p.ProjectFilePath ) );
-                        } );
+                            Cake.DotNetRestore( c => c.Verbosity = DotNetRestoreSettingsVerbosity.Information );
+                        }
                     }
                 } );
 
@@ -97,19 +96,19 @@ namespace CodeCake
                 .IsDependentOn( "Build-And-Pack" )
                 .Does( () =>
                 {
-                    var testProjects = dnxSolution.Projects.Where( p => p.ProjectName.EndsWith( ".Tests" ) );
-                    foreach( var p in testProjects )
-                    {
-                        foreach( var framework in p.Frameworks )
-                        {
-                            Cake.DNXRun( c => {
-                                c.Arguments = "test";
-                                c.Configuration = configuration;
-                                c.Framework = framework;
-                                c.Project = p.ProjectFilePath;
-                            } );
-                        }
-                    }
+                    //var testProjects = dnxSolution.Projects.Where( p => p.ProjectName.EndsWith( ".Tests" ) );
+                    //foreach( var p in testProjects )
+                    //{
+                    //    foreach( var framework in p.Frameworks )
+                    //    {
+                    //        Cake.DNXRun( c => {
+                    //            c.Arguments = "test";
+                    //            c.Configuration = configuration;
+                    //            c.Framework = framework;
+                    //            c.Project = p.ProjectFilePath;
+                    //        } );
+                    //    }
+                    //}
                 } );
 
             Task( "Build-And-Pack" )
@@ -117,13 +116,18 @@ namespace CodeCake
                 .IsDependentOn( "Set-ProjectVersion" )
                 .Does( () =>
                 {
-                    Cake.DNUBuild( c =>
+                    foreach( var p in dnxSolution.Projects )
                     {
-                        c.GeneratePackage = true;
-                        c.Configurations.Add( configuration );
-                        c.ProjectPaths.UnionWith( projectsToPublish.Select( p => p.ProjectDir ) );
-                        c.Quiet = true;
-                    } );
+                        Cake.DotNetBuild( c => c.Project = p.ProjectDir );
+                    }
+                    foreach( var p in dnxSolution.Projects )
+                    {
+                        Cake.DotNetPack( c =>
+                        {
+                            c.Project = p.ProjectDir;
+                            c.Output = nugetOutputDir;
+                        } );
+                    }
                 } );
 
             Task( "Push-NuGet-Packages" )
@@ -171,14 +175,6 @@ namespace CodeCake
             Task( "Default" )
                 .IsDependentOn( "Push-NuGet-Packages" );
 
-        }
-
-        private static string GetRunningRuntimeFramework()
-        {
-            string f = PlatformServices.Default.Runtime.RuntimePath;
-            if( f[f.Length - 1] == Path.DirectorySeparatorChar ) f = Path.GetDirectoryName( f );
-            f = Path.GetFileName( Path.GetDirectoryName( f ) );
-            return f.Substring( f.IndexOf( '.' ) + 1 );
         }
 
         private void PushNuGetPackages( string apiKeyName, string pushUrl, IEnumerable<string> nugetPackages )

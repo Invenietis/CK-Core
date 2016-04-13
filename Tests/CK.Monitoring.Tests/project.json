@@ -10,23 +10,13 @@
     "keyFile": "../../SharedKey.snk"
   },
 
-  "testRunner": "xunit",
-
   "dependencies": {
-    "CK.Monitoring": "[0.0.0-Absolutely-Invalid]",
-    "Microsoft.Extensions.PlatformAbstractions": "1.0.0-*",
-    "NUnitLite": "3.2.0",
-    "xunit": "2.1.0"
   },
 
   "frameworks": {
-    "netstandardapp1.5": {
-      "imports": [
-        "dnxcore50",
-        "portable-net451+win8"
-      ],
+    "net451": {
       "dependencies": {
-        "dotnet-test-xunit": "1.0.0-dev-*",
+        "CK.Monitoring": "[0.0.0-Absolutely-Invalid]",
         "Microsoft.CSharp": "4.0.1-*",
         "System.Collections": "4.0.11-*",
         "System.Linq": "4.1.0-*",
