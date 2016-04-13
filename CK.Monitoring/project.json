@@ -8,9 +8,6 @@
   "compilationOptions": {
     "keyFile": "../SharedKey.snk"
   },
-  "scripts": {
-    "prebuild": "sgv prebuild"
-  },
   "frameworks": {
     "net451": {
       "frameworkAssemblies": {

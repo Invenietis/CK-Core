@@ -10,10 +10,6 @@
     },
     "licenseUrl": "",
 
-    "scripts": {
-        "prebuild": "sgv prebuild"
-    },
-
     "dependencies": {
         "CK.Core": "0.0.0-Absolutely-Invalid"
     },

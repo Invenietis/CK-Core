@@ -9,10 +9,7 @@
   "compilationOptions": {
     "keyFile": "../SharedKey.snk"
   },
-  "scripts": {
-    "prebuild": "sgv prebuild"
-  },
-    "frameworks": {
+  "frameworks": {
         "netstandard1.3": {
             "imports": [ "dotnet5.4", "portable-net451+win8" ],
             "dependencies": {
