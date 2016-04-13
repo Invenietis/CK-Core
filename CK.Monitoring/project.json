@@ -23,7 +23,7 @@
         "imports": [ "dotnet5.4", "portable-net451+win8" ],
         "dependencies": {
             "System.Collections": "4.0.11-*",
-            "System.Linq": "4.0.1-*",
+            "System.Linq": "4.1.0-*",
             "System.Runtime": "4.1.0-*",
             "System.Threading": "4.0.11-*",
             "System.Threading.Tasks.Parallel": "4.0.1-*",

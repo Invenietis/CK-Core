@@ -311,8 +311,8 @@ namespace CK.Reflection
         /// <returns>An <see cref="IEnumerable{T}"/> that contains elements returned by the <paramref name="getFunction"/>.</returns>
         public static IEnumerable<T> GetFlattenMembers<T>( Type interfaceType, Func<Type, IEnumerable<T>> getFunction )
         {
-            if( interfaceType == null ) throw new ArgumentNullException( "interfaceType" );
-            if( !interfaceType.GetTypeInfo().IsInterface ) throw new ArgumentException( R.InterfaceTypeExpected, "interfaceType" );
+            if( interfaceType == null ) throw new ArgumentNullException( nameof( interfaceType ) );
+            if( !interfaceType.GetTypeInfo().IsInterface ) throw new ArgumentException( InternalResources.InterfaceTypeExpected, nameof( interfaceType ) );
             
             foreach( var item in getFunction( interfaceType ) )
                 yield return item;
