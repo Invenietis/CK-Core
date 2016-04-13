@@ -12,17 +12,10 @@
 
   "dependencies": {
   },
-
   "frameworks": {
     "net451": {
       "dependencies": {
-        "CK.Monitoring": "[0.0.0-Absolutely-Invalid]",
-        "Microsoft.CSharp": "4.0.1-*",
-        "System.Collections": "4.0.11-*",
-        "System.Linq": "4.1.0-*",
-        "System.Runtime": "4.1.0-*",
-        "System.Threading": "4.0.11-*",
-        "System.Reflection.Extensions": "4.0.1-*"
+        "CK.Monitoring": "[0.0.0-Absolutely-Invalid]"
       }
     }
   }
