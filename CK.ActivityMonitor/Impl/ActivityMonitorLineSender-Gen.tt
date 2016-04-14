@@ -60,7 +60,7 @@ namespace CK.Core
 			<# 
 			if( nbArg == 2 && !WithException ) 
 			{ 
-			#>if( arg0 is Exception ) throw new ArgumentException( R.PossibleWrongOverloadUseWithException, "arg0" );
+			#>if( arg0 is Exception ) throw new ArgumentException( Impl.ActivityMonitorResources.PossibleWrongOverloadUseWithException, "arg0" );
 			<#
 			}
 			#>s.InitializeAndSend( <# StateCall(); #>, <# TextCall( nbArg ); #> );

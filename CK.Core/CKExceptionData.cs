@@ -182,17 +182,17 @@ namespace CK.Core
         /// <summary>
         /// Gets the message of the exception. Never null but can be empty.
         /// </summary>
-        public string Message { get { return _message; } }
+        public string Message => _message; 
 
         /// <summary>
         /// Gets the assembly qualified exception type name. Never null nor empty.
         /// </summary>
-        public string ExceptionTypeAssemblyQualifiedName { get { return _exceptionTypeAQName; } }
+        public string ExceptionTypeAssemblyQualifiedName => _exceptionTypeAQName;
 
         /// <summary>
         /// Gets the exception type name. Never null nor empty.
         /// </summary>
-        public string ExceptionTypeName { get { return _exceptionTypeName; } }
+        public string ExceptionTypeName => _exceptionTypeName;
 
         /// <summary>
         /// Gets the stack trace. Can be null.
@@ -209,7 +209,7 @@ namespace CK.Core
         /// Gets the file name if the exception is referring to a file. 
         /// Null otherwise.
         /// </summary>
-        public string FileName { get { return _fileName; } }
+        public string FileName => _fileName;
 
         /// <summary>
         /// Gets more information: this depends on the actual exception type.
@@ -217,20 +217,20 @@ namespace CK.Core
         /// while dynamically loading a type or an assembly and we are in DNX, this contains the log from Fusion assembly loading subsystem. 
         /// Null otherwise.
         /// </summary>
-        public string DetailedInfo { get { return _detailedInfo; } }
+        public string DetailedInfo => _detailedInfo;
 
         /// <summary>
         /// Gets all the the exceptions that occurred while dynamically loading a type or an assembly if the exception is a <see cref="System.Reflection.ReflectionTypeLoadException"/>.
         /// Null otherwise.
         /// </summary>
-        public IReadOnlyList<CKExceptionData> LoaderExceptions { get { return _loaderExceptions; } }
+        public IReadOnlyList<CKExceptionData> LoaderExceptions => _loaderExceptions;
 
         /// <summary>
         /// Gets all the the aggregated exceptions if the exception is a <see cref="System.AggregateException"/>.
         /// This corresponds to the <see cref="System.AggregateException.InnerExceptions"/> property.
         /// Null if this exception is not a an AggregatedException.
         /// </summary>
-        public IReadOnlyList<CKExceptionData> AggregatedExceptions { get { return _aggregatedExceptions; } }
+        public IReadOnlyList<CKExceptionData> AggregatedExceptions => _aggregatedExceptions;
 
         /// <summary>
         /// Writes this exception data into a <see cref="BinaryWriter"/>.

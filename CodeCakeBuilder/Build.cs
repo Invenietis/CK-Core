@@ -18,7 +18,6 @@ using Cake.Common.Tools.NuGet.Push;
 using System.IO;
 using System.Collections.Generic;
 using System.Diagnostics;
-using Microsoft.Extensions.PlatformAbstractions;
 
 namespace CodeCake
 {
@@ -37,21 +36,17 @@ namespace CodeCake
             SimpleRepositoryInfo gitInfo = null;
             string configuration = null;
 
-            Setup( () =>
-            {
-                dnxSolution = Cake.GetDNXSolution( p => p.ProjectName != "CodeCakeBuilder" );
-                if( !dnxSolution.IsValid ) throw new Exception( "Unable to initialize solution." );
-                projectsToPublish = dnxSolution.Projects.Where( p => !p.ProjectName.EndsWith( ".Tests" ) );
-            } );
-
             Teardown( () =>
             {
-                dnxSolution.RestoreProjectFiles();
+                if( dnxSolution != null ) dnxSolution.RestoreProjectFiles();
             } );
 
             Task( "Check-Repository" )
                 .Does( () =>
                 {
+                    dnxSolution = Cake.GetDNXSolution( p => p.ProjectName != "CodeCakeBuilder" );
+                    if( !dnxSolution.IsValid ) throw new Exception( "Unable to initialize solution." );
+                    projectsToPublish = dnxSolution.Projects.Where( p => !p.ProjectName.EndsWith( ".Tests" ) );
                     gitInfo = dnxSolution.RepositoryInfo;
                     if( !gitInfo.IsValid )
                     {
@@ -171,14 +166,6 @@ namespace CodeCake
             Task( "Default" )
                 .IsDependentOn( "Push-NuGet-Packages" );
 
-        }
-
-        private static string GetRunningRuntimeFramework()
-        {
-            string f = PlatformServices.Default.Runtime.RuntimePath;
-            if( f[f.Length - 1] == Path.DirectorySeparatorChar ) f = Path.GetDirectoryName( f );
-            f = Path.GetFileName( Path.GetDirectoryName( f ) );
-            return f.Substring( f.IndexOf( '.' ) + 1 );
         }
 
         private void PushNuGetPackages( string apiKeyName, string pushUrl, IEnumerable<string> nugetPackages )

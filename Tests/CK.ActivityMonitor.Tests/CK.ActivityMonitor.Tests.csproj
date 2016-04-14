@@ -4,11 +4,11 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{7F1AAC24-BCCA-4678-9BD2-196261E4F1F4}</ProjectGuid>
+    <ProjectGuid>{10523DAD-8B97-4372-8A56-7DC15D38D0AE}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>CK.Monitoring.Tests</RootNamespace>
-    <AssemblyName>CK.Monitoring.Tests</AssemblyName>
+    <RootNamespace>CK.ActivityMonitor.Tests</RootNamespace>
+    <AssemblyName>CK.ActivityMonitor.Tests</AssemblyName>
     <TargetFrameworkVersion>v4.5.1</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
   </PropertyGroup>
@@ -32,13 +32,18 @@
   <PropertyGroup>
     <StartAction>Program</StartAction>
     <StartProgram>$(SolutionDir)packages\NUnit.Runners.Net4.2.6.4\tools\nunit.exe</StartProgram>
-    <StartArguments>CK.Monitoring.Tests.dll</StartArguments>
+    <StartArguments>CK.ActivityMonitor.Tests.dll</StartArguments>
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="..\..\SharedAssemblyInfo.cs">
       <Link>Properties\SharedAssemblyInfo.cs</Link>
     </Compile>
+    <Compile Include="CoreStubs\System.Runtime.Remoting.cs" />
+    <Compile Include="CoreStubs\System.Runtime.Serialization.cs" />
+    <Compile Include="SourceFilteringTests.cs" />
     <Compile Include="StupidStringClient.cs" />
+    <Compile Include="StupidXmlClient.cs" />
+    <Compile Include="SystemActivityMonitorTests.cs" />
     <Compile Include="TestHelper.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -56,14 +61,16 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="ChannelAndSourceFilterTests.cs" />
-    <Compile Include="ConfigHostTests.cs" />
+    <Compile Include="ActivityLoggerMultiThreadTests.cs" />
+    <Compile Include="ActivityMonitorClientTester.cs" />
+    <Compile Include="ActivityMonitorErrorLogs.cs" />
+    <Compile Include="ActivityMonitorFilterPropagation.cs" />
+    <Compile Include="ActivityMonitorTests.cs" />
+    <Compile Include="ActivityMonitorTimestamp.cs" />
+    <Compile Include="DependentActivityTests.cs" />
     <Compile Include="DocumentationCodeSnippets.cs" />
-    <Compile Include="GrandOutputTests.cs" />
+    <Compile Include="LogFilterTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\CK.ActivityMonitor\CK.ActivityMonitor.csproj">
@@ -74,16 +81,9 @@
       <Project>{bc92ae5b-73a2-4b9e-91d2-9163960a17c4}</Project>
       <Name>CK.Core</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\CK.Monitoring\CK.Monitoring.csproj">
-      <Project>{8016ab6e-ca30-447d-bc47-b37d51b5a088}</Project>
-      <Name>CK.Monitoring</Name>
-    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="Configuration\" />
-    <Folder Include="Performance\" />
-    <Folder Include="Persistence\" />
-    <Folder Include="TestFolder\" />
+    <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
     <Service Include="{82A7F48D-3B50-4B1E-B82E-3ADA8210C358}" />

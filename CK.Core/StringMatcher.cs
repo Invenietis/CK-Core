@@ -61,44 +61,46 @@ namespace CK.Core
         /// Gets the whole text.
         /// </summary>
         /// <value>The text.</value>
-        public string Text { get { return _text; } }
+        public string Text => _text; 
 
         /// <summary>
         /// Gets the current start index: this is incremented by <see cref="Forward(int)"/>
         /// or <see cref="UncheckedMove(int)"/>.
         /// </summary>
         /// <value>The current start index.</value>
-        public int StartIndex { get { return _startIndex; } }
+        public int StartIndex => _startIndex;
 
         /// <summary>
         /// Gets the current head: this is the character in <see cref="Text"/> at index <see cref="StartIndex"/>.
         /// </summary>
         /// <value>The head.</value>
-        public char Head { get { return _text[_startIndex]; } }
+        public char Head => _text[_startIndex];
 
         /// <summary>
         /// Gets the current length available.
         /// </summary>
         /// <value>The length.</value>
-        public int Length { get { return _length; } }
+        public int Length => _length; 
 
         /// <summary>
         /// Gets whether this matcher is at the end of the text to match.
         /// </summary>
         /// <value><c>true</c> on end; otherwise, <c>false</c>.</value>
-        public bool IsEnd { get { return _length <= 0; } }
+        public bool IsEnd => _length <= 0;
 
         /// <summary>
         /// Gets whether an error has been set.
+        /// You can call <see cref="SetSuccess"/> to clear the error.
         /// </summary>
         /// <value><c>true</c> on error; otherwise, <c>false</c>.</value>
-        public bool IsError { get { return _errorDescription != null; } }
+        public bool IsError => _errorDescription != null; 
 
         /// <summary>
         /// Gets the error message if any.
+        /// You can call <see cref="SetSuccess"/> to clear the error.
         /// </summary>
         /// <value>The error message. Null when no error.</value>
-        public string ErrorMessage { get { return _errorDescription; } }
+        public string ErrorMessage => _errorDescription; 
 
         /// <summary>
         /// Sets an error. The message starts with the caller's method name.
@@ -195,20 +197,14 @@ namespace CK.Core
         /// </summary>
         /// <param name="c">The character that must match.</param>
         /// <returns>True on success, false if the match failed.</returns>
-        public bool MatchChar( char c )
-        {
-            return TryMatchChar( c ) ? SetSuccess() : SetError( c );
-        }
+        public bool MatchChar( char c ) => TryMatchChar( c ) ? SetSuccess() : SetError( c );
 
         /// <summary>
         /// Attempts to match an exact single character. 
         /// </summary>
         /// <param name="c">The character that must match.</param>
         /// <returns>True on success, false if the match failed.</returns>
-        public bool TryMatchChar( char c )
-        {
-            return !IsEnd && Head == c ? UncheckedMove( 1 ) : false;
-        }
+        public bool TryMatchChar( char c ) => !IsEnd && Head == c ? UncheckedMove( 1 ) : false;
 
         /// <summary>
         /// Matches a text without setting an error if match fails.
@@ -233,10 +229,7 @@ namespace CK.Core
         /// <param name="text">The string that must match. Can not be null nor empty.</param>
         /// <param name="comparisonType">Specifies the culture, case, and sort rules.</param>
         /// <returns>True on success, false if the match failed.</returns>
-        public bool MatchText( string text, StringComparison comparisonType = StringComparison.OrdinalIgnoreCase )
-        {
-            return TryMatchText( text ) ? SetSuccess() : SetError();
-        }
+        public bool MatchText( string text, StringComparison comparisonType = StringComparison.OrdinalIgnoreCase ) => TryMatchText( text ) ? SetSuccess() : SetError();
 
         /// <summary>
         /// Matches a sequence of white spaces.

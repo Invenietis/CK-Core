@@ -122,13 +122,11 @@ namespace CK.Reflection.Tests
                 p( s, 4554 );
             }
             {
-                // NUnit.Framework.TestAttribute is an object with a public read/write property...
-                // Since we use Xunit now, this is DisplayName that is challenged.
-                TestAttribute a = new TestAttribute();
-                var setter = ReflectionHelper.CreateSetter( a, x => x.DisplayName );
-                Assert.That( a.DisplayName, Is.Null );
+                System.IO.StringWriter a = new System.IO.StringWriter();
+                var setter = ReflectionHelper.CreateSetter( a, x => x.NewLine );
+                Assert.That( a.NewLine, Is.EqualTo( Environment.NewLine ) );
                 setter( a, "Hello World!" );
-                Assert.That( a.DisplayName, Is.EqualTo( "Hello World!" ) );
+                Assert.That( a.NewLine, Is.EqualTo( "Hello World!" ) );
             }
         }
 

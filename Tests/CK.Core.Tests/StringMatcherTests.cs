@@ -171,5 +171,41 @@ namespace CK.Core.Tests
             Assert.That( m.MatchWhiteSpaces() && m.MatchChar( '}' ) );
             Assert.That( m.MatchWhiteSpaces( 2 ) && m.IsEnd );
         }
+
+        public void match_methods_must_set_an_error()
+        {
+            var m = new StringMatcher( "A" );
+
+            CheckMatchError( m, () => m.MatchChar( 'B' ) );
+            DateTimeStamp ts;
+            CheckMatchError( m, () => m.MatchDateTimeStamp( out ts ) );
+            DateTime dt;
+            CheckMatchError( m, () => m.MatchFileNameUniqueTimeUtcFormat( out dt ) );
+            int i;
+            CheckMatchError( m, () => m.MatchInt32( out i ) );
+            CheckMatchError( m, () => m.MatchText( "PP" ) );
+            CheckMatchError( m, () => m.MatchText( "B" ) );
+            CheckMatchError( m, () => m.MatchWhiteSpaces() );
+        }
+
+        private static void CheckMatchError( StringMatcher m, Func<bool> fail )
+        {
+            int idx = m.StartIndex;
+            int len = m.Length;
+            Assert.That( fail(), Is.False );
+            Assert.That( m.IsError );
+            Assert.That( m.ErrorMessage, Is.Not.Null.Or.Empty );
+            Assert.That( m.StartIndex == idx, "Head must not move on error." );
+            Assert.That( m.Length == len, "Length must not change on error." );
+            m.SetSuccess();
+        }
+
+        [Test]
+        public void ToString_constains_the_text_and_the_error()
+        {
+            var m = new StringMatcher( "The Text" );
+            m.SetError( "Plouf..." );
+            Assert.That( m.ToString(), Does.Contain( "The Text" ).And.Contain( "Plouf..." ) );
+        }
     }
 }

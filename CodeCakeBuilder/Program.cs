@@ -1,11 +1,6 @@
-﻿using Code.Cake;
-using CodeCake;
+﻿using CodeCake;
 using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
-using System.IO;
-using Microsoft.Extensions.PlatformAbstractions;
 
 namespace CodeCakeBuilder
 {
@@ -13,8 +8,7 @@ namespace CodeCakeBuilder
     {
         public static int Main( string[] args )
         {
-            string solutionDir = Path.GetDirectoryName( PlatformServices.Default.Application.ApplicationBasePath );
-            var app = new CodeCakeApplication( solutionDir, typeof(Program).Assembly );
+            var app = new CodeCakeApplication();
             bool interactive = !args.Contains( '-' + InteractiveAliases.NoInteractionArgument, StringComparer.OrdinalIgnoreCase );
             int result = app.Run( args );
             Console.WriteLine();

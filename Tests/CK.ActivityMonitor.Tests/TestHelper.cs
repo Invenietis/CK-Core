@@ -7,12 +7,28 @@ using System.Text;
 using System.Threading;
 using CK.Core;
 using NUnit.Framework;
+using NUnit.Framework.Constraints;
 
 namespace CK.Core.Tests
 {
+#if CSPROJ
+    static class Does
+    {
+        public static SubstringConstraint Contain( string expected ) => Is.StringContaining( expected );
+
+        public static EndsWithConstraint EndWith( string expected ) => Is.StringEnding( expected );
+
+        public static StartsWithConstraint StartWith( string expected ) => Is.StringStarting( expected );
+
+        public static ConstraintExpression Not => Is.Not;
+
+        public static SubstringConstraint Contain( this ConstraintExpression @this, string expected ) => @this.StringContaining( expected );
+    }
+#else
     class TestAttribute : Xunit.FactAttribute
     {
     }
+#endif
 
     static class TestHelper
     {
@@ -45,7 +61,7 @@ namespace CK.Core.Tests
             }
         }
 
-        #if NET451 || NET46
+#if NET451 || NET46
         /// <summary>
         /// Use reflection to actually set <see cref="System.Runtime.Remoting.Lifetime.LifetimeServices.LeaseManagerPollTime"/> to 5 milliseconds.
         /// This triggers an immediate polling from the internal .Net framework LeaseManager.
@@ -66,7 +82,7 @@ namespace CK.Core.Tests
                 }
             }
         }
-        #endif
+#endif
 
         public static string TestFolder
         {
@@ -116,11 +132,11 @@ namespace CK.Core.Tests
         static void InitializePaths()
         {
             if( _solutionFolder != null ) return;
-            #if NET451
+#if NET451
             string p = new Uri( System.Reflection.Assembly.GetExecutingAssembly().CodeBase ).LocalPath;
-            #else
+#else
             string p = Microsoft.Extensions.PlatformAbstractions.PlatformServices.Default.Application.ApplicationBasePath;
-            #endif
+#endif
             do
             {
                 p = Path.GetDirectoryName( p );

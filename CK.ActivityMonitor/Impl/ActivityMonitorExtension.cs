@@ -35,7 +35,6 @@ namespace CK.Core
         /// <returns>True if the log should be emitted.</returns>
         public static bool ShouldLogLine( this IActivityMonitor @this, LogLevel level, [CallerFilePath]string fileName = null, [CallerLineNumber]int lineNumber = 0 )
         {
-            if( @this == null ) throw new NullReferenceException( "this" );
             return DoShouldLogLine( @this, level & LogLevel.Mask, fileName, lineNumber );
         }
 
@@ -50,7 +49,6 @@ namespace CK.Core
         /// <returns>True if the log should be emitted.</returns>
         public static bool ShouldLogGroup( this IActivityMonitor @this, LogLevel level, [CallerFilePath]string fileName = null, [CallerLineNumber]int lineNumber = 0 )
         {
-            if( @this == null ) throw new NullReferenceException( "this" );
             return DoShouldLogGroup( @this, level & LogLevel.Mask, fileName, lineNumber );
         }
 
@@ -60,7 +58,6 @@ namespace CK.Core
         static IActivityMonitorLineSender FilterLogLine( this IActivityMonitor @this, LogLevel level, string fileName, int lineNumber )
         {
             Debug.Assert( (level & LogLevel.IsFiltered) == 0 );
-            if( @this == null ) throw new NullReferenceException( "this" );
             if( DoShouldLogLine( @this, level, fileName, lineNumber ) )
             {
                 return new ActivityMonitorLineSender( @this, level | LogLevel.IsFiltered, fileName, lineNumber );
@@ -74,7 +71,6 @@ namespace CK.Core
         static IActivityMonitorGroupSender FilteredGroup( IActivityMonitor @this, LogLevel level, string fileName, int lineNumber )
         {
             Debug.Assert( (level & LogLevel.IsFiltered) == 0 );
-            if( @this == null ) throw new NullReferenceException( "this" );
             if( DoShouldLogGroup( @this, level, fileName, lineNumber ) )
             {
                 return new ActivityMonitorGroupSender( @this, level | LogLevel.IsFiltered, fileName, lineNumber );
@@ -187,7 +183,6 @@ namespace CK.Core
         /// </remarks>
         public static void CloseGroup( this IActivityMonitor @this, object userConclusion = null )
         {
-            if( @this == null ) throw new NullReferenceException( "this" );
             @this.CloseGroup( NextLogTime( @this ), userConclusion );
         }
         
@@ -201,7 +196,6 @@ namespace CK.Core
         /// <returns>The existing <see cref="ActivityMonitorBridge"/> or null if no such bridge exists.</returns>
         public static ActivityMonitorBridge FindBridgeTo( this IActivityMonitorOutput @this, ActivityMonitorBridgeTarget targetBridge )
         {
-            if( @this == null ) throw new NullReferenceException( "this" );
             if( targetBridge == null ) throw new ArgumentNullException( "targetBridge" );
             return @this.Clients.OfType<ActivityMonitorBridge>().FirstOrDefault( b => b.BridgeTarget == targetBridge );
         }
@@ -216,7 +210,6 @@ namespace CK.Core
         /// <returns>A <see cref="IDisposable"/> object that can be disposed to automatically call <see cref="UnbridgeTo"/>.</returns>
         public static IDisposable CreateBridgeTo( this IActivityMonitorOutput @this, ActivityMonitorBridgeTarget targetBridge )
         {
-            if( @this == null ) throw new NullReferenceException( "this" );
             if( targetBridge == null ) throw new ArgumentNullException( "targetBridge" );
             if( @this.Clients.OfType<ActivityMonitorBridge>().Any( b => b.BridgeTarget == targetBridge ) ) throw new InvalidOperationException();
             var created = @this.RegisterClient( new ActivityMonitorBridge( targetBridge, false, false ) );
@@ -235,7 +228,6 @@ namespace CK.Core
         /// <returns>A <see cref="IDisposable"/> object that can be disposed to automatically call <see cref="UnbridgeTo"/>.</returns>
         public static IDisposable CreateStrongBridgeTo( this IActivityMonitorOutput @this, ActivityMonitorBridgeTarget targetBridge )
         {
-            if( @this == null ) throw new NullReferenceException( "this" );
             if( targetBridge == null ) throw new ArgumentNullException( "targetBridge" );
             if( @this.Clients.OfType<ActivityMonitorBridge>().Any( b => b.BridgeTarget == targetBridge ) ) throw new InvalidOperationException();
             var created = @this.RegisterClient( new ActivityMonitorBridge( targetBridge, true, true ) );
@@ -259,12 +251,6 @@ namespace CK.Core
 
         #region Catch & CatchCounter
 
-        [Obsolete( "Use less ambiguous CollectEntries method instead.", true )]
-        public static IDisposable Catch( this IActivityMonitor @this, Action<IReadOnlyList<ActivityMonitorSimpleCollector.Entry>> errorHandler, LogLevelFilter level = LogLevelFilter.Error )
-        {
-            return Catch( @this, errorHandler, level );
-        }
-
         /// <summary>
         /// Enables simple "using" syntax to easily collect any <see cref="LogLevel"/> (or above) entries (defaults to <see cref="LogLevel.Error"/>) around operations.
         /// The callback is called when the the returned IDisposable is disposed and there are at least one collected entry.
@@ -275,7 +261,6 @@ namespace CK.Core
         /// <returns>A <see cref="IDisposable"/> object used to manage the scope of this handler.</returns>
         public static IDisposable CollectEntries( this IActivityMonitor @this, Action<IReadOnlyList<ActivityMonitorSimpleCollector.Entry>> errorHandler, LogLevelFilter level = LogLevelFilter.Error )
         {
-            if( @this == null ) throw new NullReferenceException( "this" );
             if( errorHandler == null ) throw new ArgumentNullException( "errorHandler" );
             ActivityMonitorSimpleCollector errorTracker = new ActivityMonitorSimpleCollector() { MinimalFilter = level };
             @this.Output.RegisterClient( errorTracker );
@@ -286,48 +271,6 @@ namespace CK.Core
             } );
         }
 
-        [Obsolete( "Use OnError method instead.", true )]
-        public static IDisposable CatchCounter( this IActivityMonitor @this, Action<int, int, int> fatalErrorWarnCount )
-        {
-            if( @this == null ) throw new NullReferenceException( "this" );
-            if( fatalErrorWarnCount == null ) throw new ArgumentNullException( "fatalErrorWarnCount" );
-            ActivityMonitorErrorCounter errorCounter = new ActivityMonitorErrorCounter();
-            Debug.Assert( errorCounter.GenerateConclusion == false, "It is false by default." );
-            @this.Output.RegisterClient( errorCounter );
-            return Util.CreateDisposableAction( () =>
-            {
-                @this.Output.UnregisterClient( errorCounter );
-                if( errorCounter.Current.HasWarnOrError ) fatalErrorWarnCount( errorCounter.Current.FatalCount, errorCounter.Current.ErrorCount, errorCounter.Current.WarnCount );
-            } );
-        }
-
-        [Obsolete( "Use OnError method instead.", true )]
-        public static IDisposable CatchCounter( this IActivityMonitor @this, Action<int, int> fatalErrorCount )
-        {
-            if( @this == null ) throw new NullReferenceException( "this" );
-            if( fatalErrorCount == null ) throw new ArgumentNullException( "fatalErrorCount" );
-            ActivityMonitorErrorCounter errorCounter = new ActivityMonitorErrorCounter() { GenerateConclusion = false };
-            @this.Output.RegisterClient( errorCounter );
-            return Util.CreateDisposableAction( () =>
-            {
-                @this.Output.UnregisterClient( errorCounter );
-                if( errorCounter.Current.HasError ) fatalErrorCount( errorCounter.Current.FatalCount, errorCounter.Current.ErrorCount );
-            } );
-        }
-
-        [Obsolete( "Use OnError method instead.", true )]
-        public static IDisposable CatchCounter( this IActivityMonitor @this, Action<int> fatalOrErrorCount )
-        {
-            if( @this == null ) throw new NullReferenceException( "this" );
-            if( fatalOrErrorCount == null ) throw new ArgumentNullException( "fatalErrorCount" );
-            ActivityMonitorErrorCounter errorCounter = new ActivityMonitorErrorCounter() { GenerateConclusion = false };
-            @this.Output.RegisterClient( errorCounter );
-            return Util.CreateDisposableAction( () =>
-            {
-                @this.Output.UnregisterClient( errorCounter );
-                if( errorCounter.Current.HasError ) fatalOrErrorCount( errorCounter.Current.FatalCount + errorCounter.Current.ErrorCount );
-            } );
-        }
 
         class ErrorTracker : IActivityMonitorClient
         {
@@ -377,7 +320,6 @@ namespace CK.Core
         /// <returns>A <see cref="IDisposable"/> object used to manage the scope of this handler.</returns>
         public static IDisposable OnError( this IActivityMonitor @this, Action onFatalOrError )
         {
-            if( @this == null ) throw new NullReferenceException( "this" );
             if( onFatalOrError == null ) throw new ArgumentNullException( "onError" );
             ErrorTracker tracker = new ErrorTracker( onFatalOrError, onFatalOrError );
             @this.Output.RegisterClient( tracker );
@@ -393,7 +335,6 @@ namespace CK.Core
         /// <returns>A <see cref="IDisposable"/> object used to manage the scope of this handler.</returns>
         public static IDisposable OnError( this IActivityMonitor @this, Action onFatal, Action onError )
         {
-            if( @this == null ) throw new NullReferenceException( "this" );
             if( onFatal == null || onError == null ) throw new ArgumentNullException();
             ErrorTracker tracker = new ErrorTracker( onFatal, onError );
             @this.Output.RegisterClient( tracker );
@@ -436,7 +377,6 @@ namespace CK.Core
         /// <returns>A <see cref="IDisposable"/> object that will restore the current level.</returns>
         public static IDisposable SetMinimalFilter( this IActivityMonitor @this, LogLevelFilter group, LogLevelFilter line )
         {
-            if( @this == null ) throw new NullReferenceException( "this" );
             return new LogFilterSentinel( @this, new LogFilter( group, line ) );
         }
 
@@ -452,7 +392,6 @@ namespace CK.Core
         /// <returns>A <see cref="IDisposable"/> object that will restore the current level.</returns>
         public static IDisposable SetMinimalFilter( this IActivityMonitor @this, LogFilter f )
         {
-            if( @this == null ) throw new NullReferenceException( "this" );
             return new LogFilterSentinel( @this, f );
         }
 
@@ -493,7 +432,6 @@ namespace CK.Core
         /// <returns>A <see cref="IDisposable"/> object that will restore the current tag when disposed.</returns>
         public static IDisposable SetAutoTags( this IActivityMonitor @this, CKTrait tags, SetOperation operation = SetOperation.Union )
         {
-            if( @this == null ) throw new NullReferenceException( "this" );
             return new TagsSentinel( @this, @this.AutoTags.Apply( tags, operation ) );
         }
         
@@ -538,7 +476,6 @@ namespace CK.Core
         /// <returns>This registrar to enable fluent syntax.</returns>
         public static IActivityMonitorOutput RegisterClients( this IActivityMonitorOutput @this, IEnumerable<IActivityMonitorClient> clients )
         {
-            if( @this == null ) throw new NullReferenceException( "this" );
             foreach( var c in clients ) @this.RegisterClient( c );
             return @this;
         }
@@ -575,7 +512,6 @@ namespace CK.Core
         /// <returns>The unregistered client, or null if no client has been found.</returns>
         public static T UnregisterClient<T>( this IActivityMonitorOutput @this, Func<T, bool> predicate ) where T : IActivityMonitorClient
         {
-            if( @this == null ) throw new NullReferenceException( "this" );
             if( predicate == null ) throw new ArgumentNullException( "predicate" );
             T c = @this.Clients.OfType<T>().Where( predicate ).FirstOrDefault();
             if( c != null ) @this.UnregisterClient( c );

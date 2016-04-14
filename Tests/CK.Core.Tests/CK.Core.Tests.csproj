@@ -1,123 +1,93 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
-    <TargetFrameworkVersion Condition=" '$(TargetFrameworkVersion)' == '' ">v4.5</TargetFrameworkVersion>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProductVersion>8.0.30703</ProductVersion>
-    <SchemaVersion>2.0</SchemaVersion>
-    <ProjectGuid>{68BF384E-34EB-44F9-9502-C1BDEEA01E01}</ProjectGuid>
+    <ProjectGuid>{182F3DC3-44F5-43FD-8CCC-5676A035F50A}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>CK.Core.Tests</RootNamespace>
     <AssemblyName>CK.Core.Tests</AssemblyName>
+    <TargetFrameworkVersion>v4.5.1</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
-    <TargetFrameworkProfile>
-    </TargetFrameworkProfile>
-    <SolutionDir Condition="$(SolutionDir) == '' Or $(SolutionDir) == '*Undefined*'">..\..\</SolutionDir>
-    <RestorePackages>true</RestorePackages>
-    <NuGetPackageImportStamp>fd721984</NuGetPackageImportStamp>
-  </PropertyGroup>
-  <PropertyGroup>
-    <OutputPath>bin\$(Configuration)\</OutputPath>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
-    <DefineConstants>DEBUG;TRACE;net45</DefineConstants>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>TRACE;DEBUG;NET451 CSPROJ</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
-    <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
-    <DefineConstants>TRACE;net45</DefineConstants>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
-    <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <PropertyGroup>
-    <SignAssembly>true</SignAssembly>
+    <StartAction>Program</StartAction>
+    <StartProgram>$(SolutionDir)packages\NUnit.Runners.Net4.2.6.4\tools\nunit.exe</StartProgram>
+    <StartArguments>CK.Core.Tests.dll</StartArguments>
   </PropertyGroup>
-  <PropertyGroup>
-    <AssemblyOriginatorKeyFile>..\..\SharedKey.snk</AssemblyOriginatorKeyFile>
-  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="..\..\SharedAssemblyInfo.cs">
+      <Link>Properties\SharedAssemblyInfo.cs</Link>
+    </Compile>
+  </ItemGroup>
   <ItemGroup>
     <Reference Include="nunit.framework, Version=2.6.4.14350, Culture=neutral, PublicKeyToken=96d09a1eb7f44a77, processorArchitecture=MSIL">
       <HintPath>..\..\packages\NUnit.2.6.4\lib\nunit.framework.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="System" />
-    <Reference Include="System.Configuration" />
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="Microsoft.CSharp" />
     <Reference Include="System.Data" />
+    <Reference Include="System.Net.Http" />
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="..\..\SharedAssemblyInfo.cs">
-      <Link>Properties\SharedAssemblyInfo.cs</Link>
-    </Compile>
-    <Compile Include="AppSettingsTests.cs" />
+    <Compile Include="Animals.cs" />
+    <Compile Include="AppSettingsDotNetTests.cs" />
     <Compile Include="CKExceptionTests.cs" />
-    <Compile Include="Collection\SerializationTests.cs" />
-    <Compile Include="InternalsVisibleToChecks.cs" />
-    <Compile Include="Monitoring\SourceFilteringTests.cs" />
-    <Compile Include="UtilMatcherTests.cs" />
-    <Compile Include="Monitoring\ActivityMonitorTimestamp.cs" />
-    <Compile Include="Monitoring\DocumentationCodeSnippets.cs" />
-    <Compile Include="TestHelper.LegacySupport.cs" />
-    <Compile Include="Monitoring\ActivityMonitorClientTester.cs" />
-    <Compile Include="Monitoring\ActivityMonitorCrossAppDomain.cs" />
-    <Compile Include="Monitoring\ActivityLoggerMultiThreadTests.cs" />
-    <Compile Include="Collection\ObservableSortedArrayListTests.cs" />
-    <Compile Include="Collection\SortedArrayKeyListTests.cs" />
-    <Compile Include="Collection\FIFOTests.cs" />
-    <Compile Include="Monitoring\ActivityMonitorFilterPropagation.cs" />
-    <Compile Include="Monitoring\ActivityMonitorTests.cs" />
-    <Compile Include="Collection\SortedArrayListTests.cs" />
-    <Compile Include="Monitoring\ActivityMonitorErrorLogs.cs" />
+    <Compile Include="StringAndStringBuilderExtensionTests.cs" />
     <Compile Include="CollectionExtensionTests.cs" />
-    <Compile Include="MarshallByRefPlayground.cs" />
-    <Compile Include="Monitoring\DependentActivityTests.cs" />
-    <Compile Include="Monitoring\LogFilterTests.cs" />
-    <Compile Include="Monitoring\StupidXmlClient.cs" />
     <Compile Include="CriticalErrorCollectorTests.cs" />
     <Compile Include="EnumerableExtensionTests.cs" />
+    <Compile Include="FIFOTests.cs" />
     <Compile Include="FileUtilTests.cs" />
-    <Compile Include="Animals.cs" />
-    <Compile Include="Monitoring\SystemActivityMonitorTests.cs" />
-    <Compile Include="ServiceContainerTests.cs" />
-    <Compile Include="CoreExtensionTests.cs" />
-    <Compile Include="Collection\ReadOnlyTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Monitoring\StupidStringClient.cs" />
+    <Compile Include="ReadOnlyTests.cs" />
+    <Compile Include="ServiceContainerTests.cs" />
+    <Compile Include="SortedArrayKeyListTests.cs" />
+    <Compile Include="SortedArrayListTests.cs" />
+    <Compile Include="StringMatcherTests.cs" />
     <Compile Include="TemporaryFileTests.cs" />
     <Compile Include="TestHelper.cs" />
-    <Compile Include="Traits.cs" />
-    <Compile Include="UriHelperTests.cs" />
+    <Compile Include="TraitsTests.cs" />
     <Compile Include="UtilInterlockedTests.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\CK.Core\CK.Core.csproj">
-      <Project>{97578828-71EC-46B3-BD9A-44E58292386F}</Project>
+      <Project>{bc92ae5b-73a2-4b9e-91d2-9163960a17c4}</Project>
       <Name>CK.Core</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\CK.Core\CK.Core.csproj">
-      <Project>{97578828-71EC-46B3-BD9A-44E58292386F}</Project>
-      <Name>CK.Core</Name>
-    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="TestDir\" />
   </ItemGroup>
   <ItemGroup>
     <Service Include="{82A7F48D-3B50-4B1E-B82E-3ADA8210C358}" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="packages.config" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

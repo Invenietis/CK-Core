@@ -6,12 +6,28 @@ using System.Linq;
 using System.Text;
 using CK.Core;
 using NUnit.Framework;
+using NUnit.Framework.Constraints;
 
 namespace CK.Core.Tests
 {
+#if CSPROJ
+    static class Does
+    {
+        public static SubstringConstraint Contain( string expected ) => Is.StringContaining( expected );
+
+        public static EndsWithConstraint EndWith( string expected ) => Is.StringEnding( expected );
+
+        public static StartsWithConstraint StartWith( string expected ) => Is.StringStarting( expected );
+
+        public static ConstraintExpression Not => Is.Not;
+
+        public static SubstringConstraint Contain( this ConstraintExpression @this, string expected ) => @this.StringContaining( expected );
+    }
+#else
     class TestAttribute : Xunit.FactAttribute
     {
     }
+#endif
 
     static partial class TestHelper
     {
@@ -77,7 +93,12 @@ namespace CK.Core.Tests
 
         static void InitalizePaths()
         {
+#if NET451
+            string p = new Uri( System.Reflection.Assembly.GetExecutingAssembly().CodeBase ).LocalPath;
+            p = Path.GetDirectoryName( Path.GetDirectoryName( Path.GetDirectoryName( p ) ) );
+#else
             string p = Microsoft.Extensions.PlatformAbstractions.PlatformServices.Default.Application.ApplicationBasePath;
+#endif
             _testFolder = Path.Combine( p, "TestDir" );
             do
             {
