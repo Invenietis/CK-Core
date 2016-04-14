@@ -20,7 +20,7 @@ namespace CK.Monitoring
         RouteConfiguration _routeConfig;
         Dictionary<string, LogFilter> _sourceFilter;
         SourceFilterApplyMode _sourceFilterApplyMode;
-        LogFilter? _appDomainDefaultFilter;
+        LogFilter? _globalDefaultFilter;
 
         /// <summary>
         /// Initializes a new <see cref="GrandOutputConfiguration"/>.
@@ -85,7 +85,7 @@ namespace CK.Monitoring
                 _routeConfig = routeConfig;
                 _sourceFilter = sourceFilter;
                 _sourceFilterApplyMode = applyMode;
-                _appDomainDefaultFilter = appDomainFilter;
+                _globalDefaultFilter = appDomainFilter;
                 return true;
             }
             catch( Exception ex )
@@ -100,10 +100,10 @@ namespace CK.Monitoring
         /// This value is set on the static <see cref="ActivityMonitor.DefaultFilter"/> by <see cref="GrandOutput.SetConfiguration"/>
         /// if and only if the configured GrandOutput is the <see cref="GrandOutput.Default"/>.
         /// </summary>
-        public LogFilter? AppDomainDefaultFilter 
+        public LogFilter? GlobalDefaultFilter 
         {
-            get { return _appDomainDefaultFilter; }
-            set { _appDomainDefaultFilter = value; } 
+            get { return _globalDefaultFilter; }
+            set { _globalDefaultFilter = value; } 
         }
 
         /// <summary>

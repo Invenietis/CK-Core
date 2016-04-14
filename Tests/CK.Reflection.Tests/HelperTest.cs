@@ -78,19 +78,19 @@ namespace CK.Reflection.Tests
                 Assert.That( i.PropertyType, Is.SameAs( typeof( int ) ) );
             }
 
-            // REVIEW: skip this test AppDomain does no longer exists.
-            // {
-            //     // This version uses the closure to capture the reference to the property.
-            //     PropertyInfo i = ReflectionHelper.GetPropertyInfo( () => AnIntProperty );
-            //     Assert.That( i.Name, Is.EqualTo( "AnIntProperty" ) );
-            //     Assert.That( i.PropertyType, Is.SameAs( typeof( int ) ) );
+             {
+                // This version uses the closure to capture the reference to the property.
+                PropertyInfo i = ReflectionHelper.GetPropertyInfo( () => AnIntProperty );
+                Assert.That( i.Name, Is.EqualTo( "AnIntProperty" ) );
+                Assert.That( i.PropertyType, Is.SameAs( typeof( int ) ) );
 
-            //     PropertyInfo i2 = ReflectionHelper.GetPropertyInfo( () => i.Name );
-            //     Assert.That( i2.Name, Is.EqualTo( "Name" ) );
-            //     Assert.That( i2.PropertyType, Is.SameAs( typeof( string ) ) );
+                PropertyInfo i2 = ReflectionHelper.GetPropertyInfo( () => i.Name );
+                Assert.That( i2.Name, Is.EqualTo( "Name" ) );
+                Assert.That( i2.PropertyType, Is.SameAs( typeof( string ) ) );
 
-            //     Assert.Throws<ArgumentException>( () => ReflectionHelper.GetPropertyInfo( () => AppDomain.CurrentDomain.ActivationContext.ApplicationManifestBytes[4] ) );
-            // }
+                byte[] anArray = new byte[1]; 
+                Assert.Throws<ArgumentException>( () => ReflectionHelper.GetPropertyInfo( () => anArray[0] ) );
+            }
             {
                 // This version uses the closure to capture the reference to the property
                 // and enables property type checking.

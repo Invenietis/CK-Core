@@ -85,7 +85,7 @@ namespace CK.Monitoring
         {
             GrandOutputConfiguration def = new GrandOutputConfiguration();
             Debug.Assert( def.SourceOverrideFilterApplicationMode == SourceFilterApplyMode.None );
-            Debug.Assert( def.AppDomainDefaultFilter == null );
+            Debug.Assert( def.GlobalDefaultFilter == null );
             var route = new RouteConfiguration();
             route.ConfigData = new GrandOutputChannelConfigData() { MinimalFilter = LogFilter.Debug };
             route.AddAction( new BinaryFileConfiguration( "All" ) { Path = "GrandOutputDefault" } );

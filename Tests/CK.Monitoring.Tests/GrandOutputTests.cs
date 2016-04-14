@@ -54,7 +54,7 @@ namespace CK.Monitoring.Tests
         {
             GrandOutputConfiguration def = new GrandOutputConfiguration();
             Debug.Assert( def.SourceOverrideFilterApplicationMode == SourceFilterApplyMode.None );
-            Debug.Assert( def.AppDomainDefaultFilter == null );
+            Debug.Assert( def.GlobalDefaultFilter == null );
             var route = new RouteConfiguration();
             route.ConfigData = new GrandOutputChannelConfigData();
             route.AddAction( new BinaryFileConfiguration( "All" ) { Path = subFolder } );

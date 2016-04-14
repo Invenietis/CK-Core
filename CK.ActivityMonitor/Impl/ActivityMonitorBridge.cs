@@ -2,10 +2,6 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
-#if NET451 || NET46
-using System.Runtime.Remoting;
-using System.Runtime.Remoting.Lifetime;
-#endif
 using System.Threading;
 using CK.Core.Impl;
 
@@ -18,8 +14,6 @@ namespace CK.Core
     public sealed class ActivityMonitorBridge : IActivityMonitorBoundClient, IActivityMonitorBridgeCallback
     {
         readonly ActivityMonitorBridgeTarget _bridgeTarget;
-        // When the bridge is in the same domain, we relay 
-        // directly to the target monitor.
         readonly IActivityMonitor _targetMonitor;
         IActivityMonitorImpl _source;
         // I'm missing a BitList in the framework...
@@ -29,72 +23,6 @@ namespace CK.Core
         readonly bool _pushTopicAndAutoTagsToTarget;
         readonly bool _applyTargetFilterToUnfilteredLogs;
 
-#if NET451 || NET46
-        // The callback is this object if we are in the same AppDomain
-        // otherwise it is a CrossAppDomainCallback.
-        readonly CrossAppDomainCallback _crossADCallback;
-
-        class CrossAppDomainCallback : MarshalByRefObject, IActivityMonitorBridgeCallback, ISponsor
-        {
-            readonly ActivityMonitorBridgeTarget _bridge;
-            readonly IActivityMonitorBridgeCallback _local;
-
-            internal bool InUse;
-
-            public CrossAppDomainCallback( ActivityMonitorBridge local, ActivityMonitorBridgeTarget bridge )
-            {
-                _bridge = bridge;
-                _local = local;
-            }
-
-            bool IActivityMonitorBridgeCallback.IsCrossAppDomain
-            {
-                get { return true; }
-            }
-
-            bool IActivityMonitorBridgeCallback.PullTopicAndAutoTagsFromTarget
-            {
-                get { return _local.PullTopicAndAutoTagsFromTarget; }
-            }
-
-            void IActivityMonitorBridgeCallback.OnTargetActualFilterChanged()
-            {
-                _local.OnTargetActualFilterChanged();
-            }
-
-            void IActivityMonitorBridgeCallback.OnTargetAutoTagsChanged( string marshalledNewTags )
-            {
-                _local.OnTargetAutoTagsChanged( ActivityMonitor.Tags.Register( marshalledNewTags ) );
-            }
-
-            void IActivityMonitorBridgeCallback.OnTargetAutoTagsChanged( CKTrait newTags )
-            {
-                Debug.Fail( "Never called." );
-            }
-
-            void IActivityMonitorBridgeCallback.OnTargetTopicChanged( string newTopic, string fileName, int lineNumber )
-            {
-                _local.OnTargetTopicChanged( newTopic, fileName, lineNumber );
-            }
-
-            public override object InitializeLifetimeService()
-            {
-                ILease lease = (ILease)base.InitializeLifetimeService();
-                if( lease.CurrentState == LeaseState.Initial )
-                {
-                    lease.Register( this );
-                }
-                return lease;
-            }
-
-            TimeSpan ISponsor.Renewal( ILease lease )
-            {
-                return InUse ? TimeSpan.FromMinutes( 2 ) : TimeSpan.Zero;
-            }
-
-        }
-#endif
-
         /// <summary>
         /// Tags group conclusions emitted because of premature (unbalanced) removing of a bridge from a source monitor.
         /// </summary>
@@ -102,10 +30,9 @@ namespace CK.Core
 
         /// <summary>
         /// Initialize a new <see cref="ActivityMonitorBridge"/> bound to an existing <see cref="ActivityMonitorBridgeTarget"/>
-        /// that can live in another AppDomain.
         /// This Client should be registered in the <see cref="IActivityMonitor.Output"/> of a local monitor.
         /// </summary>
-        /// <param name="bridge">The bridge to another AppDomain.</param>
+        /// <param name="bridge">The target bridge.</param>
         /// <param name="pullTargetTopicAndAutoTagsFromTarget">
         /// When true, the <see cref="IActivityMonitor.Topic"/> and <see cref="IActivityMonitor.AutoTags"/> are automaticaly updated whenever they change on the target monitor.
         /// </param>
@@ -124,45 +51,25 @@ namespace CK.Core
             _pullTargetTopicAndAutoTagsFromTarget = pullTargetTopicAndAutoTagsFromTarget;
             _pushTopicAndAutoTagsToTarget = pushTopicAndAutoTagsToTarget;
             _applyTargetFilterToUnfilteredLogs = applyTargetFilterToUnfilteredLogs;
-#if NET451 || NET46
-            if( System.Runtime.Remoting.RemotingServices.IsTransparentProxy( bridge ) )
-            {
-                _crossADCallback = new CrossAppDomainCallback( this, bridge );
-            }
-            else
-            {
-#endif
-                _targetMonitor = _bridgeTarget.TargetMonitor;
-#if NET451 || NET46
-            }
-#endif
+            _targetMonitor = _bridgeTarget.TargetMonitor;
             _openedGroups = new List<bool>();
         }
 
         /// <summary>
         /// Gets the target monitor. 
-        /// Net45: Null if it is not in the same Application Domain. Use <see cref="BridgeTarget"/> to always 
-        /// have a reference to the target.
         /// </summary>
-        public IActivityMonitor TargetMonitor { get { return _targetMonitor; } }
+        public IActivityMonitor TargetMonitor => _targetMonitor;
 
         /// <summary>
-        /// Gets whether the target monitor is in the same application domain or not.
+        /// Gets the target bridge of the <see cref="TargetMonitor"/>. 
         /// </summary>
-        public bool IsCrossAppDomain { get { return _targetMonitor == null; } }
+        public ActivityMonitorBridgeTarget BridgeTarget => _bridgeTarget;
 
         /// <summary>
-        /// Gets the target bridge. This is never null, even when this bridge is not in the same application domain as the <see cref="TargetMonitor"/>.
+        /// Gets whether this bridge updates the Topic and AutoTags of its monitor whenever 
+        /// they change on the target monitor.
         /// </summary>
-        public ActivityMonitorBridgeTarget BridgeTarget { get { return _bridgeTarget; } }
-
-        /// <summary>
-        /// Gets whether this bridge updates the Topic and AutoTags of its monitor whenever they change on the target monitor.
-        /// </summary>
-        public bool PullTopicAndAutoTagsFromTarget
-        {
-            get { return _pullTargetTopicAndAutoTagsFromTarget; }
-        }
+        public bool PullTopicAndAutoTagsFromTarget => _pullTargetTopicAndAutoTagsFromTarget; 
 
         void IActivityMonitorBridgeCallback.OnTargetActualFilterChanged()
         {
@@ -178,11 +85,6 @@ namespace CK.Core
             _source.SetTopic( newTopic, fileName, lineNumber );
         }
 
-        void IActivityMonitorBridgeCallback.OnTargetAutoTagsChanged( string marshalledNewTags )
-        {
-            Debug.Fail( "Never called." );
-        }
-
         void IActivityMonitorBridgeCallback.OnTargetAutoTagsChanged( CKTrait newTags )
         {
             _source.AutoTags = newTags;
@@ -196,53 +98,24 @@ namespace CK.Core
             if( source != null && _source != null ) throw ActivityMonitorClient.CreateMultipleRegisterOnBoundClientException( this );
             if( _source != null )
             {
-#if NET451 || NET46
-                if( _crossADCallback != null )
-                {
-                    _bridgeTarget.RemoveCallback( _crossADCallback );
-                    _crossADCallback.InUse = false;
-                }
-                else
-#endif
-                    _bridgeTarget.RemoveCallback( this );
+                _bridgeTarget.RemoveCallback( this );
                 // Unregistering.
                 for( int i = 0; i < _openedGroups.Count; ++i )
                 {
                     if( _openedGroups[i] )
                     {
-                        if( _targetMonitor != null ) _targetMonitor.CloseGroup( new ActivityLogGroupConclusion( ActivityMonitorResources.ClosedByBridgeRemoved, TagBridgePrematureClose ) );
-                        else _bridgeTarget.CloseGroup( new string[] { TagBridgePrematureClose.ToString(), ActivityMonitorResources.ClosedByBridgeRemoved } );
+                        _targetMonitor.CloseGroup( new ActivityLogGroupConclusion( ActivityMonitorResources.ClosedByBridgeRemoved, TagBridgePrematureClose ) );
                     }
                 }
                 _openedGroups.Clear();
             }
             else
             {
-#if NET451 || NET46
-                if( _crossADCallback != null )
-                {
-                    _crossADCallback.InUse = true;
-                    _bridgeTarget.AddCallback( _crossADCallback );
-                }
-                else
-#endif
-                    _bridgeTarget.AddCallback( this );
-                _targetActualFilter = IsCrossAppDomain ? _bridgeTarget.TargetFinalFilterCrossAppDomain : _bridgeTarget.TargetFinalFilter;
+                _bridgeTarget.AddCallback( this );
+                _targetActualFilter = _bridgeTarget.TargetFinalFilter;
                 if( _pullTargetTopicAndAutoTagsFromTarget )
                 {
-                    string targetTopic;
-                    CKTrait targetTags;
-#if NET451 || NET46
-                    if( IsCrossAppDomain )
-                    {
-                        string marshalledTags;
-                        _bridgeTarget.GetTargetAndAutoTags( out targetTopic, out marshalledTags );
-                        targetTags = ActivityMonitor.Tags.Register( marshalledTags );
-                    }
-                    else
-#endif
-                        _bridgeTarget.GetTargetAndAutoTags( out targetTopic, out targetTags );
-                    source.InitializeTopicAndAutoTags( targetTopic, targetTags );
+                    source.InitializeTopicAndAutoTags( this._targetMonitor.Topic, _targetMonitor.AutoTags );
                 }
 
             }
@@ -250,7 +123,7 @@ namespace CK.Core
             Interlocked.MemoryBarrier();
         }
 
-        LogFilter IActivityMonitorBoundClient.MinimalFilter { get { return GetActualTargetFilter(); } }
+        LogFilter IActivityMonitorBoundClient.MinimalFilter => GetActualTargetFilter();
 
         /// <summary>
         /// This is necessarily called in the context of the activity: we can call the bridge that can call 
@@ -264,7 +137,7 @@ namespace CK.Core
             {
                 do
                 {
-                    f = IsCrossAppDomain ? _bridgeTarget.TargetFinalFilterCrossAppDomain : _bridgeTarget.TargetFinalFilter;
+                    f = _bridgeTarget.TargetFinalFilter;
                     _targetActualFilter = f;
                     Interlocked.MemoryBarrier();
                 }
@@ -281,11 +154,7 @@ namespace CK.Core
             var level = data.Level;
             if( ((level & LogLevel.IsFiltered) == 0 && !_applyTargetFilterToUnfilteredLogs) || (int)GetActualTargetFilter().Line <= (int)(level & LogLevel.Mask) )
             {
-                if( _targetMonitor != null ) _targetMonitor.UnfilteredLog( data );
-                else
-                {
-                    _bridgeTarget.UnfilteredLog( data.Tags.ToString(), level, data.Text, data.EnsureExceptionData(), data.LogTime, data.FileName, data.LineNumber );
-                }
+                _targetMonitor.UnfilteredLog( data );
             }
         }
 
@@ -305,12 +174,7 @@ namespace CK.Core
             // we do not see it here. Checking the LogLevelFilter is ok.
             if( ((group.GroupLevel & LogLevel.IsFiltered) == 0 && !_applyTargetFilterToUnfilteredLogs) || (int)GetActualTargetFilter().Group <= (int)group.MaskedGroupLevel )
             {
-                if( _targetMonitor != null )
-                    _targetMonitor.UnfilteredOpenGroup( group.GroupTags, group.GroupLevel, null, group.GroupText, group.LogTime, group.Exception, group.FileName, group.LineNumber );
-                else
-                {
-                    _bridgeTarget.UnfilteredOpenGroup( group.GroupTags.ToString(), group.GroupLevel, group.EnsureExceptionData(), group.GroupText, group.FileName, group.LineNumber, group.LogTime );
-                }
+                _targetMonitor.UnfilteredOpenGroup( group.GroupTags, group.GroupLevel, null, group.GroupText, group.LogTime, group.Exception, group.FileName, group.LineNumber );
                 _openedGroups[idx - 1] = true;
             }
             else _openedGroups[idx - 1] = false;
@@ -327,22 +191,7 @@ namespace CK.Core
         {
             if( _openedGroups[group.Depth - 1] )
             {
-                if( _targetMonitor != null ) _targetMonitor.CloseGroup( conclusions );
-                else
-                {
-                    string[] taggedConclusions = null;
-                    if( conclusions.Count > 0 )
-                    {
-                        taggedConclusions = new string[conclusions.Count * 2];
-                        int i = 0;
-                        foreach( var c in conclusions )
-                        {
-                            taggedConclusions[i++] = c.Tag.ToString();
-                            taggedConclusions[i++] = c.Text;
-                        }
-                    }
-                    _bridgeTarget.CloseGroup( taggedConclusions );
-                }
+                _targetMonitor.CloseGroup( conclusions );
                 _openedGroups[group.Depth - 1] = false;
             }
         }
@@ -356,8 +205,7 @@ namespace CK.Core
         {
             if( _pushTopicAndAutoTagsToTarget )
             {
-                if( IsCrossAppDomain ) _bridgeTarget.SetAutoTags( newTags.ToString() );
-                else _bridgeTarget.SetAutoTags( newTags );
+                _bridgeTarget.SetAutoTags( newTags );
             }
         }
 

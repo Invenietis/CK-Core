@@ -86,25 +86,7 @@ namespace CK.Monitoring
             _channelHost.ConfigurationClosing += OnConfigurationClosing;
             _bufferingChannel = new BufferingChannel( _dispatcher, factory.CommonSinkOnlyReceiver );
             _nextDeadClientGarbage = DateTime.UtcNow.AddMinutes( 5 );
-            #if NET451 || NET46
-            var h = new EventHandler( OnDomainTermination );
-            AppDomain.CurrentDomain.DomainUnload += h;
-            AppDomain.CurrentDomain.ProcessExit += h;
-            #endif
         }
-
-        #if NET451 || NET46
-        void OnDomainTermination( object sender, EventArgs e )
-        {
-            var w = _watcher;
-            if( w != null )
-            {
-                _watcher = null;
-                w.Dispose();
-            }
-            Dispose( new SystemActivityMonitor( false, null ), 10 );
-        }
-        #endif
 
         /// <summary>
         /// Ensures that a client for this GrandOutput is registered on a monitor.
@@ -199,7 +181,7 @@ namespace CK.Monitoring
             {
                 if( _channelHost.SetConfiguration( monitor, config.ChannelsConfiguration ?? new RouteConfiguration(), millisecondsBeforeForceClose ) )
                 {
-                    if( this == _default &&  config.AppDomainDefaultFilter.HasValue ) ActivityMonitor.DefaultFilter = config.AppDomainDefaultFilter.Value;
+                    if( this == _default &&  config.GlobalDefaultFilter.HasValue ) ActivityMonitor.DefaultFilter = config.GlobalDefaultFilter.Value;
 
                     if( config.SourceOverrideFilterApplicationMode == SourceFilterApplyMode.Clear || config.SourceOverrideFilterApplicationMode == SourceFilterApplyMode.ClearThenApply )
                     {
@@ -355,13 +337,8 @@ namespace CK.Monitoring
             {
                 if( _channelHost.Dispose( monitor, millisecondsBeforeForceClose ) )
                 {
-                    #if NET451 || NET46
-                    var h = new EventHandler( OnDomainTermination );
-                    AppDomain.CurrentDomain.DomainUnload -= h;
-                    AppDomain.CurrentDomain.ProcessExit -= h;
                     _dispatcher.Dispose();
                     _bufferingChannel.Dispose();
-                    #endif
                 }
             }
         }

@@ -204,10 +204,7 @@ namespace CK.Core
         /// Gets the <see cref="RootLogPath"/> that is configured in application settings (null otherwise).
         /// Getting this property ensures that this type's static information is initialized.
         /// </summary>
-        static public string AppSettingsRootLogPath
-        {
-            get { return _appSettingslogPath; }
-        }
+        static public string AppSettingsRootLogPath => _appSettingslogPath;
 
         /// <summary>
         /// Gets or sets (it can be set only once) the log folder to use (setting multiple time the same path is accepted). 
@@ -351,7 +348,7 @@ namespace CK.Core
             }
         }
 
-#region Generate text from errors methods.
+        #region Generate text from errors methods.
 
         static string DumpErrorText( DateTimeStamp logTime, string text, LogLevel level, Exception ex, CKTrait tags )
         {
@@ -386,7 +383,7 @@ namespace CK.Core
         {
             buffer.Append( "</" ).Append( level.ToString() ).Append( '>' ).AppendLine();
         }
-#endregion
+        #endregion
 
     }
 }
