@@ -9,7 +9,7 @@ using NUnit.Framework;
 
 namespace CK.Core.Tests.Monitoring
 {
-    [TestFixture] 
+    [TestFixture]
     [Category( "ActivityMonitor" )]
     public class ActivityMonitorMultiThreadTests
     {
@@ -124,7 +124,7 @@ namespace CK.Core.Tests.Monitoring
                 Assert.That( () => monitor.Info().Send( "Test must fail" ),
                     Throws.TypeOf( typeof( InvalidOperationException ) ).
                         And.Message.EqualTo( Impl.ActivityMonitorResources.ActivityMonitorConcurrentThreadAccess ) );
-                
+
                 Assert.That( monitor.Output.Clients.Count, Is.EqualTo( clientCount ), "Still " + clientCount + ": Concurrent call: not the fault of the Client." );
             }
             finally
@@ -163,7 +163,7 @@ namespace CK.Core.Tests.Monitoring
             IActivityMonitor monitor = new ActivityMonitor();
             if( TestHelper.LogsToConsole ) monitor.Output.RegisterClient( new ActivityMonitorConsoleClient() );
             // Artficially slows down logging to ensure that concurrent access occurs.
-            monitor.Output.RegisterClient( new ActionActivityMonitorClient( () => Thread.Sleep( 50 )) );
+            monitor.Output.RegisterClient( new ActionActivityMonitorClient( () => Thread.Sleep( 50 ) ) );
 
             object lockTasks = new object();
             object lockRunner = new object();
@@ -180,14 +180,15 @@ namespace CK.Core.Tests.Monitoring
                 }
             };
 
-            Task[] tasks = new Task[] 
-            {            
+            Task[] tasks = new Task[]
+            {
                 new Task( () => { getLock(); monitor.Info().Send( "Test T1" ); } ),
                 new Task( () => { getLock(); monitor.Info().Send( new Exception(), "Test T2" ); } ),
                 new Task( () => { getLock(); monitor.Info().Send( "Test T3" ); } )
             };
 
-            Parallel.ForEach( tasks, t => t.Start() );
+            foreach( var t in tasks ) t.Start();
+            Task.WaitAll( tasks );
 
             lock( lockRunner )
                 while( enteredThread < tasks.Length )

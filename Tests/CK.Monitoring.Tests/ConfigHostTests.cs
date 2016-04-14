@@ -165,8 +165,9 @@ namespace CK.Monitoring.Tests
 
             public void RunMe( int token )
             {
-                IEnumerable<Task> tasks = _children.Select( c => new Task( () => c.RunMe( token ) ) );
-                Parallel.ForEach( tasks, t => t.RunSynchronously() );
+                var tasks = _children.Select( c => new Task( () => c.RunMe( token ) ) ).ToArray();
+                foreach( var t in tasks ) t.Start();
+                Task.WaitAll( tasks );
             }
 
             public void Close( IActivityMonitor m )

@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-#if DNX451 || DNX46
+#if NET451 || NET46
 using System.Runtime.Serialization.Formatters.Binary;
 #endif
 using System.Text;
@@ -80,6 +80,7 @@ namespace CK.Core.Tests
         public void AggregatedExceptions()
         {
             AggregateException eAgg = ThrowAggregatedException();
+            Assert.That( eAgg, Is.Not.Null );
             var d = CKExceptionData.CreateFrom( eAgg );
 
             Assert.That( d.ExceptionTypeAssemblyQualifiedName, Is.EqualTo( typeof(AggregateException).AssemblyQualifiedName ) );
@@ -92,7 +93,7 @@ namespace CK.Core.Tests
             }
         }
 
-#if DNX451 || DNX46
+#if NET451 || NET46
         [Test]
         public void SerializeCKException()
         {
@@ -132,11 +133,13 @@ namespace CK.Core.Tests
             var data = CKExceptionData.CreateFrom( ThrowAggregatedException() );
             using( var mem = new MemoryStream() )
             {
-                BinaryWriter w = new BinaryWriter( mem );
-                data.Write( w );
-                mem.Position = 0;
-                var data2 = new CKExceptionData( new BinaryReader( mem ) );
-                Assert.AreEqual( data2.ToString(), data.ToString() );
+                using( BinaryWriter w = new BinaryWriter( mem ) )
+                {
+                    data.Write( w );
+                    mem.Position = 0;
+                    var data2 = new CKExceptionData( new BinaryReader( mem ) );
+                    Assert.AreEqual( data2.ToString(), data.ToString() );
+                }
             }
         }
 
@@ -145,11 +148,12 @@ namespace CK.Core.Tests
             AggregateException eAgg = null;
             try
             {
-                Parallel.For( 0, 50, i =>
-                {
-                    if( i % 1 == 0 ) throw new Exception( String.Format( "Ex n°{0}", i ), ThrowExceptionWithInner() );
-                    else throw new Exception( String.Format( "Ex n°{0}", i ) );
-                } );
+                for( int i = 0; i < 50; ++i )
+                    Task.Run( () =>
+                    {
+                        if( i % 1 == 0 ) throw new Exception( String.Format( "Ex n°{0}", i ), ThrowExceptionWithInner() );
+                        else throw new Exception( String.Format( "Ex n°{0}", i ) );
+                    } ).Wait();
             }
             catch( AggregateException ex )
             {

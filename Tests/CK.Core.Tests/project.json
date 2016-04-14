@@ -1,5 +1,5 @@
 {
-    "version": "0.0.0-Absolutely-Invalid",
+    "version": "5.0.0-*",
     "description": "CK.Core.Tests Class Library",
     "authors": [ "Olivier Spinelli" ],
     "tags": [ "" ],
@@ -12,33 +12,33 @@
     "testRunner": "xunit",
 
     "dependencies": {
-        "CK.Core": "0.0.0-Absolutely-Invalid",
-        "NUnitLite": "3.2.0",
-        "System.Collections": "4.0.11-*",
-        "xunit": "2.1.0"
+      
     },
 
     "frameworks": {
         "dnxcore50": {
             "imports": [
-                "portable-net451+win8"
+                "portable-net45+win8"
             ],
             "dependencies": {
                 "dotnet-test-xunit": "1.0.0-dev-*",
+                "CK.Core": "5.0.0-*",
+                "NUnitLite": "3.2.0",
+                "xunit": "2.1.0",
                 "System.Console": "4.0.0-*",
-                "System.Linq": "4.1.0-*",
-                "System.Runtime": "4.1.0-*",
-                "System.Threading": "4.0.11-*",
-                "System.Threading.Tasks": "4.0.11-*",
                 "System.Threading.Tasks.Parallel": "4.0.1-*"
             }
         },
         "net451": {
             "dependencies": {
-                "xunit.runner.console": "2.1.0"
-
+                "xunit.runner.console": "2.1.0",
+                "CK.Core": "5.0.0-*",
+                "NUnitLite": "3.2.0",
+                "xunit": "2.1.0"
             },
-            "frameworkAssemblies": { "System.Runtime": "4.0.10.0" }
+            "frameworkAssemblies": {
+                "System.Runtime": "4.0.10.0" 
+            }
         }
     }
 }

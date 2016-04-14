@@ -173,14 +173,6 @@ namespace CodeCake
 
         }
 
-        private static string GetRunningRuntimeFramework()
-        {
-            string f = PlatformServices.Default.Runtime.RuntimePath;
-            if( f[f.Length - 1] == Path.DirectorySeparatorChar ) f = Path.GetDirectoryName( f );
-            f = Path.GetFileName( Path.GetDirectoryName( f ) );
-            return f.Substring( f.IndexOf( '.' ) + 1 );
-        }
-
         private void PushNuGetPackages( string apiKeyName, string pushUrl, IEnumerable<string> nugetPackages )
         {
             // Resolves the API key.

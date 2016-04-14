@@ -18,7 +18,7 @@ namespace CK.Core.Tests.Monitoring
             // Explicit binding to System.Configuration.AppSettings.
             if( !AppSettings.Default.IsInitialzed )
             {
-                #if DNX451 || DNX46
+                #if NET451 ||NET46
                 AppSettings.Default.Initialize( key => System.Configuration.ConfigurationManager.AppSettings[key] );
                 #else
                 AppSettings.Default.Initialize( key => null );

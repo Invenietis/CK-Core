@@ -1,5 +1,5 @@
 {
-    "version": "0.0.0-Absolutely-Invalid",
+    "version": "5.0.0-*",
     "description": "CK.Core Class Library",
     "authors": [ "Olivier Spinelli" ],
     "owners": [ "Invenietis" ],
@@ -11,7 +11,7 @@
     },
     "frameworks": {
         "netstandard1.3": {
-            "imports": [ "dnxcore50", "portable-net451+win8" ],
+            "imports": [ "dotnet5.4" ],
             "dependencies": {
                 "System.Collections": "4.0.11-*",
                 "System.Collections.Concurrent": "4.0.12-*",
@@ -21,7 +21,7 @@
                 "System.IO": "4.1.0-*",
                 "System.IO.Compression": "4.1.0-*",
                 "System.IO.FileSystem": "4.0.1-*",
-                "System.Linq": "4.0.1-*",
+                "System.Linq": "4.1.0-*",
                 "System.ObjectModel": "4.0.12-*",
                 "System.Reflection.Emit.Lightweight": "4.0.1-*",
                 "System.Reflection.TypeExtensions": "4.1.0-*",
@@ -39,14 +39,18 @@
             "frameworkAssemblies": {
                 "System.Linq": "",
                 "System.Xml": "",
-                "System.Xml.Linq": ""
+                "System.Xml.Linq": "",
+                "System.ComponentModel": ""
             }
         },
         "net46": {
             "frameworkAssemblies": {
                 "System.Linq": "",
                 "System.Xml": "",
-                "System.Xml.Linq": ""
+                "System.Xml.Linq": "",
+                "System.ComponentModel": ""
+            },
+            "dependencies": {
             }
         }
     },

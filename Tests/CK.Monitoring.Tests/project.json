@@ -1,5 +1,5 @@
 {
-  "version": "0.0.0-Absolutely-Invalid",
+  "version": "5.0.0-*",
   "description": "CK.Monitoring.Tests Class Library",
   "authors": [ "olivi" ],
   "tags": [ "" ],
@@ -13,27 +13,21 @@
   "testRunner": "xunit",
 
   "dependencies": {
-    "CK.Monitoring": "[0.0.0-Absolutely-Invalid]",
-    "Microsoft.Extensions.PlatformAbstractions": "1.0.0-*",
-    "NUnitLite": "3.2.0",
-    "xunit": "2.1.0"
   },
 
   "frameworks": {
-    "netstandardapp1.5": {
-      "imports": [
-        "dnxcore50",
-        "portable-net451+win8"
-      ],
-      "dependencies": {
-        "dotnet-test-xunit": "1.0.0-dev-*",
-        "Microsoft.CSharp": "4.0.1-*",
-        "System.Collections": "4.0.11-*",
-        "System.Linq": "4.1.0-*",
-        "System.Runtime": "4.1.0-*",
-        "System.Threading": "4.0.11-*",
-        "System.Reflection.Extensions": "4.0.1-*"
-      }
+    "dnxcore50": {
+        "imports": [
+            "portable-net45+win8"
+        ],
+        "dependencies": {
+            "dotnet-test-xunit": "1.0.0-dev-*",
+            "CK.Monitoring": "5.0.0-*",
+            "NUnitLite": "3.2.0",
+            "xunit": "2.1.0",
+            "System.Reflection.Extensions": "4.0.1-*",
+            "System.Reflection.TypeExtensions": "4.1.0-*"
+        }
     }
   }
 }

@@ -1,42 +1,27 @@
 {
-    "version": "0.0.0-Absolutely-Invalid",
+    "version": "5.0.0-*",
     "description": "CK.ActivityMonitor.Tests Class Library",
     "authors": [ "Olivier Spinelli" ],
     "tags": [ "" ],
     "projectUrl": "",
     "licenseUrl": "",
-
     "testRunner": "xunit",
 
+    "dependencies": {
+    },
+
     "frameworks": {
-        "netstandardapp1.5": {
+        "dnxcore50": {
             "imports": [
-                "dnxcore50",
-                "portable-net451+win8"
+                "portable-net45+win8"
             ],
             "dependencies": {
                 "dotnet-test-xunit": "1.0.0-dev-*",
-                "Microsoft.CSharp": "4.0.1-*",
-                "System.Collections": "4.0.11-*",
-                "System.Console": "4.0.0-*",
-                "System.Linq": "4.1.0-*",
-                "System.Runtime": "4.1.0-*",
-                "System.Threading": "4.0.11-*",
                 "System.Threading.Tasks.Parallel": "4.0.1-*",
-                "System.Xml.XDocument": "4.0.11-*"
+                "xunit": "2.1.0",
+                "NUnitLite": "3.2.0",
+                "CK.ActivityMonitor": "5.0.0-*"
             }
-        },
-        "net451": {
-            "dependencies": {
-                "xunit.runner.console": "2.1.0"
-
-            },
-            "frameworkAssemblies": { "System.Runtime": "4.0.10.0" }
         }
-    },
-  "dependencies": {
-    "xunit": "2.1.0",
-    "NUnitLite": "3.2.0",
-    "CK.ActivityMonitor": "[0.0.0-Absolutely-Invalid]"
-  }
+    }
 }

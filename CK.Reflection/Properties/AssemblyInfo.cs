@@ -22,9 +22,7 @@
 #endregion
 
 using System.Reflection;
-using System.Resources;
 
 [assembly: AssemblyTitle( "CK.Reflection" )]
 [assembly: AssemblyDescription( "" )]
 [assembly: AssemblyCulture( "" )]
-[assembly: NeutralResourcesLanguage( "en-US" )]

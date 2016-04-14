@@ -1,25 +1,25 @@
 {
-  "version": "0.0.0-Absolutely-Invalid",
-  "description": "CodeCakeBuilder Console Application",
-  "authors": [ "olivi" ],
-  "tags": [ "" ],
-  "projectUrl": "",
-  "licenseUrl": "",
+    "version": "5.0.0-*",
+    "description": "CodeCakeBuilder Console Application",
+    "authors": [ "olivi" ],
+    "tags": [ "" ],
+    "projectUrl": "",
+    "licenseUrl": "",
 
-  "commands": {
-    "CodeCakeBuilder": "CodeCakeBuilder"
-  },
+    "commands": {
+        "CodeCakeBuilder": "CodeCakeBuilder"
+    },
 
-  "dependencies": {
-    "Code.Cake": "0.8.1",
-    "Microsoft.Extensions.PlatformAbstractions": "1.0.0-rc3-20541",
-    "SimpleGitVersion.Cake": "0.14.5-Cexplore-0003"
-  },
+    "dependencies": {
+        "Code.Cake": "0.8.1",
+        "Microsoft.Extensions.PlatformAbstractions": "1.0.0-*",
+        "SimpleGitVersion.Cake": "0.14.5-*"
+    },
 
-  "frameworks": {
-    "dnx451": {
-      "dependencies": {
-      }
+    "frameworks": {
+        "net451": {
+            "dependencies": {
+            }
+        }
     }
-  }
 }

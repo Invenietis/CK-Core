@@ -24,6 +24,10 @@ namespace CK.Core.Tests
 
         static TestHelper()
         {
+            AppSettings.Default.Initialize( ( key ) =>
+            {
+                return null;
+            } );
             _monitor = new ActivityMonitor();
             // Do not pollute the console by default...
             // ... but this may be useful sometimes: LogsToConsole does the job.
