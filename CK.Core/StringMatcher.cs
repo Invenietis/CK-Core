@@ -103,7 +103,7 @@ namespace CK.Core
         public string ErrorMessage => _errorDescription; 
 
         /// <summary>
-        /// Sets an error. The message starts with the caller's method name.
+        /// Sets an error and always returns false. The message starts with the caller's method name.
         /// </summary>
         /// <param name="expectedMessage">
         /// Optional object. Its <see cref="object.ToString()"/> will be used to generate an "expected '...'" message.
@@ -163,6 +163,7 @@ namespace CK.Core
         /// <summary>
         /// Moves the head without any check and returns always true: typically called by 
         /// successful TryMatchXXX methods.
+        /// Can be used to move the head at any position in the <see cref="Text"/> (or outside it since NO checks are made).
         /// </summary>
         /// <param name="delta">Number of characters.</param>
         /// <returns>Always <c>true</c>.</returns>
@@ -252,35 +253,6 @@ namespace CK.Core
         }
 
         /// <summary>
-        /// The <see cref="Regex"/> that <see cref="TryMatchDoubleValue()"/> uses to avoid
-        /// calling <see cref="double.TryParse(string, out double)"/> when resolving the value is 
-        /// useless.
-        /// </summary>
-        static public readonly Regex RegexDouble = new Regex( @"^-?(0|[1-9][0-9]*)(\.[0-9]+)?((e|E)(\+|-)?[0-9]+)?", RegexOptions.Compiled | RegexOptions.CultureInvariant | RegexOptions.ExplicitCapture );
-
-        /// <summary>
-        /// Matches a double without getting its value nor setting an error if match fails.
-        /// This uses <see cref="RegexDouble"/>.
-        /// </summary>
-        /// <returns><c>true</c> when matched, <c>false</c> otherwise.</returns>
-        public bool TryMatchDoubleValue()
-        {
-            Match m = RegexDouble.Match( _text, _startIndex, _length );
-            if( !m.Success ) return false;
-            return UncheckedMove( m.Length );
-        }
-
-        /// <summary>
-        /// Matches a double and gets its value. No error is set if match fails.
-        /// </summary>
-        /// <returns><c>true</c> when matched, <c>false</c> otherwise.</returns>
-        public bool TryMatchDoubleValue( out double value )
-        {
-            if( !double.TryParse( _text.Substring( _startIndex, _length ), out value ) ) return false;
-            return UncheckedMove( _length );
-        }
-
-        /// <summary>
         /// Matches Int32 values that must not start with '0' ('0' is valid but '0d', where d is any digit, is not).
         /// A signed integer starts with a '-'. '-0' is valid but '-0d' (where d is any digit) is not.
         /// If the value is to big for an Int32, it fails.
@@ -327,110 +299,6 @@ namespace CK.Core
                 return SetSuccess();
             }
             return SetError();
-        }
-
-
-        /// <summary>
-        /// Matches a quoted string without setting an error if match fails.
-        /// </summary>
-        /// <param name="content">Extracted content.</param>
-        /// <param name="allowNull">True to allow 'null'.</param>
-        /// <returns><c>true</c> when matched, <c>false</c> otherwise.</returns>
-        public bool TryMatchJSONQuotedString( out string content, bool allowNull = false )
-        {
-            content = null;
-            if( IsEnd ) return false;
-            int i = _startIndex;
-            if( _text[i++] != '"' )
-            {
-                return allowNull && TryMatchText( "null" );
-            }
-            int len = _length - 1;
-            StringBuilder b = null;
-            while( len >= 0 )
-            {
-                if( len == 0 ) return false;
-                char c = _text[i++];
-                --len;
-                if( c == '"' ) break;
-                if( c == '\\' )
-                {
-                    if( len == 0 ) return false;
-                    if( b == null ) b = new StringBuilder( _text.Substring( _startIndex + 1, i - _startIndex - 2 ) );
-                    switch( (c = _text[i++]) )
-                    {
-                        case 'r': c = '\r'; break;
-                        case 'n': c = '\n'; break;
-                        case 'b': c = '\b'; break;
-                        case 't': c = '\t'; break;
-                        case 'f': c = '\f'; break;
-                        case 'u':
-                            {
-                                if( --len == 0 ) return false;
-                                int cN;
-                                cN = ReadHexDigit( _text[i++] );
-                                if( cN < 0 || cN > 15 ) return false;
-                                int val = cN << 12;
-                                if( --len == 0 ) return false;
-                                cN = ReadHexDigit( _text[i++] );
-                                if( cN < 0 || cN > 15 ) return false;
-                                val |= cN << 8;
-                                if( --len == 0 ) return false;
-                                cN = ReadHexDigit( _text[i++] );
-                                if( cN < 0 || cN > 15 ) return false;
-                                val |= cN << 4;
-                                if( --len == 0 ) return false;
-                                cN = ReadHexDigit( _text[i++] );
-                                if( cN < 0 || cN > 15 ) return false;
-                                val |= cN;
-                                c = (char)val;
-                                break;
-                            }
-                    }
-                }
-                if( b != null ) b.Append( c );
-            }
-            int lenS = i - _startIndex;
-            if( b != null ) content = b.ToString();
-            else content = _text.Substring( _startIndex + 1, lenS - 2 );
-            return UncheckedMove( lenS );
-        }
-
-        static int ReadHexDigit( char c )
-        {
-            int cN = c - '0';
-            if( cN >= 49 ) cN -= 39;
-            else if( cN >= 17 ) cN -= 7;
-            return cN;
-        }
-
-        /// <summary>
-        /// Matches a quoted string without extracting its content.
-        /// </summary>
-        /// <param name="allowNull">True to allow 'null'.</param>
-        /// <returns><c>true</c> when matched, <c>false</c> otherwise.</returns>
-        public bool TryMatchJSONQuotedString( bool allowNull = false )
-        {
-            int i = _startIndex;
-            if( IsEnd ) return false;
-            if( _text[i++] != '"' )
-            {
-                return allowNull && TryMatchText( "null" );
-            }
-            int len = _length - 1;
-            while( len >= 0 )
-            {
-                if( len == 0 ) return false;
-                char c = _text[i++];
-                --len;
-                if( c == '"' ) break;
-                if( c == '\\' )
-                {
-                    i++;
-                    --len;
-                }
-            }
-            return UncheckedMove( i - _startIndex );
         }
 
         /// <summary>

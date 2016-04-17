@@ -24,7 +24,7 @@ namespace CK.Core.Tests
         }
 
         [Test]
-        public void matching_strings_and_whitespaces()
+        public void matching_texts_and_whitespaces()
         {
             string s = " AB  \t\r C";
             var m = new StringMatcher( s );
@@ -60,30 +60,6 @@ namespace CK.Core.Tests
             Assert.That( m.MatchChar( 'Y' ) );
         }
 
-
-        [TestCase( @"null, true", null, ", true" )]
-        [TestCase( @"""""X", "", "X" )]
-        [TestCase( @"""a""X", "a", "X" )]
-        [TestCase( @"""\\""X", @"\", "X" )]
-        [TestCase( @"""A\\B""X", @"A\B", "X" )]
-        [TestCase( @"""A\\B\r""X", "A\\B\r", "X" )]
-        [TestCase( @"""A\\B\r\""""X", "A\\B\r\"", "X" )]
-        [TestCase( @"""\u8976""X", "\u8976", "X" )]
-        [TestCase( @"""\uABCD\u07FC""X", "\uABCD\u07FC", "X" )]
-        [TestCase( @"""\uabCd\u07fC""X", "\uABCD\u07FC", "X" )]
-        public void matching_JSONQuotedString( string s, string parsed, string textAfter )
-        {
-            var m = new StringMatcher( s );
-            string result;
-            Assert.That( m.TryMatchJSONQuotedString( out result, true ) );
-            Assert.That( result, Is.EqualTo( parsed ) );
-            Assert.That( m.TryMatchText( textAfter ), "Should be followed by: " + textAfter );
-
-            m = new StringMatcher( s );
-            Assert.That( m.TryMatchJSONQuotedString( true ) );
-            Assert.That( m.TryMatchText( textAfter ), "Should be followed by: " + textAfter );
-        }
-
         [Test]
         public void matching_integers_with_min_max_values()
         {
@@ -115,61 +91,6 @@ namespace CK.Core.Tests
             Assert.That( m.MatchFileNameUniqueTimeUtcFormat( out parsed ), Is.False );
             int i;
             Assert.That( m.MatchInt32( out i ) && i == 20 );
-        }
-
-        [Test]
-        public void simple_json_test()
-        {
-            string s = @"
-{ 
-    ""p1"": ""n"", 
-    ""p2""  : 
-    { 
-        ""p3"": 
-        [ 
-            ""p4"": 
-            { 
-                ""p5"" : 0.989, 
-                ""p6"": [],
-                ""p7"": {}
-            }
-        ] 
-    } 
-}  ";
-            var m = new StringMatcher( s );
-            Assert.That( m.MatchWhiteSpaces() && m.MatchChar( '{' ) );
-            string pName;
-            Assert.That( m.MatchWhiteSpaces() && m.TryMatchJSONQuotedString( out pName ) && pName == "p1" );
-            Assert.That( m.MatchWhiteSpaces( 0 ) && m.MatchChar( ':' ) );
-            Assert.That( m.MatchWhiteSpaces() && m.TryMatchJSONQuotedString( out pName ) && pName == "n" );
-            Assert.That( m.MatchWhiteSpaces( 0 ) && m.MatchChar( ',' ) );
-            Assert.That( m.MatchWhiteSpaces() && m.TryMatchJSONQuotedString( out pName ) && pName == "p2" );
-            Assert.That( m.MatchWhiteSpaces( 2 ) && m.MatchChar( ':' ) );
-            Assert.That( m.MatchWhiteSpaces() && m.MatchChar( '{' ) );
-            Assert.That( m.MatchWhiteSpaces() && m.TryMatchJSONQuotedString( out pName ) && pName == "p3" );
-            Assert.That( m.MatchWhiteSpaces( 0 ) && m.MatchChar( ':' ) );
-            Assert.That( m.MatchWhiteSpaces() && m.MatchChar( '[' ) );
-            Assert.That( m.MatchWhiteSpaces() && m.TryMatchJSONQuotedString( out pName ) && pName == "p4" );
-            Assert.That( m.MatchWhiteSpaces( 0 ) && m.MatchChar( ':' ) );
-            Assert.That( m.MatchWhiteSpaces() && m.MatchChar( '{' ) );
-            Assert.That( m.MatchWhiteSpaces() && m.TryMatchJSONQuotedString() );
-            Assert.That( m.MatchWhiteSpaces( 0 ) && m.MatchChar( ':' ) );
-            Assert.That( m.MatchWhiteSpaces() && m.TryMatchDoubleValue() );
-            Assert.That( m.MatchWhiteSpaces( 0 ) && m.MatchChar( ',' ) );
-            Assert.That( m.MatchWhiteSpaces() && m.TryMatchJSONQuotedString( out pName ) && pName == "p6" );
-            Assert.That( m.MatchWhiteSpaces( 0 ) && m.MatchChar( ':' ) );
-            Assert.That( m.MatchWhiteSpaces() && m.MatchChar( '[' ) );
-            Assert.That( m.MatchWhiteSpaces( 0 ) && m.MatchChar( ']' ) );
-            Assert.That( m.MatchWhiteSpaces( 0 ) && m.MatchChar( ',' ) );
-            Assert.That( m.MatchWhiteSpaces() && m.TryMatchJSONQuotedString() );
-            Assert.That( m.MatchWhiteSpaces( 0 ) && m.MatchChar( ':' ) );
-            Assert.That( m.MatchWhiteSpaces() && m.MatchChar( '{' ) );
-            Assert.That( m.MatchWhiteSpaces( 0 ) && m.MatchChar( '}' ) );
-            Assert.That( m.MatchWhiteSpaces() && m.MatchChar( '}' ) );
-            Assert.That( m.MatchWhiteSpaces() && m.MatchChar( ']' ) );
-            Assert.That( m.MatchWhiteSpaces() && m.MatchChar( '}' ) );
-            Assert.That( m.MatchWhiteSpaces() && m.MatchChar( '}' ) );
-            Assert.That( m.MatchWhiteSpaces( 2 ) && m.IsEnd );
         }
 
         public void match_methods_must_set_an_error()

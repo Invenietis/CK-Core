@@ -87,8 +87,20 @@ namespace CK.Core
         /// </summary>
         public static readonly IDisposable EmptyDisposable = new VoidDisposable();
 
+        /// <summary>
+        /// Unix Epoch (1st of january 1970).
+        /// </summary>
         public static DateTime UnixEpoch  = new DateTime(1970,1,1);
+
+        /// <summary>
+        /// Sql Server Epoch (1st of january 1900): this is the 0 legacy datetime.
+        /// </summary>
         public static DateTime SqlServerEpoch  = new DateTime(1900,1,1);
+
+        /// <summary>
+        /// The 0.0.0.0 Version.
+        /// </summary>
+        public static Version EmptyVersion = new Version( 0, 0, 0, 0 );
 
         /// <summary>
         /// Centralized void action call for any type. 

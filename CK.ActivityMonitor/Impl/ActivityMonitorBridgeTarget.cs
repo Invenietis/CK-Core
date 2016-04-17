@@ -99,7 +99,6 @@ namespace CK.Core
 
         internal void TargetAutoTagsChanged( CKTrait newTags )
         {
-            string cachedTags = null;
             foreach( var b in _callbacks )
             {
                 if( b.PullTopicAndAutoTagsFromTarget )
