@@ -17,8 +17,6 @@ namespace CK.Monitoring
 {
     public sealed partial class GrandOutput
     {
-#if NET451 || NET46
-
         static object _watcherLock = new object();
         static string _configPath = null;
         static DateTime _lastConfigFileWriteTime = FileUtil.MissingFileLastWriteTimeUtc;
@@ -159,6 +157,5 @@ namespace CK.Monitoring
                 }
             }
         }
-#endif
     }
 }

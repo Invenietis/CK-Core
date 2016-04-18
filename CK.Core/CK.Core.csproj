@@ -78,7 +78,6 @@
     <Compile Include="ICKReadOnlyUniqueKeyedCollection.cs" />
     <Compile Include="ICKWritableCollection.cs" />
     <Compile Include="ICKWritableCollector.cs" />
-    <Compile Include="IFluentInterface.cs" />
     <Compile Include="IMergeable.cs" />
     <Compile Include="Impl\CoreResources.cs" />
     <Compile Include="IUniqueId.cs" />
