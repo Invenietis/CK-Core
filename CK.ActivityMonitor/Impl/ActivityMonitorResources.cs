@@ -5,8 +5,12 @@ using System.Threading.Tasks;
 
 namespace CK.Core.Impl
 {
+    /// <summary>
+    /// String values for errors and messages.
+    /// </summary>
     public class ActivityMonitorResources
     {
+#pragma warning disable 1591
         public static readonly string ActivityMonitorBoundClientMultipleRegister = "A '{0}' can be registered in only one IActivityMonitor.Output at the same time. Unregister it before Registering it in another monitor.";
         public static readonly string ActivityMonitorConcurrentThreadAccess = "Concurrent accesses from 2 threads to the same ActivityMonitor has been detected. Only one thread at a time can interact with an ActivityMonitor.";
         public static readonly string ActivityMonitorDependentTokenMustBeDelayedLaunch = "Dependent token must have been created with CreateToken( true ) to enable Lauch( token ) to be called later (or CreateTokenWithTopic).";

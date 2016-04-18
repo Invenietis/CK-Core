@@ -1,3 +1,4 @@
+using CK.Core;
 
 namespace CK.Monitoring
 {

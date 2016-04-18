@@ -6,6 +6,9 @@ using System.Threading.Tasks;
 
 namespace CK.Core
 {
+    /// <summary>
+    /// Supports <see cref="LogFilter"/> and <see cref="LogLevelFilter"/> extension methods.
+    /// </summary>
     public static class LogFilterMatcherExtension
     {
         /// <summary>
@@ -52,20 +55,20 @@ namespace CK.Core
                 {
                     int savedIndex = m.StartIndex;
 
-                    if( !m.MatchChar( '{' ) ) return m.BackwardSetError( savedIndex );
+                    if( !m.MatchChar( '{' ) ) return m.BackwardAddError( savedIndex );
                     LogLevelFilter group, line;
 
                     m.MatchWhiteSpaces();
-                    if( !m.MatchLogLevelFilter( out group ) ) return m.BackwardSetError( savedIndex );
+                    if( !m.MatchLogLevelFilter( out group ) ) return m.BackwardAddError( savedIndex );
 
                     m.MatchWhiteSpaces();
-                    if( !m.MatchChar( ',' ) ) return m.BackwardSetError( savedIndex );
+                    if( !m.MatchChar( ',' ) ) return m.BackwardAddError( savedIndex );
 
                     m.MatchWhiteSpaces();
-                    if( !m.MatchLogLevelFilter( out line ) ) return m.BackwardSetError( savedIndex );
+                    if( !m.MatchLogLevelFilter( out line ) ) return m.BackwardAddError( savedIndex );
                     m.MatchWhiteSpaces();
 
-                    if( !m.MatchChar( '}' ) ) return m.BackwardSetError( savedIndex );
+                    if( !m.MatchChar( '}' ) ) return m.BackwardAddError( savedIndex );
                     f = new LogFilter( group, line );
                 }
             }
@@ -75,7 +78,7 @@ namespace CK.Core
         /// <summary>
         /// Matches a <see cref="LogLevelFilter"/>.
         /// </summary>
-        /// <param name="s">This <see cref="StringMatcher"/>.</param>
+        /// <param name="this">This <see cref="StringMatcher"/>.</param>
         /// <param name="level">Resulting level.</param>
         /// <returns>True on success, false on error.</returns>
         public static bool MatchLogLevelFilter( this StringMatcher @this, out LogLevelFilter level )

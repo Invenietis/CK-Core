@@ -7,12 +7,15 @@ using System.Threading.Tasks;
 
 namespace CK.Core
 {
-    public static class DateTimeStampMatcherExtension
+    /// <summary>
+    /// Exposes extension methods on <see cref="DateTimeStamp"/>.
+    /// </summary>
+    public static class DateTimeStampExtension
     {
         /// <summary>
         /// Matches a <see cref="DateTimeStamp"/>.
         /// </summary>
-        /// <param name="s">The string to parse.</param>
+        /// <param name="this">This <see cref="StringMatcher"/>.</param>
         /// <param name="time">Resulting time stamp on successful match; <see cref="DateTimeStamp.Unknown"/> otherwise.</param>
         /// <returns>True if the time stamp has been matched.</returns>
         static public bool MatchDateTimeStamp( this StringMatcher @this, out DateTimeStamp time )
@@ -25,7 +28,7 @@ namespace CK.Core
             if( @this.MatchChar( '(' ) )
             {
                 int unique;
-                if( !@this.MatchInt32( out unique, 0, 255 ) && !@this.TryMatchChar( ')' ) ) return @this.BackwardSetError( savedIndex );
+                if( !@this.MatchInt32( out unique, 0, 255 ) && !@this.TryMatchChar( ')' ) ) return @this.BackwardAddError( savedIndex );
                 uniquifier = (byte)unique;
             }
             time = new DateTimeStamp( t, uniquifier );

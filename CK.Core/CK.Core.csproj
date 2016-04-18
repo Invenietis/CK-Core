@@ -19,7 +19,7 @@
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
     <OutputPath>bin\Debug\</OutputPath>
-    <DefineConstants>TRACE;DEBUG;NET451</DefineConstants>
+    <DefineConstants>TRACE;DEBUG;NET451 CSPROJ</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
@@ -27,9 +27,10 @@
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
     <OutputPath>bin\Release\</OutputPath>
-    <DefineConstants>TRACE</DefineConstants>
+    <DefineConstants>TRACE;NET451 CSPROJ</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <DocumentationFile>bin\Release\CK.Core.xml</DocumentationFile>
   </PropertyGroup>
   <PropertyGroup Condition=" $(GenerateDocumentation) != '' ">
     <DocumentationFile>bin\$(Configuration)\$(AssemblyName).xml</DocumentationFile>
@@ -62,7 +63,7 @@
     <Compile Include="CoreStubs\System.Runtime.Serialization.cs" />
     <Compile Include="CriticalErrorCollector.cs" />
     <Compile Include="DateTimeStamp.cs" />
-    <Compile Include="DateTimeStamp.MatcherExtension.cs" />
+    <Compile Include="DateTimeStampExtension.cs" />
     <Compile Include="ServiceContainer\ServiceContainerExtension.cs" />
     <Compile Include="Extension\CKReadOnlyExtension.cs" />
     <Compile Include="Extension\CollectionExtension.cs" />

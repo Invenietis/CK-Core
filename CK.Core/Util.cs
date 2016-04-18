@@ -29,16 +29,27 @@ namespace CK.Core
         /// </summary>
         public static class Array
         {
-#if !NET46 && !DOTNET5_4
+#if NET451
             static class E<T>
             {
                 public readonly static T[] Value = new T[0];
             }
+
+            /// <summary>
+            /// Gets an empty array for a type.
+            /// </summary>
+            /// <typeparam name="T">Type of the array items.</typeparam>
+            /// <returns>An empty array.</returns>
             public static T[] Empty<T>()
             {
                 return E<T>.Value;
             }
 #else
+            /// <summary>
+            /// Gets an empty array for a type.
+            /// </summary>
+            /// <typeparam name="T">Type of the array items.</typeparam>
+            /// <returns>An empty array.</returns>
             public static T[] Empty<T>()
             {
                 return System.Array.Empty<T>();
@@ -158,7 +169,7 @@ namespace CK.Core
         /// <param name="length">The number of elements to consider in the list.</param>
         /// <param name="value">The value to locate.</param>
         /// <param name="comparison">The comparison function.</param>
-        /// <returns>Same as <see cref="Array.BinarySearch(Array,object)"/>: negative index if not found which is the bitwise complement of (the index of the next element plus 1).</returns>
+        /// <returns>Same as <see cref="System.Array.BinarySearch(System.Array, object)"/>: negative index if not found which is the bitwise complement of (the index of the next element plus 1).</returns>
         public static int BinarySearch<T>( IReadOnlyList<T> sortedList, int startIndex, int length, T value, Comparison<T> comparison )
         {
             int low = startIndex;
@@ -185,7 +196,7 @@ namespace CK.Core
         /// <param name="length">The number of elements to consider in the list.</param>
         /// <param name="key">The value of the key.</param>
         /// <param name="comparison">The comparison function.</param>
-        /// <returns>Same as <see cref="Array.BinarySearch(Array,object)"/>: negative index if not found which is the bitwise complement of (the index of the next element plus 1).</returns>
+        /// <returns>Same as <see cref="System.Array.BinarySearch(System.Array, object)"/>: negative index if not found which is the bitwise complement of (the index of the next element plus 1).</returns>
         public static int BinarySearch<T, TKey>( IReadOnlyList<T> sortedList, int startIndex, int length, TKey key, Func<T, TKey, int> comparison )
         {
             int low = startIndex;
@@ -210,7 +221,7 @@ namespace CK.Core
         /// <param name="startIndex">The starting index in the list.</param>
         /// <param name="length">The number of elements to consider in the list.</param>
         /// <param name="value">The value to locate.</param>
-        /// <returns>Same as <see cref="Array.BinarySearch(Array,object)"/>: negative index if not found which is the bitwise complement of (the index of the next element plus 1).</returns>
+        /// <returns>Same as <see cref="System.Array.BinarySearch(System.Array, object)"/>: negative index if not found which is the bitwise complement of (the index of the next element plus 1).</returns>
         public static int BinarySearch<T, TValue>( IReadOnlyList<T> sortedList, int startIndex, int length, TValue value ) where T : IComparable<TValue>
         {
             int low = startIndex;
@@ -233,7 +244,7 @@ namespace CK.Core
         /// <typeparam name="TValue">Type of the value.</typeparam>
         /// <param name="sortedList">Read only list of elements.</param>
         /// <param name="value">The value to locate.</param>
-        /// <returns>Same as <see cref="Array.BinarySearch(Array,object)"/>: negative index if not found which is the bitwise complement of (the index of the next element plus 1).</returns>
+        /// <returns>Same as <see cref="System.Array.BinarySearch(System.Array, object)"/>: negative index if not found which is the bitwise complement of (the index of the next element plus 1).</returns>
         public static int BinarySearch<T, TValue>( IReadOnlyList<T> sortedList, TValue value ) where T : IComparable<TValue>
         {
             return BinarySearch( sortedList, 0, sortedList.Count, value );

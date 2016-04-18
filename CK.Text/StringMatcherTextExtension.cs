@@ -8,8 +8,60 @@ using System.Threading.Tasks;
 
 namespace CK.Text
 {
-    public static class StringMatcherExtension
+    /// <summary>
+    /// Extends <see cref="StringMatcher"/> with useful (yet basic) methods.
+    /// </summary>
+    public static class StringMatcherTextExtension
     {
+        /// <summary>
+        /// Matches Int32 values that must not start with '0' ('0' is valid but '0d', where d is any digit, is not).
+        /// A signed integer starts with a '-'. '-0' is valid but '-0d' (where d is any digit) is not.
+        /// If the value is to big for an Int32, it fails.
+        /// </summary>
+        /// <param name="this">This <see cref="StringMatcher"/>.</param>
+        /// <param name="i">The result integer. 0 on failure.</param>
+        /// <param name="minValue">Optional minimal value.</param>
+        /// <param name="maxValue">Optional maximal value.</param>
+        /// <returns><c>true</c> when matched, <c>false</c> otherwise.</returns>
+        public static bool MatchInt32( this StringMatcher @this, out int i, int minValue = int.MinValue, int maxValue = int.MaxValue )
+        {
+            i = 0;
+            int savedIndex = @this.StartIndex;
+            long value = 0;
+            bool signed;
+            if( @this.IsEnd ) return @this.SetError();
+            if( (signed = @this.TryMatchChar( '-' )) && @this.IsEnd ) return @this.BackwardAddError( savedIndex );
+
+            char c;
+            if( @this.TryMatchChar( '0' ) )
+            {
+                if( !@this.IsEnd && (c = @this.Head) >= '0' && c <= '9' ) return @this.BackwardAddError( savedIndex, "0...9" );
+                return @this.SetSuccess();
+            }
+            unchecked
+            {
+                long iMax = Int32.MaxValue;
+                if( signed ) iMax = iMax + 1;
+                while( !@this.IsEnd && (c = @this.Head) >= '0' && c <= '9' )
+                {
+                    value = value * 10 + (c - '0');
+                    if( value > iMax ) break;
+                    @this.UncheckedMove( 1 );
+                }
+            }
+            if( @this.StartIndex > savedIndex )
+            {
+                if( signed ) value = -value;
+                if( value < (long)minValue || value > (long)maxValue )
+                {
+                    return @this.BackwardAddError( savedIndex, String.Format( CultureInfo.InvariantCulture, "value between {0} and {1}", minValue, maxValue ) );
+                }
+                i = (int)value;
+                return @this.SetSuccess();
+            }
+            return @this.SetError();
+        }
+
         /// <summary>
         /// Matches a JSON quoted string without setting an error if match fails.
         /// </summary>
@@ -116,7 +168,7 @@ namespace CK.Text
         }
 
         /// <summary>
-        /// The <see cref="Regex"/> that <see cref="TryMatchDoubleValue()"/> uses to avoid
+        /// The <see cref="Regex"/> that <see cref="TryMatchDoubleValue(StringMatcher)"/> uses to avoid
         /// calling <see cref="double.TryParse(string, out double)"/> when resolving the value is 
         /// useless.
         /// </summary>

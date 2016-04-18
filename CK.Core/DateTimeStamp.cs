@@ -192,7 +192,7 @@ namespace CK.Core
         /// <summary>
         /// Overridden to return a string based on <see cref="FormatWhenUniquifier"/> or <see cref="FileUtil.FileNameUniqueTimeUtcFormat"/>.
         /// </summary>
-        /// <returns>A string that can be successfully <see cref="Match"/>ed.</returns>
+        /// <returns>A string that can be successfully matched.</returns>
         public override string ToString()
         {
             return Uniquifier != 0 ? String.Format( FormatWhenUniquifier, TimeUtc, Uniquifier ) : TimeUtc.ToString( FileUtil.FileNameUniqueTimeUtcFormat, CultureInfo.InvariantCulture );

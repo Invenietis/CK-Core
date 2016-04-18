@@ -144,7 +144,7 @@ namespace CK.Core
         /// <summary>
         /// Covariant compatible overload of <see cref="IndexOf(T)"/>  (logarithmic).
         /// If the item is not <typeparamref name="T"/> compatible, the 
-        /// value <see cref="Int32.MinValue"/> is returned. See <see cref="IReadOnlyList{T}.IndexOf"/>.
+        /// value <see cref="Int32.MinValue"/> is returned. See <see cref="ICKReadOnlyList{T}.IndexOf"/>.
         /// </summary>
         /// <param name="item">The item to locate.</param>
         /// <returns>

@@ -7,6 +7,8 @@ namespace CK.Core.Impl
     /// </summary>
     public class CoreResources
     {
+#pragma warning disable 1591
+
         public static readonly string AggregatedExceptionsMustContainAtLeastOne = "AggregatedExceptions must contain at least one exception.";
 
         public static readonly string AppSettingsAlreadyInitialized = "ApplicationSettings have already been initialized. It can be initialized only once.";

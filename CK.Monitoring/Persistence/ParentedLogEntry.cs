@@ -1,3 +1,4 @@
+using CK.Core;
 using System;
 using System.Collections.Generic;
 
@@ -29,10 +30,7 @@ namespace CK.Monitoring
         /// Gets whether this is actually a missing entry (it can be a group opening, closing or a mere line): we do not have data for it, except, may be its <see cref="ILogEntry.LogTime"/>
         /// (if the log time is not known, the <see cref="Entry"/>'s <see cref="ILogEntry.LogTime">LogTime</see> is <see cref="DateTimeStamp.Unknown"/>).
         /// </summary>
-        public bool IsMissing
-        {
-            get { return LogEntry.IsMissingLogEntry( Entry ); }
-        }
+        public bool IsMissing => LogEntry.IsMissingLogEntry( Entry ); 
 
         /// <summary>
         /// Collects path of <see cref="ILogEntry"/> in a reusable list (the buffer is <see cref="List{T}.Clear">cleared</see> first).

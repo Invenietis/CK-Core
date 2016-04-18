@@ -110,8 +110,7 @@ namespace CK.Core
         }
 
         /// <summary>
-        /// Gets the current (mutable) path. You should use <see cref="CKReadOnlyExtension.ToReadOnlyList{T}(IList{T})"/> or other ToArray 
-        /// or ToList methods to take a snapshot of this list.
+        /// Gets the current (mutable) path. You may use ToArray or ToList methods to take a snapshot of this list.
         /// Use the extension method <see cref="ActivityMonitorExtension.ToStringPath"/> to easily format this path.
         /// </summary>
         public IReadOnlyList<PathElement> DynamicPath

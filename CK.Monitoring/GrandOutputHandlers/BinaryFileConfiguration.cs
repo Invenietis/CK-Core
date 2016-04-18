@@ -1,5 +1,6 @@
 using System.Xml.Linq;
 using CK.Core;
+using System.IO;
 
 namespace CK.Monitoring.GrandOutputHandlers
 {

@@ -73,7 +73,7 @@ namespace CK.Text
         /// Initializes a new <see cref="JSONVisitor"/> on a string. 
         /// A <see cref="Matcher"/> is automatically created.
         /// </summary>
-        /// <param name="m">The string matcher.</param>
+        /// <param name="s">The string to parse.</param>
         public JSONVisitor( string s )
             : this( new StringMatcher( s ) )
         {
@@ -132,7 +132,7 @@ namespace CK.Text
         /// Visits a "property" : ... JSON property.
         /// </summary>
         /// <param name="startPropertyIndex">
-        /// Starting index of the <param name="propertyName"/> in <see cref="Matcher"/>:
+        /// Starting index of the <paramref name="propertyName"/> in <see cref="Matcher"/>:
         /// this is the index of the opening quote ".
         /// </param>
         /// <param name="propertyName">Parsed property name.</param>
@@ -190,7 +190,7 @@ namespace CK.Text
 
         /// <summary>
         /// Visits a terminal value. This method simply calls <see cref="StringMatcher.MatchWhiteSpaces(int)">Matcher.MatchWhiteSpaces(0)</see>
-        /// to skip any whitespace and <see cref="StringMatcherExtension.TryMatchJSONTerminalValue(StringMatcher)">TryMatchJSONTerminalValue</see>
+        /// to skip any whitespace and <see cref="StringMatcherTextExtension.TryMatchJSONTerminalValue(StringMatcher)">TryMatchJSONTerminalValue</see>
         /// to skip the value itself.
         /// </summary>
         /// <returns>True on success. On error a message may be retrieved from the <see cref="Matcher"/>.</returns>

@@ -32,7 +32,7 @@ namespace CK.Core
     /// <summary>
     /// Simple collector of log entries which level is greater or equal to <see cref="MinimalFilter"/>.
     /// Its <see cref="Capacity"/> defaults to 50 (no more than Capacity entries are kept).
-    /// Used by the <see cref="ActivityMonitorExtension.Catch">Catch</see> extension method.
+    /// Used by the <see cref="ActivityMonitorExtension.CollectEntries">CollectEntries</see> extension method.
     /// </summary>
     public sealed class ActivityMonitorSimpleCollector : IActivityMonitorClient
     {

@@ -104,6 +104,7 @@ namespace CK.Text
 
         /// <summary>
         /// Sets an error and always returns false. The message starts with the caller's method name.
+        /// Use <see cref="SetSuccess"/> to clear any existing error.
         /// </summary>
         /// <param name="expectedMessage">
         /// Optional object. Its <see cref="object.ToString()"/> will be used to generate an "expected '...'" message.
@@ -116,7 +117,35 @@ namespace CK.Text
             return false;
         }
 
-        private static string FormatMessage( object expectedMessage, string callerName )
+        /// <summary>
+        /// Adds an error (the message starts with the caller's method name) to the exisitng ones (if any).
+        /// </summary>
+        /// <param name="expectedMessage">
+        /// Optional object. Its <see cref="object.ToString()"/> will be used to generate an "expected '...'" message.
+        /// </param>
+        /// <param name="beforeExisting">
+        /// True to add the error before the exisitng ones (as a consequence: [added] &lt;-- [previous]), 
+        /// false to append it (as a cause: [previous] &lt;-- [added])</param>
+        /// <param name="callerName">Name of the caller (automatically injected by the compiler).</param>
+        /// <returns>Always false to use it as the return statement in a match method.</returns>
+        public bool AddError( object expectedMessage = null, bool beforeExisting = false, [CallerMemberName]string callerName = null )
+        {
+            if( _errorDescription != null )
+            {
+                if( beforeExisting )
+                {
+                    _errorDescription = FormatMessage( expectedMessage, callerName ) + Environment.NewLine + "<-- " + _errorDescription;
+                }
+                else
+                {
+                    _errorDescription = _errorDescription + Environment.NewLine + "<-- " + FormatMessage( expectedMessage, callerName );
+                }
+            }
+            else _errorDescription = FormatMessage( expectedMessage, callerName );
+            return false;
+        }
+
+        static string FormatMessage( object expectedMessage, string callerName )
         {
             string d = callerName;
             string tail = expectedMessage != null ? expectedMessage.ToString() : null;
@@ -129,6 +158,7 @@ namespace CK.Text
 
         /// <summary>
         /// Clears any error and returns true. 
+        /// </summary>
         /// <returns>Always true to use it as the return statement in a match method.</returns>
         public bool SetSuccess()
         {
@@ -137,7 +167,7 @@ namespace CK.Text
         }
 
         /// <summary>
-        /// Moves back the head at a previously index and sets an error. 
+        /// Moves back the head at a previously index and adds an error as a consequence of any previous errors. 
         /// The message starts with the caller's method name.
         /// </summary>
         /// <param name="savedStartIndex">Index to reset.</param>
@@ -146,18 +176,13 @@ namespace CK.Text
         /// </param>
         /// <param name="callerName">Name of the caller (automatically injected by the compiler).</param>
         /// <returns>Always false to use it as the return statement in a match method.</returns>
-        public bool BackwardSetError( int savedStartIndex, object expectedMessage = null, [CallerMemberName]string callerName = null )
+        public bool BackwardAddError( int savedStartIndex, object expectedMessage = null, [CallerMemberName]string callerName = null )
         {
             int delta = _startIndex - savedStartIndex;
             if( savedStartIndex < 0 || delta < 0 ) throw new ArgumentException( nameof( savedStartIndex ) );
             _length += delta;
             _startIndex = savedStartIndex;
-            if( _errorDescription != null )
-            {
-                _errorDescription = FormatMessage( expectedMessage, callerName ) + Environment.NewLine + "<-- " + _errorDescription;
-            }
-            else _errorDescription = FormatMessage( expectedMessage, callerName );
-            return SetError( expectedMessage, callerName );
+            return AddError( expectedMessage, true, callerName );
         }
 
         /// <summary>
@@ -219,7 +244,7 @@ namespace CK.Text
             int len = text.Length;
             return !IsEnd
                     && len <= _length
-                    && String.Compare( _text, _startIndex, text, 0, len, comparisonType ) == 0
+                    && string.Compare( _text, _startIndex, text, 0, len, comparisonType ) == 0
                 ? UncheckedMove( len )
                 : false;
         }
@@ -250,55 +275,6 @@ namespace CK.Text
                 return true;
             }
             return SetError( minCount + " whitespace(s)" );
-        }
-
-        /// <summary>
-        /// Matches Int32 values that must not start with '0' ('0' is valid but '0d', where d is any digit, is not).
-        /// A signed integer starts with a '-'. '-0' is valid but '-0d' (where d is any digit) is not.
-        /// If the value is to big for an Int32, it fails.
-        /// </summary>
-        /// <param name="i">The result integer. 0 on failure.</param>
-        /// <param name="minValue">Optional minimal value.</param>
-        /// <param name="maxValue">Optional maximal value.</param>
-        /// <returns><c>true</c> when matched, <c>false</c> otherwise.</returns>
-        public bool MatchInt32( out int i, int minValue = Int32.MinValue, int maxValue = Int32.MaxValue )
-        {
-            i = 0;
-            int savedIndex = _startIndex;
-            long value = 0;
-            bool signed;
-            if( IsEnd ) return SetError();
-            if( (signed = TryMatchChar( '-' )) && IsEnd ) return BackwardSetError( savedIndex );
-
-            char c;
-            if( TryMatchChar( '0' ) )
-            {
-                if( !IsEnd && (c = Head) >= '0' && c <= '9' ) return BackwardSetError( savedIndex, "0...9" );
-                return SetSuccess();
-            }
-            unchecked
-            {
-                long iMax = Int32.MaxValue;
-                if( signed ) iMax = iMax + 1;
-                while( !IsEnd && (c = Head) >= '0' && c <= '9' )
-                {
-                    value = value * 10 + (c - '0');
-                    if( value > iMax ) break;
-                    ++_startIndex;
-                    --_length;
-                }
-            }
-            if( _startIndex > savedIndex )
-            {
-                if( signed ) value = -value;
-                if( value < (long)minValue || value > (long)maxValue )
-                {
-                    return BackwardSetError( savedIndex, String.Format( CultureInfo.InvariantCulture, "value between {0} and {1}", minValue, maxValue ) );
-                }
-                i = (int)value;
-                return SetSuccess();
-            }
-            return SetError();
         }
 
         /// <summary>
