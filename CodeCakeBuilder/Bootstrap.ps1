@@ -11,6 +11,27 @@ if (!(Test-Path $builderDir -PathType Container)) {
     $solutionDir = Join-Path $builderDir ".."
 }
 
+# Ensures that CodeCakeBuilder project exists.
+$builderProj = Join-Path $builderDir "CodeCakeBuilder.csproj"
+if (!(Test-Path $builderProj)) {
+    Throw "Could not find CodeCakeBuilder.csproj"
+}
+# Ensures that packages.config file exists.
+$builderPackageConfig = Join-Path $builderDir "packages.config"
+if (!(Test-Path $builderPackageConfig)) {
+    Throw "Could not find packages.config"
+}
+
+# Find MSBuild 4.0.
+$dotNetVersion = "4.0"
+$regKey = "HKLM:\software\Microsoft\MSBuild\ToolsVersions\$dotNetVersion"
+$regProperty = "MSBuildToolsPath"
+$msbuildExe = join-path -path (Get-ItemProperty $regKey).$regProperty -childpath "msbuild.exe"
+if (!(Test-Path $msbuildExe)) {
+    Throw "Could not find msbuild.exe"
+}
+
+
 # Tools directory is for nuget.exe but it may be used to 
 # contain other utilities.
 $toolsDir = Join-Path $builderDir "Tools"
@@ -27,3 +48,7 @@ if (!(Test-Path $nugetExe)) {
         Throw "Could not find NuGet.exe"
     }
 }
+
+&$nugetExe restore $builderPackageConfig -SolutionDirectory $solutionDir
+&$msbuildExe $builderProj /p:Configuration=Release
+
