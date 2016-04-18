@@ -18,6 +18,8 @@ using Cake.Common.Tools.NuGet.Push;
 using System.IO;
 using System.Collections.Generic;
 using System.Diagnostics;
+using Cake.Common.Tools.NUnit;
+using Cake.Core.IO;
 
 namespace CodeCake
 {
@@ -26,57 +28,43 @@ namespace CodeCake
     /// It can be decorated with AddPath attributes that inject paths into the PATH environment variable. 
     /// </summary>
     [AddPath( "CodeCakeBuilder/Tools" )]
+    [AddPath( "packages/**/tools*" )]
     public class Build : CodeCakeHost
     {
         public Build()
         {
-            var nugetOutputDir = Cake.Directory( "CodeCakeBuilder/Release" );
-            DNXSolution dnxSolution = null;
-            IEnumerable<DNXProjectFile> projectsToPublish = null;
+            var releasesDir = Cake.Directory( "CodeCakeBuilder/Releases" );
             SimpleRepositoryInfo gitInfo = null;
             string configuration = null;
-
-            Teardown( () =>
-            {
-                if( dnxSolution != null ) dnxSolution.RestoreProjectFiles();
-            } );
+            var projectsToPublish = Cake.ParseSolution( "CK-Core.sln" )
+                                        .Projects
+                                        .Where( p => p.Name != "CodeCakeBuilder"
+                                                     && !p.Path.Segments.Contains( "Tests" ) );
 
             Task( "Check-Repository" )
                 .Does( () =>
                 {
-                    dnxSolution = Cake.GetDNXSolution( p => p.ProjectName != "CodeCakeBuilder" );
-                    if( !dnxSolution.IsValid ) throw new Exception( "Unable to initialize solution." );
-                    projectsToPublish = dnxSolution.Projects.Where( p => !p.ProjectName.EndsWith( ".Tests" ) );
-                    gitInfo = dnxSolution.RepositoryInfo;
+                    gitInfo = Cake.GetSimpleRepositoryInfo();
                     if( !gitInfo.IsValid )
                     {
-                        if( Cake.IsInteractiveMode()
-                            && Cake.ReadInteractiveOption( "Repository is not ready to be published. Proceed anyway?", 'Y', 'N' ) == 'Y' )
-                        {
-                            Cake.Warning( "GitInfo is not valid, but you choose to continue..." );
-                        }
-                        else throw new Exception( "Repository is not ready to be published." );
+                        configuration = "Debug";
+                        Cake.Warning( "Repository is not ready to be published. Setting configuration to {0}.", configuration );
                     }
-                    configuration = gitInfo.IsValidRelease && gitInfo.PreReleaseName.Length == 0 ? "Release" : "Debug";
+                    else
+                    {
+                        configuration = gitInfo.IsValidRelease && gitInfo.PreReleaseName.Length == 0 ? "Release" : "Debug";
+                    }
                     Cake.Information( "Publishing {0} projects with version={1} and configuration={2}: {3}",
                         projectsToPublish.Count(),
                         gitInfo.SemVer,
                         configuration,
-                        String.Join( ", ", projectsToPublish.Select( p => p.ProjectName ) ) );
+                        string.Join( ", ", projectsToPublish.Select( p => p.Name ) ) );
                 } );
 
-            Task( "Set-ProjectVersion" )
-                .IsDependentOn( "Check-Repository" )
+            Task( "Restore-NuGet-Packages" )
                 .Does( () =>
                 {
-                    if( dnxSolution.UpdateProjectFiles( true ) > 0 )
-                    {
-                        Cake.DNURestore( c =>
-                        {
-                            c.Quiet = true;
-                            c.ProjectPaths.UnionWith( dnxSolution.Projects.Select( p => p.ProjectFilePath ) );
-                        } );
-                    }
+                    Cake.NuGetRestore( "CK-Core.sln" );
                 } );
 
             Task( "Clean" )
@@ -85,80 +73,95 @@ namespace CodeCake
                 {
                     Cake.CleanDirectories( "**/bin/" + configuration, d => !d.Path.Segments.Contains( "CodeCakeBuilder" ) );
                     Cake.CleanDirectories( "**/obj/" + configuration, d => !d.Path.Segments.Contains( "CodeCakeBuilder" ) );
+                    Cake.CleanDirectories( releasesDir );
                     Cake.DeleteFiles( "Tests/**/TestResult.xml" );
                 } );
 
-            Task( "Unit-Testing" )
-                .IsDependentOn( "Build-And-Pack" )
+            Task( "Build" )
+                .IsDependentOn( "Clean" )
+                .IsDependentOn( "Restore-NuGet-Packages" )
+                .IsDependentOn( "Check-Repository" )
                 .Does( () =>
                 {
-                    var testProjects = dnxSolution.Projects.Where( p => p.ProjectName.EndsWith( ".Tests" ) );
-                    foreach( var p in testProjects )
+                    using( var tempSln = Cake.CreateTemporarySolutionFile( "CK-Core.sln" ) )
                     {
-                        foreach( var framework in p.Frameworks )
+                        tempSln.ExcludeProjectsFromBuild( "CodeCakeBuilder" );
+                        Cake.MSBuild( tempSln.FullPath, settings =>
                         {
-                            Cake.DNXRun( c => {
-                                c.Arguments = "test";
-                                c.Configuration = configuration;
-                                c.Framework = framework;
-                                c.Project = p.ProjectFilePath;
-                            } );
-                        }
+                            settings.Configuration = configuration;
+                            settings.Verbosity = Verbosity.Minimal;
+                            // Always generates Xml documentation. Relies on this definition in the csproj files:
+                            //
+                            // <PropertyGroup Condition=" $(GenerateDocumentation) != '' ">
+                            //   <DocumentationFile>bin\$(Configuration)\$(AssemblyName).xml</DocumentationFile>
+                            // </PropertyGroup>
+                            //
+                            settings.Properties.Add( "GenerateDocumentation", new[] { "true" } );
+                        } );
                     }
                 } );
 
-            Task( "Build-And-Pack" )
-                .IsDependentOn( "Clean" )
-                .IsDependentOn( "Set-ProjectVersion" )
+            Task( "Unit-Testing" )
+                .IsDependentOn( "Build" )
                 .Does( () =>
                 {
-                    Cake.DNUBuild( c =>
+                    Cake.CreateDirectory( releasesDir );
+                    Cake.NUnit( "Tests/*.Tests/bin/" + configuration + "/*.Tests.dll", new NUnitSettings()
                     {
-                        c.GeneratePackage = true;
-                        c.Configurations.Add( configuration );
-                        c.ProjectPaths.UnionWith( projectsToPublish.Select( p => p.ProjectDir ) );
-                        c.Quiet = true;
+                        Framework = "v4.5",
+                        OutputFile = releasesDir.Path + "/TestResult.txt",
+                        StopOnError = true
                     } );
                 } );
 
-            Task( "Push-NuGet-Packages" )
-                .IsDependentOn( "Build-And-Pack" )
+            Task( "Create-NuGet-Packages" )
+                .IsDependentOn( "Unit-Testing" )
+                .WithCriteria( () => gitInfo.IsValid )
                 .Does( () =>
                 {
-                    var allPackages = Cake.GetFiles( "**/bin/" + configuration + "/*.nupkg" ).Select( f => f.FullPath ).ToList();
-                    var nugetPackages = allPackages.Where( fileName => !fileName.EndsWith( ".symbols.nupkg" ) ).ToList();
-                    var packagesSymbols = allPackages.Where( fileName => fileName.EndsWith( ".symbols.nupkg" ) ).ToList();
-
-                    Cake.Information( "Found {0} packages (and {1} symbols) to push in {2}.", nugetPackages.Count, packagesSymbols.Count, configuration );
-                    if( gitInfo.IsValid )
+                    Cake.CreateDirectory( releasesDir );
+                    var settings = new NuGetPackSettings()
                     {
-                        if( Cake.IsInteractiveMode() )
+                        Version = gitInfo.NuGetVersion,
+                        BasePath = Cake.Environment.WorkingDirectory,
+                        OutputDirectory = releasesDir
+                    };
+                    Cake.CopyFiles( "CodeCakeBuilder/NuSpec/*.nuspec", releasesDir );
+                    foreach( var nuspec in Cake.GetFiles( releasesDir.Path + "/*.nuspec" ) )
+                    {
+                        TransformText( nuspec, configuration, gitInfo );
+                        Cake.NuGetPack( nuspec, settings );
+                    }
+                    Cake.DeleteFiles( releasesDir.Path + "/*.nuspec" );
+                } );
+
+
+            Task( "Push-NuGet-Packages" )
+                .IsDependentOn( "Create-NuGet-Packages" )
+                .WithCriteria( () => gitInfo.IsValid )
+                .Does( () =>
+                {
+                    IEnumerable<FilePath> nugetPackages = Cake.GetFiles( releasesDir.Path + "/*.nupkg" );
+                    if( Cake.IsInteractiveMode() )
+                    {
+                        var localFeed = Cake.FindDirectoryAbove( "LocalFeed" );
+                        if( localFeed != null )
                         {
-                            var localFeed = Cake.FindDirectoryAbove( "LocalFeed" );
-                            if( localFeed != null )
+                            Cake.Information( "LocalFeed directory found: {0}", localFeed );
+                            if( Cake.ReadInteractiveOption( "Do you want to publish to LocalFeed?", 'Y', 'N' ) == 'Y' )
                             {
-                                Cake.Information( "LocalFeed directory found: {0}", localFeed );
-                                if( Cake.ReadInteractiveOption( "Do you want to publish to LocalFeed?", 'Y', 'N' ) == 'Y' )
-                                {
-                                    Cake.CopyFiles( nugetPackages, localFeed );
-                                    Cake.CopyFiles( packagesSymbols, localFeed );
-                                }
+                                Cake.CopyFiles( nugetPackages, localFeed );
                             }
                         }
-                        if( gitInfo.IsValidRelease )
-                        {
-                            PushNuGetPackages( "MYGET_DNX_API_KEY", "https://www.myget.org/F/invenietis-dnx/api/v2/package", nugetPackages );
-                            PushNuGetPackages( "MYGET_DNX_API_KEY", "https://nuget.gw.symbolsource.org/MyGet/invenietis-dnx/", packagesSymbols );
-                        }
-                        else
-                        {
-                            Debug.Assert( gitInfo.IsValidCIBuild );
-                            PushNuGetPackages( "MYGET_DNX_EXPLORE_API_KEY", "https://www.myget.org/F/invenietis-dnx-explore/api/v2/package", nugetPackages );
-                        }
+                    }
+                    if( gitInfo.IsValidRelease )
+                    {
+                        PushNuGetPackages( "NUGET_API_KEY", "https://www.nuget.org/api/v2/package", nugetPackages );
                     }
                     else
                     {
-                        Cake.Information( "Push-NuGet-Packages step is skipped since Git repository info is not valid." );
+                        Debug.Assert( gitInfo.IsValidCIBuild );
+                        PushNuGetPackages( "MYGET_EXPLORE_API_KEY", "https://www.myget.org/F/invenietis-explore/api/v2/package", nugetPackages );
                     }
                 } );
 
@@ -168,7 +171,16 @@ namespace CodeCake
 
         }
 
-        private void PushNuGetPackages( string apiKeyName, string pushUrl, IEnumerable<string> nugetPackages )
+        private void TransformText( FilePath textFilePath, string configuration, SimpleRepositoryInfo gitInfo )
+        {
+            Cake.TransformTextFile( textFilePath, "{{", "}}" )
+                    .WithToken( "configuration", configuration )
+                    .WithToken( "NuGetVersion", gitInfo.NuGetVersion )
+                    .WithToken( "CSemVer", gitInfo.SemVer )
+                    .Save( textFilePath );
+        }
+
+        private void PushNuGetPackages( string apiKeyName, string pushUrl, IEnumerable<FilePath> nugetPackages )
         {
             // Resolves the API key.
             var apiKey = Cake.InteractiveEnvironmentVariable( apiKeyName );

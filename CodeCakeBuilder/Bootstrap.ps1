@@ -27,5 +27,3 @@ if (!(Test-Path $nugetExe)) {
         Throw "Could not find NuGet.exe"
     }
 }
-# Installing dnvm.
-&{$Branch='dev';iex ((new-object net.webclient).DownloadString('https://raw.githubusercontent.com/aspnet/Home/dev/dnvminstall.ps1'))}

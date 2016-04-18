@@ -1,0 +1,22 @@
+<?xml version="1.0"?>
+<package xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <metadata xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
+    <id>CK.Reflection</id>
+    <version>$version$</version>
+    <authors>Invenietis</authors>
+    <owners>Invenietis</owners>
+    <copyright>Invenietis</copyright>
+    <licenseUrl>http://www.gnu.org/licenses/lgpl.html</licenseUrl>
+    <projectUrl>https://github.com/Invenietis/ck-core</projectUrl>
+    <requireLicenseAcceptance>true</requireLicenseAcceptance>
+    <summary>
+      Reflection related utility classes. ({{CSemVer}})
+    </summary>
+    <language>en-US</language>
+  </metadata>
+  <files>
+	<file src="CK.Reflection\bin\{{configuration}}\CK.Reflection.dll" target="lib\net45" />
+	<file src="CK.Reflection\bin\{{configuration}}\CK.Reflection.pdb" target="lib\net45" />
+	<file src="CK.Reflection\bin\{{configuration}}\CK.Reflection.xml" target="lib\net45" />
+  </files>
+</package>

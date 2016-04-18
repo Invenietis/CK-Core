@@ -1,0 +1,32 @@
+﻿<?xml version="1.0"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
+  <metadata>
+    <id>CK.ActivityMonitor</id>
+    <version>$version$</version>
+    <authors>Invenietis</authors>
+    <owners>Invenietis</owners>
+    <copyright>Invenietis</copyright>
+    <licenseUrl>http://www.gnu.org/licenses/lgpl.html</licenseUrl>
+    <projectUrl>https://github.com/Invenietis/ck-core</projectUrl>
+    <requireLicenseAcceptance>true</requireLicenseAcceptance>   
+    <summary>
+      ActivityMonitor core implementation. ({{CSemVer}})
+    </summary>
+    <description>
+      Main types are:
+      IActivityMonitor &amp; ActivityMonitor, SystemActivityMonitor, ActivityMonitorClient and standard 
+      clients like ActivityMonitorTextWriterClient.
+    </description>
+    <language>en-US</language>
+
+	<dependencies>
+    <dependency id="CK.Core" version="$version$" />
+  </dependencies>
+
+  </metadata>
+    <files>	
+	    <file src="CK.ActivityMonitor\bin\{{configuration}}\CK.ActivityMonitor.dll" target="lib\net45" />		
+	    <file src="CK.ActivityMonitor\bin\{{configuration}}\CK.ActivityMonitor.pdb" target="lib\net45" />
+	    <file src="CK.ActivityMonitor\bin\{{configuration}}\CK.ActivityMonitor.xml" target="lib\net45" />
+    </files>
+</package>

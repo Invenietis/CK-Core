@@ -4,6 +4,6 @@
   <!--<Debug IgnoreDirtyWorkingFolder="true"/>-->
   <PossibleVersionsMode>AllSuccessors</PossibleVersionsMode>
   <Branches>
-    <Branch Name="dnx-support" VersionName="dnx" CIVersionMode="LastReleaseBased" />
+    <Branch Name="develop" VersionName="develop" CIVersionMode="LastReleaseBased" />
   </Branches>
 </RepositoryInfo>

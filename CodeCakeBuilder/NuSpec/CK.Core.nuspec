@@ -1,0 +1,30 @@
+﻿<?xml version="1.0"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
+  <metadata>
+    <id>CK.Core</id>
+    <version>$version$</version>
+    <authors>Invenietis</authors>
+    <owners>Invenietis</owners>
+    <copyright>Invenietis</copyright>
+    <licenseUrl>http://www.gnu.org/licenses/lgpl.html</licenseUrl>
+    <projectUrl>https://github.com/Invenietis/ck-core</projectUrl>
+    <requireLicenseAcceptance>true</requireLicenseAcceptance>   
+    <summary>
+      Utility interfaces and classes. ({{CSemVer}})
+    </summary>
+    <description>
+      CK.Core is contains types and helpers that are used across different projects.
+    </description>
+    <language>en-US</language>
+
+	<dependencies> 
+      <dependency id="CK.Text" version="$version$" />
+	</dependencies>
+
+  </metadata>
+    <files>	
+	    <file src="CK.Core\bin\{{configuration}}\CK.Core.dll" target="lib\net45" />		
+	    <file src="CK.Core\bin\{{configuration}}\CK.Core.pdb" target="lib\net45" />
+	    <file src="CK.Core\bin\{{configuration}}\CK.Core.xml" target="lib\net45" />
+    </files>
+</package>

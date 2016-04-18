@@ -30,7 +30,8 @@ using System.Threading.Tasks;
 namespace CK.Core.Impl
 {
     /// <summary>
-    /// Trivial implementation of <see cref="IDisposableActivityMonitor"/>.
+    /// Trivial implementation of <see cref="IDisposableActivityMonitor"/> that respects the disposable 
+    /// pattern (to support potential unmanaged resources).
     /// <see cref="Dispose()"/> simply closes all opened groups.
     /// </summary>
     public class DisposableActivityMonitor : ActivityMonitor, IDisposableActivityMonitor

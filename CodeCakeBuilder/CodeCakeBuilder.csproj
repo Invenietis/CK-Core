@@ -73,8 +73,15 @@
   <ItemGroup>
     <None Include="App.config" />
     <None Include="Bootstrap.ps1" />
+    <None Include="NuSpec\CK.Monitoring.nuspec" />
+    <None Include="NuSpec\CK.ActivityMonitor.StandardSender.nuspec" />
+    <None Include="NuSpec\CK.ActivityMonitor.nuspec" />
+    <None Include="NuSpec\CK.Reflection.nuspec" />
+    <None Include="NuSpec\CK.Text.nuspec" />
+    <None Include="NuSpec\CK.Core.nuspec" />
     <None Include="packages.config" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
     <PropertyGroup>
