@@ -30,6 +30,7 @@ using CK.Core.Impl;
 using System.Threading;
 using System.Globalization;
 using System.Runtime.CompilerServices;
+using CK.Text;
 
 namespace CK.Core
 {

@@ -7,7 +7,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
-namespace CK.Core
+namespace CK.Text
 {
     /// <summary>
     /// This class supports "Match and Forward" pattern.

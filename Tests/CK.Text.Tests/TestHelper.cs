@@ -4,7 +4,6 @@ using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Text;
-using CK.Core;
 using NUnit.Framework;
 using NUnit.Framework.Constraints;
 

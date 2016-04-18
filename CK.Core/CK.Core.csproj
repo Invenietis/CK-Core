@@ -90,13 +90,18 @@
     <Compile Include="ServiceContainer\SimpleServiceContainer.cs" />
     <Compile Include="SetOperation.cs" />
     <Compile Include="SimpleTypeFinder.cs" />
-    <Compile Include="StringMatcher.cs" />
     <Compile Include="TemporaryFile.cs" />
     <Compile Include="Util.cs" />
     <Compile Include="Util.Hash.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\CK.Text\CK.Text.csproj">
+      <Project>{0518e60c-0cb9-49da-a634-109998526368}</Project>
+      <Name>CK.Text</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="..\packages\SimpleGitVersionTask.0.14.4\build\SimpleGitVersionTask.targets" Condition="Exists('..\packages\SimpleGitVersionTask.0.14.4\build\SimpleGitVersionTask.targets')" />
