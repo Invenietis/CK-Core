@@ -71,15 +71,15 @@ namespace CK.Monitoring
         string ComputeBasePath( IActivityMonitor m )
         {
             string rootPath = null;
-            if( String.IsNullOrWhiteSpace( _configPath ) ) m.Error().Send( "The configured path is empty." );
-            else if( FileUtil.IndexOfInvalidPathChars( _configPath ) >= 0 ) m.Error().Send( "The configured path '{0}' is invalid.", _configPath );
+            if( String.IsNullOrWhiteSpace( _configPath ) ) m.SendLine( LogLevel.Error, "The configured path is empty.", null );
+            else if( FileUtil.IndexOfInvalidPathChars( _configPath ) >= 0 ) m.SendLine( LogLevel.Error, string.Format( "The configured path '{0}' is invalid.", _configPath ), null );
             else
             {
                 rootPath = _configPath;
                 if( !Path.IsPathRooted( rootPath ) )
                 {
                     string rootLogPath = SystemActivityMonitor.RootLogPath;
-                    if( String.IsNullOrWhiteSpace( rootLogPath ) ) m.Error().Send( "The relative path '{0}' requires that {1} be specified (typically in the AppSettings).", _configPath, SystemActivityMonitor.AppSettingsKey );
+                    if( String.IsNullOrWhiteSpace( rootLogPath ) ) m.SendLine( LogLevel.Error, string.Format( "The relative path '{0}' requires that {1} be specified (typically in the AppSettings).", _configPath, SystemActivityMonitor.AppSettingsKey ), null );
                     else rootPath = Path.Combine( rootLogPath, _configPath );
                 }
             }
@@ -138,7 +138,7 @@ namespace CK.Monitoring
                 }
                 catch( Exception ex )
                 {
-                    monitor.Error().Send( ex );
+                    monitor.SendLine( LogLevel.Error, null, ex );
                 }
             }
             return false;

@@ -66,43 +66,28 @@ namespace CK.Core
         /// <summary>
         /// Gets whether this log data has been successfully filtered (otherwise it is an unfiltered log).
         /// </summary>
-        public bool IsFilteredLog
-        {
-            get { return (Level & LogLevel.IsFiltered) != 0; }
-        }
+        public bool IsFilteredLog => (Level & LogLevel.IsFiltered) != 0; 
 
         /// <summary>
         /// Tags (from <see cref="ActivityMonitor.Tags"/>) associated to the log. 
         /// It will be union-ed with the current <see cref="IActivityMonitor.AutoTags"/>.
         /// </summary>
-        public CKTrait Tags
-        {
-            get { return _tags; }
-        }
+        public CKTrait Tags => _tags; 
 
         /// <summary>
         /// Text of the log. Can not be null.
         /// </summary>
-        public string Text
-        {
-            get { return _text; }
-        }
+        public string Text => _text; 
 
         /// <summary>
         /// Gets the time of the log.
         /// </summary>
-        public DateTimeStamp LogTime
-        {
-            get { return _logTime; }
-        }
+        public DateTimeStamp LogTime => _logTime; 
 
         /// <summary>
         /// Exception of the log. Can be null.
         /// </summary>
-        public Exception Exception
-        {
-            get { return _exception; }
-        }
+        public Exception Exception => _exception; 
 
         /// <summary>
         /// Gets the <see cref="CKExceptionData"/> that captures exception information 
@@ -137,10 +122,7 @@ namespace CK.Core
         /// <summary>
         /// Gets whether the <see cref="Text"/> is actually the <see cref="P:Exception"/> message.
         /// </summary>
-        public bool IsTextTheExceptionMessage
-        {
-            get { return _exception != null && ReferenceEquals( _exception.Message, _text ); }
-        }
+        public bool IsTextTheExceptionMessage => _exception != null && ReferenceEquals( _exception.Message, _text );
 
         /// <summary>
         /// Initializes a new <see cref="ActivityMonitorLogData"/>.
@@ -162,7 +144,13 @@ namespace CK.Core
             Initialize( text, exception, tags, logTime );
         }
 
-        internal ActivityMonitorLogData( LogLevel level, string fileName, int lineNumber )
+        /// <summary>
+        /// Preinitializes a new <see cref="ActivityMonitorLogData"/>: <see cref="Initialize"/> has yet to be called.
+        /// </summary>
+        /// <param name="level">Log level. Can not be <see cref="LogLevel.None"/>.</param>
+        /// <param name="fileName">Name of the source file that emitted the log. Can be null.</param>
+        /// <param name="lineNumber">Line number in the source file that emitted the log. Can be null.</param>
+        public ActivityMonitorLogData( LogLevel level, string fileName, int lineNumber )
         {
             // level == LogLevel.None is for fake senders (when log filtering is rejected).
             Level = level;
@@ -179,7 +167,17 @@ namespace CK.Core
             Debug.Assert( Level == LogLevel.None );
         }
 
-        internal void Initialize( string text, Exception exception, CKTrait tags, DateTimeStamp logTime )
+        /// <summary>
+        /// Initializes this data.
+        /// </summary>
+        /// <param name="text">Text of the log. Can be null or empty only if <paramref name="exception"/> is not null: the <see cref="T:Exception.Message"/> is the text.</param>
+        /// <param name="exception">Exception of the log. Can be null.</param>
+        /// <param name="tags">Tags (from <see cref="ActivityMonitor.Tags"/>) to associate to the log. It will be union-ed with the current <see cref="IActivityMonitor.AutoTags"/>.</param>
+        /// <param name="logTime">
+        /// Time of the log. 
+        /// You can use <see cref="DateTimeStamp.UtcNow"/> or <see cref="ActivityMonitorExtension.NextLogTime">IActivityMonitor.NextLogTime()</see> extension method.
+        /// </param>
+        public void Initialize( string text, Exception exception, CKTrait tags, DateTimeStamp logTime )
         {
             if( (_text = text) == null )
             {

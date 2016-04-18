@@ -39,7 +39,7 @@ namespace CK.Monitoring
                 if( _default == null )
                 {
                     if( monitor == null ) monitor = new SystemActivityMonitor( true, "GrandOutput" ) { MinimalFilter = GrandOutputMinimalFilter };
-                    using( monitor.OpenInfo().Send( "Attempting Default GrandOutput configuration." ) )
+                    using( monitor.OpenGroup( LogLevel.Info, "Attempting Default GrandOutput configuration.", null ) )
                     {
                         try
                         {
@@ -65,7 +65,7 @@ namespace CK.Monitoring
                         }
                         catch( Exception ex )
                         {
-                            monitor.Fatal().Send( ex );
+                            monitor.SendLine( LogLevel.Fatal, null, ex );
                             throw;
                         }
                     }
@@ -137,7 +137,7 @@ namespace CK.Monitoring
                 var monitor = new SystemActivityMonitor( true, "GrandOutput.Default.Reconfiguration" ) { MinimalFilter = GrandOutputMinimalFilter };
                 try
                 {
-                    using( monitor.OpenInfo().Send( "AppDomain '{0}',  file '{1}' changed (change n°{2}).", AppDomain.CurrentDomain.FriendlyName, _configPath, _default.ConfigurationAttemptCount ) )
+                    using( monitor.OpenGroup( LogLevel.Info, string.Format( "AppDomain '{0}',  file '{1}' changed (change n°{2}).", AppDomain.CurrentDomain.FriendlyName, _configPath, _default.ConfigurationAttemptCount ), null ) )
                     {
                         def = CreateDefaultConfig();
                         if( File.Exists( _configPath ) )
@@ -148,14 +148,14 @@ namespace CK.Monitoring
                         else
                         {
                             _lastConfigFileWriteTime = FileUtil.MissingFileLastWriteTimeUtc;
-                            monitor.Trace().Send( "File missing: applying catch-all default configuration." );
+                            monitor.SendLine( LogLevel.Trace, "File missing: applying catch-all default configuration.", null );
                         }
                         if( !_default._channelHost.IsDisposed ) _default.SetConfiguration( def, monitor );
                     }
                 }
                 catch( Exception ex )
                 {
-                    monitor.Error().Send( ex );
+                    monitor.SendLine( LogLevel.Error, null, ex );
                 }
             }
         }

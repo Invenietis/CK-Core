@@ -39,19 +39,37 @@ namespace CK.Core
             _getConclusion = getConclusionText;
         }
 
-        internal ActivityMonitorGroupData( LogLevel level, string fileName, int lineNumber )
+        /// <summary>
+        /// Preinitializes a new <see cref="ActivityMonitorLogData"/>: <see cref="Initialize"/> has yet to be called.
+        /// </summary>
+        /// <param name="level">Log level. Can not be <see cref="LogLevel.None"/>.</param>
+        /// <param name="fileName">Name of the source file that emitted the log. Can be null.</param>
+        /// <param name="lineNumber">Line number in the source file that emitted the log. Can be null.</param>
+        public ActivityMonitorGroupData( LogLevel level, string fileName, int lineNumber )
             : base( level, fileName, lineNumber )
         {
         }
 
         /// <summary>
-        /// Used only to initialize a ActivityMonitorGroupSender for rejected opened group.
+        /// Initializes a mere new <see cref="ActivityMonitorGroupData"/> without any actual data.
+        /// Should be unsed only for rejected opened group.
         /// </summary>
-        internal ActivityMonitorGroupData()
+        public ActivityMonitorGroupData()
         {
         }
 
-        internal void Initialize( string text, Exception exception, CKTrait tags, DateTimeStamp logTime, Func<string> getConclusionText )
+        /// <summary>
+        /// Initializes this group data.
+        /// </summary>
+        /// <param name="text">Text of the log. Can be null or empty only if <paramref name="exception"/> is not null: the <see cref="Exception.Message"/> is the text.</param>
+        /// <param name="exception">Exception of the log. Can be null.</param>
+        /// <param name="tags">Tags (from <see cref="ActivityMonitor.Tags"/>) to associate to the log. It will be union-ed with the current <see cref="IActivityMonitor.AutoTags"/>.</param>
+        /// <param name="logTime">
+        /// Time of the log.
+        /// You may use <see cref="DateTimeStamp.UtcNow"/> or <see cref="ActivityMonitorExtension.NextLogTime">IActivityMonitor.NextLogTime()</see> extension method.
+        /// </param>
+        /// <param name="getConclusionText">Optional function that provides delayed obtention of the group conclusion: will be called on group closing.</param>
+        public void Initialize( string text, Exception exception, CKTrait tags, DateTimeStamp logTime, Func<string> getConclusionText )
         {
             base.Initialize( text, exception, tags, logTime );
             _getConclusion = getConclusionText;

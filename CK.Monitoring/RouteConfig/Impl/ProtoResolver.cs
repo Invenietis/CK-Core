@@ -73,10 +73,10 @@ namespace CK.RouteConfig.Impl
                 var newSub = new Route( _resolver, this, route );
                 if( !_resolver.RegisterSubRoute( newSub ) )
                 {
-                    Monitor.Error().Send( "Route named '{0}' is already declared.", newSub._fullName );
+                    Monitor.SendLine( LogLevel.Error, string.Format( "Route named '{0}' is already declared.", newSub._fullName ), null );
                     return false;
                 }
-                using( Monitor.OpenInfo().Send( "Preprocessing route '{0}'.", newSub._fullName ) )
+                using( Monitor.OpenGroup( LogLevel.Info, string.Format( "Preprocessing route '{0}'.", newSub._fullName ), null ) )
                 {
                     newSub.ExecuteMetaConfigurations();
                     _subRoutes.Add( newSub );
@@ -93,10 +93,10 @@ namespace CK.RouteConfig.Impl
                     if( overridden )
                     {
                         _declaredActions[a.Name] = new ProtoDeclaredAction( a );
-                        Monitor.Info().Send( "Action '{0}' is overridden", a.Name );
+                        Monitor.SendLine( LogLevel.Info, string.Format( "Action '{0}' is overridden", a.Name ), null );
                         return true;
                     }
-                    Monitor.Error().Send( "Action '{0}' is already declared. Use Override to alter it or use another name.", a.Name );
+                    Monitor.SendLine( LogLevel.Error, string.Format( "Action '{0}' is already declared. Use Override to alter it or use another name.", a.Name ), null );
                     return false;
                 }
                 _declaredActions.Add( a.Name, new ProtoDeclaredAction( a ) );

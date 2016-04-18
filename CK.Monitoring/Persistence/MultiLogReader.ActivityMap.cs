@@ -494,7 +494,7 @@ namespace CK.Monitoring
             /// <param name="m">Optional monitor (nothing is logged when null).</param>
             public void Replay( IActivityMonitor replay, IActivityMonitor m = null )
             {
-                using( m != null ? m.OpenInfo().Send( "Replaying activity from '{0}'.", MonitorId ) : null )
+                using( m != null ? m.OpenGroup( LogLevel.Info, string.Format( "Replaying activity from '{0}'.", MonitorId ), null ) : null )
                 {
                     int nbMissing = 0;
                     int nbTotal = 0;

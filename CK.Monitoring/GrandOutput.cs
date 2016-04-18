@@ -177,7 +177,7 @@ namespace CK.Monitoring
         {
             if( config == null ) throw new ArgumentNullException( "config" );
             if( monitor == null ) monitor = new SystemActivityMonitor( true, "GrandOutput" ) { MinimalFilter = GrandOutputMinimalFilter };
-            using( monitor.OpenInfo().Send( this == Default ? "Applying Default GrandOutput configuration." : "Applying GrandOutput configuration." ) )
+            using( monitor.OpenGroup( LogLevel.Info, this == Default ? "Applying Default GrandOutput configuration." : "Applying GrandOutput configuration.", null ) )
             {
                 if( _channelHost.SetConfiguration( monitor, config.ChannelsConfiguration ?? new RouteConfiguration(), millisecondsBeforeForceClose ) )
                 {
@@ -268,8 +268,8 @@ namespace CK.Monitoring
             {
                 int nbDeadClients;
                 lock( _clients ) nbDeadClients = DoGarbageDeadClients( DateTime.UtcNow );
-                if( nbDeadClients > 0 ) e.Monitor.Info().Send( "Removing {0} dead client(s).", nbDeadClients );
-                else e.Monitor.Trace().Send( "No dead client to remove." );
+                if( nbDeadClients > 0 ) e.Monitor.SendLine( LogLevel.Info, string.Format( "Removing {0} dead client(s).", nbDeadClients ), null );
+                else e.Monitor.SendLine( LogLevel.Trace, "No dead client to remove.", null );
             }
         }
 

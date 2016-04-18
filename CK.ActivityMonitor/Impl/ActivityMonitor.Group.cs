@@ -108,12 +108,12 @@ namespace CK.Core
             /// <summary>
             /// Gets the tags for the log group.
             /// </summary>
-            public CKTrait GroupTags { get { return _data.Tags; } }
+            public CKTrait GroupTags => _data.Tags;
 
             /// <summary>
             /// Gets the log time for the log.
             /// </summary>
-            public DateTimeStamp LogTime { get { return _data.LogTime; } }
+            public DateTimeStamp LogTime => _data.LogTime; 
 
             /// <summary>
             /// Gets the log time of the group closing.
@@ -129,50 +129,47 @@ namespace CK.Core
             /// Gets the <see cref="CKExceptionData"/> that captures exception information 
             /// if it exists. Returns null if no <see cref="P:Exception"/> exists.
             /// </summary>
-            public CKExceptionData ExceptionData { get { return _data.ExceptionData;  } }
+            public CKExceptionData ExceptionData => _data.ExceptionData; 
 
             /// <summary>
             /// Gets or creates the <see cref="CKExceptionData"/> that captures exception information.
             /// If <see cref="P:Exception"/> is null, this returns null.
             /// </summary>
             /// <returns></returns>
-            public CKExceptionData EnsureExceptionData()
-            {
-                return _data.EnsureExceptionData();
-            }
+            public CKExceptionData EnsureExceptionData() => _data.EnsureExceptionData();
 
             /// <summary>
             /// Get the previous group in its origin monitor. Null if this group is a top level group.
             /// </summary>
-            public IActivityLogGroup Parent { get { return _unfilteredParent; } }
+            public IActivityLogGroup Parent => _unfilteredParent;
             
             /// <summary>
             /// Gets the depth of this group in its origin monitor (1 for top level groups).
             /// </summary>
-            public int Depth { get { return _depth; } }
+            public int Depth => _depth; 
 
             /// <summary>
             /// Gets the level associated to this group.
             /// The <see cref="LogLevel.IsFiltered"/> can be set here: use <see cref="MaskedGroupLevel"/> to get 
             /// the actual level from <see cref="LogLevel.Trace"/> to <see cref="LogLevel.Fatal"/>.
             /// </summary>
-            public LogLevel GroupLevel { get { return _data.Level; } }
+            public LogLevel GroupLevel => _data.Level;
 
             /// <summary>
             /// Gets the actual level (from <see cref="LogLevel.Trace"/> to <see cref="LogLevel.Fatal"/>) associated to this group
             /// without <see cref="LogLevel.IsFiltered"/> bit.
             /// </summary>
-            public LogLevel MaskedGroupLevel { get { return _data.MaskedLevel; } }
+            public LogLevel MaskedGroupLevel => _data.MaskedLevel;
 
             /// <summary>
             /// Gets the text with which this group has been opened. Null if and only if the group is closed.
             /// </summary>
-            public string GroupText { get { return _data.Text; } }
+            public string GroupText => _data.Text;
 
             /// <summary>
             /// Gets the associated <see cref="Exception"/> if it exists.
             /// </summary>
-            public Exception Exception { get { return _data.Exception; } }
+            public Exception Exception => _data.Exception;
 
             /// <summary>
             /// Gets or sets the <see cref="IActivityMonitor.MinimalFilter"/> that will be restored when group will be closed.
@@ -189,28 +186,22 @@ namespace CK.Core
             /// <summary>
             /// Gets whether the <see cref="GroupText"/> is actually the <see cref="Exception"/> message.
             /// </summary>
-            public bool IsGroupTextTheExceptionMessage 
-            {
-                get { return _data.IsTextTheExceptionMessage; } 
-            }
+            public bool IsGroupTextTheExceptionMessage => _data.IsTextTheExceptionMessage; 
 
             /// <summary>
             /// Gets the previous topic it it must be restored. Null otherwise.
             /// </summary>
-            public string PreviousTopic
-            {
-                get { return _previousTopic; }
-            }
+            public string PreviousTopic => _previousTopic; 
 
             /// <summary>
             /// Gets the file name of the source code that issued the log.
             /// </summary>
-            public string FileName { get { return _data.FileName; } }
+            public string FileName => _data.FileName;
 
             /// <summary>
             /// Gets the line number of the <see cref="FileName"/> that issued the log.
             /// </summary>
-            public int LineNumber { get { return _data.LineNumber; } }
+            public int LineNumber => _data.LineNumber;
 
             IDisposable IDisposableGroup.ConcludeWith( Func<string> getConclusionText )
             {
@@ -252,22 +243,15 @@ namespace CK.Core
                 _data = null;
                 _previousTopic = null;
             }
-
         }
 
-        IActivityLogGroup IActivityMonitorImpl.CurrentGroup
-        {
-            get { return _current; }
-        }
+        IActivityLogGroup IActivityMonitorImpl.CurrentGroup => _current; 
 
         /// <summary>
         /// Gets the currently opened group.
         /// Null when no group is currently opened.
         /// </summary>
-        protected IActivityLogGroup CurrentGroup
-        {
-            get { return _current; }
-        }
+        protected IActivityLogGroup CurrentGroup => _current; 
 
     }
 }

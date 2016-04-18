@@ -159,18 +159,6 @@ namespace CK.Core
                 SetFilter( new SourceLogFilter( LogFilter.Undefined, minimalFilter ), fileName );
             }
 
-            internal static int SourceFilterLine( ref string fileName, ref int lineNumber )
-            {
-                var h = FilterSource;
-                return h == null ? 0 : (int)h( ref fileName, ref lineNumber ).LineFilter;
-            }
-
-            internal static int SourceFilterGroup( ref string fileName, ref int lineNumber )
-            {
-                var h = FilterSource;
-                return h == null ? 0 : (int)h( ref fileName, ref lineNumber ).GroupFilter;
-            }
-
         }
 
     }

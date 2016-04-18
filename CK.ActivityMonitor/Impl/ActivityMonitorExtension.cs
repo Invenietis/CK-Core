@@ -35,7 +35,14 @@ namespace CK.Core
         /// <returns>True if the log should be emitted.</returns>
         public static bool ShouldLogLine( this IActivityMonitor @this, LogLevel level, [CallerFilePath]string fileName = null, [CallerLineNumber]int lineNumber = 0 )
         {
-            return DoShouldLogLine( @this, level & LogLevel.Mask, fileName, lineNumber );
+            var h = ActivityMonitor.SourceFilter.FilterSource;
+            int combined = h == null ? 0 : (int)h( ref fileName, ref lineNumber ).LineFilter;
+            // Extract Override filter.
+            int filter = (short)(combined >> 16);
+            // If Override is undefined, combine the ActualFilter and Minimal source filter.
+            if( filter <= 0 ) filter = (int)LogFilter.Combine( @this.ActualFilter.Line, (LogLevelFilter)(combined & 0xFFFF) );
+            level &= LogLevel.Mask;
+            return filter <= 0 ? (int)ActivityMonitor.DefaultFilter.Line <= (int)level : filter <= (int)level;
         }
 
         /// <summary>
@@ -49,52 +56,13 @@ namespace CK.Core
         /// <returns>True if the log should be emitted.</returns>
         public static bool ShouldLogGroup( this IActivityMonitor @this, LogLevel level, [CallerFilePath]string fileName = null, [CallerLineNumber]int lineNumber = 0 )
         {
-            return DoShouldLogGroup( @this, level & LogLevel.Mask, fileName, lineNumber );
-        }
-
-        /// <summary>
-        /// Private method used by XXX (Trace, Info,..., Fatal) extension methods.
-        /// </summary>
-        static IActivityMonitorLineSender FilterLogLine( this IActivityMonitor @this, LogLevel level, string fileName, int lineNumber )
-        {
-            Debug.Assert( (level & LogLevel.IsFiltered) == 0 );
-            if( DoShouldLogLine( @this, level, fileName, lineNumber ) )
-            {
-                return new ActivityMonitorLineSender( @this, level | LogLevel.IsFiltered, fileName, lineNumber );
-            }
-            return ActivityMonitorLineSender.FakeLineSender;
-        }
-
-        /// <summary>
-        /// Private method used by OpenXXX (Trace, Info,..., Fatal) extension methods.
-        /// </summary>
-        static IActivityMonitorGroupSender FilteredGroup( IActivityMonitor @this, LogLevel level, string fileName, int lineNumber )
-        {
-            Debug.Assert( (level & LogLevel.IsFiltered) == 0 );
-            if( DoShouldLogGroup( @this, level, fileName, lineNumber ) )
-            {
-                return new ActivityMonitorGroupSender( @this, level | LogLevel.IsFiltered, fileName, lineNumber );
-            }
-            return new ActivityMonitorGroupSender( @this );
-        }
-
-        static bool DoShouldLogLine( IActivityMonitor @this, LogLevel level, string fileName, int lineNumber )
-        {
-            int combined = ActivityMonitor.SourceFilter.SourceFilterLine( ref fileName, ref lineNumber );
-            // Extract Override filter.
-            int filter = (short)(combined >> 16);
-            // If Override is undefined, combine the ActualFilter and Minimal source filter.
-            if( filter <= 0 ) filter = (int)LogFilter.Combine( @this.ActualFilter.Line, (LogLevelFilter)(combined & 0xFFFF) );
-            return filter <= 0 ? (int)ActivityMonitor.DefaultFilter.Line <= (int)level : filter <= (int)level;
-        }
-
-        static bool DoShouldLogGroup( IActivityMonitor @this, LogLevel level, string fileName, int lineNumber )
-        {
-            int combined = ActivityMonitor.SourceFilter.SourceFilterGroup( ref fileName, ref lineNumber );
+            var h = ActivityMonitor.SourceFilter.FilterSource;
+            int combined = h == null ? 0 : (int)h( ref fileName, ref lineNumber ).GroupFilter;
             // Extract Override filter.
             int filter = (short)(combined >> 16);
             // If Override is undefined, combine the ActualFilter and Minimal source filter.
             if( filter <= 0 ) filter = (int)LogFilter.Combine( @this.ActualFilter.Group, (LogLevelFilter)(combined & 0xFFFF) );
+            level &= LogLevel.Mask;
             return filter <= 0 ? (int)ActivityMonitor.DefaultFilter.Group <= (int)level : filter <= (int)level;
         }
 

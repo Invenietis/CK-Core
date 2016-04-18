@@ -44,8 +44,8 @@ namespace CK.RouteConfig.Impl
         /// <returns>True if the name is valid. False otherwise.</returns>
         static public bool CheckActionNameValidity( string routeName, IActivityMonitor monitor, string nameToCheck )
         {
-            if( String.IsNullOrWhiteSpace( nameToCheck ) ) monitor.Error().Send( "Invalid name '{0}' in route '{1}'. Name must not be empty or contains only white space.", nameToCheck, routeName );
-            else if( nameToCheck.Contains( '/' ) ) monitor.Error().Send( "Invalid name '{0}' in route '{1}'. Name must not contain '/'.", nameToCheck, routeName );
+            if( String.IsNullOrWhiteSpace( nameToCheck ) ) monitor.SendLine( LogLevel.Error, string.Format( "Invalid name '{0}' in route '{1}'. Name must not be empty or contains only white space.", nameToCheck, routeName ), null );
+            else if( nameToCheck.Contains( '/' ) ) monitor.SendLine( LogLevel.Error, string.Format( "Invalid name '{0}' in route '{1}'. Name must not contain '/'.", nameToCheck, routeName ), null );
             else return true;
             return false;
         }

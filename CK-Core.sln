@@ -41,6 +41,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CK.Text", "CK.Text\CK.Text.
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CK.Text.Tests", "Tests\CK.Text.Tests\CK.Text.Tests.csproj", "{E2C4C6F1-BF73-4473-8F73-A7FFC4381422}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CK.ActivityMonitor.StandardSender", "CK.ActivityMonitor.StandardSender\CK.ActivityMonitor.StandardSender.csproj", "{95FE46F3-65E7-4159-9BA0-6EA2F06A0845}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -87,6 +89,10 @@ Global
 		{E2C4C6F1-BF73-4473-8F73-A7FFC4381422}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{E2C4C6F1-BF73-4473-8F73-A7FFC4381422}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{E2C4C6F1-BF73-4473-8F73-A7FFC4381422}.Release|Any CPU.Build.0 = Release|Any CPU
+		{95FE46F3-65E7-4159-9BA0-6EA2F06A0845}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{95FE46F3-65E7-4159-9BA0-6EA2F06A0845}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{95FE46F3-65E7-4159-9BA0-6EA2F06A0845}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{95FE46F3-65E7-4159-9BA0-6EA2F06A0845}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

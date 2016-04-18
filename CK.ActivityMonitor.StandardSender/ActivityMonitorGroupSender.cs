@@ -37,7 +37,7 @@ namespace CK.Core
         /// <summary>
         /// Gets whether the log has been rejected.
         /// </summary>
-        public bool IsRejected { get { return Level == LogLevel.None; } }
+        public bool IsRejected => Level == LogLevel.None;
 
         /// <summary>
         /// Used only by filtering extension methods (level is always filtered).

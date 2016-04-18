@@ -46,7 +46,7 @@ namespace CK.Monitoring
             }
             catch( Exception ex )
             {
-                monitor.Error().Send( ex );
+                monitor.SendLine( LogLevel.Error, null, ex );
                 return false;
             }
         }
@@ -71,12 +71,12 @@ namespace CK.Monitoring
                 if( sourceFilter == null ) return false;
 
                 RouteConfiguration routeConfig;
-                using( monitor.OpenTrace().Send( "Reading root Channel." ) )
+                using( monitor.OpenGroup( LogLevel.Trace, "Reading root Channel.", null ) )
                 {
                     XElement channelElement = e.Element( "Channel" );
                     if( channelElement == null )
                     {
-                        monitor.Error().Send( "Missing <Channel /> element." + e.GetLineColumnString() );
+                        monitor.SendLine( LogLevel.Error, "Missing <Channel /> element." + e.GetLineColumnString(), null );
                         return false;
                     }
                     routeConfig = FillRoute( monitor, channelElement, new RouteConfiguration() );
@@ -90,7 +90,7 @@ namespace CK.Monitoring
             }
             catch( Exception ex )
             {
-                monitor.Error().Send( ex );
+                monitor.SendLine( LogLevel.Error, null, ex );
             }
             return false;
         }
@@ -143,7 +143,7 @@ namespace CK.Monitoring
         static Dictionary<string, LogFilter> ReadSourceOverrideFilter( XElement e, out SourceFilterApplyMode apply, IActivityMonitor monitor )
         {
             apply = SourceFilterApplyMode.None;
-            using( monitor.OpenTrace().Send( "Reading SourceOverrideFilter elements." ) )
+            using( monitor.OpenGroup( LogLevel.Trace, "Reading SourceOverrideFilter elements.", null ) )
             {
                 try
                 {
@@ -176,7 +176,7 @@ namespace CK.Monitoring
                 }
                 catch( Exception ex )
                 {
-                    monitor.Error().Send( ex, "Error while reading SourceOverrideFilter element." );
+                    monitor.SendLine( LogLevel.Error, "Error while reading SourceOverrideFilter element.", ex );
                     return null;
                 }
             }
@@ -204,7 +204,7 @@ namespace CK.Monitoring
 
         SubRouteConfiguration FillSubRoute( IActivityMonitor monitor, XElement xml, SubRouteConfiguration sub )
         {
-            using( monitor.OpenTrace().Send( "Reading subordinated channel '{0}'.", sub.Name ) )
+            using( monitor.OpenGroup( LogLevel.Trace, string.Format( "Reading subordinated channel '{0}'.", sub.Name ), null ) )
             {
                 var matchOptions = (string)xml.Attribute( "MatchOptions" );
                 var filter = (string)xml.Attribute( "TopicFilter" );
@@ -221,9 +221,9 @@ namespace CK.Monitoring
                         var expected = String.Join( ", ", Enum.GetNames( typeof( RegexOptions ) ).Where( n => n != "None" ) );
                         throw new XmlException( "MatchOptions value must be a subset of: " + expected + xml.GetLineColumnString() );
                     }
-                    monitor.Trace().Send( "MatchOptions for Channel '{0}' is: {1}.", sub.Name, opt );
+                    monitor.SendLine( LogLevel.Trace, string.Format( "MatchOptions for Channel '{0}' is: {1}.", sub.Name, opt ), null );
                 }
-                else monitor.Trace().Send( "MatchOptions for Channel '{0}' defaults to: IgnoreCase, CultureInvariant, Multiline, ExplicitCapture.", sub.Name );
+                else monitor.SendLine( LogLevel.Trace, string.Format( "MatchOptions for Channel '{0}' defaults to: IgnoreCase, CultureInvariant, Multiline, ExplicitCapture.", sub.Name ), null );
 
                 sub.RoutePredicate = filter != null ? CreatePredicateFromWildcards( filter, opt ) : CreatePredicateRegex( regex, opt );
 

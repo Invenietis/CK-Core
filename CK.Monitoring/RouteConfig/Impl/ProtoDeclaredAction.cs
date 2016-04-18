@@ -30,7 +30,7 @@ namespace CK.RouteConfig.Impl
             {
                 _action = a;
                 _isCloned = false;
-                monitor.Info().Send( "Action '{0}' has been overridden.", a.Name );
+                monitor.SendLine( LogLevel.Info, string.Format( "Action '{0}' has been overridden.", a.Name ), null );
                 return true;
             }
             ActionCompositeConfiguration parent;
@@ -42,16 +42,16 @@ namespace CK.RouteConfig.Impl
                 if( !_isCloned )
                 {
                     _action = ((ActionCompositeConfiguration)_action).CloneComposite( true );
-                    monitor.Info().Send( "Action '{0}' has been cloned in order to override an inner action.", String.Join( "/", fullPath ) );
+                    monitor.SendLine( LogLevel.Info, string.Format( "Action '{0}' has been cloned in order to override an inner action.", string.Join( "/", fullPath ) ), null );
                     _isCloned = true;
                     idx = FindInComposite( e, out parent );
                 }
                 Debug.Assert( parent.Children[idx].Name == fullPath.Last() );
                 parent.Override( idx, a );
-                monitor.Info().Send( "Inner action '{0}' has been overridden.", String.Join( "/", fullPath ) );
+                monitor.SendLine( LogLevel.Info, string.Format( "Inner action '{0}' has been overridden.", string.Join( "/", fullPath ) ), null );
                 return true;
             }
-            monitor.Error().Send( "Action '{0}' not found. Unable to override it.", String.Join( "/", fullPath ) );
+            monitor.SendLine( LogLevel.Error, string.Format( "Action '{0}' not found. Unable to override it.", string.Join( "/", fullPath ) ), null );
             return false;
         }
 

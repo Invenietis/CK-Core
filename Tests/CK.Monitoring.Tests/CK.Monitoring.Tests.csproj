@@ -66,6 +66,10 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\CK.ActivityMonitor.StandardSender\CK.ActivityMonitor.StandardSender.csproj">
+      <Project>{95fe46f3-65e7-4159-9ba0-6ea2f06a0845}</Project>
+      <Name>CK.ActivityMonitor.StandardSender</Name>
+    </ProjectReference>
     <ProjectReference Include="..\..\CK.ActivityMonitor\CK.ActivityMonitor.csproj">
       <Project>{8aaaf17d-328a-4fe5-bac9-5dd35963b2b8}</Project>
       <Name>CK.ActivityMonitor</Name>

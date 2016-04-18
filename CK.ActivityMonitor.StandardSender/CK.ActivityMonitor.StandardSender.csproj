@@ -4,11 +4,11 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{E2C4C6F1-BF73-4473-8F73-A7FFC4381422}</ProjectGuid>
+    <ProjectGuid>{95FE46F3-65E7-4159-9BA0-6EA2F06A0845}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>CK.Text.Tests</RootNamespace>
-    <AssemblyName>CK.Text.Tests</AssemblyName>
+    <RootNamespace>CK.ActivityMonitor.StandardSender</RootNamespace>
+    <AssemblyName>CK.ActivityMonitor.StandardSender</AssemblyName>
     <TargetFrameworkVersion>v4.5.1</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
   </PropertyGroup>
@@ -17,7 +17,7 @@
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
     <OutputPath>bin\Debug\</OutputPath>
-    <DefineConstants>TRACE;DEBUG;NET451 CSPROJ</DefineConstants>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
@@ -29,21 +29,7 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
-  <PropertyGroup>
-    <StartAction>Program</StartAction>
-    <StartProgram>$(SolutionDir)packages\NUnit.Runners.Net4.2.6.4\tools\nunit.exe</StartProgram>
-    <StartArguments>CK.Text.Tests.dll</StartArguments>
-  </PropertyGroup>
   <ItemGroup>
-    <Compile Include="..\..\SharedAssemblyInfo.cs">
-      <Link>Properties\SharedAssemblyInfo.cs</Link>
-    </Compile>
-  </ItemGroup>
-  <ItemGroup>
-    <Reference Include="nunit.framework, Version=2.6.4.14350, Culture=neutral, PublicKeyToken=96d09a1eb7f44a77, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\NUnit.2.6.4\lib\nunit.framework.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />
@@ -54,26 +40,51 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="JSONVisitorTests.cs" />
+    <Compile Include="ActivityMonitorExtension-Gen1.cs">
+      <DependentUpon>ActivityMonitorExtension-Gen.tt</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+    </Compile>
+    <Compile Include="ActivityMonitorExtension.cs" />
+    <Compile Include="ActivityMonitorGroupSender-Gen1.cs">
+      <DependentUpon>ActivityMonitorGroupSender-Gen.tt</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+    </Compile>
+    <Compile Include="ActivityMonitorGroupSender.cs" />
+    <Compile Include="ActivityMonitorLineSender-Gen1.cs">
+      <DependentUpon>ActivityMonitorLineSender-Gen.tt</DependentUpon>
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+    </Compile>
+    <Compile Include="ActivityMonitorLineSender.cs" />
+    <Compile Include="IActivityMonitorGroupSender.cs" />
+    <Compile Include="IActivityMonitorLineSender.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="StringMatcherTests.cs" />
-    <Compile Include="TestHelper.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\CK.Core\CK.Core.csproj">
+    <Content Include="ActivityMonitorExtension-Gen.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>ActivityMonitorExtension-Gen1.cs</LastGenOutput>
+    </Content>
+    <Content Include="ActivityMonitorGroupSender-Gen.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>ActivityMonitorGroupSender-Gen1.cs</LastGenOutput>
+    </Content>
+    <Content Include="ActivityMonitorLineSender-Gen.tt">
+      <Generator>TextTemplatingFileGenerator</Generator>
+      <LastGenOutput>ActivityMonitorLineSender-Gen1.cs</LastGenOutput>
+    </Content>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\CK.ActivityMonitor\CK.ActivityMonitor.csproj">
+      <Project>{8aaaf17d-328a-4fe5-bac9-5dd35963b2b8}</Project>
+      <Name>CK.ActivityMonitor</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\CK.Core\CK.Core.csproj">
       <Project>{bc92ae5b-73a2-4b9e-91d2-9163960a17c4}</Project>
       <Name>CK.Core</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\CK.Text\CK.Text.csproj">
-      <Project>{0518e60c-0cb9-49da-a634-109998526368}</Project>
-      <Name>CK.Text</Name>
-    </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="packages.config" />
-  </ItemGroup>
-  <ItemGroup>
-    <Service Include="{82A7F48D-3B50-4B1E-B82E-3ADA8210C358}" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

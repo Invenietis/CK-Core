@@ -35,7 +35,7 @@ namespace CK.Monitoring.GrandOutputHandlers
         /// <param name="m"></param>
         public override void Initialize( IActivityMonitor m )
         {
-            using( m.OpenTrace().Send( "Initializing BinaryFile handler '{0}' (MaxCountPerFile = {1}).", Name, _file.MaxCountPerFile ) )
+            using( m.OpenGroup( LogLevel.Trace, string.Format( "Initializing BinaryFile handler '{0}' (MaxCountPerFile = {1}).", Name, _file.MaxCountPerFile ), null ) )
             {
                 _file.Initialize( m );
             }
@@ -57,7 +57,7 @@ namespace CK.Monitoring.GrandOutputHandlers
         /// <param name="m">The monitor to use to track activity.</param>
         public override void Close( IActivityMonitor m )
         {
-            m.Info().Send( "Closing file for BinaryFile handler '{0}'.", Name );
+            m.SendLine( LogLevel.Info, string.Format( "Closing file for BinaryFile handler '{0}'.", Name ), null );
             _file.Close();
         }
 
