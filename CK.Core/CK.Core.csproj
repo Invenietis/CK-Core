@@ -68,7 +68,6 @@
     <Compile Include="Extension\CollectionExtension.cs" />
     <Compile Include="Extension\DictionaryExtension.cs" />
     <Compile Include="Extension\EnumerableExtension.cs" />
-    <Compile Include="Extension\StringAndStringBuilderExtension.cs" />
     <Compile Include="Extension\XmlExtension.cs" />
     <Compile Include="FIFOBuffer.cs" />
     <Compile Include="FileUtil.cs" />

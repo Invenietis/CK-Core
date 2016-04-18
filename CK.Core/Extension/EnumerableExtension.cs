@@ -254,10 +254,7 @@ namespace CK.Core
                     }
                 }
 
-                object System.Collections.IEnumerator.Current
-                {
-                    get { return Current; }
-                }
+                object System.Collections.IEnumerator.Current => Current; 
 
                 public bool MoveNext()
                 {

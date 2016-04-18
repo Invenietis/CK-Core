@@ -57,7 +57,6 @@
     <Compile Include="Animals.cs" />
     <Compile Include="AppSettingsDotNetTests.cs" />
     <Compile Include="CKExceptionTests.cs" />
-    <Compile Include="StringAndStringBuilderExtensionTests.cs" />
     <Compile Include="CollectionExtensionTests.cs" />
     <Compile Include="CriticalErrorCollectorTests.cs" />
     <Compile Include="EnumerableExtensionTests.cs" />

@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using NUnit.Framework;
 
-namespace CK.Core.Tests
+namespace CK.Text.Tests
 {
     [TestFixture]
     public class StringAndStringBuilderExtensionTests

@@ -138,6 +138,16 @@ namespace CK.Core.Tests
         }
 
         [Test]
+        public void InterlockedRemove_removes_the_first_item_that_matches_a_condition()
+        {
+            int[] a = new[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
+            Util.InterlockedRemove( ref a, i => i % 2 == 0 );
+            CollectionAssert.AreEqual( a, new[] { 1, 2, 3, 4, 5, 6, 7, 8, 9 } );
+            Util.InterlockedRemove( ref a, i => i > 7 );
+            CollectionAssert.AreEqual( a, new[] { 1, 2, 3, 4, 5, 6, 7, 9 } );
+        }
+
+        [Test]
         public void InterlockedAdd_item_under_condition()
         {
             int[] a = new[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };

@@ -27,8 +27,11 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace CK.Core
+namespace CK.Text
 {
+    /// <summary>
+    /// Defines useful extension methods on string and StringBuilder.
+    /// </summary>
     public static class StringAndStringBuilderExtension
     {
         /// <summary>
