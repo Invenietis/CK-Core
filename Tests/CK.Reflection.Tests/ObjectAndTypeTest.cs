@@ -74,20 +74,20 @@ namespace CK.Reflection.Tests
             {
                 {
                     // Null or MissingMethodException
-                    Func<int, int> fsUnk1 = tA.GetStaticInvoker<Func<int, int>>( "StaticMethod" );
+                    Func<int, int> fsUnk1 = DelegateHelper.GetStaticInvoker<Func<int, int>>( tA, "StaticMethod" );
                     Assert.That( fsUnk1, Is.Null );
 
-                    Func<int, string> fsUnk2 = tA.GetStaticInvoker<Func<int, string>>( "StaticMethodUnk" );
+                    Func<int, string> fsUnk2 = DelegateHelper.GetStaticInvoker<Func<int, string>>( tA, "StaticMethodUnk" );
                     Assert.That( fsUnk2, Is.Null );
 
-                    Assert.Throws<MissingMethodException>( () => tA.GetStaticInvoker<Func<int, int>>( "StaticMethod", true ) );
-                    Assert.Throws<MissingMethodException>( () => tA.GetStaticInvoker<Func<int, string>>( "StaticMethodUnk", true ) );
+                    Assert.Throws<MissingMethodException>( () => DelegateHelper.GetStaticInvoker<Func<int, int>>( tA, "StaticMethod", true ) );
+                    Assert.Throws<MissingMethodException>( () => DelegateHelper.GetStaticInvoker<Func<int, string>>( tA, "StaticMethodUnk", true ) );
 
-                    Assert.That( tA.GetStaticInvoker<Func<int, int>>( "StaticMethod", false ), Is.Null );
-                    Assert.That( tA.GetStaticInvoker<Func<int, string>>( "StaticMethodUnk", false ), Is.Null );
+                    Assert.That( DelegateHelper.GetStaticInvoker<Func<int, int>>( tA, "StaticMethod", false ), Is.Null );
+                    Assert.That( DelegateHelper.GetStaticInvoker<Func<int, string>>( tA, "StaticMethodUnk", false ), Is.Null );
                 }
                 // Delegate to the static method.
-                Func<int, string> fsA = tA.GetStaticInvoker<Func<int, string>>( "StaticMethod" );
+                Func<int, string> fsA = DelegateHelper.GetStaticInvoker<Func<int, string>>( tA, "StaticMethod" );
                 Assert.That( fsA, Is.Not.Null );
                 Assert.That( fsA( 1 ), Is.EqualTo( "1" ) );
                 Assert.That( _lastCalledName, Is.EqualTo( "A.StaticMethod" ) );
@@ -104,23 +104,23 @@ namespace CK.Reflection.Tests
 
             {
                 // Null or MissingMethodException.
-                Func<A, int, int> fUnk1 = tA.GetInstanceInvoker<Func<A, int, int>>( "SimpleMethod" );
+                Func<A, int, int> fUnk1 = DelegateHelper.GetInstanceInvoker<Func<A, int, int>>( tA, "SimpleMethod" );
                 Assert.That( fUnk1, Is.Null );
 
-                Func<A, int, string> fUnk2 = tA.GetInstanceInvoker<Func<A, int, string>>( "SimpleMethoddUnk" );
+                Func<A, int, string> fUnk2 = DelegateHelper.GetInstanceInvoker<Func<A, int, string>>( tA, "SimpleMethoddUnk" );
                 Assert.That( fUnk2, Is.Null );
 
-                Assert.Throws<MissingMethodException>( () => tA.GetInstanceInvoker<Func<A, int, int>>( "SimpleMethod", true ) );
-                Assert.Throws<MissingMethodException>( () => tA.GetInstanceInvoker<Func<A, int, string>>( "SimpleMethodUnk", true ) );
+                Assert.Throws<MissingMethodException>( () => DelegateHelper.GetInstanceInvoker<Func<A, int, int>>( tA, "SimpleMethod", true ) );
+                Assert.Throws<MissingMethodException>( () => DelegateHelper.GetInstanceInvoker<Func<A, int, string>>( tA, "SimpleMethodUnk", true ) );
 
-                Assert.That( tA.GetInstanceInvoker<Func<A, int, int>>( "SimpleMethod", false ), Is.Null );
-                Assert.That( tA.GetInstanceInvoker<Func<A, int, string>>( "SimpleMethodUnk", false ), Is.Null );
+                Assert.That( DelegateHelper.GetInstanceInvoker<Func<A, int, int>>( tA, "SimpleMethod", false ), Is.Null );
+                Assert.That( DelegateHelper.GetInstanceInvoker<Func<A, int, string>>( tA, "SimpleMethodUnk", false ), Is.Null );
             }
 
             A a = new A();
             B b = new B();
             {
-                Func<A,int, string> fA = tA.GetInstanceInvoker<Func<A, int, string>>( "SimpleMethod" );
+                Func<A,int, string> fA = DelegateHelper.GetInstanceInvoker<Func<A, int, string>>( tA, "SimpleMethod" );
                 Assert.That( fA( a, 2 ), Is.EqualTo( "2" ) );
                 Assert.That( _lastCalledName, Is.EqualTo( "A.SimpleMethod" ) );
                 Assert.That( _lastCalledParam, Is.EqualTo( 2 ) );
@@ -138,23 +138,23 @@ namespace CK.Reflection.Tests
             Type tB = typeof( B );
             {
                 // Null or MissingMethodException.
-                Func<A, int, int> fUnk1 = tA.GetNonVirtualInvoker<Func<A, int, int>>( "SimpleMethod" );
+                Func<A, int, int> fUnk1 = DelegateHelper.GetNonVirtualInvoker<Func<A, int, int>>( tA, "SimpleMethod" );
                 Assert.That( fUnk1, Is.Null );
 
-                Func<A, int, string> fUnk2 = tA.GetNonVirtualInvoker<Func<A, int, string>>( "SimpleMethoddUnk" );
+                Func<A, int, string> fUnk2 = DelegateHelper.GetNonVirtualInvoker<Func<A, int, string>>( tA, "SimpleMethoddUnk" );
                 Assert.That( fUnk2, Is.Null );
 
-                Assert.Throws<MissingMethodException>( () => tA.GetNonVirtualInvoker<Func<A, int, int>>( "SimpleMethod", true ) );
-                Assert.Throws<MissingMethodException>( () => tA.GetNonVirtualInvoker<Func<A, int, string>>( "SimpleMethodUnk", true ) );
+                Assert.Throws<MissingMethodException>( () => DelegateHelper.GetNonVirtualInvoker<Func<A, int, int>>( tA, "SimpleMethod", true ) );
+                Assert.Throws<MissingMethodException>( () => DelegateHelper.GetNonVirtualInvoker<Func<A, int, string>>( tA, "SimpleMethodUnk", true ) );
 
-                Assert.That( tA.GetNonVirtualInvoker<Func<A, int, int>>( "SimpleMethod", false ), Is.Null );
-                Assert.That( tA.GetNonVirtualInvoker<Func<A, int, string>>( "SimpleMethodUnk", false ), Is.Null );
+                Assert.That( DelegateHelper.GetNonVirtualInvoker<Func<A, int, int>>( tA, "SimpleMethod", false ), Is.Null );
+                Assert.That( DelegateHelper.GetNonVirtualInvoker<Func<A, int, string>>( tA, "SimpleMethodUnk", false ), Is.Null );
             }
 
             A a = new A();
             B b = new B();
             {
-                Func<A,int, string> fA = tA.GetNonVirtualInvoker<Func<A, int, string>>( "SimpleMethod" );
+                Func<A,int, string> fA = DelegateHelper.GetNonVirtualInvoker<Func<A, int, string>>( tA, "SimpleMethod" );
                 Assert.That( fA( a, 20 ), Is.EqualTo( "20" ) );
                 Assert.That( _lastCalledName, Is.EqualTo( "A.SimpleMethod" ) );
                 Assert.That( _lastCalledParam, Is.EqualTo( 20 ) );

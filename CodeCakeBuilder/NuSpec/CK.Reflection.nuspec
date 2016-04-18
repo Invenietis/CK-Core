@@ -12,6 +12,10 @@
     <summary>
       Reflection related utility classes. ({{CSemVer}})
     </summary>
+    <description>
+      Standard reflection and emit helpers: DelegateHelper allows invoking virtual method base, EmitHelper and ILGeneratorExtension
+      ease classical emit funtions.
+    </description>
     <language>en-US</language>
   </metadata>
   <files>

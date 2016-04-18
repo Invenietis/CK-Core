@@ -116,14 +116,14 @@ namespace CK.Reflection.Tests
         {
             {
                 string s = "a string";
-                Assert.Throws<InvalidOperationException>( () => ReflectionHelper.CreateSetter( s, x => x.Length ) );
-                Assert.That( ReflectionHelper.CreateSetter( s, x => x.Length, ReflectionHelper.CreateInvalidSetterOption.NullAction ), Is.Null );
-                var p = ReflectionHelper.CreateSetter( s, x => x.Length, ReflectionHelper.CreateInvalidSetterOption.VoidAction );
+                Assert.Throws<InvalidOperationException>( () => DelegateHelper.CreateSetter( s, x => x.Length ) );
+                Assert.That( DelegateHelper.CreateSetter( s, x => x.Length, DelegateHelper.CreateInvalidSetterOption.NullAction ), Is.Null );
+                var p = DelegateHelper.CreateSetter( s, x => x.Length, DelegateHelper.CreateInvalidSetterOption.VoidAction );
                 p( s, 4554 );
             }
             {
                 System.IO.StringWriter a = new System.IO.StringWriter();
-                var setter = ReflectionHelper.CreateSetter( a, x => x.NewLine );
+                var setter = DelegateHelper.CreateSetter( a, x => x.NewLine );
                 Assert.That( a.NewLine, Is.EqualTo( Environment.NewLine ) );
                 setter( a, "Hello World!" );
                 Assert.That( a.NewLine, Is.EqualTo( "Hello World!" ) );
