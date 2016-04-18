@@ -6,8 +6,8 @@
     "projectUrl": "",
     "licenseUrl": "",
 
-    "commands": {
-        "CodeCakeBuilder": "CodeCakeBuilder"
+    "compilationOptions": {
+        "emitEntryPoint": true
     },
 
     "dependencies": {

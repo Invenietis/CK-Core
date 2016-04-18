@@ -7,7 +7,8 @@
     "projectUrl": "",
     "licenseUrl": "",
     "compilationOptions": {
-        "keyFile": "../SharedKey.snk"
+        "keyFile": "../SharedKey.snk",
+        "xmlDoc": true
     },
     "frameworks": {
         "netstandard1.3": {
@@ -37,10 +38,8 @@
             "dependencies": {
             },
             "frameworkAssemblies": {
-                "System.Linq": "",
                 "System.Xml": "",
-                "System.Xml.Linq": "",
-                "System.ComponentModel": ""
+                "System.Xml.Linq": ""
             }
         },
         "net46": {
