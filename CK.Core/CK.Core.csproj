@@ -56,6 +56,7 @@
     <Compile Include="CKException.cs" />
     <Compile Include="CKExceptionData.cs" />
     <Compile Include="CKSortedArrayKeyList.cs" />
+    <Compile Include="Collection\CKReadOnlyListOnIList.cs" />
     <Compile Include="Collection\CKSortedArrayList.cs" />
     <Compile Include="CKTrait.cs" />
     <Compile Include="CKTraitContext.cs" />
@@ -83,7 +84,7 @@
     <Compile Include="IMergeable.cs" />
     <Compile Include="Impl\CoreResources.cs" />
     <Compile Include="IUniqueId.cs" />
-    <Compile Include="Net451\CKReandOnlyCollectionOnICollection.cs" />
+    <Compile Include="Collection\CKReadOnlyCollectionOnICollection.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Extension\ReadOnlyCollectionDebuggerView.cs" />
     <Compile Include="ServiceContainer\ISimpleServiceContainer.cs" />

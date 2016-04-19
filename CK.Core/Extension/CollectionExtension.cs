@@ -66,5 +66,23 @@ namespace CK.Core
         /// Immutable reusable PropertyChangedEventArgs for "Count".
         /// </summary>
         public static readonly PropertyChangedEventArgs CountChangedEventArgs = new PropertyChangedEventArgs( "Count" );
+
+        /// <summary>
+        /// Returns this collection if the implementation supports <see cref="IReadOnlyCollection{T}"/> 
+        /// or a <see cref="CKReadOnlyCollectionOnICollection{T}"/> adapter instance.
+        /// </summary>
+        /// <typeparam name="T">The type of the collection items.</typeparam>
+        /// <param name="this">This collection.</param>
+        /// <returns>This collection or an adapter.</returns>
+        public static IReadOnlyCollection<T> AsReadOnlyCollection<T>( this ICollection<T> @this )
+        {
+            IReadOnlyCollection<T> c = @this as IReadOnlyCollection<T>;
+            if( c == null )
+            {
+                if( @this == null ) throw new NullReferenceException();
+                c = new CKReadOnlyCollectionOnICollection<T>( @this );
+            }
+            return c;
+        }
     }
 }

@@ -21,7 +21,7 @@ namespace CK.RouteConfig
             _root = root;
             _namedSubRoutes = namedSubRoutes;
             #if NET451
-            _namedSubRoutesEx = new CKReandOnlyCollectionOnICollection<SubRouteConfigurationResolved>( _namedSubRoutes.Values );
+            _namedSubRoutesEx = new CKReadOnlyCollectionOnICollection<SubRouteConfigurationResolved>( _namedSubRoutes.Values );
             #else
             _namedSubRoutesEx = _namedSubRoutes.Values;
             #endif

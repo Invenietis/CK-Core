@@ -1,30 +1,32 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading.Tasks;
 
 namespace CK.Core
 {
     /// <summary>
-    /// Small adapter that exposes a <see cref="IReadOnlyCollection{T}"/> on a <see cref="ICollection{T}"/>.
+    /// Small adapter that exposes a <see cref="IReadOnlyList{T}"/> on a <see cref="IList{T}"/>.
     /// </summary>
-    /// <typeparam name="T"></typeparam>
-    public class CKReandOnlyCollectionOnICollection<T> : IReadOnlyCollection<T>
+    /// <typeparam name="T">Type of the list's items.</typeparam>
+    [ExcludeFromCodeCoverage]
+    public class CKReadOnlyListOnIList<T> : IReadOnlyList<T>
     {
         /// <summary>
-        /// Initializes a new <see cref="CKReandOnlyCollectionOnICollection{T}"/> with a null <see cref="Values"/>.
+        /// Initializes a new <see cref="CKReadOnlyListOnIList{T}"/> with a null <see cref="Values"/>.
         /// </summary>
-        public CKReandOnlyCollectionOnICollection()
+        public CKReadOnlyListOnIList()
         {
         }
 
         /// <summary>
-        /// Initializes a new <see cref="CKReandOnlyCollectionOnICollection{T}"/> on a <see cref="ICollection{T}"/>
+        /// Initializes a new <see cref="CKReadOnlyListOnIList{T}"/> on a <see cref="IList{T}"/>
         /// for the <see cref="Values"/>.
         /// </summary>
-        /// <param name="values">Collection to wrap.</param>
-        public CKReandOnlyCollectionOnICollection( ICollection<T> values )
+        /// <param name="values">List to wrap.</param>
+        public CKReadOnlyListOnIList( IList<T> values )
         {
             Values = values;
         }
@@ -32,12 +34,19 @@ namespace CK.Core
         /// <summary>
         /// Gets or sets the wrapped collection.
         /// </summary>
-        public ICollection<T> Values { get; set; }
+        public IList<T> Values { get; set; }
 
         /// <summary>
         /// Gets the count of items.
         /// </summary>
         public int Count => Values.Count;
+
+        /// <summary>
+        /// Gets the item at a given index.
+        /// </summary>
+        /// <param name="index"></param>
+        /// <returns></returns>
+        public T this[int index] => Values[index];
 
         /// <summary>
         /// Gets the enumerator.
