@@ -7,6 +7,7 @@ using System.Text.RegularExpressions;
 using NUnit.Framework;
 using System.Xml.Linq;
 using System.Collections.Generic;
+using CK.Text;
 
 namespace CK.Core.Tests.Monitoring
 {
@@ -30,7 +31,7 @@ namespace CK.Core.Tests.Monitoring
         }
 
         [Test]
-        public void AutoConfig()
+        public void automatic_configuration_of_monitors_just_uses_ActivityMonitor_AutoConfiguration_delegate()
         {
             StupidStringClient c = new StupidStringClient();
 
@@ -50,7 +51,7 @@ namespace CK.Core.Tests.Monitoring
         }
 
         [Test]
-        public void NonMultipleRegistrationClients()
+        public void registering_multiple_times_the_same_client_is_an_error()
         {
             ActivityMonitor.AutoConfiguration = null;
             IActivityMonitor monitor = new ActivityMonitor();
@@ -88,7 +89,7 @@ namespace CK.Core.Tests.Monitoring
 
         [Test]
         [Category( "ActivityMonitor" )]
-        public void OutputArguments()
+        public void registering_a_null_client_is_an_error()
         {
             IActivityMonitor monitor = new ActivityMonitor();
             Assert.Throws<ArgumentNullException>( () => monitor.Output.RegisterClient( null ) );
@@ -97,11 +98,16 @@ namespace CK.Core.Tests.Monitoring
 
         [Test]
         [Category( "Console" )]
-        public void BridgeArguments()
+        public void registering_a_null_bridge_or_a_bridge_to_an_already_briged_target_is_an_error()
         {
             IActivityMonitor monitor = new ActivityMonitor();
             Assert.Throws<ArgumentNullException>( () => monitor.Output.CreateBridgeTo( null ) );
             Assert.Throws<ArgumentNullException>( () => monitor.Output.UnbridgeTo( null ) );
+
+            monitor.Output.CreateBridgeTo( TestHelper.ConsoleMonitor.Output.BridgeTarget );
+            Assert.Throws<InvalidOperationException>( () => monitor.Output.CreateBridgeTo( TestHelper.ConsoleMonitor.Output.BridgeTarget ) );
+            monitor.Output.UnbridgeTo( TestHelper.ConsoleMonitor.Output.BridgeTarget );
+
             IActivityMonitorOutput output = null;
             Assert.Throws<NullReferenceException>( () => output.CreateBridgeTo( TestHelper.ConsoleMonitor.Output.BridgeTarget ) );
             Assert.Throws<NullReferenceException>( () => output.UnbridgeTo( TestHelper.ConsoleMonitor.Output.BridgeTarget ) );
@@ -110,7 +116,7 @@ namespace CK.Core.Tests.Monitoring
 
         [Test]
         [Category( "Console" )]
-        public void BridgeBalancePrematurelyClose()
+        public void when_bridging_unbalanced_close_groups_are_automatically_handled()
         {
             //Main app monitor
             IActivityMonitor mainMonitor = new ActivityMonitor();
@@ -153,7 +159,7 @@ namespace CK.Core.Tests.Monitoring
 
         [Test]
         [Category( "Console" )]
-        public void BridgeBalance()
+        public void when_bridging_unbalanced_close_groups_are_automatically_handled_more_tests()
         {
             IActivityMonitor monitor = new ActivityMonitor();
             var allDump = monitor.Output.RegisterClient( new StupidStringClient() );
@@ -201,7 +207,7 @@ namespace CK.Core.Tests.Monitoring
         }
 
         [Test]
-        public void TagsAndFilterRestored()
+        public void closing_group_restores_previous_AutoTags_and_MinimalFilter()
         {
             ActivityMonitor monitor = new ActivityMonitor();
             using( monitor.OpenTrace().Send( "G1" ) )
@@ -223,7 +229,7 @@ namespace CK.Core.Tests.Monitoring
         }
 
         [Test]
-        public void OffLevelPreventsUnfilteredLogs()
+        public void Off_FilterLevel_prevents_all_logs_even_UnfilteredLogs()
         {
             var m = new ActivityMonitor( false );
             var c = m.Output.RegisterClient( new StupidStringClient() );
@@ -243,6 +249,18 @@ namespace CK.Core.Tests.Monitoring
             Assert.That( s, Does.Not.Contain( "NOSHOW" ) );
         }
 
+        [Test]
+        public void sending_a_null_or_empty_text_is_transformed_into_no_log_text()
+        {
+            var m = new ActivityMonitor( false );
+            var c = m.Output.RegisterClient( new StupidStringClient() );
+            m.Trace().Send( "" );
+            m.UnfilteredLog( null, LogLevel.Error, null, m.NextLogTime(), null );
+            m.OpenTrace().Send( ActivityMonitor.Tags.Empty, null, this );
+            m.OpenInfo().Send( "" );
+
+            Assert.That( c.Entries.All( e => e.Text == ActivityMonitor.NoLogText ) );
+        }
 
         [Test]
         [Category( "Console" )]

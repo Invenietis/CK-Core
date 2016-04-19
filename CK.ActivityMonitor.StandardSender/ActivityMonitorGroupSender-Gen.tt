@@ -78,7 +78,7 @@ namespace CK.Core
         public static IDisposableGroup <#= MethodName() #>( this IActivityMonitorGroupSender @this<# StateArgumentSignature(); #>, Func<string> text )
         {
 			ActivityMonitorGroupSender s = (ActivityMonitorGroupSender)@this;
-            return s.IsRejected ? s.Monitor.UnfilteredOpenGroup( s ) : s.InitializeAndSend( <# StateCall(); #>, text() );
+            return s.IsRejected ? s.Monitor.UnfilteredOpenGroup( s ) : s.InitializeAndSend( <# StateCall(); #>, text == null ? null : text() );
         }
 
 		/// <summary>
@@ -92,7 +92,7 @@ namespace CK.Core
         public static IDisposableGroup <#= MethodName() #><T>( this IActivityMonitorGroupSender @this<# StateArgumentSignature(); #>, Func<T,string> text, T param )
         {
 			ActivityMonitorGroupSender s = (ActivityMonitorGroupSender)@this;
-            return s.IsRejected ? s.Monitor.UnfilteredOpenGroup( s ) : s.InitializeAndSend( <# StateCall(); #>, text(param) );
+            return s.IsRejected ? s.Monitor.UnfilteredOpenGroup( s ) : s.InitializeAndSend( <# StateCall(); #>, text == null ? null : text(param) );
         }
 
 		/// <summary>
@@ -108,7 +108,7 @@ namespace CK.Core
         public static IDisposableGroup <#= MethodName() #><T1,T2>( this IActivityMonitorGroupSender @this<# StateArgumentSignature(); #>, Func<T1,T2,string> text, T1 param1, T2 param2 )
         {
 			ActivityMonitorGroupSender s = (ActivityMonitorGroupSender)@this;
-            return s.IsRejected ? s.Monitor.UnfilteredOpenGroup( s ) : s.InitializeAndSend( <# StateCall(); #>, text(param1,param2) );
+            return s.IsRejected ? s.Monitor.UnfilteredOpenGroup( s ) : s.InitializeAndSend( <# StateCall(); #>, text == null ? null : text(param1,param2) );
         }
 
 		/// <summary>
@@ -126,7 +126,7 @@ namespace CK.Core
         public static IDisposableGroup <#= MethodName() #><T1,T2,T3>( this IActivityMonitorGroupSender @this<# StateArgumentSignature(); #>, Func<T1,T2,T3,string> text, T1 param1, T2 param2, T3 param3 )
         {
 			ActivityMonitorGroupSender s = (ActivityMonitorGroupSender)@this;
-            return s.IsRejected ? s.Monitor.UnfilteredOpenGroup( s ) : s.InitializeAndSend( <# StateCall(); #>, text(param1,param2,param3) );
+            return s.IsRejected ? s.Monitor.UnfilteredOpenGroup( s ) : s.InitializeAndSend( <# StateCall(); #>, text == null ? null : text(param1,param2,param3) );
         }
 
 		#endregion <#= MethodNameRegion #> 
@@ -264,7 +264,7 @@ namespace CK.Core
 		else if( count == 0 ) Write( "text" );
 		else 
 		{
-			Write( "String.Format( format" );
+			Write( "format == null ? null : String.Format( format" );
 			if( count < _maxExplicitArgument-1 )
 			{
 				for( int i = 0; i < count; ++i )

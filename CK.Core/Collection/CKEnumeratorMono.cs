@@ -24,6 +24,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System;
+using System.Diagnostics.CodeAnalysis;
 
 namespace CK.Core
 {
@@ -61,10 +62,12 @@ namespace CK.Core
         /// <summary>
         /// Dispose the <see cref="IEnumerator{T}"/>.
         /// </summary>
-		public void Dispose()
+        [ExcludeFromCodeCoverage]
+        public void Dispose()
 		{
 		}
 
+        [ExcludeFromCodeCoverage]
 		object IEnumerator.Current => Current; 
 
         /// <summary>

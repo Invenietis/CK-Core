@@ -168,6 +168,11 @@ namespace CK.Core
         /// </summary>
         static public Action<IActivityMonitor> AutoConfiguration;
 
+        /// <summary>
+        /// The no-log text replaces any null or empty log text.
+        /// </summary>
+        static public readonly string NoLogText = "[no-log]";
+
         static ActivityMonitor()
         {
             CriticalErrorCollector = new CriticalErrorCollector();

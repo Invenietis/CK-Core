@@ -170,21 +170,24 @@ namespace CK.Core
         /// <summary>
         /// Initializes this data.
         /// </summary>
-        /// <param name="text">Text of the log. Can be null or empty only if <paramref name="exception"/> is not null: the <see cref="T:Exception.Message"/> is the text.</param>
+        /// <param name="text">
+        /// Text of the log. Can be null or empty: if <paramref name="exception"/> is not null, 
+        /// the <see cref="Exception.Message"/> becomes the text otherwise <see cref="ActivityMonitor.NoLogText"/> is used.
+        /// </param>
         /// <param name="exception">Exception of the log. Can be null.</param>
-        /// <param name="tags">Tags (from <see cref="ActivityMonitor.Tags"/>) to associate to the log. It will be union-ed with the current <see cref="IActivityMonitor.AutoTags"/>.</param>
+        /// <param name="tags">
+        /// Tags (from <see cref="ActivityMonitor.Tags"/>) to associate to the log. 
+        /// It will be union-ed with the current <see cref="IActivityMonitor.AutoTags"/>.</param>
         /// <param name="logTime">
         /// Time of the log. 
         /// You can use <see cref="DateTimeStamp.UtcNow"/> or <see cref="ActivityMonitorExtension.NextLogTime">IActivityMonitor.NextLogTime()</see> extension method.
         /// </param>
         public void Initialize( string text, Exception exception, CKTrait tags, DateTimeStamp logTime )
         {
-            if( (_text = text) == null )
+            if( string.IsNullOrEmpty( (_text = text) ) )
             {
-                if( exception == null ) throw new ArgumentNullException( "text" );
-                _text = exception.Message;
+                _text = exception == null ? ActivityMonitor.NoLogText : exception.Message;
             }
-            else if( text.Length == 0 && exception != null ) _text = exception.Message;
 
             _exception = exception;
             _tags = tags ?? ActivityMonitor.Tags.Empty;

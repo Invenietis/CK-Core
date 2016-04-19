@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-#if DNX451 || DNX46
+#if NET451 || NET46
 using System.Runtime.Serialization.Formatters.Binary;
 #endif
 using System.Text;
@@ -92,51 +92,68 @@ namespace CK.Core.Tests
             }
         }
 
-#if DNX451 || DNX46
+#if NET451 || NET46
+
         [Test]
-        public void SerializeCKException()
+        public void reading_and_writing_CKExceptionData_with_Standard_Serialization()
         {
-            CKException ckEx;
-            try { throw new CKException( ThrowExceptionWithInner(), "CK-MostOuter" ); } 
-            catch( CKException ex ) { ckEx = ex; }
+            var dataE0 = CKExceptionData.CreateFrom( ThrowAggregatedException() );
+            var dataE1 = CKExceptionData.CreateFrom( ThrowSimpleException( "Test Message" ) );
+            var dataE2 = CKExceptionData.CreateFrom( ThrowLoaderException() );
+            var dataE3 = CKExceptionData.CreateFrom( ThrowExceptionWithInner() );
+            var dataE4 = CKExceptionData.CreateFrom( ThrowTwoInnerExceptions() );
 
             BinaryFormatter f = new BinaryFormatter();
             using( var mem = new MemoryStream() )
             {
-                f.Serialize( mem, ckEx );
+                f.Serialize( mem, dataE0 );
+                f.Serialize( mem, dataE1 );
+                f.Serialize( mem, dataE2 );
+                f.Serialize( mem, dataE3 );
+                f.Serialize( mem, dataE4 );
                 mem.Position = 0;
-                var ckEx2 = (CKException)f.Deserialize( mem );
-                Assert.AreEqual( CKExceptionData.CreateFrom( ckEx2 ).ToString(), CKExceptionData.CreateFrom( ckEx ).ToString() );
-            }
-        }
-
-        [Test]
-        public void SerializeCKExceptionData()
-        {
-            var data = CKExceptionData.CreateFrom( ThrowAggregatedException() );
-
-            BinaryFormatter f = new BinaryFormatter();
-            using( var mem = new MemoryStream() )
-            {
-                f.Serialize( mem, data );
-                mem.Position = 0;
+                var data0 = (CKExceptionData)f.Deserialize( mem );
+                Assert.AreEqual( data0.ToString(), dataE0.ToString() );
+                var data1 = (CKExceptionData)f.Deserialize( mem );
+                Assert.AreEqual( data1.ToString(), dataE1.ToString() );
                 var data2 = (CKExceptionData)f.Deserialize( mem );
-                Assert.AreEqual( data2.ToString(), data.ToString() );
+                Assert.AreEqual( data2.ToString(), dataE2.ToString() );
+                var data3 = (CKExceptionData)f.Deserialize( mem );
+                Assert.AreEqual( data3.ToString(), dataE3.ToString() );
+                var data4 = (CKExceptionData)f.Deserialize( mem );
+                Assert.AreEqual( data4.ToString(), dataE4.ToString() );
             }
         }
 #endif
 
         [Test]
-        public void BinaryReadWriteCKExceptionData()
+        public void reading_and_writing_CKExceptionData_with_BinaryWriter_and_BinaryReader()
         {
-            var data = CKExceptionData.CreateFrom( ThrowAggregatedException() );
+            var dataE0 = CKExceptionData.CreateFrom( ThrowAggregatedException() );
+            var dataE1 = CKExceptionData.CreateFrom( ThrowSimpleException( "Test Message" ) );
+            var dataE2 = CKExceptionData.CreateFrom( ThrowLoaderException() );
+            var dataE3 = CKExceptionData.CreateFrom( ThrowExceptionWithInner() );
+            var dataE4 = CKExceptionData.CreateFrom( ThrowTwoInnerExceptions() );
             using( var mem = new MemoryStream() )
             {
                 BinaryWriter w = new BinaryWriter( mem );
-                data.Write( w );
+                dataE0.Write( w );
+                dataE1.Write( w );
+                dataE2.Write( w );
+                dataE3.Write( w );
+                dataE4.Write( w );
                 mem.Position = 0;
-                var data2 = new CKExceptionData( new BinaryReader( mem ) );
-                Assert.AreEqual( data2.ToString(), data.ToString() );
+                var r = new BinaryReader( mem );
+                var data0 = new CKExceptionData( r );
+                Assert.AreEqual( data0.ToString(), dataE0.ToString() );
+                var data1 = new CKExceptionData( r );
+                Assert.AreEqual( data1.ToString(), dataE1.ToString() );
+                var data2 = new CKExceptionData( r );
+                Assert.AreEqual( data2.ToString(), dataE2.ToString() );
+                var data3 = new CKExceptionData( r );
+                Assert.AreEqual( data3.ToString(), dataE3.ToString() );
+                var data4 = new CKExceptionData( r );
+                Assert.AreEqual( data4.ToString(), dataE4.ToString() );
             }
         }
 
@@ -147,7 +164,8 @@ namespace CK.Core.Tests
             {
                 Parallel.For( 0, 50, i =>
                 {
-                    if( i % 1 == 0 ) throw new Exception( String.Format( "Ex n°{0}", i ), ThrowExceptionWithInner() );
+                    System.Threading.Thread.Sleep( 10 );
+                    if( i % 2 == 0 ) throw new Exception( String.Format( "Ex n°{0}", i ), ThrowExceptionWithInner() );
                     else throw new Exception( String.Format( "Ex n°{0}", i ) );
                 } );
             }
@@ -158,24 +176,34 @@ namespace CK.Core.Tests
             return eAgg;
         }
 
-        static Exception ThrowExceptionWithInner()
+        static Exception ThrowExceptionWithInner( bool loaderException = false )
         {
             Exception e;
-            try
-            {
-                throw new Exception( "Outer", ThrowSimpleException( "Inner" ) );
-            }
-            catch( Exception ex )
-            {
-                e = ex;
-            }
+            try { throw new Exception( "Outer", loaderException ? ThrowLoaderException() : ThrowSimpleException("Inner") ); }
+            catch( Exception ex ) { e = ex; }
             return e;
+        }
+
+        static CKException ThrowTwoInnerExceptions()
+        {
+            CKException ckEx;
+            try { throw new CKException( ThrowExceptionWithInner( true ), "CK-MostOuter" ); }
+            catch( CKException ex ) { ckEx = ex; }
+            return ckEx;
         }
 
         static Exception ThrowSimpleException( string message )
         {
             Exception e;
             try { throw new Exception( message ); }
+            catch( Exception ex ) { e = ex; }
+            return e;
+        }
+
+        static Exception ThrowLoaderException()
+        {
+            Exception e = null;
+            try { Type.GetType( "A.Type, An.Unexisting.Assembly", true ); }
             catch( Exception ex ) { e = ex; }
             return e;
         }

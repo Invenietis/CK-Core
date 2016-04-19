@@ -79,7 +79,7 @@ namespace CK.Core
         {
 			ActivityMonitorLineSender s = (ActivityMonitorLineSender)@this;
             if( s.IsRejected ) return;
-            s.InitializeAndSend( <# StateCall(); #>, text() );
+            s.InitializeAndSend( <# StateCall(); #>, text == null ? null : text() );
         }
 
 		/// <summary>
@@ -94,7 +94,7 @@ namespace CK.Core
         {
             ActivityMonitorLineSender s = (ActivityMonitorLineSender)@this;
 			if( s.IsRejected ) return;
-            s.InitializeAndSend( <# StateCall(); #>, text(param) );
+            s.InitializeAndSend( <# StateCall(); #>, text == null ? null : text(param) );
         }
 
 		/// <summary>
@@ -111,7 +111,7 @@ namespace CK.Core
         {
             ActivityMonitorLineSender s = (ActivityMonitorLineSender)@this;
 			if( s.IsRejected ) return;
-            s.InitializeAndSend(  <# StateCall(); #>, text(param1,param2) );
+            s.InitializeAndSend(  <# StateCall(); #>, text == null ? null : text(param1,param2) );
         }
 
 		/// <summary>
@@ -130,7 +130,7 @@ namespace CK.Core
         {
             ActivityMonitorLineSender s = (ActivityMonitorLineSender)@this;
 			if( s.IsRejected ) return;
-            s.InitializeAndSend( <# StateCall(); #>, text(param1,param2,param3) );
+            s.InitializeAndSend( <# StateCall(); #>, text == null ? null : text(param1,param2,param3) );
         }
 
 		#endregion <#= MethodNameRegion #> 
@@ -268,7 +268,7 @@ namespace CK.Core
 		else if( count == 0 ) Write( "text" );
 		else 
 		{
-			Write( "String.Format( format" );
+			Write( "format == null ? null : String.Format( format" );
 			if( count < _maxExplicitArgument-1 )
 			{
 				for( int i = 0; i < count; ++i )
