@@ -29,5 +29,22 @@ namespace CK.Core.Tests
             }
         }
 
+
+        [Test]
+        public void CKEnumeratorMono_works()
+        {
+            var e = new CKEnumeratorMono<int>( 9 );
+            Assert.Throws<InvalidOperationException>( () => Console.WriteLine( e.Current ) );
+            Assert.That( e.MoveNext() );
+            Assert.That( e.Current, Is.EqualTo( 9 ) );
+            Assert.That( e.MoveNext(), Is.False );
+            Assert.Throws<InvalidOperationException>( () => Console.WriteLine( e.Current ) );
+            e.Reset();
+            Assert.Throws<InvalidOperationException>( () => Console.WriteLine( e.Current ) );
+            Assert.That( e.MoveNext() );
+            Assert.That( e.Current, Is.EqualTo( 9 ) );
+            Assert.That( e.MoveNext(), Is.False );
+            Assert.Throws<InvalidOperationException>( () => Console.WriteLine( e.Current ) );
+        }
     }
 }
