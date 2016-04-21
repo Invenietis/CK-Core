@@ -72,7 +72,7 @@ namespace CK.Monitoring.Tests
 
             GrandOutputConfiguration c = new GrandOutputConfiguration();
             Assert.That( c.Load( XDocument.Parse( @"
-                <GrandOutputConfiguration AppDomainDefaultFilter=""Release"" >
+                <GrandOutputConfiguration GlobalDefaultFilter=""Release"" >
                     <Channel>
                         <Add Type=""BinaryFile"" Name=""GzipGlobalCatch"" Path=""" + rootPath + @"\OutputGzip"" MaxCountPerFile=""200000"" UseGzipCompression=""True"" />
                         <Add Type=""BinaryFile"" Name=""RawGlobalCatch"" Path=""" + rootPath + @"\OutputRaw"" MaxCountPerFile=""200000"" UseGzipCompression=""False"" />

@@ -86,6 +86,22 @@ namespace CK.Monitoring
             _channelHost.ConfigurationClosing += OnConfigurationClosing;
             _bufferingChannel = new BufferingChannel( _dispatcher, factory.CommonSinkOnlyReceiver );
             _nextDeadClientGarbage = DateTime.UtcNow.AddMinutes( 5 );
+
+            // TODO: Adapt this termination handling to dotnet.
+            var h = new EventHandler( OnDomainTermination );
+            AppDomain.CurrentDomain.DomainUnload += h;
+            AppDomain.CurrentDomain.ProcessExit += h;
+        }
+
+        void OnDomainTermination( object sender, EventArgs e )
+        {
+            var w = _watcher;
+            if( w != null )
+            {
+                _watcher = null;
+                w.Dispose();
+            }
+            Dispose( new SystemActivityMonitor( false, null ), 10 );
         }
 
         /// <summary>
@@ -111,7 +127,6 @@ namespace CK.Monitoring
         /// Gets or sets the minimal filter that monitors created for the 
         /// GrandOutput itself will use.
         /// Defaults to <see cref="LogFilter.Release"/> (this should be changed only for debugging reasons).
-        /// Caution: this applies only to the current AppDomain!
         /// </summary>
         static public LogFilter GrandOutputMinimalFilter
         {
@@ -337,6 +352,11 @@ namespace CK.Monitoring
             {
                 if( _channelHost.Dispose( monitor, millisecondsBeforeForceClose ) )
                 {
+                    // TODO: Adapt this termination handling to dotnet.
+                    var h = new EventHandler( OnDomainTermination );
+                    AppDomain.CurrentDomain.DomainUnload -= h;
+                    AppDomain.CurrentDomain.ProcessExit -= h;
+                    // /TODO
                     _dispatcher.Dispose();
                     _bufferingChannel.Dispose();
                 }

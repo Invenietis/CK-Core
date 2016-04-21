@@ -106,9 +106,9 @@ namespace CK.Monitoring.Impl
             #endif
         }
 
-        public int LostEventCount { get { return _eventLostCount; } }
+        public int LostEventCount => _eventLostCount;
 
-        public int MaxQueuedCount { get { return _maxQueuedCount; } }
+        public int MaxQueuedCount => _maxQueuedCount; 
 
         public bool Add( GrandOutputEventInfo e, FinalReceiver receiver )
         {

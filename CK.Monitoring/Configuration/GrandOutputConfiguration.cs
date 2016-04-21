@@ -64,7 +64,9 @@ namespace CK.Monitoring
             try
             {
                 if( e.Name != "GrandOutputConfiguration" ) throw new XmlException( "Element name must be <GrandOutputConfiguration>." + e.GetLineColumnString() );
-                LogFilter? appDomainFilter = e.GetAttributeLogFilter( "AppDomainDefaultFilter", false );
+                // AppDomainDefaultFilter was the name before.
+                LogFilter? globalDefaultFilter = e.GetAttributeLogFilter( "GlobalDefaultFilter", false ) 
+                                                    ?? e.GetAttributeLogFilter( "AppDomainDefaultFilter", false );
 
                 SourceFilterApplyMode applyMode;
                 Dictionary<string, LogFilter> sourceFilter = ReadSourceOverrideFilter( e, out applyMode, monitor );
@@ -85,7 +87,7 @@ namespace CK.Monitoring
                 _routeConfig = routeConfig;
                 _sourceFilter = sourceFilter;
                 _sourceFilterApplyMode = applyMode;
-                _globalDefaultFilter = appDomainFilter;
+                _globalDefaultFilter = globalDefaultFilter;
                 return true;
             }
             catch( Exception ex )
