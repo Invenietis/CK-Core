@@ -31,7 +31,7 @@ namespace CK.Core.Tests.Monitoring
             client.Filter = LogFilter.Release;
 
             Assert.That( client.Filter, Is.EqualTo( LogFilter.Release ) );
-            Assert.That( monitor.MinimalFilter, Is.EqualTo( LogFilter.Release ) );
+            Assert.That( monitor.ActualFilter, Is.EqualTo( LogFilter.Release ) );
         }
 
     }
