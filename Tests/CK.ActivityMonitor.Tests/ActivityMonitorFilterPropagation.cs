@@ -19,5 +19,20 @@ namespace CK.Core.Tests.Monitoring
 
         }
 
+        [Test]
+        public void ClientFilterPropagatesToMonitor()
+        {
+            var monitor = new ActivityMonitor( false );
+            var client = new ActivityMonitorConsoleClient();
+            monitor.Output.RegisterClient( client );
+
+            Assert.That( monitor.MinimalFilter, Is.EqualTo( LogFilter.Undefined ) );
+
+            client.Filter = LogFilter.Release;
+
+            Assert.That( client.Filter, Is.EqualTo( LogFilter.Release ) );
+            Assert.That( monitor.MinimalFilter, Is.EqualTo( LogFilter.Release ) );
+        }
+
     }
 }
