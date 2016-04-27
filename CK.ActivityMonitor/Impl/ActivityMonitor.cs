@@ -530,7 +530,7 @@ namespace CK.Core
         {
             // Silently ignores stupid calls.
             if( oldLevel == newLevel ) return;
-            bool reentrantCall = ConcurrentOnlyCheck();
+            bool isNotReentrant = ConcurrentOnlyCheck();
             try
             {
                 Interlocked.MemoryBarrier();
@@ -560,7 +560,7 @@ namespace CK.Core
             }
             finally
             {
-                if( reentrantCall ) ReentrantAndConcurrentCheck();
+                if( isNotReentrant ) ReentrantAndConcurrentRelease();
             }
         }
 
