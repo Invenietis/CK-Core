@@ -53,12 +53,12 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="ActivityMonitorExtension-Gen1.cs">
-      <DependentUpon>ActivityMonitorExtension-Gen.tt</DependentUpon>
+    <Compile Include="ActivityMonitorSenderExtension-Gen.cs">
+      <DependentUpon>ActivityMonitorSenderExtension-Gen.tt</DependentUpon>
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
     </Compile>
-    <Compile Include="ActivityMonitorExtension.cs" />
+    <Compile Include="ActivityMonitorSenderExtension.cs" />
     <Compile Include="ActivityMonitorGroupSender-Gen1.cs">
       <DependentUpon>ActivityMonitorGroupSender-Gen.tt</DependentUpon>
       <AutoGen>True</AutoGen>
@@ -76,9 +76,9 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="ActivityMonitorExtension-Gen.tt">
+    <Content Include="ActivityMonitorSenderExtension-Gen.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
-      <LastGenOutput>ActivityMonitorExtension-Gen1.cs</LastGenOutput>
+      <LastGenOutput>ActivityMonitorSenderExtension-Gen.cs</LastGenOutput>
     </Content>
     <Content Include="ActivityMonitorGroupSender-Gen.tt">
       <Generator>TextTemplatingFileGenerator</Generator>

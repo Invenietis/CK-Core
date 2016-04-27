@@ -10,7 +10,7 @@ namespace CK.Core
     /// <summary>
     /// Provides extension methods for <see cref="IActivityMonitor"/> and other types from the Activity monitor framework.
     /// </summary>
-    public static partial class ActivityMonitorExtension
+    public static partial class ActivityMonitorSenderExtension
     {
 
         /// <summary>
