@@ -38,6 +38,7 @@
     <Compile Include="..\..\SharedAssemblyInfo.cs">
       <Link>Properties\SharedAssemblyInfo.cs</Link>
     </Compile>
+    <Compile Include="TextFileTests.cs" />
     <Compile Include="StupidStringClient.cs" />
     <Compile Include="TestHelper.cs" />
   </ItemGroup>

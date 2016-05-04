@@ -20,6 +20,7 @@
 
 	<dependencies>
     <dependency id="CK.ActivityMonitor" version="$version$" />
+    <dependency id="CK.Text" version="$version$" />
   </dependencies>
 
   </metadata>

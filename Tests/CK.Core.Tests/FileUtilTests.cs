@@ -30,6 +30,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using NUnit.Framework;
+using System.Globalization;
 
 namespace CK.Core.Tests
 {
@@ -71,6 +72,18 @@ namespace CK.Core.Tests
             Assert.Throws<ArgumentNullException>( () => FileUtil.WriteUniqueTimedFile( prefix, null, DateTime.UtcNow, null, true ) );
             Assert.Throws<ArgumentNullException>( () => FileUtil.WriteUniqueTimedFile( null, String.Empty, DateTime.UtcNow, null, true ) );
         }
+
+        [Test]
+        public void UniqueTimedFile_is_28_characters_long_as_a_string()
+        {
+            Assert.That( DateTime.UtcNow.ToString( FileUtil.FileNameUniqueTimeUtcFormat, CultureInfo.InvariantCulture ).Length, 
+                        Is.EqualTo( 27 ), "FileNameUniqueTimeUtcFormat => 27 characters long." );
+            Assert.That( FileUtil.FormatTimedUniqueFilePart( DateTime.UtcNow ).Length, 
+                        Is.EqualTo( 50 ), "TimedUniqueFile and its Guid => 50 characters long." );
+            Assert.That( DateTimeStamp.MaxValue.ToString().Length, 
+                        Is.EqualTo( 32 ), "DateTimeStamp FileNameUniqueTimeUtcFormat and the uniquifier: max => 32 characters long." );
+        }
+
 
         [Test]
         public void WriteUniqueTimedFile_automatically_numbers_files()

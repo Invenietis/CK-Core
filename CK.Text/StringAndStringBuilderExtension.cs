@@ -72,5 +72,18 @@ namespace CK.Text
             return @this;
         }
 
+        /// <summary>
+        /// Appends multiple time the same string.
+        /// </summary>
+        /// <param name="this">The <see cref="StringBuilder"/> to append to.</param>
+        /// <param name="s">The string to repeat. Can be null.</param>
+        /// <param name="repeatCount">The number of repetition.</param>
+        /// <returns>The builder itself.</returns>
+        public static StringBuilder Append( this StringBuilder @this, string s, int repeatCount )
+        {
+            while( --repeatCount >= 0 ) @this.Append( s );
+            return @this;
+        }
+
     }
 }

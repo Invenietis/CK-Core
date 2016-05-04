@@ -64,7 +64,10 @@
     <Compile Include="GrandOutput.DefaultConfig.cs" />
     <Compile Include="GrandOutputClient.cs" />
     <Compile Include="GrandOutputEventInfo.cs" />
+    <Compile Include="GrandOutputHandlers\TextFileConfiguration.cs" />
+    <Compile Include="GrandOutputHandlers\TextFile.cs" />
     <Compile Include="GrandOutputHandlers\BinaryFile.cs" />
+    <Compile Include="GrandOutputHandlers\FileConfigurationBase.cs" />
     <Compile Include="GrandOutputHandlers\BinaryFileConfiguration.cs" />
     <Compile Include="GrandOutputHandlers\ChannelOption.cs" />
     <Compile Include="GrandOutputHandlers\HandlerBase.cs" />
@@ -88,6 +91,8 @@
     <Compile Include="IMulticastLogInfo.cs" />
     <Compile Include="LocalSenderExtension.cs" />
     <Compile Include="LogEntryType.cs" />
+    <Compile Include="MonitorTextFileOutput.cs" />
+    <Compile Include="MonitorFileOutputBase.cs" />
     <Compile Include="MonitorBinaryFileOutput.cs" />
     <Compile Include="Persistence\CKMonWriterClient.cs" />
     <Compile Include="Persistence\GZipStreamReader.cs" />
@@ -149,6 +154,10 @@
     <ProjectReference Include="..\CK.Core\CK.Core.csproj">
       <Project>{bc92ae5b-73a2-4b9e-91d2-9163960a17c4}</Project>
       <Name>CK.Core</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\CK.Text\CK.Text.csproj">
+      <Project>{0518e60c-0cb9-49da-a634-109998526368}</Project>
+      <Name>CK.Text</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
