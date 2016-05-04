@@ -12,21 +12,22 @@ namespace CK.Monitoring.GrandOutputHandlers
     /// <summary>
     /// Binary file handler.
     /// </summary>
-    public sealed class BinaryFile : HandlerBase
+    public sealed class TextFile : HandlerBase
     {
-        readonly MonitorBinaryFileOutput _file;
+        readonly MonitorTextFileOutput _file;
 
         /// <summary>
-        /// Initializes a new <see cref="BinaryFile"/> bound to its <see cref="BinaryFileConfiguration"/>.
+        /// Initializes a new <see cref="TextFile"/> bound to its <see cref="TextFileConfiguration"/>.
         /// </summary>
         /// <param name="config">The configuration.</param>
-        public BinaryFile( BinaryFileConfiguration config )
+        public TextFile( TextFileConfiguration config )
             : base( config )
         {
             if( config == null ) throw new ArgumentNullException( "config" );
-            _file = new MonitorBinaryFileOutput( config.Path, config.MaxCountPerFile, config.UseGzipCompression );
+            _file = new MonitorTextFileOutput( config.Path, config.MaxCountPerFile, config.UseGzipCompression );
             _file.FileWriteThrough = config.FileWriteThrough;
             _file.FileBufferSize = config.FileBufferSize;
+            _file.MonitorColumn = config.MonitorColumn; 
         }
 
         /// <summary>
@@ -35,7 +36,7 @@ namespace CK.Monitoring.GrandOutputHandlers
         /// <param name="m"></param>
         public override void Initialize( IActivityMonitor m )
         {
-            using( m.OpenGroup( LogLevel.Trace, string.Format( "Initializing BinaryFile handler '{0}' (MaxCountPerFile = {1}).", Name, _file.MaxCountPerFile ), null ) )
+            using( m.OpenGroup( LogLevel.Trace, string.Format( "Initializing TextFile handler '{0}' (MaxCountPerFile = {1}).", Name, _file.MaxCountPerFile ), null ) )
             {
                 _file.Initialize( m );
             }
@@ -57,7 +58,7 @@ namespace CK.Monitoring.GrandOutputHandlers
         /// <param name="m">The monitor to use to track activity.</param>
         public override void Close( IActivityMonitor m )
         {
-            m.SendLine( LogLevel.Info, string.Format( "Closing file for BinaryFile handler '{0}'.", Name ), null );
+            m.SendLine( LogLevel.Info, string.Format( "Closing file for TextFile handler '{0}'.", Name ), null );
             _file.Close();
         }
 
