@@ -75,7 +75,7 @@ namespace CK.Monitoring
         const string _defaultConfig =
 @"<GrandOutputConfiguration>
     <Channel MinimalFilter=""Debug"">
-        <Add Type=""BinaryFile"" Name=""All"" Path=""GrandOutputDefault"" MaxCountPerFile=""20000"" />
+        <Add Type=""TextFile"" Name=""All"" Path=""GrandOutputDefault"" MaxCountPerFile=""20000"" />
     </Channel>
 </GrandOutputConfiguration>";
 
