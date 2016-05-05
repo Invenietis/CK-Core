@@ -1,4 +1,5 @@
 using CK.Core;
+using CK.Text;
 using System.Collections.Generic;
 using System.IO;
 
@@ -24,25 +25,25 @@ namespace CK.Monitoring.Impl
             _level = e.LogLevel;
         }
 
-        public LogEntryType LogType { get { return LogEntryType.CloseGroup; } }
+        public LogEntryType LogType => LogEntryType.CloseGroup;
 
-        public string Text { get { return null; } }
+        public string Text => null; 
 
-        public LogLevel LogLevel { get { return _level; } }
+        public LogLevel LogLevel => _level; 
 
-        public DateTimeStamp LogTime { get { return _time; } }
+        public DateTimeStamp LogTime => _time;
 
-        public CKExceptionData Exception { get { return null; } }
+        public CKExceptionData Exception => null; 
 
-        public string FileName { get { return null; } }
+        public string FileName => null;
         
-        public int LineNumber { get { return 0; } }
+        public int LineNumber => 0; 
 
-        public CKTrait Tags { get { return ActivityMonitor.Tags.Empty; } }
+        public CKTrait Tags => ActivityMonitor.Tags.Empty; 
 
-        public IReadOnlyList<ActivityLogGroupConclusion> Conclusions { get { return _conclusions; } }
+        public IReadOnlyList<ActivityLogGroupConclusion> Conclusions => _conclusions;
 
-        public virtual void WriteLogEntry( BinaryWriter w )
+        public virtual void WriteLogEntry( CKBinaryWriter w )
         {
             LogEntry.WriteCloseGroup( w, _level, _time, _conclusions );
         }

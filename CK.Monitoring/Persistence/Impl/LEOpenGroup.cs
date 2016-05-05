@@ -1,4 +1,5 @@
 using CK.Core;
+using CK.Text;
 using System.Collections.Generic;
 
 namespace CK.Monitoring.Impl
@@ -35,25 +36,25 @@ namespace CK.Monitoring.Impl
             _ex = e.Exception;
         }
 
-        public LogEntryType LogType { get { return LogEntryType.OpenGroup; } }
+        public LogEntryType LogType => LogEntryType.OpenGroup;
 
-        public LogLevel LogLevel { get { return _level; } }
+        public LogLevel LogLevel => _level;
 
-        public string Text { get { return _text; } }
+        public string Text => _text;
 
-        public CKTrait Tags { get { return _tags; } }
+        public CKTrait Tags => _tags; 
 
-        public DateTimeStamp LogTime { get { return _time; } }
+        public DateTimeStamp LogTime => _time; 
 
-        public CKExceptionData Exception { get { return _ex; } }
+        public CKExceptionData Exception => _ex;
 
-        public string FileName { get { return _fileName; } }
+        public string FileName => _fileName;
 
-        public int LineNumber { get { return _lineNumber; } }
+        public int LineNumber => _lineNumber; 
 
-        public IReadOnlyList<ActivityLogGroupConclusion> Conclusions { get { return null; } }
+        public IReadOnlyList<ActivityLogGroupConclusion> Conclusions => null; 
 
-        public virtual void WriteLogEntry( System.IO.BinaryWriter w )
+        public virtual void WriteLogEntry( CKBinaryWriter w )
         {
             LogEntry.WriteLog( w, true, _level, _time, _text, _tags, _ex, _fileName, _lineNumber );
         }

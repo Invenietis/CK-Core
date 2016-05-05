@@ -8,6 +8,7 @@ using System.Runtime.Serialization.Formatters.Binary;
 using System.Text;
 using System.Threading.Tasks;
 using NUnit.Framework;
+using CK.Text;
 
 namespace CK.Core.Tests
 {
@@ -136,23 +137,23 @@ namespace CK.Core.Tests
             var dataE4 = CKExceptionData.CreateFrom( ThrowTwoInnerExceptions() );
             using( var mem = new MemoryStream() )
             {
-                BinaryWriter w = new BinaryWriter( mem );
+                CKBinaryWriter w = new CKBinaryWriter( mem );
                 dataE0.Write( w );
                 dataE1.Write( w );
                 dataE2.Write( w );
                 dataE3.Write( w );
                 dataE4.Write( w );
                 mem.Position = 0;
-                var r = new BinaryReader( mem );
-                var data0 = new CKExceptionData( r );
+                var r = new CKBinaryReader( mem );
+                var data0 = new CKExceptionData( r, StringAndStringBuilderExtension.IsCRLF );
                 Assert.AreEqual( data0.ToString(), dataE0.ToString() );
-                var data1 = new CKExceptionData( r );
+                var data1 = new CKExceptionData( r, StringAndStringBuilderExtension.IsCRLF );
                 Assert.AreEqual( data1.ToString(), dataE1.ToString() );
-                var data2 = new CKExceptionData( r );
+                var data2 = new CKExceptionData( r, StringAndStringBuilderExtension.IsCRLF );
                 Assert.AreEqual( data2.ToString(), dataE2.ToString() );
-                var data3 = new CKExceptionData( r );
+                var data3 = new CKExceptionData( r, StringAndStringBuilderExtension.IsCRLF );
                 Assert.AreEqual( data3.ToString(), dataE3.ToString() );
-                var data4 = new CKExceptionData( r );
+                var data4 = new CKExceptionData( r, StringAndStringBuilderExtension.IsCRLF );
                 Assert.AreEqual( data4.ToString(), dataE4.ToString() );
             }
         }

@@ -18,9 +18,12 @@ namespace CK.Monitoring
     public class MonitorTextFileOutput : MonitorFileOutputBase
     {
         readonly StringBuilder _builder;
+        readonly Dictionary<Guid, string> _monitorNames;
         StreamWriter _writer;
         Guid _currentMonitorId;
-        bool _monitorColumn;
+        string _currentMonitorName;
+        DateTime _lastLogTime;
+        int _nameLen;
 
         /// <summary>
         /// Initializes a new file for <see cref="IMulticastLogEntry"/>: the final file name is based on <see cref="FileUtil.FileNameUniqueTimeUtcFormat"/> with a ".ckmon" extension.
@@ -33,16 +36,9 @@ namespace CK.Monitoring
             : base( configuredPath, ".txt" + (useGzipCompression ? ".gzip" : string.Empty), maxCountPerFile, useGzipCompression )
         {
             _builder = new StringBuilder();
+            _monitorNames = new Dictionary<Guid, string>();
         }
 
-        /// <summary>
-        /// Gets or sets whether the monitor identifier should appear as the first column.
-        /// </summary>
-        public bool MonitorColumn
-        {
-            get { return _monitorColumn; }
-            set { _monitorColumn = value; }
-        }
         /// <summary>
         /// Writes a log entry (that can actually be a <see cref="IMulticastLogEntry"/>).
         /// </summary>
@@ -55,32 +51,57 @@ namespace CK.Monitoring
                 "Guid => 18 characters long." );
 
             BeforeWrite();
-            int stdPrefixLen = 35;
-            if( _monitorColumn )
-            {
-                stdPrefixLen += 37;
-            }
-            _builder.Append( ' ', _monitorColumn ? 37 + 35 : 35 );
+            _builder.Append( ' ', _nameLen + 32 );
             _builder.Append( "| ", e.Text != null ? e.GroupDepth : e.GroupDepth - 1 );
             string prefix = _builder.ToString();
             _builder.Clear();
-            if( _monitorColumn )
+            // MonitorId (if needed) on one line.
+            if( _currentMonitorId == e.MonitorId )
             {
-                _builder.Append( e.MonitorId.ToString() ).Append( ' ' );
+                _builder.Append( ' ', _nameLen + 1 );
             }
             else
             {
-                // MonitorId (if needed) on one line.
-                if( _currentMonitorId != e.MonitorId )
+                _currentMonitorId = e.MonitorId;
+                if( !_monitorNames.TryGetValue( _currentMonitorId, out _currentMonitorName ) )
                 {
-                    _currentMonitorId = e.MonitorId;
-                    _builder.Append( '-', 33 ).AppendLine( _currentMonitorId.ToString() );
+                    _currentMonitorName = _monitorNames.Count.ToString( "X" + _nameLen );
+                    int len = _currentMonitorName.Length;
+                    if( _nameLen < len )
+                    {
+                        prefix = " " + prefix;
+                        _nameLen = len;
+                    }
+                    _monitorNames.Add( _currentMonitorId, _currentMonitorName );
+                    _builder.Append( _currentMonitorName )
+                            .Append( "~~~~" )
+                            .Append( ' ', 28 )
+                            .Append( "~~ Monitor: " )
+                            .AppendLine( _currentMonitorId.ToString() );
+                    _builder.Append( ' ', _nameLen + 1 );
+                }
+                else
+                {
+                    _builder.Append( _currentMonitorName ).Append( '~' );
+                    _builder.Append( ' ', _nameLen - _currentMonitorName.Length );
                 }
             }
             // Log time prefixes the first line only.
-            string logTime = e.LogTime.ToString();
-            _builder.Append( logTime );
-            _builder.Append( ' ', 33 - logTime.Length );
+            TimeSpan delta = e.LogTime.TimeUtc - _lastLogTime;
+            if( delta >= TimeSpan.FromMinutes(1) )
+            {
+                string logTime = e.LogTime.TimeUtc.ToString( FileUtil.FileNameUniqueTimeUtcFormat );
+                _builder.Append( logTime );
+                _builder.Append( ' ' );
+                _lastLogTime = e.LogTime.TimeUtc;
+            }
+            else
+            {
+                _builder.Append( ' ', 17 );
+                _builder.Append( '+' );
+                _builder.Append( delta.ToString( @"ss\.fffffff" ) );
+                _builder.Append( ' ' );
+            }
 
             // Level is one char.
             char level;
@@ -136,6 +157,9 @@ namespace CK.Monitoring
             Stream s = base.OpenNewFile();
             _writer = new StreamWriter( s );
             _currentMonitorId = Guid.Empty;
+            _monitorNames.Clear();
+            _nameLen = 0;
+            _lastLogTime = DateTime.MinValue;
             return s;
         }
 

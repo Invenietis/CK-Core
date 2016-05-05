@@ -108,6 +108,7 @@ namespace CK.Monitoring
             }
             return _file != null;
         }
+
         /// <summary>
         /// Closes this writer if it <see cref="IsOpened"/>.
         /// It can be re-<see cref="Open"/>ed later.

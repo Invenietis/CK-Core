@@ -27,7 +27,6 @@ namespace CK.Monitoring.GrandOutputHandlers
             _file = new MonitorTextFileOutput( config.Path, config.MaxCountPerFile, config.UseGzipCompression );
             _file.FileWriteThrough = config.FileWriteThrough;
             _file.FileBufferSize = config.FileBufferSize;
-            _file.MonitorColumn = config.MonitorColumn; 
         }
 
         /// <summary>

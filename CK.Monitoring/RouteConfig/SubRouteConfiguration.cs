@@ -17,7 +17,12 @@ namespace CK.RouteConfig
         bool _importParentActions;
         bool _importParentDeclaredActionsAbove;
 
-        internal SubRouteConfiguration( string name, Func<string, bool> routePredicate )
+        /// <summary>
+        /// Initializes a new <see cref="SubRouteConfiguration"/>.
+        /// </summary>
+        /// <param name="name">The name of the route.</param>
+        /// <param name="routePredicate">The predicate for this sub route.</param>
+        public SubRouteConfiguration( string name, Func<string, bool> routePredicate )
             : base( name )
         {
             _routePredicate = routePredicate;

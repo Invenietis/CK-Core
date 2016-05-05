@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Reflection;
 using System.Diagnostics;
+using CK.Text;
 
 namespace CK.Core
 {
@@ -193,7 +194,7 @@ namespace CK.Core
                 {
                     start = localPrefix + "FusionLog: ";
                     p = Environment.NewLine + localPrefix + "         ";
-                    w.AppendLine( start + fileNFEx.FusionLog.Replace( Environment.NewLine, p ) );
+                    w.AppendLine( start + fileNFEx.FusionLog.NormalizeEOL().Replace( Environment.NewLine, p ) );
                 }
                 #endif
             }

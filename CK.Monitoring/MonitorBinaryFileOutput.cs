@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Threading;
 using CK.Core;
+using CK.Text;
 
 namespace CK.Monitoring
 {
@@ -13,7 +14,7 @@ namespace CK.Monitoring
     /// </summary>
     public class MonitorBinaryFileOutput : MonitorFileOutputBase
     {
-        BinaryWriter _writer;
+        CKBinaryWriter _writer;
 
         /// <summary>
         /// Initializes a new file for <see cref="IMulticastLogEntry"/>: the final file name is based on <see cref="FileUtil.FileNameUniqueTimeUtcFormat"/> with a ".ckmon" extension.
@@ -97,7 +98,7 @@ namespace CK.Monitoring
         protected override Stream OpenNewFile()
         {
             Stream s = base.OpenNewFile();
-            _writer = new BinaryWriter( s );
+            _writer = new CKBinaryWriter( s );
             _writer.Write( LogReader.FileHeader );
             _writer.Write( LogReader.CurrentStreamVersion );
             return s;

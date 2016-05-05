@@ -189,6 +189,7 @@ namespace CK.Core
         {
             if( traits == null || traits.Length == 0 ) return _empty;
             traits = traits.Normalize();
+            if( traits.IndexOfAny( new[] { '\n', '\r' } ) >= 0 ) throw new ArgumentException( Impl.CoreResources.TraitsMustNotBeMultiLineString );
             CKTrait m;
             if( !_traits.TryGetValue( traits, out m ) )
             {

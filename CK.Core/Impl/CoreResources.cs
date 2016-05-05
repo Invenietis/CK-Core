@@ -64,5 +64,7 @@ namespace CK.Core.Impl
         public static readonly string ServiceAlreadyRegistered = "Service {0} is already registered by the container.";
 
         public static readonly string UnregisteredServiceInServiceProvider = "Unable to find service '{0}'.";
+
+        public static readonly string TraitsMustNotBeMultiLineString = "Trait must not be multi line (CR and LF characters are forbidden).";
     }
 }

@@ -1,4 +1,5 @@
 using CK.Core;
+using CK.Text;
 using System;
 using System.IO;
 
@@ -20,15 +21,15 @@ namespace CK.Monitoring.Impl
             _previousLogTime = previousLogTime;
         }
 
-        public Guid MonitorId { get { return _monitorId; } }
+        public Guid MonitorId => _monitorId; 
 
-        public int GroupDepth { get { return _depth; } }
+        public int GroupDepth => _depth;
 
-        public LogEntryType PreviousEntryType { get { return _previousEntryType; } }
+        public LogEntryType PreviousEntryType => _previousEntryType;
 
-        public DateTimeStamp PreviousLogTime { get { return _previousLogTime; } }
+        public DateTimeStamp PreviousLogTime => _previousLogTime;
 
-        public override void WriteLogEntry( BinaryWriter w )
+        public override void WriteLogEntry( CKBinaryWriter w )
         {
             LogEntry.WriteLog( w, _monitorId, _previousEntryType, _previousLogTime, _depth, true, LogLevel, LogTime, Text, Tags, Exception, FileName, LineNumber );
         }

@@ -115,10 +115,11 @@ namespace CK.Core.Tests
             Assert.That( Context.FindOrCreate( (string)null ) == m, "Null gives the empty trait." );
             Assert.That( Context.FindOrCreate( "" ) == m, "Obtaining empty string gives the empty trait." );
             Assert.That( Context.FindOrCreate( "+" ) == m, "Obtaining '+' gives the empty trait." );
-            Assert.That( Context.FindOrCreate( " \t \r\n  " ) == m, "Strings are trimmed." );
+            Assert.Throws<ArgumentException>( () => Context.FindOrCreate( " \t \n  " ), "No \n inside." );
+            Assert.Throws<ArgumentException>( () => Context.FindOrCreate( " \r " ), "No \r inside." );
             Assert.That( Context.FindOrCreate( "+ \t +" ) == m, "Leading and trailing '+' are ignored." );
             Assert.That( Context.FindOrCreate( "++++" ) == m, "Multiple + are ignored" );
-            Assert.That( Context.FindOrCreate( "++  +++ \r\n  + \t +" ) == m, "Multiple empty strings leads to empty trait." );
+            Assert.That( Context.FindOrCreate( "++  +++  + \t +" ) == m, "Multiple empty strings leads to empty trait." );
 
             Assert.That( Context.FindOnlyExisting( null ), Is.Null );
             Assert.That( Context.FindOnlyExisting( "" ), Is.Null );
@@ -136,10 +137,10 @@ namespace CK.Core.Tests
             Assert.That( m.IsAtomic && m.AtomicTraits.Count == 1, "Not a combined one." );
             Assert.That( m.AtomicTraits[0] == m, "Atomic traits are self-contained." );
 
-            Assert.That( Context.FindOrCreate( " \t Alpha\r\n  " ) == m, "Strings are trimmed." );
+            Assert.That( Context.FindOrCreate( " \t Alpha\t\t  " ) == m, "Strings are trimmed." );
             Assert.That( Context.FindOrCreate( "+ \t Alpha+" ) == m, "Leading and trailing '+' are ignored." );
             Assert.That( Context.FindOrCreate( "+Alpha+++" ) == m, "Multiple + are ignored" );
-            Assert.That( Context.FindOrCreate( "++ Alpha +++ \r\n  + \t +" ) == m, "Multiple empty strings are ignored." );
+            Assert.That( Context.FindOrCreate( "++ Alpha +++ \t\t  + \t +" ) == m, "Multiple empty strings are ignored." );
 
             Assert.That( Context.FindOnlyExisting( "Beta" ), Is.Null );
             Assert.That( Context.FindOnlyExisting( "Beta+Gamma" ), Is.Null );
@@ -159,7 +160,7 @@ namespace CK.Core.Tests
             Assert.That( Context.FindOrCreate( "+ +\t++ Alpha+++Beta++" ) == m, "Extra characters and empty traits are ignored." );
 
             Assert.That( Context.FindOrCreate( "Alpha+Beta+Alpha" ) == m, "Multiple identical traits are removed." );
-            Assert.That( Context.FindOrCreate( "Alpha+ +Beta\r++Beta+ + Alpha +    Beta   ++ " ) == m, "Multiple identical traits are removed." );
+            Assert.That( Context.FindOrCreate( "Alpha+ +Beta\t ++Beta+ + Alpha +    Beta   ++ " ) == m, "Multiple identical traits are removed." );
 
             CKTrait m2 = Context.FindOrCreate( "Beta+Alpha+Zeta+Tau+Pi+Omega+Epsilon" );
             Assert.That( Context.FindOrCreate( "++Beta+Zeta+Omega+Epsilon+Alpha+Zeta+Epsilon+Zeta+Tau+Epsilon+Pi+Tau+Beta+Zeta+Omega+Beta+Pi+Alpha" ), Is.SameAs( m2 ), "Unicity of Atomic trait is ensured." );

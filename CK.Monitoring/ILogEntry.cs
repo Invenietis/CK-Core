@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.IO;
+using CK.Text;
 
 namespace CK.Monitoring
 {
@@ -72,6 +73,6 @@ namespace CK.Monitoring
         /// Use <see cref="LogEntry.Read"/> to read it back.
         /// </summary>
         /// <param name="w">The binary writer.</param>
-        void WriteLogEntry( BinaryWriter w );
+        void WriteLogEntry( CKBinaryWriter w );
     }
 }

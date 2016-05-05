@@ -38,6 +38,16 @@
     <Compile Include="..\..\SharedAssemblyInfo.cs">
       <Link>Properties\SharedAssemblyInfo.cs</Link>
     </Compile>
+    <Compile Include="Configuration\GrandOutputConfigTests.cs" />
+    <Compile Include="Configuration\RouteConfigurationTests.cs" />
+    <Compile Include="Performance\EventDispatcherAdaptiveStrategy.cs" />
+    <Compile Include="Performance\FakeHandler.cs" />
+    <Compile Include="Performance\FakeHandlerConfiguration.cs" />
+    <Compile Include="Performance\GzipFileTests.cs" />
+    <Compile Include="Performance\StressTests.cs" />
+    <Compile Include="Persistence\CKMonV0SupportTests.cs" />
+    <Compile Include="Persistence\MultiFileReaderTests.cs" />
+    <Compile Include="Persistence\ReadWriteTests.cs" />
     <Compile Include="TextFileTests.cs" />
     <Compile Include="StupidStringClient.cs" />
     <Compile Include="TestHelper.cs" />
@@ -65,6 +75,27 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
+    <None Include="Persistence\CKMon-v0\2016-04-11 14h06.47.9953835.ckmon" />
+    <None Include="Persistence\CKMon-v0\2016-04-11 14h08.19.4414139.ckmon" />
+    <None Include="Persistence\CKMon-v0\2016-04-11 16h41.44.7827173.ckmon" />
+    <None Include="Persistence\CKMon-v0\2016-04-13 07h17.19.3016436.ckmon" />
+    <None Include="Persistence\CKMon-v0\2016-04-13 07h19.22.6254836.ckmon" />
+    <None Include="Persistence\CKMon-v0\2016-04-13 07h21.21.1848453.ckmon" />
+    <None Include="Persistence\CKMon-v0\2016-04-13 07h22.00.6762653.ckmon" />
+    <None Include="Persistence\CKMon-v0\2016-04-13 07h28.17.9533095.ckmon" />
+    <None Include="Persistence\CKMon-v0\2016-04-13 07h31.09.2970481.ckmon" />
+    <None Include="Persistence\CKMon-v0\2016-04-13 08h19.42.5676110.ckmon" />
+    <None Include="Persistence\CKMon-v0\2016-04-13 08h29.19.1891164.ckmon" />
+    <None Include="Persistence\CKMon-v0\2016-04-13 08h31.20.4860962.ckmon" />
+    <None Include="Persistence\CKMon-v0\2016-04-13 08h32.44.9663770.ckmon" />
+    <None Include="Persistence\CKMon-v0\2016-04-13 08h36.38.3373720.ckmon" />
+    <None Include="Persistence\CKMon-v0\2016-04-13 08h41.01.3838073.ckmon" />
+    <None Include="Persistence\CKMon-v0\2016-04-13 08h42.03.6880864.ckmon" />
+    <None Include="Persistence\CKMon-v0\2016-04-14 14h03.21.0866754.ckmon" />
+    <None Include="Persistence\CKMon-v0\2016-04-21 11h06.51.4043034.ckmon" />
+    <None Include="Persistence\CKMon-v0\2016-04-21 11h07.31.3462987.ckmon" />
+    <None Include="Persistence\CKMon-v0\2016-04-21 11h08.03.8268360.ckmon" />
+    <None Include="Persistence\CKMon-v0\2016-04-21 11h09.45.9788786.ckmon" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\CK.ActivityMonitor.StandardSender\CK.ActivityMonitor.StandardSender.csproj">
@@ -83,11 +114,12 @@
       <Project>{8016ab6e-ca30-447d-bc47-b37d51b5a088}</Project>
       <Name>CK.Monitoring</Name>
     </ProjectReference>
+    <ProjectReference Include="..\..\CK.Text\CK.Text.csproj">
+      <Project>{0518e60c-0cb9-49da-a634-109998526368}</Project>
+      <Name>CK.Text</Name>
+    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="Configuration\" />
-    <Folder Include="Performance\" />
-    <Folder Include="Persistence\" />
     <Folder Include="TestFolder\" />
   </ItemGroup>
   <ItemGroup>

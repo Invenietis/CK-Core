@@ -1,3 +1,4 @@
+using CK.Text;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -12,7 +13,7 @@ namespace CK.Monitoring
     public sealed class LogReader : IEnumerator<ILogEntry>
     {
         Stream _stream;
-        BinaryReader _binaryReader;
+        CKBinaryReader _binaryReader;
         readonly int _streamVersion;
         readonly int _headerLength;
         ILogEntry _current;
@@ -25,7 +26,7 @@ namespace CK.Monitoring
         /// Current version stamp. Writes are done with this version, but reads MUST handle it.
         /// The first released version is 5.
         /// </summary>
-        public const int CurrentStreamVersion = 5;
+        public const int CurrentStreamVersion = 6;
 
         /// <summary>
         /// The file header for .ckmon files starting from CurrentStreamVersion = 5.
@@ -48,7 +49,7 @@ namespace CK.Monitoring
             if( streamVersion < 5 )
                 throw new ArgumentException( "Must be greater or equal to 5 (the first version).", "streamVersion" );
             _stream = stream;
-            _binaryReader = new BinaryReader( stream, Encoding.UTF8, !mustClose );
+            _binaryReader = new CKBinaryReader( stream, Encoding.UTF8, !mustClose );
             _streamVersion = streamVersion;
             _headerLength = headerLength;
         }
@@ -241,7 +242,7 @@ namespace CK.Monitoring
         public bool MoveNext()
         {
             if( _stream == null ) return false;
-            if( _streamVersion != CurrentStreamVersion )
+            if( _streamVersion < 5 || _streamVersion > CurrentStreamVersion )
             {
                 throw new InvalidOperationException( String.Format( "Stream is not a log stream or its version is not handled (Current Version = {0}).", CurrentStreamVersion ) );
             }

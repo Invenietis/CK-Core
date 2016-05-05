@@ -48,7 +48,9 @@
     <Reference Include="System.Core" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="CKBinaryWriter.cs" />
     <Compile Include="Impl\CoreResources.cs" />
+    <Compile Include="CKBinaryReader.cs" />
     <Compile Include="JSONVisitor.cs" />
     <Compile Include="StringAndStringBuilderExtension.cs" />
     <Compile Include="StringMatcher.cs" />
