@@ -129,6 +129,7 @@ namespace CodeCake
                     foreach( var nuspec in Cake.GetFiles( releasesDir.Path + "/*.nuspec" ) )
                     {
                         TransformText( nuspec, configuration, gitInfo );
+                        Cake.Information( File.ReadAllText( nuspec.FullPath ) );
                         Cake.NuGetPack( nuspec, settings );
                     }
                     Cake.DeleteFiles( releasesDir.Path + "/*.nuspec" );
