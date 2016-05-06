@@ -94,13 +94,16 @@ Second line.
 
     Also indented.
 Last line.";
+                // Here, normalizing the source embedded string is to support 
+                // git clone with LF in files instead of CRLF. 
+                // Our (slow) AppendMultiLine normalizes the end of lines to Environment.NewLine.
                 string t = b.AppendMultiLine( "|", text, true ).ToString();
                 Assert.That( t, Is.EqualTo( @"|First line.
 |Second line.
 |    Indented.
 |
 |    Also indented.
-|Last line." ) );
+|Last line.".NormalizeEOL() ) );
             }
 
             {
@@ -117,13 +120,13 @@ Last line.";
 |    Indented.
 |
 |    Also indented.
-|Last line." ) );
+|Last line.".NormalizeEOL() ) );
             }
 
         }
 
         [Test]
-        public void appending_multi_lines_is_slower_than_naive_implementation()
+        public void our_appending_multi_lines_is_slower_than_naive_implementation_since_String_Replace_is_purely_native()
         {
             string f = File.ReadAllText( Path.Combine( TestHelper.SolutionFolder, "Tests/CK.Text.Tests/StringAndStringBuilderExtensionTests.cs" ) );
             f = f.NormalizeEOL();
