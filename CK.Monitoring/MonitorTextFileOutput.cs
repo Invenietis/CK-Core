@@ -91,6 +91,7 @@ namespace CK.Monitoring
             if( delta >= TimeSpan.FromMinutes(1) )
             {
                 string logTime = e.LogTime.TimeUtc.ToString( FileUtil.FileNameUniqueTimeUtcFormat );
+                _builder.Append( ' ' );
                 _builder.Append( logTime );
                 _builder.Append( ' ' );
                 _lastLogTime = e.LogTime.TimeUtc;

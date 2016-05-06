@@ -24,6 +24,13 @@ namespace CK.Core.Impl
         public static readonly string PossibleWrongOverloadUseWithException = "Possible use of the wrong overload: Use the form that takes a first parameter of type Exception and then the string text instead of this ( string format, object arg0, ... ) method to log the exception, or calls this overload explicitely with the Exception.Message string.";
         public static readonly string InvalidRootLogPath = "Invalid Root log path.";
         public static readonly string SystemActivityMonitorRootLogPathSetOnlyOnce = "Root log path must be set once and only once.";
-        public static readonly string RootLogPathMustBeSet = "Root log path must be set.";
+        public static readonly string RootLogPathMustBeSet = 
+@"Root log path must be set. Either by code: 
+SystemActivityMonitor.RootLogPath = ""Relative/Path/To/Logs""; 
+or in AppSettings (in Application.config file for example): 
+<appSettings>
+    <add key=""CK.Core.SystemActivityMonitor.RootLogPath"" value=""Logs"" />
+</appSettings>
+.";
     }
 }

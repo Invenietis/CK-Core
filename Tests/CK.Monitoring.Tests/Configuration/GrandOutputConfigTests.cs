@@ -33,6 +33,7 @@ using CK.Core;
 using CK.Monitoring.GrandOutputHandlers;
 using CK.RouteConfig;
 using NUnit.Framework;
+using CK.Monitoring;
 
 namespace CK.Monitoring.Tests.Configuration
 {

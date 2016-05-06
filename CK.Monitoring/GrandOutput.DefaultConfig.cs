@@ -24,7 +24,7 @@ namespace CK.Monitoring
 
         /// <summary>
         /// Ensures that the <see cref="Default"/> GrandOutput is created (see <see cref="EnsureActiveDefault"/>) and configured with default settings:
-        /// only one one channel with its minimal filter sets to Debug with one file handler that writes .ckmon files in "<see cref="SystemActivityMonitor.RootLogPath"/>\GrandOutputDefault" directory.
+        /// only one one channel with its minimal filter sets to Debug with one text file handler that writes .txt files in "<see cref="SystemActivityMonitor.RootLogPath"/>\GrandOutputDefault" directory.
         /// The <see cref="SystemActivityMonitor.RootLogPath"/> must be valid and if a GrandOutput.config file exists inside, it is loaded as the configuration.
         /// If it exists, it must be valid (otherwise an exception is thrown).
         /// Once loaded, the file is monitored and any change that occurs to it dynamically triggers a <see cref="SetConfiguration"/> with the new file.
