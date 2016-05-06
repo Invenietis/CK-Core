@@ -79,7 +79,7 @@ namespace CK.Core
 
         /// <summary>
         /// Initializes a new <see cref="CKExceptionData"/> from a <see cref="CKBinaryReader"/>. 
-        /// See <see cref="Write(CKBinaryWriter)"/>.
+        /// See <see cref="Write(CKBinaryWriter,bool)"/>.
         /// </summary>
         /// <param name="r">The reader to read from.</param>
         /// <param name="streamIsCRLF">Whether the strings have CRLF or LF for end-of-lines.</param>
@@ -91,7 +91,7 @@ namespace CK.Core
         /// <summary>
         /// Initializes a new <see cref="CKExceptionData"/> from a <see cref="CKBinaryReader"/>
         /// with a known version. 
-        /// See <see cref="Write(CKBinaryWriter)"/>.
+        /// See <see cref="Write(CKBinaryWriter,bool)"/>.
         /// </summary>
         /// <param name="r">The reader to read from.</param>
         /// <param name="streamIsCRLF">Whether the strings have CRLF or LF for end-of-lines.</param>

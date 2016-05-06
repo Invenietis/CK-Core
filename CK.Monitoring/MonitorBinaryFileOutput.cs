@@ -18,7 +18,7 @@ namespace CK.Monitoring
 
         /// <summary>
         /// Initializes a new file for <see cref="IMulticastLogEntry"/>: the final file name is based on <see cref="FileUtil.FileNameUniqueTimeUtcFormat"/> with a ".ckmon" extension.
-        /// You must call <see cref="Initialize"/> before actually using this object.
+        /// You must call <see cref="MonitorFileOutputBase.Initialize">Initialize</see> before actually using this object.
         /// </summary>
         /// <param name="configuredPath">The path: it can be absolute and when relative, it will be under <see cref="SystemActivityMonitor.RootLogPath"/> (that must be set).</param>
         /// <param name="maxCountPerFile">Maximum number of entries per file. Must be greater than 1.</param>
@@ -32,7 +32,7 @@ namespace CK.Monitoring
         /// Initializes a new file for <see cref="ILogEntry"/> issued from a specific monitor: the final file name is 
         /// based on <see cref="FileUtil.FileNameUniqueTimeUtcFormat"/> with a "-{XXX...XXX}.ckmon" suffix where {XXX...XXX} is the unique identifier (Guid with the B format - 32 digits separated by 
         /// hyphens, enclosed in braces) of the monitor.
-        /// You must call <see cref="Initialize"/> before actually using this object.
+        /// You must call <see cref="MonitorFileOutputBase.Initialize">Initialize</see> before actually using this object.
         /// </summary>
         /// <param name="configuredPath">The path. Can be absolute. When relative, it will be under <see cref="SystemActivityMonitor.RootLogPath"/> that must be set.</param>
         /// <param name="monitorId">Monitor identifier.</param>
@@ -95,6 +95,10 @@ namespace CK.Monitoring
 
         #endregion
 
+        /// <summary>
+        /// Called when a new file is created.
+        /// </summary>
+        /// <returns>The created stream.</returns>
         protected override Stream OpenNewFile()
         {
             Stream s = base.OpenNewFile();
@@ -104,6 +108,9 @@ namespace CK.Monitoring
             return s;
         }
 
+        /// <summary>
+        /// Called when the current file is closed.
+        /// </summary>
         protected override void CloseCurrentFile()
         {
             _writer.Write( (byte)0 );

@@ -79,7 +79,6 @@ namespace CK.Text
         /// <summary>
         /// Reads a potentially null string.
         /// </summary>
-        /// <param name="s">String to write.</param>
         /// <returns>The string or null.</returns>
         public string ReadNullableString()
         {
