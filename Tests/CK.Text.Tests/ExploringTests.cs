@@ -126,6 +126,7 @@ Last line.";
         public void appending_multi_lines_is_slower_than_naive_implementation()
         {
             string f = File.ReadAllText( Path.Combine( TestHelper.SolutionFolder, "Tests/CK.Text.Tests/StringAndStringBuilderExtensionTests.cs" ) );
+            f = f.NormalizeEOL();
             Stopwatch w = new Stopwatch();
             string[] results = new string[1000];
             long naive = PrefixWithNaiveReplace( w, f, results );

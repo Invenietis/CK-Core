@@ -109,8 +109,7 @@ namespace CodeCake
                     Cake.NUnit( "Tests/*.Tests/bin/" + configuration + "/*.Tests.dll", new NUnitSettings()
                     {
                         Framework = "v4.5",
-                        OutputFile = releasesDir.Path + "/TestResult.txt",
-                        StopOnError = true
+                        OutputFile = releasesDir.Path + "/TestResult.txt"
                     } );
                 } );
 
