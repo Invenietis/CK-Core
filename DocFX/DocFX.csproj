@@ -66,6 +66,8 @@
     <Reference Include="System.EnterpriseServices" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="images\favicon.ico" />
+    <Content Include="images\logo.png" />
     <Content Include="packages.config" />
     <Content Include="toc.yml" />
     <Content Include="index.md" />
@@ -80,6 +82,8 @@
     <Content Include="articles\ck-reflection.md" />
     <Content Include="articles\ck-monitoring.md" />
     <Content Include="template\partials\footer.tmpl.partial" />
+    <Content Include="template\partials\navbar.tmpl.partial" />
+    <Content Include="template\partials\head.tmpl.partial" />
     <None Include="Web.Debug.config">
       <DependentUpon>Web.config</DependentUpon>
     </None>
