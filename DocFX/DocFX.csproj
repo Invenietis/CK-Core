@@ -66,24 +66,14 @@
     <Reference Include="System.EnterpriseServices" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="images\favicon.ico" />
-    <Content Include="images\logo.png" />
+    <Content Include="images\**\*.*" />
     <Content Include="packages.config" />
     <Content Include="toc.yml" />
     <Content Include="index.md" />
     <Content Include="docfx.json" />
-    <Content Include="articles\toc.md" />
-    <Content Include="articles\intro.md" />
-    <Content Include="api\index.md" />
-    <Content Include="articles\ck-core.md" />
-    <Content Include="articles\ck-activitymonitor.md" />
-    <Content Include="articles\ck-activitymonitor-standardsender.md" />
-    <Content Include="articles\ck-text.md" />
-    <Content Include="articles\ck-reflection.md" />
-    <Content Include="articles\ck-monitoring.md" />
-    <Content Include="template\partials\footer.tmpl.partial" />
-    <Content Include="template\partials\navbar.tmpl.partial" />
-    <Content Include="template\partials\head.tmpl.partial" />
+    <Content Include="api\**\*.md" />
+    <Content Include="articles\**\*.md" />
+    <Content Include="template\**\*.md" />
     <None Include="Web.Debug.config">
       <DependentUpon>Web.config</DependentUpon>
     </None>
