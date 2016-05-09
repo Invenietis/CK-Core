@@ -1,3 +1,8 @@
+---
+uid: api-home
+---
+CK.Core API documentation
+=========================
 
-# PLACEHOLDER
-TODO: Add .NET projects to *src* folder and run `docfx` to generate a **REAL** *API Documentation*!
+> [!div class="alert alert-warning"]
+> This documentation is in pre-release and is subject to change.

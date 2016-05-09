@@ -73,6 +73,13 @@
     <Content Include="articles\toc.md" />
     <Content Include="articles\intro.md" />
     <Content Include="api\index.md" />
+    <Content Include="articles\ck-core.md" />
+    <Content Include="articles\ck-activitymonitor.md" />
+    <Content Include="articles\ck-activitymonitor-standardsender.md" />
+    <Content Include="articles\ck-text.md" />
+    <Content Include="articles\ck-reflection.md" />
+    <Content Include="articles\ck-monitoring.md" />
+    <Content Include="template\partials\footer.tmpl.partial" />
     <None Include="Web.Debug.config">
       <DependentUpon>Web.config</DependentUpon>
     </None>
@@ -87,6 +94,7 @@
   <ItemGroup>
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
+  <ItemGroup />
   <PropertyGroup>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>
     <VSToolsPath Condition="'$(VSToolsPath)' == ''">$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)</VSToolsPath>

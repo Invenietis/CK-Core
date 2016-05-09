@@ -1,5 +1,18 @@
+---
+uid: home-page
+---
+CK-Core components
+==================
 
-# This is the **HOMEPAGE**.
-Refer to [Markdown](http://daringfireball.net/projects/markdown/) for how to write markdown files.
-## Quick Start Notes:
-1. Add images to *images* folder if the file is referencing an image.
+> [!div class="alert alert-warning"]
+> This documentation is in pre-release and is subject to change.
+
+This repository is home to common tools, used in most of our software,
+split in multiple components and packages on [NuGet](https://www.nuget.org):
+
+- `CK.Core` ([NuGet package](https://www.nuget.org/packages/CK.Core/)), a common core of utilities used in the other components (such as `CKTrait`, `CKException` or `TemporaryFile`)
+- `CK.ActivityMonitor` ([NuGet package](https://www.nuget.org/packages/CK.ActivityMonitor/)), containing the `ActivityMonitor` logging component logic (formerly part of `CK.Core`)
+- `CK.ActivityMonitor.StandardSender` ([NuGet package](https://www.nuget.org/packages/CK.ActivityMonitor.StandardSender/)), standard extensions like `IActivityMonitor.Trace().Send()` used for easier logging at development time (formerly part of `CK.Core`)
+- `CK.Text` ([NuGet package](https://www.nuget.org/packages/CK.Text/)), home to text-related utilities like `StringMatcher`, end-of-line normalizers and `string.Concatenate()` (formerly part of `CK.Core`)
+- `CK.Monitoring` ([NuGet package](https://www.nuget.org/packages/CK.Monitoring/)), with `ActivityMonitor`-related utilities for writing and reading text and/or binary log sinks with the `GrandOutput`
+- `CK.Reflection` ([NuGet package](https://www.nuget.org/packages/CK.Reflection/)), containing various reflection-related utilities
