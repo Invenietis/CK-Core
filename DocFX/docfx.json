@@ -61,9 +61,20 @@
         ]
       }
     ],
+    "globalMetadata": {
+      "_appTitle": "CK.Core documentation",
+      "_enableSearch": true
+    },
+    "externalReference": [
+      {
+        "files": "content/*.rpk",
+        "cwd": "../packages/msdn.4.5.2.0.1.0-alpha-1604281727/"
+      }
+    ],
     "dest": "_site",
     "template": [
-      "default"
+      "default",
+      "template"
     ]
   }
 }
