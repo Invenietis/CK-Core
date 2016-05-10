@@ -106,14 +106,12 @@ namespace CK.Core.Tests.Monitoring
             }
             {
                 IActivityMonitor m = new ActivityMonitor();
-                m.MinimalFilter = LogFilter.Off;
-                // ...
+                m.MinimalFilter = LogFilter.Terse;
                 using( m.SetMinimalFilter( LogFilter.Debug ) )
                 {
                     Assert.That( m.ActualFilter == LogFilter.Debug );
-                    // ...
                 }
-                Assert.That( m.ActualFilter == LogFilter.Off, "Filter has been restored to previous value." );
+                Assert.That( m.ActualFilter == LogFilter.Terse, "Filter has been restored to previous value." );
             }
             {
                 IActivityMonitor m = new ActivityMonitor();

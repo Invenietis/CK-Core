@@ -6,7 +6,9 @@ Using the ActivityMonitor
 
 The [ActivityMonitor](xref:CK.Core.ActivityMonitor "CK.Core.ActivityMonitor") serves as a *logger*, and is the object you send logs to.
 
-It is meant to follow and log a chain of logical operations in one thread, which we call an *activity*. You can spawn as many [ActivityMonitor](xref:CK.Core.ActivityMonitor "CK.Core.ActivityMonitor") instances as you like.
+It is meant to follow and log a chain of logical operations in one thread at a time (but not necessarily always on the same thread), 
+which we call an *activity*. 
+You can spawn as many [ActivityMonitor](xref:CK.Core.ActivityMonitor "CK.Core.ActivityMonitor") instances as you like.
 
 It is actually meant to be used with extension methods on [IActivityMonitor](xref:CK.Core.IActivityMonitor "CK.Core.ActivityMonitor"), like the ones contained in [CK.ActivityMonitor.StandardSender](xref:articles-ck-activitymonitor-standardsender). These extension methods translate the call to [IActivityMonitor.UnfilteredLog(ActivityMonitorLogData)](xref:CK.Core.IActivityMonitor.UnfilteredLog(CK.Core.ActivityMonitorLogData)).
 
@@ -88,12 +90,12 @@ ActivityMonitor output
 > This documentation is not written yet. Help us by improving it!
 
 
-Thread safety
+Thread safety and correlations
 -------------
 
 The [ActivityMonitor](xref:CK.Core.ActivityMonitor "CK.Core.ActivityMonitor") class itself is **not thread-safe**.
 
-If your activity spawns multiple threads, you can get a token from the parent monitor, and use it to create *child monitors*: 
+If your activity spawns multiple threads, you can get a token from the parent monitor, and use it to create *dependent monitors*: 
 
 ```csharp
 ActivityMonitor parentMonitor = new ActivityMonitor();
@@ -108,4 +110,4 @@ using( var childMonitor = token.CreateDependentMonitor() )
 }
 ```
 
-This child monitor will be linked to its parent monitor through a common topic sent to both.
+This child monitor will be linked to its parent monitor through log entries that will appear in both of them.
