@@ -8,11 +8,12 @@ using NUnit.Framework;
 namespace CK.Core.Tests.Monitoring
 {
     [TestFixture]
+    [CLSCompliant(false)]
     public class DependentActivityTests
     {
 
         [Test]
-        public void DependentTokenAPI()
+        public void DependentToken_API_use()
         {
             var monitor = new ActivityMonitor();
             monitor.Output.CreateBridgeTo( TestHelper.ConsoleMonitor.Output.BridgeTarget );
@@ -55,8 +56,42 @@ namespace CK.Core.Tests.Monitoring
             }
         }
 
+        [TestCase( "A topic!" )]
+        [TestCase( "A 'topic' with quote." )]
+        [TestCase( "A 'topic' \r\n with quote and new lines." )]
+        [TestCase( null )]
+        [TestCase( "" )]
+        [TestCase( " " )]
+        public void parsing_DependentToken_with_topics( string topic )
+        {
+            var monitor = new ActivityMonitor();
+            var t1 = monitor.DependentActivity().CreateTokenWithTopic( topic );
+            var t2 = monitor.DependentActivity().CreateTokenWithTopic( topic );
+            var t3 = monitor.DependentActivity().CreateTokenWithTopic( topic );
+            Assume.That( t2.CreationDate.Uniquifier + t3.CreationDate.Uniquifier > 0 );
+
+            var r1 = ActivityMonitor.DependentToken.Parse( t1.ToString() );
+
+            Assert.That( r1.OriginatorId, Is.EqualTo( t1.OriginatorId ) );
+            Assert.That( r1.CreationDate, Is.EqualTo( t1.CreationDate ) );
+            Assert.That( r1.Topic, Is.EqualTo( t1.Topic ) );
+            Assert.That( r1.ToString(), Is.EqualTo( t1.ToString() ) );
+
+            var r2 = ActivityMonitor.DependentToken.Parse( t2.ToString() );
+            Assert.That( r2.OriginatorId, Is.EqualTo( t2.OriginatorId ) );
+            Assert.That( r2.CreationDate, Is.EqualTo( t2.CreationDate ) );
+            Assert.That( r2.Topic, Is.EqualTo( t2.Topic ) );
+            Assert.That( r2.ToString(), Is.EqualTo( t2.ToString() ) );
+
+            var r3 = ActivityMonitor.DependentToken.Parse( t3.ToString() );
+            Assert.That( r3.OriginatorId, Is.EqualTo( t3.OriginatorId ) );
+            Assert.That( r3.CreationDate, Is.EqualTo( t3.CreationDate ) );
+            Assert.That( r3.Topic, Is.EqualTo( t3.Topic ) );
+            Assert.That( r3.ToString(), Is.EqualTo( t3.ToString() ) );
+        }
+
         [Test]
-        public void ParseDependentMessageWithUniquifier()
+        public void parsing_dependent_token_and_start_and_create_messages_with_time_collision()
         {
             ActivityMonitor m = new ActivityMonitor( false );
             m.Output.CreateBridgeTo( TestHelper.ConsoleMonitor.Output.BridgeTarget );
@@ -82,11 +117,10 @@ namespace CK.Core.Tests.Monitoring
 
             string tokenToString = token.ToString();
             {
-                Guid id;
-                DateTimeStamp time;
-                Assert.That( ActivityMonitor.DependentToken.TryParseStartMessage( tokenToString, out id, out time ) );
-                Assert.That( id, Is.EqualTo( ((IUniqueId)m).UniqueId ) );
-                Assert.That( time, Is.EqualTo( cLaunch.Entries[loopNeeded].LogTime ) );
+                ActivityMonitor.DependentToken t2 = ActivityMonitor.DependentToken.Parse( tokenToString );
+                Assert.That( t2.OriginatorId, Is.EqualTo( ((IUniqueId)m).UniqueId ) );
+                Assert.That( t2.CreationDate, Is.EqualTo( cLaunch.Entries[loopNeeded].LogTime ) );
+                Assert.That( t2.Topic, Is.EqualTo( "Test..." ) );
             }
 
             StupidStringClient.Entry[] logs = RunDependentActivity( token );
@@ -101,13 +135,13 @@ namespace CK.Core.Tests.Monitoring
         }
 
         [Test]
-        public void ParseDependentMessageWithTopic()
+        public void parsing_start_and_create_messages()
         {
             ActivityMonitor m = new ActivityMonitor( false );
             StupidStringClient cLaunch = m.Output.RegisterClient( new StupidStringClient() );
             StupidStringClient.Entry[] dependentLogs = null;
 
-            string dependentTopic = "A topic 'with' quotes '-\"...\r\n and multi-line";
+            string dependentTopic = "A topic 'with' quotes '-\"..." + Environment.NewLine + " and multi-line";
             dependentLogs = LaunchAndRunDependentActivityWithTopic( m, dependentTopic );
 
             string launchMessage = cLaunch.Entries[0].Text;

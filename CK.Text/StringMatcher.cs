@@ -27,7 +27,7 @@ namespace CK.Text
         string _errorDescription;
 
         /// <summary>
-        /// Initializes a new instance of the <see cref="StringMatcher"/> class.
+        /// Initializes a new instance of the <see cref="StringMatcher"/> class on a non null string.
         /// </summary>
         /// <param name="text">The string to parse.</param>
         /// <param name="startIndex">Index where the match must start in <paramref name="text"/>.</param>
@@ -39,7 +39,7 @@ namespace CK.Text
         /// <summary>
         /// Initializes a new instance of the <see cref="StringMatcher"/> class on a substring.
         /// </summary>
-        /// <param name="text">The string to parse.</param>
+        /// <param name="text">The string to parse. Can not be null.</param>
         /// <param name="startIndex">
         /// Index where the match must start in <paramref name="text"/>.
         /// </param>
@@ -201,7 +201,7 @@ namespace CK.Text
 
         /// <summary>
         /// Increments the <see cref="StartIndex"/> (and decrements <see cref="Length"/>) with the 
-        /// specified character count and clears any existing error.
+        /// specified character count and clears any existing error. Always returns true.
         /// </summary>
         /// <param name="charCount">The successfully matched character count. 
         /// Must be positive and should not move head past the end of the substring.</param>

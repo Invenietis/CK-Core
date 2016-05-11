@@ -39,7 +39,8 @@ namespace CK.Core.Impl
         bool _disposed;
 
         /// <summary>
-        /// Ensures that potential unmanaged resources are correctly released by calling <see cref="Dispose(bool)"/> with false.
+        /// Ensures that potential unmanaged resources are correctly released by calling <see cref="Dispose(bool)"/>
+        /// with false.
         /// </summary>
         ~DisposableActivityMonitor()
         {
@@ -64,7 +65,7 @@ namespace CK.Core.Impl
         /// Automatically close any opened groups.
         /// Can be called multiple times.
         /// </summary>
-        /// <param name="disposing">Whether <see cref="Dispose()"/> is called.</param>
+        /// <param name="disposing">True when <see cref="Dispose()"/> is called, false when called from the Garbage collector.</param>
         protected virtual void Dispose( bool disposing )
         {
             if( disposing )

@@ -6,7 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace CK.Text
+namespace CK.Core
 {
     /// <summary>
     /// Specializes <see cref="BinaryWriter"/> to expose helpers.

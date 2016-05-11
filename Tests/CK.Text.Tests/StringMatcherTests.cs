@@ -212,5 +212,53 @@ namespace CK.Text.Tests
             Assert.That( m.IsEnd );
         }
 
+        [TestCase( "N" )]
+        [TestCase( "D" )]
+        [TestCase( "B" )]
+        [TestCase( "P" )]
+        [TestCase( "X" )]
+        public void matching_the_5_forms_of_guid( string form )
+        {
+            var id = Guid.NewGuid();
+            string sId = id.ToString( form );
+            {
+                string s = sId;
+                var m = new StringMatcher( s );
+                Guid readId;
+                Assert.That( m.TryMatchGuid( out readId ) && readId == id );
+            }
+            {
+                string s = "S" + sId;
+                var m = new StringMatcher( s );
+                Guid readId;
+                Assert.That( m.MatchChar( 'S' ) );
+                Assert.That( m.TryMatchGuid( out readId ) && readId == id );
+            }
+            {
+                string s = "S" + sId + "T";
+                var m = new StringMatcher( s );
+                Guid readId;
+                Assert.That( m.MatchChar( 'S' ) );
+                Assert.That( m.TryMatchGuid( out readId ) && readId == id );
+                Assert.That( m.MatchChar( 'T' ) );
+            }
+            sId = sId.Remove( sId.Length - 1 );
+            {
+                string s = sId;
+                var m = new StringMatcher( s );
+                Guid readId;
+                Assert.That( m.TryMatchGuid( out readId ), Is.False );
+                Assert.That( m.StartIndex, Is.EqualTo( 0 ) );
+            }
+            sId = id.ToString().Insert( 3, "K" ).Remove( 4 );
+            {
+                string s = sId;
+                var m = new StringMatcher( s );
+                Guid readId;
+                Assert.That( m.TryMatchGuid( out readId ), Is.False );
+                Assert.That( m.StartIndex, Is.EqualTo( 0 ) );
+            }
+        }
+
     }
 }

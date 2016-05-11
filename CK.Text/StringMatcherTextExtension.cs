@@ -63,6 +63,75 @@ namespace CK.Text
         }
 
         /// <summary>
+        /// Matches a Guid. No error is set if match fails.
+        /// </summary>
+        /// <remarks>
+        /// Any of the 5 forms of Guid can be matched:
+        /// <list type="table">
+        /// <item><term>N</term><description>00000000000000000000000000000000</description></item>
+        /// <item><term>D</term><description>00000000-0000-0000-0000-000000000000</description></item>
+        /// <item><term>B</term><description>{00000000-0000-0000-0000-000000000000}</description></item>
+        /// <item><term>P</term><description>(00000000-0000-0000-0000-000000000000)</description></item>
+        /// <item><term>X</term><description>{0x00000000,0x0000,0x0000,{0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00}}</description></item>
+        /// </list>
+        /// </remarks>
+        /// <param name="this">This <see cref="StringMatcher"/>.</param>
+        /// <param name="id">The result Guid. <see cref="Guid.Empty"/> on failure.</param>
+        /// <returns><c>true</c> when matched, <c>false</c> otherwise.</returns>
+        public static bool TryMatchGuid( this StringMatcher @this, out Guid id )
+        {
+            id = Guid.Empty;
+            if( @this.Length < 32 ) return false;
+            if( @this.Head == '{' )
+            {
+                // Form "B" or "X".
+                if( @this.Length < 38 ) return false;
+                if( @this.Text[@this.StartIndex+37] == '}' )
+                {
+                    // The "B" form.
+                    if( Guid.TryParseExact( @this.Text.Substring( @this.StartIndex, 38 ), "B", out id ) )
+                    {
+                        return @this.UncheckedMove( 38 );
+                    }
+                    return false;
+                }
+                // The "X" form.
+                if( @this.Length >= 68  && Guid.TryParseExact( @this.Text.Substring( @this.StartIndex, 68 ), "X", out id ) )
+                {
+                    return @this.UncheckedMove( 68 );
+                }
+                return false;
+            }
+            if( @this.Head == '(' )
+            {
+                // Can only be the "P" form.
+                if( @this.Length >= 38 && Guid.TryParseExact( @this.Text.Substring( @this.StartIndex, 38 ), "P", out id ) )
+                {
+                    return @this.UncheckedMove( 38 );
+                }
+                return false;
+            }
+            if( @this.Head.HexDigitValue() >= 0 )
+            {
+                // The "N" or "D" form.
+                if( @this.Length >= 36 && @this.Text[@this.StartIndex + 8] == '-' )
+                {
+                    // The ""D" form.
+                    if( Guid.TryParseExact( @this.Text.Substring( @this.StartIndex, 36 ), "D", out id ) )
+                    {
+                        return @this.UncheckedMove( 36 );
+                    }
+                    return false;
+                }
+                if( Guid.TryParseExact( @this.Text.Substring( @this.StartIndex, 32 ), "N", out id ) )
+                {
+                    return @this.UncheckedMove( 32 );
+                }
+            }
+            return false;
+        }
+
+        /// <summary>
         /// Matches a JSON quoted string without setting an error if match fails.
         /// </summary>
         /// <param name="this">This <see cref="StringMatcher"/>.</param>

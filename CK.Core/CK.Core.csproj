@@ -53,6 +53,8 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AppSettings.cs" />
+    <Compile Include="CKBinaryReader.cs" />
+    <Compile Include="CKBinaryWriter.cs" />
     <Compile Include="CKException.cs" />
     <Compile Include="CKExceptionData.cs" />
     <Compile Include="CKSortedArrayKeyList.cs" />

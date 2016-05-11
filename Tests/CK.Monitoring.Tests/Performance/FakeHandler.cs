@@ -21,6 +21,7 @@
 *-----------------------------------------------------------------------------*/
 #endregion
 
+using CK.Core;
 using CK.Text;
 using System;
 using System.Collections.Generic;

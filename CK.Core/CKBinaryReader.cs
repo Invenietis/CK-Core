@@ -1,4 +1,5 @@
-﻿using System;
+﻿using CK.Text;
+using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
@@ -6,7 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace CK.Text
+namespace CK.Core
 {
     /// <summary>
     /// Specializes <see cref="BinaryReader"/> to expose helpers.

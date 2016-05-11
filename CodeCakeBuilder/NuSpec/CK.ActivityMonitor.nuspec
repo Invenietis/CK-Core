@@ -14,7 +14,7 @@
     </summary>
     <description>
       Main types are:
-      IActivityMonitor &amp; ActivityMonitor, SystemActivityMonitor, ActivityMonitorClient and standard 
+      IActivityMonitor, ActivityMonitor, SystemActivityMonitor, ActivityMonitorClient and standard 
       clients like ActivityMonitorTextWriterClient.
     </description>
     <language>en-US</language>

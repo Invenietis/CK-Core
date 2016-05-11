@@ -8,6 +8,10 @@ namespace CK.Core
     /// <summary>
     /// A date and time stamp encapsulates a <see cref="TimeUtc"/> (<see cref="DateTime"/> guaranteed to be in Utc) and a <see cref="Uniquifier"/>.
     /// </summary>
+    /// <remarks>
+    /// Simply use <see cref="ToString()"/> and <see cref="DateTimeStampExtension.MatchDateTimeStamp(Text.StringMatcher, out DateTimeStamp)">MatchDateTimeStamp</see>
+    /// to serialize it.
+    /// </remarks>
     [Serializable]
     public struct DateTimeStamp : IComparable<DateTimeStamp>, IEquatable<DateTimeStamp>
     {

@@ -50,6 +50,24 @@ namespace CK.Text.Tests
             Assert.That( new StringBuilder().Append( "", 20 ).ToString(), Is.Empty );
             Assert.That( new StringBuilder().Append( null, 20 ).ToString(), Is.Empty );
         }
+
+        [TestCase( '0', 0 )]
+        [TestCase( '1', 1 )]
+        [TestCase( '9', 9 )]
+        [TestCase( 'a', 10 )]
+        [TestCase( 'e', 14 )]
+        [TestCase( 'f', 15 )]
+        [TestCase( 'A', 10 )]
+        [TestCase( 'C', 12 )]
+        [TestCase( 'F', 15 )]
+        [TestCase( 'm', -1 )]
+        [TestCase( '\t', -1 )]
+        [TestCase( '\u0000', -1 )]
+        [TestCase( 'Z', -1 )]
+        public void HexDigitValue_extension_method_on_character( char c, int expected )
+        {
+            Assert.That( c.HexDigitValue(), Is.EqualTo( expected ) );
+        }
     }
 
 }

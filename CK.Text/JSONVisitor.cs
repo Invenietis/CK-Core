@@ -150,9 +150,8 @@ namespace CK.Text
                 _path.RemoveAt( _path.Count - 1 );
             }
         }
-
         /// <summary>
-        /// Visits a comma seprarated list of json items until a closing ] is found.
+        /// Visits a comma seprarated list of json items until a closing ']' is found.
         /// </summary>
         /// <returns>True on success. On error a message may be retrieved from the <see cref="Matcher"/>.</returns>
         public virtual bool VisitArrayContent()

@@ -28,7 +28,7 @@ namespace CK.Core
             if( @this.MatchChar( '(' ) )
             {
                 int unique;
-                if( !@this.MatchInt32( out unique, 0, 255 ) && !@this.TryMatchChar( ')' ) ) return @this.BackwardAddError( savedIndex );
+                if( !@this.MatchInt32( out unique, 0, 255 ) || !@this.TryMatchChar( ')' ) ) return @this.BackwardAddError( savedIndex );
                 uniquifier = (byte)unique;
             }
             time = new DateTimeStamp( t, uniquifier );

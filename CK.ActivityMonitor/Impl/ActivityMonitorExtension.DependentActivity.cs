@@ -83,7 +83,7 @@ namespace CK.Core
             /// <returns>A dependent token.</returns>
             public void Launch( Action<ActivityMonitor.DependentToken> dependentLauncher )
             {
-                if( dependentLauncher == null ) throw new ArgumentNullException( "dependentLauncher" );
+                if( dependentLauncher == null ) throw new ArgumentNullException( nameof( dependentLauncher ) );
                 string msg;
                 var t = ActivityMonitor.DependentToken.CreateWithMonitorTopic( _monitor, true, out msg );
                 using( _monitor.UnfilteredOpenGroup( ActivityMonitor.Tags.CreateDependentActivity, LogLevel.Info, null, msg, t.CreationDate, null, _fileName, _lineNumber ) )
@@ -102,7 +102,7 @@ namespace CK.Core
             /// <param name="dependentTopic">Topic for the dependent activity. When null, the dependent monitor's topic is not changed.</param>
             public void LaunchWithTopic( Action<ActivityMonitor.DependentToken> dependentLauncher, string dependentTopic )
             {
-                if( dependentLauncher == null ) throw new ArgumentNullException( "dependentLauncher" );
+                if( dependentLauncher == null ) throw new ArgumentNullException( nameof(dependentLauncher) );
                 string msg;
                 var t = ActivityMonitor.DependentToken.CreateWithDependentTopic( _monitor, true, dependentTopic, out msg );
                 using( _monitor.UnfilteredOpenGroup( ActivityMonitor.Tags.CreateDependentActivity, LogLevel.Info, null, msg, t.CreationDate, null, _fileName, _lineNumber ) )
@@ -110,18 +110,6 @@ namespace CK.Core
                     dependentLauncher( t );
                     _monitor.CloseGroup( _monitor.NextLogTime(), "Success." );
                 }
-            }
-
-            /// <summary>
-            /// 
-            /// </summary>
-            /// <param name="token"></param>
-            /// <returns></returns>
-            [Obsolete( "Use the IActivityMonitor.StartDependentActivity( token ) extension method instead.", false )]
-            public IDisposable StartDependentActivity( ActivityMonitor.DependentToken token )
-            {
-                if( token == null ) throw new ArgumentNullException( "token" );
-                return ActivityMonitor.DependentToken.Start( token, _monitor, _fileName, _lineNumber );
             }
         }
         

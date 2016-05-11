@@ -150,5 +150,20 @@ namespace CK.Text
         /// </summary>
         public static bool IsCRLF => EOLNormalizer.IsCRLF;
 
+
+        /// <summary>
+        /// Gets the value (0...15) for this character ('0'...'9', 'a'...'f' or 'A.'..'F'),
+        /// or -1 if this is not an hexadecimal digit.
+        /// </summary>
+        /// <param name="c">This character.</param>
+        /// <returns>The value for this character.</returns>
+        public static int HexDigitValue( this char c )
+        {
+            int cN = c - '0';
+            if( cN >= 49 ) cN -= 39;
+            else if( cN >= 17 ) cN -= 7;
+            return cN >= 0 && cN < 16 ? cN : -1;
+        }
+
     }
 }
