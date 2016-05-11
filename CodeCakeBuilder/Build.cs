@@ -165,6 +165,63 @@ namespace CodeCake
                     }
                 } );
 
+            Task( "Build-DocFX" )
+                .IsDependentOn( "Check-Repository" )
+                .WithCriteria( () => gitInfo.IsValid )
+                .Does( () =>
+                {
+                    var settingsFile = Cake.File("DocFX/docfx.json");
+                    var settingsFileCopy = Cake.File("DocFX/docfx.json.old");
+                    try
+                    {
+                        // Create a copy restored in finally{}
+                        Cake.Information( $"Backing up {settingsFile} to {settingsFileCopy}" );
+                        Cake.CopyFile( settingsFile, settingsFileCopy );
+
+                        // Edit the settings file
+                        // TODO: A proper visitor & rewriter; target properties are:
+                        //   o.build.globalMetadata._appVersion
+                        //   o.build.globalMetadata._appShortVersion
+                        Cake.Information( $"Writing {settingsFile}" );
+                        Cake.Information( $"* _appVersion: {gitInfo.SemVer}" );
+                        Cake.Information( $"* _appShortVersion: {gitInfo.NuGetVersion}" );
+                        File.WriteAllText(
+                            settingsFile,
+                            File.ReadAllText( settingsFile )
+                                .Replace( "%%VERSION%%", gitInfo.SemVer )
+                                .Replace( "%%SHORTVERSION%%", gitInfo.NuGetVersion )
+                            );
+
+                        // Build DocFX project
+                        var docFxProjectFile = Cake.File("DocFX/DocFX.csproj");
+
+                        Cake.Information( $"Building {docFxProjectFile}" );
+
+                        Cake.MSBuild( docFxProjectFile, settings =>
+                        {
+                            settings.Configuration = configuration;
+                            settings.Verbosity = Verbosity.Minimal;
+                        } );
+
+                        // Pack output
+                        var outDir = Cake.Directory("DocFX/_site");  // Configured in DocFX/docfx.json
+                        var outZip = releasesDir.Path.CombineWithFilePath( $@"CK-Core.{gitInfo.SemVer}.DocFX.zip" );
+
+                        Cake.Information( $"Packing {outDir} to {outZip}" );
+                        Cake.Zip( outDir, outZip );
+                    }
+                    finally
+                    {
+                        // Delete existing file and restore file copy
+                        if( Cake.FileExists( settingsFileCopy ) )
+                        {
+                            Cake.Information( $"Restoring {settingsFile}" );
+                            if( Cake.FileExists( settingsFile ) ) { Cake.DeleteFile( settingsFile ); }
+                            Cake.MoveFile( settingsFileCopy, settingsFile );
+                        }
+                    }
+                } );
+
             // The Default task for this script can be set here.
             Task( "Default" )
                 .IsDependentOn( "Push-NuGet-Packages" );
