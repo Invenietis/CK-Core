@@ -11,7 +11,8 @@
             "**/obj/**",
             "**/bin/**",
             "_site/**",
-            "DocFX/**"
+            "DocFX/**",
+            "*.Tests/**"
           ]
         }
       ],
@@ -62,7 +63,8 @@
       }
     ],
     "globalMetadata": {
-      "_appTitle": "CK.Core documentation",
+      "_appTitle": "CK-Core",
+      "_appVersion": "5.0.0-e",
       "_enableSearch": true
     },
     "externalReference": [
@@ -73,8 +75,8 @@
     ],
     "dest": "_site",
     "template": [
-      "default",
-      "template"
+      "templates/default",
+      "templates/custom"
     ]
   }
 }

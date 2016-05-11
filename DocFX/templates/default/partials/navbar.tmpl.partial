@@ -1,3 +1,5 @@
+{{!Copyright (c) Microsoft. All rights reserved. Licensed under the MIT license. See LICENSE file in the project root for full license information.}}
+
 <nav id="autocollapse" class="navbar navbar-inverse ng-scope" role="navigation">
   <div class="container">
     <div class="navbar-header">
@@ -8,7 +10,7 @@
         <span class="icon-bar"></span>
       </button>
       <a class="navbar-brand" href="{{_rel}}">
-        <img id="logo" class="svg" src="{{_rel}}images/logo.png" alt="{{_appName}}" style="max-height: 100%;">
+        <img id="logo" class="svg" src="{{_rel}}logo.svg" alt="{{_appName}}" >
       </a>
     </div>
     <div class="collapse navbar-collapse" id="navbar">
