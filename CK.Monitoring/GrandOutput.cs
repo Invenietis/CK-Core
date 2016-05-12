@@ -35,10 +35,7 @@ namespace CK.Monitoring
         /// Gets the default <see cref="GrandOutput"/> for the current Application Domain.
         /// Note that <see cref="EnsureActiveDefault"/> must have been called, otherwise this static property is null.
         /// </summary>
-        public static GrandOutput Default 
-        { 
-            get { return _default; } 
-        }
+        public static GrandOutput Default => _default; 
 
         /// <summary>
         /// Ensures that the <see cref="Default"/> GrandOutput is created and that any <see cref="ActivityMonitor"/> that will be created in this
@@ -137,18 +134,12 @@ namespace CK.Monitoring
         /// <summary>
         /// Gets the number of lost events since this <see cref="GrandOutput"/> has been created.
         /// </summary>
-        public int LostEventCount 
-        { 
-            get { return _dispatcher.LostEventCount; } 
-        }
+        public int LostEventCount  => _dispatcher.LostEventCount; 
 
         /// <summary>
         /// Maximal queue size that has been used.
         /// </summary>
-        public int MaxQueuedCount
-        {
-            get { return _dispatcher.MaxQueuedCount; }
-        }
+        public int MaxQueuedCount => _dispatcher.MaxQueuedCount; 
         
         /// <summary>
         /// Registers a <see cref="IGrandOutputSink"/>.
@@ -176,10 +167,7 @@ namespace CK.Monitoring
         /// Gets the total number of calls to <see cref="SetConfiguration"/> (and to <see cref="Dispose()"/> method).
         /// This can be used to call <see cref="WaitForNextConfiguration"/>.
         /// </summary>
-        public int ConfigurationAttemptCount
-        {
-            get { return _channelHost.ConfigurationAttemptCount; }
-        }
+        public int ConfigurationAttemptCount => _channelHost.ConfigurationAttemptCount; 
 
         /// <summary>
         /// Attempts to set a new configuration.

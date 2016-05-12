@@ -86,7 +86,7 @@ namespace CK.Monitoring
             Debug.Assert( def.GlobalDefaultFilter == null );
             var route = new RouteConfiguration();
             route.ConfigData = new GrandOutputChannelConfigData() { MinimalFilter = LogFilter.Debug };
-            route.AddAction( new BinaryFileConfiguration( "All" ) { Path = "GrandOutputDefault" } );
+            route.AddAction( new TextFileConfiguration( "All" ) { Path = "GrandOutputDefault" } );
             def.ChannelsConfiguration = route;
             return def;
         }
