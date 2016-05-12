@@ -182,7 +182,7 @@ namespace CK.Monitoring
             if( (t & StreamLogType.HasFileName) != 0 )
             {
                 w.Write( fileName );
-                w.WriteSmallInt32( lineNumber );
+                w.WriteNonNegativeSmallInt32( lineNumber );
             }
             if( (t & StreamLogType.HasException) != 0 ) ex.Write( w );
             if( (t & StreamLogType.IsTextTheExceptionMessage) == 0 ) w.Write( text );
@@ -235,7 +235,7 @@ namespace CK.Monitoring
         static void WriteMulticastFooter( CKBinaryWriter w, Guid monitorId, LogEntryType previousEntryType, DateTimeStamp previousStamp, int depth )
         {
             w.Write( monitorId.ToByteArray() );
-            w.WriteSmallInt32( depth );
+            w.WriteNonNegativeSmallInt32( depth );
             if( previousStamp.IsKnown )
             {
                 w.Write( previousStamp.TimeUtc.ToBinary() );
@@ -253,7 +253,7 @@ namespace CK.Monitoring
             if( closeTime.Uniquifier != 0 ) w.Write( closeTime.Uniquifier );
             if( (t & StreamLogType.HasConclusions) != 0 )
             {
-                w.WriteSmallInt32( conclusions.Count );
+                w.WriteNonNegativeSmallInt32( conclusions.Count );
                 foreach( ActivityLogGroupConclusion c in conclusions )
                 {
                     w.Write( c.Tag.ToString() );
@@ -308,7 +308,7 @@ namespace CK.Monitoring
             if( (t & StreamLogType.HasFileName) != 0 )
             {
                 fileName = r.ReadString();
-                lineNumber = streamVersion < 6 ? r.ReadInt32() : r.ReadSmallInt32();
+                lineNumber = streamVersion < 6 ? r.ReadInt32() : r.ReadNonNegativeSmallInt32();
                 if( lineNumber > 100*1000 ) throw new InvalidDataException( "LineNumber greater than 100K is considered invalid." );
             }
             if( (t & StreamLogType.HasException) != 0 )
@@ -345,7 +345,7 @@ namespace CK.Monitoring
         {
             Debug.Assert( Guid.Empty.ToByteArray().Length == 16 );
             mId = new Guid( r.ReadBytes( 16 ) );
-            depth = streamVersion < 6 ? r.ReadInt32() : r.ReadSmallInt32();
+            depth = streamVersion < 6 ? r.ReadInt32() : r.ReadNonNegativeSmallInt32();
             if( depth < 0 ) throw new InvalidDataException();
             prevType = LogEntryType.None;
             prevTime = DateTimeStamp.Unknown;
@@ -362,7 +362,7 @@ namespace CK.Monitoring
             ActivityLogGroupConclusion[] conclusions = Util.Array.Empty<ActivityLogGroupConclusion>();
             if( (t & StreamLogType.HasConclusions) != 0 )
             {
-                int conclusionsCount = streamVersion < 6 ? r.ReadInt32() : r.ReadSmallInt32();
+                int conclusionsCount = streamVersion < 6 ? r.ReadInt32() : r.ReadNonNegativeSmallInt32();
                 conclusions = new ActivityLogGroupConclusion[conclusionsCount];
                 for( int i = 0; i < conclusionsCount; i++ )
                 {

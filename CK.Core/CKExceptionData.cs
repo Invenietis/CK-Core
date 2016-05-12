@@ -106,8 +106,8 @@ namespace CK.Core
             _fileName = r.ReadNullableString();
             _detailedInfo = r.ReadNullableString( streamIsCRLF );
 
-            int nbAgg = version == 0 ? r.ReadInt32()+1 : r.ReadSmallInt32();
-            if( --nbAgg > 0 )
+            int nbAgg = version == 0 ? r.ReadInt32() : r.ReadSmallInt32();
+            if( nbAgg > 0 )
             {
                 _aggregatedExceptions = new CKExceptionData[nbAgg];
                 for( int i = 0; i < nbAgg; ++i ) _aggregatedExceptions[i] = new CKExceptionData( r, streamIsCRLF, version == 0 ? r.ReadInt32() : version );
@@ -118,7 +118,7 @@ namespace CK.Core
                 if( nbAgg == 0 ) _innerException = new CKExceptionData( r, streamIsCRLF, version == 0 ? r.ReadInt32() : version );
             }
 
-            int nbLd = version == 0 ? r.ReadInt32() : r.ReadSmallInt32();
+            int nbLd = version == 0 ? r.ReadInt32() : r.ReadNonNegativeSmallInt32();
             if( nbLd != 0 )
             {
                 _loaderExceptions = new CKExceptionData[nbLd];
@@ -275,25 +275,25 @@ namespace CK.Core
 
             if( _aggregatedExceptions != null )
             {
-                w.WriteSmallInt32( _aggregatedExceptions.Length + 1 );
+                w.WriteSmallInt32( _aggregatedExceptions.Length );
                 foreach( var agg in _aggregatedExceptions ) agg.WriteWithoutVersion( w );
             }
             else
             {
                 if( _innerException != null )
                 {
-                    w.WriteSmallInt32( 1 );
+                    w.WriteSmallInt32( 0 );
                     _innerException.WriteWithoutVersion( w );
                 }
-                else w.WriteSmallInt32( 0 );
+                else w.WriteSmallInt32( -1 );
             }
 
             if( _loaderExceptions != null )
             {
-                w.WriteSmallInt32( _loaderExceptions.Length );
+                w.WriteNonNegativeSmallInt32( _loaderExceptions.Length );
                 foreach( var ld in _loaderExceptions ) ld.WriteWithoutVersion( w );
             }
-            else w.WriteSmallInt32( 0 );
+            else w.WriteNonNegativeSmallInt32( 0 );
         }
 
 

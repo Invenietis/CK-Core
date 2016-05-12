@@ -51,7 +51,14 @@ namespace CK.Core
         /// Reads in a 32-bit integer in compressed format.
         /// </summary>
         /// <returns>A 32-bit integer</returns>
-        public int ReadSmallInt32() => Read7BitEncodedInt();
+        public int ReadNonNegativeSmallInt32() => Read7BitEncodedInt();
+
+        /// <summary>
+        /// Reads in a 32-bit integer in compressed format wriiten by <see cref="CKBinaryWriter.WriteSmallInt32(int, int)"/>.
+        /// </summary>
+        /// <param name="minNegativeValue">The same negative value used to write the integer.</param>
+        /// <returns>A 32-bit integer</returns>
+        public int ReadSmallInt32( int minNegativeValue = -1 ) => Read7BitEncodedInt() + minNegativeValue;
 
         /// <summary>
         /// Reads and normalizes a string according to <see cref="Environment.NewLine"/>.
