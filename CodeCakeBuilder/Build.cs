@@ -24,8 +24,7 @@ using Cake.Core.IO;
 namespace CodeCake
 {
     /// <summary>
-    /// Sample build "script".
-    /// It can be decorated with AddPath attributes that inject paths into the PATH environment variable. 
+    /// Standard build "script".
     /// </summary>
     [AddPath( "CodeCakeBuilder/Tools" )]
     [AddPath( "packages/**/tools*" )]
@@ -33,10 +32,16 @@ namespace CodeCake
     {
         public Build()
         {
+            const string solutionName = "CK-Core.sln";
+            const string solutionFileName = solutionName + "sln";
+
             var releasesDir = Cake.Directory( "CodeCakeBuilder/Releases" );
             SimpleRepositoryInfo gitInfo = null;
+            // Configuration is either "Debug" or "Release".
             string configuration = null;
-            var projectsToPublish = Cake.ParseSolution( "CK-Core.sln" )
+
+            // We do not publish .Tests projects for this solution.
+            var projectsToPublish = Cake.ParseSolution( solutionFileName )
                                         .Projects
                                         .Where( p => p.Name != "CodeCakeBuilder"
                                                      && !p.Path.Segments.Contains( "Tests" ) );
@@ -45,15 +50,18 @@ namespace CodeCake
                 .Does( () =>
                 {
                     gitInfo = Cake.GetSimpleRepositoryInfo();
+
                     if( !gitInfo.IsValid )
                     {
-                        configuration = "Debug";
-                        Cake.Warning( "Repository is not ready to be published. Setting configuration to {0}.", configuration );
+                        if( Cake.IsInteractiveMode()
+                            && Cake.ReadInteractiveOption( "Repository is not ready to be published. Proceed anyway?", 'Y', 'N' ) == 'Y' )
+                        {
+                            Cake.Warning( "GitInfo is not valid, but you choose to continue..." );
+                        }
+                        else throw new Exception( "Repository is not ready to be published." );
                     }
-                    else
-                    {
-                        configuration = gitInfo.IsValidRelease && gitInfo.PreReleaseName.Length == 0 ? "Release" : "Debug";
-                    }
+                    configuration = gitInfo.IsValidRelease && gitInfo.PreReleaseName.Length == 0 ? "Release" : "Debug";
+
                     Cake.Information( "Publishing {0} projects with version={1} and configuration={2}: {3}",
                         projectsToPublish.Count(),
                         gitInfo.SemVer,
@@ -64,7 +72,7 @@ namespace CodeCake
             Task( "Restore-NuGet-Packages" )
                 .Does( () =>
                 {
-                    Cake.NuGetRestore( "CK-Core.sln" );
+                    Cake.NuGetRestore( solutionFileName );
                 } );
 
             Task( "Clean" )
@@ -83,7 +91,7 @@ namespace CodeCake
                 .IsDependentOn( "Check-Repository" )
                 .Does( () =>
                 {
-                    using( var tempSln = Cake.CreateTemporarySolutionFile( "CK-Core.sln" ) )
+                    using( var tempSln = Cake.CreateTemporarySolutionFile( solutionFileName ) )
                     {
                         tempSln.ExcludeProjectsFromBuild( "CodeCakeBuilder" );
                         Cake.MSBuild( tempSln.FullPath, settings =>
@@ -106,7 +114,13 @@ namespace CodeCake
                 .Does( () =>
                 {
                     Cake.CreateDirectory( releasesDir );
-                    Cake.NUnit( "Tests/*.Tests/bin/" + configuration + "/*.Tests.dll", new NUnitSettings()
+                    var testDlls = Cake.ParseSolution( solutionFileName )
+                     .Projects
+                         .Where( p => p.Name.EndsWith( ".Tests" ) )
+                         .Select( p => p.Path.GetDirectory().CombineWithFilePath( "bin/" + configuration + "/" + p.Name + ".dll" ) );
+                    Cake.Information( "Testing: {0}", string.Join( ", ", testDlls.Select( p => p.GetFilename().ToString() ) ) );
+
+                    Cake.NUnit( testDlls, new NUnitSettings()
                     {
                         Framework = "v4.5",
                         OutputFile = releasesDir.Path + "/TestResult.txt"
@@ -156,7 +170,17 @@ namespace CodeCake
                     }
                     if( gitInfo.IsValidRelease )
                     {
-                        PushNuGetPackages( "NUGET_API_KEY", "https://www.nuget.org/api/v2/package", nugetPackages );
+                        if( gitInfo.PreReleaseName == "" 
+                            || gitInfo.PreReleaseName == "prerelease" 
+                            || gitInfo.PreReleaseName == "rc" )
+                        {
+                            PushNuGetPackages( "NUGET_API_KEY", "https://www.nuget.org/api/v2/package", nugetPackages );
+                        }
+                        else
+                        {
+                            // An alpha, beta, delta, epsilon, gamma, kappa goes to invenietis-prerelease.
+                            PushNuGetPackages( "MYGET_PRERELEASE_API_KEY", "https://www.myget.org/F/invenietis-prerelease/api/v2/package", nugetPackages );
+                        }
                     }
                     else
                     {
@@ -205,7 +229,7 @@ namespace CodeCake
 
                         // Pack output
                         var outDir = Cake.Directory("DocFX/_site");  // Configured in DocFX/docfx.json
-                        var outZip = releasesDir.Path.CombineWithFilePath( $@"CK-Core.{gitInfo.SemVer}.DocFX.zip" );
+                        var outZip = releasesDir.Path.CombineWithFilePath( $@"{solutionName}.{gitInfo.SemVer}.DocFX.zip" );
 
                         Cake.Information( $"Packing {outDir} to {outZip}" );
                         Cake.Zip( outDir, outZip );
