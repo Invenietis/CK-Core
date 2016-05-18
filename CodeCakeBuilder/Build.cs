@@ -20,6 +20,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using Cake.Common.Tools.NUnit;
 using Cake.Core.IO;
+using CK.Text;
 
 namespace CodeCake
 {
@@ -32,8 +33,8 @@ namespace CodeCake
     {
         public Build()
         {
-            const string solutionName = "CK-Core.sln";
-            const string solutionFileName = solutionName + "sln";
+            const string solutionName = "CK-Core";
+            const string solutionFileName = solutionName + ".sln";
 
             var releasesDir = Cake.Directory( "CodeCakeBuilder/Releases" );
             SimpleRepositoryInfo gitInfo = null;
@@ -66,7 +67,7 @@ namespace CodeCake
                         projectsToPublish.Count(),
                         gitInfo.SemVer,
                         configuration,
-                        string.Join( ", ", projectsToPublish.Select( p => p.Name ) ) );
+                        projectsToPublish.Select( p => p.Name ).Concatenate() );
                 } );
 
             Task( "Restore-NuGet-Packages" )
@@ -143,7 +144,6 @@ namespace CodeCake
                     foreach( var nuspec in Cake.GetFiles( releasesDir.Path + "/*.nuspec" ) )
                     {
                         TransformText( nuspec, configuration, gitInfo );
-                        Cake.Information( File.ReadAllText( nuspec.FullPath ) );
                         Cake.NuGetPack( nuspec, settings );
                     }
                     Cake.DeleteFiles( releasesDir.Path + "/*.nuspec" );
