@@ -21,6 +21,7 @@ namespace CK.Core.Tests.Monitoring
         {
             TestHelper.LogsToConsole = true;
             var m = new ActivityMonitor( false );
+            m.MinimalFilter = LogFilter.Debug;
             StringBuilder b = new StringBuilder();
             var client = new ActivityMonitorTextWriterClient( s => b.Append( s ) );
             m.Output.RegisterClient( client );
@@ -47,7 +48,7 @@ namespace CK.Core.Tests.Monitoring
 |  |          WL3
 |  < 
 < 
-" ) );
+".NormalizeEOL() ) );
         }
     }
 }
