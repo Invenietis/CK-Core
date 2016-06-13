@@ -38,6 +38,7 @@
     <Compile Include="..\..\SharedAssemblyInfo.cs">
       <Link>Properties\SharedAssemblyInfo.cs</Link>
     </Compile>
+    <Compile Include="ActivityMonitorTextWriterClientTests.cs" />
     <Compile Include="CoreStubs\System.Runtime.Remoting.cs" />
     <Compile Include="CoreStubs\System.Runtime.Serialization.cs" />
     <Compile Include="SourceFilteringTests.cs" />

@@ -109,10 +109,12 @@ namespace CK.Core
         protected override void OnGroupOpen( IActivityLogGroup g )
         {
             var w = _buffer.Clear();
-            string start = String.Format( "{0}> {1}: ", _prefix, g.MaskedGroupLevel.ToString() );
+            string levelLabel = g.MaskedGroupLevel.ToString();
+            string start = string.Format( "{0}> {1}: ", _prefix, levelLabel );
             _prefix += "|  ";
             _prefixLevel = _prefix;
-            string text = g.GroupText.Replace( Environment.NewLine, Environment.NewLine + _prefixLevel );
+            string prefixLabel = _prefixLevel + new string( ' ', levelLabel.Length + 1 );
+            string text = g.GroupText.Replace( Environment.NewLine, Environment.NewLine + prefixLabel );
             if( _currentTags != g.GroupTags )
             {
                 _currentTags = g.GroupTags;
