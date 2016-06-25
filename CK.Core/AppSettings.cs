@@ -1,33 +1,6 @@
-#region LGPL License
-/*----------------------------------------------------------------------------
-* This file (CK.Core\AppSettings.cs) is part of CiviKey. 
-*  
-* CiviKey is free software: you can redistribute it and/or modify 
-* it under the terms of the GNU Lesser General Public License as published 
-* by the Free Software Foundation, either version 3 of the License, or 
-* (at your option) any later version. 
-*  
-* CiviKey is distributed in the hope that it will be useful, 
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
-* GNU Lesser General Public License for more details. 
-* You should have received a copy of the GNU Lesser General Public License 
-* along with CiviKey.  If not, see <http://www.gnu.org/licenses/>. 
-*  
-* Copyright © 2007-2015, 
-*     Invenietis <http://www.invenietis.com>,
-*     In’Tech INFO <http://www.intechinfo.fr>,
-* All rights reserved. 
-*-----------------------------------------------------------------------------*/
-#endregion
-
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace CK.Core
 {
@@ -62,7 +35,7 @@ namespace CK.Core
             if( getConfigurationObject == null ) throw new ArgumentNullException( "getConfigurationObject" );
             lock( _lock )
             {
-                if( _initialized ) throw new CKException( "AppSettingsAlreadyInitialied" );
+                if( _initialized ) throw new CKException( Impl.CoreResources.AppSettingsAlreadyInitialized );
                 _initializedGetObject = _getObject = getConfigurationObject;
                 _initialized = true;
             }
@@ -99,6 +72,15 @@ namespace CK.Core
         }
 
         /// <summary>
+        /// Gets whether this AppSettings object has been initialized.
+        /// It can be initialized only once.
+        /// </summary>
+        public bool IsInitialzed
+        {
+            get { return _initialized; }
+        }
+
+        /// <summary>
         /// Automatically bind to standard ConfigurationManager.AppSettings to obtain configuration strings.
         /// This method is automatically called when this object is not yet initialized on any access other than <see cref="Initialize"/>.
         /// </summary>
@@ -106,7 +88,7 @@ namespace CK.Core
         {
             lock( _lock )
             {
-                if( _initialized ) throw new CKException( R.AppSettingsAlreadyInitialized );
+                if( _initialized ) throw new CKException( Impl.CoreResources.AppSettingsAlreadyInitialized );
                 DoDefaultInitialize();
             }
         }
@@ -160,7 +142,7 @@ namespace CK.Core
         {
             if( !_initialized ) DefaultInitialization();
             var o = _getObject( key );
-            if( o == null ) throw new CKException( R.AppSettingsRequiredConfigurationMissing, key );
+            if( o == null ) throw new CKException( Impl.CoreResources.AppSettingsRequiredConfigurationMissing, key );
             return o;
         }
 
@@ -173,8 +155,8 @@ namespace CK.Core
         {
             if( !_initialized ) DefaultInitialization();
             var o = _getObject( key );
-            if( o == null ) throw new CKException( R.AppSettingsRequiredConfigurationMissing, key );
-            if( !(o is T) ) throw new CKException( R.AppSettingsRequiredConfigurationBadType, key, typeof(T).FullName );
+            if( o == null ) throw new CKException( Impl.CoreResources.AppSettingsRequiredConfigurationMissing, key );
+            if( !(o is T) ) throw new CKException( Impl.CoreResources.AppSettingsRequiredConfigurationBadType, key, typeof(T).FullName );
             return (T)o;
         }
 
@@ -187,11 +169,11 @@ namespace CK.Core
             }
         }
 
-        const string _defType = "System.Configuration.ConfigurationManager, System.Configuration, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a";
 
         void DoDefaultInitialize()
         {
-            Type configMananger = SimpleTypeFinder.Default.ResolveType( _defType, false );
+            const string _defType = "System.Configuration.ConfigurationManager, System.Configuration, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a";
+            Type configMananger = SimpleTypeFinder.WeakResolver( _defType, false );
             // Type op_equality is not portable: use ReferenceEquals.
             if( !ReferenceEquals( configMananger, null ) )
             {
@@ -208,7 +190,7 @@ namespace CK.Core
                 _initializedGetObject = _getObject = (Func<string, object>)getter.CreateDelegate( typeof( Func<string, object> ) );
                 _initialized = true;
             }
-            else throw new CKException( R.AppSettingsDefaultInitializationFailed );
+            else throw new CKException( Impl.CoreResources.AppSettingsDefaultInitializationFailed );
         }
 
     }

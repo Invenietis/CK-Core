@@ -1,39 +1,33 @@
-#region LGPL License
-/*----------------------------------------------------------------------------
-* This file (Tests\CK.Monitoring.Tests\TestHelper.cs) is part of CiviKey. 
-*  
-* CiviKey is free software: you can redistribute it and/or modify 
-* it under the terms of the GNU Lesser General Public License as published 
-* by the Free Software Foundation, either version 3 of the License, or 
-* (at your option) any later version. 
-*  
-* CiviKey is distributed in the hope that it will be useful, 
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
-* GNU Lesser General Public License for more details. 
-* You should have received a copy of the GNU Lesser General Public License 
-* along with CiviKey.  If not, see <http://www.gnu.org/licenses/>. 
-*  
-* Copyright © 2007-2015, 
-*     Invenietis <http://www.invenietis.com>,
-*     In’Tech INFO <http://www.intechinfo.fr>,
-* All rights reserved. 
-*-----------------------------------------------------------------------------*/
-#endregion
-
 using System;
 using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using CK.Core;
+using NUnit.Framework.Constraints;
 using NUnit.Framework;
 
 namespace CK.Monitoring.Tests
 {
-    [ExcludeFromCodeCoverage]
+#if CSPROJ
+    static class Does
+    {
+        public static SubstringConstraint Contain( string expected ) => Is.StringContaining( expected );
+
+        public static EndsWithConstraint EndWith( string expected ) => Is.StringEnding( expected );
+
+        public static StartsWithConstraint StartWith( string expected ) => Is.StringStarting( expected );
+
+        public static ConstraintExpression Not => Is.Not;
+
+        public static SubstringConstraint Contain( this ConstraintExpression @this, string expected ) => @this.StringContaining( expected );
+    }
+#else
+    class TestAttribute : Xunit.FactAttribute
+    {
+    }
+#endif
+
     static class TestHelper
     {
         static string _testFolder;
@@ -45,7 +39,9 @@ namespace CK.Monitoring.Tests
         static TestHelper()
         {
             _monitor = new ActivityMonitor();
-            _console = _monitor.Output.RegisterClient( new ActivityMonitorConsoleClient() );
+            // Do not pollute the console by default...
+            // ... but this may be useful sometimes: LogsToConsole does the job.
+            _console = new ActivityMonitorConsoleClient();
         }
 
         public static IActivityMonitor ConsoleMonitor
@@ -60,27 +56,6 @@ namespace CK.Monitoring.Tests
             {
                 if( value ) _monitor.Output.RegisterUniqueClient( c => c == _console, () => _console );
                 else _monitor.Output.UnregisterClient( _console );
-            }
-        }
-
-        /// <summary>
-        /// Use reflection to actually set <see cref="System.Runtime.Remoting.Lifetime.LifetimeServices.LeaseManagerPollTime"/> to 5 milliseconds.
-        /// This triggers an immediate polling from the internal .Net framework LeaseManager.
-        /// Note that the LeaseManager is per AppDomain.
-        /// </summary>
-        public static void SetRemotingLeaseManagerVeryShortPollTime()
-        {
-            System.Runtime.Remoting.Lifetime.LifetimeServices.LeaseManagerPollTime = TimeSpan.FromMilliseconds( 5 );
-            object remotingData = typeof( AppDomain ).GetProperty( "RemotingData", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance ).GetGetMethod().Invoke( System.Threading.Thread.GetDomain(), null );
-            if( remotingData != null )
-            {
-                object leaseManager = remotingData.GetType().GetProperty( "LeaseManager", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance ).GetGetMethod().Invoke( remotingData, null );
-                if( leaseManager != null )
-                {
-                    System.Threading.Timer timer = (System.Threading.Timer)leaseManager.GetType().GetField( "leaseTimer", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance ).GetValue( leaseManager );
-                    Assert.That( timer, Is.Not.Null );
-                    timer.Change( 0, -1 );
-                }
             }
         }
 
@@ -125,9 +100,9 @@ namespace CK.Monitoring.Tests
             }
             foreach( var f in files )
             {
-                if( !FileUtil.CheckForWriteAcccess( f, 3000 ) )
+                if( !FileUtil.CheckForWriteAccess( f, 3000 ) )
                 {
-                    throw new CKException( "CheckForWriteAcccess excceds 3000 milliseconds..." );
+                    throw new CKException( "CheckForWriteAccess exceeds 3000 milliseconds..." );
                 }
             }
             return files;
@@ -197,36 +172,25 @@ namespace CK.Monitoring.Tests
 
         public static void InitalizePaths()
         {
-            if( _testFolder != null ) return;
-            var p = _testFolder = GetTestFolder();
+            if( _solutionFolder != null ) return;
+#if NET451
+            string p = new Uri( System.Reflection.Assembly.GetExecutingAssembly().CodeBase ).LocalPath;
+#else
+            string p = Microsoft.Extensions.PlatformAbstractions.PlatformServices.Default.Application.ApplicationBasePath;
+#endif
             do
             {
                 p = Path.GetDirectoryName( p );
             }
             while( !File.Exists( Path.Combine( p, "CK-Core.sln" ) ) );
             _solutionFolder = p;
+            _testFolder = Path.Combine( _solutionFolder, "Tests", "CK.Monitoring.Tests", "TestFolder" );
 
-            SystemActivityMonitor.RootLogPath = Path.Combine( TestHelper.TestFolder, "RootLogPath" );
+            AppSettings.Default.Initialize( _ => null );
+            SystemActivityMonitor.RootLogPath = Path.Combine( _testFolder, "RootLogPath" );
             ConsoleMonitor.Info().Send( "SolutionFolder is: {1}\r\nTestFolder is: {0}\r\nRootLogPath is: {2}", _testFolder, _solutionFolder, SystemActivityMonitor.RootLogPath );
 
             CleanupTestFolder();
-        }
-
-        /// <summary>
-        /// Can be called from another application domain (does not set SystemActivityMonitor.RootLogPath not initialize statics).
-        /// </summary>
-        /// <returns>The /TestFolder for this project.</returns>
-        public static string GetTestFolder()
-        {
-            string p = new Uri( System.Reflection.Assembly.GetExecutingAssembly().CodeBase ).LocalPath;
-            // => CK.XXX.Tests/bin/Debug/
-            p = Path.GetDirectoryName( p );
-            // => CK.XXX.Tests/bin/
-            p = Path.GetDirectoryName( p );
-            // => CK.XXX.Tests/
-            p = Path.GetDirectoryName( p );
-            // ==> CK.XXX.Tests/TestDir
-            return Path.Combine( p, "TestFolder" );
         }
 
     }

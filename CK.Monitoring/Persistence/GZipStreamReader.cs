@@ -1,31 +1,6 @@
-#region LGPL License
-/*----------------------------------------------------------------------------
-* This file (CK.Monitoring\Persistence\GZipStreamReader.cs) is part of CiviKey. 
-*  
-* CiviKey is free software: you can redistribute it and/or modify 
-* it under the terms of the GNU Lesser General Public License as published 
-* by the Free Software Foundation, either version 3 of the License, or 
-* (at your option) any later version. 
-*  
-* CiviKey is distributed in the hope that it will be useful, 
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
-* GNU Lesser General Public License for more details. 
-* You should have received a copy of the GNU Lesser General Public License 
-* along with CiviKey.  If not, see <http://www.gnu.org/licenses/>. 
-*  
-* Copyright © 2007-2015, 
-*     Invenietis <http://www.invenietis.com>,
-*     In’Tech INFO <http://www.intechinfo.fr>,
-* All rights reserved. 
-*-----------------------------------------------------------------------------*/
-#endregion
-
 using System;
 using System.IO;
 using System.IO.Compression;
-using System.Runtime;
-using System.Security.Permissions;
 
 namespace CK.Monitoring
 {
@@ -39,6 +14,7 @@ namespace CK.Monitoring
             _stream = new GZipStream( stream, CompressionMode.Decompress );
         }
 
+        #if NET451 || NET46
         public override IAsyncResult BeginRead( byte[] array, int offset, int count, AsyncCallback asyncCallback, object asyncState )
         {
             return _stream.BeginRead( array, offset, count, asyncCallback, asyncState );
@@ -47,12 +23,6 @@ namespace CK.Monitoring
         public override IAsyncResult BeginWrite( byte[] array, int offset, int count, AsyncCallback asyncCallback, object asyncState )
         {
             throw new NotSupportedException();
-        }
-
-        protected override void Dispose( bool disposing )
-        {
-            if( disposing ) _stream.Close();
-            base.Dispose( disposing );
         }
         
         public override int EndRead( IAsyncResult asyncResult )
@@ -65,6 +35,14 @@ namespace CK.Monitoring
         public override void EndWrite( IAsyncResult asyncResult )
         {
         }
+        #endif
+
+        protected override void Dispose( bool disposing )
+        {
+            if( disposing ) _stream.Dispose();
+            base.Dispose( disposing );
+        }
+
 
         public override void Flush()
         {

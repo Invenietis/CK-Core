@@ -1,38 +1,10 @@
-#region LGPL License
-/*----------------------------------------------------------------------------
-* This file (CK.Monitoring\Persistence\LogReader.cs) is part of CiviKey. 
-*  
-* CiviKey is free software: you can redistribute it and/or modify 
-* it under the terms of the GNU Lesser General Public License as published 
-* by the Free Software Foundation, either version 3 of the License, or 
-* (at your option) any later version. 
-*  
-* CiviKey is distributed in the hope that it will be useful, 
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
-* GNU Lesser General Public License for more details. 
-* You should have received a copy of the GNU Lesser General Public License 
-* along with CiviKey.  If not, see <http://www.gnu.org/licenses/>. 
-*  
-* Copyright © 2007-2015, 
-*     Invenietis <http://www.invenietis.com>,
-*     In’Tech INFO <http://www.intechinfo.fr>,
-* All rights reserved. 
-*-----------------------------------------------------------------------------*/
-#endregion
-
 using CK.Core;
+using CK.Text;
 using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Runtime.Serialization.Formatters.Binary;
 using System.Text;
-using System.Threading.Tasks;
-using CK.Monitoring.Impl;
-using System.IO.Compression;
-using System.Diagnostics;
 
 namespace CK.Monitoring
 {
@@ -42,7 +14,7 @@ namespace CK.Monitoring
     public sealed class LogReader : IEnumerator<ILogEntry>
     {
         Stream _stream;
-        BinaryReader _binaryReader;
+        CKBinaryReader _binaryReader;
         readonly int _streamVersion;
         readonly int _headerLength;
         ILogEntry _current;
@@ -55,7 +27,7 @@ namespace CK.Monitoring
         /// Current version stamp. Writes are done with this version, but reads MUST handle it.
         /// The first released version is 5.
         /// </summary>
-        public const int CurrentStreamVersion = 5;
+        public const int CurrentStreamVersion = 6;
 
         /// <summary>
         /// The file header for .ckmon files starting from CurrentStreamVersion = 5.
@@ -63,23 +35,6 @@ namespace CK.Monitoring
         /// </summary>
         public static readonly byte[] FileHeader = new byte[] { 0x43, 0x4b, 0x4d, 0x4f, 0x4e };
 
-#if net40
-        /// <summary>
-        /// Initializes a new <see cref="LogReader"/> on an uncompressed stream with an explicit version number.
-        /// </summary>
-        /// <param name="stream">Stream to read logs from.</param>
-        /// <param name="streamVersion">Version of the log stream.</param>
-        /// <param name="headerLength">Length of the header. This will be substracted to the actual stream position to compute the <see cref="StreamOffset"/>.</param>
-        public LogReader( Stream stream, int streamVersion, int headerLength )
-        {
-            if( streamVersion < 4 ) 
-                throw new ArgumentException( "Must be greater or equal to 4 (the first version).", "streamVersion" );
-            _stream = stream;
-            _binaryReader = new BinaryReader( stream, Encoding.UTF8 );
-            _streamVersion = streamVersion;
-            _headerLength = headerLength;
-        }
-#else
         /// <summary>
         /// Initializes a new <see cref="LogReader"/> on an uncompressed stream with an explicit version number.
         /// </summary>
@@ -95,11 +50,10 @@ namespace CK.Monitoring
             if( streamVersion < 5 )
                 throw new ArgumentException( "Must be greater or equal to 5 (the first version).", "streamVersion" );
             _stream = stream;
-            _binaryReader = new BinaryReader( stream, Encoding.UTF8, !mustClose );
+            _binaryReader = new CKBinaryReader( stream, Encoding.UTF8, !mustClose );
             _streamVersion = streamVersion;
             _headerLength = headerLength;
         }
-#endif
 
         /// <summary>
         /// Opens a <see cref="LogReader"/> to read the content of a compressed or uncompressed file.
@@ -289,7 +243,7 @@ namespace CK.Monitoring
         public bool MoveNext()
         {
             if( _stream == null ) return false;
-            if( _streamVersion != CurrentStreamVersion )
+            if( _streamVersion < 5 || _streamVersion > CurrentStreamVersion )
             {
                 throw new InvalidOperationException( String.Format( "Stream is not a log stream or its version is not handled (Current Version = {0}).", CurrentStreamVersion ) );
             }

@@ -1,0 +1,16 @@
+{
+  "projects": [
+    "CK.Core",
+    "CK.ActivityMonitor",
+    "CK.Monitoring",
+    "CK.Reflection",
+    "Tests/CK.Core.Tests",
+    "Tests/CK.ActivityMonitor.Tests",
+    "Tests/CK.Monitoring.Tests",
+    "Tests/CK.Reflection.Tests"
+  ],
+    "sdk": {
+        "runtime": "clr",
+        "version": "1.0.0-rc2-16595"
+    }
+}

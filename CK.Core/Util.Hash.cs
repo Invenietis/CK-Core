@@ -28,11 +28,8 @@ using System.Collections;
 
 namespace CK.Core
 {
-    /// <summary>
-    /// Utility class.
-    /// </summary>
 	static public partial class Util
-	{    
+	{
         /// <summary>
         /// Provides methods to combine hash values: use <see cref="StartValue"/> and then 
         /// chain calls to the <see cref="M:Combine"/> methods.
@@ -50,7 +47,7 @@ namespace CK.Core
             /// It seems that this value has nothing special (mathematically speaking) except that it 
             /// has been used and reused by many people since DJB choose it.
             ///</remarks>
-            public static Int64 StartValue { get { return 5381; } }
+            public static long StartValue => 5381;
 
             /// <summary>
             /// Combines an existing hash value with a new one.
@@ -58,7 +55,7 @@ namespace CK.Core
             /// <param name="hash">Current hash.</param>
             /// <param name="value">Value to combine.</param>
             /// <returns>A combined hash.</returns>
-            public static Int64 Combine( Int64 hash, int value )
+            public static long Combine( Int64 hash, int value )
             {
                 return ((hash << 5) + hash) ^ value;
             }
@@ -69,7 +66,7 @@ namespace CK.Core
             /// <param name="hash">Current hash.</param>
             /// <param name="o">Object whose hash must be combined (can be null).</param>
             /// <returns>A combined hash.</returns>
-            public static Int64 Combine( Int64 hash, object o )
+            public static long Combine( long hash, object o )
             {
                 return Combine( hash, o != null ? o.GetHashCode() : 0 );
             }
@@ -80,7 +77,7 @@ namespace CK.Core
             /// <param name="hash">Current hash.</param>
             /// <param name="c">Multiple objects. Can be null.</param>
             /// <returns>A combined hash.</returns>
-            public static Int64 Combine( Int64 hash, IEnumerable c )
+            public static long Combine( long hash, IEnumerable c )
             {
                 int nb = 0;
                 if( c != null )
@@ -100,7 +97,7 @@ namespace CK.Core
             /// <param name="hash">Current hash.</param>
             /// <param name="objects">Multiple objects.</param>
             /// <returns>A combined hash.</returns>
-            public static Int64 Combine( Int64 hash, params object[] objects )
+            public static long Combine( long hash, params object[] objects )
             {
                 return Combine( hash, (IEnumerable)objects );
             }

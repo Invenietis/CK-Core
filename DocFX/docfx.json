@@ -1,0 +1,83 @@
+{
+  "metadata": [
+    {
+      "src": [
+        {
+          "files": [
+            "**/*.csproj"
+          ],
+          "cwd": "..",
+          "exclude": [
+            "**/obj/**",
+            "**/bin/**",
+            "_site/**",
+            "DocFX/**",
+            "**/*.Tests/**",
+            "**/CodeCakeBuilder/**"
+          ]
+        }
+      ],
+      "dest": "obj/api"
+    }
+  ],
+  "build": {
+    "content": [
+      {
+        "files": [
+          "api/**.yml"
+        ],
+        "cwd": "obj"
+      },
+      {
+        "files": [
+          "api/*.md",
+          "articles/**.md",
+          "toc.yml",
+          "*.md"
+        ],
+        "exclude": [
+          "obj/**",
+          "_site/**"
+        ]
+      }
+    ],
+    "resource": [
+      {
+        "files": [
+          "images/**"
+        ],
+        "exclude": [
+          "obj/**",
+          "_site/**"
+        ]
+      }
+    ],
+    "overwrite": [
+      {
+        "files": [
+          "apidoc/**.md"
+        ],
+        "exclude": [
+          "obj/**",
+          "_site/**"
+        ]
+      }
+    ],
+    "globalMetadata": {
+      "_appTitle": "CK-Core",
+      "_appVersion": "5.0.0-e",
+      "_enableSearch": true
+    },
+    "externalReference": [
+      {
+        "files": "content/*.rpk",
+        "cwd": "../packages/msdn.4.5.2.0.1.0-alpha-1604281727/"
+      }
+    ],
+    "dest": "_site",
+    "template": [
+      "templates/default",
+      "templates/custom"
+    ]
+  }
+}

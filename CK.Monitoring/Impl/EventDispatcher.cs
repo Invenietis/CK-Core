@@ -1,37 +1,10 @@
-#region LGPL License
-/*----------------------------------------------------------------------------
-* This file (CK.Monitoring\Impl\EventDispatcher.cs) is part of CiviKey. 
-*  
-* CiviKey is free software: you can redistribute it and/or modify 
-* it under the terms of the GNU Lesser General Public License as published 
-* by the Free Software Foundation, either version 3 of the License, or 
-* (at your option) any later version. 
-*  
-* CiviKey is distributed in the hope that it will be useful, 
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
-* GNU Lesser General Public License for more details. 
-* You should have received a copy of the GNU Lesser General Public License 
-* along with CiviKey.  If not, see <http://www.gnu.org/licenses/>. 
-*  
-* Copyright © 2007-2015, 
-*     Invenietis <http://www.invenietis.com>,
-*     In’Tech INFO <http://www.intechinfo.fr>,
-* All rights reserved. 
-*-----------------------------------------------------------------------------*/
-#endregion
-
-using System;
-using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
 using CK.Core;
 using CK.Monitoring.GrandOutputHandlers;
 using CK.RouteConfig;
+using System;
+using System.Collections.Concurrent;
+using System.Diagnostics;
+using System.Threading;
 
 namespace CK.Monitoring.Impl
 {
@@ -128,12 +101,14 @@ namespace CK.Monitoring.Impl
             // Since the Queue is a managed object, we can not use it
             // to send the MustStop message.
             // The only thing to do here is to abort the thread.
+            #if NET451 || NET46
             _thread.Abort();
+            #endif
         }
 
-        public int LostEventCount { get { return _eventLostCount; } }
+        public int LostEventCount => _eventLostCount;
 
-        public int MaxQueuedCount { get { return _maxQueuedCount; } }
+        public int MaxQueuedCount => _maxQueuedCount; 
 
         public bool Add( GrandOutputEventInfo e, FinalReceiver receiver )
         {
@@ -152,12 +127,12 @@ namespace CK.Monitoring.Impl
                 lock( _dispatchLock ) Monitor.Pulse( _dispatchLock );
                 // Ensures that if _overloadedErrorWaiting is true, a final "Lost Event" monitoring error is sent.
                 _nextCapacityError = DateTime.MinValue;
-                Thread.MemoryBarrier();
+                Interlocked.MemoryBarrier();
             }
             else
             {
                 // Normal message.
-                Thread.MemoryBarrier();
+                Interlocked.MemoryBarrier();
                 var strat = _strat;
                 if( strat == null ) return false;
                 if( strat.IsOpened( ref _maxQueuedCount ) )
@@ -177,11 +152,11 @@ namespace CK.Monitoring.Impl
                     _overloadedErrorWaiting = true;
                     result = false;
                 }
-                Thread.MemoryBarrier();
+                Interlocked.MemoryBarrier();
             }
             // Whatever happens, if a "Lost Event" monitoring error must be send once, 
             // checks to see if we must send it now.
-            Thread.MemoryBarrier();
+            Interlocked.MemoryBarrier();
             if( _overloadedErrorWaiting )
             {
                 var now = receiver != null ? e.Entry.LogTime.TimeUtc : DateTime.MaxValue;
@@ -232,12 +207,12 @@ namespace CK.Monitoring.Impl
 
         public void Dispose()
         {
-            Thread.MemoryBarrier();
+            Interlocked.MemoryBarrier();
             var strat = _strat;
             if( strat != null )
             {
                 _strat = null;
-                Thread.MemoryBarrier();
+                Interlocked.MemoryBarrier();
                 DoAdd( new GrandOutputEventInfo(), null );
                 GC.SuppressFinalize( this );
                 _thread.Join();

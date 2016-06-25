@@ -29,7 +29,6 @@ using System.Text;
 
 namespace CK.Core.Tests
 {
-    [ExcludeFromCodeCoverage]
     public class Animal
     {
         public Animal( string name )
@@ -45,7 +44,6 @@ namespace CK.Core.Tests
         }
     }
 
-    [ExcludeFromCodeCoverage]
     public class Mammal : Animal
     {
         public Mammal( string name, int gestationPeriod = 12 )
@@ -64,7 +62,6 @@ namespace CK.Core.Tests
 
     }
 
-    [ExcludeFromCodeCoverage]
     public class Canidae : Mammal
     {
         public Canidae( string name, int gestationPeriod = 9, bool isRetriever = false )

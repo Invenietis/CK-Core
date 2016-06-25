@@ -38,26 +38,6 @@ namespace CK.Reflection
     static public class ReflectionHelper
     {
         /// <summary>
-        /// Describes the behavior of <see cref="M:CreateSetter"/> methods when no setter exists 
-        /// on the property.
-        /// </summary>
-        public enum CreateInvalidSetterOption
-        {
-            /// <summary>
-            /// Throws an <see cref="InvalidOperationException"/>. This is the default.
-            /// </summary>
-            ThrowException,
-            /// <summary>
-            /// Returns a null action delegate.
-            /// </summary>
-            NullAction,
-            /// <summary>
-            /// Returns a void action (an action that does nothing).
-            /// </summary>
-            VoidAction
-        }
-
-        /// <summary>
         /// Retrieves a <see cref="PropertyInfo"/> from a lambda function based on an instance of the holder.
         /// </summary>
         /// <typeparam name="THolder">Property holder type (will be inferred by the compiler).</typeparam>
@@ -68,20 +48,6 @@ namespace CK.Reflection
         public static PropertyInfo GetPropertyInfo<THolder, TProperty>( THolder source, Expression<Func<THolder, TProperty>> propertyLambda )
         {
             return DoGetPropertyInfo( propertyLambda );
-        }
-
-        /// <summary>
-        /// Creates a setter for a property. 
-        /// </summary>
-        /// <typeparam name="THolder">Property holder type (will be inferred by the compiler).</typeparam>
-        /// <typeparam name="TProperty">Property type (will be inferred by the compiler).</typeparam>
-        /// <param name="source">An instance of the <typeparamref name="THolder"/>.</param>
-        /// <param name="propertyLambda">A lambda function that selects the property.</param>
-        /// <param name="o">Error handling options. Defaults to <see cref="CreateInvalidSetterOption.ThrowException"/>.</param>
-        /// <returns>An action that takes an holder instance and the value to set.</returns>
-        public static Action<THolder, TProperty> CreateSetter<THolder, TProperty>( THolder source, Expression<Func<THolder, TProperty>> propertyLambda, CreateInvalidSetterOption o = CreateInvalidSetterOption.ThrowException )
-        {
-            return CreateSetter<THolder,TProperty>( DoGetPropertyInfo( propertyLambda ), o );
         }
 
         /// <summary>
@@ -109,19 +75,6 @@ namespace CK.Reflection
         }
 
         /// <summary>
-        /// Creates a setter fo a property. 
-        /// </summary>
-        /// <typeparam name="THolder">Property holder type.</typeparam>
-        /// <typeparam name="TProperty">Property type.</typeparam>
-        /// <param name="propertyLambda">A lambda function that selects the property.</param>
-        /// <param name="o">Error handling options. Defaults to <see cref="CreateInvalidSetterOption.ThrowException"/>.</param>
-        /// <returns>An action that takes an holder instance and the value to set.</returns>
-        public static Action<THolder, TProperty> CreateSetter<THolder, TProperty>( Expression<Func<THolder, TProperty>> propertyLambda, CreateInvalidSetterOption o = CreateInvalidSetterOption.ThrowException )
-        {
-            return CreateSetter<THolder, TProperty>( DoGetPropertyInfo( propertyLambda ), o );
-        }
-
-        /// <summary>
         /// Retrieves a <see cref="PropertyInfo"/> from a parameterless lambda function: a closure is actually required
         /// and the compiler generates one automatically.
         /// </summary>
@@ -133,7 +86,7 @@ namespace CK.Reflection
             return DoGetPropertyInfo( propertyLambda );
         }
 
-        private static PropertyInfo DoGetPropertyInfo( LambdaExpression propertyLambda )
+        internal static PropertyInfo DoGetPropertyInfo( LambdaExpression propertyLambda )
         {
             Expression exp = propertyLambda.Body;
             MemberExpression member = exp as MemberExpression;
@@ -147,25 +100,6 @@ namespace CK.Reflection
                 throw new ArgumentException( string.Format( "Expression '{0}' must refer to a property.", propertyLambda.ToString() ) );
             return propInfo;
         }
-
-        private static Action<THolder, TProperty> CreateSetter<THolder, TProperty>( PropertyInfo property, CreateInvalidSetterOption o )
-        {
-            var holderType = Expression.Parameter( typeof( THolder ), "e" );
-            var propType = Expression.Parameter( typeof( TProperty ), "v" );
-            MethodInfo s = property.GetSetMethod();
-            if( s == null )
-            {
-                if( o == CreateInvalidSetterOption.ThrowException ) throw new InvalidOperationException( string.Format( "Property '{0}' has no setter.", property.Name ) );
-                if( o == CreateInvalidSetterOption.NullAction ) return null;
-                return VoidAction;
-            }
-            return (Action<THolder, TProperty>)Delegate.CreateDelegate( typeof( Action<THolder, TProperty> ), s );
-        }
-
-        static void VoidAction<T1, T2>( T1 o1, T2 o2 )
-        {
-        }
-
 
         /// <summary>
         /// Creates an array of type of a method parameters.
@@ -236,13 +170,39 @@ namespace CK.Reflection
             {
                 if( filter != null && !filter( attr ) ) continue;
                 var ctorArgs = attr.ConstructorArguments.Select( a => a.Value ).ToArray();
-                var namedPropertyInfos = attr.NamedArguments.Select( a => a.MemberInfo ).OfType<PropertyInfo>().ToArray();
-                var namedPropertyValues = attr.NamedArguments.Where( a => a.MemberInfo is PropertyInfo ).Select( a => a.TypedValue.Value ).ToArray();
-                var namedFieldInfos = attr.NamedArguments.Select( a => a.MemberInfo ).OfType<FieldInfo>().ToArray();
-                var namedFieldValues = attr.NamedArguments.Where( a => a.MemberInfo is FieldInfo ).Select( a => a.TypedValue.Value ).ToArray();
-                collector( new CustomAttributeBuilder( attr.Constructor, ctorArgs, namedPropertyInfos, namedPropertyValues, namedFieldInfos, namedFieldValues ) );
+                
+                var arProperties = attr.NamedArguments
+                    .Select(  a => new { PropertyInfo = attr.AttributeType.GetProperty( a.MemberName ), TypedValue = a.TypedValue })
+                    .Where( a => a.PropertyInfo != null );
+                
+                var arFields = attr.NamedArguments 
+                  .Select( a => new { FieldInfo = attr.AttributeType.GetField( a.MemberName ), TypedValue = a.TypedValue })
+                  .Where( a => a.FieldInfo != null );
+                    
+                var namedPropertyInfos = arProperties.Select( a => a.PropertyInfo).ToArray();
+                var namedPropertyValues = arProperties.Select( a => a.TypedValue.Value ).ToArray();
+                var namedFieldInfos = arFields.Select( a => a.FieldInfo).ToArray();
+                var namedFieldValues = arFields.Select( a => a.TypedValue.Value ).ToArray();
+              
+                var matchedConstructor = attr.AttributeType.GetConstructors().SingleOrDefault( c => ConstructorSignatureMatch( c, attr.ConstructorArguments) );
+                if( matchedConstructor == null ) throw new ArgumentException( String.Format("No valid constructor found for attribute {0}.", attr.AttributeType.Name));
+                
+                collector( new CustomAttributeBuilder( matchedConstructor, ctorArgs, namedPropertyInfos, namedPropertyValues, namedFieldInfos, namedFieldValues ) );
             }
         }
+
+        private static bool ConstructorSignatureMatch( ConstructorInfo c, IList<CustomAttributeTypedArgument> ctorArgs )
+        {
+            var ctorParameters = c.GetParameters().ToList();
+            if( ctorParameters.Count != ctorArgs.Count ) return false;
+
+            for( int i = 0; i < ctorParameters.Count; ++i )
+            {
+                if( ctorParameters[i].ParameterType != ctorArgs[i].ArgumentType ) return false;
+            }
+            return true;
+        }
+
 
         /// <summary>
         /// Gets all methods (including inherited methods and methods with special names like get_XXX 
@@ -285,8 +245,8 @@ namespace CK.Reflection
         /// <returns>An <see cref="IEnumerable{T}"/> that contains elements returned by the <paramref name="getFunction"/>.</returns>
         public static IEnumerable<T> GetFlattenMembers<T>( Type interfaceType, Func<Type, IEnumerable<T>> getFunction )
         {
-            if( interfaceType == null ) throw new ArgumentNullException( "interfaceType" );
-            if( !interfaceType.IsInterface ) throw new ArgumentException( R.InterfaceTypeExpected, "interfaceType" );
+            if( interfaceType == null ) throw new ArgumentNullException( nameof( interfaceType ) );
+            if( !interfaceType.GetTypeInfo().IsInterface ) throw new ArgumentException( InternalResources.InterfaceTypeExpected, nameof( interfaceType ) );
             
             foreach( var item in getFunction( interfaceType ) )
                 yield return item;
@@ -309,9 +269,10 @@ namespace CK.Reflection
         /// <returns>True if <paramref name="mainType"/> is "above" <paramref name="toMatch"/>.</returns>
         public static bool CovariantMatch( Type mainType, Type toMatch )
         {
+            var mainTypeInfo = mainType.GetTypeInfo();
             // If our main type is a not generic: it is an interface or a class without any type parameters.
             // We only have to test if our main type is assignable from the type to match.
-            if( !mainType.IsGenericType ) return mainType.IsAssignableFrom( toMatch );
+            if( !mainTypeInfo.IsGenericType ) return mainType.IsAssignableFrom( toMatch );
 
             // Our main type is a generic type: it has parameter types.
             Type[] mainTypeArgs = mainType.GetGenericArguments();
@@ -319,25 +280,20 @@ namespace CK.Reflection
             // We rely on the generic type definition (the Gen<,,> type).
             Type genDef = mainType.GetGenericTypeDefinition();
             // If this generic is an interface, we try to find the generic interface in all the interfaces.
-            if( mainType.IsInterface )
+            if( mainTypeInfo.IsInterface )
             {
-                if( toMatch.IsGenericType 
-                    && toMatch.GetGenericTypeDefinition() == genDef 
-                    && CovariantMatch( mainTypeArgs, toMatch.GetGenericArguments() ))
-                {
-                    return true;
-                }
-                var compatibles = toMatch.GetInterfaces().Where( t => t.IsGenericType && t.GetGenericTypeDefinition() == genDef );
+                var compatibles = toMatch.GetInterfaces().Where( t => t.GetTypeInfo().IsGenericType && t.GetGenericTypeDefinition() == genDef );
                 return compatibles.Any( c => CovariantMatch( mainTypeArgs, c.GetGenericArguments() ) );
             }
             // If this generic is a class, we try to find the generic class in the inheritance path.
             while( toMatch != null )
             {
-                if( toMatch.IsGenericType && toMatch.GetGenericTypeDefinition() == genDef )
+                var toMatchTypeInfo = toMatch.GetTypeInfo();
+                if( toMatchTypeInfo.IsGenericType && toMatchTypeInfo.GetGenericTypeDefinition() == genDef )
                 {
-                    return CovariantMatch( mainTypeArgs, toMatch.GetGenericArguments() );
+                    return CovariantMatch( mainTypeArgs, toMatchTypeInfo.GenericTypeArguments );
                 }
-                toMatch = toMatch.BaseType;
+                toMatch = toMatchTypeInfo.BaseType;
             }
             return false;
         }

@@ -1,30 +1,7 @@
-#region LGPL License
-/*----------------------------------------------------------------------------
-* This file (CK.Monitoring\Persistence\Impl\LEMCLog.cs) is part of CiviKey. 
-*  
-* CiviKey is free software: you can redistribute it and/or modify 
-* it under the terms of the GNU Lesser General Public License as published 
-* by the Free Software Foundation, either version 3 of the License, or 
-* (at your option) any later version. 
-*  
-* CiviKey is distributed in the hope that it will be useful, 
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
-* GNU Lesser General Public License for more details. 
-* You should have received a copy of the GNU Lesser General Public License 
-* along with CiviKey.  If not, see <http://www.gnu.org/licenses/>. 
-*  
-* Copyright © 2007-2015, 
-*     Invenietis <http://www.invenietis.com>,
-*     In’Tech INFO <http://www.intechinfo.fr>,
-* All rights reserved. 
-*-----------------------------------------------------------------------------*/
-#endregion
-
 using System;
-using System.Collections.Generic;
 using System.IO;
 using CK.Core;
+using CK.Text;
 
 namespace CK.Monitoring.Impl
 {
@@ -44,15 +21,15 @@ namespace CK.Monitoring.Impl
             _previousLogTime = previousLogTime;
         }
 
-        public Guid MonitorId { get { return _monitorId; } }
+        public Guid MonitorId => _monitorId;
 
-        public int GroupDepth { get { return _depth; } }
+        public int GroupDepth => _depth;
 
-        public DateTimeStamp PreviousLogTime { get { return _previousLogTime; } }
+        public DateTimeStamp PreviousLogTime => _previousLogTime;
 
-        public LogEntryType PreviousEntryType { get { return _previousEntryType; } }
+        public LogEntryType PreviousEntryType => _previousEntryType; 
 
-        public override void WriteLogEntry( BinaryWriter w )
+        public override void WriteLogEntry( CKBinaryWriter w )
         {
             LogEntry.WriteLog( w, _monitorId, _previousEntryType, _previousLogTime, _depth, false, LogLevel, LogTime, Text, Tags, Exception, FileName, LineNumber );
         }

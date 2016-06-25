@@ -172,7 +172,7 @@ namespace CK.Reflection
             MethodBase m = (MethodBase)byRefParameter.Member;
             if( (m.CallingConvention & CallingConventions.HasThis) != 0 ) g.LdArg( byRefParameter.Position + 1 );
             else g.LdArg( byRefParameter.Position );
-            if( pType.IsValueType )
+            if( pType.GetTypeInfo().IsValueType )
             {
                 g.Emit( OpCodes.Initobj, pType );
             }
@@ -215,14 +215,14 @@ namespace CK.Reflection
         public static void LdArgBox( this ILGenerator g, int idxParameter, Type parameterType )
         {
             g.LdArg( idxParameter );
-            if( parameterType.IsGenericParameter || parameterType.IsValueType )
+            if( parameterType.IsGenericParameter || parameterType.GetTypeInfo().IsValueType )
             {
                 g.Emit( OpCodes.Box, parameterType );
             }
             else if( parameterType.IsByRef )
             {
                 parameterType = parameterType.GetElementType();
-                if( parameterType.IsValueType )
+                if( parameterType.GetTypeInfo().IsValueType )
                 {
                     g.Emit( OpCodes.Ldobj, parameterType );
                     g.Emit( OpCodes.Box, parameterType );

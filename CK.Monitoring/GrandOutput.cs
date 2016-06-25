@@ -1,26 +1,3 @@
-#region LGPL License
-/*----------------------------------------------------------------------------
-* This file (CK.Monitoring\GrandOutput.cs) is part of CiviKey. 
-*  
-* CiviKey is free software: you can redistribute it and/or modify 
-* it under the terms of the GNU Lesser General Public License as published 
-* by the Free Software Foundation, either version 3 of the License, or 
-* (at your option) any later version. 
-*  
-* CiviKey is distributed in the hope that it will be useful, 
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
-* GNU Lesser General Public License for more details. 
-* You should have received a copy of the GNU Lesser General Public License 
-* along with CiviKey.  If not, see <http://www.gnu.org/licenses/>. 
-*  
-* Copyright © 2007-2015, 
-*     Invenietis <http://www.invenietis.com>,
-*     In’Tech INFO <http://www.intechinfo.fr>,
-* All rights reserved. 
-*-----------------------------------------------------------------------------*/
-#endregion
-
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -43,25 +20,22 @@ namespace CK.Monitoring
     /// </summary>
     public sealed partial class GrandOutput : IDisposable
     {
-        readonly List<WeakRef<GrandOutputClient>> _clients;
+        readonly List<WeakReference<GrandOutputClient>> _clients;
         readonly ChannelHost _channelHost;
         readonly BufferingChannel _bufferingChannel;
         readonly EventDispatcher _dispatcher;
         DateTime _nextDeadClientGarbage;
         internal readonly GrandOutputCompositeSink CommonSink;
 
+        static LogFilter _grandOutputMinimalFilter = LogFilter.Release;
         static GrandOutput _default;
-        static FileSystemWatcher _watcher;
         static readonly object _defaultLock = new object();
 
         /// <summary>
         /// Gets the default <see cref="GrandOutput"/> for the current Application Domain.
         /// Note that <see cref="EnsureActiveDefault"/> must have been called, otherwise this static property is null.
         /// </summary>
-        public static GrandOutput Default 
-        { 
-            get { return _default; } 
-        }
+        public static GrandOutput Default => _default; 
 
         /// <summary>
         /// Ensures that the <see cref="Default"/> GrandOutput is created and that any <see cref="ActivityMonitor"/> that will be created in this
@@ -101,7 +75,7 @@ namespace CK.Monitoring
         /// <param name="dispatcherStrategy">Strategy to use to handle the throughput.</param>
         public GrandOutput( IGrandOutputDispatcherStrategy dispatcherStrategy = null )
         {
-            _clients = new List<WeakRef<GrandOutputClient>>();
+            _clients = new List<WeakReference<GrandOutputClient>>();
             _dispatcher = new EventDispatcher( dispatcherStrategy ?? new EventDispatcherBasicStrategy(), null );
             CommonSink = new GrandOutputCompositeSink();
             var factory = new ChannelFactory( this, _dispatcher );
@@ -109,6 +83,8 @@ namespace CK.Monitoring
             _channelHost.ConfigurationClosing += OnConfigurationClosing;
             _bufferingChannel = new BufferingChannel( _dispatcher, factory.CommonSinkOnlyReceiver );
             _nextDeadClientGarbage = DateTime.UtcNow.AddMinutes( 5 );
+
+            // TODO: Adapt this termination handling to dotnet.
             var h = new EventHandler( OnDomainTermination );
             AppDomain.CurrentDomain.DomainUnload += h;
             AppDomain.CurrentDomain.ProcessExit += h;
@@ -137,27 +113,33 @@ namespace CK.Monitoring
             Func<GrandOutputClient> reg = () =>
                 {
                     var c = new GrandOutputClient( this );
-                    lock( _clients ) _clients.Add( new WeakRef<GrandOutputClient>( c ) ); 
+                    lock( _clients ) _clients.Add( new WeakReference<GrandOutputClient>( c ) ); 
                     return c;
                 };
             return monitor.Output.RegisterUniqueClient( b => b.Central == this, reg );
         }
 
+
+        /// <summary>
+        /// Gets or sets the minimal filter that monitors created for the 
+        /// GrandOutput itself will use.
+        /// Defaults to <see cref="LogFilter.Release"/> (this should be changed only for debugging reasons).
+        /// </summary>
+        static public LogFilter GrandOutputMinimalFilter
+        {
+            get { return _grandOutputMinimalFilter; }
+            set { _grandOutputMinimalFilter = value; }
+        }
+
         /// <summary>
         /// Gets the number of lost events since this <see cref="GrandOutput"/> has been created.
         /// </summary>
-        public int LostEventCount 
-        { 
-            get { return _dispatcher.LostEventCount; } 
-        }
+        public int LostEventCount  => _dispatcher.LostEventCount; 
 
         /// <summary>
         /// Maximal queue size that has been used.
         /// </summary>
-        public int MaxQueuedCount
-        {
-            get { return _dispatcher.MaxQueuedCount; }
-        }
+        public int MaxQueuedCount => _dispatcher.MaxQueuedCount; 
         
         /// <summary>
         /// Registers a <see cref="IGrandOutputSink"/>.
@@ -185,10 +167,7 @@ namespace CK.Monitoring
         /// Gets the total number of calls to <see cref="SetConfiguration"/> (and to <see cref="Dispose()"/> method).
         /// This can be used to call <see cref="WaitForNextConfiguration"/>.
         /// </summary>
-        public int ConfigurationAttemptCount
-        {
-            get { return _channelHost.ConfigurationAttemptCount; }
-        }
+        public int ConfigurationAttemptCount => _channelHost.ConfigurationAttemptCount; 
 
         /// <summary>
         /// Attempts to set a new configuration.
@@ -201,11 +180,11 @@ namespace CK.Monitoring
         {
             if( config == null ) throw new ArgumentNullException( "config" );
             if( monitor == null ) monitor = new SystemActivityMonitor( true, "GrandOutput" ) { MinimalFilter = GrandOutputMinimalFilter };
-            using( monitor.OpenInfo().Send( this == Default ? "Applying Default GrandOutput configuration." : "Applying GrandOutput configuration." ) )
+            using( monitor.OpenGroup( LogLevel.Info, this == Default ? "Applying Default GrandOutput configuration." : "Applying GrandOutput configuration.", null ) )
             {
                 if( _channelHost.SetConfiguration( monitor, config.ChannelsConfiguration ?? new RouteConfiguration(), millisecondsBeforeForceClose ) )
                 {
-                    if( this == _default &&  config.AppDomainDefaultFilter.HasValue ) ActivityMonitor.DefaultFilter = config.AppDomainDefaultFilter.Value;
+                    if( this == _default &&  config.GlobalDefaultFilter.HasValue ) ActivityMonitor.DefaultFilter = config.GlobalDefaultFilter.Value;
 
                     if( config.SourceOverrideFilterApplicationMode == SourceFilterApplyMode.Clear || config.SourceOverrideFilterApplicationMode == SourceFilterApplyMode.ClearThenApply )
                     {
@@ -292,8 +271,8 @@ namespace CK.Monitoring
             {
                 int nbDeadClients;
                 lock( _clients ) nbDeadClients = DoGarbageDeadClients( DateTime.UtcNow );
-                if( nbDeadClients > 0 ) e.Monitor.Info().Send( "Removing {0} dead client(s).", nbDeadClients );
-                else e.Monitor.Trace().Send( "No dead client to remove." );
+                if( nbDeadClients > 0 ) e.Monitor.SendLine( LogLevel.Info, string.Format( "Removing {0} dead client(s).", nbDeadClients ), null );
+                else e.Monitor.SendLine( LogLevel.Trace, "No dead client to remove.", null );
             }
         }
 
@@ -303,13 +282,13 @@ namespace CK.Monitoring
         /// </summary>
         bool SignalConfigurationChanged()
         {
-            WeakRef<GrandOutputClient>[] current;
+            WeakReference<GrandOutputClient>[] current;
             lock( _clients ) current = _clients.ToArray();
             bool hasDeadClients = false;
             foreach( var cw in current )
             {
-                GrandOutputClient c = cw.Target;
-                if( c != null ) hasDeadClients |= !c.OnChannelConfigurationChanged();
+                GrandOutputClient c;
+                if( cw.TryGetTarget( out c ) ) hasDeadClients |= !c.OnChannelConfigurationChanged();
                 else hasDeadClients = true;
             }
             return hasDeadClients;
@@ -324,15 +303,15 @@ namespace CK.Monitoring
 
         int DoGarbageDeadClients( DateTime utcNow )
         {
-            #if !net40
+#if !net40
             Debug.Assert( Monitor.IsEntered( _clients ) );
-            #endif
+#endif
             _nextDeadClientGarbage = utcNow.AddMinutes( 5 );
             int count = 0;
             for( int i = 0; i < _clients.Count; ++i )
             {
-                var cw = _clients[i].Target;
-                if( cw == null || !cw.IsBoundToMonitor )
+                GrandOutputClient cw;
+                if( !_clients[i].TryGetTarget( out cw ) || !cw.IsBoundToMonitor )
                 {
                     _clients.RemoveAt( i-- );
                     ++count;
@@ -361,9 +340,11 @@ namespace CK.Monitoring
             {
                 if( _channelHost.Dispose( monitor, millisecondsBeforeForceClose ) )
                 {
+                    // TODO: Adapt this termination handling to dotnet.
                     var h = new EventHandler( OnDomainTermination );
                     AppDomain.CurrentDomain.DomainUnload -= h;
                     AppDomain.CurrentDomain.ProcessExit -= h;
+                    // /TODO
                     _dispatcher.Dispose();
                     _bufferingChannel.Dispose();
                 }

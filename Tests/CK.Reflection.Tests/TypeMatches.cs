@@ -26,6 +26,7 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text;
+using System.Reflection;
 using NUnit.Framework;
  
 namespace CK.Reflection.Tests
@@ -120,15 +121,15 @@ namespace CK.Reflection.Tests
             AssertCheck( "False - typeof(IBase<>).IsAssignableFrom( typeof(IDerived<,>) )", typeof( IBase<> ).IsAssignableFrom( typeof( IDerived<,> ) ) );
             AssertCheck( "False - typeof(IBase<>).IsAssignableFrom( typeof(IBase<int>) )", typeof( IBase<> ).IsAssignableFrom( typeof( IBase<int> ) ) );
 
-            AssertCheck( "True  - typeof(IBase<>).IsGenericTypeDefinition", typeof( IBase<> ).IsGenericTypeDefinition );
-            AssertCheck( "False - typeof(IBase<bool>).IsGenericTypeDefinition", typeof( IBase<bool> ).IsGenericTypeDefinition );
-            AssertCheck( "True  - typeof(IDerived<,>).IsGenericTypeDefinition", typeof( IDerived<,> ).IsGenericTypeDefinition );
-            AssertCheck( "False - typeof(IDerived<int,bool>).IsGenericTypeDefinition", typeof( IDerived<int, bool> ).IsGenericTypeDefinition );
+            AssertCheck( "True  - typeof(IBase<>).IsGenericTypeDefinition", typeof( IBase<> ).GetTypeInfo().IsGenericTypeDefinition );
+            AssertCheck( "False - typeof(IBase<bool>).IsGenericTypeDefinition", typeof( IBase<bool> ).GetTypeInfo().IsGenericTypeDefinition );
+            AssertCheck( "True  - typeof(IDerived<,>).IsGenericTypeDefinition", typeof( IDerived<,> ).GetTypeInfo().IsGenericTypeDefinition );
+            AssertCheck( "False - typeof(IDerived<int,bool>).IsGenericTypeDefinition", typeof( IDerived<int, bool> ).GetTypeInfo().IsGenericTypeDefinition );
 
             Type tC = typeof( Close );
             Type tC2 = typeof( Close2 );
 
-            AssertCheck( "False - Close is NOT a generic: tC.IsGenericType = ", tC.IsGenericType );
+            AssertCheck( "False - Close is NOT a generic: tC.IsGenericType = ", tC.GetTypeInfo().IsGenericType );
             AssertCheck( "True  - Close contains IDerived<bool,B>: IDerived<bool,B>.IsAssignableFrom( Close )", typeof( IDerived<bool, B> ).IsAssignableFrom( tC ) );
             AssertCheck( "False - ...but does not contain IDerived<bool,A>: IDerived<bool,A>.IsAssignableFrom( Close )", typeof( IDerived<bool, A> ).IsAssignableFrom( tC ) );
 
@@ -151,29 +152,6 @@ namespace CK.Reflection.Tests
             AssertCheck( "True  - CloseBase<A>, Close2", ReflectionHelper.CovariantMatch( typeof( CloseBase<A> ), tC2 ) );
             AssertCheck( "False - CloseBase<bool>, Close2", ReflectionHelper.CovariantMatch( typeof( CloseBase<bool> ), tC2 ) );
             AssertCheck( "False - CloseBase<ValueType>, Close2", ReflectionHelper.CovariantMatch( typeof( CloseBase<ValueType> ), tC2 ) );
-
-            Assert.That( ReflectionHelper.CovariantMatch( typeof( void ), typeof( void ) ), Is.True );
-            Assert.That( ReflectionHelper.CovariantMatch( typeof( int ), typeof( void ) ), Is.False );
-            Assert.That( ReflectionHelper.CovariantMatch( typeof( string ), typeof( void ) ), Is.False );
-            Assert.That( ReflectionHelper.CovariantMatch( typeof( void ), typeof( int ) ), Is.False );
-            Assert.That( ReflectionHelper.CovariantMatch( typeof( void ), typeof( string ) ), Is.False );
-            Assert.That( ReflectionHelper.CovariantMatch( typeof( CloseBase<A> ), typeof( void ) ), Is.False );
-            Assert.That( ReflectionHelper.CovariantMatch( typeof( void ), typeof( CloseBase<A> ) ), Is.False );
-
-            IList<List<object>> l1 = new List<List<object>>(); //Intellisense sample
-            Assert.That( ReflectionHelper.CovariantMatch( typeof( IList<List<object>> ), typeof( List<List<object>> ) ), Is.True, "L1 typeof( IList<List<object>> ), typeof( List<List<object>> )" ); 
-
-            IList<ICollection<object>> l2 = new List<ICollection<object>>(); //Intellisense sample
-            Assert.That( ReflectionHelper.CovariantMatch( typeof( IList<ICollection<object>> ), typeof( List<ICollection<object>> ) ), Is.True, "L2 typeof( IList<ICollection<object>> ), typeof( List<ICollection<object>> )" );
-
-            ICollection<IEnumerable<object>> l3 = new List<IEnumerable<object>>(); //Intellisense sample
-            Assert.That( ReflectionHelper.CovariantMatch( typeof( ICollection<IEnumerable<object>> ), typeof( List<IEnumerable<object>> ) ), Is.True, "L3 typeof( ICollection<IEnumerable<object>> ), typeof( List<IEnumerable<object>> )" );
-
-            IEnumerable<IEnumerable<object>> l4 = new List<ICollection<object>>(); //Intellisense sample
-            Assert.That( ReflectionHelper.CovariantMatch( typeof( IEnumerable<IEnumerable<object>> ), typeof( List<ICollection<object>> ) ), Is.True, "L4 typeof( IEnumerable<IEnumerable<object>> ), typeof( List<ICollection<object>> )" );
-
-            ICollection<ICollection<object>> l5 = new List<ICollection<object>>(); //Intellisense sample
-            Assert.That( ReflectionHelper.CovariantMatch( typeof( ICollection<ICollection<object>> ), typeof( List<ICollection<object>> ) ), Is.True, "L5 typeof( ICollection<ICollection<object>> ), typeof( List<ICollection<object>> )" );
 
         }
 
@@ -201,13 +179,6 @@ namespace CK.Reflection.Tests
         static void AssertCheck( string msg, bool test )
         {
             Assert.That( test == (msg[0] == 'T'), msg );
-        }
-
-
-        [Test]
-        public void MemberInfoEqualityTests()
-        {
-            Assert.That( MemberInfoEqualityComparer.Default.Equals( GetType(), GetType() ) );
         }
 
     }

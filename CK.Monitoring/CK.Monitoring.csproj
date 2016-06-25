@@ -1,20 +1,16 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{DD23F681-55A9-49F3-95D7-9344980A0F97}</ProjectGuid>
+    <ProjectGuid>{8016AB6E-CA30-447D-BC47-B37D51B5A088}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>CK.Monitoring</RootNamespace>
     <AssemblyName>CK.Monitoring</AssemblyName>
-    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.5.1</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
-    <TargetFrameworkProfile>
-    </TargetFrameworkProfile>
-    <SolutionDir Condition="$(SolutionDir) == '' Or $(SolutionDir) == '*Undefined*'">..\</SolutionDir>
-    <RestorePackages>true</RestorePackages>
     <NuGetPackageImportStamp>
     </NuGetPackageImportStamp>
   </PropertyGroup>
@@ -22,146 +18,155 @@
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
-    <DefineConstants>DEBUG;TRACE;net45</DefineConstants>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>TRACE;DEBUG;NET451;CSPROJ</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
-    <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
-    <DefineConstants>TRACE;net45</DefineConstants>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE;NET451;CSPROJ</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
-    <Prefer32Bit>false</Prefer32Bit>
     <DocumentationFile>bin\Release\CK.Monitoring.xml</DocumentationFile>
-  </PropertyGroup>
-  <PropertyGroup>
-    <OutputPath>bin\$(Configuration)</OutputPath>
-    <SignAssembly>true</SignAssembly>
-    <AssemblyOriginatorKeyFile>..\SharedKey.snk</AssemblyOriginatorKeyFile>
   </PropertyGroup>
   <PropertyGroup Condition=" $(GenerateDocumentation) != '' ">
     <DocumentationFile>bin\$(Configuration)\$(AssemblyName).xml</DocumentationFile>
   </PropertyGroup>
-  <ItemGroup>
-    <Reference Include="System" />
-    <Reference Include="System.Core" />
-    <Reference Include="System.Xml.Linq" />
-    <Reference Include="System.Xml" />
-  </ItemGroup>
-  <PropertyGroup>
-    <AssemblyOriginatorKeyFile>..\SharedKey.snk</AssemblyOriginatorKeyFile>
-  </PropertyGroup>
   <PropertyGroup>
     <SignAssembly>true</SignAssembly>
+    <AssemblyOriginatorKeyFile>..\SharedKey.snk</AssemblyOriginatorKeyFile>
+    <DelaySign>false</DelaySign>
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="..\SharedAssemblyInfo.cs">
       <Link>Properties\SharedAssemblyInfo.cs</Link>
     </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
     <Compile Include="Configuration\GrandOutputChannelConfigData.cs" />
     <Compile Include="Configuration\GrandOutputConfiguration.cs" />
     <Compile Include="Configuration\SourceFilterApplyMode.cs" />
     <Compile Include="Configuration\XmlMonitoringExtensions.cs" />
-    <Compile Include="GrandOutput.DefaultConfig.cs" />
+    <Compile Include="CoreStubs\System.Diagnostics.CodeAnalysis.cs" />
+    <Compile Include="CoreStubs\System.Runtime.Serialization.cs" />
     <Compile Include="GlobalSuppressions.cs" />
-    <Compile Include="GrandOutput.XAppDomain.cs" />
+    <Compile Include="GrandOutput.cs" />
+    <Compile Include="GrandOutput.DefaultConfig.cs" />
+    <Compile Include="GrandOutputClient.cs" />
+    <Compile Include="GrandOutputEventInfo.cs" />
+    <Compile Include="GrandOutputHandlers\TextFileConfiguration.cs" />
+    <Compile Include="GrandOutputHandlers\TextFile.cs" />
+    <Compile Include="GrandOutputHandlers\BinaryFile.cs" />
+    <Compile Include="GrandOutputHandlers\FileConfigurationBase.cs" />
+    <Compile Include="GrandOutputHandlers\BinaryFileConfiguration.cs" />
+    <Compile Include="GrandOutputHandlers\ChannelOption.cs" />
+    <Compile Include="GrandOutputHandlers\HandlerBase.cs" />
+    <Compile Include="GrandOutputHandlers\HandlerConfiguration.cs" />
+    <Compile Include="GrandOutputHandlers\HandlerTypeAttribute.cs" />
+    <Compile Include="GrandOutputHandlers\Impl\ParallelHandler.cs" />
+    <Compile Include="GrandOutputHandlers\Impl\SequenceHandler.cs" />
     <Compile Include="IGrandOutputBridgeTarget.cs" />
     <Compile Include="IGrandOutputDispatcherStrategy.cs" />
-    <Compile Include="GrandOutputEventInfo.cs" />
-    <Compile Include="GrandOutputHandlers\HandlerConfiguration.cs" />
+    <Compile Include="IGrandOutputSink.cs" />
+    <Compile Include="ILogEntry.cs" />
+    <Compile Include="Impl\BufferingChannel.cs" />
+    <Compile Include="Impl\ChannelFactory.cs" />
+    <Compile Include="Impl\ChannelHost.cs" />
     <Compile Include="Impl\EventDispatcher.cs" />
     <Compile Include="Impl\EventDispatcherBasicStrategy.cs" />
+    <Compile Include="Impl\GrandOutputCompositeSink.cs" />
+    <Compile Include="Impl\IChannel.cs" />
+    <Compile Include="Impl\StandardChannel.cs" />
+    <Compile Include="IMulticastLogEntry.cs" />
     <Compile Include="IMulticastLogInfo.cs" />
+    <Compile Include="LocalSenderExtension.cs" />
+    <Compile Include="LogEntryType.cs" />
+    <Compile Include="MonitorTextFileOutput.cs" />
+    <Compile Include="MonitorFileOutputBase.cs" />
     <Compile Include="MonitorBinaryFileOutput.cs" />
+    <Compile Include="Persistence\CKMonWriterClient.cs" />
     <Compile Include="Persistence\GZipStreamReader.cs" />
+    <Compile Include="Persistence\Impl\LECloseGroup.cs" />
+    <Compile Include="Persistence\Impl\LELog.cs" />
+    <Compile Include="Persistence\Impl\LEMCCloseGroup.cs" />
+    <Compile Include="Persistence\Impl\LEMCLog.cs" />
+    <Compile Include="Persistence\Impl\LEMCOpenGroup.cs" />
+    <Compile Include="Persistence\Impl\LEOpenGroup.cs" />
+    <Compile Include="Persistence\Impl\StreamLogType.cs" />
+    <Compile Include="Persistence\LogEntry.cs" />
+    <Compile Include="Persistence\LogReader.cs" />
     <Compile Include="Persistence\LogReaderStreamInfo.cs" />
     <Compile Include="Persistence\MulticastLogEntryWithOffset.cs" />
     <Compile Include="Persistence\MultiLogReader.ActivityMap.cs" />
-    <Compile Include="Persistence\Impl\LEMCOpenGroup.cs" />
-    <Compile Include="Persistence\Impl\LEMCLog.cs" />
-    <Compile Include="Persistence\Impl\LEMCCloseGroup.cs" />
-    <Compile Include="IMulticastLogEntry.cs" />
-    <Compile Include="Persistence\Impl\LELog.cs" />
     <Compile Include="Persistence\MultiLogReader.cs" />
     <Compile Include="Persistence\ParentedLogEntry.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="RouteConfig\ActionConfiguration.cs" />
     <Compile Include="RouteConfig\ActionConfigurationResolved.cs" />
+    <Compile Include="RouteConfig\ActionParallelConfiguration.cs" />
+    <Compile Include="RouteConfig\ActionSequenceConfiguration.cs" />
     <Compile Include="RouteConfig\ConfiguredRouteHost.cs" />
+    <Compile Include="RouteConfig\Impl\ActionCompositeConfiguration.cs" />
+    <Compile Include="RouteConfig\Impl\ActionCompositeConfigurationResolved.cs" />
     <Compile Include="RouteConfig\Impl\IProtoRoute.cs" />
+    <Compile Include="RouteConfig\Impl\IProtoRouteConfigurationContext.cs" />
     <Compile Include="RouteConfig\Impl\IProtoSubRoute.cs" />
+    <Compile Include="RouteConfig\Impl\IRouteConfigurationContext.cs" />
+    <Compile Include="RouteConfig\Impl\MetaConfiguration.cs" />
+    <Compile Include="RouteConfig\Impl\MetaMultiConfiguration.cs" />
     <Compile Include="RouteConfig\Impl\ProtoDeclaredAction.cs" />
+    <Compile Include="RouteConfig\Impl\ProtoResolver.cs" />
     <Compile Include="RouteConfig\Impl\RouteConfigurationLockShell.cs" />
     <Compile Include="RouteConfig\Impl\RouteResolver.cs" />
     <Compile Include="RouteConfig\IRouteConfigurationLock.cs" />
-    <Compile Include="RouteConfig\MetaOverrideActionConfiguration.cs" />
-    <Compile Include="RouteConfig\Impl\MetaMultiConfiguration.cs" />
-    <Compile Include="RouteConfig\MetaDeclareActionConfiguration.cs" />
-    <Compile Include="RouteConfig\MetaInsertActionConfiguration.cs" />
-    <Compile Include="RouteConfig\Impl\ActionCompositeConfigurationResolved.cs" />
-    <Compile Include="RouteConfig\Impl\IProtoRouteConfigurationContext.cs" />
-    <Compile Include="RouteConfig\Impl\ProtoResolver.cs" />
     <Compile Include="RouteConfig\MetaAddActionConfiguration.cs" />
-    <Compile Include="RouteConfig\RouteActionFactory.cs" />
-    <Compile Include="RouteConfig\SubRouteConfigurationResolved.cs" />
-    <Compile Include="RouteConfig\RouteConfigurationResolved.cs" />
-    <Compile Include="RouteConfig\ActionSequenceConfiguration.cs" />
-    <Compile Include="RouteConfig\ActionParallelConfiguration.cs" />
-    <Compile Include="RouteConfig\Impl\IRouteConfigurationContext.cs" />
-    <Compile Include="RouteConfig\RouteConfigurationResult.cs" />
-    <Compile Include="GrandOutput.cs" />
-    <Compile Include="GrandOutputClient.cs" />
-    <Compile Include="Impl\BufferingChannel.cs" />
-    <Compile Include="Impl\ChannelHost.cs" />
-    <Compile Include="Impl\IChannel.cs" />
-    <Compile Include="ILogEntry.cs" />
-    <Compile Include="Persistence\LogEntry.cs" />
-    <Compile Include="Persistence\Impl\StreamLogType.cs" />
-    <Compile Include="Impl\StandardChannel.cs" />
-    <Compile Include="IGrandOutputSink.cs" />
-    <Compile Include="Impl\GrandOutputCompositeSink.cs" />
-    <Compile Include="Persistence\Impl\LECloseGroup.cs" />
-    <Compile Include="Persistence\Impl\LEOpenGroup.cs" />
-    <Compile Include="LogEntryType.cs" />
-    <Compile Include="Persistence\LogReader.cs" />
-    <Compile Include="Persistence\CKMonWriterClient.cs" />
-    <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="GrandOutputHandlers\BinaryFile.cs" />
-    <Compile Include="GrandOutputHandlers\BinaryFileConfiguration.cs" />
-    <Compile Include="RouteConfig\RouteConfiguration.cs" />
-    <Compile Include="RouteConfig\Impl\ActionCompositeConfiguration.cs" />
-    <Compile Include="RouteConfig\Impl\MetaConfiguration.cs" />
+    <Compile Include="RouteConfig\MetaDeclareActionConfiguration.cs" />
     <Compile Include="RouteConfig\MetaDeclareRouteConfiguration.cs" />
-    <Compile Include="RouteConfig\SubRouteConfiguration.cs" />
+    <Compile Include="RouteConfig\MetaInsertActionConfiguration.cs" />
+    <Compile Include="RouteConfig\MetaOverrideActionConfiguration.cs" />
     <Compile Include="RouteConfig\MetaRemoveActionConfiguration.cs" />
-    <Compile Include="RouteConfig\ActionConfiguration.cs" />
-    <Compile Include="GrandOutputHandlers\HandlerBase.cs" />
-    <Compile Include="Impl\ChannelFactory.cs" />
-    <Compile Include="GrandOutputHandlers\ChannelOption.cs" />
-    <Compile Include="GrandOutputHandlers\HandlerTypeAttribute.cs" />
-    <Compile Include="GrandOutputHandlers\Impl\SequenceHandler.cs" />
-    <Compile Include="GrandOutputHandlers\Impl\ParallelHandler.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\CK.Core\CK.Core.csproj">
-      <Project>{97578828-71ec-46b3-bd9a-44e58292386f}</Project>
-      <Name>CK.Core</Name>
-    </ProjectReference>
+    <Compile Include="RouteConfig\RouteActionFactory.cs" />
+    <Compile Include="RouteConfig\RouteConfiguration.cs" />
+    <Compile Include="RouteConfig\RouteConfigurationResolved.cs" />
+    <Compile Include="RouteConfig\RouteConfigurationResult.cs" />
+    <Compile Include="RouteConfig\SubRouteConfiguration.cs" />
+    <Compile Include="RouteConfig\SubRouteConfigurationResolved.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
     <None Include="RouteConfig\Configuration.cd" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="ReleaseNotes.txt" />
+    <ProjectReference Include="..\CK.ActivityMonitor\CK.ActivityMonitor.csproj">
+      <Project>{8aaaf17d-328a-4fe5-bac9-5dd35963b2b8}</Project>
+      <Name>CK.ActivityMonitor</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\CK.Core\CK.Core.csproj">
+      <Project>{bc92ae5b-73a2-4b9e-91d2-9163960a17c4}</Project>
+      <Name>CK.Core</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\CK.Text\CK.Text.csproj">
+      <Project>{0518e60c-0cb9-49da-a634-109998526368}</Project>
+      <Name>CK.Text</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
-  <Import Project="..\packages\SimpleGitVersionTask.0.10.0\build\SimpleGitVersionTask.targets" Condition="Exists('..\packages\SimpleGitVersionTask.0.10.0\build\SimpleGitVersionTask.targets')" />
+  <Import Project="..\packages\SimpleGitVersionTask.0.17.0\build\SimpleGitVersionTask.targets" Condition="Exists('..\packages\SimpleGitVersionTask.0.17.0\build\SimpleGitVersionTask.targets')" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
     <PropertyGroup>
       <ErrorText>This project references NuGet package(s) that are missing on this computer. Use NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
     </PropertyGroup>
-    <Error Condition="!Exists('..\packages\SimpleGitVersionTask.0.10.0\build\SimpleGitVersionTask.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\SimpleGitVersionTask.0.10.0\build\SimpleGitVersionTask.targets'))" />
+    <Error Condition="!Exists('..\packages\SimpleGitVersionTask.0.17.0\build\SimpleGitVersionTask.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\SimpleGitVersionTask.0.17.0\build\SimpleGitVersionTask.targets'))" />
   </Target>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

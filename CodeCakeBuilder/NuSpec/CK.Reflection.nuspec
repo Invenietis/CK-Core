@@ -9,14 +9,16 @@
     <licenseUrl>http://www.gnu.org/licenses/lgpl.html</licenseUrl>
     <projectUrl>https://github.com/Invenietis/ck-core</projectUrl>
     <requireLicenseAcceptance>true</requireLicenseAcceptance>
-    <description>Reflection related utility classes.</description>
+    <summary>
+      Reflection related utility classes. ({{CSemVer}})
+    </summary>
+    <description>
+      Standard reflection and emit helpers: DelegateHelper allows invoking virtual method base, EmitHelper and ILGeneratorExtension
+      ease classical emit funtions.
+    </description>
     <language>en-US</language>
   </metadata>
   <files>
-	<file src="net40\CK.Reflection\bin\{{configuration}}\CK.Reflection.dll" target="lib\net40" />
-	<file src="net40\CK.Reflection\bin\{{configuration}}\CK.Reflection.pdb" target="lib\net40" />
-	<file src="net40\CK.Reflection\bin\{{configuration}}\CK.Reflection.xml" target="lib\net40" />
-
 	<file src="CK.Reflection\bin\{{configuration}}\CK.Reflection.dll" target="lib\net45" />
 	<file src="CK.Reflection\bin\{{configuration}}\CK.Reflection.pdb" target="lib\net45" />
 	<file src="CK.Reflection\bin\{{configuration}}\CK.Reflection.xml" target="lib\net45" />

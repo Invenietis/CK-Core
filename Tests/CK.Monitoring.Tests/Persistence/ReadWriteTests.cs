@@ -29,6 +29,7 @@ using System.Text;
 using System.Threading.Tasks;
 using CK.Core;
 using NUnit.Framework;
+using CK.Text;
 
 namespace CK.Monitoring.Tests.Persistence
 {
@@ -54,7 +55,7 @@ namespace CK.Monitoring.Tests.Persistence
             ILogEntry e2 = LogEntry.CreateMulticastLog( Guid.Empty, LogEntryType.Line, prevLog, 5, "Text2", DateTimeStamp.UtcNow, LogLevel.Fatal, null, 3712, ActivityMonitor.Tags.CreateDependentActivity, exAgg );
 
             using( var mem = new MemoryStream() )
-            using( var w = new BinaryWriter( mem ) )
+            using( var w = new CKBinaryWriter( mem ) )
             {
                 w.Write( LogReader.CurrentStreamVersion );
                 e1.WriteLogEntry( w );

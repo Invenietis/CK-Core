@@ -24,6 +24,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System;
+using System.Diagnostics.CodeAnalysis;
 
 namespace CK.Core
 {
@@ -37,9 +38,9 @@ namespace CK.Core
         int _pos;
 
         /// <summary>
-        /// Constructor
+        /// Initializes a new enumerator bound to one and only one value.
         /// </summary>
-        /// <param name="val">Unique object that will be contained into the <see cref="CKEnumeratorMono{T}"/></param>
+        /// <param name="val">Unique value that will be enumerated by this <see cref="CKEnumeratorMono{T}"/></param>
         public CKEnumeratorMono( T val )
         {
             _val = val;
@@ -61,26 +62,25 @@ namespace CK.Core
         /// <summary>
         /// Dispose the <see cref="IEnumerator{T}"/>.
         /// </summary>
-		public void Dispose()
+        [ExcludeFromCodeCoverage]
+        public void Dispose()
 		{
 		}
 
-		object IEnumerator.Current
-		{
-			get { return Current; }
-		}
+        [ExcludeFromCodeCoverage]
+		object IEnumerator.Current => Current; 
 
         /// <summary>
         /// Move to the next element.
         /// </summary>
-        /// <returns>True if position is equal to 0, false otherwise</returns>
+        /// <returns>True the first time, false otherwise</returns>
 		public bool MoveNext()
 		{
 			return ++_pos == 0;
 		}
 
         /// <summary>
-        /// Reset the enumerator.
+        /// Resets the enumerator.
         /// </summary>
 		public void Reset()
 		{

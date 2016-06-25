@@ -1,26 +1,3 @@
-#region LGPL License
-/*----------------------------------------------------------------------------
-* This file (CK.Core\CKExceptionData.cs) is part of CiviKey. 
-*  
-* CiviKey is free software: you can redistribute it and/or modify 
-* it under the terms of the GNU Lesser General Public License as published 
-* by the Free Software Foundation, either version 3 of the License, or 
-* (at your option) any later version. 
-*  
-* CiviKey is distributed in the hope that it will be useful, 
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
-* GNU Lesser General Public License for more details. 
-* You should have received a copy of the GNU Lesser General Public License 
-* along with CiviKey.  If not, see <http://www.gnu.org/licenses/>. 
-*  
-* Copyright © 2007-2015, 
-*     Invenietis <http://www.invenietis.com>,
-*     In’Tech INFO <http://www.intechinfo.fr>,
-* All rights reserved. 
-*-----------------------------------------------------------------------------*/
-#endregion
-
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -30,6 +7,8 @@ using CK.Core;
 using System.Threading.Tasks;
 using System.IO;
 using System.Diagnostics;
+using System.Runtime.Serialization;
+using CK.Text;
 
 namespace CK.Core
 {
@@ -46,10 +25,15 @@ namespace CK.Core
         readonly string _stackTrace;
         readonly CKExceptionData _innerException;
         readonly string _fileName;
-        readonly string _fusionLog;
+        readonly string _detailedInfo;
         readonly CKExceptionData[] _loaderExceptions;
         readonly CKExceptionData[] _aggregatedExceptions;
         string _toString;
+
+        /// <summary>
+        /// The current stream version.
+        /// </summary>
+        public static readonly int CurrentStreamVersion = 1;
 
         /// <summary>
         /// Initializes a new <see cref="CKExceptionData"/> with all its fields.
@@ -61,7 +45,7 @@ namespace CK.Core
         /// <param name="stackTrace">Stack trace. Can be null.</param>
         /// <param name="innerException">Inner exception. If <paramref name="aggregatedExceptions"/> is not null, it must be the same as the first aggregated exceptions.</param>
         /// <param name="fileName">File name related to the exception (if it makes sense). Can be null.</param>
-        /// <param name="fusionLog">Fusion log. <see cref="FusionLog"/>.</param>
+        /// <param name="detailedInfo">More detailed information if any.</param>
         /// <param name="loaderExceptions">Loader exceptions. <see cref="LoaderExceptions"/>.</param>
         /// <param name="aggregatedExceptions">Aggregated exceptions can be null. Otherwise, it must contain at least one exception.</param>
         public CKExceptionData(
@@ -71,15 +55,15 @@ namespace CK.Core
             string stackTrace,
             CKExceptionData innerException,
             string fileName,
-            string fusionLog,
+            string detailedInfo,
             CKExceptionData[] loaderExceptions,
             CKExceptionData[] aggregatedExceptions )
         {
-            if( message == null ) throw new ArgumentNullException( "message" );
-            if( String.IsNullOrWhiteSpace( exceptionTypeName ) ) throw new ArgumentNullException( "exceptionTypeName" );
-            if( String.IsNullOrWhiteSpace( exceptionTypeAssemblyQualifiedName ) ) throw new ArgumentNullException( "exceptionTypeFullName" );
-            if( aggregatedExceptions != null && aggregatedExceptions.Length == 0 ) throw new ArgumentException( R.AggregatedExceptionsMustContainAtLeastOne, "aggregatedExceptions" );
-            if( innerException != null && aggregatedExceptions != null && aggregatedExceptions[0] != innerException ) throw new ArgumentException( R.InnerExceptionMustBeTheFirstAggregatedException );
+            if( message == null ) throw new ArgumentNullException( nameof( message ) );
+            if( String.IsNullOrWhiteSpace( exceptionTypeName ) ) throw new ArgumentNullException( nameof( exceptionTypeName ) );
+            if( String.IsNullOrWhiteSpace( exceptionTypeAssemblyQualifiedName ) ) throw new ArgumentNullException( nameof( exceptionTypeAssemblyQualifiedName ) );
+            if( aggregatedExceptions != null && aggregatedExceptions.Length == 0 ) throw new ArgumentException( Impl.CoreResources.AggregatedExceptionsMustContainAtLeastOne, nameof( aggregatedExceptions ) );
+            if( innerException != null && aggregatedExceptions != null && aggregatedExceptions[0] != innerException ) throw new ArgumentException( Impl.CoreResources.InnerExceptionMustBeTheFirstAggregatedException );
             // No empty array for loaderExceptions: null or at least one inside.
             if( loaderExceptions != null && loaderExceptions.Length == 0 ) loaderExceptions = null;
             _message = message;
@@ -88,44 +72,57 @@ namespace CK.Core
             _stackTrace = String.IsNullOrWhiteSpace( stackTrace ) ? null : stackTrace;
             _innerException = innerException;
             _fileName = fileName;
-            _fusionLog = fusionLog;
+            _detailedInfo = detailedInfo;
             _loaderExceptions = loaderExceptions;
             _aggregatedExceptions = aggregatedExceptions;
         }
 
         /// <summary>
-        /// Initializes a new <see cref="CKExceptionData"/> from a <see cref="BinaryReader"/>. 
-        /// See <see cref="Write(BinaryWriter)"/>.
+        /// Initializes a new <see cref="CKExceptionData"/> from a <see cref="CKBinaryReader"/>. 
+        /// See <see cref="Write(CKBinaryWriter,bool)"/>.
         /// </summary>
         /// <param name="r">The reader to read from.</param>
-        public CKExceptionData( BinaryReader r )
+        /// <param name="streamIsCRLF">Whether the strings have CRLF or LF for end-of-lines.</param>
+        public CKExceptionData( CKBinaryReader r, bool streamIsCRLF )
+            : this( r, streamIsCRLF, r.ReadInt32() )
+        {
+        }
+
+        /// <summary>
+        /// Initializes a new <see cref="CKExceptionData"/> from a <see cref="CKBinaryReader"/>
+        /// with a known version. 
+        /// See <see cref="Write(CKBinaryWriter,bool)"/>.
+        /// </summary>
+        /// <param name="r">The reader to read from.</param>
+        /// <param name="streamIsCRLF">Whether the strings have CRLF or LF for end-of-lines.</param>
+        /// <param name="version">Known version.</param>
+        public CKExceptionData( CKBinaryReader r, bool streamIsCRLF, int version )
         {
             if( r == null ) throw new ArgumentNullException( "r" );
-            int version = r.ReadInt32();
-            _message = r.ReadString();
+            _message = r.ReadString( streamIsCRLF );
             _exceptionTypeName = r.ReadString();
             _exceptionTypeAQName = r.ReadString();
-            if( r.ReadBoolean() ) _stackTrace = r.ReadString();
-            if( r.ReadBoolean() ) _fileName = r.ReadString();
-            if( r.ReadBoolean() ) _fusionLog = r.ReadString();
+            _stackTrace = r.ReadNullableString( streamIsCRLF );
+            _fileName = r.ReadNullableString();
+            _detailedInfo = r.ReadNullableString( streamIsCRLF );
 
-            int nbAgg = r.ReadInt32();
+            int nbAgg = version == 0 ? r.ReadInt32() : r.ReadSmallInt32();
             if( nbAgg > 0 )
             {
                 _aggregatedExceptions = new CKExceptionData[nbAgg];
-                for( int i = 0; i < nbAgg; ++i ) _aggregatedExceptions[i] = new CKExceptionData( r );
+                for( int i = 0; i < nbAgg; ++i ) _aggregatedExceptions[i] = new CKExceptionData( r, streamIsCRLF, version == 0 ? r.ReadInt32() : version );
                 _innerException = _aggregatedExceptions[0];
             }
             else
             {
-                if( nbAgg == 0 ) _innerException = new CKExceptionData( r );
+                if( nbAgg == 0 ) _innerException = new CKExceptionData( r, streamIsCRLF, version == 0 ? r.ReadInt32() : version );
             }
 
-            int nbLd = r.ReadInt32();
+            int nbLd = version == 0 ? r.ReadInt32() : r.ReadNonNegativeSmallInt32();
             if( nbLd != 0 )
             {
                 _loaderExceptions = new CKExceptionData[nbLd];
-                for( int i = 0; i < nbLd; ++i ) _loaderExceptions[i] = new CKExceptionData( r );
+                for( int i = 0; i < nbLd; ++i ) _loaderExceptions[i] = new CKExceptionData( r, streamIsCRLF, version == 0 ? r.ReadInt32() : version );
             }
         }
 
@@ -156,7 +153,7 @@ namespace CK.Core
             else innerException = CreateFrom( ex.InnerException );
 
             string fileName = null;
-            string fusionLog = null;
+            string detailedInfo = null;
 
             CKExceptionData[] loaderExceptions = null;
             var typeLoadEx = ex as ReflectionTypeLoadException;
@@ -172,7 +169,9 @@ namespace CK.Core
                 if( fileNFEx != null )
                 {
                     fileName = fileNFEx.FileName;
-                    fusionLog = fileNFEx.FusionLog;
+                    #if NET451 || NET46
+                    detailedInfo = fileNFEx.FusionLog.NormalizeEOL();
+                    #endif
                 }
                 else
                 {
@@ -180,120 +179,123 @@ namespace CK.Core
                     if( loadFileEx != null )
                     {
                         fileName = loadFileEx.FileName;
-                        fusionLog = loadFileEx.FusionLog;
+                        #if NET451 || NET46
+                        detailedInfo = loadFileEx.FusionLog.NormalizeEOL();
+                        #endif
                     }
                     else
                     {
+                        #if NET451 || NET46
                         var configEx = ex as System.Configuration.ConfigurationException;
                         if( configEx != null )
                         {
                             fileName = configEx.Filename;
                         }
+                        #endif
                     }
                 }
             }
-            return new CKExceptionData( ex.Message, exceptionTypeName, exceptionTypeAssemblyQualifiedName, ex.StackTrace, innerException, fileName, fusionLog, loaderExceptions, aggregatedExceptions );
+            return new CKExceptionData( ex.Message, exceptionTypeName, exceptionTypeAssemblyQualifiedName, ex.StackTrace, innerException, fileName, detailedInfo, loaderExceptions, aggregatedExceptions );
         }
 
         /// <summary>
         /// Gets the message of the exception. Never null but can be empty.
         /// </summary>
-        public string Message { get { return _message; } }
+        public string Message => _message; 
 
         /// <summary>
         /// Gets the assembly qualified exception type name. Never null nor empty.
         /// </summary>
-        public string ExceptionTypeAssemblyQualifiedName { get { return _exceptionTypeAQName; } }
+        public string ExceptionTypeAssemblyQualifiedName => _exceptionTypeAQName;
 
         /// <summary>
         /// Gets the exception type name. Never null nor empty.
         /// </summary>
-        public string ExceptionTypeName { get { return _exceptionTypeName; } }
+        public string ExceptionTypeName => _exceptionTypeName;
 
         /// <summary>
         /// Gets the stack trace. Can be null.
         /// </summary>
-        public string StackTrace { get { return _stackTrace; } }
+        public string StackTrace => _stackTrace;
 
         /// <summary>
         /// Gets the inner exception if it exists.
         /// If <see cref="AggregatedExceptions"/> is not null, it is the same as the first aggreated exceptions.
         /// </summary>
-        public CKExceptionData InnerException { get { return _innerException; } }
+        public CKExceptionData InnerException => _innerException;
 
         /// <summary>
         /// Gets the file name if the exception is referring to a file. 
         /// Null otherwise.
         /// </summary>
-        public string FileName { get { return _fileName; } }
+        public string FileName => _fileName;
 
         /// <summary>
-        /// Gets the fusion log if the exception is a <see cref="System.IO.FileNotFoundException"/> or a <see cref="System.IO.FileLoadException"/> that was raised
-        /// while dynamically loading a type or an assembly. 
+        /// Gets more information: this depends on the actual exception type.
+        /// For instance, if the exception is a <see cref="System.IO.FileNotFoundException"/> or a <see cref="System.IO.FileLoadException"/> that was raised
+        /// while dynamically loading a type or an assembly and we are in DNX, this contains the log from Fusion assembly loading subsystem. 
         /// Null otherwise.
         /// </summary>
-        public string FusionLog { get { return _fusionLog; } }
+        public string DetailedInfo => _detailedInfo;
 
         /// <summary>
         /// Gets all the the exceptions that occurred while dynamically loading a type or an assembly if the exception is a <see cref="System.Reflection.ReflectionTypeLoadException"/>.
         /// Null otherwise.
         /// </summary>
-        public IReadOnlyList<CKExceptionData> LoaderExceptions { get { return _loaderExceptions.AsReadOnlyList(); } }
+        public IReadOnlyList<CKExceptionData> LoaderExceptions => _loaderExceptions;
 
         /// <summary>
         /// Gets all the the aggregated exceptions if the exception is a <see cref="System.AggregateException"/>.
         /// This corresponds to the <see cref="System.AggregateException.InnerExceptions"/> property.
         /// Null if this exception is not a an AggregatedException.
         /// </summary>
-        public IReadOnlyList<CKExceptionData> AggregatedExceptions { get { return _aggregatedExceptions.AsReadOnlyList(); } }
+        public IReadOnlyList<CKExceptionData> AggregatedExceptions => _aggregatedExceptions;
+
 
         /// <summary>
         /// Writes this exception data into a <see cref="BinaryWriter"/>.
         /// </summary>
         /// <param name="w">The writer to use. Can not be null.</param>
-        public void Write( BinaryWriter w )
+        /// <param name="writeVersion">False to not write the <see cref="CurrentStreamVersion"/>.</param>
+        public void Write( CKBinaryWriter w, bool writeVersion = true )
+        {
+            if( writeVersion ) w.Write( CurrentStreamVersion );
+            WriteWithoutVersion( w );
+        }
+
+        void WriteWithoutVersion( CKBinaryWriter w )
         {
             if( w == null ) throw new ArgumentNullException( "w" );
-            w.Write( 0 );
             w.Write( _message );
             w.Write( _exceptionTypeName );
             w.Write( _exceptionTypeAQName );
-            WriteNullableString( w, _stackTrace );
-            WriteNullableString( w, _fileName );
-            WriteNullableString( w, _fusionLog );
+            w.WriteNullableString( _stackTrace );
+            w.WriteNullableString( _fileName );
+            w.WriteNullableString( _detailedInfo );
 
             if( _aggregatedExceptions != null )
             {
-                w.Write( _aggregatedExceptions.Length );
-                foreach( var agg in _aggregatedExceptions ) agg.Write( w );
+                w.WriteSmallInt32( _aggregatedExceptions.Length );
+                foreach( var agg in _aggregatedExceptions ) agg.WriteWithoutVersion( w );
             }
             else
             {
                 if( _innerException != null )
                 {
-                    w.Write( 0 );
-                    _innerException.Write( w );
+                    w.WriteSmallInt32( 0 );
+                    _innerException.WriteWithoutVersion( w );
                 }
-                else w.Write( -1 );
+                else w.WriteSmallInt32( -1 );
             }
 
             if( _loaderExceptions != null )
             {
-                w.Write( _loaderExceptions.Length );
-                foreach( var ld in _loaderExceptions ) ld.Write( w );
+                w.WriteNonNegativeSmallInt32( _loaderExceptions.Length );
+                foreach( var ld in _loaderExceptions ) ld.WriteWithoutVersion( w );
             }
-            else w.Write( 0 );
+            else w.WriteNonNegativeSmallInt32( 0 );
         }
 
-        static void WriteNullableString( BinaryWriter w, string s )
-        {
-            if( s != null )
-            {
-                w.Write( true );
-                w.Write( s );
-            }
-            else w.Write( false );
-        }
 
         /// <summary>
         /// Writes the exception data as a readable block of text into a <see cref="TextWriter"/>.
@@ -348,8 +350,8 @@ namespace CK.Core
 
             if( _stackTrace != null ) AppendText( appender, locPrefix, "Stack", _stackTrace, newLine );
             
-            if( !String.IsNullOrEmpty( _fileName ) ) AppendLine( appender, locPrefix, "FileName", _fileName, newLine );
-            if( _fusionLog != null ) AppendText( appender, locPrefix, "FusionLog", _fusionLog, newLine );
+            if( !string.IsNullOrEmpty( _fileName ) ) AppendLine( appender, locPrefix, "FileName", _fileName, newLine );
+            if( _detailedInfo != null ) AppendText( appender, locPrefix, "FusionLog", _detailedInfo, newLine );
 
             if( _loaderExceptions != null )
             {

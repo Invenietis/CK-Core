@@ -1,0 +1,13 @@
+{
+  "locked": false,
+  "version": 1,
+  "targets": {},
+  "libraries": {},
+  "projectFileDependencyGroups": {
+    "": [
+      "CK.Reflection >= 0.0.0-Absolutely-Invalid<= 0.0.0.0",
+      "NUnitLite >= 3.2.0",
+      "xunit >= 2.1.0"
+    ]
+  }
+}

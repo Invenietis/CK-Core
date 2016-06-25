@@ -1,32 +1,7 @@
-#region LGPL License
-/*----------------------------------------------------------------------------
-* This file (CK.Monitoring\RouteConfig\Impl\ProtoDeclaredAction.cs) is part of CiviKey. 
-*  
-* CiviKey is free software: you can redistribute it and/or modify 
-* it under the terms of the GNU Lesser General Public License as published 
-* by the Free Software Foundation, either version 3 of the License, or 
-* (at your option) any later version. 
-*  
-* CiviKey is distributed in the hope that it will be useful, 
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
-* GNU Lesser General Public License for more details. 
-* You should have received a copy of the GNU Lesser General Public License 
-* along with CiviKey.  If not, see <http://www.gnu.org/licenses/>. 
-*  
-* Copyright © 2007-2015, 
-*     Invenietis <http://www.invenietis.com>,
-*     In’Tech INFO <http://www.intechinfo.fr>,
-* All rights reserved. 
-*-----------------------------------------------------------------------------*/
-#endregion
-
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using CK.Core;
 
 namespace CK.RouteConfig.Impl
@@ -55,7 +30,7 @@ namespace CK.RouteConfig.Impl
             {
                 _action = a;
                 _isCloned = false;
-                monitor.Info().Send( "Action '{0}' has been overridden.", a.Name );
+                monitor.SendLine( LogLevel.Info, string.Format( "Action '{0}' has been overridden.", a.Name ), null );
                 return true;
             }
             ActionCompositeConfiguration parent;
@@ -67,16 +42,16 @@ namespace CK.RouteConfig.Impl
                 if( !_isCloned )
                 {
                     _action = ((ActionCompositeConfiguration)_action).CloneComposite( true );
-                    monitor.Info().Send( "Action '{0}' has been cloned in order to override an inner action.", String.Join( "/", fullPath ) );
+                    monitor.SendLine( LogLevel.Info, string.Format( "Action '{0}' has been cloned in order to override an inner action.", string.Join( "/", fullPath ) ), null );
                     _isCloned = true;
                     idx = FindInComposite( e, out parent );
                 }
                 Debug.Assert( parent.Children[idx].Name == fullPath.Last() );
                 parent.Override( idx, a );
-                monitor.Info().Send( "Inner action '{0}' has been overridden.", String.Join( "/", fullPath ) );
+                monitor.SendLine( LogLevel.Info, string.Format( "Inner action '{0}' has been overridden.", string.Join( "/", fullPath ) ), null );
                 return true;
             }
-            monitor.Error().Send( "Action '{0}' not found. Unable to override it.", String.Join( "/", fullPath ) );
+            monitor.SendLine( LogLevel.Error, string.Format( "Action '{0}' not found. Unable to override it.", string.Join( "/", fullPath ) ), null );
             return false;
         }
 

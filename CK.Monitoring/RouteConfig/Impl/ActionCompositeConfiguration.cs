@@ -1,31 +1,6 @@
-#region LGPL License
-/*----------------------------------------------------------------------------
-* This file (CK.Monitoring\RouteConfig\Impl\ActionCompositeConfiguration.cs) is part of CiviKey. 
-*  
-* CiviKey is free software: you can redistribute it and/or modify 
-* it under the terms of the GNU Lesser General Public License as published 
-* by the Free Software Foundation, either version 3 of the License, or 
-* (at your option) any later version. 
-*  
-* CiviKey is distributed in the hope that it will be useful, 
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
-* GNU Lesser General Public License for more details. 
-* You should have received a copy of the GNU Lesser General Public License 
-* along with CiviKey.  If not, see <http://www.gnu.org/licenses/>. 
-*  
-* Copyright © 2007-2015, 
-*     Invenietis <http://www.invenietis.com>,
-*     In’Tech INFO <http://www.intechinfo.fr>,
-* All rights reserved. 
-*-----------------------------------------------------------------------------*/
-#endregion
-
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using CK.Core;
 
 namespace CK.RouteConfig.Impl
@@ -79,7 +54,7 @@ namespace CK.RouteConfig.Impl
         /// <summary>
         /// Gets children (items of this composite) actions.
         /// </summary>
-        public IReadOnlyList<ActionConfiguration> Children { get { return _children.AsReadOnlyList(); } }
+        public IReadOnlyList<ActionConfiguration> Children { get { return _children; } }
 
         /// <summary>
         /// Checks that children are valid (action's name must be unique).
@@ -99,7 +74,7 @@ namespace CK.RouteConfig.Impl
                 {
                     if( _children[j].Name == child.Name )
                     {
-                        monitor.Error().Send( "Duplicate action name '{0}' in {1} '{2}', route '{3}'.", child.Name, TypeDisplayName, Name, routeName );
+                        monitor.SendLine( LogLevel.Error, string.Format( "Duplicate action name '{0}' in {1} '{2}', route '{3}'.", child.Name, TypeDisplayName, Name, routeName ), null );
                         validChild = false;
                     }
                 }
@@ -144,17 +119,17 @@ namespace CK.RouteConfig.Impl
                 {
                     if( a.Name == Name )
                     {
-                        monitor.Warn().Send( "Action n°{2} '{0}' has the name of its parent {1}.", a.Name, TypeDisplayName, i+1 );
+                        monitor.SendLine( LogLevel.Warn, string.Format( "Action n°{2} '{0}' has the name of its parent {1}.", a.Name, TypeDisplayName, i+1 ), null );
                     }
                     else
                     {
                         if( _isParallel )
                         {
-                            monitor.Warn().Send( "Duplicate name '{0}' found in {1} (action n°{2}).", a.Name, _parDisplayName, i + 1 );
+                            monitor.SendLine( LogLevel.Warn, string.Format( "Duplicate name '{0}' found in {1} (action n°{2}).", a.Name, _parDisplayName, i + 1 ), null );
                         }
                         else
                         {
-                            monitor.Error().Send( "Action n°{2}'s name '{0}' alreay appears in {1}. In a {1}, names must be unique.", a.Name, _seqDisplayName );
+                            monitor.SendLine( LogLevel.Error, string.Format( "Action n°{2}'s name '{0}' alreay appears in {1}. In a {1}, names must be unique.", a.Name, _seqDisplayName ), null );
                             formalError = true;
                         }
                     }

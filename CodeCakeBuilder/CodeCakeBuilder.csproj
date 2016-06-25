@@ -1,17 +1,18 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="..\packages\SimpleGitVersion.Core.0.10.0\build\SimpleGitVersion.Core.props" Condition="Exists('..\packages\SimpleGitVersion.Core.0.10.0\build\SimpleGitVersion.Core.props')" />
+  <Import Project="..\packages\SimpleGitVersion.Core.0.17.0\build\SimpleGitVersion.Core.props" Condition="Exists('..\packages\SimpleGitVersion.Core.0.17.0\build\SimpleGitVersion.Core.props')" />
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{FD4817B6-3CD7-4E74-AA10-7CA95FDFCF2D}</ProjectGuid>
+    <ProjectGuid>{C495D3DF-2E63-466B-9886-DE8A3EFBD584}</ProjectGuid>
     <OutputType>Exe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>CodeCakeBuilder</RootNamespace>
     <AssemblyName>CodeCakeBuilder</AssemblyName>
-    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.5.1</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
+    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
     <NuGetPackageImportStamp>
     </NuGetPackageImportStamp>
   </PropertyGroup>
@@ -21,7 +22,7 @@
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
     <OutputPath>bin\Debug\</OutputPath>
-    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <DefineConstants>TRACE;DEBUG;NET451</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
@@ -35,24 +36,24 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Cake.Common, Version=0.6.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Cake.Common.0.6.0\lib\net45\Cake.Common.dll</HintPath>
+    <Reference Include="Cake.Common, Version=0.13.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Cake.Common.0.13.0\lib\net45\Cake.Common.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="Cake.Core, Version=0.6.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Cake.Core.0.6.0\lib\net45\Cake.Core.dll</HintPath>
+    <Reference Include="Cake.Core, Version=0.13.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Cake.Core.0.13.0\lib\net45\Cake.Core.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="Code.Cake, Version=0.6.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Code.Cake.0.6.2\lib\net45\Code.Cake.dll</HintPath>
+    <Reference Include="Code.Cake, Version=0.9.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Code.Cake.0.9.0\lib\net45\Code.Cake.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="SimpleGitVersion.Cake, Version=0.10.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\SimpleGitVersion.Cake.0.10.0\lib\net45\SimpleGitVersion.Cake.dll</HintPath>
+    <Reference Include="SimpleGitVersion.Cake, Version=0.17.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\SimpleGitVersion.Cake.0.17.0\lib\net45\SimpleGitVersion.Cake.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="SimpleGitVersion.Core, Version=0.10.0.0, Culture=neutral, PublicKeyToken=731c291b31fb8d27, processorArchitecture=MSIL">
-      <HintPath>..\packages\SimpleGitVersion.Core.0.10.0\lib\net45\SimpleGitVersion.Core.dll</HintPath>
+    <Reference Include="SimpleGitVersion.Core, Version=0.17.0.0, Culture=neutral, PublicKeyToken=731c291b31fb8d27, processorArchitecture=MSIL">
+      <HintPath>..\packages\SimpleGitVersion.Core.0.17.0\lib\net45\SimpleGitVersion.Core.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="System" />
@@ -72,25 +73,26 @@
   <ItemGroup>
     <None Include="App.config" />
     <None Include="Bootstrap.ps1" />
-    <None Include="Invenietis-Authenticode.pfx.enc" />
-    <None Include="NuSpec\CK.Core.ActivityMonitor.CommonLoggingAdapter.nuspec" />
-    <None Include="NuSpec\CK.Core.ActivityMonitor.NLogAdapter.nuspec" />
-    <None Include="NuSpec\CK.Core.nuspec" />
-    <None Include="NuSpec\CK.Interop.nuspec" />
     <None Include="NuSpec\CK.Monitoring.nuspec" />
+    <None Include="NuSpec\CK.ActivityMonitor.StandardSender.nuspec" />
+    <None Include="NuSpec\CK.ActivityMonitor.nuspec" />
     <None Include="NuSpec\CK.Reflection.nuspec" />
-    <None Include="NuSpec\CK.Storage.nuspec" />
-    <None Include="NuSpec\nuspec.xsd">
-      <SubType>Designer</SubType>
-    </None>
+    <None Include="NuSpec\CK.Text.nuspec" />
+    <None Include="NuSpec\CK.Core.nuspec" />
     <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\CK.Text\CK.Text.csproj">
+      <Project>{0518E60C-0CB9-49DA-A634-109998526368}</Project>
+      <Name>CK.Text</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
     <PropertyGroup>
       <ErrorText>This project references NuGet package(s) that are missing on this computer. Use NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
     </PropertyGroup>
-    <Error Condition="!Exists('..\packages\SimpleGitVersion.Core.0.10.0\build\SimpleGitVersion.Core.props')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\SimpleGitVersion.Core.0.10.0\build\SimpleGitVersion.Core.props'))" />
+    <Error Condition="!Exists('..\packages\SimpleGitVersion.Core.0.17.0\build\SimpleGitVersion.Core.props')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\SimpleGitVersion.Core.0.17.0\build\SimpleGitVersion.Core.props'))" />
   </Target>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

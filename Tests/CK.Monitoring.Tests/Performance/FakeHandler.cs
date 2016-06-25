@@ -21,6 +21,8 @@
 *-----------------------------------------------------------------------------*/
 #endregion
 
+using CK.Core;
+using CK.Text;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -56,7 +58,7 @@ namespace CK.Monitoring.GrandOutputHandlers
         void ComputeSize( GrandOutputEventInfo logEvent, bool increment )
         {
             using( MemoryStream m = new MemoryStream() )
-            using( BinaryWriter w = new BinaryWriter( m ) )
+            using( CKBinaryWriter w = new CKBinaryWriter( m ) )
             {
                 logEvent.Entry.WriteLogEntry( w );
                 if( increment ) Interlocked.Add( ref SizeHandled, (int)m.Position );

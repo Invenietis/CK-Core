@@ -1,0 +1,31 @@
+﻿<?xml version="1.0"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
+  <metadata>
+    <id>CK.ActivityMonitor.StandardSender</id>
+    <version>$version$</version>
+    <authors>Invenietis</authors>
+    <owners>Invenietis</owners>
+    <copyright>Invenietis</copyright>
+    <licenseUrl>http://www.gnu.org/licenses/lgpl.html</licenseUrl>
+    <projectUrl>https://github.com/Invenietis/ck-core</projectUrl>
+    <requireLicenseAcceptance>true</requireLicenseAcceptance>   
+    <summary>
+      OpenTrace/Info/Warn/Error/Fatal and Trace/Info/Warn/Error/Fatal extension methods.({{CSemVer}})
+    </summary>
+    <description>
+      The OpenTrace/Info/Warn/Error/Fatal and Trace/Info/Warn/Error/Fatal extension methods support
+      file name and line number capture but requires a Send method to emit the log itself.
+    </description>
+    <language>en-US</language>
+
+	<dependencies>
+    <dependency id="CK.Activitymonitor" version="$version$" />
+  </dependencies>
+
+  </metadata>
+    <files>	
+	    <file src="CK.ActivityMonitor.StandardSender\bin\{{configuration}}\CK.ActivityMonitor.StandardSender.dll" target="lib\net45" />		
+	    <file src="CK.ActivityMonitor.StandardSender\bin\{{configuration}}\CK.ActivityMonitor.StandardSender.pdb" target="lib\net45" />
+	    <file src="CK.ActivityMonitor.StandardSender\bin\{{configuration}}\CK.ActivityMonitor.StandardSender.xml" target="lib\net45" />
+    </files>
+</package>

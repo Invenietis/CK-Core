@@ -1,23 +1,16 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
   <PropertyGroup>
-    <TargetFrameworkVersion Condition=" '$(TargetFrameworkVersion)' == '' ">v4.5</TargetFrameworkVersion>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProductVersion>9.0.30729</ProductVersion>
-    <SchemaVersion>2.0</SchemaVersion>
-    <ProjectGuid>{97578828-71EC-46B3-BD9A-44E58292386F}</ProjectGuid>
+    <ProjectGuid>{BC92AE5B-73A2-4B9E-91D2-9163960A17C4}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>CK.Core</RootNamespace>
     <AssemblyName>CK.Core</AssemblyName>
+    <TargetFrameworkVersion>v4.5.1</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
-    <FileUpgradeFlags>
-    </FileUpgradeFlags>
-    <OldToolsVersion>3.5</OldToolsVersion>
-    <UpgradeBackupLocation />
-    <TargetFrameworkProfile>
-    </TargetFrameworkProfile>
     <NuGetPackageImportStamp>
     </NuGetPackageImportStamp>
   </PropertyGroup>
@@ -25,215 +18,104 @@
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
-    <DefineConstants>DEBUG;TRACE;net45</DefineConstants>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>TRACE;DEBUG;NET451;CSPROJ</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
-    <DocumentationFile>
-    </DocumentationFile>
-    <Prefer32Bit>false</Prefer32Bit>
-    <CodeAnalysisRuleSet>BasicDesignGuidelineRules.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE;NET451;CSPROJ</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
-    <DefineConstants>TRACE;net45</DefineConstants>
     <WarningLevel>4</WarningLevel>
     <DocumentationFile>bin\Release\CK.Core.xml</DocumentationFile>
-    <LangVersion>default</LangVersion>
-    <UseVSHostingProcess>true</UseVSHostingProcess>
-    <Prefer32Bit>false</Prefer32Bit>
-  </PropertyGroup>
-  <PropertyGroup>
-    <OutputPath>bin\$(Configuration)</OutputPath>
-    <SignAssembly>true</SignAssembly>
-    <AssemblyOriginatorKeyFile>..\SharedKey.snk</AssemblyOriginatorKeyFile>
   </PropertyGroup>
   <PropertyGroup Condition=" $(GenerateDocumentation) != '' ">
     <DocumentationFile>bin\$(Configuration)\$(AssemblyName).xml</DocumentationFile>
   </PropertyGroup>
-  <ItemGroup>
-    <Reference Include="System" />
-    <Reference Include="System.Core">
-      <RequiredTargetFramework>3.5</RequiredTargetFramework>
-    </Reference>
-    <Reference Include="System.Xml" />
-    <Reference Include="System.Xml.Linq" />
-  </ItemGroup>
+  <PropertyGroup>
+    <SignAssembly>true</SignAssembly>
+    <AssemblyOriginatorKeyFile>..\SharedKey.snk</AssemblyOriginatorKeyFile>
+    <DelaySign>false</DelaySign>
+  </PropertyGroup>
   <ItemGroup>
     <Compile Include="..\SharedAssemblyInfo.cs">
       <Link>Properties\SharedAssemblyInfo.cs</Link>
     </Compile>
-    <Compile Include="ActivityMonitor\ActivityLogGroupConclusion.cs" />
-    <Compile Include="ActivityMonitor\ActivityMonitorLogData.cs" />
-    <Compile Include="ActivityMonitor\ActivityMonitorGroupData.cs" />
-    <Compile Include="ActivityMonitor\Impl\ActivityMonitor.SourceFiltering.cs" />
-    <Compile Include="ActivityMonitor\SourceLogFilter.cs" />
-    <Compile Include="GrantLevel.cs" />
-    <Compile Include="IFluentInterface.cs" />
-    <Compile Include="StringAndStringBuilderExtension.cs" />
-    <Compile Include="Util.Matcher.cs" />
-    <Compile Include="DateTimeStamp.cs" />
-    <Compile Include="ActivityMonitor\IDisposableActivityMonitor.cs" />
-    <Compile Include="ActivityMonitor\IActivityMonitorGroupSender.cs" />
-    <Compile Include="ActivityMonitor\IActivityMonitorLineSender.cs" />
-    <Compile Include="ActivityMonitor\Impl\ActivityMonitorExtension.DependentActivity.cs" />
-    <Compile Include="ActivityMonitor\Impl\ActivityMonitorGroupSender.cs" />
-    <Compile Include="ActivityMonitor\IActivityMonitor.cs" />
-    <Compile Include="ActivityMonitor\IActivityMonitorBoundClient.cs" />
-    <Compile Include="ActivityMonitor\IActivityMonitorClient.cs" />
-    <Compile Include="ActivityMonitor\IActivityMonitorOutput.cs" />
-    <Compile Include="ActivityMonitor\IActivityLogGroup.cs" />
-    <Compile Include="ActivityMonitor\IDisposableGroup.cs" />
-    <Compile Include="ActivityMonitor\Impl\ActivityMonitorBridgeTarget.cs" />
-    <Compile Include="ActivityMonitor\Client\ActivityMonitorConsoleClient.cs" />
-    <Compile Include="ActivityMonitor\Client\ActivityMonitorErrorCounter.cs" />
-    <Compile Include="ActivityMonitor\Client\ActivityMonitorClient.cs" />
-    <Compile Include="ActivityMonitor\Impl\ActivityMonitorLineSender-Gen.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>ActivityMonitorLineSender-Gen.tt</DependentUpon>
-    </Compile>
-    <Compile Include="ActivityMonitor\Impl\ActivityMonitorExtension-Gen.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>ActivityMonitorExtension-Gen.tt</DependentUpon>
-    </Compile>
-    <Compile Include="ActivityMonitor\Impl\ActivityMonitorLineSender.cs" />
-    <Compile Include="ActivityMonitor\Impl\ActivityMonitorOutput.cs" />
-    <Compile Include="ActivityMonitor\Client\ActivityMonitorPathCatcher.cs" />
-    <Compile Include="ActivityMonitor\Client\ActivityMonitorSimpleCollector.cs" />
-    <Compile Include="ActivityMonitor\Client\ActivityMonitorTextHelperClient.cs" />
-    <Compile Include="ActivityMonitor\Client\ActivityMonitorTextWriterClient.cs" />
-    <Compile Include="ActivityMonitor\Impl\ActivityMonitor.Group.cs" />
-    <Compile Include="ActivityMonitor\Impl\ActivityMonitorBridge.cs" />
-    <Compile Include="ActivityMonitor\Impl\ActivityMonitorExtension.cs" />
-    <Compile Include="ActivityMonitor\Impl\ActivityMonitor.cs" />
-    <Compile Include="ActivityMonitor\Impl\ActivityMonitorGroupSender-Gen.cs">
-      <DependentUpon>ActivityMonitorGroupSender-Gen.tt</DependentUpon>
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-    </Compile>
-    <Compile Include="ActivityMonitor\Impl\ActivityMonitor.DependentToken.cs" />
-    <Compile Include="ActivityMonitor\Impl\DisposableActivityMonitor.cs" />
-    <Compile Include="ActivityMonitor\Impl\IActivityMonitorBridgeCallback.cs" />
-    <Compile Include="ActivityMonitor\Impl\IActivityMonitorImpl.cs" />
-    <Compile Include="ActivityMonitor\LogFilter.cs" />
-    <Compile Include="ActivityMonitor\LogLevel.cs" />
-    <Compile Include="ActivityMonitor\LogLevelFilter.cs" />
-    <Compile Include="ActivityMonitor\SystemActivityMonitor.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
     <Compile Include="AppSettings.cs" />
+    <Compile Include="CKBinaryReader.cs" />
+    <Compile Include="CKBinaryWriter.cs" />
     <Compile Include="CKException.cs" />
     <Compile Include="CKExceptionData.cs" />
-    <Compile Include="IObservableReadOnlyCollection.cs" />
-    <Compile Include="IObservableReadOnlyList.cs" />
-    <Compile Include="GlobalSuppressions.cs" />
-    <Compile Include="Util.Empty.cs" />
-    <Compile Include="CriticalErrorCollector.cs" />
-    <Compile Include="ICKReadOnlyCollection.cs" />
-    <Compile Include="ICKReadOnlyList.cs" />
-    <Compile Include="ICKReadOnlyMultiKeyedCollection.cs" />
-    <Compile Include="ICKReadOnlyUniqueKeyedCollection.cs" />
-    <Compile Include="ICKWritableCollector.cs" />
-    <Compile Include="ICKObservableReadOnlyCollection.cs" />
-    <Compile Include="ICKObservableReadOnlyList.cs" />
-    <Compile Include="Collection\CKComponentModelExtension.cs" />
-    <Compile Include="Collection\CollectionExtension.cs" />
-    <Compile Include="Collection\CKObservableSortedArrayKeyList.cs" />
-    <Compile Include="Collection\CKSortedArrayKeyList.cs" />
-    <Compile Include="Collection\CKSortedArrayList.cs" />
-    <Compile Include="Collection\CKObservableSortedArrayList.cs" />
-    <Compile Include="File\FileUtil.cs" />
-    <Compile Include="Collection\FIFOBuffer.cs" />
-    <Compile Include="Collection\CKReadOnlyCollectionDebuggerView.cs" />
-    <Compile Include="ICKWritableCollection.cs" />
-    <Compile Include="SetOperation.cs" />
-    <Compile Include="Trait\CKTrait.cs" />
-    <Compile Include="Trait\CKTraitContext.cs" />
-    <Compile Include="ISimpleTypeNaming.cs" />
-    <Compile Include="File\TemporaryFile.cs" />
-    <Compile Include="UniqueId\IVersionedUniqueId.cs" />
-    <Compile Include="UniqueId\SimpleNamedVersionedUniqueId.cs" />
-    <Compile Include="UniqueId\INamedVersionedUniqueId.cs" />
-    <Compile Include="Collection\CKReadOnlyCollectionTypeConverter.cs" />
-    <Compile Include="Collection\CKReadOnlyCollectionOnISet.cs" />
-    <Compile Include="UniqueId\SimpleUniqueId.cs" />
-    <Compile Include="IMergeable.cs" />
-    <Compile Include="UniqueId\IUniqueId.cs" />
-    <Compile Include="SimpleServiceContainer.cs" />
-    <Compile Include="ISimpleServiceContainer.cs" />
-    <Compile Include="SimpleTypeFinder.cs" />
-    <Compile Include="Collection\DictionaryExtension.cs" />
-    <Compile Include="Collection\EnumerableExtension.cs" />
-    <Compile Include="Collection\CKEnumeratorEmpty.cs" />
-    <Compile Include="Collection\CKEnumerableConverter.cs" />
-    <Compile Include="Collection\CKEnumeratorMono.cs" />
-    <Compile Include="Collection\CKReadOnlyCollectionOnICollection.cs" />
-    <Compile Include="Collection\CKReadOnlyListEmpty.cs" />
-    <Compile Include="Collection\CKReadOnlyListMono.cs" />
+    <Compile Include="CKSortedArrayKeyList.cs" />
     <Compile Include="Collection\CKReadOnlyListOnIList.cs" />
-    <Compile Include="UniqueId\SimpleVersionedUniqueId.cs" />
-    <Compile Include="Uri\UriExtension.cs" />
-    <Compile Include="Uri\UriHelper.cs" />
-    <Compile Include="Util.Converter.cs" />
-    <Compile Include="Util.cs" />
-    <Compile Include="Collection\CKReadOnlyExtension.cs" />
-    <Compile Include="ISimpleTypeFinder.cs" />
+    <Compile Include="Collection\CKSortedArrayList.cs" />
+    <Compile Include="CKTrait.cs" />
+    <Compile Include="CKTraitContext.cs" />
+    <Compile Include="Collection\CKEnumeratorMono.cs" />
+    <Compile Include="CoreStubs\System.Diagnostics.CodeAnalysis.cs" />
+    <Compile Include="CoreStubs\System.Runtime.Serialization.cs" />
+    <Compile Include="CriticalErrorCollector.cs" />
+    <Compile Include="DateTimeStamp.cs" />
+    <Compile Include="DateTimeStampExtension.cs" />
+    <Compile Include="ServiceContainer\ServiceContainerExtension.cs" />
+    <Compile Include="Extension\CKReadOnlyExtension.cs" />
+    <Compile Include="Extension\CollectionExtension.cs" />
+    <Compile Include="Extension\DictionaryExtension.cs" />
+    <Compile Include="Extension\EnumerableExtension.cs" />
+    <Compile Include="Extension\XmlExtension.cs" />
+    <Compile Include="FIFOBuffer.cs" />
+    <Compile Include="FileUtil.cs" />
+    <Compile Include="GrantLevel.cs" />
+    <Compile Include="Collection\ICKReadOnlyCollection.cs" />
+    <Compile Include="Collection\ICKReadOnlyList.cs" />
+    <Compile Include="Collection\ICKReadOnlyMultiKeyedCollection.cs" />
+    <Compile Include="Collection\ICKReadOnlyUniqueKeyedCollection.cs" />
+    <Compile Include="Collection\ICKWritableCollection.cs" />
+    <Compile Include="Collection\ICKWritableCollector.cs" />
+    <Compile Include="IMergeable.cs" />
+    <Compile Include="Impl\CoreResources.cs" />
+    <Compile Include="IUniqueId.cs" />
+    <Compile Include="Collection\CKReadOnlyCollectionOnICollection.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="R.Designer.cs">
-      <DependentUpon>R.resx</DependentUpon>
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-    </Compile>
+    <Compile Include="Extension\ReadOnlyCollectionDebuggerView.cs" />
+    <Compile Include="ServiceContainer\ISimpleServiceContainer.cs" />
+    <Compile Include="ServiceContainer\SimpleServiceContainer.cs" />
+    <Compile Include="SetOperation.cs" />
+    <Compile Include="SimpleTypeFinder.cs" />
+    <Compile Include="TemporaryFile.cs" />
+    <Compile Include="Util.cs" />
     <Compile Include="Util.Hash.cs" />
-    <Compile Include="Util.Math.cs" />
-    <Compile Include="WeakRef.cs" />
-    <Compile Include="XmlExtension.cs" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="R.resx">
-      <Generator>ResXFileCodeGenerator</Generator>
-      <LastGenOutput>R.Designer.cs</LastGenOutput>
-      <CustomToolNamespace>CK.Core</CustomToolNamespace>
-      <SubType>Designer</SubType>
-    </EmbeddedResource>
+    <ProjectReference Include="..\CK.Text\CK.Text.csproj">
+      <Project>{0518e60c-0cb9-49da-a634-109998526368}</Project>
+      <Name>CK.Text</Name>
+    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <None Include="ActivityMonitor\ActivityMonitorOverview.cd" />
-    <None Include="ActivityMonitor\Impl\ActivityMonitorExtension-Gen.tt">
-      <Generator>TextTemplatingFileGenerator</Generator>
-      <LastGenOutput>ActivityMonitorExtension-Gen.cs</LastGenOutput>
-    </None>
-    <None Include="ActivityMonitor\Impl\ActivityMonitorLineSender-Gen.tt">
-      <Generator>TextTemplatingFileGenerator</Generator>
-      <LastGenOutput>ActivityMonitorLineSender-Gen.cs</LastGenOutput>
-    </None>
-    <None Include="ActivityMonitor\Impl\ActivityMonitorGroupSender-Gen.tt">
-      <Generator>TextTemplatingFileGenerator</Generator>
-      <LastGenOutput>ActivityMonitorGroupSender-Gen.cs</LastGenOutput>
-    </None>
     <None Include="packages.config" />
   </ItemGroup>
-  <ItemGroup>
-    <Service Include="{508349B6-6B84-4DF5-91F0-309BEEBAD82D}" />
-  </ItemGroup>
-  <ItemGroup>
-    <Content Include="ReleaseNotes.txt" />
-  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
-  <PropertyGroup>
-    <PostBuildEvent>
-    </PostBuildEvent>
-  </PropertyGroup>
-  <Import Project="..\packages\SimpleGitVersionTask.0.10.0\build\SimpleGitVersionTask.targets" Condition="Exists('..\packages\SimpleGitVersionTask.0.10.0\build\SimpleGitVersionTask.targets')" />
+  <Import Project="..\packages\SimpleGitVersionTask.0.17.0\build\SimpleGitVersionTask.targets" Condition="Exists('..\packages\SimpleGitVersionTask.0.17.0\build\SimpleGitVersionTask.targets')" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
     <PropertyGroup>
       <ErrorText>This project references NuGet package(s) that are missing on this computer. Use NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
     </PropertyGroup>
-    <Error Condition="!Exists('..\packages\SimpleGitVersionTask.0.10.0\build\SimpleGitVersionTask.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\SimpleGitVersionTask.0.10.0\build\SimpleGitVersionTask.targets'))" />
+    <Error Condition="!Exists('..\packages\SimpleGitVersionTask.0.17.0\build\SimpleGitVersionTask.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\SimpleGitVersionTask.0.17.0\build\SimpleGitVersionTask.targets'))" />
   </Target>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
-       Other similar extension points exist, see Microsoft.Common.targets. 
+       Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">
   </Target>
   <Target Name="AfterBuild">

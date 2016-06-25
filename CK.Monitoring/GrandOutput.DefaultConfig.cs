@@ -1,32 +1,11 @@
-#region LGPL License
-/*----------------------------------------------------------------------------
-* This file (CK.Monitoring\GrandOutput.DefaultConfig.cs) is part of CiviKey. 
-*  
-* CiviKey is free software: you can redistribute it and/or modify 
-* it under the terms of the GNU Lesser General Public License as published 
-* by the Free Software Foundation, either version 3 of the License, or 
-* (at your option) any later version. 
-*  
-* CiviKey is distributed in the hope that it will be useful, 
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
-* GNU Lesser General Public License for more details. 
-* You should have received a copy of the GNU Lesser General Public License 
-* along with CiviKey.  If not, see <http://www.gnu.org/licenses/>. 
-*  
-* Copyright © 2007-2015, 
-*     Invenietis <http://www.invenietis.com>,
-*     In’Tech INFO <http://www.intechinfo.fr>,
-* All rights reserved. 
-*-----------------------------------------------------------------------------*/
-#endregion
-
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+#if NET451 || NET46
 using System.Runtime.Remoting.Lifetime;
+#endif
 using System.Text;
 using System.Threading.Tasks;
 using CK.Core;
@@ -41,23 +20,11 @@ namespace CK.Monitoring
         static object _watcherLock = new object();
         static string _configPath = null;
         static DateTime _lastConfigFileWriteTime = FileUtil.MissingFileLastWriteTimeUtc;
-        static LogFilter _fileWatcherMonitoringMinimalFilter = LogFilter.Release;
-
-        /// <summary>
-        /// Gets or sets the minimal filter that monitors created for the 
-        /// GrandOutput itself will use.
-        /// Defaults to <see cref="LogFilter.Release"/> (this should be changed only for debugging reasons).
-        /// Caution: this applies only to the current AppDomain!
-        /// </summary>
-        static public LogFilter GrandOutputMinimalFilter
-        {
-            get { return _fileWatcherMonitoringMinimalFilter; }
-            set { _fileWatcherMonitoringMinimalFilter = value; }
-        }
+        static FileSystemWatcher _watcher;
 
         /// <summary>
         /// Ensures that the <see cref="Default"/> GrandOutput is created (see <see cref="EnsureActiveDefault"/>) and configured with default settings:
-        /// only one one channel with its minimal filter sets to Debug with one file handler that writes .ckmon files in "<see cref="SystemActivityMonitor.RootLogPath"/>\GrandOutputDefault" directory.
+        /// only one one channel with its minimal filter sets to Debug with one text file handler that writes .txt files in "<see cref="SystemActivityMonitor.RootLogPath"/>\GrandOutputDefault" directory.
         /// The <see cref="SystemActivityMonitor.RootLogPath"/> must be valid and if a GrandOutput.config file exists inside, it is loaded as the configuration.
         /// If it exists, it must be valid (otherwise an exception is thrown).
         /// Once loaded, the file is monitored and any change that occurs to it dynamically triggers a <see cref="SetConfiguration"/> with the new file.
@@ -70,7 +37,7 @@ namespace CK.Monitoring
                 if( _default == null )
                 {
                     if( monitor == null ) monitor = new SystemActivityMonitor( true, "GrandOutput" ) { MinimalFilter = GrandOutputMinimalFilter };
-                    using( monitor.OpenInfo().Send( "Attempting Default GrandOutput configuration." ) )
+                    using( monitor.OpenGroup( LogLevel.Info, "Attempting Default GrandOutput configuration.", null ) )
                     {
                         try
                         {
@@ -96,7 +63,7 @@ namespace CK.Monitoring
                         }
                         catch( Exception ex )
                         {
-                            monitor.Fatal().Send( ex );
+                            monitor.SendLine( LogLevel.Fatal, null, ex );
                             throw;
                         }
                     }
@@ -105,10 +72,10 @@ namespace CK.Monitoring
             return _default;
         }
 
-        const string _defaultConfig = 
+        const string _defaultConfig =
 @"<GrandOutputConfiguration>
     <Channel MinimalFilter=""Debug"">
-        <Add Type=""BinaryFile"" Name=""All"" Path=""GrandOutputDefault"" MaxCountPerFile=""20000"" />
+        <Add Type=""TextFile"" Name=""All"" Path=""GrandOutputDefault"" MaxCountPerFile=""20000"" />
     </Channel>
 </GrandOutputConfiguration>";
 
@@ -116,10 +83,10 @@ namespace CK.Monitoring
         {
             GrandOutputConfiguration def = new GrandOutputConfiguration();
             Debug.Assert( def.SourceOverrideFilterApplicationMode == SourceFilterApplyMode.None );
-            Debug.Assert( def.AppDomainDefaultFilter == null );
+            Debug.Assert( def.GlobalDefaultFilter == null );
             var route = new RouteConfiguration();
             route.ConfigData = new GrandOutputChannelConfigData() { MinimalFilter = LogFilter.Debug };
-            route.AddAction( new BinaryFileConfiguration( "All" ) { Path = "GrandOutputDefault" } );
+            route.AddAction( new TextFileConfiguration( "All" ) { Path = "GrandOutputDefault" } );
             def.ChannelsConfiguration = route;
             return def;
         }
@@ -148,6 +115,7 @@ namespace CK.Monitoring
             if( _watcher == null ) return;
             ThreadPool.UnsafeQueueUserWorkItem( Reload, null );
         }
+
         static void Reload( object state )
         {
             if( _watcher == null ) return;
@@ -167,7 +135,7 @@ namespace CK.Monitoring
                 var monitor = new SystemActivityMonitor( true, "GrandOutput.Default.Reconfiguration" ) { MinimalFilter = GrandOutputMinimalFilter };
                 try
                 {
-                    using( monitor.OpenInfo().Send( "AppDomain '{0}',  file '{1}' changed (change n°{2}).", AppDomain.CurrentDomain.FriendlyName, _configPath, _default.ConfigurationAttemptCount ) )
+                    using( monitor.OpenGroup( LogLevel.Info, string.Format( "AppDomain '{0}',  file '{1}' changed (change n°{2}).", AppDomain.CurrentDomain.FriendlyName, _configPath, _default.ConfigurationAttemptCount ), null ) )
                     {
                         def = CreateDefaultConfig();
                         if( File.Exists( _configPath ) )
@@ -178,14 +146,14 @@ namespace CK.Monitoring
                         else
                         {
                             _lastConfigFileWriteTime = FileUtil.MissingFileLastWriteTimeUtc;
-                            monitor.Trace().Send( "File missing: applying catch-all default configuration." );
+                            monitor.SendLine( LogLevel.Trace, "File missing: applying catch-all default configuration.", null );
                         }
                         if( !_default._channelHost.IsDisposed ) _default.SetConfiguration( def, monitor );
                     }
                 }
                 catch( Exception ex )
                 {
-                    monitor.Error().Send( ex );
+                    monitor.SendLine( LogLevel.Error, null, ex );
                 }
             }
         }

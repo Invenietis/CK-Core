@@ -21,6 +21,7 @@
 *-----------------------------------------------------------------------------*/
 #endregion
 
+#if NET451 || NET452 || NET46
 using System;
 using System.Collections.Generic;
 using System.Configuration;
@@ -171,3 +172,4 @@ namespace CK.Core.Tests
         }
     }
 }
+#endif

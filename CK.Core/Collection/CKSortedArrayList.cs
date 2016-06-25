@@ -1,26 +1,3 @@
-#region LGPL License
-/*----------------------------------------------------------------------------
-* This file (CK.Core\Collection\CKSortedArrayList.cs) is part of CiviKey. 
-*  
-* CiviKey is free software: you can redistribute it and/or modify 
-* it under the terms of the GNU Lesser General Public License as published 
-* by the Free Software Foundation, either version 3 of the License, or 
-* (at your option) any later version. 
-*  
-* CiviKey is distributed in the hope that it will be useful, 
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
-* GNU Lesser General Public License for more details. 
-* You should have received a copy of the GNU Lesser General Public License 
-* along with CiviKey.  If not, see <http://www.gnu.org/licenses/>. 
-*  
-* Copyright © 2007-2015, 
-*     Invenietis <http://www.invenietis.com>,
-*     In’Tech INFO <http://www.intechinfo.fr>,
-* All rights reserved. 
-*-----------------------------------------------------------------------------*/
-#endregion
-
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -29,8 +6,8 @@ using System.Diagnostics;
 namespace CK.Core
 {
     /// <summary>
-    /// Simple sorted array list implementation that supports covariance through <see cref="IReadOnlyList{T}"/> and contra-variance 
-    /// with <see cref="ICKWritableCollection{T}"/>. This is a "dangerous" class since to keep the correct ordering, <see cref="CheckPosition"/> 
+    /// Simple sorted array list implementation that supports covariance through <see cref="ICKReadOnlyList{T}"/> and contra-variance 
+    /// with <see cref="ICKWritableCollection{T}"/>. This is a "dangerous" class since to keep the correct ordering, <see cref="CheckPosition(int)"/> 
     /// must be explicitly called whenever something changes on any item that impacts the <see cref="Comparator"/> result.
     /// See the remarks for other caveats.
     /// </summary>
@@ -41,16 +18,15 @@ namespace CK.Core
     /// as <see cref="IList{T}.Insert"/>) are explicitly implemented to hide them as much as possible.
     /// </para>
     /// <para>
-    /// This is the base class for <see cref="CKSortedArrayKeyList{T,TKey}"/> but also for their observable versions: <see cref="CKObservableSortedArrayList{T}"/> 
-    /// and <see cref="CKObservableSortedArrayKeyList{T,TKey}"/>.
+    /// This is the base class for <see cref="CKSortedArrayKeyList{T,TKey}"/>.
     /// </para>
     /// <para>
     /// Specialized classes may use protected <see cref="Store"/>, <see cref="StoreCount"/> and <see cref="StoreVersion"/> to have a direct, uncontrolled, access
     /// to the whole state of this object.
     /// </para>
     /// </remarks>
-    [DebuggerTypeProxy( typeof( Impl.CKReadOnlyCollectionDebuggerView<> ) ), DebuggerDisplay( "Count = {Count}" )]
-    public class CKSortedArrayList<T> : IList<T>, ICKReadOnlyList<T>, ICKWritableCollection<T>
+    [DebuggerTypeProxy( typeof( Debugging.ReadOnlyCollectionDebuggerView<> ) ), DebuggerDisplay( "Count = {Count}" )]
+    public class CKSortedArrayList<T> : IList<T>, IReadOnlyList<T>, ICKWritableCollection<T>
     {
         const int _defaultCapacity = 4;
 
@@ -105,7 +81,7 @@ namespace CK.Core
         /// <param name="allowDuplicates">True to allow duplicate elements.</param>
         public CKSortedArrayList( Comparison<T> comparison, bool allowDuplicates = false )
         {
-            _tab = Util.EmptyArray<T>.Empty;
+            _tab = Util.Array.Empty<T>();
             Comparator = comparison;
             if( allowDuplicates ) _version = 1;
         }
@@ -132,7 +108,7 @@ namespace CK.Core
         /// Locates an element (one of the occurrences when duplicates are allowed) in this list (logarithmic). 
         /// </summary>
         /// <param name="value">The element.</param>
-        /// <returns>The result of the <see cref="G:Util.BinarySearch{T}"/> in the internal array.</returns>
+        /// <returns>The result of the <see cref="Util.BinarySearch{T}"/> in the internal array.</returns>
         public virtual int IndexOf( T value )
         {
             if( value == null ) throw new ArgumentNullException();
@@ -242,7 +218,7 @@ namespace CK.Core
                 if( _tab.Length != value )
                 {
                     if( value < _count ) throw new ArgumentException( "Capacity less than Count." );
-                    if( value == 0 ) _tab = Util.EmptyArray<T>.Empty;
+                    if( value == 0 ) _tab = Util.Array.Empty<T>();
                     else 
                     {
                         T[] tempValues = new T[value];
@@ -303,7 +279,7 @@ namespace CK.Core
         /// </summary>
         /// <param name="value">Item to add.</param>
         /// <returns>True if the item has actually been added; otherwise false.</returns>
-        public bool Add( T value )
+        public virtual bool Add( T value )
         {
             if( value == null ) throw new ArgumentNullException();
             int index = Util.BinarySearch<T>( _tab, 0, _count, value, Comparator );
@@ -322,6 +298,7 @@ namespace CK.Core
 
         /// <summary>
         /// Removes the item at the given position.
+        /// This is not virtual since it directly calls protected virtual <see cref="DoRemoveAt(int)"/>
         /// </summary>
         /// <param name="index">Index to remove.</param>
         public void RemoveAt( int index )
@@ -331,6 +308,7 @@ namespace CK.Core
 
         /// <summary>
         /// Clears the list.
+        /// This is not virtual since it directly calls protected virtual <see cref="DoClear()"/>
         /// </summary>
         public void Clear()
         {

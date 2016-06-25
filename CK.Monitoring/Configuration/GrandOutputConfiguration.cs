@@ -1,33 +1,7 @@
-#region LGPL License
-/*----------------------------------------------------------------------------
-* This file (CK.Monitoring\Configuration\GrandOutputConfiguration.cs) is part of CiviKey. 
-*  
-* CiviKey is free software: you can redistribute it and/or modify 
-* it under the terms of the GNU Lesser General Public License as published 
-* by the Free Software Foundation, either version 3 of the License, or 
-* (at your option) any later version. 
-*  
-* CiviKey is distributed in the hope that it will be useful, 
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
-* GNU Lesser General Public License for more details. 
-* You should have received a copy of the GNU Lesser General Public License 
-* along with CiviKey.  If not, see <http://www.gnu.org/licenses/>. 
-*  
-* Copyright © 2007-2015, 
-*     Invenietis <http://www.invenietis.com>,
-*     In’Tech INFO <http://www.intechinfo.fr>,
-* All rights reserved. 
-*-----------------------------------------------------------------------------*/
-#endregion
-
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
-using System.Text;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 using System.Xml;
 using System.Xml.Linq;
 using CK.Core;
@@ -46,7 +20,7 @@ namespace CK.Monitoring
         RouteConfiguration _routeConfig;
         Dictionary<string, LogFilter> _sourceFilter;
         SourceFilterApplyMode _sourceFilterApplyMode;
-        LogFilter? _appDomainDefaultFilter;
+        LogFilter? _globalDefaultFilter;
 
         /// <summary>
         /// Initializes a new <see cref="GrandOutputConfiguration"/>.
@@ -72,7 +46,7 @@ namespace CK.Monitoring
             }
             catch( Exception ex )
             {
-                monitor.Error().Send( ex );
+                monitor.SendLine( LogLevel.Error, null, ex );
                 return false;
             }
         }
@@ -89,20 +63,22 @@ namespace CK.Monitoring
             if( monitor == null ) throw new ArgumentNullException( "monitor" );
             try
             {
-                if( e.Name != "GrandOutputConfiguration" ) throw new XmlException( "Element name must be <GrandOutputConfiguration>." + e.GetLineColumString() );
-                LogFilter? appDomainFilter = e.GetAttributeLogFilter( "AppDomainDefaultFilter", false );
+                if( e.Name != "GrandOutputConfiguration" ) throw new XmlException( "Element name must be <GrandOutputConfiguration>." + e.GetLineColumnString() );
+                // AppDomainDefaultFilter was the name before.
+                LogFilter? globalDefaultFilter = e.GetAttributeLogFilter( "GlobalDefaultFilter", false ) 
+                                                    ?? e.GetAttributeLogFilter( "AppDomainDefaultFilter", false );
 
                 SourceFilterApplyMode applyMode;
                 Dictionary<string, LogFilter> sourceFilter = ReadSourceOverrideFilter( e, out applyMode, monitor );
                 if( sourceFilter == null ) return false;
 
                 RouteConfiguration routeConfig;
-                using( monitor.OpenTrace().Send( "Reading root Channel." ) )
+                using( monitor.OpenGroup( LogLevel.Trace, "Reading root Channel.", null ) )
                 {
                     XElement channelElement = e.Element( "Channel" );
                     if( channelElement == null )
                     {
-                        monitor.Error().Send( "Missing <Channel /> element." + e.GetLineColumString() );
+                        monitor.SendLine( LogLevel.Error, "Missing <Channel /> element." + e.GetLineColumnString(), null );
                         return false;
                     }
                     routeConfig = FillRoute( monitor, channelElement, new RouteConfiguration() );
@@ -111,12 +87,12 @@ namespace CK.Monitoring
                 _routeConfig = routeConfig;
                 _sourceFilter = sourceFilter;
                 _sourceFilterApplyMode = applyMode;
-                _appDomainDefaultFilter = appDomainFilter;
+                _globalDefaultFilter = globalDefaultFilter;
                 return true;
             }
             catch( Exception ex )
             {
-                monitor.Error().Send( ex );
+                monitor.SendLine( LogLevel.Error, null, ex );
             }
             return false;
         }
@@ -126,10 +102,10 @@ namespace CK.Monitoring
         /// This value is set on the static <see cref="ActivityMonitor.DefaultFilter"/> by <see cref="GrandOutput.SetConfiguration"/>
         /// if and only if the configured GrandOutput is the <see cref="GrandOutput.Default"/>.
         /// </summary>
-        public LogFilter? AppDomainDefaultFilter 
+        public LogFilter? GlobalDefaultFilter 
         {
-            get { return _appDomainDefaultFilter; }
-            set { _appDomainDefaultFilter = value; } 
+            get { return _globalDefaultFilter; }
+            set { _globalDefaultFilter = value; } 
         }
 
         /// <summary>
@@ -169,7 +145,7 @@ namespace CK.Monitoring
         static Dictionary<string, LogFilter> ReadSourceOverrideFilter( XElement e, out SourceFilterApplyMode apply, IActivityMonitor monitor )
         {
             apply = SourceFilterApplyMode.None;
-            using( monitor.OpenTrace().Send( "Reading SourceOverrideFilter elements." ) )
+            using( monitor.OpenGroup( LogLevel.Trace, "Reading SourceOverrideFilter elements.", null ) )
             {
                 try
                 {
@@ -179,12 +155,12 @@ namespace CK.Monitoring
                         monitor.CloseGroup( "No source filtering (ApplyMode is None)." );
                         return new Dictionary<string, LogFilter>();
                     }
-                    apply = s.GetAttributeEnum( "ApplyMode", SourceFilterApplyMode.Apply );
+                    apply = s.AttributeEnum( "ApplyMode", SourceFilterApplyMode.Apply );
 
                     var stranger =  e.Elements( "SourceOverrideFilter" ).Elements().FirstOrDefault( f => f.Name != "Add" && f.Name != "Remove" );
                     if( stranger != null )
                     {
-                        throw new XmlException( "SourceOverrideFilter element must contain only Add and Remove elements." + stranger.GetLineColumString() );
+                        throw new XmlException( "SourceOverrideFilter element must contain only Add and Remove elements." + stranger.GetLineColumnString() );
                     }
                     var result = e.Elements( "SourceOverrideFilter" )
                                     .Elements()
@@ -202,7 +178,7 @@ namespace CK.Monitoring
                 }
                 catch( Exception ex )
                 {
-                    monitor.Error().Send( ex, "Error while reading SourceOverrideFilter element." );
+                    monitor.SendLine( LogLevel.Error, "Error while reading SourceOverrideFilter element.", ex );
                     return null;
                 }
             }
@@ -222,7 +198,7 @@ namespace CK.Monitoring
                     case "Sequence":
                     case "Add": DoSequenceOrParallelOrAdd( monitor, a => route.AddAction( a ), e );
                         break;
-                    default: throw new XmlException( "Element name must be <Add>, <Parallel>, <Sequence> or <Channel>." + e.GetLineColumString() );
+                    default: throw new XmlException( "Element name must be <Add>, <Parallel>, <Sequence> or <Channel>." + e.GetLineColumnString() );
                 }
             }
             return route;
@@ -230,14 +206,14 @@ namespace CK.Monitoring
 
         SubRouteConfiguration FillSubRoute( IActivityMonitor monitor, XElement xml, SubRouteConfiguration sub )
         {
-            using( monitor.OpenTrace().Send( "Reading subordinated channel '{0}'.", sub.Name ) )
+            using( monitor.OpenGroup( LogLevel.Trace, string.Format( "Reading subordinated channel '{0}'.", sub.Name ), null ) )
             {
-                var matchOptions = xml.GetAttribute( "MatchOptions", null );
-                var filter = xml.GetAttribute( "TopicFilter", null );
-                var regex = xml.GetAttribute( "TopicRegex", null );
+                var matchOptions = (string)xml.Attribute( "MatchOptions" );
+                var filter = (string)xml.Attribute( "TopicFilter" );
+                var regex = (string)xml.Attribute( "TopicRegex" );
                 if( (filter == null) == (regex == null) )
                 {
-                    throw new XmlException( "Subordinated Channel must define one TopicFilter or TopicRegex attribute (and not both)." + xml.GetLineColumString() );
+                    throw new XmlException( "Subordinated Channel must define one TopicFilter or TopicRegex attribute (and not both)." + xml.GetLineColumnString() );
                 }
                 RegexOptions opt = RegexOptions.IgnoreCase | RegexOptions.CultureInvariant | RegexOptions.Multiline | RegexOptions.ExplicitCapture;
                 if( !String.IsNullOrWhiteSpace( matchOptions ) )
@@ -245,11 +221,11 @@ namespace CK.Monitoring
                     if( !Enum.TryParse( matchOptions, true, out opt ) )
                     {
                         var expected = String.Join( ", ", Enum.GetNames( typeof( RegexOptions ) ).Where( n => n != "None" ) );
-                        throw new XmlException( "MatchOptions value must be a subset of: " + expected + xml.GetLineColumString() );
+                        throw new XmlException( "MatchOptions value must be a subset of: " + expected + xml.GetLineColumnString() );
                     }
-                    monitor.Trace().Send( "MatchOptions for Channel '{0}' is: {1}.", sub.Name, opt );
+                    monitor.SendLine( LogLevel.Trace, string.Format( "MatchOptions for Channel '{0}' is: {1}.", sub.Name, opt ), null );
                 }
-                else monitor.Trace().Send( "MatchOptions for Channel '{0}' defaults to: IgnoreCase, CultureInvariant, Multiline, ExplicitCapture.", sub.Name );
+                else monitor.SendLine( LogLevel.Trace, string.Format( "MatchOptions for Channel '{0}' defaults to: IgnoreCase, CultureInvariant, Multiline, ExplicitCapture.", sub.Name ), null );
 
                 sub.RoutePredicate = filter != null ? CreatePredicateFromWildcards( filter, opt ) : CreatePredicateRegex( regex, opt );
 
@@ -302,7 +278,7 @@ namespace CK.Monitoring
 
         static Type FindConfigurationType( string type )
         {
-            Type t = SimpleTypeFinder.WeakDefault.ResolveType( type, false );
+            Type t = SimpleTypeFinder.WeakResolver( type, false );
             if( t == null )
             {
                 string fullTypeName, assemblyFullName;
@@ -312,10 +288,10 @@ namespace CK.Monitoring
                     assemblyFullName = "CK.Monitoring";
                 }
                 if( !fullTypeName.EndsWith( "Configuration" ) ) fullTypeName += "Configuration";
-                t = SimpleTypeFinder.WeakDefault.ResolveType( fullTypeName + ", " + assemblyFullName, false );
+                t = SimpleTypeFinder.WeakResolver( fullTypeName + ", " + assemblyFullName, false );
                 if( t == null )
                 {
-                    t = SimpleTypeFinder.WeakDefault.ResolveType( "CK.Monitoring.GrandOutputHandlers." + fullTypeName + ", " + assemblyFullName, true );
+                    t = SimpleTypeFinder.WeakResolver( "CK.Monitoring.GrandOutputHandlers." + fullTypeName + ", " + assemblyFullName, true );
                 }
             }
             return t;

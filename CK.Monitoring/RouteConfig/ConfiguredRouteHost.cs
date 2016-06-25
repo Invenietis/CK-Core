@@ -1,26 +1,3 @@
-#region LGPL License
-/*----------------------------------------------------------------------------
-* This file (CK.Monitoring\RouteConfig\ConfiguredRouteHost.cs) is part of CiviKey. 
-*  
-* CiviKey is free software: you can redistribute it and/or modify 
-* it under the terms of the GNU Lesser General Public License as published 
-* by the Free Software Foundation, either version 3 of the License, or 
-* (at your option) any later version. 
-*  
-* CiviKey is distributed in the hope that it will be useful, 
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
-* GNU Lesser General Public License for more details. 
-* You should have received a copy of the GNU Lesser General Public License 
-* along with CiviKey.  If not, see <http://www.gnu.org/licenses/>. 
-*  
-* Copyright © 2007-2015, 
-*     Invenietis <http://www.invenietis.com>,
-*     In’Tech INFO <http://www.intechinfo.fr>,
-* All rights reserved. 
-*-----------------------------------------------------------------------------*/
-#endregion
-
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -57,26 +34,26 @@ namespace CK.RouteConfig
 
             internal RouteHost( RouteActionFactory<TAction, TRoute> factory )
             {
-                Actions = Util.EmptyArray<TAction>.Empty;
-                Routes = Util.EmptyArray<SubRouteHost>.Empty;
+                Actions = Util.Array.Empty<TAction>();
+                Routes = Util.Array.Empty<SubRouteHost>();
                 FinalRoute = factory.DoCreateEmptyFinalRoute();
             }
 
             internal RouteHost( IActivityMonitor monitor, List<TRoute> routePath, RouteConfigurationLockShell configLock, RouteActionFactory<TAction, TRoute> factory, RouteConfigurationResolved c )
             {
-                using( monitor.OpenInfo().Send( "Initializing compiled route '{0}'.", c.Name ) )
+                using( monitor.OpenGroup( LogLevel.Info, string.Format( "Initializing compiled route '{0}'.", c.Name ), null ) )
                 {
                     try
                     {
                         Actions = c.ActionsResolved.Select( r => factory.Create( monitor, r.ActionConfiguration ) ).ToArray();
-                        FinalRoute = factory.DoCreateFinalRoute( monitor, configLock, Actions, c.Name, c.ConfigData, routePath.AsReadOnlyList() );
+                        FinalRoute = factory.DoCreateFinalRoute( monitor, configLock, Actions, c.Name, c.ConfigData, routePath );
                         routePath.Add( FinalRoute ); 
                         Routes = c.SubRoutes.Where( r => r.ActionsResolved.Any() ).Select( r => new SubRouteHost( monitor, routePath, configLock, factory, r ) ).ToArray();
                         routePath.RemoveAt( routePath.Count-1 );
                     }
                     catch( Exception ex )
                     {
-                        monitor.Fatal().Send( ex );
+                        monitor.SendLine( LogLevel.Fatal, null, ex );
                         Actions = null;
                     }
                 }
@@ -143,7 +120,7 @@ namespace CK.RouteConfig
             _configLock = new CountdownEvent( 0 );
             _emptyHost = new RouteHost( actionFactory );
             _root = _emptyHost;
-            _allActions = Util.EmptyArray<TAction>.Empty;
+            _allActions = Util.Array.Empty<TAction>();
         }
 
         /// <summary>
@@ -322,7 +299,7 @@ namespace CK.RouteConfig
                 Interlocked.Increment( ref _configurationAttemptCount );
                 Monitor.PulseAll( _initializeLock );
                 if( _disposed ) throw new ObjectDisposedException( "ConfiguredRouteHost" );
-                using( monitor.OpenInfo().Send( "New route configuration initialization." ) )
+                using( monitor.OpenGroup( LogLevel.Info, "New route configuration initialization.", null ) )
                 {
                     RouteConfigurationResult result = configuration.Resolve( monitor );
                     if( result == null ) return false;
@@ -337,15 +314,15 @@ namespace CK.RouteConfig
                     var h1 = ConfigurationClosing;
                     if( h1 != null )
                     {
-                        using( monitor.OpenInfo().Send( "Raising ConfigurationClosing event." ) )
+                        using( monitor.OpenGroup( LogLevel.Info, "Raising ConfigurationClosing event.", null ) )
                         {
                             h1( this, new ConfigurationClosingEventArgs( monitor, result ) );
                         }
                     }
-                    using( monitor.OpenInfo().Send( "Waiting for current routes to terminate." ) )
+                    using( monitor.OpenGroup( LogLevel.Info, "Waiting for current routes to terminate.", null ) )
                     {
                         if( _root != _emptyHost ) _configLock.Signal();
-                        if( !_configLock.Wait( millisecondsBeforeForceClose ) ) monitor.Warn().Send( "Timeout expired. Force the termination." );
+                        if( !_configLock.Wait( millisecondsBeforeForceClose ) ) monitor.SendLine( LogLevel.Info, "Timeout expired. Force the termination.", null );
                     }
                     bool success = CloseCurrentRoutesAndStartNewOnes( monitor );
                     // The new routes are ready.
@@ -354,7 +331,7 @@ namespace CK.RouteConfig
                     ConfigurationReady ready = new ConfigurationReady( monitor, this );
                     if( _readyCallback != null )
                     {
-                        using( monitor.OpenInfo().Send( "Calling ConfigurationReady callback." ) )
+                        using( monitor.OpenGroup( LogLevel.Info, "Calling ConfigurationReady callback.", null ) )
                         {
                             _readyCallback( ready );
                         }
@@ -381,7 +358,7 @@ namespace CK.RouteConfig
         {
             _actionFactory.Initialize( shellLock );
             newRoot = null;
-            using( monitor.OpenTrace().Send( "Routes creation." ) )
+            using( monitor.OpenGroup( LogLevel.Trace, "Routes creation.", null ) )
             {
                 try
                 {
@@ -389,7 +366,7 @@ namespace CK.RouteConfig
                 }
                 catch( Exception ex )
                 {
-                    monitor.Error().Send( ex );
+                    monitor.SendLine( LogLevel.Error, null, ex );
                 }
             }
             if( newRoot == null || newRoot.Actions == null )
@@ -400,7 +377,7 @@ namespace CK.RouteConfig
             if( newRoot.Actions.Length == 0 && newRoot.Routes.Length == 0 )
             {
                 newRoot = _emptyHost;
-                monitor.Info().Send( "New route configuration is empty." );
+                monitor.SendLine( LogLevel.Info, "New route configuration is empty.", null );
             }
             return true;
         }
@@ -415,7 +392,7 @@ namespace CK.RouteConfig
             List<int> failed = null;
             if( _starter != null && _futureAllActions.Length > 0 )
             {
-                using( monitor.OpenInfo().Send( "Starting {0} new action(s).", _futureAllActions.Length ) )
+                using( monitor.OpenGroup( LogLevel.Info, string.Format( "Starting {0} new action(s).", _futureAllActions.Length ), null ) )
                 {
                     int i = 0;
                     foreach( var d in _futureAllActions )
@@ -429,7 +406,7 @@ namespace CK.RouteConfig
                             }
                             catch( Exception ex )
                             {
-                                monitor.Fatal().Send( ex );
+                                monitor.SendLine( LogLevel.Fatal, null, ex );
                             }
                         }
                         if( hasError )
@@ -449,7 +426,7 @@ namespace CK.RouteConfig
             }
             if( _closer != null && _futureAllActions.Length > failed.Count )
             {
-                using( monitor.OpenInfo().Send( "Closing {0} started action(s) due to {1} failure(s).", _futureAllActions.Length - failed.Count, failed.Count ) )
+                using( monitor.OpenGroup( LogLevel.Info, string.Format( "Closing {0} started action(s) due to {1} failure(s).", _futureAllActions.Length - failed.Count, failed.Count), null ) )
                 {
                     for( int i = 0; i < _futureAllActions.Length; ++i )
                     {
@@ -461,7 +438,7 @@ namespace CK.RouteConfig
                             }
                             catch( Exception ex )
                             {
-                                monitor.Warn().Send( ex );
+                                monitor.SendLine( LogLevel.Warn, null, ex );
                             }
                         }
                     }
@@ -469,7 +446,7 @@ namespace CK.RouteConfig
             }
             _configLock.Reset( 0 );
             _futureRoot = _emptyHost;
-            _futureAllActions = Util.EmptyArray<TAction>.Empty;
+            _futureAllActions = Util.Array.Empty<TAction>();
             return false;
         }
 
@@ -530,15 +507,15 @@ namespace CK.RouteConfig
                 var h1 = ConfigurationClosing;
                 if( h1 != null )
                 {
-                    using( monitor.OpenInfo().Send( "Raising last ConfigurationClosing event." ) )
+                    using( monitor.OpenGroup( LogLevel.Info, "Raising last ConfigurationClosing event.", null ) )
                     {
                         h1( this, new ConfigurationClosingEventArgs( monitor, null ) );
                     }
                 }
-                using( monitor.OpenInfo().Send( "Waiting for current routes to terminate." ) )
+                using( monitor.OpenGroup( LogLevel.Info, "Waiting for current routes to terminate.", null ) )
                 {
                     if( _root != _emptyHost ) _configLock.Signal();
-                    if( !_configLock.Wait( millisecondsBeforeForceClose ) ) monitor.Warn().Send( "Timeout expired. Force the termination." );
+                    if( !_configLock.Wait( millisecondsBeforeForceClose ) ) monitor.SendLine( LogLevel.Warn, "Timeout expired. Force the termination.", null );
                 }
                 if( _allActionsDying != null )
                 {
@@ -590,7 +567,7 @@ namespace CK.RouteConfig
             Debug.Assert( toClose != null );
             if( _closer != null )
             {
-                using( monitor.OpenInfo().Send( "Closing {0} previous action(s).", toClose.Length ) )
+                using( monitor.OpenGroup( LogLevel.Info, string.Format( "Closing {0} previous action(s).", toClose.Length ), null ) )
                 {
                     foreach( var d in toClose )
                     {
@@ -600,7 +577,7 @@ namespace CK.RouteConfig
                         }
                         catch( Exception ex )
                         {
-                            monitor.Warn().Send( ex );
+                            monitor.SendLine( LogLevel.Warn, null, ex );
                         }
                     }
                 }

@@ -1,26 +1,3 @@
-#region LGPL License
-/*----------------------------------------------------------------------------
-* This file (CK.Monitoring\GrandOutputHandlers\BinaryFile.cs) is part of CiviKey. 
-*  
-* CiviKey is free software: you can redistribute it and/or modify 
-* it under the terms of the GNU Lesser General Public License as published 
-* by the Free Software Foundation, either version 3 of the License, or 
-* (at your option) any later version. 
-*  
-* CiviKey is distributed in the hope that it will be useful, 
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
-* GNU Lesser General Public License for more details. 
-* You should have received a copy of the GNU Lesser General Public License 
-* along with CiviKey.  If not, see <http://www.gnu.org/licenses/>. 
-*  
-* Copyright © 2007-2015, 
-*     Invenietis <http://www.invenietis.com>,
-*     In’Tech INFO <http://www.intechinfo.fr>,
-* All rights reserved. 
-*-----------------------------------------------------------------------------*/
-#endregion
-
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -40,7 +17,7 @@ namespace CK.Monitoring.GrandOutputHandlers
         readonly MonitorBinaryFileOutput _file;
 
         /// <summary>
-        /// Initializes a new <see cref="BinaryFileConfiguration"/> bound to its <see cref="BinaryFileConfiguration"/>.
+        /// Initializes a new <see cref="BinaryFile"/> bound to its <see cref="BinaryFileConfiguration"/>.
         /// </summary>
         /// <param name="config">The configuration.</param>
         public BinaryFile( BinaryFileConfiguration config )
@@ -58,7 +35,7 @@ namespace CK.Monitoring.GrandOutputHandlers
         /// <param name="m"></param>
         public override void Initialize( IActivityMonitor m )
         {
-            using( m.OpenTrace().Send( "Initializing BinaryFile handler '{0}' (MaxCountPerFile = {1}).", Name, _file.MaxCountPerFile ) )
+            using( m.OpenGroup( LogLevel.Trace, string.Format( "Initializing BinaryFile handler '{0}' (MaxCountPerFile = {1}).", Name, _file.MaxCountPerFile ), null ) )
             {
                 _file.Initialize( m );
             }
@@ -80,7 +57,7 @@ namespace CK.Monitoring.GrandOutputHandlers
         /// <param name="m">The monitor to use to track activity.</param>
         public override void Close( IActivityMonitor m )
         {
-            m.Info().Send( "Closing file for BinaryFile handler '{0}'.", Name );
+            m.SendLine( LogLevel.Info, string.Format( "Closing file for BinaryFile handler '{0}'.", Name ), null );
             _file.Close();
         }
 
