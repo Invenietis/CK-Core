@@ -56,7 +56,6 @@
   <ItemGroup>
     <Compile Include="JSONVisitorTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="ExploringTests.cs" />
     <Compile Include="StringAndStringBuilderExtensionTests.cs" />
     <Compile Include="StringMatcherTests.cs" />
     <Compile Include="TestHelper.cs" />

@@ -44,12 +44,10 @@ namespace CK.Core.Tests
             // Do not pollute the console by default...
             // ... but this may be useful sometimes: LogsToConsole does the job.
             _console = new ActivityMonitorConsoleClient();
+            LogsToConsole = true;
         }
 
-        public static IActivityMonitor ConsoleMonitor
-        {
-            get { return _monitor; }
-        }
+        public static IActivityMonitor ConsoleMonitor => _monitor; 
 
         public static bool LogsToConsole
         {
