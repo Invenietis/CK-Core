@@ -52,17 +52,20 @@ namespace CK.Core
         protected override void OnEnterLevel( ActivityMonitorLogData data )
         {
             var w = _buffer.Clear();
-            _prefixLevel = _prefix + new String( ' ', data.MaskedLevel.ToString().Length + 4 );
-            string text = data.Text.Replace( Environment.NewLine, Environment.NewLine + _prefixLevel );
+            _prefixLevel = _prefix + new string( ' ', data.MaskedLevel.ToString().Length + 4 );
+
+            w.Append( _prefix )
+                .Append( "- " )
+                .Append( data.MaskedLevel.ToString() )
+                .Append( ": " )
+                .AppendMultiLine( _prefixLevel, data.Text, false );
+
             if( _currentTags != data.Tags )
             {
-                w.AppendLine( string.Format( "{0}- {1}: {2} -[{3}]", _prefix, data.MaskedLevel.ToString(), text, data.Tags ) );
+                w.Append( " -[" ).Append( data.Tags ).Append( ']' );
                 _currentTags = data.Tags;
             }
-            else
-            {
-                w.AppendLine( string.Format( "{0}- {1}: {2}", _prefix, data.MaskedLevel.ToString(), text ) );
-            }
+            w.AppendLine();
             if( data.Exception != null )
             {
                 DumpException( w, _prefix, !data.IsTextTheExceptionMessage, data.Exception );
@@ -77,13 +80,13 @@ namespace CK.Core
         protected override void OnContinueOnSameLevel( ActivityMonitorLogData data )
         {
             var w = _buffer.Clear();
-            string text = data.Text.Replace( Environment.NewLine, Environment.NewLine + _prefixLevel );
+            w.AppendMultiLine( _prefixLevel, data.Text, true );
             if( _currentTags != data.Tags )
             {
-                w.AppendLine( string.Format( "{0}{1} -[{2}]", _prefixLevel, text, data.Tags ) );
+                w.Append( " -[" ).Append( data.Tags ).Append( ']' );
                 _currentTags = data.Tags;
             }
-            else w.AppendLine( _prefixLevel + text );
+            w.AppendLine();
             if( data.Exception != null )
             {
                 DumpException( w, _prefix, !data.IsTextTheExceptionMessage, data.Exception );
@@ -114,21 +117,18 @@ namespace CK.Core
             _prefix += "|  ";
             _prefixLevel = _prefix;
             string prefixLabel = _prefixLevel + new string( ' ', levelLabel.Length + 1 );
-            string text = g.GroupText.Replace( Environment.NewLine, Environment.NewLine + prefixLabel );
+
+            w.Append( start ).AppendMultiLine( prefixLabel, g.GroupText, false );
             if( _currentTags != g.GroupTags )
             {
+                w.Append( " -[" ).Append( g.GroupTags ).Append( ']' );
                 _currentTags = g.GroupTags;
-                w.AppendLine( string.Format( "{0}{1} -[{2}]", start, text, _currentTags ) );
             }
-            else
-            {
-                w.AppendLine( start + text );
-            }
+            w.AppendLine();
             if( g.Exception != null )
             {
                 DumpException( w, _prefix, !g.IsGroupTextTheExceptionMessage, g.Exception );
             }
-
             _writer( _buffer.ToString() );
         }
 
@@ -139,17 +139,39 @@ namespace CK.Core
         /// <param name="conclusions">Conclusions for the group.</param>
         protected override void OnGroupClose( IActivityLogGroup g, IReadOnlyList<ActivityLogGroupConclusion> conclusions )
         {
-            var w = _buffer.Clear();
             _prefixLevel = _prefix = _prefix.Remove( _prefix.Length - 3 );
-
-            w.AppendLine( string.Format( "{0}< {1}", _prefixLevel, conclusions.Where( c => !c.Text.Contains( Environment.NewLine ) ).ToStringGroupConclusion() ) );
-
-            foreach( var c in conclusions.Where( c => c.Text.Contains( Environment.NewLine ) ) )
+            if( conclusions.Count == 0 ) return;
+            var w = _buffer.Clear();
+            bool one = false;
+            List<ActivityLogGroupConclusion> withMultiLines = null;
+            foreach( var c in conclusions )
             {
-                string text = "< " + c.Text;
-                w.AppendLine( _prefixLevel + "  " + c.Text.Replace( Environment.NewLine, Environment.NewLine + _prefixLevel + "   " ) );
+                if( c.Text.Contains( '\n' ) )
+                {
+                    if( withMultiLines == null ) withMultiLines = new List<ActivityLogGroupConclusion>();
+                    withMultiLines.Add( c );
+                }
+                else
+                {
+                    if( !one )
+                    {
+                        w.Append( _prefixLevel ).Append( "< " );
+                        one = true;
+                    }
+                    else w.Append( " - " );
+                    w.Append( c.Text );
+                }
             }
-
+            if( one ) w.AppendLine();
+            if( withMultiLines != null )
+            {
+                foreach( var c in withMultiLines )
+                {
+                    w.Append( _prefixLevel ).Append( "< " );
+                    w.AppendMultiLine( _prefixLevel + "  ", c.Text, false );
+                    w.AppendLine();
+                }
+            }
             _writer( _buffer.ToString() );
         }
 
@@ -174,18 +196,17 @@ namespace CK.Core
             string p;
             w.AppendLine( prefix + header );
             string localPrefix = prefix + " | ";
-            string start;
             if( displayMessage && ex.Message != null )
             {
-                start = localPrefix + "Message: ";
-                p = Environment.NewLine + localPrefix + "         ";
-                w.AppendLine( start + ex.Message.Replace( Environment.NewLine, p ) );
+                w.Append( localPrefix + "Message: " );
+                w.AppendMultiLine( localPrefix + "         ", ex.Message, false );
+                w.AppendLine();
             }
             if( ex.StackTrace != null )
             {
-                start = localPrefix + "Stack: ";
-                p = Environment.NewLine + localPrefix + "       ";
-                w.AppendLine( start + ex.StackTrace.Replace( Environment.NewLine, p ) );
+                w.Append( localPrefix + "Stack: " );
+                w.AppendMultiLine( localPrefix + "       ", ex.StackTrace, false );
+                w.AppendLine();
             }
             var fileNFEx = ex as System.IO.FileNotFoundException;
             if( fileNFEx != null )
@@ -194,9 +215,9 @@ namespace CK.Core
                 #if NET451 || NET46
                 if( fileNFEx.FusionLog != null )
                 {
-                    start = localPrefix + "FusionLog: ";
-                    p = Environment.NewLine + localPrefix + "         ";
-                    w.AppendLine( start + fileNFEx.FusionLog.NormalizeEOL().Replace( Environment.NewLine, p ) );
+                    w.Append( localPrefix + "FusionLog: " );
+                    w.AppendMultiLine( localPrefix + "         ", fileNFEx.FusionLog, false );
+                    w.AppendLine();
                 }
                 #endif
             }
@@ -209,9 +230,9 @@ namespace CK.Core
                     #if NET451 || NET46
                     if( loadFileEx.FusionLog != null )
                     {
-                        start = localPrefix + "FusionLog: ";
-                        p = Environment.NewLine + localPrefix + "         ";
-                        w.AppendLine( start + loadFileEx.FusionLog.Replace( Environment.NewLine, p ) );
+                        w.Append( localPrefix + "FusionLog: " );
+                        w.AppendMultiLine( localPrefix + "         ", loadFileEx.FusionLog, false );
+                        w.AppendLine();
                     }
                     #endif
                 }
@@ -261,7 +282,7 @@ namespace CK.Core
                 DumpException( w, p, true, ex.InnerException );
                 w.AppendLine( localPrefix + " └─────────────────────────────────────────────────────────────────────────" );
             }
-            w.AppendLine( prefix + " └" + new String( '─', header.Length - 2 ) );
+            w.AppendLine( prefix + " └" + new string( '─', header.Length - 2 ) );
         }
 
     }

@@ -302,10 +302,12 @@ namespace CK.Core
         /// </summary>
         /// <param name="w">The TextWriter to write to.</param>
         /// <param name="prefix">Prefix that will appear at the start of each line.</param>
-        /// <param name="newLine">Defaults to <see cref="Environment.NewLine"/>.</param>
-        public void ToTextWriter( TextWriter w, string prefix, string newLine = null )
+        public void ToTextWriter( TextWriter w, string prefix )
         {
-            WriteText( w.Write, prefix, newLine );
+            StringWriter sw = w as StringWriter;
+            StringBuilder b = sw != null ? sw.GetStringBuilder() : new StringBuilder();
+            ToStringBuilder( b, prefix );
+            if( sw == null ) w.Write( b.ToString() );
         }
 
         /// <summary>
@@ -313,120 +315,95 @@ namespace CK.Core
         /// </summary>
         /// <param name="b">The StringBuilder to write to.</param>
         /// <param name="prefix">Prefix that will appear at the start of each line.</param>
-        /// <param name="newLine">Defaults to <see cref="Environment.NewLine"/>.</param>
-        public void ToStringBuilder( StringBuilder b, string prefix, string newLine = null )
+        public void ToStringBuilder( StringBuilder b, string prefix )
         {
-            WriteText( t => b.Append( t ), prefix, newLine );
-        }
-
-        /// <summary>
-        /// Core function that writes the exception data as a readable block of text.
-        /// </summary>
-        /// <param name="appender">The function that collects the text fragments.</param>
-        /// <param name="prefix">Prefix that will appear at the start of each line.</param>
-        /// <param name="newLine">Defaults to <see cref="Environment.NewLine"/>.</param>
-        public void WriteText( Action<string> appender, string prefix, string newLine = null )
-        {
-            if( appender == null ) throw new ArgumentNullException( "appender" );
-            if( prefix == null ) prefix = String.Empty;
-            if( newLine == null ) newLine = Environment.NewLine;
-            if( prefix.Length == 0 && _toString != null && newLine == Environment.NewLine )
+            if( prefix == null ) prefix = string.Empty;
+            if( prefix.Length == 0 && _toString != null )
             {
-                appender( ToString() );
+                b.Append( _toString );
                 return;
             }
 
-            appender( prefix );
-            appender( " ┌──────────────────────────■ Exception: " );
-            appender( _exceptionTypeName );
-            appender( " ■──────────────────────────" );
-            appender( newLine );
+            b.Append( prefix );
+            b.Append( " ┌──────────────────────────■ Exception: " );
+            b.Append( _exceptionTypeName );
+            b.Append( " ■──────────────────────────" );
+            b.AppendLine();
             Debug.Assert( ("──────────────────────────■ Exception: " + " ■──────────────────────────").Length == 39 + 28 );
             int lenHeader = _exceptionTypeName.Length + 39 + 28;
 
             string locPrefix = prefix + " | ";
 
-            AppendText( appender, locPrefix, "Message", _message, newLine );
+            AppendField( b, locPrefix, "Message", _message );
 
-            if( _stackTrace != null ) AppendText( appender, locPrefix, "Stack", _stackTrace, newLine );
+            if( _stackTrace != null ) AppendField( b, locPrefix, "Stack", _stackTrace );
             
-            if( !string.IsNullOrEmpty( _fileName ) ) AppendLine( appender, locPrefix, "FileName", _fileName, newLine );
-            if( _detailedInfo != null ) AppendText( appender, locPrefix, "FusionLog", _detailedInfo, newLine );
+            if( !string.IsNullOrEmpty( _fileName ) ) AppendField( b, locPrefix, "FileName", _fileName );
+
+            if( _detailedInfo != null ) AppendField( b, locPrefix, "Details", _detailedInfo );
 
             if( _loaderExceptions != null )
             {
-                appender( locPrefix );
-                appender( " ┌──────────────────────────■ [Loader Exceptions] ■──────────────────────────" );
-                appender( newLine );
+                b.Append( locPrefix )
+                    .Append( " ┌──────────────────────────■ [Loader Exceptions] ■──────────────────────────" )
+                    .AppendLine();
                 foreach( var item in _loaderExceptions )
                 {
-                    item.WriteText( appender, locPrefix + " | ", newLine );
+                    item.ToStringBuilder( b, locPrefix + " | " );
                 }
-                appender( locPrefix  );
-                appender( " └─────────────────────────────────────────────────────────────────────────" );
-                appender( newLine );
+                b.Append( locPrefix )
+                    .Append( " └─────────────────────────────────────────────────────────────────────────" )
+                    .AppendLine();
             }
             // The InnerException of an aggregated exception is the same as the first of it InnerExceptionS.
             // (The InnerExceptionS are the contained/aggregated exceptions of the AggregatedException object.)
             // This is why, if we are on an AggregatedException we do not follow its InnerException.
             if( _aggregatedExceptions != null )
             {
-                appender( locPrefix );
-                appender( " ┌──────────────────────────■ [Aggregated Exceptions] ■──────────────────────────" );
-                appender( newLine );
+                b.Append( locPrefix )
+                    .Append( " ┌──────────────────────────■ [Aggregated Exceptions] ■──────────────────────────" )
+                    .AppendLine();
                 foreach( var item in _aggregatedExceptions )
                 {
-                    item.WriteText( appender, locPrefix + " | ", newLine );
+                    item.ToStringBuilder( b, locPrefix + " | " );
                 }
-                appender( locPrefix );
-                appender( " └─────────────────────────────────────────────────────────────────────────" );
-                appender( newLine );
+                b.Append( locPrefix )
+                    .Append( " └─────────────────────────────────────────────────────────────────────────" )
+                    .AppendLine();
             }
             else if( _innerException != null )
             {
-                appender( locPrefix );
-                appender( " ┌──────────────────────────■ [Inner Exception] ■──────────────────────────" );
-                appender( newLine );
-                _innerException.WriteText( appender, locPrefix + " | ", newLine );
-                appender( locPrefix );
-                appender( " └─────────────────────────────────────────────────────────────────────────" );
-                appender( newLine );
+                b.Append( locPrefix )
+                    .Append( " ┌──────────────────────────■ [Inner Exception] ■──────────────────────────" )
+                    .AppendLine();
+                _innerException.ToStringBuilder( b, locPrefix + " | " );
+                b.Append( locPrefix )
+                    .Append( " └─────────────────────────────────────────────────────────────────────────" )
+                    .AppendLine();
             }
-            appender( prefix );
-            appender( " └─────────────────────────────────────────────────────────────────────────" );
-            appender( newLine );
+            b.Append( prefix )
+                .Append( " └─────────────────────────────────────────────────────────────────────────" )
+                .AppendLine();
         }
 
-        void AppendText( Action<string> appender, string prefix, string label, string text, string newLine )
+        static StringBuilder AppendField( StringBuilder b, string prefix, string label, string text )
         {
-            appender( prefix );
-            appender( label );
-            appender( ": " );
-            appender( "         " );
-            appender( text.Replace( newLine, newLine + prefix + "         " ) );
-            appender( newLine );
-        }
-
-        void AppendLine( Action<string> appender, string prefix, string label, string line, string newLine )
-        {
-            appender( prefix );
-            appender( label );
-            appender( ": " );
-            appender( line );
-            appender( newLine );
+            b.Append( prefix ).Append( label ).Append( ": " ).Append( ' ', 10 - label.Length );
+            prefix += new string( ' ', 12 );
+            b.AppendMultiLine( prefix, text, false ).AppendLine();
+            return b;
         }
 
         /// <summary>
-        /// Overridden to return the result of <see cref="WriteText"/> without prefix and a standard <see cref="Environment.NewLine"/>.
-        /// This is cached once built.
+        /// Overridden to return a detailed text. This string is cached once built.
         /// </summary>
-        /// <returns>This exception data as a block of readable text.</returns>
+        /// <returns>This exception data as a readable text.</returns>
         public override string ToString()
         {
             if( _toString == null )
             {
                 StringBuilder b = new StringBuilder();
-                ToStringBuilder( b, String.Empty, Environment.NewLine );
+                ToStringBuilder( b, string.Empty );
                 _toString = b.ToString();
             }
             return _toString;

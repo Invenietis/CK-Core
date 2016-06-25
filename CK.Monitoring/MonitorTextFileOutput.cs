@@ -120,9 +120,9 @@ namespace CK.Monitoring
 
             if( e.Text != null )
             {
-                if( e.LogType == LogEntryType.OpenGroup ) _builder.Append( ">>" );
-
-                _builder.AppendLine( e.Text.Replace( Environment.NewLine, Environment.NewLine + prefix ) );
+                if( e.LogType == LogEntryType.OpenGroup ) _builder.Append( "> " );
+                prefix += "  ";
+                _builder.AppendMultiLine( prefix, e.Text, false ).AppendLine();
                 if( e.Exception != null )
                 {
                     e.Exception.ToStringBuilder( _builder, prefix );
@@ -131,16 +131,16 @@ namespace CK.Monitoring
             else 
             {
                 Debug.Assert( e.Conclusions != null );
-                _builder.Append( "<<" );
+                _builder.Append( "< " );
                 if( e.Conclusions.Count > 0 )
                 {
                     _builder.Append( " | " ).Append( e.Conclusions.Count ).Append( " conclusion" );
                     if( e.Conclusions.Count > 1 ) _builder.Append( 's' );
                     _builder.Append( ':' ).AppendLine();
-                    string prefixConclusions = prefix + "   | ";
+                    prefix += "   | ";
                     foreach( var c in e.Conclusions )
                     {
-                        _builder.Append( prefixConclusions ).AppendLine( c.Text.Replace( Environment.NewLine, Environment.NewLine + prefixConclusions ) );
+                        _builder.AppendMultiLine( prefix, c.Text, true ).AppendLine();
                     }
                 }
                 else 
