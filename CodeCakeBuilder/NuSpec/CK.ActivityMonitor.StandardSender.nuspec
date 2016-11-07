@@ -19,7 +19,7 @@
     <language>en-US</language>
 
 	<dependencies>
-    <dependency id="CK.Activitymonitor" version="$version$" />
+    <dependency id="CK.ActivityMonitor" version="$version$" />
   </dependencies>
 
   </metadata>
