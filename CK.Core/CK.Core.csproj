@@ -46,6 +46,10 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
+    <Reference Include="CK.Text, Version=1.0.0.0, Culture=neutral, PublicKeyToken=731c291b31fb8d27, processorArchitecture=MSIL">
+      <HintPath>..\packages\CK.Text.5.0.1\lib\net45\CK.Text.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />
@@ -96,12 +100,6 @@
     <Compile Include="TemporaryFile.cs" />
     <Compile Include="Util.cs" />
     <Compile Include="Util.Hash.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\CK.Text\CK.Text.csproj">
-      <Project>{0518e60c-0cb9-49da-a634-109998526368}</Project>
-      <Name>CK.Text</Name>
-    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

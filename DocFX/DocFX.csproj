@@ -72,7 +72,15 @@
     <Content Include="index.md" />
     <Content Include="docfx.json" />
     <Content Include="api\**\*.md" />
-    <Content Include="articles\**\*.md" />
+    <Content Include="articles\ck-activitymonitor-standardsender.md" />
+    <Content Include="articles\ck-activitymonitor.md" />
+    <Content Include="articles\ck-core.md" />
+    <Content Include="articles\ck-monitoring.md" />
+    <Content Include="articles\ck-reflection.md" />
+    <Content Include="articles\ck-text.md" />
+    <Content Include="articles\intro.md" />
+    <Content Include="articles\toc.md" />
+    <Content Include="articles\using-the-activitymonitor.md" />
     <Content Include="template\**\*.md" />
     <None Include="Web.Debug.config">
       <DependentUpon>Web.config</DependentUpon>

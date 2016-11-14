@@ -60,10 +60,10 @@ namespace CK.Core
         /// <summary>
         /// Writes a 32-bit integer in compressed format, accomodating rooms for some negative values.
         /// The <paramref name="minNegativeValue"/> simply offsets the written value.
-        /// Use <see cref="CKBinaryReader.ReadNonNegativeSmallInt32(int,int)"/> with the 
+        /// Use <see cref="CKBinaryReader.ReadSmallInt32(int)"/> with the 
         /// same <paramref name="minNegativeValue"/> to read it back.
         /// </summary>
-        /// <param name="value">A 32-bit integer (greater or equal to <param name="minNegativeValue"/>).</param>
+        /// <param name="value">A 32-bit integer (greater or equal to <paramref name="minNegativeValue"/>).</param>
         /// <param name="minNegativeValue">Lowest possible negative value.</param>
         /// <remarks>
         /// <para>

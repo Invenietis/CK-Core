@@ -5,4 +5,3 @@
 #[CK.ActivityMonitor.StandardSender](ck-activitymonitor-standardsender.md)
 #[CK.Monitoring](ck-monitoring.md)
 #[CK.Reflection](ck-reflection.md)
-#[CK.Text](ck-text.md)

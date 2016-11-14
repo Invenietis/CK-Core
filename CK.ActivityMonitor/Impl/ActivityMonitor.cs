@@ -163,7 +163,7 @@ namespace CK.Core
 
         /// <summary>
         /// The automatic configuration actions.
-        /// Registers actions via += (or <see cref="Delegate.Combine"/> if you like pain), unregister with -= operator (or <see cref="Delegate.Remove"/>).
+        /// Registers actions via += (or <see cref="Delegate.Combine(Delegate,Delegate)"/> if you like pain), unregister with -= operator (or <see cref="Delegate.Remove"/>).
         /// Simply sets it to null to clear all currently registered actions (this, of course, only from tests and not in real code).
         /// </summary>
         static public Action<IActivityMonitor> AutoConfiguration;

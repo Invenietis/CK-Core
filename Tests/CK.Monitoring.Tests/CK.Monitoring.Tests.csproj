@@ -53,6 +53,10 @@
     <Compile Include="TestHelper.cs" />
   </ItemGroup>
   <ItemGroup>
+    <Reference Include="CK.Text, Version=1.0.0.0, Culture=neutral, PublicKeyToken=731c291b31fb8d27, processorArchitecture=MSIL">
+      <HintPath>..\..\packages\CK.Text.5.0.1\lib\net45\CK.Text.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="nunit.framework, Version=2.6.4.14350, Culture=neutral, PublicKeyToken=96d09a1eb7f44a77, processorArchitecture=MSIL">
       <HintPath>..\..\packages\NUnit.2.6.4\lib\nunit.framework.dll</HintPath>
       <Private>True</Private>
@@ -113,10 +117,6 @@
     <ProjectReference Include="..\..\CK.Monitoring\CK.Monitoring.csproj">
       <Project>{8016ab6e-ca30-447d-bc47-b37d51b5a088}</Project>
       <Name>CK.Monitoring</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\..\CK.Text\CK.Text.csproj">
-      <Project>{0518e60c-0cb9-49da-a634-109998526368}</Project>
-      <Name>CK.Text</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>

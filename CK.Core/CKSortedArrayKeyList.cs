@@ -94,7 +94,7 @@ namespace CK.Core
         /// Gets the zero based position of on of the items that is associated to this key.
         /// </summary>
         /// <param name="key">The key to find.</param>
-        /// <returns>The index or a negative value like <see cref="Util.BinarySearch{T,TKey}"/>.</returns>
+        /// <returns>The index or a negative value like <see cref="Util.BinarySearch{T,TKey}(IReadOnlyList{T}, int, int, TKey, Func{T, TKey, int})"/>.</returns>
         public int IndexOf( TKey key )
         {
             return Util.BinarySearch( Store, 0, Count, key, ComparisonKey );
