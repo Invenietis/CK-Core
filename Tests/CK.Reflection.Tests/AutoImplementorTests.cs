@@ -393,6 +393,30 @@ namespace CK.Reflection.Tests
             Assert.That( o.PublicProperty, Is.EqualTo( 2 ), "Mere stub implementation does its job." );
         }
 
+        public interface IPocoKind
+        {
+            int X { get; }
+            int Y { get; set; }
+        }
+
+        [Test]
+        public void AutoImplementStub_can_force_setter_impl()
+        {
+            TypeBuilder tB = CreateTypeBuilder( null );
+            tB.AddInterfaceImplementation( typeof( IPocoKind ) );
+            var xB = EmitHelper.ImplementStubProperty( tB, typeof( IPocoKind ).GetProperty( "X" ), false, true );
+            var yB = EmitHelper.ImplementStubProperty( tB, typeof( IPocoKind ).GetProperty( "Y" ), false, true );
+            //tB.DefineMethodOverride( xB.GetGetMethod(), typeof( IPocoKind ).GetProperty( "X" ).GetGetMethod() );
+            //tB.DefineMethodOverride( yB.GetGetMethod(), typeof( IPocoKind ).GetProperty( "Y" ).GetGetMethod() );
+            //tB.DefineMethodOverride( yB.GetSetMethod(), typeof( IPocoKind ).GetProperty( "Y" ).GetSetMethod() );
+            Type builtType = tB.CreateTypeInfo().AsType();
+            IPocoKind o = (IPocoKind)Activator.CreateInstance( builtType );
+            o.Y = 8;
+            Assert.That( o.Y, Is.EqualTo( 8 ) );
+            Assert.That( o.X, Is.EqualTo( 0 ) );
+            builtType.GetProperty( "X" ).SetValue( o, 19 );
+            Assert.That( o.X, Is.EqualTo( 19 ) );
+        }
         #endregion
 
 

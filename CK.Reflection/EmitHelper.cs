@@ -118,8 +118,9 @@ namespace CK.Reflection
         /// <param name="tB">The <see cref="TypeBuilder"/> for the new type.</param>
         /// <param name="property">The property to implement.</param>
         /// <param name="isVirtual">Defaults to false: the method is sealed. True to keep the method virtual. </param>
+        /// <param name="alwaysImplementSetter">When true a setter is implemented even if the <paramref name="property"/> has no setter.</param>
         /// <returns>The <see cref="PropertyBuilder"/> to enable, for instance, creation of custom attributes on the property.</returns>
-        public static PropertyBuilder ImplementStubProperty( TypeBuilder tB, PropertyInfo property, bool isVirtual = false )
+        public static PropertyBuilder ImplementStubProperty( TypeBuilder tB, PropertyInfo property, bool isVirtual = false, bool alwaysImplementSetter = false )
         {
             if( tB == null ) throw new ArgumentNullException( "tB" );
             if( property == null ) throw new ArgumentNullException( "property" );
@@ -139,6 +140,11 @@ namespace CK.Reflection
                 g.Emit( OpCodes.Ret );
             }
             MethodInfo setMethod = property.SetMethod;
+            if( setMethod == null && alwaysImplementSetter )
+            {
+                // We only use Attributes and Name from the method info.
+                setMethod = getMethod;
+            }
             MethodBuilder mSet = null;
             if( setMethod != null )
             {
