@@ -28,13 +28,12 @@ using System.Text;
 using NUnit.Framework;
 using System.Reflection;
 using System.Diagnostics.CodeAnalysis;
+using FluentAssertions;
 
 namespace CK.Reflection.Tests
 {
     [TestFixture]
-    #if NET451
     [ExcludeFromCodeCoverage]
-    #endif
     [Category("Reflection")]
     public class HelperTest
     {
@@ -48,25 +47,25 @@ namespace CK.Reflection.Tests
                 // Requires an instance of the holder.
                 string oneInstance = null;
                 PropertyInfo i = ReflectionHelper.GetPropertyInfo( oneInstance, s => s.Length );
-                Assert.That( i.Name, Is.EqualTo( "Length" ) );
-                Assert.That( i.PropertyType, Is.SameAs( typeof( int ) ) );
+                i.Name.Should().Be( "Length" );
+                i.PropertyType.Should().BeSameAs( typeof( int ) );
 
-                Assert.Throws<ArgumentException>(    () => ReflectionHelper.GetPropertyInfo( oneInstance, s => s.IndexOf( 'e' ) ) );
+                Should.Throw<ArgumentException>(    () => ReflectionHelper.GetPropertyInfo( oneInstance, s => s.IndexOf( 'e' ) ) );
             }
             {
                 // Same as before, but default() is used to "obtain" an instance of the holder type.
                 // To avoid this, next versions can be used.
                 PropertyInfo i = ReflectionHelper.GetPropertyInfo( default( KeyValuePair<int, long> ), p => p.Value );
-                Assert.That( i.Name, Is.EqualTo( "Value" ) );
-                Assert.That( i.PropertyType, Is.SameAs( typeof( long ) ) );
+                i.Name.Should().Be( "Value" );
+                i.PropertyType.Should().BeSameAs( typeof( long ) );
             }
             {
                 // This version avoids the instance (but requires the holder type to be specified).
                 PropertyInfo i = ReflectionHelper.GetPropertyInfo<string>( s => s.Length );
-                Assert.That( i.Name, Is.EqualTo( "Length" ) );
-                Assert.That( i.PropertyType, Is.SameAs( typeof( int ) ) );
+                i.Name.Should().Be( "Length" );
+                i.PropertyType.Should().BeSameAs( typeof( int ) );
                 
-                Assert.Throws<ArgumentException>( () => ReflectionHelper.GetPropertyInfo<string>( s => s.IndexOf( 'e' ) ) );
+                Should.Throw<ArgumentException>( () => ReflectionHelper.GetPropertyInfo<string>( s => s.IndexOf( 'e' ) ) );
             }
             {
                 // This version avoids the instance (but requires the holder type to be specified),
@@ -74,22 +73,22 @@ namespace CK.Reflection.Tests
                 //
                 // PropertyInfo iFail = Helper.GetPropertyInfo<string, byte>( s => s.Length );
                 PropertyInfo i = ReflectionHelper.GetPropertyInfo<string, int>( s => s.Length );
-                Assert.That( i.Name, Is.EqualTo( "Length" ) );
-                Assert.That( i.PropertyType, Is.SameAs( typeof( int ) ) );
+                i.Name.Should().Be( "Length" );
+                i.PropertyType.Should().BeSameAs( typeof( int ) );
             }
 
              {
                 // This version uses the closure to capture the reference to the property.
                 PropertyInfo i = ReflectionHelper.GetPropertyInfo( () => AnIntProperty );
-                Assert.That( i.Name, Is.EqualTo( "AnIntProperty" ) );
-                Assert.That( i.PropertyType, Is.SameAs( typeof( int ) ) );
+                i.Name.Should().Be( "AnIntProperty" );
+                i.PropertyType.Should().BeSameAs( typeof( int ) );
 
                 PropertyInfo i2 = ReflectionHelper.GetPropertyInfo( () => i.Name );
-                Assert.That( i2.Name, Is.EqualTo( "Name" ) );
-                Assert.That( i2.PropertyType, Is.SameAs( typeof( string ) ) );
+                i2.Name.Should().Be( "Name" );
+                i2.PropertyType.Should().BeSameAs( typeof( string ) );
 
                 byte[] anArray = new byte[1]; 
-                Assert.Throws<ArgumentException>( () => ReflectionHelper.GetPropertyInfo( () => anArray[0] ) );
+                Should.Throw<ArgumentException>( () => ReflectionHelper.GetPropertyInfo( () => anArray[0] ) );
             }
             {
                 // This version uses the closure to capture the reference to the property
@@ -98,16 +97,14 @@ namespace CK.Reflection.Tests
                 // PropertyInfo iFail = Helper.GetPropertyInfo<string>( () => AnIntProperty );
 
                 PropertyInfo i = ReflectionHelper.GetPropertyInfo<int>( () => AnIntProperty );
-                Assert.That( i.Name, Is.EqualTo( "AnIntProperty" ) );
-                Assert.That( i.PropertyType, Is.SameAs( typeof( int ) ) );
+                i.Name.Should().Be( "AnIntProperty" );
+                i.PropertyType.Should().BeSameAs( typeof( int ) );
 
                 PropertyInfo i2 = ReflectionHelper.GetPropertyInfo<string>( () => i.Name );
-                Assert.That( i2.Name, Is.EqualTo( "Name" ) );
-                Assert.That( i2.PropertyType, Is.SameAs( typeof( string ) ) );
+                i2.Name.Should().Be( "Name" );
+                i2.PropertyType.Should().BeSameAs( typeof( string ) );
                 
-                // REVIEW: change .Clone() to .ToString().
-                Assert.Throws<ArgumentException>( () => ReflectionHelper.GetPropertyInfo( () => i2.Name.ToString() ) );
-
+                Should.Throw<ArgumentException>( () => ReflectionHelper.GetPropertyInfo( () => i2.Name.ToString() ) );
             }
         }
 
@@ -116,17 +113,18 @@ namespace CK.Reflection.Tests
         {
             {
                 string s = "a string";
-                Assert.Throws<InvalidOperationException>( () => DelegateHelper.CreateSetter( s, x => x.Length ) );
-                Assert.That( DelegateHelper.CreateSetter( s, x => x.Length, DelegateHelper.CreateInvalidSetterOption.NullAction ), Is.Null );
+                Should.Throw<InvalidOperationException>( () => DelegateHelper.CreateSetter( s, x => x.Length ) );
+                DelegateHelper.CreateSetter( s, x => x.Length, DelegateHelper.CreateInvalidSetterOption.NullAction )
+                    .Should().BeNull();
                 var p = DelegateHelper.CreateSetter( s, x => x.Length, DelegateHelper.CreateInvalidSetterOption.VoidAction );
                 p( s, 4554 );
             }
             {
                 System.IO.StringWriter a = new System.IO.StringWriter();
                 var setter = DelegateHelper.CreateSetter( a, x => x.NewLine );
-                Assert.That( a.NewLine, Is.EqualTo( Environment.NewLine ) );
+                a.NewLine.Should().Be( Environment.NewLine );
                 setter( a, "Hello World!" );
-                Assert.That( a.NewLine, Is.EqualTo( "Hello World!" ) );
+                a.NewLine.Should().Be( "Hello World!" );
             }
         }
 
@@ -137,27 +135,27 @@ namespace CK.Reflection.Tests
             MethodInfo m = typeof( HelperTest ).GetMethod( "JustForTest", bindingJustForTest );
             {
                 Type[] p = ReflectionHelper.CreateParametersType( m.GetParameters() );
-                Assert.That( p[0] == typeof( int ) );
-                Assert.That( p[1] == typeof( HelperTest ) );
-                Assert.That( p.Length == 2 );
+                p[0].Should().BeSameAs( typeof( int ) );
+                p[1].Should().BeSameAs( typeof( HelperTest ) );
+                p.Length.Should().Be( 2 );
             }
             {
                 Type[] p = ReflectionHelper.CreateParametersType( m.GetParameters(), 0 );
-                Assert.That( p[0] == typeof( int ) );
-                Assert.That( p[1] == typeof( HelperTest ) );
-                Assert.That( p.Length == 2 );
+                p[0].Should().BeSameAs(typeof( int ) );
+                p[1].Should().BeSameAs(typeof( HelperTest ) );
+                p.Length.Should().Be( 2 );
             }
             {
                 Type[] p = ReflectionHelper.CreateParametersType( m.GetParameters(), 1 );
-                Assert.That( p[0] == typeof( HelperTest ) );
-                Assert.That( p.Length == 1 );
+                p[0].Should().BeSameAs( typeof( HelperTest ) );
+                p.Length.Should().Be( 1 );
             }
             {
                 Type[] p = ReflectionHelper.CreateParametersType( m.GetParameters(), typeof( CategoryAttribute ) );
-                Assert.That( p[0] == typeof( CategoryAttribute ) );
-                Assert.That( p[1] == typeof( int ) );
-                Assert.That( p[2] == typeof( HelperTest ) );
-                Assert.That( p.Length == 3 );
+                p[0].Should().BeSameAs(typeof( CategoryAttribute ) );
+                p[1].Should().BeSameAs(typeof( int ) );
+                p[2].Should().BeSameAs(typeof( HelperTest ) );
+                p.Length.Should().Be( 3 );
             }
         }
 
@@ -216,28 +214,31 @@ namespace CK.Reflection.Tests
         [Test]
         public void FlattenProperties()
         {
-            Assert.That( typeof( IB ).GetProperties( BindingFlags.FlattenHierarchy | BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance ).Single().Name, Is.EqualTo( "PropB" ), 
+            typeof( IB ).GetProperties( BindingFlags.FlattenHierarchy | BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance )
+                .Single().Name.Should().Be( "PropB", 
                 "PropA missed. FlattenHierarchy is totally useless on interfaces..." );
-            Assert.That( ReflectionHelper.GetFlattenProperties( typeof( IB ) ).Count(), Is.EqualTo( 2 ), "ReflectionHelper.GetFlattenProperties() does the job." );
+            ReflectionHelper.GetFlattenProperties( typeof( IB ) )
+                .Should().HaveCount( 2, "ReflectionHelper.GetFlattenProperties() does the job." );
 
             var BProperties = typeof( B ).GetProperties( BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance );
-            Assert.That( BProperties.Select( p => p.Name ).OrderBy( n => n ).ToArray(), Is.EquivalentTo( new[] { "PrivatePropOnB", "PropA", "PropB", "ProtectedPropOnA", "ProtectedPropOnB" } ),
+            BProperties.Select( p => p.Name )
+                .Should().BeEquivalentTo( new[] { "PrivatePropOnB", "PropA", "PropB", "ProtectedPropOnA", "ProtectedPropOnB" },
                 @"GetProperties() is okay for class properties!... 
                   But be careful: private for the targeted type is returned, not base classes' private properties." );
 
             var BPublicProperties = typeof( B ).GetProperties( BindingFlags.Public | BindingFlags.Instance );
-            Assert.That( BPublicProperties.Select( p => p.Name ).OrderBy( n => n ).ToArray(), Is.EquivalentTo( new[] { "PropA", "PropB" } ),
+            BPublicProperties.Select( p => p.Name ).Should().BeEquivalentTo( new[] { "PropA", "PropB" },
                 @"GetProperties(Public|Instance) do not return protected properties." );
 
             var CProperties = typeof( C ).GetProperties( BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance );
-            Assert.That( CProperties.Select( p => p.Name ).OrderBy( n => n ).ToArray(), Is.EquivalentTo( new[] { "CK.Reflection.Tests.HelperTest.IC.PropA", "PropA", "ProtectedPropOnA" } ),
+            CProperties.Select( p => p.Name ).Should().BeEquivalentTo( new[] { "CK.Reflection.Tests.HelperTest.IC.PropA", "PropA", "ProtectedPropOnA" },
                 "GetProperties() on class can catch explicit implementation (see ExplicitImplementation() test below)." );
 
             var explicitProp = CProperties.First();
-            Assert.That( explicitProp.Name.Contains( '.' ), "This is the only way to detect an explicitely implemented property (or method)." );
+            explicitProp.Name.Should().Contain( ".", "This is the only way to detect an explicitely implemented property (or method)." );
 
             var DProperties = typeof( D ).GetProperties( BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance );
-            Assert.That( DProperties.Select( p => p.Name ).OrderBy( n => n ).ToArray(), Is.EquivalentTo( new[] { "PropA", "PropA", "PropD", "ProtectedPropOnA", "ZePrivateOnD" } ),
+            DProperties.Select( p => p.Name ).Should().BeEquivalentTo( new[] { "PropA", "PropA", "PropD", "ProtectedPropOnA", "ZePrivateOnD" },
                 @"Explicit implementations are like private: they are caught only for the target type...
                   and unfortunately, masked property appear multiple times :-(" );
 
@@ -248,7 +249,7 @@ namespace CK.Reflection.Tests
             var cleanCProperties = typeof( C ).GetProperties( BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance )
                                                 .Where( p => !p.Name.Contains( '.' ) && !p.GetSetMethod(true).IsPrivate && !p.GetGetMethod(true).IsPrivate );
 
-            Assert.That( cleanCProperties.Select( p => p.Name ).OrderBy( n => n ).ToArray(), Is.EquivalentTo( new[] { "PropA", "ProtectedPropOnA" } ) );
+            cleanCProperties.Select( p => p.Name ).Should().BeEquivalentTo( new[] { "PropA", "ProtectedPropOnA" } );
 
             // And now... Fighting against the masked property :-(
             var cleanDProperties = typeof( D ).GetProperties( BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance ).Where( p => !p.Name.Contains( '.' ) );
@@ -278,8 +279,8 @@ namespace CK.Reflection.Tests
                 }
             }
             var orderedD = byName.Values.OrderBy( p => p.Name ).ToArray();
-            Assert.That( orderedD.Select( p => p.Name ).ToArray(), Is.EquivalentTo( new[] { "PropA", "PropD", "ProtectedPropOnA" } ) );
-            Assert.That( orderedD[0].DeclaringType, Is.SameAs( typeof( D ) ) ); 
+            orderedD.Select( p => p.Name ).Should().BeEquivalentTo( new[] { "PropA", "PropD", "ProtectedPropOnA" } );
+            orderedD[0].DeclaringType.Should().BeSameAs( typeof( D ) ); 
         }
 
         #endregion
@@ -321,10 +322,11 @@ namespace CK.Reflection.Tests
                 // Case 1:
                 /// the virtual/override case works nearly as it should (must use static methods on Attribute class).
 
-                Assert.That( typeof( PB ).GetProperty( "PropAVirtual" ).GetCustomAttributes( typeof( PropNOTInheritedAttribute ), inherit: true ).Count() == 0,
-                    "OK: PropNOTInherited is not available on B.PropAVirtual" );
-                Assert.That( typeof( PB ).GetProperty( "PropA" ).GetCustomAttributes( typeof( PropInheritedAttribute ), inherit: true ).Count() == 0,
-                    "KO! PropInheritedAttribute is ALSO NOT available on B.PropAVirtual. PropertyInfo.GetCustomAttributes does NOT honor bool inherit parameter :-(." );
+                typeof( PB ).GetProperty( "PropAVirtual" ).GetCustomAttributes( typeof( PropNOTInheritedAttribute ), inherit: true )
+                    .Should().BeEmpty( "OK: PropNOTInherited is not available on B.PropAVirtual" );
+
+                typeof( PB ).GetProperty( "PropA" ).GetCustomAttributes( typeof( PropInheritedAttribute ), inherit: true )
+                    .Should().BeEmpty( "KO! PropInheritedAttribute is ALSO NOT available on B.PropAVirtual. PropertyInfo.GetCustomAttributes does NOT honor bool inherit parameter :-(.");
 
                 // To get it, one must use static methods on Attribute class.
 
@@ -388,38 +390,38 @@ namespace CK.Reflection.Tests
             {
                 var c = new ExplicitImpl();
                 MethodInfo m0 = c.GetType().GetMethod( "Start", BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public );
-                Assert.That( m0, Is.Null, "Start is not found..." );
+                m0.Should().BeNull( "Start is not found..." );
 
-                Assert.That( typeof(IExplicit).FullName, Is.EqualTo( "CK.Reflection.Tests.HelperTest+IExplicit" ) );
+                typeof(IExplicit).FullName.Should().Be( "CK.Reflection.Tests.HelperTest+IExplicit" );
                 MethodInfo m1 = c.GetType().GetMethod( "CK.Reflection.Tests.HelperTest+IExplicit.Start".Replace( '+', '.' ), BindingFlags.Instance | BindingFlags.NonPublic );
-                Assert.That( m1, Is.Not.Null );
-                Assert.That( m1.Invoke( c, null ), Is.True );
-                Assert.That( m1.DeclaringType, Is.EqualTo( c.GetType() ), "To obtain an explicit implementation, one can use the FullName of the properties, ignoring nested class marker (+)." );
+                m1.Should().NotBeNull();
+                m1.Invoke( c, null ).Should().Be( true );
+                m1.DeclaringType.Should().BeSameAs( c.GetType(), "To obtain an explicit implementation, one can use the FullName of the properties, ignoring nested class marker (+)." );
 
-                Assert.That( c.GetType().GetConstructors( BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public ).Length > 0, "Default ctor is accessible." );
+                c.GetType().GetConstructors( BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public ).Should().NotBeEmpty( "Default ctor is accessible." );
             }
             {
                 var c = new ImplicitImpl();
                 MethodInfo m0 = c.GetType().GetMethod( "Start", BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public );
-                Assert.That( m0, Is.Not.Null, "Start exists." );
+                m0.Should().NotBeNull( "Start exists." );
 
                 MethodInfo m1 = c.GetType().GetMethod( "CK.Reflection.Tests.HelperTest+IExplicit.Start".Replace( '+', '.' ), BindingFlags.Instance | BindingFlags.NonPublic );
-                Assert.That( m1, Is.Null, "But the explicit does not exist... Implicit hides explicit implementation." );
+                m1.Should().BeNull( "But the explicit does not exist... Implicit hides explicit implementation." );
             }
             {
                 ExplicitAndImplicitImpl c2 = new ExplicitAndImplicitImplSpecialized();
                 MethodInfo m0 = c2.GetType().GetMethod( "Start", BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public );
-                Assert.That( m0, Is.Not.Null, "Found the exposed one." );
-                Assert.That( m0.Invoke( c2, null ), Is.False );
+                m0.Should().NotBeNull( "Found the exposed one." );
+                m0.Invoke( c2, null ).Should().Be( false );
 
                 MethodInfo m1 = c2.GetType().GetMethod( "CK.Reflection.Tests.HelperTest+IExplicit.Start".Replace('+', '.'), BindingFlags.Instance | BindingFlags.NonPublic );
-                Assert.That( m1, Is.Not.Null );
-                Assert.That( m1.Invoke( c2, null ), Is.True );
-                Assert.That( m1.DeclaringType, Is.EqualTo( typeof( ExplicitAndImplicitImpl ) ), "Both exist, both are found." );
+                m1.Should().NotBeNull();
+                m1.Invoke( c2, null ).Should().Be( true );
+                m1.DeclaringType.Should().BeSameAs( typeof( ExplicitAndImplicitImpl ), "Both exist, both are found." );
 
-                Assert.That( c2.GetType().GetConstructors( BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public )[0].GetParameters().Length == 0, "The .ctor() is accessible." );
-                Assert.That( typeof( ExplicitAndImplicitImpl ).GetConstructors( BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public )[0].GetParameters()[0].ParameterType,
-                    Is.EqualTo( typeof( int ) ), "The protected .ctor(int) is accessible." );
+                c2.GetType().GetConstructors( BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public )[0].GetParameters().Should().BeEmpty( "The .ctor() is accessible." );
+                typeof( ExplicitAndImplicitImpl ).GetConstructors( BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public )[0].GetParameters()[0].ParameterType
+                    .Should().BeSameAs( typeof( int ), "The protected .ctor(int) is accessible." );
             }
         }
         #endregion

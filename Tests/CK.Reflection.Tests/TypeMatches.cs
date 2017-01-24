@@ -28,6 +28,7 @@ using System.Linq;
 using System.Text;
 using System.Reflection;
 using NUnit.Framework;
+using FluentAssertions;
  
 namespace CK.Reflection.Tests
 {
@@ -178,7 +179,7 @@ namespace CK.Reflection.Tests
 
         static void AssertCheck( string msg, bool test )
         {
-            Assert.That( test == (msg[0] == 'T'), msg );
+            (msg[0] == 'T').Should().Be( test, msg );
         }
 
     }

@@ -32,6 +32,7 @@ using System.Threading;
 using System.Diagnostics;
 using System.IO;
 using System.Diagnostics.CodeAnalysis;
+using FluentAssertions;
 
 namespace CK.Reflection.Tests
 {
@@ -146,9 +147,9 @@ namespace CK.Reflection.Tests
                 Guid guid = Guid.NewGuid();
                 d( out a, out b, ref guid, 6554 );
 
-                Assert.That( a, Is.Null );
-                Assert.That( b, Is.EqualTo( 0 ) );
-                Assert.That( guid, Is.EqualTo( Guid.Empty ) );
+                a.Should().BeNull();
+                b.Should().Be( 0 );
+                guid.Should().Be( Guid.Empty );
             }
         }
 
@@ -160,7 +161,7 @@ namespace CK.Reflection.Tests
             EmitHelper.ImplementEmptyStubMethod( b, t.GetMethod( "FirstMethod", BindingFlags.Instance | BindingFlags.NonPublic ), false );
             Type builtType = b.CreateTypeInfo().AsType();
             A o = (A)Activator.CreateInstance( builtType );
-            Assert.That( o.CallFirstMethod( 10 ), Is.Null );
+            o.CallFirstMethod( 10 ).Should().BeNull();
         }
 
         [Test]
@@ -171,7 +172,7 @@ namespace CK.Reflection.Tests
             EmitHelper.ImplementEmptyStubMethod( b, t.GetMethod( "M" ), false );
             Type builtType = b.CreateTypeInfo().AsType();
             B o = (B)Activator.CreateInstance( builtType );
-            Assert.That( o.M( 10 ), Is.EqualTo( 0 ) );
+            o.M( 10 ).Should().Be( 0 );
         }
 
         [Test]
@@ -182,7 +183,7 @@ namespace CK.Reflection.Tests
             EmitHelper.ImplementEmptyStubMethod( b, t.GetMethod( "M" ), false );
             Type builtType = b.CreateTypeInfo().AsType();
             C o = (C)Activator.CreateInstance( builtType );
-            Assert.That( o.M( 10 ), Is.EqualTo( 0 ) );
+            o.M( 10 ).Should().Be( 0 );
         }
 
         [Test]
@@ -193,7 +194,7 @@ namespace CK.Reflection.Tests
             EmitHelper.ImplementEmptyStubMethod( b, t.GetMethod( "M" ), false );
             Type builtType = b.CreateTypeInfo().AsType();
             D o = (D)Activator.CreateInstance( builtType );
-            Assert.That( o.M( 10 ), Is.EqualTo( Guid.Empty ) );
+            o.M( 10 ).Should().Be( Guid.Empty );
         }
 
         [Test]
@@ -205,8 +206,8 @@ namespace CK.Reflection.Tests
             Type builtType = b.CreateTypeInfo().AsType();
             E o = (E)Activator.CreateInstance( builtType );
             int i = 3712;
-            Assert.That( o.M( ref i ), Is.EqualTo( 0 ) );
-            Assert.That( i, Is.EqualTo( 3712 ) );
+            o.M( ref i ).Should().Be( 0 );
+            i.Should().Be( 3712 );
         }
 
         [Test]
@@ -218,8 +219,8 @@ namespace CK.Reflection.Tests
             Type builtType = b.CreateTypeInfo().AsType();
             F o = (F)Activator.CreateInstance( builtType );
             int i = 45;
-            Assert.That( o.M( out i ), Is.EqualTo( 0 ) );
-            Assert.That( i, Is.EqualTo( 0 ) );
+            o.M( out i ).Should().Be( 0 );
+            i.Should().Be( 0 );
         }
 
         [Test]
@@ -231,8 +232,8 @@ namespace CK.Reflection.Tests
             Type builtType = b.CreateTypeInfo().AsType();
             G o = (G)Activator.CreateInstance( builtType );
             Guid i = Guid.NewGuid();
-            Assert.That( o.M( out i ), Is.EqualTo( 0 ) );
-            Assert.That( i, Is.EqualTo( Guid.Empty ) );
+            o.M( out i ).Should().Be( 0 );
+            i.Should().Be( Guid.Empty );
         }
 
         [Test]
@@ -245,8 +246,8 @@ namespace CK.Reflection.Tests
             H o = (H)Activator.CreateInstance( builtType );
             Guid iOrigin = Guid.NewGuid();
             Guid i = iOrigin;
-            Assert.That( o.M( ref i ), Is.EqualTo( 0 ) );
-            Assert.That( i, Is.EqualTo( iOrigin ) );
+            o.M( ref i ).Should().Be( 0 );
+            i.Should().Be( iOrigin );
         }
 
         [Test]
@@ -259,8 +260,8 @@ namespace CK.Reflection.Tests
             I o = (I)Activator.CreateInstance( builtType );
             CultureAttribute cOrigin = new CultureAttribute();
             CultureAttribute c = cOrigin;
-            Assert.That( o.M( out c ), Is.EqualTo( 0 ) );
-            Assert.That( c, Is.Null );
+            o.M( out c ).Should().Be( 0 );
+            c.Should().BeNull();
         }
 
         [Test]
@@ -273,8 +274,8 @@ namespace CK.Reflection.Tests
             J o = (J)Activator.CreateInstance( builtType );
             CultureAttribute cOrigin = new CultureAttribute();
             CultureAttribute c = cOrigin;
-            Assert.That( o.M( ref c ), Is.EqualTo( 0 ) );
-            Assert.That( c, Is.SameAs( cOrigin ) );
+            o.M( ref c ).Should().Be( 0 );
+            c.Should().BeSameAs( cOrigin );
         }
 
         [Test]
@@ -288,7 +289,7 @@ namespace CK.Reflection.Tests
             CultureAttribute cOrigin = new CultureAttribute();
             CultureAttribute c = cOrigin;
 
-            Assert.That( o.M<int>(), Is.Null );
+            o.M<int>().Should().BeNull();
         }
 
         #endregion
@@ -327,8 +328,8 @@ namespace CK.Reflection.Tests
             PA oA = (PA)Activator.CreateInstance( builtTypeA );
             oA.PublicWriteableValue = 4548;
             oA.SetProtectedValues( 2121 );
-            Assert.That( oA.PublicWriteableValue, Is.EqualTo( 4548 ) );
-            Assert.That( oA.ProtectedWriteableValue, Is.EqualTo( 2121 ) );
+            oA.PublicWriteableValue.Should().Be( 4548 );
+            oA.ProtectedWriteableValue.Should().Be(2121);
 
             Type tB = typeof( PB );
             TypeBuilder bB = CreateTypeBuilder( tB );
@@ -338,9 +339,9 @@ namespace CK.Reflection.Tests
             PB oB = (PB)Activator.CreateInstance( builtTypeB );
             oB.PublicWriteableValue = 4548;
             oB.SetProtectedValues( 2121 );
-            Assert.That( oB.PublicWriteableValue, Is.EqualTo( 4548 ) );
-            Assert.That( oB.ProtectedWriteableValue, Is.EqualTo( 2121 ) );
-            Assert.That( oB.PublicProperty, Is.EqualTo( 2121%255 ) );
+            oB.PublicWriteableValue.Should().Be(4548);
+            oB.ProtectedWriteableValue.Should().Be(2121);
+            oB.PublicProperty.Should().Be(2121 % 255 );
         }
 
         public abstract class CNonVirtualProperty
@@ -358,14 +359,14 @@ namespace CK.Reflection.Tests
         [Test]
         public void AutoImplementStubForNonVirtualPropertyIsStupid()
         {
-            Type tN = typeof( CNonVirtualProperty );
-            TypeBuilder bN = CreateTypeBuilder( tN );
-            EmitHelper.ImplementStubProperty( bN, tN.GetProperty( "PublicProperty" ), true );
+            Type tN = typeof(CNonVirtualProperty);
+            TypeBuilder bN = CreateTypeBuilder(tN);
+            EmitHelper.ImplementStubProperty(bN, tN.GetProperty("PublicProperty"), true);
             Type builtTypeN = bN.CreateTypeInfo().AsType();
-            CNonVirtualProperty oN = (CNonVirtualProperty)Activator.CreateInstance( builtTypeN );
-            Assert.That( oN.PublicProperty, Is.EqualTo( 654312 * 2 ) );
+            CNonVirtualProperty oN = (CNonVirtualProperty)Activator.CreateInstance(builtTypeN);
+            oN.PublicProperty.Should().Be(654312 * 2);
             oN.PublicProperty = 2;
-            Assert.That( oN.PublicProperty, Is.EqualTo( 2 * 4 ) );
+            oN.PublicProperty.Should().Be(2 * 4);
         }
 
         public abstract class CVirtualProperty
@@ -388,9 +389,9 @@ namespace CK.Reflection.Tests
             EmitHelper.ImplementStubProperty( b, t.GetProperty( "PublicProperty" ), false );
             Type builtType = b.CreateTypeInfo().AsType();
             CVirtualProperty o = (CVirtualProperty)Activator.CreateInstance( builtType );
-            Assert.That( o.PublicProperty, Is.EqualTo( 0 ), "Initial value is lost." );
+            o.PublicProperty.Should().Be(0, "Initial value is lost." );
             o.PublicProperty = 2;
-            Assert.That( o.PublicProperty, Is.EqualTo( 2 ), "Mere stub implementation does its job." );
+            o.PublicProperty.Should().Be(2, "Mere stub implementation does its job." );
         }
 
         public interface IPocoKind
@@ -412,10 +413,10 @@ namespace CK.Reflection.Tests
             Type builtType = tB.CreateTypeInfo().AsType();
             IPocoKind o = (IPocoKind)Activator.CreateInstance( builtType );
             o.Y = 8;
-            Assert.That( o.Y, Is.EqualTo( 8 ) );
-            Assert.That( o.X, Is.EqualTo( 0 ) );
+            o.Y.Should().Be(8);
+            o.X.Should().Be(0);
             builtType.GetProperty( "X" ).SetValue( o, 19 );
-            Assert.That( o.X, Is.EqualTo( 19 ) );
+            o.X.Should().Be(19);
         }
         #endregion
 
@@ -490,9 +491,9 @@ namespace CK.Reflection.Tests
                 b.DefinePassThroughConstructors( c => c.Attributes | MethodAttributes.Public );
                 Type t = b.CreateTypeInfo().AsType();
                 BaseOne one1 = (BaseOne)Activator.CreateInstance( t, 5 );
-                Assert.That( one1.CtorMessage, Is.EqualTo( ".private.protected" ) );
+                one1.CtorMessage.Should().Be(".private.protected");
                 BaseOne one2 = (BaseOne)Activator.CreateInstance( t, "a string" );
-                Assert.That( one2.CtorMessage, Is.EqualTo( ".private.public" ) );
+                one2.CtorMessage.Should().Be(".private.public");
             }
             {
                 TypeBuilder b = CreateTypeBuilder( typeof( BaseTwo ) );
@@ -500,7 +501,7 @@ namespace CK.Reflection.Tests
                 Type t = b.CreateTypeInfo().AsType();
                 var ctor = t.GetConstructors()[0];
                 BaseTwo two = (BaseTwo)ctor.Invoke( new object[]{ new int[] { 1, 2, 3, 4 } } );
-                Assert.That( two.CtorMessage, Is.EqualTo( "4" ) );
+                two.CtorMessage.Should().Be("4");
             }
             {
                 TypeBuilder b = CreateTypeBuilder( typeof( BaseThree ) );
@@ -512,13 +513,13 @@ namespace CK.Reflection.Tests
                 Type t = b.CreateTypeInfo().AsType();
                 var theCtor = t.GetConstructors()[0];
                 BaseThree three = (BaseThree)theCtor.Invoke( new object[]{ "s0", "s1", "s2" } );
-                Assert.That( three.CtorMessage, Is.EqualTo( "s0s1s2" ) );
+                three.CtorMessage.Should().Be("s0s1s2");
                 // Only attribute defined via Named arguments are defined on the final ctor.
                 CollectionAssert.AreEquivalent( new string[] { "OnCtorByProperty", "OnCtorByField" }, theCtor.GetCustomAttributes<CustAttr>().Select( a => a.Name ?? a.FieldName ) );
                 // Only the one defined by constructor argument is redefined.
-                Assert.That( theCtor.GetParameters()[0].GetCustomAttributes<CustAttr>().Single().Name, Is.EqualTo( "OnParamByParam" ) );
-                Assert.That( theCtor.GetParameters()[1].GetCustomAttributes<CustAttr>(), Is.Empty );
-                Assert.That( theCtor.GetParameters()[2].GetCustomAttributes<CustAttr>(), Is.Empty );
+                theCtor.GetParameters()[0].GetCustomAttributes<CustAttr>().Single().Name.Should().Be("OnParamByParam");
+                theCtor.GetParameters()[1].GetCustomAttributes<CustAttr>().Should().BeEmpty();
+                theCtor.GetParameters()[2].GetCustomAttributes<CustAttr>().Should().BeEmpty();
             }
             {
                 TypeBuilder b = CreateTypeBuilder( typeof( BaseThree ) );
@@ -526,12 +527,12 @@ namespace CK.Reflection.Tests
                 Type t = b.CreateTypeInfo().AsType();
                 var ctor = t.GetConstructors()[0];
                 BaseThree three = (BaseThree)ctor.Invoke( new object[]{ "s0", "s1", "s2" } );
-                Assert.That( three.CtorMessage, Is.EqualTo( "s0s1s2" ) );
+                three.CtorMessage.Should().Be("s0s1s2");
                 // Everything is defined.
                 CollectionAssert.AreEquivalent( new string[] { "OnCtorByParam", "OnCtorByProperty", "OnCtorByField" }, ctor.GetCustomAttributes<CustAttr>().Select( a => a.Name ?? a.FieldName ) );
-                Assert.That( ctor.GetParameters()[0].GetCustomAttributes<CustAttr>().Single().Name, Is.EqualTo( "OnParamByParam" ) );
-                Assert.That( ctor.GetParameters()[1].GetCustomAttributes<CustAttr>().Single().Name, Is.EqualTo( "OnParamByProperty" ) );
-                Assert.That( ctor.GetParameters()[2].GetCustomAttributes<CustAttr>().Single().FieldName, Is.EqualTo( "OnParamByField" ) );
+                ctor.GetParameters()[0].GetCustomAttributes<CustAttr>().Single().Name.Should().Be("OnParamByParam" );
+                ctor.GetParameters()[1].GetCustomAttributes<CustAttr>().Single().Name.Should().Be("OnParamByProperty" );
+                ctor.GetParameters()[2].GetCustomAttributes<CustAttr>().Single().FieldName.Should().Be("OnParamByField" );
             }
 
         }
