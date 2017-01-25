@@ -40,7 +40,7 @@ namespace CK.Core.Tests
 
         public override string ToString()
         {
-            return String.Format( "Animals: {0} ({1})", Name, GetHashCode() );
+            return $"Animals: {Name} ({GetHashCode()})";
         }
     }
 
@@ -57,7 +57,7 @@ namespace CK.Core.Tests
 
         public override string ToString()
         {
-            return String.Format( "Mammals: {0}, {1} ({2})", Name, GestationPeriod, GetHashCode() );
+            return $"Mammals: {Name}, {GestationPeriod} ({GetHashCode()})";
         }
 
     }
@@ -76,7 +76,7 @@ namespace CK.Core.Tests
 
         public override string ToString()
         {
-            return String.Format( "Canidae: {0}, {1}, {2} ({3})", Name, GestationPeriod, IsRetriever, GetHashCode() );
+            return $"Canidae: {Name}, {GestationPeriod}, {IsRetriever} ({GetHashCode()})";
         }
     }
 }
