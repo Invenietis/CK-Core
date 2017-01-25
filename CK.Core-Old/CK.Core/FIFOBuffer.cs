@@ -14,7 +14,7 @@ namespace CK.Core
     /// </summary>
     /// <typeparam name="T">Type of the items.</typeparam>
     [Serializable]
-    [DebuggerTypeProxy( typeof(Debugging.ReadOnlyCollectionDebuggerView<> ) )]
+    [DebuggerTypeProxy( typeof( CK.Core.Debugging.ReadOnlyCollectionDebuggerView<> ) )]
     public class FIFOBuffer<T> : ICKReadOnlyList<T>, ICKWritableCollector<T>, ISerializable
     {
         int _count;

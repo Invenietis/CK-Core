@@ -137,7 +137,7 @@ namespace CK.Core
         public CKTrait FindOnlyExisting( string traits, Func<string,bool> collector = null )
         {
             if( traits == null || traits.Length == 0 ) return null;
-            traits = traits.Normalize(NormalizationForm.FormC);
+            traits = traits.Normalize();
             CKTrait m;
             if( !_traits.TryGetValue( traits, out m ) )
             {

@@ -4,11 +4,11 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{8AAAF17D-328A-4FE5-BAC9-5DD35963B2B8}</ProjectGuid>
+    <ProjectGuid>{BC92AE5B-73A2-4B9E-91D2-9163960A17C4}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>CK.ActivityMonitor</RootNamespace>
-    <AssemblyName>CK.ActivityMonitor</AssemblyName>
+    <RootNamespace>CK.Core</RootNamespace>
+    <AssemblyName>CK.Core</AssemblyName>
     <TargetFrameworkVersion>v4.5.1</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <NuGetPackageImportStamp>
@@ -30,7 +30,7 @@
     <DefineConstants>TRACE;NET451;CSPROJ</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
-    <DocumentationFile>bin\Release\CK.ActivityMonitor.xml</DocumentationFile>
+    <DocumentationFile>bin\Release\CK.Core.xml</DocumentationFile>
   </PropertyGroup>
   <PropertyGroup Condition=" $(GenerateDocumentation) != '' ">
     <DocumentationFile>bin\$(Configuration)\$(AssemblyName).xml</DocumentationFile>
@@ -54,62 +54,60 @@
     <Reference Include="System.ComponentModel.Composition" />
     <Reference Include="System.Core" />
     <Reference Include="System.IO.Compression" />
+    <Reference Include="System.Net.Http" />
     <Reference Include="System.Numerics" />
     <Reference Include="System.Runtime.InteropServices.RuntimeInformation, Version=4.0.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
       <HintPath>..\packages\System.Runtime.InteropServices.RuntimeInformation.4.3.0\lib\net45\System.Runtime.InteropServices.RuntimeInformation.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="System.Xml.Linq" />
-    <Reference Include="System.Data.DataSetExtensions" />
-    <Reference Include="Microsoft.CSharp" />
-    <Reference Include="System.Data" />
-    <Reference Include="System.Net.Http" />
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="ActivityLogGroupConclusion.cs" />
-    <Compile Include="ActivityMonitorGroupData.cs" />
-    <Compile Include="ActivityMonitorLogData.cs" />
-    <Compile Include="Client\ActivityMonitorClient.cs" />
-    <Compile Include="Client\ActivityMonitorConsoleClient.cs" />
-    <Compile Include="Client\ActivityMonitorErrorCounter.cs" />
-    <Compile Include="Client\ActivityMonitorPathCatcher.cs" />
-    <Compile Include="Client\ActivityMonitorSimpleCollector.cs" />
-    <Compile Include="Client\ActivityMonitorTextHelperClient.cs" />
-    <Compile Include="Client\ActivityMonitorTextWriterClient.cs" />
+    <Compile Include="AppSettings.cs" />
+    <Compile Include="CKBinaryReader.cs" />
+    <Compile Include="CKBinaryWriter.cs" />
+    <Compile Include="CKException.cs" />
+    <Compile Include="CKExceptionData.cs" />
+    <Compile Include="CKSortedArrayKeyList.cs" />
+    <Compile Include="Collection\CKReadOnlyListOnIList.cs" />
+    <Compile Include="Collection\CKSortedArrayList.cs" />
+    <Compile Include="CKTrait.cs" />
+    <Compile Include="CKTraitContext.cs" />
+    <Compile Include="Collection\CKEnumeratorMono.cs" />
     <Compile Include="CoreStubs\System.Diagnostics.CodeAnalysis.cs" />
-    <Compile Include="CoreStubs\System.Runtime.Remoting.cs" />
     <Compile Include="CoreStubs\System.Runtime.Serialization.cs" />
-    <Compile Include="IActivityLogGroup.cs" />
-    <Compile Include="IActivityMonitor.cs" />
-    <Compile Include="IActivityMonitorBoundClient.cs" />
-    <Compile Include="IActivityMonitorClient.cs" />
-    <Compile Include="IActivityMonitorOutput.cs" />
-    <Compile Include="IDisposableActivityMonitor.cs" />
-    <Compile Include="IDisposableGroup.cs" />
-    <Compile Include="Impl\ActivityMonitor.cs" />
-    <Compile Include="Impl\ActivityMonitor.DependentToken.cs" />
-    <Compile Include="Impl\ActivityMonitor.Group.cs" />
-    <Compile Include="Impl\ActivityMonitor.SourceFiltering.cs" />
-    <Compile Include="Impl\ActivityMonitorBridge.cs" />
-    <Compile Include="Impl\ActivityMonitorBridgeTarget.cs" />
-    <Compile Include="Impl\ActivityMonitorExtension.cs" />
-    <Compile Include="Impl\ActivityMonitorExtension.DependentActivity.cs" />
-    <Compile Include="Impl\ActivityMonitorOutput.cs" />
-    <Compile Include="Impl\ActivityMonitorResources.cs" />
-    <Compile Include="Impl\DisposableActivityMonitor.cs" />
-    <Compile Include="Impl\IActivityMonitorBridgeCallback.cs" />
-    <Compile Include="Impl\IActivityMonitorImpl.cs" />
-    <Compile Include="LogFilter.cs" />
-    <Compile Include="LogFilter.MatchExtension.cs" />
-    <Compile Include="LogLevel.cs" />
-    <Compile Include="LogLevelFilter.cs" />
+    <Compile Include="CriticalErrorCollector.cs" />
+    <Compile Include="DateTimeStamp.cs" />
+    <Compile Include="DateTimeStampExtension.cs" />
+    <Compile Include="ServiceContainer\ServiceContainerExtension.cs" />
+    <Compile Include="Extension\CKReadOnlyExtension.cs" />
+    <Compile Include="Extension\CollectionExtension.cs" />
+    <Compile Include="Extension\DictionaryExtension.cs" />
+    <Compile Include="Extension\EnumerableExtension.cs" />
+    <Compile Include="Extension\XmlExtension.cs" />
+    <Compile Include="FIFOBuffer.cs" />
+    <Compile Include="FileUtil.cs" />
+    <Compile Include="GrantLevel.cs" />
+    <Compile Include="Collection\ICKReadOnlyCollection.cs" />
+    <Compile Include="Collection\ICKReadOnlyList.cs" />
+    <Compile Include="Collection\ICKReadOnlyMultiKeyedCollection.cs" />
+    <Compile Include="Collection\ICKReadOnlyUniqueKeyedCollection.cs" />
+    <Compile Include="Collection\ICKWritableCollection.cs" />
+    <Compile Include="Collection\ICKWritableCollector.cs" />
+    <Compile Include="IMergeable.cs" />
+    <Compile Include="Impl\CoreResources.cs" />
+    <Compile Include="IUniqueId.cs" />
+    <Compile Include="Collection\CKReadOnlyCollectionOnICollection.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="SourceLogFilter.cs" />
-    <Compile Include="SystemActivityMonitor.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <Service Include="{508349B6-6B84-4DF5-91F0-309BEEBAD82D}" />
+    <Compile Include="Extension\ReadOnlyCollectionDebuggerView.cs" />
+    <Compile Include="ServiceContainer\ISimpleServiceContainer.cs" />
+    <Compile Include="ServiceContainer\SimpleServiceContainer.cs" />
+    <Compile Include="SetOperation.cs" />
+    <Compile Include="SimpleTypeFinder.cs" />
+    <Compile Include="TemporaryFile.cs" />
+    <Compile Include="Util.cs" />
+    <Compile Include="Util.Hash.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

@@ -101,10 +101,6 @@
       <Project>{8aaaf17d-328a-4fe5-bac9-5dd35963b2b8}</Project>
       <Name>CK.ActivityMonitor</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\CK.Core\CK.Core.csproj">
-      <Project>{bc92ae5b-73a2-4b9e-91d2-9163960a17c4}</Project>
-      <Name>CK.Core</Name>
-    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

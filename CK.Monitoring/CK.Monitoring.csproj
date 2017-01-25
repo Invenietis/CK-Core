@@ -163,10 +163,6 @@
       <Project>{8aaaf17d-328a-4fe5-bac9-5dd35963b2b8}</Project>
       <Name>CK.ActivityMonitor</Name>
     </ProjectReference>
-    <ProjectReference Include="..\CK.Core\CK.Core.csproj">
-      <Project>{bc92ae5b-73a2-4b9e-91d2-9163960a17c4}</Project>
-      <Name>CK.Core</Name>
-    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="..\packages\SimpleGitVersionTask.0.22.0-r\build\SimpleGitVersionTask.targets" Condition="Exists('..\packages\SimpleGitVersionTask.0.22.0-r\build\SimpleGitVersionTask.targets')" />
