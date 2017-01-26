@@ -4,15 +4,14 @@ using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
 using CK.Core;
-using NUnit.Framework;
+using Xunit;
+using FluentAssertions;
 
 namespace CK.Core.Tests.Monitoring
 {
-    [TestFixture]
-    [Category( "ActivityMonitor" )]
     public class DocumentationCodeSnippets
     {
-        [Test]
+        [Fact]
         public void SimpleUsage()
         {
             var f = new FileInfo( Path.Combine( TestHelper.SolutionFolder, @"Tests\CK.Core.Tests\Animals.cs" ) );
@@ -85,7 +84,7 @@ namespace CK.Core.Tests.Monitoring
 
                 m.Fatal().Send( "An horrible error occurred." );
 
-                Assert.That( counter.Current.FatalCount == 1 );
+                 counter.Current.FatalCount.Should().Be( 1 );
                 m.Output.UnregisterClient( counter );
             }
             {
@@ -96,7 +95,7 @@ namespace CK.Core.Tests.Monitoring
                 {
                     m.Fatal().Send( "An horrible error occurred." );
                 }
-                Assert.That( errorCount == 1 );
+                 errorCount.Should().Be(1 );
             }
             {
                 IActivityMonitor m = new ActivityMonitor();
@@ -109,9 +108,9 @@ namespace CK.Core.Tests.Monitoring
                 m.MinimalFilter = LogFilter.Terse;
                 using( m.SetMinimalFilter( LogFilter.Debug ) )
                 {
-                    Assert.That( m.ActualFilter == LogFilter.Debug );
+                     m.ActualFilter.Should().Be(LogFilter.Debug );
                 }
-                Assert.That( m.ActualFilter == LogFilter.Terse, "Filter has been restored to previous value." );
+                 m.ActualFilter.Should().Be(LogFilter.Terse, "Filter has been restored to previous value." );
             }
             {
                 IActivityMonitor m = new ActivityMonitor();
@@ -119,11 +118,11 @@ namespace CK.Core.Tests.Monitoring
                 // ...
                 using( m.OpenWarn().Send( "Ouch..." ) )
                 {
-                    Assert.That( m.ActualFilter == LogFilter.Off );
+                     m.ActualFilter.Should().Be(LogFilter.Off );
                     m.MinimalFilter = LogFilter.Debug;
                     // ... in debug filter ...
                 }
-                Assert.That( m.ActualFilter == LogFilter.Off, "Back to Off." );
+                 m.ActualFilter.Should().Be(LogFilter.Off, "Back to Off." );
 
                 var strange = new LogFilter( LogLevelFilter.Fatal, LogLevelFilter.Trace );
             }

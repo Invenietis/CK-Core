@@ -24,22 +24,6 @@ namespace CK.Core.Tests
 #endif
 
 
-#if CSPROJ
-    static class Does
-    {
-        public static SubstringConstraint Contain( string expected ) => Is.StringContaining( expected );
-
-        public static EndsWithConstraint EndWith( string expected ) => Is.StringEnding( expected );
-
-        public static StartsWithConstraint StartWith( string expected ) => Is.StringStarting( expected );
-
-        public static ConstraintExpression Not => Is.Not;
-
-        public static SubstringConstraint Contain( this ConstraintExpression @this, string expected ) => @this.StringContaining( expected );
-    }
-
-#endif
-
     static partial class TestHelper
     {
         static string _testFolder;
@@ -106,19 +90,18 @@ namespace CK.Core.Tests
         {
 #if NET451
             string p = new Uri(System.Reflection.Assembly.GetExecutingAssembly().CodeBase).LocalPath;
-            p = Path.GetDirectoryName(Path.GetDirectoryName(Path.GetDirectoryName(p)));
+            p = Path.GetDirectoryName(p);
 #else
             string p = Directory.GetCurrentDirectory();
 #endif
-            _testFolder = Path.Combine(p, "TestDir");
-            do
+            while (!File.Exists(Path.Combine(p, "CK-Core.sln")))
             {
                 p = Path.GetDirectoryName(p);
             }
-            while (!File.Exists(Path.Combine(p, "CK-Core.sln")));
             _solutionFolder = p;
+            _testFolder = Path.Combine(p, "Tests", "CK.Core.Tests", "TestDir");
 
-            Console.WriteLine("SolutionFolder is: {1}\r\nTestFolder is: {0}", _testFolder, _solutionFolder);
+            Console.WriteLine( $"SolutionFolder is: {_solutionFolder}\r\nTestFolder is: {_testFolder}" );
             CleanupTestFolder();
         }
     }

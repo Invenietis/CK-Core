@@ -45,7 +45,7 @@
       <Private>True</Private>
     </Reference>
     <Reference Include="CK.Text, Version=5.1.0.0, Culture=neutral, PublicKeyToken=731c291b31fb8d27, processorArchitecture=MSIL">
-      <HintPath>..\packages\CK.Text.5.1.0-a02-00-develop-0005\lib\net451\CK.Text.dll</HintPath>
+      <HintPath>..\packages\CK.Text.5.1.0-p01\lib\net451\CK.Text.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="Code.Cake, Version=0.15.0.0, Culture=neutral, processorArchitecture=MSIL">
@@ -84,13 +84,6 @@
   <ItemGroup>
     <None Include="App.config" />
     <None Include="Bootstrap.ps1" />
-    <None Include="NuSpec\CK.Monitoring.nuspec" />
-    <None Include="NuSpec\CK.ActivityMonitor.StandardSender.nuspec">
-      <SubType>Designer</SubType>
-    </None>
-    <None Include="NuSpec\CK.ActivityMonitor.nuspec" />
-    <None Include="NuSpec\CK.Reflection.nuspec" />
-    <None Include="NuSpec\CK.Core.nuspec" />
     <None Include="packages.config" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

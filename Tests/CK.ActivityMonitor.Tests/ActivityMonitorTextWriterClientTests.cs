@@ -4,48 +4,48 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
-using NUnit.Framework;
+using Xunit;
 using System.Xml.Linq;
 using System.Collections.Generic;
 using CK.Text;
+using FluentAssertions;
 
 namespace CK.Core.Tests.Monitoring
 {
-    [TestFixture]
-    [Category( "ActivityMonitor" )]
-    public class ActivityMonitorTextWriterClientTests
+    public class ActivityMonitorTextWriterClientTests : MutexTest<ActivityMonitor>
     {
-        [Test]
-        [Category( "Console" )]
+        [Fact]
         public void logging_multiple_lines()
         {
-            TestHelper.LogsToConsole = true;
-            var m = new ActivityMonitor( false );
-            m.MinimalFilter = LogFilter.Debug;
-            StringBuilder b = new StringBuilder();
-            var client = new ActivityMonitorTextWriterClient( s => b.Append( s ) );
-            m.Output.RegisterClient( client );
-            using( TestHelper.ConsoleMonitor.SetMinimalFilter( LogFilter.Debug ) )
-            using( m.Output.CreateBridgeTo( TestHelper.ConsoleMonitor.Output.BridgeTarget ) )
+            using (LockFact())
             {
-                using( m.OpenInfo().Send( "IL1" + Environment.NewLine + "IL2" + Environment.NewLine + "IL3" ) )
+                TestHelper.LogsToConsole = true;
+                var m = new ActivityMonitor(false);
+                m.MinimalFilter = LogFilter.Debug;
+                StringBuilder b = new StringBuilder();
+                var client = new ActivityMonitorTextWriterClient(s => b.Append(s));
+                m.Output.RegisterClient(client);
+                using (TestHelper.ConsoleMonitor.SetMinimalFilter(LogFilter.Debug))
+                using (m.Output.CreateBridgeTo(TestHelper.ConsoleMonitor.Output.BridgeTarget))
                 {
-                    using( m.OpenTrace().Send( "TL1" + Environment.NewLine + "TL2" + Environment.NewLine + "TL3" ) )
+                    using (m.OpenInfo().Send("IL1" + Environment.NewLine + "IL2" + Environment.NewLine + "IL3"))
                     {
-                        m.Warn().Send( "WL1" + Environment.NewLine + "WL2" + Environment.NewLine + "WL3" );
-                        m.CloseGroup( new[] 
+                        using (m.OpenTrace().Send("TL1" + Environment.NewLine + "TL2" + Environment.NewLine + "TL3"))
                         {
+                            m.Warn().Send("WL1" + Environment.NewLine + "WL2" + Environment.NewLine + "WL3");
+                            m.CloseGroup(new[]
+                            {
                             new ActivityLogGroupConclusion("c1"),
                             new ActivityLogGroupConclusion("c2"),
                             new ActivityLogGroupConclusion("Multi"+Environment.NewLine+"Line"+Environment.NewLine),
                             new ActivityLogGroupConclusion("Another"+Environment.NewLine+"Multi"+Environment.NewLine+"Line"+Environment.NewLine)
-                        } );
+                        });
+                        }
                     }
                 }
-            }
-            string result = b.ToString();
-            Assert.That( result, Is.EqualTo(
-@"> Info: IL1
+                string result = b.ToString();
+                result.Should().Be(
+   @"> Info: IL1
 |       IL2
 |       IL3
 |  > Trace: TL1
@@ -60,7 +60,8 @@ namespace CK.Core.Tests.Monitoring
 |  < Another
 |    Multi
 |    Line
-".NormalizeEOL() ) );
+".NormalizeEOL());
+            }
         }
     }
 }

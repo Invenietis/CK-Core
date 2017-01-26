@@ -123,17 +123,13 @@ namespace CK.Core
         static readonly IActivityMonitorClient _client;
         static readonly IActivityMonitorClient _lockedClient;
         static string _logPath;
-        static string _appSettingslogPath;
         static int _activityMonitorErrorTracked;
 
         static SystemActivityMonitor()
         {
-            AppSettingsKey = "CK.Core.SystemActivityMonitor.RootLogPath";
             SubDirectoryName = "CriticalErrors/";
             _client = new SysClient();
             _lockedClient = new SysLockedClient();
-            _appSettingslogPath = AppSettings.Default[AppSettingsKey];
-            if( _appSettingslogPath != null ) _appSettingslogPath = Environment.ExpandEnvironmentVariables( _appSettingslogPath );
             _activityMonitorErrorTracked = 1;
             ActivityMonitor.CriticalErrorCollector.OnErrorFromBackgroundThreads += OnTrackActivityMonitorLoggingError;
         }
@@ -177,7 +173,7 @@ namespace CK.Core
 
         /// <summary>
         /// Gets or sets whether <see cref="ActivityMonitor.CriticalErrorCollector"/> are tracked (this is thread safe).
-        /// When true, LoggingError events are tracked, written to a file (if <see cref="RootLogPath"/> is available) and ultimately 
+        /// When true, LoggingError events are tracked, written to a file (if <see cref="RootLogPath"/> is not null) and ultimately 
         /// published again as a <see cref="OnError"/> events.
         /// Defaults to true.
         /// </summary>
@@ -201,20 +197,13 @@ namespace CK.Core
         }
 
         /// <summary>
-        /// Gets the <see cref="RootLogPath"/> that is configured in application settings (null otherwise).
-        /// Getting this property ensures that this type's static information is initialized.
-        /// </summary>
-        static public string AppSettingsRootLogPath => _appSettingslogPath;
-
-        /// <summary>
         /// Gets or sets (it can be set only once) the log folder to use (setting multiple time the same path is accepted). 
         /// Once set, the path is <see cref="FileUtil.NormalizePathSeparator">normalized and ends with a path separator</see>.
         /// See remarks.
         /// </summary>
         /// <remarks>
         /// <para>
-        /// When setting it, the path must be valid (when it is not an absolute path, it is combined 
-        /// with the AppDomain.CurrentDomain.BaseDirectory or the application base path).
+        /// When setting it, the path must be valid AND rooted.
         /// </para>
         /// <para>
         /// The subordinate directory "CriticalErrors" is created (if not already here) and a test file is created (and deleted) inside it 
@@ -232,21 +221,18 @@ namespace CK.Core
         /// </remarks>
         static public string RootLogPath
         {
-            get 
-            {
-                if( _logPath == null && _appSettingslogPath != null )
-                {
-                    RootLogPath = _appSettingslogPath;
-                }
-                return _logPath; 
-            }
+            get { return _logPath; }
             set 
             {
-                if( String.IsNullOrWhiteSpace( value ) ) throw new ArgumentNullException();
-                value = NormalizeRootLogPath( value );
+                if( string.IsNullOrWhiteSpace( value ) ) throw new ArgumentNullException();
+                value = FileUtil.NormalizePathSeparator(value, true);
                 if( _logPath != null && value != _logPath )
                 {
                     throw new CKException( ActivityMonitorResources.SystemActivityMonitorRootLogPathSetOnlyOnce );
+                }
+                if (!Path.IsPathRooted(value))
+                {
+                    throw new ArgumentException(ActivityMonitorResources.InvalidRootLogPath);
                 }
                 try
                 {
@@ -262,20 +248,6 @@ namespace CK.Core
                     throw new CKException( ex, ActivityMonitorResources.InvalidRootLogPath, value, SubDirectoryName, AppSettingsKey );
                 }
             }
-        }
-
-        static string NormalizeRootLogPath( string value )
-        {
-            if( !Path.IsPathRooted( value ) )
-            {
-#if NET451 || NET46
-                value = Path.Combine( AppDomain.CurrentDomain.BaseDirectory, value );
-#else
-                value = Microsoft.Extensions.PlatformAbstractions.PlatformServices.Default.Application.ApplicationBasePath;   
-#endif
-            }
-            value = FileUtil.NormalizePathSeparator( value, true );
-            return value;
         }
 
         /// <summary>
