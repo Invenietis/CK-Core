@@ -2,7 +2,7 @@
   "version": "0.0.0",
 
   "dependencies": {
-    "CK.Text": "5.1.0-a02-00-develop-0013"
+    "CK.Core": { "target": "project" }
   },
     
   "buildOptions": {
@@ -10,13 +10,13 @@
   },
 
   "packOptions": {
-    "summary": "Utility interfaces and classes.",
+    "summary": "A different logger.",
     "releaseNotes": "https://github.com/Invenietis/ck-core/releases",
     "repository": {
       "type": "git",
       "url": "https://github.com/Invenietis/ck-core"
     },
-    "licenseUrl": "https://opensource.org/licenses/MIT"
+    "licenseUrl": "https://opensource.org/licenses/LGPL-3.0"
   },
   "authors": [ "Invenietis" ],
   "copyright": "Copyright 2010-1017 Invenietis",
@@ -24,18 +24,11 @@
   "frameworks": {
     "netstandard1.3": {
       "dependencies": {
-        "NETStandard.Library": "1.6.1",
-        "System.Globalization.Extensions": "4.3.0",
-        "System.ComponentModel": "4.3.0",
-        "System.Reflection.TypeExtensions": "4.3.0",
-        "System.Threading.Thread": "4.3.0",
-        "System.Threading.ThreadPool": "4.3.0"
+        "NETStandard.Library": "1.6.1"
       }
     },
     "net451": {
       "frameworkAssemblies": {
-        "System.Xml": "4.0.0.0",
-        "System.Xml.Linq": "4.0.0.0"
       }
     }
   }

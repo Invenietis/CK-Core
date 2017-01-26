@@ -1,77 +1,78 @@
+using FluentAssertions;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using NUnit.Framework;
+using Xunit;
 
 namespace CK.Core.Tests.Monitoring
 {
-    [TestFixture]
     public class LogFilterTests
     {
-        [Test]
+        [Fact]
         public void CombineLevelTests()
         {
-            Assert.That( LogFilter.Combine( LogLevelFilter.Error, LogLevelFilter.Fatal ), Is.EqualTo( LogLevelFilter.Error ) );
-            Assert.That( LogFilter.Combine( LogLevelFilter.None, LogLevelFilter.Fatal ), Is.EqualTo( LogLevelFilter.Fatal ) );
-            Assert.That( LogFilter.Combine( LogLevelFilter.Error, LogLevelFilter.None ), Is.EqualTo( LogLevelFilter.Error ) );
-            Assert.That( LogFilter.Combine( LogLevelFilter.None, LogLevelFilter.None ), Is.EqualTo( LogLevelFilter.None ) );
-            Assert.That( LogFilter.Combine( LogLevelFilter.Info, LogLevelFilter.Error ), Is.EqualTo( LogLevelFilter.Info ) );
+             LogFilter.Combine( LogLevelFilter.Error, LogLevelFilter.Fatal ).Should().Be( LogLevelFilter.Error );
+             LogFilter.Combine( LogLevelFilter.None, LogLevelFilter.Fatal ).Should().Be( LogLevelFilter.Fatal  );
+             LogFilter.Combine( LogLevelFilter.Error, LogLevelFilter.None ).Should().Be( LogLevelFilter.Error  );
+             LogFilter.Combine( LogLevelFilter.None, LogLevelFilter.None ).Should().Be( LogLevelFilter.None  );
+             LogFilter.Combine( LogLevelFilter.Info, LogLevelFilter.Error ).Should().Be( LogLevelFilter.Info  );
         }
 
-        [Test]
+        [Fact]
         public void CombineLogTests()
         {
             LogFilter f = new LogFilter( LogLevelFilter.None, LogLevelFilter.Error );
             LogFilter f2 = f.SetGroup( LogLevelFilter.Info );
-            Assert.That( f2.Line == LogLevelFilter.Error && f2.Group == LogLevelFilter.Info );
+            f2.Line.Should().Be(LogLevelFilter.Error);
+            f2.Group.Should().Be(LogLevelFilter.Info );
             LogFilter f3 = new LogFilter( LogLevelFilter.Trace, LogLevelFilter.Info );
             LogFilter f4 = f2.Combine( f3 );
-            Assert.That( f4.Equals( f3 ) );
-            Assert.That( f4 == f3 );
+             f4.Should().Be(f3 );
+             (f4 == f3).Should().BeTrue( );
         }
 
-        [Test]
+        [Fact]
         public void ToStringTests()
         {
-            Assert.That( LogFilter.Undefined.ToString(), Is.EqualTo( "Undefined" ) );
-            Assert.That( LogFilter.Terse.ToString(), Is.EqualTo( "Terse" ) );
-            Assert.That( LogFilter.Off.ToString(), Is.EqualTo( "Off" ) );
-            Assert.That( LogFilter.Debug.ToString(), Is.EqualTo( "Debug" ) );
-            Assert.That( LogFilter.Invalid.ToString(), Is.EqualTo( "Invalid" ) );
-            Assert.That( new LogFilter( LogLevelFilter.Warn, LogLevelFilter.Error ).ToString(), Is.EqualTo( "{Warn,Error}" ) );
+             LogFilter.Undefined.ToString().Should().Be( "Undefined"  );
+             LogFilter.Terse.ToString().Should().Be( "Terse"  );
+             LogFilter.Off.ToString().Should().Be( "Off"  );
+             LogFilter.Debug.ToString().Should().Be( "Debug"  );
+             LogFilter.Invalid.ToString().Should().Be( "Invalid"  );
+             new LogFilter( LogLevelFilter.Warn, LogLevelFilter.Error ).ToString().Should().Be( "{Warn,Error}"  );
         }
 
-        [Test]
+        [Fact]
         public void ParseTests()
         {
-            Assert.That( LogFilter.Parse( "Undefined" ), Is.EqualTo( LogFilter.Undefined ) );
-            Assert.That( LogFilter.Parse( "Debug" ), Is.EqualTo( LogFilter.Debug ) );
-            Assert.That( LogFilter.Parse( "Verbose" ), Is.EqualTo( LogFilter.Verbose ) );
-            Assert.That( LogFilter.Parse( "Monitor" ), Is.EqualTo( LogFilter.Monitor ) );
-            Assert.That( LogFilter.Parse( "Terse" ), Is.EqualTo( LogFilter.Terse ) );
-            Assert.That( LogFilter.Parse( "Release" ), Is.EqualTo( LogFilter.Release ) );
-            Assert.That( LogFilter.Parse( "Off" ), Is.EqualTo( LogFilter.Off ) );
+             LogFilter.Parse( "Undefined" ).Should().Be( LogFilter.Undefined  );
+             LogFilter.Parse( "Debug" ).Should().Be( LogFilter.Debug  );
+             LogFilter.Parse( "Verbose" ).Should().Be( LogFilter.Verbose  );
+             LogFilter.Parse( "Monitor" ).Should().Be( LogFilter.Monitor  );
+             LogFilter.Parse( "Terse" ).Should().Be( LogFilter.Terse  );
+             LogFilter.Parse( "Release" ).Should().Be( LogFilter.Release  );
+             LogFilter.Parse( "Off" ).Should().Be( LogFilter.Off  );
 
-            Assert.That( LogFilter.Parse( "{None,None}" ), Is.EqualTo( LogFilter.Undefined ) );
-            Assert.That( LogFilter.Parse( "{Warn,None}" ), Is.EqualTo( new LogFilter( LogLevelFilter.Warn, LogLevelFilter.None ) ) );
-            Assert.That( LogFilter.Parse( "{Error,Warn}" ), Is.EqualTo( new LogFilter( LogLevelFilter.Error, LogLevelFilter.Warn ) ) );
-            Assert.That( LogFilter.Parse( "{Off,None}" ), Is.EqualTo( new LogFilter( LogLevelFilter.Off, LogLevelFilter.None ) ) );
-            Assert.That( LogFilter.Parse( "{Error,Error}" ), Is.EqualTo( LogFilter.Release ) );
-            Assert.That( LogFilter.Parse( "{Info,Error}" ), Is.EqualTo( LogFilter.Terse ) );
-            Assert.That( LogFilter.Parse( "{Fatal,Invalid}" ), Is.EqualTo( new LogFilter( LogLevelFilter.Fatal, LogLevelFilter.Invalid ) ) );
+             LogFilter.Parse( "{None,None}" ).Should().Be( LogFilter.Undefined );
+             LogFilter.Parse( "{Warn,None}" ).Should().Be( new LogFilter( LogLevelFilter.Warn, LogLevelFilter.None )  );
+             LogFilter.Parse( "{Error,Warn}" ).Should().Be( new LogFilter( LogLevelFilter.Error, LogLevelFilter.Warn )  );
+             LogFilter.Parse( "{Off,None}" ).Should().Be( new LogFilter( LogLevelFilter.Off, LogLevelFilter.None )  );
+             LogFilter.Parse( "{Error,Error}" ).Should().Be( LogFilter.Release  );
+             LogFilter.Parse( "{Info,Error}" ).Should().Be( LogFilter.Terse  );
+             LogFilter.Parse( "{Fatal,Invalid}" ).Should().Be( new LogFilter( LogLevelFilter.Fatal, LogLevelFilter.Invalid )  );
 
-            Assert.That( LogFilter.Parse( "{ Error , Error }" ), Is.EqualTo( LogFilter.Release ) );
-            Assert.That( LogFilter.Parse( "{   Trace    ,    Info   }" ), Is.EqualTo( LogFilter.Verbose ) );
+             LogFilter.Parse( "{ Error , Error }" ).Should().Be( LogFilter.Release  );
+             LogFilter.Parse( "{   Trace    ,    Info   }" ).Should().Be( LogFilter.Verbose  );
 
-            Assert.Throws<CKException>( () => LogFilter.Parse( " {Error,Error}" ) );
-            Assert.Throws<CKException>( () => LogFilter.Parse( "{Error,Error} " ) );
-            Assert.Throws<CKException>( () => LogFilter.Parse( "Error,Error}" ) );
-            Assert.Throws<CKException>( () => LogFilter.Parse( "{Error,Error" ) );
-            Assert.Throws<CKException>( () => LogFilter.Parse( "{Error,,Error}" ) );
-            Assert.Throws<CKException>( () => LogFilter.Parse( "{Error,Warn,Trace}" ) );
-            Assert.Throws<CKException>( () => LogFilter.Parse( "{}" ) );
+            Should.Throw<CKException>( () => LogFilter.Parse( " {Error,Error}" ) );
+            Should.Throw<CKException>( () => LogFilter.Parse( "{Error,Error} " ) );
+            Should.Throw<CKException>( () => LogFilter.Parse( "Error,Error}" ) );
+            Should.Throw<CKException>( () => LogFilter.Parse( "{Error,Error" ) );
+            Should.Throw<CKException>( () => LogFilter.Parse( "{Error,,Error}" ) );
+            Should.Throw<CKException>( () => LogFilter.Parse( "{Error,Warn,Trace}" ) );
+            Should.Throw<CKException>( () => LogFilter.Parse( "{}" ) );
         }
 
     }
