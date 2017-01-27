@@ -144,7 +144,6 @@ namespace CodeCake
                 .WithCriteria( () => gitInfo.IsValid )
                 .Does( () =>
                 {
-                    Cake.CreateDirectory( releasesDir );
                     Cake.CreateDirectory(releasesDir);
                     foreach (SolutionProject p in projectsToPublish)
                     {
