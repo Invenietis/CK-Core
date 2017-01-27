@@ -41,7 +41,7 @@ if (!(Test-Path $toolsDir)) {
 # Try download NuGet.exe if do not exist.
 $nugetExe = Join-Path $toolsDir "nuget.exe"
 if (!(Test-Path $nugetExe)) {
-    Invoke-WebRequest -Uri http://nuget.org/nuget.exe -OutFile $nugetExe
+    Invoke-WebRequest -Uri https://dist.nuget.org/win-x86-commandline/latest/nuget.exe -OutFile $nugetExe
     # Make sure NuGet it worked.
     if (!(Test-Path $nugetExe)) {
         Throw "Could not find NuGet.exe"

@@ -1,0 +1,35 @@
+﻿{
+  "version": "0.0.0",
+
+  "dependencies": {
+    "CK.Core": { "target": "project" }
+  },
+    
+  "buildOptions": {
+    "keyFile": "../SharedKey.snk"
+  },
+
+  "packOptions": {
+    "summary": "A different logger that is NOT an implicit dependency.",
+    "releaseNotes": "https://github.com/Invenietis/ck-core/releases",
+    "repository": {
+      "type": "git",
+      "url": "https://github.com/Invenietis/ck-core"
+    },
+    "licenseUrl": "https://opensource.org/licenses/LGPL-3.0"
+  },
+  "authors": [ "Invenietis" ],
+  "copyright": "Copyright 2010-1017 Invenietis",
+
+  "frameworks": {
+    "netstandard1.3": {
+      "dependencies": {
+        "NETStandard.Library": "1.6.1"
+      }
+    },
+    "net451": {
+      "frameworkAssemblies": {
+      }
+    }
+  }
+}

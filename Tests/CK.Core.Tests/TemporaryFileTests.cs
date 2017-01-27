@@ -1,111 +1,107 @@
-using System;
-using System.Collections.Generic;
+using FluentAssertions;
 using System.IO;
-using System.Linq;
-using System.Text;
-using NUnit.Framework;
+using Xunit;
 
 namespace CK.Core.Tests
 {
-    [TestFixture]
-    [Category("File")]
+
     public class TemporaryFileTests
     {
-        [Test]
+        [Fact]
         public void TemporaryFile_has_FileAttributes_Temporary_by_default()
         {
             string path = string.Empty;
-            using( TemporaryFile temporaryFile = new TemporaryFile( true, null ) )
+            using (TemporaryFile temporaryFile = new TemporaryFile(true, null))
             {
                 path = temporaryFile.Path;
-                Assert.That( File.Exists( temporaryFile.Path ), Is.True );
-                Assert.That( (File.GetAttributes( temporaryFile.Path ) & FileAttributes.Temporary) == FileAttributes.Temporary, Is.True );
+                File.Exists(temporaryFile.Path).Should().BeTrue();
+                (File.GetAttributes(temporaryFile.Path) & FileAttributes.Temporary).Should().Be(FileAttributes.Temporary);
             }
-            Assert.That( File.Exists( path ), Is.False );
+            File.Exists(path).Should().BeFalse();
 
-            using( TemporaryFile temporaryFile = new TemporaryFile() )
+            using (TemporaryFile temporaryFile = new TemporaryFile())
             {
                 path = temporaryFile.Path;
-                Assert.That( File.Exists( temporaryFile.Path ), Is.True );
-                Assert.That( (File.GetAttributes( temporaryFile.Path ) & FileAttributes.Temporary) == FileAttributes.Temporary, Is.True );
+                File.Exists(temporaryFile.Path).Should().BeTrue();
+                (File.GetAttributes(temporaryFile.Path) & FileAttributes.Temporary).Should().Be(FileAttributes.Temporary);
             }
-            Assert.That( File.Exists( path ), Is.False );
+            File.Exists(path).Should().BeFalse();
 
-            using( TemporaryFile temporaryFile = new TemporaryFile( true ) )
+            using (TemporaryFile temporaryFile = new TemporaryFile(true))
             {
                 path = temporaryFile.Path;
-                Assert.That( File.Exists( temporaryFile.Path ), Is.True );
-                Assert.That( (File.GetAttributes( temporaryFile.Path ) & FileAttributes.Temporary) == FileAttributes.Temporary, Is.True );
+                File.Exists(temporaryFile.Path).Should().BeTrue();
+                (File.GetAttributes(temporaryFile.Path) & FileAttributes.Temporary).Should().Be(FileAttributes.Temporary);
             }
-            Assert.That( File.Exists( path ), Is.False );
+            File.Exists(path).Should().BeFalse();
         }
 
-        [Test]
+        [Fact]
         public void an_empty_extension_is_like_no_extension()
         {
             string path = string.Empty;
-            using( TemporaryFile temporaryFile = new TemporaryFile( " " ) )
+            using (TemporaryFile temporaryFile = new TemporaryFile(" "))
             {
                 path = temporaryFile.Path;
-                Assert.That( File.Exists( temporaryFile.Path ), Is.True );
-                Assert.That( (File.GetAttributes( temporaryFile.Path ) & FileAttributes.Temporary) == FileAttributes.Temporary, Is.True );
+                File.Exists(temporaryFile.Path).Should().BeTrue();
+                (File.GetAttributes(temporaryFile.Path) & FileAttributes.Temporary).Should().Be(FileAttributes.Temporary);
             }
-            Assert.That( File.Exists( path ), Is.False );
+            File.Exists(path).Should().BeFalse();
         }
 
-        [Test]
+        [Fact]
         public void TemporaryFileExtensionTest()
         {
             string path = string.Empty;
-            using( TemporaryFile temporaryFile = new TemporaryFile( " " ) )
+            using (TemporaryFile temporaryFile = new TemporaryFile(" "))
             {
                 path = temporaryFile.Path;
-                Assert.That( File.Exists( temporaryFile.Path ), Is.True );
-                Assert.That( (File.GetAttributes( temporaryFile.Path ) & FileAttributes.Temporary) == FileAttributes.Temporary, Is.True );
+                File.Exists(temporaryFile.Path).Should().BeTrue();
+                (File.GetAttributes(temporaryFile.Path) & FileAttributes.Temporary).Should().Be(FileAttributes.Temporary);
             }
-            Assert.That( File.Exists( path ), Is.False );
+            File.Exists(path).Should().BeFalse();
 
-            using( TemporaryFile temporaryFile = new TemporaryFile( true, "." ) )
+            using (TemporaryFile temporaryFile = new TemporaryFile(true, "."))
             {
                 path = temporaryFile.Path;
-                Assert.That( File.Exists( temporaryFile.Path ), Is.True );
-                Assert.That( path.EndsWith( ".tmp." ), Is.True );
-                Assert.That( (File.GetAttributes( temporaryFile.Path ) & FileAttributes.Temporary) == FileAttributes.Temporary, Is.True );
+                File.Exists(temporaryFile.Path).Should().BeTrue();
+                path.EndsWith(".tmp.").Should().BeTrue();
+                (File.GetAttributes(temporaryFile.Path) & FileAttributes.Temporary).Should().Be(FileAttributes.Temporary);
             }
-            Assert.That( File.Exists( path ), Is.False );
+            File.Exists(path).Should().BeFalse();
 
-            using( TemporaryFile temporaryFile = new TemporaryFile( true, "tst" ) )
+            using (TemporaryFile temporaryFile = new TemporaryFile(true, "tst"))
             {
                 path = temporaryFile.Path;
-                Assert.That( File.Exists( temporaryFile.Path ), Is.True );
-                Assert.That( path.EndsWith( ".tmp.tst" ), Is.True );
-                Assert.That( (File.GetAttributes( temporaryFile.Path ) & FileAttributes.Temporary) == FileAttributes.Temporary, Is.True );
+                File.Exists(temporaryFile.Path).Should().BeTrue();
+                path.EndsWith(".tmp.tst").Should().BeTrue();
+                (File.GetAttributes(temporaryFile.Path) & FileAttributes.Temporary).Should().Be(FileAttributes.Temporary);
             }
-            Assert.That( File.Exists( path ), Is.False );
+            File.Exists(path).Should().BeFalse();
 
-            using( TemporaryFile temporaryFile = new TemporaryFile( true, ".tst" ) )
+            using (TemporaryFile temporaryFile = new TemporaryFile(true, ".tst"))
             {
                 path = temporaryFile.Path;
-                Assert.That( File.Exists( temporaryFile.Path ), Is.True );
-                Assert.That( path.EndsWith( ".tmp.tst" ), Is.True );
-                Assert.That( (File.GetAttributes( temporaryFile.Path ) & FileAttributes.Temporary) == FileAttributes.Temporary, Is.True );
+                File.Exists(temporaryFile.Path).Should().BeTrue();
+                path.EndsWith(".tmp.tst").Should().BeTrue();
+                (File.GetAttributes(temporaryFile.Path) & FileAttributes.Temporary).Should().Be(FileAttributes.Temporary);
             }
-            Assert.That( File.Exists( path ), Is.False );
+            File.Exists(path).Should().BeFalse();
         }
 
-        [Test]
+        [Fact]
         public void TemporaryFileDetachTest()
         {
             string path = string.Empty;
-            using( TemporaryFile temporaryFile = new TemporaryFile( true, null ) )
+            using (TemporaryFile temporaryFile = new TemporaryFile(true, null))
             {
                 path = temporaryFile.Path;
-                Assert.That( File.Exists( temporaryFile.Path ), Is.True );
-                Assert.That( (File.GetAttributes( temporaryFile.Path ) & FileAttributes.Temporary) == FileAttributes.Temporary, Is.True );
+                File.Exists(temporaryFile.Path).Should().BeTrue();
+                (File.GetAttributes(temporaryFile.Path) & FileAttributes.Temporary).Should().Be(FileAttributes.Temporary);
                 temporaryFile.Detach();
             }
-            Assert.That( File.Exists( path ), Is.True );
-            File.Delete( path );
+            File.Exists(path).Should().BeTrue();
+            File.Delete(path);
         }
     }
 }

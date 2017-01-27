@@ -1,0 +1,36 @@
+﻿{
+  "version": "0.0.0",
+
+  "dependencies": {
+    "CK.ActivityMonitor": { "target": "project" }
+  },
+
+  "buildOptions": {
+    "keyFile": "../SharedKey.snk"
+  },
+
+  "packOptions": {
+    "summary": "Provides Send methods on ActivityMonitor.",
+    "releaseNotes": "https://github.com/Invenietis/ck-core/releases",
+    "repository": {
+      "type": "git",
+      "url": "https://github.com/Invenietis/ck-core"
+    },
+    "licenseUrl": "https://opensource.org/licenses/LGPL-3.0"
+  },
+  "authors": [ "Invenietis" ],
+  "copyright": "Copyright 2010-1017 Invenietis",
+
+
+  "frameworks": {
+    "netstandard1.3": {
+      "dependencies": {
+        "NETStandard.Library": "1.6.1"
+      }
+    },
+    "net451": {
+      "frameworkAssemblies": {
+      }
+    }
+  }
+}

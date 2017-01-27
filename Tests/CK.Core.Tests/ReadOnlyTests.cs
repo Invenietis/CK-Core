@@ -1,33 +1,11 @@
-#region LGPL License
-/*----------------------------------------------------------------------------
-* This file (Tests\CK.Core.Tests\Collection\ReadOnlyTests.cs) is part of CiviKey. 
-*  
-* CiviKey is free software: you can redistribute it and/or modify 
-* it under the terms of the GNU Lesser General Public License as published 
-* by the Free Software Foundation, either version 3 of the License, or 
-* (at your option) any later version. 
-*  
-* CiviKey is distributed in the hope that it will be useful, 
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
-* GNU Lesser General Public License for more details. 
-* You should have received a copy of the GNU Lesser General Public License 
-* along with CiviKey.  If not, see <http://www.gnu.org/licenses/>. 
-*  
-* Copyright © 2007-2015, 
-*     Invenietis <http://www.invenietis.com>,
-*     In’Tech INFO <http://www.intechinfo.fr>,
-* All rights reserved. 
-*-----------------------------------------------------------------------------*/
-#endregion
-
 using System.Reflection;
 using CK.Core;
-using NUnit.Framework;
+using Xunit;
 using System.Linq;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using FluentAssertions;
 
 namespace CK.Core.Tests.Collection
 {
@@ -43,17 +21,17 @@ namespace CK.Core.Tests.Collection
             Content = new List<T>();
         }
 
-        public bool Contains( object item )
+        public bool Contains(object item)
         {
-            if( ContainsCalled != null ) ContainsCalled( this, EventArgs.Empty );
-            return item is T ? Content.Contains( (T)item ) : false;
+            if (ContainsCalled != null) ContainsCalled(this, EventArgs.Empty);
+            return item is T ? Content.Contains((T)item) : false;
         }
 
         public int Count
         {
             get
             {
-                if( CountCalled != null ) CountCalled( this, EventArgs.Empty );
+                if (CountCalled != null) CountCalled(this, EventArgs.Empty);
                 return Content.Count;
             }
         }
@@ -82,17 +60,17 @@ namespace CK.Core.Tests.Collection
             Content = new List<T>();
         }
 
-        public bool Contains( object item )
+        public bool Contains(object item)
         {
-            if( ContainsCalled != null ) ContainsCalled( this, EventArgs.Empty );
-            return item is T ? Content.Contains( (T)item ) : false;
+            if (ContainsCalled != null) ContainsCalled(this, EventArgs.Empty);
+            return item is T ? Content.Contains((T)item) : false;
         }
 
         public int Count
         {
             get
             {
-                if( CountCalled != null ) CountCalled( this, EventArgs.Empty );
+                if (CountCalled != null) CountCalled(this, EventArgs.Empty);
                 return Content.Count;
             }
         }
@@ -110,7 +88,7 @@ namespace CK.Core.Tests.Collection
 
         #region ICollection<T> Members
 
-        void ICollection<T>.Add( T item )
+        void ICollection<T>.Add(T item)
         {
             throw new NotSupportedException();
         }
@@ -120,12 +98,12 @@ namespace CK.Core.Tests.Collection
             throw new NotSupportedException();
         }
 
-        bool ICollection<T>.Contains( T item )
+        bool ICollection<T>.Contains(T item)
         {
-            return Contains( item );
+            return Contains(item);
         }
 
-        void ICollection<T>.CopyTo( T[] array, int arrayIndex )
+        void ICollection<T>.CopyTo(T[] array, int arrayIndex)
         {
             throw new NotSupportedException();
         }
@@ -135,7 +113,7 @@ namespace CK.Core.Tests.Collection
             get { return true; }
         }
 
-        bool ICollection<T>.Remove( T item )
+        bool ICollection<T>.Remove(T item)
         {
             throw new NotSupportedException();
         }
@@ -143,137 +121,138 @@ namespace CK.Core.Tests.Collection
         #endregion
     }
 
-    [TestFixture]
+
     public class ReadOnlyTests
     {
-        [Test]
+        [Fact]
         public void linq_with_mere_IReadOnlyCollection_implementation_is_not_optimal_for_Count()
         {
             TestCollection<int> c = new TestCollection<int>();
-            c.Content.Add( 2 );
+            c.Content.Add(2);
 
             bool containsCalled = false, countCalled = false;
-            c.ContainsCalled += ( o, e ) => { containsCalled = true; };
-            c.CountCalled += ( o, e ) => { countCalled = true; };
+            c.ContainsCalled += (o, e) => { containsCalled = true; };
+            c.CountCalled += (o, e) => { countCalled = true; };
 
-            Assert.That( c.Count == 1 );
-            Assert.That( countCalled, "Count property on the concrete type logs the calls." ); countCalled = false;
+            c.Count.Should().Be(1);
+            countCalled.Should().BeTrue("Count property on the concrete type logs the calls."); countCalled = false;
 
-            Assert.That( c.Count() == 1, "Use Linq extension methods (on the concrete type)." );
-            Assert.That( !countCalled, "The Linq extension method did NOT call our Count." );
+            c.Count().Should().Be(1, "Use Linq extension methods (on the concrete type).");
+            countCalled.Should().BeFalse("The Linq extension method did NOT call our Count.");
 
             IEnumerable<int> cLinq = c;
 
-            Assert.That( cLinq.Count() == 1, "Linq can not use our implementation..." );
-            Assert.That( !countCalled, "...it did not call our Count property." );
+            cLinq.Count().Should().Be(1, "Linq can not use our implementation...");
+            countCalled.Should().BeFalse("...it did not call our Count property.");
 
             // Addressing the concrete type: it is our method that is called.
-            Assert.That( c.Contains( 2 ) );
-            Assert.That( containsCalled, "It is our Contains method that is called (not the Linq one)." ); containsCalled = false;
-            Assert.That( !c.Contains( 56 ) );
-            Assert.That( containsCalled, "It is our Contains method that is called." ); containsCalled = false;
-            Assert.That( !c.Contains( null ), "Contains should accept ANY object without any error." );
-            Assert.That( containsCalled, "It is our Contains method that is called." ); containsCalled = false;
+            c.Contains(2).Should().BeTrue();
+            containsCalled.Should().BeTrue("It is our Contains method that is called (not the Linq one)."); containsCalled = false;
+            c.Contains(56).Should().BeFalse();
+            containsCalled.Should().BeTrue("It is our Contains method that is called."); containsCalled = false;
+            c.Contains(null).Should().BeFalse("Contains should accept ANY object without any error.");
+            containsCalled.Should().BeTrue("It is our Contains method that is called."); containsCalled = false;
 
             // Unfortunately, addressing the IEnumerable base type, Linq has no way to use our methods...
-            Assert.That( cLinq.Contains( 2 ) );
-            Assert.That( !containsCalled, "Linq use the enumerator to do the job." );
-            Assert.That( !cLinq.Contains( 56 ) );
-            Assert.That( !containsCalled );
+            cLinq.Contains(2).Should().BeTrue();
+            containsCalled.Should().BeFalse("Linq use the enumerator to do the job.");
+            cLinq.Contains(56).Should().BeFalse();
+            containsCalled.Should().BeFalse();
             // Linq Contains() accept only parameter of the generic type.
-            //Assert.That( !cLinq.Contains( null ), "Contains should accept ANY object without any error." );
+            // !cLinq.Contains( null ), "Contains should accept ANY object without any error." );
         }
 
-        [Test]
+        [Fact]
         public void linq_on_ICollection_implementation_uses_Count_property()
         {
             TestCollectionThatImplementsICollection<int> c = new TestCollectionThatImplementsICollection<int>();
-            c.Content.Add( 2 );
+            c.Content.Add(2);
 
             bool containsCalled = false, countCalled = false;
-            c.ContainsCalled += ( o, e ) => { containsCalled = true; };
-            c.CountCalled += ( o, e ) => { countCalled = true; };
+            c.ContainsCalled += (o, e) => { containsCalled = true; };
+            c.CountCalled += (o, e) => { countCalled = true; };
 
-            Assert.That( c.Count == 1 );
-            Assert.That( countCalled, "Count property on the concrete type logs the calls." ); countCalled = false;
+            c.Should().HaveCount(1);
+            countCalled.Should().BeTrue("Count property on the concrete type logs the calls."); countCalled = false;
 
             IEnumerable<int> cLinq = c;
 
-            Assert.That( cLinq.Count() == 1, "Is it our Count implementation that is called?" );
-            Assert.That( countCalled, "Yes!" ); countCalled = false;
+            cLinq.Count().Should().Be(1, "Is it our Count implementation that is called?");
+            countCalled.Should().BeTrue("Yes!"); countCalled = false;
 
-            Assert.That( c.Count() == 1, "Linq DOES use our implementation..." );
-            Assert.That( countCalled, "...our Count property has been called." ); countCalled = false;
+            c.Count.Should().Be(1, "Linq DOES use our implementation...");
+            countCalled.Should().BeTrue("...our Count property has been called."); countCalled = false;
 
             // What's happening for Contains? 
             // The ICollection<T>.Contains( T ) is more precise than our Contains( object )...
 
             // Here we target the concrete type.
-            Assert.That( c.Contains( 2 ) );
-            Assert.That( containsCalled, "It is our Contains method that is called (not the Linq one)." ); containsCalled = false;
+            c.Contains(2).Should().BeTrue();
+            containsCalled.Should().BeTrue("It is our Contains method that is called (not the Linq one)."); containsCalled = false;
 
             // Here we use the IEnumerable<int>. 
             // It shows that this is not the (slow) enumeration that is used here: it uses a direct call to Contains that can be much more efficient.
             // It works only because TestCollectionThatImplementsICollection relays the call to our Contains.
-            Assert.That( cLinq.Contains( 2 ) );
-            Assert.That( containsCalled, "It is our Contains method that is called (not the Linq one)." ); containsCalled = false;
+            cLinq.Contains(2).Should().BeTrue();
+            containsCalled.Should().BeTrue("It is our Contains method that is called (not the Linq one)."); containsCalled = false;
 
-            Assert.That( !cLinq.Contains( 56 ) );
-            Assert.That( containsCalled, "It is our Contains method that is called." ); containsCalled = false;
+            cLinq.Contains(56).Should().BeFalse();
+            containsCalled.Should().BeTrue("It is our Contains method that is called."); containsCalled = false;
 
         }
 
-        [Test]
+        [Fact]
         public void covariant_Contains_accepts_any_types()
         {
             TestCollection<Animal> c = new TestCollection<Animal>();
             Animal oneElement = new Animal(null);
-            c.Content.Add( oneElement );
+            c.Content.Add(oneElement);
 
             bool containsCalled = false;
-            c.ContainsCalled += ( o, e ) => { containsCalled = true; };
-            Assert.That( c.Contains( oneElement ) );
-            Assert.That( containsCalled, "It is our Contains method that is called." ); containsCalled = false;
-            Assert.That( !c.Contains( 56 ), "Contains should accept ANY object without any error." );
-            Assert.That( containsCalled, "It is our Contains method that is called." ); containsCalled = false;
-            Assert.That( !c.Contains( null ), "Contains should accept ANY object without any error." );
-            Assert.That( containsCalled ); containsCalled = false;
+            c.ContainsCalled += (o, e) => { containsCalled = true; };
+            c.Contains(oneElement).Should().BeTrue();
+            containsCalled.Should().BeTrue("It is our Contains method that is called."); containsCalled = false;
+            c.Contains(56).Should().BeFalse("Contains should accept ANY object without any error.");
+            containsCalled.Should().BeTrue("It is our Contains method that is called."); containsCalled = false;
+            c.Contains(null).Should().BeFalse("Contains should accept ANY object without any error.");
+            containsCalled.Should().BeTrue(); containsCalled = false;
         }
 
         class StringInt : IComparable<int>
         {
             public readonly string Value;
-            public StringInt( string value ) { Value = value; }
+            public StringInt(string value) { Value = value; }
 
-            public int CompareTo( int other )
+            public int CompareTo(int other)
             {
-                return Int32.Parse( Value ).CompareTo( other );
+                return Int32.Parse(Value).CompareTo(other);
             }
         }
 
-        [TestCase( "", 5, ~0 )]
-        [TestCase( "1", 5, ~1 )]
-        [TestCase( "1", -5, ~0 )]
-        [TestCase( "1,2,5", 5, 2 )]
-        [TestCase( "1,2,5", 4, ~2 )]
-        [TestCase( "1,2,5", 2, 1 )]
-        [TestCase( "1,2,5", 1, 0 )]
-        [TestCase( "1,2,5", 0, ~0 )]
-        public void BinarySearch_on_IComparable_TValue_items( string values, int search, int resultIndex )
+        [Theory]
+        [InlineData("", 5, ~0)]
+        [InlineData("1", 5, ~1)]
+        [InlineData("1", -5, ~0)]
+        [InlineData("1,2,5", 5, 2)]
+        [InlineData("1,2,5", 4, ~2)]
+        [InlineData("1,2,5", 2, 1)]
+        [InlineData("1,2,5", 1, 0)]
+        [InlineData("1,2,5", 0, ~0)]
+        public void BinarySearch_on_IComparable_TValue_items(string values, int search, int resultIndex)
         {
-            var a = values.Split( new[]{','},StringSplitOptions.RemoveEmptyEntries ).Select( v => new StringInt( v ) ).ToArray();
-            Assert.That( Util.BinarySearch( a, search ), Is.EqualTo( resultIndex ) );
+            var a = values.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries).Select(v => new StringInt(v)).ToArray();
+            Util.BinarySearch(a, search).Should().Be(resultIndex);
         }
 
-        [Test]
+        [Fact]
         public void IndexOf_on_IReadOnlyList()
         {
             IReadOnlyList<int> l = new[] { 3, 7, 9, 1, 3, 8 };
-            Assert.That( l.IndexOf( i => i == 3 ), Is.EqualTo( 0 ) );
-            Assert.That( l.IndexOf( i => i == 7 ), Is.EqualTo( 1 ) );
-            Assert.That( l.IndexOf( i => i == 8 ), Is.EqualTo( 5 ) );
-            Assert.That( l.IndexOf( i => i == 0 ), Is.EqualTo( -1 ) );
-            Assert.Throws<ArgumentNullException>( () => l.IndexOf( null ) );
+            l.IndexOf(i => i == 3).Should().Be(0);
+            l.IndexOf(i => i == 7).Should().Be(1);
+            l.IndexOf(i => i == 8).Should().Be(5);
+            l.IndexOf(i => i == 0).Should().Be(-1);
+            Should.Throw<ArgumentNullException>(() => l.IndexOf(null));
         }
 
     }

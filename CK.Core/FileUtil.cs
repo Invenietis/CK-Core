@@ -386,7 +386,7 @@ namespace CK.Core
                 long stop = start.AddMilliseconds( nbMaxMilliSecond ).Ticks;
                 for( ; ; )
                 {
-                    if( waitTime > 0 ) System.Threading.Thread.Sleep( waitTime );
+                    if( waitTime > 0 ) Thread.Sleep( waitTime );
                     if( !File.Exists( path ) ) return true;
                     try
                     {
