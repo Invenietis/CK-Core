@@ -43,7 +43,8 @@ namespace CodeCake
             // We do not publish .Tests projects for this solution.
             var projectsToPublish = Cake.ParseSolution( solutionFileName )
                                         .Projects
-                                        .Where( p => p.Name != "CodeCakeBuilder"
+                                        .Where( p => !(p is SolutionFolder)
+                                                     && p.Name != "CodeCakeBuilder"
                                                      && !p.Path.Segments.Contains( "Tests" ) );
 
             var jsonS = Cake.GetSimpleJsonSolution();
@@ -110,7 +111,7 @@ namespace CodeCake
                         Cake.MSBuild( tempSln.FullPath, settings =>
                         {
                             settings.Configuration = configuration;
-                            settings.Verbosity = Verbosity.Minimal;
+                            settings.Verbosity = Verbosity.Normal;
                         } );
                     }
                 } );
