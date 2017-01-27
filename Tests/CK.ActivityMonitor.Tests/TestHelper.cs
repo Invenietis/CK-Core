@@ -7,6 +7,7 @@ using System.Text;
 using System.Threading;
 using CK.Core;
 using FluentAssertions;
+using System.Reflection;
 
 namespace CK.Core.Tests
 {
@@ -110,7 +111,9 @@ namespace CK.Core.Tests
             _solutionFolder = p;
             _testFolder = Path.Combine( _solutionFolder, "Tests", "CK.ActivityMonitor.Tests", "TestFolder" );
 
-            Console.WriteLine($"SolutionFolder is: {_solutionFolder}\r\nTestFolder is: {_testFolder}");
+            Console.WriteLine($"SolutionFolder is: {_solutionFolder}.");
+            Console.WriteLine($"TestFolder is: {_testFolder}.");
+            Console.WriteLine($"Core path: {typeof(string).GetTypeInfo().Assembly.CodeBase}.");
             CleanupTestFolder();
         }
 

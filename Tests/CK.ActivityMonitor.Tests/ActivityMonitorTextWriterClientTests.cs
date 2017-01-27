@@ -19,7 +19,6 @@ namespace CK.Core.Tests.Monitoring
         {
             using (LockFact())
             {
-                TestHelper.LogsToConsole = true;
                 var m = new ActivityMonitor(false);
                 m.MinimalFilter = LogFilter.Debug;
                 StringBuilder b = new StringBuilder();
