@@ -225,6 +225,7 @@ namespace CK.Core.Tests.Monitoring
                     monitor.Output.RegisterClient(client);
                     monitor.Output.Clients.Should().HaveCount(clientCount + 1);
                     monitor.Info().Send("Test");
+                    SystemActivityMonitor.CriticalErrorCollector.WaitOnErrorFromBackgroundThreadsPending();
                     monitor.Output.Clients.Should().HaveCount(clientCount);
 
                     monitor.Info().Send("Test");
