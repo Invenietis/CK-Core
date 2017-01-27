@@ -1,14 +1,6 @@
 {
   "version": "0.0.0",
 
-  "dependencies": {
-    "CK.Text": "5.1.0-p01"
-  },
-    
-  "buildOptions": {
-    "keyFile": "../SharedKey.snk"
-  },
-    
   "buildOptions": {
     "keyFile": "../SharedKey.snk"
   },
@@ -25,6 +17,10 @@
   "authors": [ "Invenietis" ],
   "copyright": "Copyright 2010-1017 Invenietis",
 
+  "dependencies": {
+    "CK.Text": "5.1.0-p02"
+  },
+    
   "frameworks": {
     "netstandard1.3": {
       "dependencies": {
