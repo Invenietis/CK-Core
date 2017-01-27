@@ -15,7 +15,7 @@ namespace CK.Core.Tests.Monitoring
         public SystemActivityMonitorTests()
         {
             var logs = Path.Combine( TestHelper.TestFolder, SystemActivityMonitor.SubDirectoryName );
-            if( Directory.Exists( logs ) ) Directory.Delete( logs, true );
+            TestHelper.CleanupFolder(logs);
             SystemActivityMonitor.RootLogPath = TestHelper.TestFolder;
         }
 
