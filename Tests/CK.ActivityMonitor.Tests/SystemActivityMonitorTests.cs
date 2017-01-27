@@ -24,22 +24,18 @@ namespace CK.Core.Tests.Monitoring
         {
             using (LockFact())
             {
-                bool eventHasBeenRaised = false;
-                var h = new EventHandler<SystemActivityMonitor.LowLevelErrorEventArgs>(
-                        delegate (object sender, SystemActivityMonitor.LowLevelErrorEventArgs e)
-                        {
-                            e.ErrorWhileWritingLogFile.Should().BeNull();
-                            e.ErrorMessage.Should().Contain("The-Test-Exception-Message");
-                            e.ErrorMessage.Should().Contain("Produced by SystemActivityMonitorTests.SimpleTest");
-                            File.ReadAllText(e.FullLogFilePath).Should().Be(e.ErrorMessage);
-                            eventHasBeenRaised = true;
-                        });
+                SystemActivityMonitor.LowLevelErrorEventArgs catched = null;
+                EventHandler<SystemActivityMonitor.LowLevelErrorEventArgs> h = (sender, e) => catched = e;
                 SystemActivityMonitor.OnError += h;
                 try
                 {
                     ActivityMonitor.CriticalErrorCollector.Add(new CKException("The-Test-Exception-Message"), "Produced by SystemActivityMonitorTests.SimpleTest");
                     ActivityMonitor.CriticalErrorCollector.WaitOnErrorFromBackgroundThreadsPending();
-                    eventHasBeenRaised.Should().BeTrue();
+                    catched.Should().NotBeNull();
+                    catched.ErrorWhileWritingLogFile.Should().BeNull();
+                    catched.ErrorMessage.Should().Contain("The-Test-Exception-Message");
+                    catched.ErrorMessage.Should().Contain("Produced by SystemActivityMonitorTests.SimpleTest");
+                    File.ReadAllText(catched.FullLogFilePath).Should().Be(catched.ErrorMessage);
                 }
                 finally
                 {
