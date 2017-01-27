@@ -8,6 +8,10 @@
   "buildOptions": {
     "keyFile": "../SharedKey.snk"
   },
+    
+  "buildOptions": {
+    "keyFile": "../SharedKey.snk"
+  },
 
   "packOptions": {
     "summary": "Utility interfaces and classes.",
