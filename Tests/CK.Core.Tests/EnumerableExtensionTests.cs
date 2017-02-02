@@ -112,6 +112,29 @@ namespace CK.Core.Tests
             Should.Throw<NullReferenceException>(() => listToTest.IndexOf((a, idx) => a == 0));
         }
 
+        // See: https://github.com/dotnet/corefx/issues/15716
+        [Fact]
+        public void buggy_behavior_of_Append_extension_method()
+        {
+            {
+                int[] t = new int[0];
+                var e = t.GetEnumerator();
+                Should.Throw<InvalidOperationException>(() => Console.Write(e.Current));
+            }
+            {
+                int[] tWithItems = new int[] { 7 };
+                var e = tWithItems.GetEnumerator();
+                Should.Throw<InvalidOperationException>(() => Console.Write(e.Current));
+            }
+
+            {
+                int[] t = new int[0];
+                var e = t.Append( 3712 ).GetEnumerator();
+                // This fails: e.Current is 0, the default(int)...
+                //Should.Throw<InvalidOperationException>(() => Console.Write(e.Current));
+            }
+        }
+
         [Fact]
         public void test_Append_extension_method()
         {
@@ -124,9 +147,13 @@ namespace CK.Core.Tests
             tX.Should().BeEquivalentTo(2, 3, 4, 5);
 
             var e = tX.GetEnumerator();
+#if NET451
+            // See: https://github.com/dotnet/corefx/issues/15716
             Should.Throw<InvalidOperationException>(() => Console.Write(e.Current));
+#endif
             e.MoveNext().Should().BeTrue();
             e.Current.Should().Be(2);
+#if NET451
             e.Reset();
             e.MoveNext().Should().BeTrue();
             e.Current.Should().Be(2);
@@ -139,9 +166,9 @@ namespace CK.Core.Tests
             e.MoveNext().Should().BeFalse();
             Should.Throw<InvalidOperationException>(() => Console.Write(e.Current));
             Should.Throw<InvalidOperationException>(() => e.MoveNext());
-
             t = null;
             Should.Throw<NullReferenceException>(() => t.Append(5));
+#endif
 
         }
 
