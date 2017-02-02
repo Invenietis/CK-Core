@@ -153,9 +153,10 @@ namespace CodeCake
                     {
                         Cake.DotNetCorePack(p.Path.GetDirectory().FullPath, new DotNetCorePackSettings()
                         {
-                            NoBuild = true,
-                            OutputDirectory = releasesDir,
-                            Verbose = true
+                           Verbose = true,
+                           NoBuild = true,
+                           Configuration = configuration,
+                           OutputDirectory = releasesDir
                         });
                     }
                 });
