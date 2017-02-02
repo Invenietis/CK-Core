@@ -20,9 +20,19 @@
   "dependencies": {
     "CK.Text": "5.1.0-p02"
   },
-    
+
   "frameworks": {
     "netstandard1.3": {
+      "dependencies": {
+        "NETStandard.Library": "1.6.1",
+        "System.Globalization.Extensions": "4.3.0",
+        "System.ComponentModel": "4.3.0",
+        "System.Reflection.TypeExtensions": "4.3.0",
+        "System.Threading.Thread": "4.3.0",
+        "System.Threading.ThreadPool": "4.3.0"
+      }
+    },
+    "netstandard1.6": {
       "dependencies": {
         "NETStandard.Library": "1.6.1",
         "System.Globalization.Extensions": "4.3.0",

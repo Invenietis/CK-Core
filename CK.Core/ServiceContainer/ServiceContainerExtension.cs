@@ -45,7 +45,6 @@ namespace CK.Core
             if( throwOnNull && s == null ) throw new CKException( Impl.CoreResources.UnregisteredServiceInServiceProvider, typeof( T ).FullName );
             return s;
         }
-//#if NET451
 
         /// <summary>
         /// Strongly typed version of <see cref="IServiceProvider.GetService"/> that returns null if service is not found.
@@ -57,8 +56,6 @@ namespace CK.Core
         {
             return (T)@this.GetService( typeof( T ) );
         }
-//#endif
-
 
         /// <summary>
         /// Type safe version to remove a registered type.

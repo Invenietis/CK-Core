@@ -147,13 +147,13 @@ namespace CK.Core.Tests
             tX.Should().BeEquivalentTo(2, 3, 4, 5);
 
             var e = tX.GetEnumerator();
-#if NET451
+#if !NETCOREAPP1_0
             // See: https://github.com/dotnet/corefx/issues/15716
             Should.Throw<InvalidOperationException>(() => Console.Write(e.Current));
 #endif
             e.MoveNext().Should().BeTrue();
             e.Current.Should().Be(2);
-#if NET451
+#if !NETCOREAPP1_0
             e.Reset();
             e.MoveNext().Should().BeTrue();
             e.Current.Should().Be(2);

@@ -213,7 +213,7 @@ namespace CK.Core
             return -1;
         }
 
-#if NET451
+#if !NETSTANDARD1_6
         /// <summary>
         /// Internal implementation of Append extension method.
         /// </summary>
