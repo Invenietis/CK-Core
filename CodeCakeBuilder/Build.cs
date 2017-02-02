@@ -72,7 +72,7 @@ namespace CodeCake
                         }
                         else throw new Exception( "Repository is not ready to be published." );
                     }
-                    else jsonS.UpdateProjectFiles(useNuGetV2Version: false);
+                    else jsonS.UpdateProjectFiles(useNuGetV2Version: true);
 
                     configuration = gitInfo.IsValidRelease 
                                     && (gitInfo.PreReleaseName.Length == 0 || gitInfo.PreReleaseName == "rc") 
