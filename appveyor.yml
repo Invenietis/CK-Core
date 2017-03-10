@@ -22,7 +22,7 @@ install:
   - ps: del $exePath 
   - ps: Write-Host "Installed" -ForegroundColor Green
 #/This is temporary workaround until appveyor upgrades.
-- ps: CodeCakeBuilder\Bootstrap.ps1
+  - ps: CodeCakeBuilder\Bootstrap.ps1
 build_script:
 - CodeCakeBuilder\bin\Release\CodeCakeBuilder.exe -nointeraction
 test: off
