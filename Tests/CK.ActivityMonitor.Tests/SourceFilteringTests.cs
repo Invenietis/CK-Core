@@ -42,7 +42,7 @@ namespace CK.Core.Tests.Monitoring
 
         string ThisFile( [CallerFilePath]string fileName = null, [CallerLineNumber]int lineNumber = 0 )
         {
-            #if NET451 || NET46
+            #if NET452 || NET46
              String.IsInterned( fileName ).Should().NotBeNull();
             #endif
              lineNumber.Should().BeGreaterThan( 0 );
