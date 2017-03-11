@@ -49,10 +49,15 @@ namespace CK.Core.Tests.Monitoring
         {
             using (LockFact())
             {
-                int eventHandlerCount = 0;
                 int buggyEventHandlerCount = 0;
 
-                var hGood = new EventHandler<SystemActivityMonitor.LowLevelErrorEventArgs>((sender, e) => { ++eventHandlerCount; });
+                var goodCollector = new List<string>();
+                Action<string> addMsg = s => 
+                {
+                    lock(goodCollector) { goodCollector.Add(s); }
+                };
+
+                var hGood = new EventHandler<SystemActivityMonitor.LowLevelErrorEventArgs>((sender, e) => addMsg( e.ErrorMessage ) );
                 var hBad = new EventHandler<SystemActivityMonitor.LowLevelErrorEventArgs>((sender, e) => { ++buggyEventHandlerCount; throw new Exception("From buggy handler."); });
                 SystemActivityMonitor.OnError += hGood;
                 SystemActivityMonitor.OnError += hBad;
@@ -61,11 +66,16 @@ namespace CK.Core.Tests.Monitoring
                     ActivityMonitor.CriticalErrorCollector.Add(new CKException("The-Test-Exception-Message"), "First call to SystemActivityMonitorTests.OnErrorEventIsSecured");
                     ActivityMonitor.CriticalErrorCollector.WaitOnErrorFromBackgroundThreadsPending();
                     buggyEventHandlerCount.Should().Be(1);
-                    eventHandlerCount.Should().Be(2, "We also received the error of the buggy handler :-).");
+                    if( goodCollector.Count != 2 )
+                    {
+                        string.Join(Environment.NewLine+"-"+ Environment.NewLine, goodCollector)
+                            .Should().Be( "Only 2 messages should have been received." );
+                    }
+                    goodCollector.Count.Should().Be(2, "We also received the error of the buggy handler :-).");
 
                     ActivityMonitor.CriticalErrorCollector.Add(new CKException("The-Test-Exception-Message"), "Second call to SystemActivityMonitorTests.OnErrorEventIsSecured");
                     ActivityMonitor.CriticalErrorCollector.WaitOnErrorFromBackgroundThreadsPending();
-                    eventHandlerCount.Should().Be(3);
+                    goodCollector.Count.Should().Be(3);
                     buggyEventHandlerCount.Should().Be(1);
                 }
                 finally
