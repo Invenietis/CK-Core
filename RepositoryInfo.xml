@@ -5,6 +5,5 @@
   <PossibleVersionsMode>AllSuccessors</PossibleVersionsMode>
   <Branches>
     <Branch Name="develop" VersionName="develop" CIVersionMode="LastReleaseBased" />
-    <Branch Name="vs-2017" VersionName="develop" CIVersionMode="LastReleaseBased" />
   </Branches>
 </RepositoryInfo>
