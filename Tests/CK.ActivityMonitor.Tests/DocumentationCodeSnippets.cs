@@ -9,18 +9,21 @@ using FluentAssertions;
 
 namespace CK.Core.Tests.Monitoring
 {
-    public class DocumentationCodeSnippets
+    public class DocumentationCodeSnippets : MutexTest<ActivityMonitor>
     {
         [Fact]
         public void SimpleUsage()
         {
-            var f = new FileInfo( Path.Combine( TestHelper.SolutionFolder, @"Tests\CK.Core.Tests\Animals.cs" ) );
-            DemoLogs( TestHelper.ConsoleMonitor, f, new Exception() );
-            DemoOpenGroupFarFromPerfect( TestHelper.ConsoleMonitor );
-            DemoOpenGroupBetter( TestHelper.ConsoleMonitor );
-            DemoOpenGroupThisWorksFine( TestHelper.ConsoleMonitor );
-            DemoOpenGroupWithDynamicConclusion( TestHelper.ConsoleMonitor );
-            DoSomething( TestHelper.ConsoleMonitor, f );
+            using (LockFact())
+            {
+                var f = new FileInfo(Path.Combine(TestHelper.SolutionFolder, @"Tests\CK.Core.Tests\Animals.cs"));
+                DemoLogs(TestHelper.ConsoleMonitor, f, new Exception());
+                DemoOpenGroupFarFromPerfect(TestHelper.ConsoleMonitor);
+                DemoOpenGroupBetter(TestHelper.ConsoleMonitor);
+                DemoOpenGroupThisWorksFine(TestHelper.ConsoleMonitor);
+                DemoOpenGroupWithDynamicConclusion(TestHelper.ConsoleMonitor);
+                DoSomething(TestHelper.ConsoleMonitor, f);
+            }
         }
 
         void DemoOpenGroupFarFromPerfect( IActivityMonitor m )

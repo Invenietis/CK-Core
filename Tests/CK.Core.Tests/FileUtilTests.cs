@@ -233,8 +233,8 @@ namespace CK.Core.Tests
         [Theory]
         [InlineData(100, 5, false)]
         [InlineData(100, 50, false)]
-        [InlineData(10, 20, true)]
         [InlineData(1000, 1090, true)]
+        //[InlineData(10, 20, true)]
         //[InlineData( 20, 1, true)]  //=> 20 millisecond lock is not enough to make the difference.
         //[InlineData( 20, 5, true)]  //=> 20 millisecond lock is not enough to make the difference.
         //[InlineData( 20, 10, true)] //=> 20 millisecond lock is not enough to make the difference.

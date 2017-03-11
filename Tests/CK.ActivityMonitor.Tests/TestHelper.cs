@@ -17,7 +17,7 @@ namespace CK.Core.Tests
         public static void Throw<T>(Action a, string because) where T : Exception => a.ShouldThrow<T>(because);
     }
 
-#if !NET451
+#if !NET452
     class ExcludeFromCodeCoverageAttribute : Attribute
     {
     }
@@ -98,12 +98,9 @@ namespace CK.Core.Tests
         static void InitializePaths()
         {
             if( _solutionFolder != null ) return;
-#if NET451
-            string p = new Uri( System.Reflection.Assembly.GetExecutingAssembly().CodeBase ).LocalPath;
+            string p = new Uri( typeof(TestHelper).GetTypeInfo().Assembly.CodeBase ).LocalPath;
             p = Path.GetDirectoryName(p);
-#else
-            string p = Directory.GetCurrentDirectory();
-#endif
+
             while (!File.Exists(Path.Combine(p, "CK-Core.sln")))
             {
                 p = Path.GetDirectoryName( p );

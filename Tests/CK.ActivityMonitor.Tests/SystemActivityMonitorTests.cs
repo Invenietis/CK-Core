@@ -60,8 +60,8 @@ namespace CK.Core.Tests.Monitoring
                 {
                     ActivityMonitor.CriticalErrorCollector.Add(new CKException("The-Test-Exception-Message"), "First call to SystemActivityMonitorTests.OnErrorEventIsSecured");
                     ActivityMonitor.CriticalErrorCollector.WaitOnErrorFromBackgroundThreadsPending();
-                    eventHandlerCount.Should().Be(2, "We also received the error of the buggy handler :-).");
                     buggyEventHandlerCount.Should().Be(1);
+                    eventHandlerCount.Should().Be(2, "We also received the error of the buggy handler :-).");
 
                     ActivityMonitor.CriticalErrorCollector.Add(new CKException("The-Test-Exception-Message"), "Second call to SystemActivityMonitorTests.OnErrorEventIsSecured");
                     ActivityMonitor.CriticalErrorCollector.WaitOnErrorFromBackgroundThreadsPending();
