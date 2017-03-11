@@ -43,7 +43,7 @@
       <HintPath>..\packages\Cake.Core.0.18.0\lib\net45\Cake.Core.dll</HintPath>
     </Reference>
     <Reference Include="CK.Text, Version=5.1.0.0, Culture=neutral, PublicKeyToken=731c291b31fb8d27, processorArchitecture=MSIL">
-      <HintPath>..\packages\CK.Text.5.1.0-p03\lib\net451\CK.Text.dll</HintPath>
+      <HintPath>..\packages\CK.Text.5.1.0\lib\net451\CK.Text.dll</HintPath>
     </Reference>
     <Reference Include="Code.Cake, Version=0.15.0.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\Code.Cake.0.15.0\lib\net45\Code.Cake.dll</HintPath>
