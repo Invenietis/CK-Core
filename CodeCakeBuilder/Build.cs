@@ -47,6 +47,8 @@ namespace CodeCake
     {
         public Build()
         {
+            Cake.Log.Verbosity = Verbosity.Diagnostic;
+
             const string solutionName = "CK-Core";
             const string solutionFileName = solutionName + ".sln";
 
@@ -134,17 +136,18 @@ namespace CodeCake
                    var testProjects = Cake.ParseSolution(solutionFileName)
                                             .Projects
                                                 .Where(p => p.Name.EndsWith(".Tests"))
-                                                .Select(p => p.Path.GetDirectory().FullPath);
+                                                .Select(p => p.Path.FullPath);
 
                    foreach (var test in testProjects)
                    {
                        Cake.Information("Testing: {0}", test);
                        using (Cake.Environment.SetWorkingDirectory(test))
                        {
-                           Cake.DotNetCoreTest(test, new DotNetCoreTestSettings()
-                           {
-                               NoBuild = true,
-                               Configuration = configuration
+                            Cake.DotNetCoreTest(test, new DotNetCoreTestSettings()
+                            {
+                                NoBuild = true,
+                                Configuration = configuration,
+                                //ArgumentCustomization = args => args.Append("-v diag")
                            });
                        }
                    }

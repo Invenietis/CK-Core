@@ -3,7 +3,7 @@
   <Import Project="..\..\Common\Shared.props" />
 
   <PropertyGroup>
-    <TargetFrameworks>netcoreapp1.0;net451</TargetFrameworks>
+    <TargetFrameworks>netcoreapp1.0;net452</TargetFrameworks>
     <AssemblyName>CK.Core.Tests</AssemblyName>
     <PackageId>CK.Core.Tests</PackageId>
     <GenerateRuntimeConfigurationFiles>true</GenerateRuntimeConfigurationFiles>
@@ -36,6 +36,10 @@
 
   <ItemGroup>
     <Folder Include="Properties\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Service Include="{82a7f48d-3b50-4b1e-b82e-3ada8210c358}" />
   </ItemGroup>
 
 </Project>

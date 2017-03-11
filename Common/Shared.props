@@ -1,10 +1,14 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  
+
   <PropertyGroup>
-    <SharedDir>$(SolutionDir)Common\</SharedDir>
+    <SharedDir>$(MSBuildThisFileDirectory)</SharedDir>
   </PropertyGroup>
-  
+
+  <PropertyGroup Condition=" '$(SolutionDir)' == '' ">
+    <SolutionDir>$([System.IO.Path]::GetDirectoryName($([System.IO.Path]::GetDirectoryName($(MSBuildThisFileDirectory)))))\</SolutionDir>
+  </PropertyGroup>
+
   <PropertyGroup>
     <Copyright>Copyright Invenietis 2007-2017</Copyright>
     <ProductName>CK-Framework</ProductName>
