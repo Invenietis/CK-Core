@@ -111,7 +111,6 @@ namespace CodeCake
                     Cake.DotNetCoreRestore(new DotNetCoreRestoreSettings().AddVersionArguments(gitInfo));
                 });
 
-
             Task("Build")
                 .IsDependentOn("Check-Repository")
                 .IsDependentOn("Clean")
@@ -201,13 +200,13 @@ namespace CodeCake
                        else
                        {
                             // An alpha, beta, delta, epsilon, gamma, kappa goes to invenietis-preview.
-                            PushNuGetPackages("MYGET_PREVIEW_API_KEY", "https://www.myget.org/F/invenietis-preview/api/v2/package", nugetPackages);
+                            PushNuGetPackages("MYGET_PREVIEW_API_KEY", "https://www.myget.org/F/invenietis-preview/api/v3/index.json", nugetPackages);
                        }
                    }
                    else
                    {
                        Debug.Assert(gitInfo.IsValidCIBuild);
-                       PushNuGetPackages("MYGET_CI_API_KEY", "https://www.myget.org/F/invenietis-ci/api/v2/package", nugetPackages);
+                       PushNuGetPackages("MYGET_CI_API_KEY", "https://www.myget.org/F/invenietis-ci/api/v3/index.json", nugetPackages);
                    }
                });
 
