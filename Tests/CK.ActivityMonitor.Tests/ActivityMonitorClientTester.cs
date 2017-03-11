@@ -5,7 +5,8 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using CK.Core.Impl;
-using NUnit.Framework;
+using Xunit;
+using FluentAssertions;
 
 namespace CK.Core.Tests.Monitoring
 {
@@ -78,13 +79,13 @@ namespace CK.Core.Tests.Monitoring
 
         void IActivityMonitorClient.OnUnfilteredLog( ActivityMonitorLogData data )
         {
-            Assert.That( data.FileName, Is.Not.Null.And.Not.Empty );
+            data.FileName.Should().NotBeNullOrEmpty();
             Util.InterlockedAdd( ref _text, String.Format( "{0} {1} - {2} -[{3}]", new String( '>', _depth ), data.Level, data.Text, data.Tags ) ); 
         }
 
         void IActivityMonitorClient.OnOpenGroup( IActivityLogGroup group )
         {
-            Assert.That( group.FileName, Is.Not.Null.And.Not.Empty );
+             group.FileName.Should().NotBeNullOrEmpty();
             int d = Interlocked.Increment( ref _depth );
             Util.InterlockedAdd( ref _text, String.Format( "{0} {1} - {2} -[{3}]", new String( '>', d ), group.GroupLevel, group.GroupText, group.GroupTags ) );
         }
@@ -99,7 +100,7 @@ namespace CK.Core.Tests.Monitoring
 
         void IActivityMonitorClient.OnTopicChanged( string newTopic, string fileName, int lineNumber )
         {
-            Assert.That( fileName, Is.Not.Null.And.Not.Empty );
+             fileName.Should().NotBeNullOrEmpty();
         }
 
         void IActivityMonitorClient.OnAutoTagsChanged( CKTrait newTrait )

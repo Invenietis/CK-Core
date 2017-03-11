@@ -1,131 +1,24 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <Import Project="..\Common\Shared.props" />
+
   <PropertyGroup>
-    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
-    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{8AAAF17D-328A-4FE5-BAC9-5DD35963B2B8}</ProjectGuid>
-    <OutputType>Library</OutputType>
-    <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>CK.ActivityMonitor</RootNamespace>
+    <TargetFrameworks>netstandard1.3;net451</TargetFrameworks>
     <AssemblyName>CK.ActivityMonitor</AssemblyName>
-    <TargetFrameworkVersion>v4.5.1</TargetFrameworkVersion>
-    <FileAlignment>512</FileAlignment>
-    <NuGetPackageImportStamp>
-    </NuGetPackageImportStamp>
+    <PackageId>CK.ActivityMonitor</PackageId>
+    <NetStandardImplicitPackageVersion Condition=" '$(TargetFramework)' == 'netstandard1.3' ">1.6.1</NetStandardImplicitPackageVersion>
   </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <DebugSymbols>true</DebugSymbols>
-    <DebugType>full</DebugType>
-    <Optimize>false</Optimize>
-    <OutputPath>bin\Debug\</OutputPath>
-    <DefineConstants>TRACE;DEBUG;NET451;CSPROJ</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <DebugType>pdbonly</DebugType>
-    <Optimize>true</Optimize>
-    <OutputPath>bin\Release\</OutputPath>
-    <DefineConstants>TRACE;NET451;CSPROJ</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-    <DocumentationFile>bin\Release\CK.ActivityMonitor.xml</DocumentationFile>
-  </PropertyGroup>
-  <PropertyGroup Condition=" $(GenerateDocumentation) != '' ">
-    <DocumentationFile>bin\$(Configuration)\$(AssemblyName).xml</DocumentationFile>
-  </PropertyGroup>
-  <PropertyGroup>
-    <SignAssembly>true</SignAssembly>
-    <AssemblyOriginatorKeyFile>..\SharedKey.snk</AssemblyOriginatorKeyFile>
-    <DelaySign>false</DelaySign>
-  </PropertyGroup>
+
   <ItemGroup>
-    <Compile Include="..\SharedAssemblyInfo.cs">
-      <Link>Properties\SharedAssemblyInfo.cs</Link>
-    </Compile>
+    <ProjectReference Include="..\CK.Core\CK.Core.csproj" />
   </ItemGroup>
-  <ItemGroup>
+
+  <ItemGroup Condition=" '$(TargetFramework)' == 'net451' ">
     <Reference Include="System" />
-    <Reference Include="System.Core" />
-    <Reference Include="System.Xml.Linq" />
-    <Reference Include="System.Data.DataSetExtensions" />
-    <Reference Include="Microsoft.CSharp" />
-    <Reference Include="System.Data" />
-    <Reference Include="System.Net.Http" />
-    <Reference Include="System.Xml" />
   </ItemGroup>
+
   <ItemGroup>
-    <Compile Include="ActivityLogGroupConclusion.cs" />
-    <Compile Include="ActivityMonitorGroupData.cs" />
-    <Compile Include="ActivityMonitorLogData.cs" />
-    <Compile Include="Client\ActivityMonitorClient.cs" />
-    <Compile Include="Client\ActivityMonitorConsoleClient.cs" />
-    <Compile Include="Client\ActivityMonitorErrorCounter.cs" />
-    <Compile Include="Client\ActivityMonitorPathCatcher.cs" />
-    <Compile Include="Client\ActivityMonitorSimpleCollector.cs" />
-    <Compile Include="Client\ActivityMonitorTextHelperClient.cs" />
-    <Compile Include="Client\ActivityMonitorTextWriterClient.cs" />
-    <Compile Include="CoreStubs\System.Diagnostics.CodeAnalysis.cs" />
-    <Compile Include="CoreStubs\System.Runtime.Remoting.cs" />
-    <Compile Include="CoreStubs\System.Runtime.Serialization.cs" />
-    <Compile Include="IActivityLogGroup.cs" />
-    <Compile Include="IActivityMonitor.cs" />
-    <Compile Include="IActivityMonitorBoundClient.cs" />
-    <Compile Include="IActivityMonitorClient.cs" />
-    <Compile Include="IActivityMonitorOutput.cs" />
-    <Compile Include="IDisposableActivityMonitor.cs" />
-    <Compile Include="IDisposableGroup.cs" />
-    <Compile Include="Impl\ActivityMonitor.cs" />
-    <Compile Include="Impl\ActivityMonitor.DependentToken.cs" />
-    <Compile Include="Impl\ActivityMonitor.Group.cs" />
-    <Compile Include="Impl\ActivityMonitor.SourceFiltering.cs" />
-    <Compile Include="Impl\ActivityMonitorBridge.cs" />
-    <Compile Include="Impl\ActivityMonitorBridgeTarget.cs" />
-    <Compile Include="Impl\ActivityMonitorExtension.cs" />
-    <Compile Include="Impl\ActivityMonitorExtension.DependentActivity.cs" />
-    <Compile Include="Impl\ActivityMonitorOutput.cs" />
-    <Compile Include="Impl\ActivityMonitorResources.cs" />
-    <Compile Include="Impl\DisposableActivityMonitor.cs" />
-    <Compile Include="Impl\IActivityMonitorBridgeCallback.cs" />
-    <Compile Include="Impl\IActivityMonitorImpl.cs" />
-    <Compile Include="LogFilter.cs" />
-    <Compile Include="LogFilter.MatchExtension.cs" />
-    <Compile Include="LogLevel.cs" />
-    <Compile Include="LogLevelFilter.cs" />
-    <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="SourceLogFilter.cs" />
-    <Compile Include="SystemActivityMonitor.cs" />
+    <Folder Include="Properties\" />
   </ItemGroup>
-  <ItemGroup>
-    <Service Include="{508349B6-6B84-4DF5-91F0-309BEEBAD82D}" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\CK.Core\CK.Core.csproj">
-      <Project>{bc92ae5b-73a2-4b9e-91d2-9163960a17c4}</Project>
-      <Name>CK.Core</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\CK.Text\CK.Text.csproj">
-      <Project>{0518e60c-0cb9-49da-a634-109998526368}</Project>
-      <Name>CK.Text</Name>
-    </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="packages.config" />
-  </ItemGroup>
-  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
-  <Import Project="..\packages\SimpleGitVersionTask.0.21.0\Build\SimpleGitVersionTask.targets" Condition="Exists('..\packages\SimpleGitVersionTask.0.21.0\Build\SimpleGitVersionTask.targets')" />
-  <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
-    <PropertyGroup>
-      <ErrorText>This project references NuGet package(s) that are missing on this computer. Use NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
-    </PropertyGroup>
-    <Error Condition="!Exists('..\packages\SimpleGitVersionTask.0.21.0\Build\SimpleGitVersionTask.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\SimpleGitVersionTask.0.21.0\Build\SimpleGitVersionTask.targets'))" />
-  </Target>
-  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
-       Other similar extension points exist, see Microsoft.Common.targets.
-  <Target Name="BeforeBuild">
-  </Target>
-  <Target Name="AfterBuild">
-  </Target>
-  -->
+
 </Project>

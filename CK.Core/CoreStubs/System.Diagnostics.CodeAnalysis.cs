@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-#if NETSTANDARD1_3
+#if NETSTANDARD1_3 || NETSTANDARD1_6
 
 namespace System.Diagnostics.CodeAnalysis
 {

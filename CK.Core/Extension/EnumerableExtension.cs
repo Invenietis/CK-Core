@@ -213,6 +213,7 @@ namespace CK.Core
             return -1;
         }
 
+#if !NETSTANDARD1_6
         /// <summary>
         /// Internal implementation of Append extension method.
         /// </summary>
@@ -313,5 +314,7 @@ namespace CK.Core
             if( @this == null ) throw new NullReferenceException();
             return new EAppend<TSource>( @this, item );
         }
+#endif
+
     }
 }

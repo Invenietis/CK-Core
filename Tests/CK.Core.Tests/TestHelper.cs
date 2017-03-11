@@ -5,35 +5,30 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using CK.Core;
-using NUnit.Framework;
-using NUnit.Framework.Constraints;
+using Xunit;
+using FluentAssertions;
 
 namespace CK.Core.Tests
 {
-#if CSPROJ
-    static class Does
+
+    public static class Should
     {
-        public static SubstringConstraint Contain( string expected ) => Is.StringContaining( expected );
-
-        public static EndsWithConstraint EndWith( string expected ) => Is.StringEnding( expected );
-
-        public static StartsWithConstraint StartWith( string expected ) => Is.StringStarting( expected );
-
-        public static ConstraintExpression Not => Is.Not;
-
-        public static SubstringConstraint Contain( this ConstraintExpression @this, string expected ) => @this.StringContaining( expected );
+        public static void Throw<T>(Action a) where T : Exception => a.ShouldThrow<T>();
+        public static void Throw<T>(Action a, string because) where T : Exception => a.ShouldThrow<T>(because);
     }
-#else
-    class TestAttribute : Xunit.FactAttribute
+
+#if !NET451
+    class ExcludeFromCodeCoverageAttribute : Attribute
     {
     }
 #endif
+
 
     static partial class TestHelper
     {
         static string _testFolder;
         static string _solutionFolder;
-        
+
         static TestHelper()
         {
         }
@@ -42,7 +37,7 @@ namespace CK.Core.Tests
         {
             get
             {
-                if( _testFolder == null ) InitalizePaths();
+                if (_testFolder == null) InitalizePaths();
                 return _testFolder;
             }
         }
@@ -51,42 +46,42 @@ namespace CK.Core.Tests
         {
             get
             {
-                if( _solutionFolder == null ) InitalizePaths();
+                if (_solutionFolder == null) InitalizePaths();
                 return _solutionFolder;
             }
         }
 
         public static void CleanupTestFolder()
         {
-            DeleteFolder( TestFolder, true );
+            DeleteFolder(TestFolder, true);
         }
 
         static public void ForceGCFullCollect()
         {
-            GC.Collect( GC.MaxGeneration, GCCollectionMode.Forced, true );
+            GC.Collect(GC.MaxGeneration, GCCollectionMode.Forced, true);
         }
 
-        public static void DeleteFolder( string directoryPath, bool recreate = false )
+        public static void DeleteFolder(string directoryPath, bool recreate = false)
         {
             int tryCount = 0;
-            for( ; ; )
+            for (;;)
             {
                 try
                 {
-                    if( Directory.Exists( directoryPath ) ) Directory.Delete( directoryPath, true );
-                    if( recreate )
+                    if (Directory.Exists(directoryPath)) Directory.Delete(directoryPath, true);
+                    if (recreate)
                     {
-                        Directory.CreateDirectory( directoryPath );
-                        File.WriteAllText( Path.Combine( directoryPath, "TestWrite.txt" ), "Test write works." );
-                        File.Delete( Path.Combine( directoryPath, "TestWrite.txt" ) );
+                        Directory.CreateDirectory(directoryPath);
+                        File.WriteAllText(Path.Combine(directoryPath, "TestWrite.txt"), "Test write works.");
+                        File.Delete(Path.Combine(directoryPath, "TestWrite.txt"));
                     }
                     return;
                 }
-                catch( Exception ex )
+                catch (Exception ex)
                 {
-                    if( ++tryCount == 20 ) throw;
-                    Console.WriteLine( "{1} - While cleaning up directory '{0}'. Retrying.", directoryPath, ex.Message );
-                    System.Threading.Thread.Sleep( 100 );
+                    if (++tryCount == 20) throw;
+                    Console.WriteLine("{1} - While cleaning up directory '{0}'. Retrying.", directoryPath, ex.Message);
+                    System.Threading.Thread.Sleep(100);
                 }
             }
         }
@@ -94,20 +89,19 @@ namespace CK.Core.Tests
         static void InitalizePaths()
         {
 #if NET451
-            string p = new Uri( System.Reflection.Assembly.GetExecutingAssembly().CodeBase ).LocalPath;
-            p = Path.GetDirectoryName( Path.GetDirectoryName( Path.GetDirectoryName( p ) ) );
+            string p = new Uri(System.Reflection.Assembly.GetExecutingAssembly().CodeBase).LocalPath;
+            p = Path.GetDirectoryName(p);
 #else
-            string p = Microsoft.Extensions.PlatformAbstractions.PlatformServices.Default.Application.ApplicationBasePath;
+            string p = Directory.GetCurrentDirectory();
 #endif
-            _testFolder = Path.Combine( p, "TestDir" );
-            do
+            while (!File.Exists(Path.Combine(p, "CK-Core.sln")))
             {
-                p = Path.GetDirectoryName( p );
+                p = Path.GetDirectoryName(p);
             }
-            while( !File.Exists( Path.Combine( p, "CK-Core.sln" ) ) );
             _solutionFolder = p;
+            _testFolder = Path.Combine(p, "Tests", "CK.Core.Tests", "TestDir");
 
-            Console.WriteLine( "SolutionFolder is: {1}\r\nTestFolder is: {0}", _testFolder, _solutionFolder );
+            Console.WriteLine( $"SolutionFolder is: {_solutionFolder}\r\nTestFolder is: {_testFolder}" );
             CleanupTestFolder();
         }
     }

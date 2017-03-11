@@ -125,7 +125,7 @@ namespace CK.Core
             }
 
             /// <summary>
-            /// Creates a monitor and executes <see cref="ActivityMonitorExtension.DependentSender.StartDependentActivity">StartDependentActivity</see> on it
+            /// Creates a monitor and executes <see cref="ActivityMonitorExtension.StartDependentActivity(IActivityMonitor, DependentToken, string, int)">StartDependentActivity</see> on it
             /// that opens a root info group with the token information.
             /// </summary>
             /// <param name="configurator">Optionally applies any configuration on the created monitor before opening the root activity group.</param>

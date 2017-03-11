@@ -6,26 +6,19 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using CK.Core;
-using NUnit.Framework;
-using NUnit.Framework.Constraints;
+using FluentAssertions;
+using System.Reflection;
 
 namespace CK.Core.Tests
 {
-#if CSPROJ
-    static class Does
+    public static class Should
     {
-        public static SubstringConstraint Contain( string expected ) => Is.StringContaining( expected );
-
-        public static EndsWithConstraint EndWith( string expected ) => Is.StringEnding( expected );
-
-        public static StartsWithConstraint StartWith( string expected ) => Is.StringStarting( expected );
-
-        public static ConstraintExpression Not => Is.Not;
-
-        public static SubstringConstraint Contain( this ConstraintExpression @this, string expected ) => @this.StringContaining( expected );
+        public static void Throw<T>(Action a) where T : Exception => a.ShouldThrow<T>();
+        public static void Throw<T>(Action a, string because) where T : Exception => a.ShouldThrow<T>(because);
     }
-#else
-    class TestAttribute : Xunit.FactAttribute
+
+#if !NET452
+    class ExcludeFromCodeCoverageAttribute : Attribute
     {
     }
 #endif
@@ -41,10 +34,8 @@ namespace CK.Core.Tests
         static TestHelper()
         {
             _monitor = new ActivityMonitor();
-            // Do not pollute the console by default...
-            // ... but this may be useful sometimes: LogsToConsole does the job.
+            // Do not pollute the console by default... LogsToConsole does the job.
             _console = new ActivityMonitorConsoleClient();
-            LogsToConsole = true;
         }
 
         public static IActivityMonitor ConsoleMonitor => _monitor; 
@@ -107,18 +98,19 @@ namespace CK.Core.Tests
         static void InitializePaths()
         {
             if( _solutionFolder != null ) return;
-#if NET451
-            string p = new Uri( System.Reflection.Assembly.GetExecutingAssembly().CodeBase ).LocalPath;
-#else
-            string p = Microsoft.Extensions.PlatformAbstractions.PlatformServices.Default.Application.ApplicationBasePath;
-#endif
-            do
+            string p = new Uri( typeof(TestHelper).GetTypeInfo().Assembly.CodeBase ).LocalPath;
+            p = Path.GetDirectoryName(p);
+
+            while (!File.Exists(Path.Combine(p, "CK-Core.sln")))
             {
                 p = Path.GetDirectoryName( p );
             }
-            while( !File.Exists( Path.Combine( p, "CK-Core.sln" ) ) );
             _solutionFolder = p;
             _testFolder = Path.Combine( _solutionFolder, "Tests", "CK.ActivityMonitor.Tests", "TestFolder" );
+
+            Console.WriteLine($"SolutionFolder is: {_solutionFolder}.");
+            Console.WriteLine($"TestFolder is: {_testFolder}.");
+            Console.WriteLine($"Core path: {typeof(string).GetTypeInfo().Assembly.CodeBase}.");
             CleanupTestFolder();
         }
 

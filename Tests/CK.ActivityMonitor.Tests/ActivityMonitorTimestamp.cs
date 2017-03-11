@@ -1,13 +1,13 @@
+using FluentAssertions;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using NUnit.Framework;
+using Xunit;
 
 namespace CK.Core.Tests.Monitoring
 {
-    [TestFixture]
     public class ActivityMonitorTimestamp
     {
         class DateCollision : IActivityMonitorClient
@@ -47,7 +47,7 @@ namespace CK.Core.Tests.Monitoring
             }
         }
 
-        [Test]
+        [Fact]
         public void TestNaturalCollision()
         {
             ActivityMonitor m = new ActivityMonitor( applyAutoConfigurations: false );
@@ -67,10 +67,10 @@ namespace CK.Core.Tests.Monitoring
                 {
                 }
             }
-            Assert.That( detect.NbClash, Is.EqualTo( 0 ) );
+             detect.NbClash.Should().Be( 0 );
         }
 
-        [Test]
+        [Fact]
         public void TestArtificialCollision()
         {
             ActivityMonitor m = new ActivityMonitor( applyAutoConfigurations: false );
@@ -86,7 +86,7 @@ namespace CK.Core.Tests.Monitoring
             m.CloseGroup( new DateTimeStamp( now.TimeUtc.AddTicks( -1 ) ) );
             m.CloseGroup( now );
 
-            Assert.That( detect.NbClash, Is.EqualTo( 0 ) );
+             detect.NbClash.Should().Be( 0 );
         }
     }
 }
