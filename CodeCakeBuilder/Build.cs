@@ -1,4 +1,5 @@
-﻿using Cake.Common.Diagnostics;
+﻿using Cake.Common.Build;
+using Cake.Common.Diagnostics;
 using Cake.Common.IO;
 using Cake.Common.Solution;
 using Cake.Common.Tools.DotNetCore;
@@ -28,6 +29,7 @@ namespace CodeCake
             {
                 var prev = @this.ArgumentCustomization;
                 @this.ArgumentCustomization = args => (prev?.Invoke(args) ?? args)
+                        .Append($@"/p:CakeBuild=""true""")
                         .Append($@"/p:Version=""{info.NuGetVersion}""")
                         .Append($@"/p:AssemblyVersion=""{info.MajorMinor}.0""")
                         .Append($@"/p:FileVersion=""{info.FileVersion}""")
@@ -98,9 +100,7 @@ namespace CodeCake
                 .Does(() =>
                 {
                     Cake.CleanDirectories(projects.Select(p => p.Path.GetDirectory().Combine("bin")));
-                    Cake.CleanDirectories(projects.Select(p => p.Path.GetDirectory().Combine("obj")));
                     Cake.CleanDirectories(releasesDir);
-                    Cake.DeleteFiles("Tests/**/TestResult.xml");
                 });
 
             Task("Restore-NuGet-Packages")
@@ -146,7 +146,6 @@ namespace CodeCake
                             {
                                 NoBuild = true,
                                 Configuration = configuration,
-                                //ArgumentCustomization = args => args.Append("-v diag")
                            });
                        }
                    }
@@ -195,18 +194,22 @@ namespace CodeCake
                            || gitInfo.PreReleaseName == "prerelease"
                            || gitInfo.PreReleaseName == "rc")
                        {
-                           PushNuGetPackages("NUGET_API_KEY", "https://api.nuget.org/v3/index.json", nugetPackages);
+                           PushNuGetPackages("NUGET_API_KEY", "https://www.nuget.org/api/v2/package", nugetPackages);
                        }
                        else
                        {
                             // An alpha, beta, delta, epsilon, gamma, kappa goes to invenietis-preview.
-                            PushNuGetPackages("MYGET_PREVIEW_API_KEY", "https://www.myget.org/F/invenietis-preview/api/v3/index.json", nugetPackages);
+                            PushNuGetPackages("MYGET_PREVIEW_API_KEY", "https://www.myget.org/F/invenietis-preview/api/v2/package", nugetPackages);
                        }
                    }
                    else
                    {
                        Debug.Assert(gitInfo.IsValidCIBuild);
-                       PushNuGetPackages("MYGET_CI_API_KEY", "https://www.myget.org/F/invenietis-ci/api/v3/index.json", nugetPackages);
+                       PushNuGetPackages("MYGET_CI_API_KEY", "https://www.myget.org/F/invenietis-ci/api/v2/package", nugetPackages);
+                   }
+                   if (Cake.AppVeyor().IsRunningOnAppVeyor)
+                   {
+                       Cake.AppVeyor().UpdateBuildVersion(gitInfo.SemVer);
                    }
                });
 
