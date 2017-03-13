@@ -142,11 +142,11 @@ namespace CodeCake
                        Cake.Information("Testing: {0}", test);
                        using (Cake.Environment.SetWorkingDirectory(test))
                        {
-                            Cake.DotNetCoreTest(null, new DotNetCoreTestSettings()
-                            {
-                                NoBuild = true,
-                                Configuration = configuration,
-                           });
+                           var s = new DotNetCoreTestSettings();
+                           s.NoBuild = true;
+                           s.Configuration = configuration;
+                           s.AddVersionArguments(gitInfo);
+                           Cake.DotNetCoreTest(null, s);
                        }
                    }
                });
