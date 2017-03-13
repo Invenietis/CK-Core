@@ -4,9 +4,13 @@
 
   <PropertyGroup>
     <TargetFrameworks>netstandard1.3;net451</TargetFrameworks>
-    <AssemblyName>CK.ActivityMonitor</AssemblyName>
-    <PackageId>CK.ActivityMonitor</PackageId>
     <NetStandardImplicitPackageVersion Condition=" '$(TargetFramework)' == 'netstandard1.3' ">1.6.1</NetStandardImplicitPackageVersion>
+    <Description>
+      Hierarchical logger API.
+      Main types are:
+      IActivityMonitor, ActivityMonitor, SystemActivityMonitor, ActivityMonitorClient and standard
+      clients like ActivityMonitorTextWriterClient.
+    </Description>
   </PropertyGroup>
 
   <ItemGroup>

@@ -4,9 +4,12 @@
 
   <PropertyGroup>
     <TargetFrameworks>netstandard1.3;net451</TargetFrameworks>
-    <AssemblyName>CK.ActivityMonitor.StandardSender</AssemblyName>
-    <PackageId>CK.ActivityMonitor.StandardSender</PackageId>
     <NetStandardImplicitPackageVersion Condition=" '$(TargetFramework)' == 'netstandard1.3' ">1.6.1</NetStandardImplicitPackageVersion>
+    <Description>
+      Provides extension methods to send log entries.
+      The OpenTrace/Info/Warn/Error/Fatal and Trace/Info/Warn/Error/Fatal extension methods support
+      file name and line number capture but requires a Send method to emit the log itself.
+    </Description>
   </PropertyGroup>
 
   <ItemGroup>
