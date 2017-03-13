@@ -95,15 +95,32 @@ namespace CodeCake
                        projectsToPublish.Select(p => p.Name).Concatenate());
                });
 
+            Task("Unit-Testing")
+                .IsDependentOn("Check-Repository")
+                .Does(() =>
+                {
+                    Cake.DotNetCoreRestore();
+                    var testDirectories = Cake.ParseSolution(solutionFileName)
+                                                            .Projects
+                                                                .Where(p => p.Name.EndsWith(".Tests"))
+                                                                .Select(p => p.Path.FullPath);
+                    foreach (var test in testDirectories)
+                    {
+                        Cake.DotNetCoreTest(test);
+                    }
+                });
+
             Task("Clean")
                 .IsDependentOn("Check-Repository")
+                .IsDependentOn("Unit-Testing")
                 .Does(() =>
                 {
                     Cake.CleanDirectories(projects.Select(p => p.Path.GetDirectory().Combine("bin")));
                     Cake.CleanDirectories(releasesDir);
                 });
 
-            Task("Restore-NuGet-Packages")
+            Task("Restore-NuGet-Packages-With-Version")
+                .WithCriteria(() => gitInfo.IsValid)
                .IsDependentOn("Clean")
                .Does(() =>
                 {
@@ -111,13 +128,15 @@ namespace CodeCake
                     Cake.DotNetCoreRestore(new DotNetCoreRestoreSettings().AddVersionArguments(gitInfo));
                 });
 
-            Task("Build")
+            Task("Build-With-Version")
+                .WithCriteria(() => gitInfo.IsValid)
                 .IsDependentOn("Check-Repository")
+                .IsDependentOn("Unit-Testing")
                 .IsDependentOn("Clean")
-                .IsDependentOn("Restore-NuGet-Packages")
+                .IsDependentOn("Restore-NuGet-Packages-With-Version")
                 .Does(() =>
                 {
-                    foreach (var p in projects)
+                    foreach (var p in projectsToPublish)
                     {
                         Cake.DotNetCoreBuild(p.Path.GetDirectory().FullPath,
                             new DotNetCoreBuildSettings().AddVersionArguments(gitInfo, s =>
@@ -127,33 +146,9 @@ namespace CodeCake
                     }
                 });
 
-            Task("Unit-Testing")
-                .IsDependentOn("Build")
-                .Does(() =>
-               {
-                   Cake.CreateDirectory(releasesDir);
-                   var testDirectories = Cake.ParseSolution(solutionFileName)
-                                            .Projects
-                                                .Where(p => p.Name.EndsWith(".Tests"))
-                                                .Select(p => p.Path.GetDirectory().FullPath);
-
-                   foreach (var test in testDirectories)
-                   {
-                       Cake.Information("Testing: {0}", test);
-                       using (Cake.Environment.SetWorkingDirectory(test))
-                       {
-                           var s = new DotNetCoreTestSettings();
-                           s.NoBuild = true;
-                           s.Configuration = configuration;
-                           s.AddVersionArguments(gitInfo);
-                           Cake.DotNetCoreTest(null, s);
-                       }
-                   }
-               });
-
             Task("Create-NuGet-Packages")
-                .IsDependentOn("Unit-Testing")
                 .WithCriteria(() => gitInfo.IsValid)
+                .IsDependentOn("Build-With-Version")
                 .Does(() =>
                {
                    Cake.CreateDirectory(releasesDir);
@@ -171,8 +166,8 @@ namespace CodeCake
                });
 
             Task("Push-NuGet-Packages")
-                .IsDependentOn("Create-NuGet-Packages")
                 .WithCriteria(() => gitInfo.IsValid)
+                .IsDependentOn("Create-NuGet-Packages")
                 .Does(() =>
                {
                    IEnumerable<FilePath> nugetPackages = Cake.GetFiles(releasesDir.Path + "/*.nupkg");
