@@ -68,7 +68,7 @@ namespace CodeCake
             SimpleRepositoryInfo gitInfo = Cake.GetSimpleRepositoryInfo();
 
             // Configuration is either "Debug" or "Release".
-            string configuration = null;
+            string configuration = "Debug";
 
             Task("Check-Repository")
                 .Does(() =>
@@ -83,10 +83,11 @@ namespace CodeCake
                        else throw new Exception("Repository is not ready to be published.");
                    }
 
-                   configuration = gitInfo.IsValidRelease
-                                   && (gitInfo.PreReleaseName.Length == 0 || gitInfo.PreReleaseName == "rc")
-                                   ? "Release"
-                                   : "Debug";
+                   if( gitInfo.IsValidRelease
+                        && (gitInfo.PreReleaseName.Length == 0 || gitInfo.PreReleaseName == "rc") )
+                   {
+                       configuration = "Release";
+                   }
 
                    Cake.Information("Publishing {0} projects with version={1} and configuration={2}: {3}",
                        projectsToPublish.Count(),
