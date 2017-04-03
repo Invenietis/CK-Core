@@ -32,7 +32,7 @@
     <Company>Invenietis</Company>
     <Authors>Invenietis</Authors>
 
-    <!-- Properties that are solution depdendants. -->
+    <!-- Properties that are solution depdendents. -->
     <ProductName>CK-Framework</ProductName>
     <PackageReleaseNotes>https://github.com/Invenietis/ck-core/releases</PackageReleaseNotes>
     <PackageLicenseUrl>https://opensource.org/licenses/LGPL-3.0</PackageLicenseUrl>
