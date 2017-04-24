@@ -33,7 +33,7 @@ namespace CK.Core
 {
     /// <summary>
     /// Immutable capture of a double <see cref="LogLevelFilter"/>. One for <see cref="Line"/> and one for <see cref="Group"/>.
-    /// This value type exposes predefined configured couples: <see cref="Debug"/> (full trace), <see cref="Verbose"/>, <see cref="Monitor"/>, 
+    /// This value type exposes predefined configured couples: <see cref="Debug"/>, <see cref="Trace"/> (full trace), <see cref="Verbose"/>, <see cref="Monitor"/>, 
     /// <see cref="Terse"/>, <see cref="Release"/> and <see cref="Off"/> (no log at all).
     /// </summary>
     [Serializable]
@@ -48,7 +48,12 @@ namespace CK.Core
         /// <summary>
         /// Debug filter enables full <see cref="LogLevelFilter.Trace"/> for both <see cref="Line"/> and <see cref="Group"/>.
         /// </summary>
-        static public readonly LogFilter Debug = new LogFilter( LogLevelFilter.Trace, LogLevelFilter.Trace );
+        static public readonly LogFilter Debug = new LogFilter(LogLevelFilter.Debug, LogLevelFilter.Debug);
+
+        /// <summary>
+        /// Trace filter enables full <see cref="LogLevelFilter.Trace"/> for both <see cref="Line"/> and <see cref="Group"/>.
+        /// </summary>
+        static public readonly LogFilter Trace = new LogFilter(LogLevelFilter.Trace, LogLevelFilter.Trace);
 
         /// <summary>
         /// Verbose <see cref="LogLevelFilter.Trace"/> all <see cref="Group"/>s but limits <see cref="Line"/> to <see cref="LogLevelFilter.Info"/> level.
@@ -200,15 +205,16 @@ namespace CK.Core
         /// <returns>A {group,line} string.</returns>
         public override string ToString()
         {
-            if( this == LogFilter.Undefined ) return "Undefined";
-            if( this == LogFilter.Debug ) return "Debug";
-            if( this == LogFilter.Verbose ) return "Verbose";
-            if( this == LogFilter.Monitor ) return "Monitor";
-            if( this == LogFilter.Terse ) return "Terse";
-            if( this == LogFilter.Release ) return "Release";
-            if( this == LogFilter.Off ) return "Off";
-            if( this == LogFilter.Invalid ) return "Invalid";
-            return String.Format( "{{{0},{1}}}", Group, Line );
+            if (this == LogFilter.Undefined) return "Undefined";
+            if (this == LogFilter.Debug) return "Debug";
+            if (this == LogFilter.Trace) return "Trace";
+            if (this == LogFilter.Verbose) return "Verbose";
+            if (this == LogFilter.Monitor) return "Monitor";
+            if (this == LogFilter.Terse) return "Terse";
+            if (this == LogFilter.Release) return "Release";
+            if (this == LogFilter.Off) return "Off";
+            if (this == LogFilter.Invalid) return "Invalid";
+            return $"{{{Group},{Line}}}";
         }
 
         /// <summary>
@@ -234,8 +240,8 @@ namespace CK.Core
         }
 
         /// <summary>
-        /// Parses the filter: it can be a predefined filter as ("Undefined", "Debug", "Verbose", etc.) 
-        /// or as {GroupLogLevelFilter,LineLogLevelFilter} pairs like "{None,None}", "{Error,Trace}".
+        /// Parses the filter: it can be a predefined filter as ("Undefined", "Debug", "Trace", "Verbose", etc.) 
+        /// or as {GroupLogLevelFilter,LineLogLevelFilter} pairs like "{None,None}", "{Error,Debug}".
         /// </summary>
         /// <param name="filter">Predefined filter as (Undefined, Debug, Verbose, etc.) or as {LineLogLevelFilter,GroupLogLevelFilter} like {None,None}, {Error,Trace}.</param>
         /// <returns>The filter.</returns>

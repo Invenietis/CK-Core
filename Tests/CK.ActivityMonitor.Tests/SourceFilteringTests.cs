@@ -75,7 +75,7 @@ namespace CK.Core.Tests.Monitoring
                 m.MinimalFilter = LogFilter.Terse;
                 m.Trace().Send( "NOSHOW" );
                 m.OpenTrace().Send( "NOSHOW" );
-                ActivityMonitor.SourceFilter.SetOverrideFilter( LogFilter.Debug );
+                ActivityMonitor.SourceFilter.SetOverrideFilter( LogFilter.Trace );
                 m.Trace().Send( "Trace1" );
                 m.OpenTrace().Send( "OTrace1" );
                 ActivityMonitor.SourceFilter.SetOverrideFilter( LogFilter.Undefined );
@@ -112,7 +112,7 @@ namespace CK.Core.Tests.Monitoring
                 m.MinimalFilter = LogFilter.Terse;
                 m.Trace().Send( "NOSHOW" );
                 m.OpenTrace().Send( "NOSHOW" );
-                ActivityMonitor.SourceFilter.SetMinimalFilter( LogFilter.Debug );
+                ActivityMonitor.SourceFilter.SetMinimalFilter( LogFilter.Trace );
                 m.Trace().Send( "Trace1" );
                 m.OpenTrace().Send( "OTrace1" );
                 ActivityMonitor.SourceFilter.SetMinimalFilter( LogFilter.Undefined );

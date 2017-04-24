@@ -154,11 +154,6 @@ namespace CK.Core
         }
 
         /// <summary>
-        /// The key in the application settings used to initialize the <see cref="RootLogPath"/> if it exists in <see cref="AppSettings.Default"/>.
-        /// </summary>
-        static public readonly string AppSettingsKey;
-
-        /// <summary>
         /// The directory in <see cref="RootLogPath"/> into which errors file will be created is "CriticalErrors/".
         /// </summary>
         static public readonly string SubDirectoryName;
@@ -215,9 +210,6 @@ namespace CK.Core
         /// <para>
         /// When not null, it necessarily ends with a <see cref="Path.DirectorySeparatorChar"/>.
         /// </para>
-        /// <para>
-        /// When not sets, the first get initializes it with the value of <see cref="AppSettingsKey"/> in <see cref="AppSettings.Default"/> if it exists.
-        /// </para>
         /// </remarks>
         static public string RootLogPath
         {
@@ -239,23 +231,23 @@ namespace CK.Core
                     string dirName = value + SubDirectoryName;
                     if( !Directory.Exists( dirName ) ) Directory.CreateDirectory( dirName );
                     string testWriteFile = Path.Combine( dirName, Guid.NewGuid().ToString() );
-                    File.AppendAllText( testWriteFile, AppSettingsKey );
+                    File.AppendAllText( testWriteFile, testWriteFile );
                     File.Delete( testWriteFile );
                     _logPath = value;
                 }
                 catch( Exception ex )
                 {
-                    throw new CKException( ex, ActivityMonitorResources.InvalidRootLogPath, value, SubDirectoryName, AppSettingsKey );
+                    throw new CKException( ex, ActivityMonitorResources.InvalidRootLogPath );
                 }
             }
         }
 
         /// <summary>
-        /// Checks that <see cref="RootLogPath"/> is correctly configured by throwing a detailed exception if not. 
+        /// Checks that <see cref="RootLogPath"/> is correctly configured by throwing a exception if not. 
         /// </summary>
         public static void AssertRootLogPathIsSet()
         {
-            if( RootLogPath == null ) throw new CKException( ActivityMonitorResources.RootLogPathMustBeSet, AppSettingsKey );
+            if( RootLogPath == null ) throw new CKException( ActivityMonitorResources.RootLogPathMustBeSet );
         }
 
         /// <summary>

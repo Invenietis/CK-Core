@@ -181,7 +181,7 @@ namespace CK.Core.Tests.Monitoring
                 pseudoConsole.MinimalFilter = InfoInfo;
                 TestHelper.ConsoleMonitor.MinimalFilter = InfoInfo;
                 // The monitor that is bridged to the Console accepts everything.
-                monitor.MinimalFilter = LogFilter.Debug;
+                monitor.MinimalFilter = LogFilter.Trace;
 
                 int i = 0;
                 for (; i < 60; i++) monitor.OpenInfo().Send("Not Bridged n°{0}", i);
@@ -253,9 +253,9 @@ namespace CK.Core.Tests.Monitoring
                 m.UnfilteredOpenGroup(ActivityMonitor.Tags.Empty, LogLevel.Fatal, null, "NOSHOW-2", m.NextLogTime(), null);
                 m.UnfilteredLog(ActivityMonitor.Tags.Empty, LogLevel.Error, "NOSHOW-3", m.NextLogTime(), null);
                 // Off will be restored by the group closing.
-                m.MinimalFilter = LogFilter.Debug;
+                m.MinimalFilter = LogFilter.Trace;
                 m.CloseGroup("NOSHOW-4");
-                m.MinimalFilter = LogFilter.Debug;
+                m.MinimalFilter = LogFilter.Trace;
                 m.Trace().Send("Trace2");
 
                 var s = c.ToString();
@@ -281,7 +281,7 @@ namespace CK.Core.Tests.Monitoring
         }
 
         [Fact]
-        public void DefaultImpl()
+        public void display_conclusions()
         {
             using (LockFact())
             {
@@ -300,11 +300,11 @@ namespace CK.Core.Tests.Monitoring
                         using (monitor.OpenTrace().Send("MainGroup").ConcludeWith(() => "EndMainGroup"))
                         {
                             monitor.Trace().Send(tag1, "First");
-                            using (monitor.SetAutoTags(tag1))
+                            using (monitor.TemporarilySetAutoTags(tag1))
                             {
                                 monitor.Trace().Send("Second");
                                 monitor.Trace().Send(tag3, "Third");
-                                using (monitor.SetAutoTags(tag2))
+                                using (monitor.TemporarilySetAutoTags(tag2))
                                 {
                                     monitor.Info().Send("First");
                                 }
@@ -343,7 +343,7 @@ namespace CK.Core.Tests.Monitoring
         }
 
         [Fact]
-        public void DumpException()
+        public void exceptions_are_deeply_dumped()
         {
             using (LockFact())
             {
@@ -382,7 +382,29 @@ namespace CK.Core.Tests.Monitoring
         }
 
         [Fact]
-        public void DumpAggregatedException()
+        public void ending_a_monitor_send_an_unfilitered_MonitorEnd_tagged_info()
+        {
+            using (LockFact())
+            {
+                IActivityMonitor m = new ActivityMonitor(applyAutoConfigurations: false);
+                var rawLog = new StupidStringClient();
+                m.Output.RegisterClient(rawLog);
+                m.OpenFatal().Send("a group");
+                // OpenFatal or OpenError sets their scoped filter to Debug.
+                m.MinimalFilter = LogFilter.Release;
+                m.OpenInfo().Send("a (filtered) group");
+                m.Fatal().Send("a line");
+                m.Info().Send("a (filtered) line");
+                m.End();
+                m.CloseGroup().Should().BeFalse();
+                string logs = rawLog.ToString();
+                logs.Should().NotContain("(filtered)");
+                logs.Should().Match("*a group*a line*Done.*", "We used the default 'Done.' end text.");
+            }
+        }
+
+        [Fact]
+        public void AggregatedException_are_handled_specifically()
         {
             using (LockFact())
             {
@@ -461,13 +483,13 @@ namespace CK.Core.Tests.Monitoring
                 using (l.Output.CreateBridgeTo(TestHelper.ConsoleMonitor.Output.BridgeTarget))
                 {
                     var log = l.Output.RegisterClient(new StupidStringClient());
-                    using (l.SetMinimalFilter(LogLevelFilter.Error, LogLevelFilter.Error))
+                    using (l.TemporarilySetMinimalFilter(LogLevelFilter.Error, LogLevelFilter.Error))
                     {
                         l.Trace().Send("NO SHOW");
                         l.Info().Send("NO SHOW");
                         l.Warn().Send("NO SHOW");
                         l.Error().Send("Error n°1.");
-                        using (l.SetMinimalFilter(WarnWarn))
+                        using (l.TemporarilySetMinimalFilter(WarnWarn))
                         {
                             l.Trace().Send("NO SHOW");
                             l.Info().Send("NO SHOW");
@@ -926,7 +948,7 @@ namespace CK.Core.Tests.Monitoring
                 StringBuilder sb = new StringBuilder();
 
                 IActivityMonitor d = new ActivityMonitor();
-                d.SetMinimalFilter(LogFilter.Debug);
+                d.TemporarilySetMinimalFilter(LogFilter.Trace);
 
                 var c = new ActivityMonitorTextWriterClient(s => sb.Append(s), LogFilter.Release);
                 d.Output.RegisterClient(c);

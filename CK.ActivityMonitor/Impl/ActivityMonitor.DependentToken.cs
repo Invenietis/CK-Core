@@ -125,22 +125,6 @@ namespace CK.Core
             }
 
             /// <summary>
-            /// Creates a monitor and executes <see cref="ActivityMonitorExtension.StartDependentActivity(IActivityMonitor, DependentToken, string, int)">StartDependentActivity</see> on it
-            /// that opens a root info group with the token information.
-            /// </summary>
-            /// <param name="configurator">Optionally applies any configuration on the created monitor before opening the root activity group.</param>
-            /// <param name="fileName">Source file name of the emitter (automatically injected by C# compiler but can be explicitly set).</param>
-            /// <param name="lineNumber">Line number in the source file (automatically injected by C# compiler but can be explicitly set).</param>
-            /// <returns>An activity monitor that must be disposed when the activity ends (to close any opened groups).</returns>
-            public IDisposableActivityMonitor CreateDependentMonitor( Action<IActivityMonitor> configurator = null, [CallerFilePath]string fileName = null, [CallerLineNumber]int lineNumber = 0 )
-            {
-                var m = new DisposableActivityMonitor();
-                if( configurator != null ) configurator( m );
-                Start( this, m, fileName, lineNumber );
-                return m;
-            }
-
-            /// <summary>
             /// Tries to parse a launch or create message. 
             /// </summary>
             /// <param name="message">The message to parse.</param>
@@ -278,10 +262,10 @@ namespace CK.Core
                 {
                     string currentTopic = token.Topic;
                     monitor.SetTopic( token.Topic, fileName, lineNumber );
-                    var g = monitor.UnfilteredOpenGroup( ActivityMonitor.Tags.StartDependentActivity, LogLevel.Info, null, msg, monitor.NextLogTime(), null, fileName, lineNumber );
+                    var g = monitor.UnfilteredOpenGroup( Tags.StartDependentActivity, LogLevel.Info, null, msg, monitor.NextLogTime(), null, fileName, lineNumber );
                     return Util.CreateDisposableAction( () => { g.Dispose(); monitor.SetTopic( currentTopic, fileName, lineNumber ); } );
                 }
-                return monitor.UnfilteredOpenGroup( ActivityMonitor.Tags.StartDependentActivity, LogLevel.Info, null, msg, monitor.NextLogTime(), null, fileName, lineNumber );
+                return monitor.UnfilteredOpenGroup( Tags.StartDependentActivity, LogLevel.Info, null, msg, monitor.NextLogTime(), null, fileName, lineNumber );
             }
         }
     }

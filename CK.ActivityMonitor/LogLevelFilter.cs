@@ -40,25 +40,29 @@ namespace CK.Core
         /// </summary>
         None = 0,
         /// <summary>
-        /// Everything is logged (<see cref="LogLevel.Trace"/>).
+        /// Everything is logged (<see cref="LogLevel.Debug"/>).
         /// </summary>
-        Trace = 1,
+        Debug = 1,
+        /// <summary>
+        /// <see cref="LogLevel.Trace"/> and above is logged..
+        /// </summary>
+        Trace = 2,
         /// <summary>
         /// Only <see cref="LogLevel.Info"/> and above is logged.
         /// </summary>
-        Info = 2,
+        Info = 4,
         /// <summary>
         /// Only <see cref="LogLevel.Warn"/> and above is logged.
         /// </summary>
-        Warn = 4,
+        Warn = 8,
         /// <summary>
         /// Only <see cref="LogLevel.Error"/> and above is logged.
         /// </summary>
-        Error = 8,
+        Error = 16,
         /// <summary>
         /// Only <see cref="LogLevel.Fatal"/> is logged.
         /// </summary>
-        Fatal = 16,
+        Fatal = 32,
         /// <summary>
         /// Do not log anything.
         /// </summary>

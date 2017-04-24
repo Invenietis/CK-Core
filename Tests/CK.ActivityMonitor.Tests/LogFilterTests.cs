@@ -36,20 +36,22 @@ namespace CK.Core.Tests.Monitoring
         [Fact]
         public void ToStringTests()
         {
-             LogFilter.Undefined.ToString().Should().Be( "Undefined"  );
-             LogFilter.Terse.ToString().Should().Be( "Terse"  );
-             LogFilter.Off.ToString().Should().Be( "Off"  );
-             LogFilter.Debug.ToString().Should().Be( "Debug"  );
-             LogFilter.Invalid.ToString().Should().Be( "Invalid"  );
-             new LogFilter( LogLevelFilter.Warn, LogLevelFilter.Error ).ToString().Should().Be( "{Warn,Error}"  );
+            LogFilter.Undefined.ToString().Should().Be("Undefined");
+            LogFilter.Terse.ToString().Should().Be("Terse");
+            LogFilter.Off.ToString().Should().Be("Off");
+            LogFilter.Trace.ToString().Should().Be("Trace");
+            LogFilter.Debug.ToString().Should().Be("Debug");
+            LogFilter.Invalid.ToString().Should().Be("Invalid");
+            new LogFilter(LogLevelFilter.Warn, LogLevelFilter.Error).ToString().Should().Be("{Warn,Error}");
         }
 
         [Fact]
         public void ParseTests()
         {
              LogFilter.Parse( "Undefined" ).Should().Be( LogFilter.Undefined  );
-             LogFilter.Parse( "Debug" ).Should().Be( LogFilter.Debug  );
-             LogFilter.Parse( "Verbose" ).Should().Be( LogFilter.Verbose  );
+            LogFilter.Parse("Debug").Should().Be(LogFilter.Debug);
+            LogFilter.Parse("Trace").Should().Be(LogFilter.Trace);
+            LogFilter.Parse( "Verbose" ).Should().Be( LogFilter.Verbose  );
              LogFilter.Parse( "Monitor" ).Should().Be( LogFilter.Monitor  );
              LogFilter.Parse( "Terse" ).Should().Be( LogFilter.Terse  );
              LogFilter.Parse( "Release" ).Should().Be( LogFilter.Release  );

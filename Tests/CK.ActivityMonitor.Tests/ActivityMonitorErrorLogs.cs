@@ -156,7 +156,7 @@ namespace CK.Core.Tests.Monitoring
             for( int i = 0; i < OperationCount; ++i )
             {
                 double op = Rand.NextDouble();
-                if( op < 1.0 / 60 ) _monitor.MinimalFilter = _monitor.MinimalFilter == LogFilter.Debug ? LogFilter.Verbose : LogFilter.Debug;
+                if( op < 1.0 / 60 ) _monitor.MinimalFilter = _monitor.MinimalFilter == LogFilter.Trace ? LogFilter.Verbose : LogFilter.Trace;
                 
                 if( op < 1.0/3 ) _monitor.Info().Send( "OP-{0}-{1}", NumMonitor, i );
                 else if( op < 2.0/3 ) _monitor.OpenInfo().Send( "G-OP-{0}-{1}", NumMonitor, i );

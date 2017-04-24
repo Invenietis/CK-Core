@@ -91,6 +91,13 @@ namespace CK.Core
             static public readonly CKTrait MonitorTopicChanged;
 
             /// <summary>
+            /// A "MonitorEnd" tag is emitted by <see cref="ActivityMonitorExtension.End"/>.
+            /// This indicates the logical end of life of the monitor. It should not be used anymore (but technically can
+            /// be used).
+            /// </summary>
+            static public readonly CKTrait MonitorEnd;
+
+            /// <summary>
             /// Simple shortcut to <see cref="CKTraitContext.FindOrCreate(string)"/>.
             /// </summary>
             /// <param name="tags">Atomic tag or multiple tags separated by pipes (|).</param>
@@ -109,6 +116,7 @@ namespace CK.Core
                 MonitorTopicChanged = Context.FindOrCreate( "MonitorTopicChanged" );
                 CreateDependentActivity = Context.FindOrCreate( "dep:CreateActivity" );
                 StartDependentActivity = Context.FindOrCreate( "dep:StartActivity" );
+                MonitorEnd = Context.FindOrCreate("MonitorEnd");
             }
         }
 
@@ -131,8 +139,7 @@ namespace CK.Core
         /// <summary>
         /// Gets or sets the default filter that should be used when the <see cref="IActivityMonitor.ActualFilter"/> is <see cref="LogFilter.Undefined"/>.
         /// This configuration is per application domain (the backing field is static).
-        /// It defaults to <see cref="LogFilter.Undefined"/>: it has the same effect as setting it to <see cref="LogFilter.Debug"/> (i.e. sending everything) when
-        /// no other configuration exists.
+        /// It defaults to <see cref="LogFilter.Trace"/>.
         /// </summary>
         public static LogFilter DefaultFilter
         {
@@ -177,7 +184,7 @@ namespace CK.Core
         {
             CriticalErrorCollector = new CriticalErrorCollector();
             AutoConfiguration = null;
-            _defaultFilterLevel = LogFilter.Undefined;
+            _defaultFilterLevel = LogFilter.Trace;
             _lockDefaultFilterLevel = new object();
         }
 
@@ -639,7 +646,7 @@ namespace CK.Core
         /// <remarks>
         /// <para>
         /// Opening a group does not change the current <see cref="MinimalFilter"/>, except when opening a <see cref="LogLevel.Fatal"/> or <see cref="LogLevel.Error"/> group:
-        /// in such case, the MinimalFilter is automatically sets to <see cref="LogFilter.Debug"/> to capture all potential information inside the error group.
+        /// in such case, the MinimalFilter is automatically sets to <see cref="LogFilter.Trace"/> to capture all potential information inside the error group.
         /// </para>
         /// <para>
         /// Changes to the monitor's current Filter or AutoTags that occur inside a group are automatically restored to their original values when the group is closed.
@@ -702,12 +709,12 @@ namespace CK.Core
         /// An untyped object is used here to easily and efficiently accommodate both string and already existing ActivityLogGroupConclusion.
         /// When a List&lt;ActivityLogGroupConclusion&gt; is used, it will be directly used to collect conclusion objects (new conclusions will be added to it). This is an optimization.
         /// </remarks>
-        public virtual void CloseGroup( DateTimeStamp logTime, object userConclusion = null )
+        public virtual bool CloseGroup( DateTimeStamp logTime, object userConclusion = null )
         {
             ReentrantAndConcurrentCheck();
             try
             {
-                DoCloseGroup( logTime, userConclusion );
+                return DoCloseGroup( logTime, userConclusion );
             }
             finally
             {
@@ -715,7 +722,7 @@ namespace CK.Core
             }
         }
 
-        void DoCloseGroup( DateTimeStamp logTime, object userConclusion = null )
+        bool DoCloseGroup( DateTimeStamp logTime, object userConclusion = null )
         {
             Debug.Assert( _enteredThreadId == Thread.CurrentThread.ManagedThreadId );
             Group g = _current;
@@ -809,7 +816,9 @@ namespace CK.Core
                 string prevTopic = g.PreviousTopic;
                 if( prevTopic != null ) DoSetTopic( prevTopic, g.FileName, g.LineNumber );
                 g.GroupClosed();
+                return true;
             }
+            return false;
         }
 
         /// <summary>

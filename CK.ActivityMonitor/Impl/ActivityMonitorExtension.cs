@@ -12,7 +12,6 @@ namespace CK.Core
     /// </summary>
     public static partial class ActivityMonitorExtension
     {
-
         /// <summary>
         /// Returns a valid <see cref="DateTimeStamp"/> that will be used for a log: it is based on <see cref="DateTime.UtcNow"/> and has 
         /// a <see cref="DateTimeStamp.Uniquifier"/> that will not be changed when emitting the next log.
@@ -22,6 +21,19 @@ namespace CK.Core
         public static DateTimeStamp NextLogTime( this IActivityMonitor @this )
         {
             return new DateTimeStamp( @this.LastLogTime, DateTime.UtcNow );
+        }
+
+        /// <summary>
+        /// Closes all opened groups and sends an unfiltered <see cref="ActivityMonitor.Tags.MonitorEnd"/> log.
+        /// </summary>
+        /// <param name="text">Optional log text (defaults to "Done.").</param>
+        /// <param name="fileName">Source file name of the emitter (automatically injected by C# compiler but can be explicitly set).</param>
+        /// <param name="lineNumber">Line number in the source file (automatically injected by C# compiler but can be explicitly set).</param>
+        /// <param name="this">This <see cref="IActivityMonitor"/>.</param>
+        public static void End(this IActivityMonitor @this, string text = null, [CallerFilePath]string fileName = null, [CallerLineNumber]int lineNumber = 0)
+        {
+            while (@this.CloseGroup(NextLogTime(@this)));
+            @this.UnfilteredLog(ActivityMonitor.Tags.MonitorEnd, LogLevel.Info, text ?? "Done.", NextLogTime(@this), null, fileName, lineNumber);
         }
 
         /// <summary>
@@ -122,7 +134,7 @@ namespace CK.Core
         /// <para>
         /// Opening a group does not change the current <see cref="IActivityMonitor.MinimalFilter">MinimalFilter</see>, except when 
         /// opening a <see cref="LogLevel.Fatal"/> or <see cref="LogLevel.Error"/> group: in such case, the Filter is automatically 
-        /// sets to <see cref="LogFilter.Debug"/> to capture all potential information inside the error group.
+        /// sets to <see cref="LogFilter.Trace"/> to capture all potential information inside the error group.
         /// </para>
         /// <para>
         /// Changes to the monitor's current Filter or AutoTags that occur inside a group are automatically restored to their original values when the group is closed.
@@ -149,9 +161,9 @@ namespace CK.Core
         /// An untyped object is used here to easily and efficiently accommodate both string and already existing ActivityLogGroupConclusion.
         /// When a List&lt;ActivityLogGroupConclusion&gt; is used, it will be directly used to collect conclusion objects (new conclusions will be added to it). This is an optimization.
         /// </remarks>
-        public static void CloseGroup( this IActivityMonitor @this, object userConclusion = null )
+        public static bool CloseGroup( this IActivityMonitor @this, object userConclusion = null )
         {
-            @this.CloseGroup( NextLogTime( @this ), userConclusion );
+            return @this.CloseGroup( NextLogTime( @this ), userConclusion );
         }
         
         #region Bridge: FindBridgeTo, CreateBridgeTo and UnbridgeTo.
@@ -311,7 +323,7 @@ namespace CK.Core
         #endregion
 
 
-        #region IActivityMonitor.SetMinimalFilter( ... )
+        #region IActivityMonitor.TemporarilySetMinimalFilter( ... )
 
         class LogFilterSentinel : IDisposable
         {
@@ -335,7 +347,7 @@ namespace CK.Core
         /// <summary>
         /// Sets filter levels on this <see cref="IActivityMonitor"/>. The current <see cref="IActivityMonitor.MinimalFilter"/> will be automatically 
         /// restored when the returned <see cref="IDisposable"/> will be disposed.
-        /// Even if when a Group is closed, the IActivityMonitor.Filter is automatically restored to its original value 
+        /// Note that even if closing a Group automatically restores the IActivityMonitor.MinimalFilter to its original value 
         /// (captured when the Group was opened), this may be useful to locally change the filter level without bothering to restore the 
         /// initial value (this is what OpenGroup/CloseGroup do with both the Filter and the AutoTags).
         /// </summary>
@@ -343,7 +355,7 @@ namespace CK.Core
         /// <param name="group">The new filter level for group.</param>
         /// <param name="line">The new filter level for log line.</param>
         /// <returns>A <see cref="IDisposable"/> object that will restore the current level.</returns>
-        public static IDisposable SetMinimalFilter( this IActivityMonitor @this, LogLevelFilter group, LogLevelFilter line )
+        public static IDisposable TemporarilySetMinimalFilter( this IActivityMonitor @this, LogLevelFilter group, LogLevelFilter line )
         {
             return new LogFilterSentinel( @this, new LogFilter( group, line ) );
         }
@@ -358,15 +370,15 @@ namespace CK.Core
         /// <param name="this">This <see cref="IActivityMonitor"/> object.</param>
         /// <param name="f">The new filter.</param>
         /// <returns>A <see cref="IDisposable"/> object that will restore the current level.</returns>
-        public static IDisposable SetMinimalFilter( this IActivityMonitor @this, LogFilter f )
+        public static IDisposable TemporarilySetMinimalFilter( this IActivityMonitor @this, LogFilter f )
         {
             return new LogFilterSentinel( @this, f );
         }
 
-        #endregion IActivityMonitor.SetMinimalFilter( ... )
+        #endregion IActivityMonitor.TemporarilySetMinimalFilter( ... )
 
 
-        #region IActivityMonitor.SetAutoTags( Tags, SetOperation )
+        #region IActivityMonitor.TemporarilySetAutoTags( Tags, SetOperation )
 
         class TagsSentinel : IDisposable
         {
@@ -398,7 +410,7 @@ namespace CK.Core
         /// <param name="tags">Tags to combine with the current one.</param>
         /// <param name="operation">Defines the way the new <paramref name="tags"/> must be combined with current ones.</param>
         /// <returns>A <see cref="IDisposable"/> object that will restore the current tag when disposed.</returns>
-        public static IDisposable SetAutoTags( this IActivityMonitor @this, CKTrait tags, SetOperation operation = SetOperation.Union )
+        public static IDisposable TemporarilySetAutoTags( this IActivityMonitor @this, CKTrait tags, SetOperation operation = SetOperation.Union )
         {
             return new TagsSentinel( @this, @this.AutoTags.Apply( tags, operation ) );
         }
@@ -519,6 +531,7 @@ namespace CK.Core
         /// <param name="warn">For Warnings.</param>
         /// <param name="info">For Infos.</param>
         /// <param name="trace">For Traces.</param>
+        /// <param name="debug">For Debugs.</param>
         /// <returns>A lovely path.</returns>
         public static string ToStringPath( this IEnumerable<ActivityMonitorPathCatcher.PathElement> @this,
             string elementSeparator = "> ",
@@ -529,7 +542,8 @@ namespace CK.Core
             string error = "[Error]- ",
             string warn = "[Warning]- ",
             string info = "[Info]- ",
-            string trace = "" )
+            string trace = "",
+            string debug = "[Debug]- " )
         {
             if( @this == null ) return String.Empty;
             StringBuilder b = new StringBuilder();
@@ -543,8 +557,9 @@ namespace CK.Core
                     case LogLevel.Error: prefix = error; break;
                     case LogLevel.Warn: prefix = warn; break;
                     case LogLevel.Info: prefix = info; break;
+                    case LogLevel.Debug: prefix = debug; break;
                 }
-                if( e.GroupConclusion != null ) b.AppendFormat( withConclusionFormat, prefix, e.Text, e.GroupConclusion.ToStringGroupConclusion( conclusionSeparator ) );
+                if ( e.GroupConclusion != null ) b.AppendFormat( withConclusionFormat, prefix, e.Text, e.GroupConclusion.ToStringGroupConclusion( conclusionSeparator ) );
                 else b.AppendFormat( withoutConclusionFormat, prefix, e.Text );
             }
             return b.ToString();

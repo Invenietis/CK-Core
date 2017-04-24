@@ -4,12 +4,15 @@
   <!-- SharedDir is the /Common directory. -->
   <PropertyGroup>
     <SharedDir>$(MSBuildThisFileDirectory)</SharedDir>
+    <IsTestProject Condition="$(MSBuildProjectName.EndsWith('.Tests'))">true</IsTestProject>
   </PropertyGroup>
 
-  <!-- Xml documentation is generated in Release or during Cake builds. -->
-  <PropertyGroup Condition=" '$(CakeBuild)' == 'true' or '$(Configuration)' == 'Release' ">
+  <!-- Xml documentation is generated in Release or during Cake builds (except for tests projects). -->
+  <PropertyGroup Condition=" '$(IsTestProject)' != 'true' And ('$(CakeBuild)' == 'true' Or '$(Configuration)' == 'Release') ">
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
   </PropertyGroup>
+
+  
   
   <!-- 
     When building from the CI (ie. from Cake, hence directly with the msbuild tool, SolutionDir is not defined),

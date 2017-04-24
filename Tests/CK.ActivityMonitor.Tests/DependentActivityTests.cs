@@ -25,11 +25,14 @@ namespace CK.Core.Tests.Monitoring
                     // Creates the token.
                     var token = monitor.DependentActivity().CreateToken();
                     // Creates a dependent monitor.
-                    using (var monitorDep = token.CreateDependentMonitor(m => m.Output.CreateBridgeTo(TestHelper.ConsoleMonitor.Output.BridgeTarget)))
+                    var dep = new ActivityMonitor();
+                    dep.Output.CreateBridgeTo(TestHelper.ConsoleMonitor.Output.BridgeTarget);
+                    using (dep.StartDependentActivity(token))
                     {
                         monitor.Trace().Send("Doing something...");
                         // ...
                     }
+                    dep.End();
                 }
                 using (monitor.OpenTrace().Send("Create token with delayed launch of the dependent activity."))
                 {
@@ -38,23 +41,14 @@ namespace CK.Core.Tests.Monitoring
                     // Signals the launch of the dependent activity.
                     monitor.DependentActivity().Launch(token);
                     // Creates a dependent monitor.
-                    using (var monitorDep = token.CreateDependentMonitor(m => m.Output.CreateBridgeTo(TestHelper.ConsoleMonitor.Output.BridgeTarget)))
+                    var dep = new ActivityMonitor();
+                    dep.Output.CreateBridgeTo(TestHelper.ConsoleMonitor.Output.BridgeTarget);
+                    using (dep.StartDependentActivity(token))
                     {
                         monitor.Trace().Send("Doing something...");
                         // ...
                     }
-                }
-                using (monitor.OpenTrace().Send("Starting a dependent activity on an existing monitor."))
-                {
-                    // Creates the token.
-                    var token = monitor.DependentActivity().CreateToken();
-
-                    IActivityMonitor wMonitor = monitor;
-                    using (wMonitor.StartDependentActivity(token))
-                    {
-                        wMonitor.Trace().Send("Doing something...");
-                        // ...
-                    }
+                    dep.End();
                 }
             }
         }
@@ -190,7 +184,9 @@ namespace CK.Core.Tests.Monitoring
             var task = Task.Factory.StartNew(t =>
            {
                StupidStringClient cStarted = new StupidStringClient();
-               using (var depMonitor = token.CreateDependentMonitor(mD => mD.Output.RegisterClient(cStarted)))
+               var depMonitor = new ActivityMonitor();
+               depMonitor.Output.RegisterClient(cStarted);
+               using (depMonitor.StartDependentActivity( token))
                {
                    depMonitorTopic = depMonitor.Topic;
                    depMonitor.Trace().Send("Hello!");

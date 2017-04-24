@@ -79,7 +79,7 @@ namespace CK.Core
                 else _depth = 1;
                 // Logs everything when a Group is an error: we then have full details available without
                 // logging all with Error or Fatal.
-                if( data.MaskedLevel >= LogLevel.Error && Monitor._configuredFilter != LogFilter.Debug ) Monitor.DoSetConfiguredFilter( LogFilter.Debug );
+                if( data.MaskedLevel >= LogLevel.Error && Monitor._configuredFilter != LogFilter.Trace ) Monitor.DoSetConfiguredFilter( LogFilter.Trace );
                 _closeLogTime = DateTimeStamp.MinValue;
                 _data = data;
             }

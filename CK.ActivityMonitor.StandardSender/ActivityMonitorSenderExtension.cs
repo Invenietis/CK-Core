@@ -18,7 +18,7 @@ namespace CK.Core
         /// </summary>
         static IActivityMonitorLineSender FilterLogLine( this IActivityMonitor @this, LogLevel level, string fileName, int lineNumber )
         {
-            Debug.Assert( (level & LogLevel.IsFiltered) == 0 );
+            System.Diagnostics.Debug.Assert( (level & LogLevel.IsFiltered) == 0 );
             if( @this.ShouldLogLine( level, fileName, lineNumber ) )
             {
                 return new ActivityMonitorLineSender( @this, level | LogLevel.IsFiltered, fileName, lineNumber );
@@ -31,7 +31,7 @@ namespace CK.Core
         /// </summary>
         static IActivityMonitorGroupSender FilteredGroup( IActivityMonitor @this, LogLevel level, string fileName, int lineNumber )
         {
-            Debug.Assert( (level & LogLevel.IsFiltered) == 0 );
+            System.Diagnostics.Debug.Assert( (level & LogLevel.IsFiltered) == 0 );
             if( @this.ShouldLogGroup( level, fileName, lineNumber ) )
             {
                 return new ActivityMonitorGroupSender( @this, level | LogLevel.IsFiltered, fileName, lineNumber );

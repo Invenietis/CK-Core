@@ -20,11 +20,11 @@ namespace CK.Core.Tests.Monitoring
             using (LockFact())
             {
                 var m = new ActivityMonitor(false);
-                m.MinimalFilter = LogFilter.Debug;
+                m.MinimalFilter = LogFilter.Trace;
                 StringBuilder b = new StringBuilder();
                 var client = new ActivityMonitorTextWriterClient(s => b.Append(s));
                 m.Output.RegisterClient(client);
-                using (TestHelper.ConsoleMonitor.SetMinimalFilter(LogFilter.Debug))
+                using (TestHelper.ConsoleMonitor.TemporarilySetMinimalFilter(LogFilter.Trace))
                 using (m.Output.CreateBridgeTo(TestHelper.ConsoleMonitor.Output.BridgeTarget))
                 {
                     using (m.OpenInfo().Send("IL1" + Environment.NewLine + "IL2" + Environment.NewLine + "IL3"))

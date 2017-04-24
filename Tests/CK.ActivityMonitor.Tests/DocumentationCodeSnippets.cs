@@ -104,14 +104,14 @@ namespace CK.Core.Tests.Monitoring
                 IActivityMonitor m = new ActivityMonitor();
                 m.MinimalFilter = LogFilter.Off;
                 // ...
-                m.MinimalFilter = LogFilter.Debug;
+                m.MinimalFilter = LogFilter.Trace;
             }
             {
                 IActivityMonitor m = new ActivityMonitor();
                 m.MinimalFilter = LogFilter.Terse;
-                using( m.SetMinimalFilter( LogFilter.Debug ) )
+                using( m.TemporarilySetMinimalFilter( LogFilter.Trace ) )
                 {
-                     m.ActualFilter.Should().Be(LogFilter.Debug );
+                     m.ActualFilter.Should().Be(LogFilter.Trace );
                 }
                  m.ActualFilter.Should().Be(LogFilter.Terse, "Filter has been restored to previous value." );
             }
@@ -122,7 +122,7 @@ namespace CK.Core.Tests.Monitoring
                 using( m.OpenWarn().Send( "Ouch..." ) )
                 {
                      m.ActualFilter.Should().Be(LogFilter.Off );
-                    m.MinimalFilter = LogFilter.Debug;
+                    m.MinimalFilter = LogFilter.Trace;
                     // ... in debug filter ...
                 }
                  m.ActualFilter.Should().Be(LogFilter.Off, "Back to Off." );
