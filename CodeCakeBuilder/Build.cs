@@ -1,4 +1,5 @@
-﻿using Cake.Common.Diagnostics;
+﻿using Cake.Common.Build;
+using Cake.Common.Diagnostics;
 using Cake.Common.IO;
 using Cake.Common.Solution;
 using Cake.Common.Tools.DotNetCore;
@@ -28,6 +29,7 @@ namespace CodeCake
             {
                 var prev = @this.ArgumentCustomization;
                 @this.ArgumentCustomization = args => (prev?.Invoke(args) ?? args)
+                        .Append($@"/p:CakeBuild=""true""")
                         .Append($@"/p:Version=""{info.NuGetVersion}""")
                         .Append($@"/p:AssemblyVersion=""{info.MajorMinor}.0""")
                         .Append($@"/p:FileVersion=""{info.FileVersion}""")
@@ -66,7 +68,7 @@ namespace CodeCake
             SimpleRepositoryInfo gitInfo = Cake.GetSimpleRepositoryInfo();
 
             // Configuration is either "Debug" or "Release".
-            string configuration = null;
+            string configuration = "Debug";
 
             Task("Check-Repository")
                 .Does(() =>
@@ -81,10 +83,11 @@ namespace CodeCake
                        else throw new Exception("Repository is not ready to be published.");
                    }
 
-                   configuration = gitInfo.IsValidRelease
-                                   && (gitInfo.PreReleaseName.Length == 0 || gitInfo.PreReleaseName == "rc")
-                                   ? "Release"
-                                   : "Debug";
+                   if( gitInfo.IsValidRelease
+                        && (gitInfo.PreReleaseName.Length == 0 || gitInfo.PreReleaseName == "rc") )
+                   {
+                       configuration = "Release";
+                   }
 
                    Cake.Information("Publishing {0} projects with version={1} and configuration={2}: {3}",
                        projectsToPublish.Count(),
@@ -93,17 +96,32 @@ namespace CodeCake
                        projectsToPublish.Select(p => p.Name).Concatenate());
                });
 
-            Task("Clean")
+            Task("Unit-Testing")
                 .IsDependentOn("Check-Repository")
                 .Does(() =>
                 {
-                    Cake.CleanDirectories(projects.Select(p => p.Path.GetDirectory().Combine("bin")));
-                    Cake.CleanDirectories(projects.Select(p => p.Path.GetDirectory().Combine("obj")));
-                    Cake.CleanDirectories(releasesDir);
-                    Cake.DeleteFiles("Tests/**/TestResult.xml");
+                    Cake.DotNetCoreRestore();
+                    var testDirectories = Cake.ParseSolution(solutionFileName)
+                                                            .Projects
+                                                                .Where(p => p.Name.EndsWith(".Tests"))
+                                                                .Select(p => p.Path.FullPath);
+                    foreach (var test in testDirectories)
+                    {
+                        Cake.DotNetCoreTest(test);
+                    }
                 });
 
-            Task("Restore-NuGet-Packages")
+            Task("Clean")
+                .IsDependentOn("Check-Repository")
+                .IsDependentOn("Unit-Testing")
+                .Does(() =>
+                {
+                    Cake.CleanDirectories(projects.Select(p => p.Path.GetDirectory().Combine("bin")));
+                    Cake.CleanDirectories(releasesDir);
+                });
+
+            Task("Restore-NuGet-Packages-With-Version")
+                .WithCriteria(() => gitInfo.IsValid)
                .IsDependentOn("Clean")
                .Does(() =>
                 {
@@ -111,13 +129,15 @@ namespace CodeCake
                     Cake.DotNetCoreRestore(new DotNetCoreRestoreSettings().AddVersionArguments(gitInfo));
                 });
 
-            Task("Build")
+            Task("Build-With-Version")
+                .WithCriteria(() => gitInfo.IsValid)
                 .IsDependentOn("Check-Repository")
+                .IsDependentOn("Unit-Testing")
                 .IsDependentOn("Clean")
-                .IsDependentOn("Restore-NuGet-Packages")
+                .IsDependentOn("Restore-NuGet-Packages-With-Version")
                 .Does(() =>
                 {
-                    foreach (var p in projects)
+                    foreach (var p in projectsToPublish)
                     {
                         Cake.DotNetCoreBuild(p.Path.GetDirectory().FullPath,
                             new DotNetCoreBuildSettings().AddVersionArguments(gitInfo, s =>
@@ -127,34 +147,9 @@ namespace CodeCake
                     }
                 });
 
-            Task("Unit-Testing")
-                .IsDependentOn("Build")
-                .Does(() =>
-               {
-                   Cake.CreateDirectory(releasesDir);
-                   var testDirectories = Cake.ParseSolution(solutionFileName)
-                                            .Projects
-                                                .Where(p => p.Name.EndsWith(".Tests"))
-                                                .Select(p => p.Path.GetDirectory().FullPath);
-
-                   foreach (var test in testDirectories)
-                   {
-                       Cake.Information("Testing: {0}", test);
-                       using (Cake.Environment.SetWorkingDirectory(test))
-                       {
-                            Cake.DotNetCoreTest(null, new DotNetCoreTestSettings()
-                            {
-                                NoBuild = true,
-                                Configuration = configuration,
-                                //ArgumentCustomization = args => args.Append("-v diag")
-                           });
-                       }
-                   }
-               });
-
             Task("Create-NuGet-Packages")
-                .IsDependentOn("Unit-Testing")
                 .WithCriteria(() => gitInfo.IsValid)
+                .IsDependentOn("Build-With-Version")
                 .Does(() =>
                {
                    Cake.CreateDirectory(releasesDir);
@@ -172,8 +167,8 @@ namespace CodeCake
                });
 
             Task("Push-NuGet-Packages")
-                .IsDependentOn("Create-NuGet-Packages")
                 .WithCriteria(() => gitInfo.IsValid)
+                .IsDependentOn("Create-NuGet-Packages")
                 .Does(() =>
                {
                    IEnumerable<FilePath> nugetPackages = Cake.GetFiles(releasesDir.Path + "/*.nupkg");
@@ -195,18 +190,22 @@ namespace CodeCake
                            || gitInfo.PreReleaseName == "prerelease"
                            || gitInfo.PreReleaseName == "rc")
                        {
-                           PushNuGetPackages("NUGET_API_KEY", "https://api.nuget.org/v3/index.json", nugetPackages);
+                           PushNuGetPackages("NUGET_API_KEY", "https://www.nuget.org/api/v2/package", nugetPackages);
                        }
                        else
                        {
                             // An alpha, beta, delta, epsilon, gamma, kappa goes to invenietis-preview.
-                            PushNuGetPackages("MYGET_PREVIEW_API_KEY", "https://www.myget.org/F/invenietis-preview/api/v3/index.json", nugetPackages);
+                            PushNuGetPackages("MYGET_PREVIEW_API_KEY", "https://www.myget.org/F/invenietis-preview/api/v2/package", nugetPackages);
                        }
                    }
                    else
                    {
                        Debug.Assert(gitInfo.IsValidCIBuild);
-                       PushNuGetPackages("MYGET_CI_API_KEY", "https://www.myget.org/F/invenietis-ci/api/v3/index.json", nugetPackages);
+                       PushNuGetPackages("MYGET_CI_API_KEY", "https://www.myget.org/F/invenietis-ci/api/v2/package", nugetPackages);
+                   }
+                   if (Cake.AppVeyor().IsRunningOnAppVeyor)
+                   {
+                       Cake.AppVeyor().UpdateBuildVersion( gitInfo.NuGetVersion );
                    }
                });
 

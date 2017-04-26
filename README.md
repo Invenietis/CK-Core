@@ -1,18 +1,13 @@
-#CK-Core#
-This solution contains basic projects: adapters, useful tools such as the ActivityMonitor.
+﻿#CK-Core#
+This solution contains basic helpers and useful tools.
 
-##Content##
-###CK.Core###
-Contains several helper classes and interfaces.
+There is currently only one project: CK.Core.
 
 CKTrait handle the combination of different tags (strings) in a determinist manner. 
 Traits are normalized and ordered strings combinations (*"Sql|DB access|Subscription" == "DB access|Sql|Subscription"* and *"DB access|Sql" > "Sql"*): a total order exists on the set of traits combinations based on lexicographical order for atomic trait and the number of traits in a composite. They support union, intersect, except and symmetric except in O(n).
 
-###CK.ActivityMonitor###
-Contains the ActivityMonitor base implementation.
-
 ##Bug Tracker##
-If you find any bug, don't hesitate to report it on : [https://github.com/Invenietis/ck-core/issues/](https://github.com/Invenietis/ck-core/issues/)
+If you find any bug, don't hesitate to report it on : [https://github.com/Invenietis/CK-Core/issues/](https://github.com/Invenietis/CK-Core/issues/)
 
 ##Copyright and license##
 
@@ -22,6 +17,6 @@ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU Lesser General Public License for more details.
 <http://www.gnu.org/licenses/>. 
  
-Copyright � 2007-20117,
+Copyright � 2007-2017,
     Invenietis <http://www.invenietis.com>,
 All rights reserved.
