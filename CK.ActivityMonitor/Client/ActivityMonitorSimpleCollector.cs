@@ -83,10 +83,7 @@ namespace CK.Core
             /// Overridden to return the <see cref="Text"/> of this element.
             /// </summary>
             /// <returns>This <see cref="Text"/> property.</returns>
-            public override string ToString()
-            {
-                return Text;
-            }
+            public override string ToString() => Text;
         }
 
         /// <summary>
@@ -110,6 +107,8 @@ namespace CK.Core
 
         /// <summary>
         /// Gets or sets the filter level.
+        /// When setting, any <see cref="Entry"/> that has a level below the new minimal filter are
+        /// removed from this collector.
         /// </summary>
         public LogLevelFilter MinimalFilter
         {
@@ -135,18 +134,12 @@ namespace CK.Core
         /// Gets a read only list of (at most) <see cref="Capacity"/> entries that occurred since last 
         /// call to <see cref="Clear"/>.
         /// </summary>
-        public IReadOnlyList<Entry> Entries
-        {
-            get { return _entries; }
-        }
+        public IReadOnlyList<Entry> Entries => _entries; 
 
         /// <summary>
         /// Clears the current <see cref="Entries"/> list.
         /// </summary>
-        public void Clear()
-        {
-            _entries.Clear();
-        }
+        public void Clear() => _entries.Clear();
 
         /// <summary>
         /// Appends any log with level equal or above <see cref="MinimalFilter"/> to <see cref="Entries"/>.

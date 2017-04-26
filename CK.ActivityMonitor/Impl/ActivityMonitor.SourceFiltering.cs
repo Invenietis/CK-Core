@@ -36,6 +36,7 @@ namespace CK.Core
     {
         /// <summary>
         /// Manages source filtering.
+        /// This default implementation (<see cref="DefaultFilter(ref string, ref int)"/>) handles file scope only.
         /// </summary>
         public static class SourceFilter
         {

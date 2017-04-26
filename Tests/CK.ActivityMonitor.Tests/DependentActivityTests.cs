@@ -32,7 +32,7 @@ namespace CK.Core.Tests.Monitoring
                         monitor.Trace().Send("Doing something...");
                         // ...
                     }
-                    dep.End();
+                    dep.MonitorEnd();
                 }
                 using (monitor.OpenTrace().Send("Create token with delayed launch of the dependent activity."))
                 {
@@ -48,7 +48,7 @@ namespace CK.Core.Tests.Monitoring
                         monitor.Trace().Send("Doing something...");
                         // ...
                     }
-                    dep.End();
+                    dep.MonitorEnd();
                 }
             }
         }

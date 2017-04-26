@@ -30,7 +30,7 @@ using System.Threading.Tasks;
 namespace CK.Core
 {
     /// <summary>
-    /// Immutable encapsulation of the two source filters: this enables overriding or per source file filtering.
+    /// Immutable encapsulation of the two source filters: this enables overriding or filtering per source file.
     /// </summary>
     public struct SourceLogFilter
     {

@@ -188,7 +188,6 @@ namespace CK.Core
             {
                 _text = exception == null ? ActivityMonitor.NoLogText : exception.Message;
             }
-
             _exception = exception;
             _tags = tags ?? ActivityMonitor.Tags.Empty;
             _logTime = logTime;

@@ -35,7 +35,7 @@ namespace CK.Core.Tests.Monitoring
     public class SourceFilteringTests
     {
         [Fact]
-        public void FileNamesAreInternedString()
+        public void we_use_the_fact_that_FileNames_are_interned_strings()
         {
             ThisFile();
         }
@@ -50,7 +50,7 @@ namespace CK.Core.Tests.Monitoring
         }
 
         [Fact]
-        public void SourceFileOverrideFilterTest()
+        public void ActivityMonitor_SourceFilter_handles_overrides_of_filter_per_source_file()
         {
             {
                 var m = new ActivityMonitor( applyAutoConfigurations: false );
@@ -87,7 +87,7 @@ namespace CK.Core.Tests.Monitoring
         }
 
         [Fact]
-        public void SourceFileMinimalFilterTest()
+        public void ActivityMonitor_SourceFilter_handles_minimal_filter_setting_per_source_file()
         {
             {
                 var m = new ActivityMonitor( applyAutoConfigurations: false );

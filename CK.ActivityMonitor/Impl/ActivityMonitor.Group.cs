@@ -77,9 +77,9 @@ namespace CK.Core
                 SavedMonitorTags = Monitor._currentTag;
                 if( (_unfilteredParent = Monitor._currentUnfiltered) != null ) _depth = _unfilteredParent._depth + 1;
                 else _depth = 1;
-                // Logs everything when a Group is an error: we then have full details available without
-                // logging all with Error or Fatal.
-                if( data.MaskedLevel >= LogLevel.Error && Monitor._configuredFilter != LogFilter.Trace ) Monitor.DoSetConfiguredFilter( LogFilter.Trace );
+                // Logs everything when a Group is a fatal or an error: we then have full details available without
+                // requiring to log all with Error or Fatal level.
+                if( data.MaskedLevel >= LogLevel.Error && Monitor._configuredFilter != LogFilter.Debug ) Monitor.DoSetConfiguredFilter( LogFilter.Debug );
                 _closeLogTime = DateTimeStamp.MinValue;
                 _data = data;
             }

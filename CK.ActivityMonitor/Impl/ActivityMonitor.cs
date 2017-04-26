@@ -91,7 +91,7 @@ namespace CK.Core
             static public readonly CKTrait MonitorTopicChanged;
 
             /// <summary>
-            /// A "MonitorEnd" tag is emitted by <see cref="ActivityMonitorExtension.End"/>.
+            /// A "MonitorEnd" tag is emitted by <see cref="ActivityMonitorExtension.MonitorEnd"/>.
             /// This indicates the logical end of life of the monitor. It should not be used anymore (but technically can
             /// be used).
             /// </summary>
@@ -259,10 +259,7 @@ namespace CK.Core
             }
         }
 
-        Guid IUniqueId.UniqueId
-        {
-            get { return _uniqueId; }
-        }
+        Guid IUniqueId.UniqueId => _uniqueId; 
 
         /// <summary>
         /// Gets the unique identifier for this monitor.
@@ -270,10 +267,7 @@ namespace CK.Core
         /// via the protected <see cref="SetUniqueId"/> if a unique identifier exists in the context 
         /// that can more easily identify this activity.
         /// </summary>
-        protected Guid UniqueId
-        {
-            get { return _uniqueId; }
-        }
+        protected Guid UniqueId => _uniqueId; 
 
         /// <summary>
         /// Sets the unique identifier of this activity monitor.
@@ -289,10 +283,7 @@ namespace CK.Core
         /// <summary>
         /// Gets the <see cref="IActivityMonitorOutput"/> for this monitor.
         /// </summary>
-        public IActivityMonitorOutput Output
-        {
-            get { return _output; }
-        }
+        public IActivityMonitorOutput Output => _output; 
 
         /// <summary>
         /// Sets the <see cref="Output"/>.
@@ -307,20 +298,14 @@ namespace CK.Core
         /// <summary>
         /// Gets the last <see cref="DateTimeStamp"/> for this monitor.
         /// </summary>
-        public DateTimeStamp LastLogTime 
-        {
-            get { return _lastLogTime; } 
-        }
+        public DateTimeStamp LastLogTime  => _lastLogTime; 
         
         /// <summary>
         /// Gets the current topic for this monitor. This can be any non null string (null topic is mapped to the empty string) that describes
         /// the current activity. It must be set with <see cref="SetTopic"/> and unlike <see cref="MinimalFilter"/> and <see cref="AutoTags"/>, 
         /// the topic is not reseted when groups are closed.
         /// </summary>
-        public string Topic 
-        {
-            get { return _topic; }
-        }
+        public string Topic  => _topic; 
 
         /// <summary>
         /// Sets the current topic for this monitor. This can be any non null string (null topic is mapped to the empty string) that describes

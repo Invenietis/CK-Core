@@ -395,7 +395,7 @@ namespace CK.Core.Tests.Monitoring
                 m.OpenInfo().Send("a (filtered) group");
                 m.Fatal().Send("a line");
                 m.Info().Send("a (filtered) line");
-                m.End();
+                m.MonitorEnd();
                 m.CloseGroup().Should().BeFalse();
                 string logs = rawLog.ToString();
                 logs.Should().NotContain("(filtered)");
@@ -445,7 +445,7 @@ namespace CK.Core.Tests.Monitoring
         }
 
         [Fact]
-        public void ClosingWhenNoGroupIsOpened()
+        public void closing_a_group_when_no_group_is_opened_is_ignored()
         {
             using (LockFact())
             {
@@ -472,7 +472,7 @@ namespace CK.Core.Tests.Monitoring
         }
 
         [Fact]
-        public void FilterLevel()
+        public void testing_filtering_levels()
         {
             using (LockFact())
             {
@@ -485,12 +485,14 @@ namespace CK.Core.Tests.Monitoring
                     var log = l.Output.RegisterClient(new StupidStringClient());
                     using (l.TemporarilySetMinimalFilter(LogLevelFilter.Error, LogLevelFilter.Error))
                     {
+                        l.Debug().Send("NO SHOW");
                         l.Trace().Send("NO SHOW");
                         l.Info().Send("NO SHOW");
                         l.Warn().Send("NO SHOW");
                         l.Error().Send("Error n°1.");
                         using (l.TemporarilySetMinimalFilter(WarnWarn))
                         {
+                            l.Debug().Send("NO SHOW");
                             l.Trace().Send("NO SHOW");
                             l.Info().Send("NO SHOW");
                             l.Warn().Send("Warn n°1.");
@@ -498,6 +500,7 @@ namespace CK.Core.Tests.Monitoring
                             using (l.OpenWarn().Send("GroupWarn: this appears."))
                             {
                                 l.MinimalFilter.Should().Be(WarnWarn, "Groups does not change the current filter level.");
+                                l.Debug().Send("NO SHOW");
                                 l.Trace().Send("NO SHOW");
                                 l.Info().Send("NO SHOW");
                                 l.Warn().Send("Warn n°2.");
@@ -510,6 +513,7 @@ namespace CK.Core.Tests.Monitoring
                             using (l.OpenInfo().Send("GroupInfo: NO SHOW."))
                             {
                                 l.MinimalFilter.Should().Be(WarnWarn, "Groups does not change the current filter level.");
+                                l.Debug().Send("NO SHOW");
                                 l.Trace().Send("NO SHOW");
                                 l.Info().Send("NO SHOW");
                                 l.Warn().Send("Warn n°2-bis.");
@@ -523,36 +527,39 @@ namespace CK.Core.Tests.Monitoring
                                 }
                             }
                             l.MinimalFilter.Should().Be(WarnWarn, "But Groups restores the original filter level when closed.");
+                            l.Debug().Send("NO SHOW");
                             l.Trace().Send("NO SHOW");
                             l.Info().Send("NO SHOW");
                             l.Warn().Send("Warn n°3.");
                             l.Error().Send("Error n°4.");
                             l.Fatal().Send("Fatal n°2.");
                         }
+                        l.Debug().Send("NO SHOW");
                         l.Trace().Send("NO SHOW");
                         l.Info().Send("NO SHOW");
                         l.Warn().Send("NO SHOW");
                         l.Error().Send("Error n°5.");
                     }
-                    log.Writer.ToString().Should().NotContain("NO SHOW");
-                    log.Writer.ToString().Should().Contain("Error n°1.")
-                                                           .And.Contain("Error n°2.")
-                                                           .And.Contain("Error n°3.")
-                                                           .And.Contain("Error n°3-bis.")
-                                                           .And.Contain("Error n°4.")
-                                                           .And.Contain("Error n°5.");
-                    log.Writer.ToString().Should().Contain("Warn n°1.")
-                                                           .And.Contain("Warn n°2.")
-                                                           .And.Contain("Warn n°2-bis.")
-                                                           .And.Contain("Warn n°3.");
-                    log.Writer.ToString().Should().Contain("Fatal n°1.")
-                                                           .And.Contain("Fatal n°2.");
+                    string result = log.Writer.ToString();
+                    result.Should().NotContain("NO SHOW");
+                    result.Should().Contain("Error n°1.")
+                                .And.Contain("Error n°2.")
+                                .And.Contain("Error n°3.")
+                                .And.Contain("Error n°3-bis.")
+                                .And.Contain("Error n°4.")
+                                .And.Contain("Error n°5.");
+                    result.Should().Contain("Warn n°1.")
+                                .And.Contain("Warn n°2.")
+                                .And.Contain("Warn n°2-bis.")
+                                .And.Contain("Warn n°3.");
+                    result.Should().Contain("Fatal n°1.")
+                                .And.Contain("Fatal n°2.");
                 }
             }
         }
 
         [Fact]
-        public void CloseMismatch()
+        public void mismatch_of_explicit_Group_disposing_is_handled()
         {
             using (LockFact())
             {
@@ -600,7 +607,7 @@ namespace CK.Core.Tests.Monitoring
         }
 
         [Fact]
-        public void MultipleConclusions()
+        public void appending_multiple_conclusions_to_a_group_is_possible()
         {
             using (LockFact())
             {
@@ -622,13 +629,15 @@ namespace CK.Core.Tests.Monitoring
         }
 
         [Fact]
-        public void PathCatcherToStringPath()
+        public void ActivityMonitorPathCatcher_is_aClient_that_maintains_the_current_Group_path()
         {
             using (LockFact())
             {
                 var monitor = new ActivityMonitor();
                 ActivityMonitorPathCatcher p = monitor.Output.RegisterClient(new ActivityMonitorPathCatcher());
+                monitor.MinimalFilter = LogFilter.Debug;
 
+                using (monitor.OpenDebug().Send("!D"))
                 using (monitor.OpenTrace().Send("!T"))
                 using (monitor.OpenInfo().Send("!I"))
                 using (monitor.OpenWarn().Send("!W"))
@@ -636,7 +645,7 @@ namespace CK.Core.Tests.Monitoring
                 using (monitor.OpenFatal().Send("!F"))
                 {
                     p.DynamicPath.ToStringPath()
-                       .Should().Contain("!T").And.Contain("!I").And.Contain("!W").And.Contain("!E").And.Contain("!F");
+                       .Should().Contain("!D").And.Contain("!T").And.Contain("!I").And.Contain("!W").And.Contain("!E").And.Contain("!F");
                 }
                 var path = p.DynamicPath;
                 path = null;
@@ -645,7 +654,7 @@ namespace CK.Core.Tests.Monitoring
         }
 
         [Fact]
-        public void PathCatcherTests()
+        public void ActivityMonitorPathCatcher_tests()
         {
             using (LockFact())
             {
@@ -794,7 +803,7 @@ namespace CK.Core.Tests.Monitoring
         }
 
         [Fact]
-        public void ErrorCounterTests()
+        public void ActivityMonitorErrorCounter_and_ActivityMonitorPathCatcher_Clients_work_together()
         {
             using (LockFact())
             {
@@ -901,11 +910,11 @@ namespace CK.Core.Tests.Monitoring
         }
 
         [Fact]
-        public void SimpleCollectorTest()
+        public void ActivityMonitorSimpleCollector_is_a_Client_that_filters_and_stores_its_Capacity_count_of_last_log_entries()
         {
             using (LockFact())
             {
-                IActivityMonitor d = new ActivityMonitor();
+                IActivityMonitor d = new ActivityMonitor( applyAutoConfigurations: false );
                 var c = new ActivityMonitorSimpleCollector();
                 d.Output.RegisterClient(c);
                 d.Warn().Send("1");
@@ -937,18 +946,32 @@ namespace CK.Core.Tests.Monitoring
 
                 c.MinimalFilter = LogLevelFilter.Fatal;
                 String.Join(",", c.Entries.Select(e => e.Text)).Should().Be("3");
+
+                c.MinimalFilter = LogLevelFilter.Debug;
+                d.MinimalFilter = LogFilter.Debug;
+                using (d.OpenDebug().Send("d1"))
+                {
+                    d.Debug().Send("d2");
+                    using (d.OpenFatal().Send("f1"))
+                    {
+                        d.Debug().Send("d3");
+                        d.Info().Send("i1");
+                    }
+                }
+                String.Join(",", c.Entries.Select(e => e.Text)).Should().Be("3,d1,d2,f1,d3,i1");
+
             }
         }
 
         [Fact]
-        public void FilteredTextWriterTests()
+        public void ActivityMonitorTextWriterClient_has_its_own_LogFilter()
         {
             using (LockFact())
             {
                 StringBuilder sb = new StringBuilder();
 
                 IActivityMonitor d = new ActivityMonitor();
-                d.TemporarilySetMinimalFilter(LogFilter.Trace);
+                d.MinimalFilter = LogFilter.Trace;
 
                 var c = new ActivityMonitorTextWriterClient(s => sb.Append(s), LogFilter.Release);
                 d.Output.RegisterClient(c);
@@ -1025,7 +1048,7 @@ namespace CK.Core.Tests.Monitoring
         }
 
         [Fact]
-        public void AsyncSetMininimalFilter()
+        public void setting_the_MininimalFilter_of_a_bound_Client_is_thread_safe()
         {
             using (LockFact())
             {
@@ -1052,7 +1075,7 @@ namespace CK.Core.Tests.Monitoring
         }
 
         [Fact]
-        public void Overloads()
+        public void testing_all_the_overloads_of_StandardSender()
         {
             using (LockFact())
             {
@@ -1195,7 +1218,7 @@ namespace CK.Core.Tests.Monitoring
 
 
         [Fact]
-        public void OverloadsWithTraits()
+        public void testing_all_the_overloads_of_StandardSender_with_Traits()
         {
             using (LockFact())
             {

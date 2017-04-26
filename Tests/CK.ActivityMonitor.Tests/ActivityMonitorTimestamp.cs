@@ -10,7 +10,7 @@ namespace CK.Core.Tests.Monitoring
 {
     public class ActivityMonitorTimestamp
     {
-        class DateCollision : IActivityMonitorClient
+        class DateTimeStampCollision : IActivityMonitorClient
         {
             DateTimeStamp _lastOne;
             
@@ -48,10 +48,10 @@ namespace CK.Core.Tests.Monitoring
         }
 
         [Fact]
-        public void TestNaturalCollision()
+        public void DateTimeStamp_collision_can_not_happen()
         {
             ActivityMonitor m = new ActivityMonitor( applyAutoConfigurations: false );
-            var detect = new DateCollision();
+            var detect = new DateTimeStampCollision();
             m.Output.RegisterClient( detect );
             for( int i = 0; i < 10; ++i )
             {
@@ -71,10 +71,10 @@ namespace CK.Core.Tests.Monitoring
         }
 
         [Fact]
-        public void TestArtificialCollision()
+        public void DateTimeStamp_collision_can_not_happen_even_when_artificially_forcing_them()
         {
             ActivityMonitor m = new ActivityMonitor( applyAutoConfigurations: false );
-            var detect = new DateCollision();
+            var detect = new DateTimeStampCollision();
             m.Output.RegisterClient( detect );
 
             DateTimeStamp now = DateTimeStamp.UtcNow;

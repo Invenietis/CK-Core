@@ -30,7 +30,7 @@ namespace CK.Core
         /// <param name="fileName">Source file name of the emitter (automatically injected by C# compiler but can be explicitly set).</param>
         /// <param name="lineNumber">Line number in the source file (automatically injected by C# compiler but can be explicitly set).</param>
         /// <param name="this">This <see cref="IActivityMonitor"/>.</param>
-        public static void End(this IActivityMonitor @this, string text = null, [CallerFilePath]string fileName = null, [CallerLineNumber]int lineNumber = 0)
+        public static void MonitorEnd(this IActivityMonitor @this, string text = null, [CallerFilePath]string fileName = null, [CallerLineNumber]int lineNumber = 0)
         {
             while (@this.CloseGroup(NextLogTime(@this)));
             @this.UnfilteredLog(ActivityMonitor.Tags.MonitorEnd, LogLevel.Info, text ?? "Done.", NextLogTime(@this), null, fileName, lineNumber);
@@ -363,7 +363,7 @@ namespace CK.Core
         /// <summary>
         /// Sets a filter level on this <see cref="IActivityMonitor"/>. The current <see cref="IActivityMonitor.MinimalFilter"/> will be automatically 
         /// restored when the returned <see cref="IDisposable"/> will be disposed.
-        /// Even if when a Group is closed, the IActivityMonitor.Filter is automatically restored to its original value 
+        /// Even if, when a Group is closed, the IActivityMonitor.Filter is automatically restored to its original value 
         /// (captured when the Group was opened), this may be useful to locally change the filter level without bothering to restore the 
         /// initial value (this is what OpenGroup/CloseGroup do with both the Filter and the AutoTags).
         /// </summary>
@@ -402,9 +402,9 @@ namespace CK.Core
         /// <summary>
         /// Alter tags of this <see cref="IActivityMonitor"/>. Current <see cref="IActivityMonitor.AutoTags"/> will be automatically 
         /// restored when the returned <see cref="IDisposable"/> will be disposed.
-        /// Even if when a Group is closed, the IActivityMonitor.AutoTags is automatically restored to its original value 
+        /// Even if, when a Group is closed, the IActivityMonitor.AutoTags is automatically restored to its original value 
         /// (captured when the Group was opened), this may be useful to locally change the tags level without bothering to restore the 
-        /// initial value (this is close to what OpenGroup/CloseGroup do with both the Filter and the AutoTags).
+        /// initial value (this is close to what OpenGroup/CloseGroup do with both the MinimalFilter and the AutoTags).
         /// </summary>
         /// <param name="this">This <see cref="IActivityMonitor"/> object.</param>
         /// <param name="tags">Tags to combine with the current one.</param>
