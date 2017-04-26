@@ -7,6 +7,8 @@ using System.Text;
 using CK.Core;
 using Xunit;
 using FluentAssertions;
+using System.Reflection;
+using System.Runtime.CompilerServices;
 
 namespace CK.Core.Tests
 {
@@ -37,7 +39,7 @@ namespace CK.Core.Tests
         {
             get
             {
-                if (_testFolder == null) InitalizePaths();
+                if (_testFolder == null) InitializePaths();
                 return _testFolder;
             }
         }
@@ -46,7 +48,7 @@ namespace CK.Core.Tests
         {
             get
             {
-                if (_solutionFolder == null) InitalizePaths();
+                if (_solutionFolder == null) InitializePaths();
                 return _solutionFolder;
             }
         }
@@ -54,11 +56,6 @@ namespace CK.Core.Tests
         public static void CleanupTestFolder()
         {
             DeleteFolder(TestFolder, true);
-        }
-
-        static public void ForceGCFullCollect()
-        {
-            GC.Collect(GC.MaxGeneration, GCCollectionMode.Forced, true);
         }
 
         public static void DeleteFolder(string directoryPath, bool recreate = false)
@@ -86,23 +83,17 @@ namespace CK.Core.Tests
             }
         }
 
-        static void InitalizePaths()
+        static void InitializePaths()
         {
-#if NET451
-            string p = new Uri(System.Reflection.Assembly.GetExecutingAssembly().CodeBase).LocalPath;
-            p = Path.GetDirectoryName(p);
-#else
-            string p = Directory.GetCurrentDirectory();
-#endif
-            while (!File.Exists(Path.Combine(p, "CK-Core.sln")))
-            {
-                p = Path.GetDirectoryName(p);
-            }
-            _solutionFolder = p;
-            _testFolder = Path.Combine(p, "Tests", "CK.Core.Tests", "TestDir");
-
-            Console.WriteLine( $"SolutionFolder is: {_solutionFolder}\r\nTestFolder is: {_testFolder}" );
+            _solutionFolder = Path.GetDirectoryName(Path.GetDirectoryName(GetTestProjectPath()));
+            _testFolder = Path.Combine(_solutionFolder, "Tests", "CK.Core.Tests", "TestDir");
+            Console.WriteLine($"SolutionFolder is: {_solutionFolder}.");
+            Console.WriteLine($"TestFolder is: {_testFolder}.");
+            Console.WriteLine($"Core path: {typeof(string).GetTypeInfo().Assembly.CodeBase}.");
             CleanupTestFolder();
         }
+
+        static string GetTestProjectPath([CallerFilePath]string path = null) => Path.GetDirectoryName(path);
+
     }
 }
