@@ -80,7 +80,7 @@ namespace CodeCake
                        {
                            Cake.Warning("GitInfo is not valid, but you choose to continue...");
                        }
-                       else throw new Exception("Repository is not ready to be published.");
+                       else if(!Cake.AppVeyor().IsRunningOnAppVeyor) throw new Exception("Repository is not ready to be published.");
                    }
 
                    if( gitInfo.IsValidRelease
