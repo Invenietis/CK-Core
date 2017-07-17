@@ -73,7 +73,7 @@ namespace CK.Core.Tests
             m.ErrorMessage.Should().NotBeNullOrEmpty();
             m.StartIndex.Should().Be(idx, "Head must not move on error.");
             m.Length.Should().Be(len, "Length must not change on error.");
-            m.SetSuccess();
+            m.ClearError();
         }
     }
 }

@@ -310,7 +310,7 @@ namespace CK.Core
         /// <typeparam name="T">Type of the item array.</typeparam>
         /// <param name="items">Reference (address) of the array. Can be null.</param>
         /// <param name="o">Item to remove.</param>
-        /// <returns>The array containing the new item. Note that it may differ from the "current" items content since another thread may have already changed it.</returns>
+        /// <returns>The array without the item. Note that it may differ from the "current" items content since another thread may have already changed it.</returns>
         public static T[] InterlockedRemove<T>( ref T[] items, T o )
         {
             return InterlockedSet( ref items, o, ( current, item ) =>
