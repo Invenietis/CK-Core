@@ -133,9 +133,10 @@ namespace CK.Core
         /// Direct services returned by <see cref="GetDirectService"/> can not be disabled.
         /// </summary>
         /// <remarks>
-        /// This is not the same as calling <see cref="Add(Type,Func{Object},Action{Object})"/> with a null instance. A null instance for a service (a callback that always returns null)
-        /// is nearly the same as calling <see cref="Remove"/>: any fallbacks (to a base <see cref="IServiceProvider"/> for example) can occur.
-        /// This is stronger since this must prevent fallbacks.
+        /// This is not the same as calling <see cref="Add(Type,Func{Object},Action{Object})"/> with a null instance.
+        /// A null instance for a service (a callback that always returns null) is nearly the same as
+        /// calling <see cref="Remove"/>: any fallbacks (to a base <see cref="IServiceProvider"/> for example) can occur.
+        /// This is stronger since this prevents fallbacks.
         /// </remarks>
         /// <param name="serviceType">Service type to disable. It must not already exist in this container otherwise an exception is thrown.</param>
         /// <returns>This object to enable fluent syntax.</returns>
@@ -251,8 +252,11 @@ namespace CK.Core
         /// <summary>
         /// When <paramref name="disposing"/> is true, calls <see cref="Clear"/> to unregister all services. 
         /// Any "on remove" actions are executed.
-        /// <param name="disposing">Whether <see cref="Dispose()"/> has been called.</param>
         /// </summary>
+        /// <param name="disposing">
+        /// True if <see cref="Dispose()"/> has been called: managed resources can be disposed.
+        /// False if we are finalizing: only unmanaged resources must be considered.
+        /// </param>
         protected virtual void Dispose( bool disposing )
         {
             if( disposing ) Clear();
