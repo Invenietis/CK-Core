@@ -99,11 +99,15 @@ namespace CodeCake
                 .IsDependentOn( "Restore" )
                 .Does( () =>
                 {
-                    Cake.DotNetCoreBuild( solutionFileName,
-                        new DotNetCoreBuildSettings().AddVersionArguments( gitInfo, s =>
-                        {
-                            s.Configuration = configuration;
-                        } ) );
+                    using( var tempSln = Cake.CreateTemporarySolutionFile( solutionFileName ) )
+                    {
+                        tempSln.ExcludeProjectsFromBuild( "CodeCakeBuilder" );
+                        Cake.DotNetCoreBuild( tempSln.FullPath.FullPath,
+                            new DotNetCoreBuildSettings().AddVersionArguments( gitInfo, s =>
+                            {
+                                s.Configuration = configuration;
+                            } ) );
+                    }
                 } );
 
             Task( "Unit-Testing" )
