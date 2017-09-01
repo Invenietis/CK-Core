@@ -59,7 +59,7 @@ namespace CK.Core
         /// <param name="serviceType">Service type to unregister.</param>
         /// <returns>This object to enable fluent syntax.</returns>
         ISimpleServiceContainer Remove( Type serviceType );
-        
+              
         /// <summary>
         /// Unregisters all the services. Any "on remove" actions are executed.
         /// </summary>

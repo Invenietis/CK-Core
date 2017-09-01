@@ -101,7 +101,7 @@ namespace CK.Core
         /// <param name="onRemove">Optional action that will be called whenever <see cref="Remove"/>, <see cref="Clear"/> or <see cref="IDisposable.Dispose"/>
         /// is called and a service as been successfully obtained.</param>
         /// <returns>This object to enable fluent syntax.</returns>
-        public ISimpleServiceContainer Add( Type serviceType, Func<Object> serviceInstance, Action<Object> onRemove )
+        public ISimpleServiceContainer Add( Type serviceType, Func<Object> serviceInstance, Action<Object> onRemove = null )
         {
             if( ReferenceEquals( serviceType, null ) ) throw new ArgumentNullException( "serviceType" );
             if( serviceInstance == null ) throw new ArgumentNullException( "serviceInstance" );
@@ -117,7 +117,7 @@ namespace CK.Core
         /// <param name="serviceInstance">Implementation of the service. Can not be null.</param>
         /// <param name="onRemove">Optional action that will be called whenever <see cref="Remove"/>, <see cref="Clear"/> or <see cref="IDisposable.Dispose"/>.</param>
         /// <returns>This object to enable fluent syntax.</returns>
-        public ISimpleServiceContainer Add( Type serviceType, object serviceInstance, Action<Object> onRemove )
+        public ISimpleServiceContainer Add( Type serviceType, object serviceInstance, Action<Object> onRemove = null )
         {
             if( ReferenceEquals( serviceType, null ) ) throw new ArgumentNullException( "serviceType" );
             if( serviceInstance == null ) throw new ArgumentNullException( "serviceInstance" );
