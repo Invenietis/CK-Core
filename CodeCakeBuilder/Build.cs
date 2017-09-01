@@ -1,4 +1,4 @@
-﻿using Cake.Common.Build;
+using Cake.Common.Build;
 using Cake.Common.Diagnostics;
 using Cake.Common.IO;
 using Cake.Common.Solution;
@@ -77,45 +77,24 @@ namespace CodeCake
                         projectsToPublish.Select( p => p.Name ).Concatenate() );
                 } );
 
-            Task( "Unit-Testing" )
-                .IsDependentOn( "Check-Repository" )
-                .Does( () =>
-                 {
-                     Cake.DotNetCoreRestore();
-                     var testDirectories = Cake.ParseSolution( solutionFileName )
-                                                             .Projects
-                                                                 .Where( p => p.Name.EndsWith( ".Tests" ) )
-                                                                 .Select( p => p.Path.FullPath );
-                     foreach( var test in testDirectories )
-                     {
-                         Cake.DotNetCoreTest( test );
-                     }
-                 } );
-
             Task( "Clean" )
                 .IsDependentOn( "Check-Repository" )
-                .IsDependentOn( "Unit-Testing" )
                 .Does( () =>
                  {
                      Cake.CleanDirectories( projects.Select( p => p.Path.GetDirectory().Combine( "bin" ) ) );
                      Cake.CleanDirectories( releasesDir );
                  } );
 
-            Task( "Restore-NuGet-Packages-With-Version" )
-                .WithCriteria( () => gitInfo.IsValid )
+            Task( "Restore" )
                .IsDependentOn( "Clean" )
                .Does( () =>
-                 {
-                    // https://docs.microsoft.com/en-us/nuget/schema/msbuild-targets
-                    Cake.DotNetCoreRestore( new DotNetCoreRestoreSettings().AddVersionArguments( gitInfo ) );
-                 } );
+               {
+                   // https://docs.microsoft.com/en-us/nuget/schema/msbuild-targets
+                   Cake.DotNetCoreRestore( new DotNetCoreRestoreSettings().AddVersionArguments( gitInfo ) );
+               } );
 
-            Task( "Build-With-Version" )
-                .WithCriteria( () => gitInfo.IsValid )
-                .IsDependentOn( "Check-Repository" )
-                .IsDependentOn( "Unit-Testing" )
-                .IsDependentOn( "Clean" )
-                .IsDependentOn( "Restore-NuGet-Packages-With-Version" )
+            Task( "Build" )
+                .IsDependentOn( "Restore" )
                 .Does( () =>
                  {
                      foreach( var p in projectsToPublish )
@@ -128,9 +107,23 @@ namespace CodeCake
                      }
                  } );
 
+            Task( "Unit-Testing" )
+               .IsDependentOn( "Build" )
+               .Does( () =>
+               {
+                   var testDirectories = Cake.ParseSolution( solutionFileName )
+                                                            .Projects
+                                                                .Where( p => p.Name.EndsWith( ".Tests" ) )
+                                                                .Select( p => p.Path.FullPath );
+                   foreach( var test in testDirectories )
+                   {
+                       Cake.DotNetCoreTest( test );
+                   }
+               } );
+
             Task( "Create-NuGet-Packages" )
                 .WithCriteria( () => gitInfo.IsValid )
-                .IsDependentOn( "Build-With-Version" )
+                .IsDependentOn( "Unit-Testing" )
                 .Does( () =>
                 {
                     Cake.CreateDirectory( releasesDir );

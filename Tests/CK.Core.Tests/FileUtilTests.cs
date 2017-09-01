@@ -286,12 +286,12 @@ namespace CK.Core.Tests
             FileUtil.IndexOfInvalidPathChars("a").Should().Be(-1);
             FileUtil.IndexOfInvalidPathChars("ab").Should().Be(-1);
             FileUtil.IndexOfInvalidPathChars("abcde").Should().Be(-1);
-            FileUtil.IndexOfInvalidPathChars("a<").Should().Be(1);
-            FileUtil.IndexOfInvalidPathChars("ab<").Should().Be(2);
-            FileUtil.IndexOfInvalidPathChars("<a").Should().Be(0);
-            FileUtil.IndexOfInvalidPathChars("abc>").Should().Be(3);
+            FileUtil.IndexOfInvalidPathChars("a|").Should().Be(1);
+            FileUtil.IndexOfInvalidPathChars("ab|").Should().Be(2);
+            FileUtil.IndexOfInvalidPathChars("|a").Should().Be(0);
             FileUtil.IndexOfInvalidPathChars("abc|").Should().Be(3);
-            FileUtil.IndexOfInvalidPathChars("abc\"").Should().Be(3);
+            FileUtil.IndexOfInvalidPathChars("abc|").Should().Be(3);
+            FileUtil.IndexOfInvalidPathChars("abc\0-").Should().Be(3);
         }
 
         private void AssertContains(string pathDir, string[] result, params string[] values)

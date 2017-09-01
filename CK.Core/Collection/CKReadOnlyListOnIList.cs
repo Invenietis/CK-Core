@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
@@ -14,11 +14,14 @@ namespace CK.Core
     [ExcludeFromCodeCoverage]
     public class CKReadOnlyListOnIList<T> : IReadOnlyList<T>
     {
+        IList<T> _values;
+
         /// <summary>
-        /// Initializes a new <see cref="CKReadOnlyListOnIList{T}"/> with a null <see cref="Values"/>.
+        /// Initializes a new <see cref="CKReadOnlyListOnIList{T}"/> with an empty <see cref="Values"/>.
         /// </summary>
         public CKReadOnlyListOnIList()
         {
+            _values = Util.Array.Empty<T>();
         }
 
         /// <summary>
@@ -34,7 +37,7 @@ namespace CK.Core
         /// <summary>
         /// Gets or sets the wrapped collection.
         /// </summary>
-        public IList<T> Values { get; set; }
+        public IList<T> Values { get => _values; set => _values = value ?? Util.Array.Empty<T>(); }
 
         /// <summary>
         /// Gets the count of items.

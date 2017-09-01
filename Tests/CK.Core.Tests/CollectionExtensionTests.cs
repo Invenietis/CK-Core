@@ -21,12 +21,6 @@ namespace CK.Core.Tests
                 r.Count().Should().Be(2);
                 l.Count.Should().Be(3);
             }
-            {
-                // Removes from and add in the same list!
-                List<int> l = new List<int>();
-                l.AddRangeArray(12, 15, 12, 13, 14, 12);
-                Should.Throw<ArgumentOutOfRangeException>(() => l.AddRange(l.RemoveWhereAndReturnsRemoved(x => x == 12)));
-            }
         }
 
 
