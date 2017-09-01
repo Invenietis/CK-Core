@@ -1,4 +1,4 @@
-﻿using Cake.Common.Build;
+using Cake.Common.Build;
 using Cake.Common.Diagnostics;
 using Cake.Common.IO;
 using Cake.Common.Solution;
@@ -9,6 +9,7 @@ using Cake.Common.Tools.DotNetCore.Restore;
 using Cake.Common.Tools.DotNetCore.Test;
 using Cake.Common.Tools.NuGet;
 using Cake.Common.Tools.NuGet.Push;
+using Cake.Common.Tools.NUnit;
 using Cake.Core;
 using Cake.Core.Diagnostics;
 using Cake.Core.IO;
@@ -77,63 +78,69 @@ namespace CodeCake
                         projectsToPublish.Select( p => p.Name ).Concatenate() );
                 } );
 
-            Task( "Unit-Testing" )
-                .IsDependentOn( "Check-Repository" )
-                .Does( () =>
-                 {
-                     Cake.DotNetCoreRestore();
-                     var testDirectories = Cake.ParseSolution( solutionFileName )
-                                                             .Projects
-                                                                 .Where( p => p.Name.EndsWith( ".Tests" ) )
-                                                                 .Select( p => p.Path.FullPath );
-                     foreach( var test in testDirectories )
-                     {
-                         Cake.DotNetCoreTest( test );
-                     }
-                 } );
-
             Task( "Clean" )
                 .IsDependentOn( "Check-Repository" )
-                .IsDependentOn( "Unit-Testing" )
                 .Does( () =>
                  {
                      Cake.CleanDirectories( projects.Select( p => p.Path.GetDirectory().Combine( "bin" ) ) );
                      Cake.CleanDirectories( releasesDir );
+                     Cake.DeleteFiles( "Tests/**/TestResult*.xml" );
                  } );
 
-            Task( "Restore-NuGet-Packages-With-Version" )
-                .WithCriteria( () => gitInfo.IsValid )
+            Task( "Restore" )
                .IsDependentOn( "Clean" )
                .Does( () =>
-                 {
-                    // https://docs.microsoft.com/en-us/nuget/schema/msbuild-targets
-                    Cake.DotNetCoreRestore( new DotNetCoreRestoreSettings().AddVersionArguments( gitInfo ) );
-                 } );
+               {
+                   // https://docs.microsoft.com/en-us/nuget/schema/msbuild-targets
+                   Cake.DotNetCoreRestore( new DotNetCoreRestoreSettings().AddVersionArguments( gitInfo ) );
+               } );
 
-            Task( "Build-With-Version" )
-                .WithCriteria( () => gitInfo.IsValid )
-                .IsDependentOn( "Check-Repository" )
-                .IsDependentOn( "Unit-Testing" )
-                .IsDependentOn( "Clean" )
-                .IsDependentOn( "Restore-NuGet-Packages-With-Version" )
+            Task( "Build" )
+                .IsDependentOn( "Restore" )
                 .Does( () =>
-                 {
-                     foreach( var p in projectsToPublish )
-                     {
-                         Cake.DotNetCoreBuild( p.Path.GetDirectory().FullPath,
-                             new DotNetCoreBuildSettings().AddVersionArguments( gitInfo, s =>
-                             {
-                                 s.Configuration = configuration;
-                             } ) );
-                     }
-                 } );
+                {
+                    Cake.DotNetCoreBuild( solutionFileName,
+                        new DotNetCoreBuildSettings().AddVersionArguments( gitInfo, s =>
+                        {
+                            s.Configuration = configuration;
+                        } ) );
+                } );
+
+            Task( "Unit-Testing" )
+                .IsDependentOn( "Build" )
+                .Does( () =>
+                {
+                    var testDlls = projects.Where( p => p.Name.EndsWith( ".Tests" ) ).Select( p =>
+                                 new
+                                 {
+                                     ProjectPath = p.Path.GetDirectory(),
+                                     NetCoreAppDll = p.Path.GetDirectory().CombineWithFilePath( "bin/" + configuration + "/netcoreapp2.0/" + p.Name + ".dll" ),
+                                     Net461Dll = p.Path.GetDirectory().CombineWithFilePath( "bin/" + configuration + "/net461/" + p.Name + ".dll" ),
+                                 } );
+
+                    foreach( var test in testDlls )
+                    {
+                        if( System.IO.File.Exists( test.Net461Dll.FullPath ) )
+                        {
+                            Cake.Information( "Testing: {0}", test.Net461Dll );
+                            Cake.NUnit( test.Net461Dll.FullPath, new NUnitSettings()
+                            {
+                                Framework = "v4.5"
+                            } );
+                        }
+                        if( System.IO.File.Exists( test.NetCoreAppDll.FullPath ) )
+                        {
+                            Cake.Information( "Testing: {0}", test.NetCoreAppDll );
+                            Cake.DotNetCoreExecute( test.NetCoreAppDll );
+                        }
+                    }
+                } );
 
             Task( "Create-NuGet-Packages" )
                 .WithCriteria( () => gitInfo.IsValid )
-                .IsDependentOn( "Build-With-Version" )
+                .IsDependentOn( "Unit-Testing" )
                 .Does( () =>
                 {
-                    Cake.CreateDirectory( releasesDir );
                     foreach( SolutionProject p in projectsToPublish )
                     {
                         Cake.Warning( p.Path.GetDirectory().FullPath );

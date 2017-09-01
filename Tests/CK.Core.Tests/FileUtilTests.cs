@@ -6,7 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using Xunit;
+using NUnit.Framework;
 using System.Globalization;
 using FluentAssertions;
 
@@ -15,7 +15,7 @@ namespace CK.Core.Tests
 
     public class FileUtilTests : MutexTest<FileInfo>
     {
-        [Fact]
+        [Test]
         public void NormalizePathSeparator_uses_current_environment()
         {
             if (Path.DirectorySeparatorChar == '\\')
@@ -36,7 +36,7 @@ namespace CK.Core.Tests
             }
         }
 
-        [Fact]
+        [Test]
         public void WriteUniqueTimedFile()
         {
             using (LockFact())
@@ -54,7 +54,7 @@ namespace CK.Core.Tests
             }
         }
 
-        [Fact]
+        [Test]
         public void UniqueTimedFile_is_28_characters_long_as_a_string()
         {
             DateTime.UtcNow.ToString(FileUtil.FileNameUniqueTimeUtcFormat, CultureInfo.InvariantCulture).Length
@@ -66,7 +66,7 @@ namespace CK.Core.Tests
         }
 
 
-        [Fact]
+        [Test]
         public void WriteUniqueTimedFile_automatically_numbers_files()
         {
             using (LockFact())
@@ -98,7 +98,7 @@ namespace CK.Core.Tests
             }
         }
 
-        [Fact]
+        [Test]
         public void WriteUniqueTimedFile_clash_never_happen()
         {
             using (LockFact())
@@ -122,7 +122,7 @@ namespace CK.Core.Tests
             }
         }
 
-        [Fact]
+        [Test]
         public void test_CopyDirectory_helper()
         {
             using (LockFact())
@@ -205,7 +205,7 @@ namespace CK.Core.Tests
             Directory.CreateDirectory(path);
         }
 
-        [Fact]
+        [Test]
         public void GetLastWriteTimeUtc_returns_FileUtil_MissingFileLastWriteTimeUtc()
         {
             using( LockFact() )
@@ -216,7 +216,7 @@ namespace CK.Core.Tests
             }
         }
 
-        [Fact]
+        [Test]
         public void CheckForWriteAccess_is_immediately_true_when_file_does_not_exist_or_is_writeable()
         {
             using (LockFact())
@@ -230,16 +230,16 @@ namespace CK.Core.Tests
             }
         }
 
-        [Theory]
-        [InlineData(100, 5, false)]
-        [InlineData(100, 50, false)]
-        [InlineData(1000, 1090, true)]
-        //[InlineData(10, 20, true)]
-        //[InlineData( 20, 1, true)]  //=> 20 millisecond lock is not enough to make the difference.
-        //[InlineData( 20, 5, true)]  //=> 20 millisecond lock is not enough to make the difference.
-        //[InlineData( 20, 10, true)] //=> 20 millisecond lock is not enough to make the difference.
+        
+        [TestCase(100, 5, false)]
+        [TestCase(100, 50, false)]
+        [TestCase(1000, 1090, true)]
+        //[TestCase(10, 20, true)]
+        //[TestCase( 20, 1, true)]  //=> 20 millisecond lock is not enough to make the difference.
+        //[TestCase( 20, 5, true)]  //=> 20 millisecond lock is not enough to make the difference.
+        //[TestCase( 20, 10, true)] //=> 20 millisecond lock is not enough to make the difference.
         //20 millisecond lock works only with nbMaxMilliSecond = 0.
-        [InlineData(20, 0, false)]
+        [TestCase(20, 0, false)]
         public void CheckForWriteAccess_is_not_exact_but_works(int lockTimeMilliSecond, int nbMaxMilliSecond, bool result)
         {
             using (LockFact())
@@ -263,7 +263,7 @@ namespace CK.Core.Tests
         }
 
 
-        [Fact]
+        [Test]
         public void test_IndexOfInvalidFileNameChars()
         {
             FileUtil.IndexOfInvalidFileNameChars("").Should().Be(-1);
@@ -279,19 +279,19 @@ namespace CK.Core.Tests
             FileUtil.IndexOfInvalidFileNameChars("abc\"").Should().Be(3);
         }
 
-        [Fact]
+        [Test]
         public void test_IndexOfInvalidPathChars()
         {
             FileUtil.IndexOfInvalidPathChars("").Should().Be(-1);
             FileUtil.IndexOfInvalidPathChars("a").Should().Be(-1);
             FileUtil.IndexOfInvalidPathChars("ab").Should().Be(-1);
             FileUtil.IndexOfInvalidPathChars("abcde").Should().Be(-1);
-            FileUtil.IndexOfInvalidPathChars("a<").Should().Be(1);
-            FileUtil.IndexOfInvalidPathChars("ab<").Should().Be(2);
-            FileUtil.IndexOfInvalidPathChars("<a").Should().Be(0);
-            FileUtil.IndexOfInvalidPathChars("abc>").Should().Be(3);
+            FileUtil.IndexOfInvalidPathChars("a|").Should().Be(1);
+            FileUtil.IndexOfInvalidPathChars("ab|").Should().Be(2);
+            FileUtil.IndexOfInvalidPathChars("|a").Should().Be(0);
             FileUtil.IndexOfInvalidPathChars("abc|").Should().Be(3);
-            FileUtil.IndexOfInvalidPathChars("abc\"").Should().Be(3);
+            FileUtil.IndexOfInvalidPathChars("abc|").Should().Be(3);
+            FileUtil.IndexOfInvalidPathChars("abc\0-").Should().Be(3);
         }
 
         private void AssertContains(string pathDir, string[] result, params string[] values)

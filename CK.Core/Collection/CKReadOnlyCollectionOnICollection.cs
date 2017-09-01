@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
@@ -14,18 +14,21 @@ namespace CK.Core
     [ExcludeFromCodeCoverage]
     public class CKReadOnlyCollectionOnICollection<T> : IReadOnlyCollection<T>
     {
+        ICollection<T> _values;
+
         /// <summary>
-        /// Initializes a new <see cref="CKReadOnlyCollectionOnICollection{T}"/> with a null <see cref="Values"/>.
+        /// Initializes a new <see cref="CKReadOnlyCollectionOnICollection{T}"/> with aa empty <see cref="Values"/>.
         /// </summary>
         public CKReadOnlyCollectionOnICollection()
         {
+            _values = Util.Array.Empty<T>();
         }
 
         /// <summary>
         /// Initializes a new <see cref="CKReadOnlyCollectionOnICollection{T}"/> on a <see cref="ICollection{T}"/>
         /// for the <see cref="Values"/>.
         /// </summary>
-        /// <param name="values">Collection to wrap.</param>
+        /// <param name="values">Collection to wrap. Can be null.</param>
         public CKReadOnlyCollectionOnICollection( ICollection<T> values )
         {
             Values = values;
@@ -33,8 +36,9 @@ namespace CK.Core
 
         /// <summary>
         /// Gets or sets the wrapped collection.
+        /// Can never be null (default to an empty collection).
         /// </summary>
-        public ICollection<T> Values { get; set; }
+        public ICollection<T> Values { get => _values; set => _values = value ?? Util.Array.Empty<T>(); }
 
         /// <summary>
         /// Gets the count of items.

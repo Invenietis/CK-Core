@@ -61,8 +61,8 @@ namespace CK.Core
             return path;
         }
 
-        static char[] _invalidPathChars = Path.GetInvalidPathChars();
-        static char[] _invalidFileNameChars = Path.GetInvalidFileNameChars();
+        static readonly char[] _invalidPathChars = Path.GetInvalidPathChars();
+        static readonly char[] _invalidFileNameChars = Path.GetInvalidFileNameChars();
 
         /// <summary>
         /// Gets the <see cref="Path.DirectorySeparatorChar"/> as a string.

@@ -1,13 +1,13 @@
 using FluentAssertions;
 using System.IO;
-using Xunit;
+using NUnit.Framework;
 
 namespace CK.Core.Tests
 {
 
     public class TemporaryFileTests
     {
-        [Fact]
+        [Test]
         public void TemporaryFile_has_FileAttributes_Temporary_by_default()
         {
             string path = string.Empty;
@@ -36,7 +36,7 @@ namespace CK.Core.Tests
             File.Exists(path).Should().BeFalse();
         }
 
-        [Fact]
+        [Test]
         public void an_empty_extension_is_like_no_extension()
         {
             string path = string.Empty;
@@ -49,7 +49,7 @@ namespace CK.Core.Tests
             File.Exists(path).Should().BeFalse();
         }
 
-        [Fact]
+        [Test]
         public void TemporaryFileExtensionTest()
         {
             string path = string.Empty;
@@ -89,7 +89,7 @@ namespace CK.Core.Tests
             File.Exists(path).Should().BeFalse();
         }
 
-        [Fact]
+        [Test]
         public void TemporaryFileDetachTest()
         {
             string path = string.Empty;

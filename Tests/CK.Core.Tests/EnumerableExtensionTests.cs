@@ -4,14 +4,14 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text;
-using Xunit;
+using NUnit.Framework;
 
 namespace CK.Core.Tests
 {
 
     public class EnumerableExtensionTests
     {
-        [Fact]
+        [Test]
         public void test_IsSortedStrict_and_IsSortedLarge_extension_methods()
         {
             List<int> listWithDuplicate = new List<int>();
@@ -85,7 +85,7 @@ namespace CK.Core.Tests
             Should.Throw<NullReferenceException>(() => listWithDuplicate.IsSortedStrict());
         }
 
-        [Fact]
+        [Test]
         public void test_IndexOf_extension_method()
         {
             List<int> listToTest = new List<int>();
@@ -113,7 +113,7 @@ namespace CK.Core.Tests
         }
 
         // See: https://github.com/dotnet/corefx/issues/15716
-        [Fact]
+        [Test]
         public void buggy_behavior_of_Append_extension_method()
         {
             {
@@ -135,7 +135,7 @@ namespace CK.Core.Tests
             }
         }
 
-        [Fact]
+        [Test]
         public void test_Append_extension_method()
         {
             int[] t = new int[0];
@@ -172,14 +172,14 @@ namespace CK.Core.Tests
 
         }
 
-        [Fact]
+        [Test]
         public void MaxBy_throws_InvalidOperationException_on_empty_sequence()
         {
             Should.Throw<InvalidOperationException>(() => new int[0].MaxBy(i => -i));
             Should.Throw<InvalidOperationException>(() => new int[0].MaxBy(i => -i, null));
         }
 
-        [Fact]
+        [Test]
         public void test_MaxBy_extension_method()
         {
             int[] t = new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12 };

@@ -2,7 +2,7 @@ using FluentAssertions;
 using System;
 using System.Globalization;
 using System.Linq;
-using Xunit;
+using NUnit.Framework;
 
 namespace CK.Core.Tests.Collection
 {
@@ -24,8 +24,9 @@ namespace CK.Core.Tests.Collection
                 for (int i = 0; i < iTry; ++i) f.Push(default(T));
                 foreach (var i in saved) f.Push(i);
                 while (f.Count > saved.Length) f.Pop();
-                f.ShouldAllBeEquivalentTo(saved, o => o.WithStrictOrdering());
-                testPredicate(f);
+                //f.ShouldAllBeEquivalentTo( saved, o => o.WithStrictOrdering() );
+                f.SequenceEqual( saved ).Should().BeTrue();
+                testPredicate( f);
             }
             foreach (var i in saved) f.Push(i);
             f.Truncate(saved.Length);
@@ -79,7 +80,7 @@ namespace CK.Core.Tests.Collection
 
         #endregion
 
-        [Fact]
+        [Test]
         public void FIFO_ToArray_method()
         {
             int[] initialArray = new int[7];
@@ -148,7 +149,7 @@ namespace CK.Core.Tests.Collection
                });
         }
 
-        [Fact]
+        [Test]
         public void FIFO_change_capacity_preserves_items()
         {
             FIFOBuffer<int> f = new FIFOBuffer<int>(0);
@@ -231,7 +232,7 @@ namespace CK.Core.Tests.Collection
             Should.Throw<IndexOutOfRangeException>(() => f.CopyTo(new int[2], 0, -1));
         }
 
-        [Fact]
+        [Test]
         public void FIFO_supports_removeAt()
         {
             FIFOBuffer<int> f = new FIFOBuffer<int>(0);
@@ -313,7 +314,7 @@ namespace CK.Core.Tests.Collection
 
         }
 
-        [Fact]
+        [Test]
         public void FIFO_supports_Peek_and_PeekLast()
         {
             FIFOBuffer<int> f = new FIFOBuffer<int>(0);
@@ -450,7 +451,7 @@ namespace CK.Core.Tests.Collection
            });
         }
 
-        [Fact]
+        [Test]
         public void FIFO_supports_Null_entries()
         {
             var c0 = CultureInfo.InvariantCulture;
@@ -494,7 +495,7 @@ namespace CK.Core.Tests.Collection
             Should.Throw<InvalidOperationException>(() => f.PopLast());
         }
 
-        [Fact]
+        [Test]
         public void FIFO_with_one_and_only_one_Value_Type()
         {
             FIFOBuffer<int> f = new FIFOBuffer<int>(1);

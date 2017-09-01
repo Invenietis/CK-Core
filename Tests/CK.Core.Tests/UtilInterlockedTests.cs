@@ -1,13 +1,13 @@
 using FluentAssertions;
 using System;
-using Xunit;
+using NUnit.Framework;
 
 namespace CK.Core.Tests
 {
 
     public class UtilInterlockedTests
     {
-        [Fact]
+        [Test]
         public void InterlockedAdd_atomically_adds_an_item_to_an_array()
         {
             int[] a = null;
@@ -20,7 +20,7 @@ namespace CK.Core.Tests
             a.ShouldBeEquivalentTo(new[] { 1, 2, 3 }, o => o.WithStrictOrdering());
         }
 
-        [Fact]
+        [Test]
         public void InterlockedAdd_can_add_an_item_in_front_of_an_array()
         {
             int[] a = null;
@@ -33,7 +33,7 @@ namespace CK.Core.Tests
             a.ShouldBeEquivalentTo(new[] { 3, 2, 1 }, o => o.WithStrictOrdering());
         }
 
-        [Fact]
+        [Test]
         public void InterlockedAddUnique_tests_the_occurrence_of_the_item()
         {
             {
@@ -66,7 +66,7 @@ namespace CK.Core.Tests
             }
         }
 
-        [Fact]
+        [Test]
         public void InterlockedRemove_an_item_from_an_array()
         {
             int[] a = new[] { 1, 2, 3, 4, 5, 6, 7 };
@@ -102,7 +102,7 @@ namespace CK.Core.Tests
 
         }
 
-        [Fact]
+        [Test]
         public void InterlockedRemoveAll_items_that_match_a_condition()
         {
             int[] a = new[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
@@ -116,7 +116,7 @@ namespace CK.Core.Tests
             a.Should().BeNull();
         }
 
-        [Fact]
+        [Test]
         public void InterlockedRemove_removes_the_first_item_that_matches_a_condition()
         {
             int[] a = new[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
@@ -126,7 +126,7 @@ namespace CK.Core.Tests
             a.ShouldBeEquivalentTo(new[] { 1, 2, 3, 4, 5, 6, 7, 9 }, o => o.WithStrictOrdering());
         }
 
-        [Fact]
+        [Test]
         public void InterlockedAdd_item_under_condition()
         {
             int[] a = new[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };

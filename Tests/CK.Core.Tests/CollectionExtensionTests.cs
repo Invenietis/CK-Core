@@ -4,13 +4,13 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text;
-using Xunit;
+using NUnit.Framework;
 
 namespace CK.Core.Tests
 {
     public class CollectionExtensionTests
     {
-        [Fact]
+        [Test]
         public void testing_RemoveWhereAndReturnsRemoved_extension_method()
         {
             {
@@ -21,16 +21,10 @@ namespace CK.Core.Tests
                 r.Count().Should().Be(2);
                 l.Count.Should().Be(3);
             }
-            {
-                // Removes from and add in the same list!
-                List<int> l = new List<int>();
-                l.AddRangeArray(12, 15, 12, 13, 14, 12);
-                Should.Throw<ArgumentOutOfRangeException>(() => l.AddRange(l.RemoveWhereAndReturnsRemoved(x => x == 12)));
-            }
         }
 
 
-        [Fact]
+        [Test]
         public void CKEnumeratorMono_works()
         {
             var e = new CKEnumeratorMono<int>(9);

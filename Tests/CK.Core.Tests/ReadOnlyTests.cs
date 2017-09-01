@@ -1,6 +1,6 @@
 using System.Reflection;
 using CK.Core;
-using Xunit;
+using NUnit.Framework;
 using System.Linq;
 using System;
 using System.Collections.Generic;
@@ -124,7 +124,7 @@ namespace CK.Core.Tests.Collection
 
     public class ReadOnlyTests
     {
-        [Fact]
+        [Test]
         public void linq_with_mere_IReadOnlyCollection_implementation_is_not_optimal_for_Count()
         {
             TestCollection<int> c = new TestCollection<int>();
@@ -162,7 +162,7 @@ namespace CK.Core.Tests.Collection
             // !cLinq.Contains( null ), "Contains should accept ANY object without any error." );
         }
 
-        [Fact]
+        [Test]
         public void linq_on_ICollection_implementation_uses_Count_property()
         {
             TestCollectionThatImplementsICollection<int> c = new TestCollectionThatImplementsICollection<int>();
@@ -201,7 +201,7 @@ namespace CK.Core.Tests.Collection
 
         }
 
-        [Fact]
+        [Test]
         public void covariant_Contains_accepts_any_types()
         {
             TestCollection<Animal> c = new TestCollection<Animal>();
@@ -229,22 +229,22 @@ namespace CK.Core.Tests.Collection
             }
         }
 
-        [Theory]
-        [InlineData("", 5, ~0)]
-        [InlineData("1", 5, ~1)]
-        [InlineData("1", -5, ~0)]
-        [InlineData("1,2,5", 5, 2)]
-        [InlineData("1,2,5", 4, ~2)]
-        [InlineData("1,2,5", 2, 1)]
-        [InlineData("1,2,5", 1, 0)]
-        [InlineData("1,2,5", 0, ~0)]
+        
+        [TestCase("", 5, ~0)]
+        [TestCase("1", 5, ~1)]
+        [TestCase("1", -5, ~0)]
+        [TestCase("1,2,5", 5, 2)]
+        [TestCase("1,2,5", 4, ~2)]
+        [TestCase("1,2,5", 2, 1)]
+        [TestCase("1,2,5", 1, 0)]
+        [TestCase("1,2,5", 0, ~0)]
         public void BinarySearch_on_IComparable_TValue_items(string values, int search, int resultIndex)
         {
             var a = values.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries).Select(v => new StringInt(v)).ToArray();
             Util.BinarySearch(a, search).Should().Be(resultIndex);
         }
 
-        [Fact]
+        [Test]
         public void IndexOf_on_IReadOnlyList()
         {
             IReadOnlyList<int> l = new[] { 3, 7, 9, 1, 3, 8 };
