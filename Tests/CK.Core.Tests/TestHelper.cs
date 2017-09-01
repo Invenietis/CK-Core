@@ -5,7 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using CK.Core;
-using Xunit;
+using NUnit.Framework;
 using FluentAssertions;
 using System.Reflection;
 using System.Runtime.CompilerServices;

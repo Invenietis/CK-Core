@@ -1,7 +1,7 @@
 using FluentAssertions;
 using System;
 using System.Diagnostics.CodeAnalysis;
-using Xunit;
+using NUnit.Framework;
 
 namespace CK.Core.Tests
 {
@@ -92,7 +92,7 @@ namespace CK.Core.Tests
     [ExcludeFromCodeCoverage]
     public class ServiceContainerTests
     {
-        [Fact]
+        [Test]
         public void registering_a_simple_class()
         {
             ISimpleServiceContainer container = new SimpleServiceContainer();
@@ -105,7 +105,7 @@ namespace CK.Core.Tests
         }
 
 
-        [Fact]
+        [Test]
         public void registering_an_implementation()
         {
             int removedServicesCount = 0;
@@ -123,7 +123,7 @@ namespace CK.Core.Tests
             removedServicesCount.Should().Be(1);
         }
 
-        [Fact]
+        [Test]
         public void removing_a_registered_service()
         {
             int removedServicesCount = 0;
@@ -143,7 +143,7 @@ namespace CK.Core.Tests
             Should.Throw<CKException>(() => container.GetService<IAddService>(true));
         }
 
-        [Fact]
+        [Test]
         public void clearing_a_container_disposes_all_its_registered_IDisposable_objects_and_remove_reentrancy_is_handled()
         {
             SimpleServiceContainer container = new SimpleServiceContainer();
@@ -162,7 +162,7 @@ namespace CK.Core.Tests
             Should.Throw<CKException>(() => container.GetService<DisposableThatReenterClearWhenDisposed>(true));
         }
 
-        [Fact]
+        [Test]
         public void using_onRemove_action_reentrancy_of_remove_is_handled()
         {
 
@@ -184,7 +184,7 @@ namespace CK.Core.Tests
             Should.Throw<CKException>(() => container.GetService<DisposableThatReenterClearWhenDisposed>(true));
         }
 
-        [Fact]
+        [Test]
         public void SimpleServiceContainer_exposes_its_own_IServiceProvier_and_ISimpleServiceContainer_implementation()
         {
             SimpleServiceContainer container = new SimpleServiceContainer();
@@ -202,7 +202,7 @@ namespace CK.Core.Tests
 
         }
 
-        [Fact]
+        [Test]
         public void when_registering_types_they_must_match()
         {
             SimpleServiceContainer container = new SimpleServiceContainer();
@@ -219,7 +219,7 @@ namespace CK.Core.Tests
         [ExcludeFromCodeCoverage]
         static T JustAFunc<T>() where T : class { return null; }
 
-        [Fact]
+        [Test]
         public void checking_null_arguments()
         {
             ISimpleServiceContainer container = new SimpleServiceContainer();
@@ -237,7 +237,7 @@ namespace CK.Core.Tests
             Should.Throw<ArgumentNullException>(() => container.Add<ProvidedClass>(JustAFunc<ProvidedClass>, null));
         }
 
-        [Fact]
+        [Test]
         public void container_can_be_chained_an_loops_are_detected()
         {
             SimpleServiceContainer firstContainer = new SimpleServiceContainer();

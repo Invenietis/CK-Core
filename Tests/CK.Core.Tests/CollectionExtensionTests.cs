@@ -4,13 +4,13 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text;
-using Xunit;
+using NUnit.Framework;
 
 namespace CK.Core.Tests
 {
     public class CollectionExtensionTests
     {
-        [Fact]
+        [Test]
         public void testing_RemoveWhereAndReturnsRemoved_extension_method()
         {
             {
@@ -30,7 +30,7 @@ namespace CK.Core.Tests
         }
 
 
-        [Fact]
+        [Test]
         public void CKEnumeratorMono_works()
         {
             var e = new CKEnumeratorMono<int>(9);

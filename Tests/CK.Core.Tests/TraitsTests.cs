@@ -25,7 +25,7 @@ using FluentAssertions;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Xunit;
+using NUnit.Framework;
 
 namespace CK.Core.Tests
 {
@@ -43,7 +43,7 @@ namespace CK.Core.Tests
             Context = new CKTraitContext( "Test", '+' );
         }
 
-        [Fact]
+        [Test]
         public void Comparing_traits()
         {
             CKTraitContext c1 = new CKTraitContext( "C1" );
@@ -66,7 +66,7 @@ namespace CK.Core.Tests
              tABc1.CompareTo( tAc2 ).Should().BeLessThan( 0, "Between different contexts, the context ordering drives the ordering." );
         }
 
-        [Fact]
+        [Test]
         public void Traits_must_belong_to_the_same_context()
         {
             Should.Throw<ArgumentException>( () => new CKTraitContext( null ) );
@@ -98,7 +98,7 @@ namespace CK.Core.Tests
             Should.Throw<ArgumentNullException>( () => c1.CompareTo( null ) );
         }
 
-        [Fact]
+        [Test]
         public void EmptyTrait_is_everywhere()
         {
             CKTrait m = Context.EmptyTrait;
@@ -124,7 +124,7 @@ namespace CK.Core.Tests
              Context.FindOnlyExisting( "N+O+N+E" ).Should().BeNull();
         }
 
-        [Fact]
+        [Test]
         public void test_AtomicTrait_parsing()
         {
             CKTrait m = Context.FindOrCreate( "Alpha" );
@@ -143,7 +143,7 @@ namespace CK.Core.Tests
              Context.FindOnlyExisting( "Beta+Gamma+Alpha" ).Should().BeSameAs( m );
         }
 
-        [Fact]
+        [Test]
         public void test_Combined_traits_parsing()
         {
             CKTrait m = Context.FindOrCreate( "Beta+Alpha" );
@@ -167,7 +167,7 @@ namespace CK.Core.Tests
              Context.FindOnlyExisting( "Beta+Gamma+Nimp+Alpha+Other+Tau+Pi" ).ToString().Should().Be( "Alpha+Beta+Pi+Tau" );
         }
 
-        [Fact]
+        [Test]
         public void test_FindOnlyExisting_with_its_optional_collector()
         {
             List<string> collector = new List<string>();
@@ -181,7 +181,7 @@ namespace CK.Core.Tests
              String.Join( ",", collector ).Should().Be( "Gamma,Nimp,Other" );
         }
 
-        [Fact]
+        [Test]
         public void test_Intersect_between_traits()
         {
             CKTrait m1 = Context.FindOrCreate( "Beta+Alpha+Fridge+Combo" );
@@ -193,7 +193,7 @@ namespace CK.Core.Tests
              m2.Intersect( Context.EmptyTrait ).Should().BeSameAs(Context.EmptyTrait, "Intersecting empty gives empty." );
         }
 
-        [Fact]
+        [Test]
         public void test_Union_of_traits()
         {
             CKTrait m1 = Context.FindOrCreate( "Beta+Alpha+Fridge+Combo" );
@@ -203,7 +203,7 @@ namespace CK.Core.Tests
              m2.Union( m1 ).Should().BeSameAs( m1.Union( m2 ), "Same in both calls." );
         }
 
-        [Fact]
+        [Test]
         public void test_Except_of_traits()
         {
             CKTrait m1 = Context.FindOrCreate( "Beta+Alpha+Fridge+Combo" );
@@ -217,7 +217,7 @@ namespace CK.Core.Tests
         }
 
 
-        [Fact]
+        [Test]
         public void Contains_is_IsSupersetOf()
         {
             CKTrait m = Context.FindOrCreate( "Beta+Alpha+Fridge+Combo" );
@@ -244,7 +244,7 @@ namespace CK.Core.Tests
              Context.EmptyTrait.Overlaps( Context.EmptyTrait ).Should().BeFalse("Empty is NOT contained 'ONE' in itself." );
         }
 
-        [Fact]
+        [Test]
         public void trait_separator_can_be_changed_from_the_default_pipe()
         {
             var c = new CKTraitContext( "SemiColonContext", ';' );
@@ -272,7 +272,7 @@ namespace CK.Core.Tests
              c.EmptyTrait.Overlaps( c.EmptyTrait ).Should().BeFalse("Empty is NOT contained 'ONE' in itself." );
         }
 
-        [Fact]
+        [Test]
         public void Toggle_is_SymmetricExcept()
         {
             CKTrait m = Context.FindOrCreate( "Beta+Alpha+Fridge+Combo" );
@@ -288,7 +288,7 @@ namespace CK.Core.Tests
         }
 
 
-        [Fact]
+        [Test]
         public void test_Fallbacks_generation()
         {
             {
@@ -350,7 +350,7 @@ namespace CK.Core.Tests
             }
         }
 
-        [Fact]
+        [Test]
         public void test_Fallbacks_ordering()
         {
             {
@@ -375,7 +375,7 @@ namespace CK.Core.Tests
         }
 
 
-        [Fact]
+        [Test]
         public void test_FindIfAllExist()
         {
             CKTrait m = Context.FindOrCreate( "Alpha+Beta+Combo+Fridge" );

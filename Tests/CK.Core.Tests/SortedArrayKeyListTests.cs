@@ -2,13 +2,13 @@ using FluentAssertions;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Xunit;
+using NUnit.Framework;
 
 namespace CK.Core.Tests.Collection
 {
     public class SortedArrayKeyListTests
     {
-        [Fact]
+        [Test]
         public void sorting_Lexicographic_integers()
         {
             var a = new CKSortedArrayKeyList<int, string>(i => i.ToString());
@@ -28,7 +28,7 @@ namespace CK.Core.Tests.Collection
             CheckList(a, 1, 10, 100, 1000, 10000, 2, 20, 3, 30, 46, 56);
         }
 
-        [Fact]
+        [Test]
         public void SortedArrayKeyList_can_allow_duplicates()
         {
             var a = new CKSortedArrayKeyList<int, string>(i => i.ToString());
@@ -65,7 +65,7 @@ namespace CK.Core.Tests.Collection
             a.Remove("Nothing").Should().BeFalse();
         }
 
-        [Fact]
+        [Test]
         public void SortedArrayKeyList_does_not_accept_null_entries()
         {
             var b = new CKSortedArrayKeyList<ClassToTest, string>(i => i.ToString(), false);
@@ -79,7 +79,7 @@ namespace CK.Core.Tests.Collection
             Should.Throw<ArgumentNullException>(() => b.IndexOf((ClassToTest)null));
         }
 
-        [Fact]
+        [Test]
         public void SortedArrayKeyList_without_duplicates()
         {
             var a = new CKSortedArrayKeyList<int, string>(i => i.ToString());
@@ -114,7 +114,7 @@ namespace CK.Core.Tests.Collection
         }
 
 
-        [Fact]
+        [Test]
         public void another_test_with_duplicates_in_SortedArrayKeyList()
         {
             var a = new CKSortedArrayKeyList<int, string>(i => (i % 100).ToString(), true);

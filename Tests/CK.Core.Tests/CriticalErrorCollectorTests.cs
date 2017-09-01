@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Xunit;
+using NUnit.Framework;
 
 namespace CK.Core.Tests
 {
@@ -12,7 +12,7 @@ namespace CK.Core.Tests
     public class CriticalErrorCollectorTests
     {
 
-        [Fact]
+        [Test]
         public void simple_add_exception_to_CriticalErrorCollector()
         {
             CriticalErrorCollector c = new CriticalErrorCollector();

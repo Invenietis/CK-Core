@@ -7,7 +7,7 @@ using System.Runtime.Serialization.Formatters.Binary;
 #endif
 using System.Text;
 using System.Threading.Tasks;
-using Xunit;
+using NUnit.Framework;
 using CK.Text;
 using FluentAssertions;
 
@@ -17,7 +17,7 @@ namespace CK.Core.Tests
     public class CKExceptionTests
     {
 
-        [Fact]
+        [Test]
         public void FromSimplestException()
         {
             CheckSimpleExceptionData(CKExceptionData.CreateFrom(new Exception("")), s => s == "", false, false);
@@ -45,7 +45,7 @@ namespace CK.Core.Tests
             simpleData.LoaderExceptions.Should().BeNull();
         }
 
-        [Fact]
+        [Test]
         public void WithInnerExceptions()
         {
             Exception e = ThrowExceptionWithInner();
@@ -55,7 +55,7 @@ namespace CK.Core.Tests
         }
 
         //#if DNXCORE50
-        //        [Fact]
+        //        [Test]
         //        public void TestTestTestTestTestTestTestDNXCORE50()
         //        {
         //             false, "Stupid test fail in DNXCORE50" );
@@ -63,7 +63,7 @@ namespace CK.Core.Tests
         //#endif
 
         //#if DNX46
-        //        [Fact]
+        //        [Test]
         //        public void TestTestTestTestTestTestTestDNX46()
         //        {
         //             false, "Stupid test fail in DNX46" );
@@ -71,14 +71,14 @@ namespace CK.Core.Tests
         //#endif
 
         //#if RELEASE
-        //        [Fact]
+        //        [Test]
         //        public void TestTestTestTestTestTestTestRELEASE()
         //        {
         //             false, "Stupid test fail in RELEASE" );
         //        }
         //#endif
 
-        [Fact]
+        [Test]
         public void AggregatedExceptions()
         {
             AggregateException eAgg = ThrowAggregatedException();
@@ -96,7 +96,7 @@ namespace CK.Core.Tests
 
 #if NET451 || NET46
 
-        [Fact]
+        [Test]
         public void reading_and_writing_CKExceptionData_with_Standard_Serialization()
         {
             var dataE0 = CKExceptionData.CreateFrom( ThrowAggregatedException() );
@@ -128,7 +128,7 @@ namespace CK.Core.Tests
         }
 #endif
 
-        [Fact]
+        [Test]
         public void reading_and_writing_CKExceptionData_with_BinaryWriter_and_BinaryReader()
         {
             var dataE0 = CKExceptionData.CreateFrom(ThrowAggregatedException());

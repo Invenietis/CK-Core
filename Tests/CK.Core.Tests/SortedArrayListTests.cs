@@ -2,13 +2,13 @@ using FluentAssertions;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using Xunit;
+using NUnit.Framework;
 
 namespace CK.Core.Tests.Collection
 {
     public class SortedArrayListTests
     {
-        [Fact]
+        [Test]
         public void SortedArrayListSimpleTest()
         {
             var a = new CKSortedArrayList<int>();
@@ -39,7 +39,7 @@ namespace CK.Core.Tests.Collection
             arrayToTest[4].Should().Be(545);
         }
 
-        [Fact]
+        [Test]
         public void SortedArrayListAllowDuplicatesTest()
         {
             var b = new CKSortedArrayList<int>(true);
@@ -52,7 +52,7 @@ namespace CK.Core.Tests.Collection
             b.CheckPosition(3).Should().Be(3);
         }
 
-        [Fact]
+        [Test]
         public void Covariance_support_via_ICKReadOnlyList_and_ICKWritableCollection()
         {
             var a = new CKSortedArrayList<Mammal>((a1, a2) => a1.Name.CompareTo(a2.Name));
@@ -78,7 +78,7 @@ namespace CK.Core.Tests.Collection
             public Mammal[] Tab { get { return Store; } }
         }
 
-        [Fact]
+        [Test]
         public void CheckPosition_locally_reorders_the_items()
         {
             var a = new TestMammals((a1, a2) => a1.Name.CompareTo(a2.Name));
@@ -167,7 +167,7 @@ namespace CK.Core.Tests.Collection
             CheckList(d, "AB");
         }
 
-        [Fact]
+        [Test]
         public void using_binary_search_algorithms_on_SortedArrayList()
         {
             var a = new TestMammals((a1, a2) => a1.Name.CompareTo(a2.Name));
@@ -249,7 +249,7 @@ namespace CK.Core.Tests.Collection
             a.ShouldAllBeEquivalentTo(p, o => o.WithStrictOrdering());
         }
 
-        [Fact]
+        [Test]
         public void testing_add_and_remove_items()
         {
             var a = new TestInt();
@@ -325,7 +325,7 @@ namespace CK.Core.Tests.Collection
 
         }
 
-        [Fact]
+        [Test]
         public void testing_capacity_changes()
         {
             var a = new CKSortedArrayList<Mammal>((a1, a2) => a1.Name.CompareTo(a2.Name));
@@ -363,7 +363,7 @@ namespace CK.Core.Tests.Collection
 
         }
 
-        [Fact]
+        [Test]
         public void testing_expected_Argument_InvalidOperation_and_IndexOutOfRangeException()
         {
             var a = new CKSortedArrayList<Mammal>((a1, a2) => a1.Name.CompareTo(a2.Name));
@@ -402,7 +402,7 @@ namespace CK.Core.Tests.Collection
             Should.Throw<ArgumentNullException>(() => testException.Insert(0, null));
         }
 
-        [Fact]
+        [Test]
         public void SortedArrayList_can_be_cast_into_IList_or_ICollection()
         {
             var a = new CKSortedArrayList<int>();

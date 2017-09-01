@@ -1,14 +1,14 @@
 ﻿using CK.Text;
 using FluentAssertions;
 using System;
-using Xunit;
+using NUnit.Framework;
 
 namespace CK.Core.Tests
 {
 
     public class StringMatcherCoreTests
     {
-        [Fact]
+        [Test]
         public void matching_FileNameUniqueTimeUtcFormat()
         {
             DateTime t = DateTime.UtcNow;
@@ -27,7 +27,7 @@ namespace CK.Core.Tests
             i.Should().Be(20);
         }
 
-        [Fact]
+        [Test]
         public void matching_DateTimeStamp()
         {
             DateTimeStamp t = DateTimeStamp.UtcNow;
