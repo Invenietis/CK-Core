@@ -24,8 +24,9 @@ namespace CK.Core.Tests.Collection
                 for (int i = 0; i < iTry; ++i) f.Push(default(T));
                 foreach (var i in saved) f.Push(i);
                 while (f.Count > saved.Length) f.Pop();
-                f.ShouldAllBeEquivalentTo(saved, o => o.WithStrictOrdering());
-                testPredicate(f);
+                //f.ShouldAllBeEquivalentTo( saved, o => o.WithStrictOrdering() );
+                f.SequenceEqual( saved ).Should().BeTrue();
+                testPredicate( f);
             }
             foreach (var i in saved) f.Push(i);
             f.Truncate(saved.Length);

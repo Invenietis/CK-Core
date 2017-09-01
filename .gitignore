@@ -239,3 +239,4 @@ Tests/CK.ActivityMonitor.Tests/TestFolder/CriticalErrors/
 Tests/CK.Monitoring.Tests/TestFolder/
 CodeCakeBuilder/Tools/nuget.exe
 SGVVersionInfo.cs
+Tests/CK.Core.NetCore.Tests/TestDir/

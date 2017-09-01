@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
-VisualStudioVersion = 15.0.26403.7
+VisualStudioVersion = 15.0.26730.8
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{A87208F3-D73C-4AD4-9FF5-0314968EDD74}"
 EndProject
@@ -21,6 +21,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CK.Core", "CK.Core\CK.Core.
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CK.Core.Tests", "Tests\CK.Core.Tests\CK.Core.Tests.csproj", "{BBB00A65-7380-45A8-8167-2F981AA6AA1F}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CK.Core.NetCore.Tests", "Tests\CK.Core.NetCore.Tests\CK.Core.NetCore.Tests.csproj", "{B608E87E-A2EA-4BE0-8682-6F07D4B6AF77}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -39,11 +41,19 @@ Global
 		{BBB00A65-7380-45A8-8167-2F981AA6AA1F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{BBB00A65-7380-45A8-8167-2F981AA6AA1F}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{BBB00A65-7380-45A8-8167-2F981AA6AA1F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B608E87E-A2EA-4BE0-8682-6F07D4B6AF77}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B608E87E-A2EA-4BE0-8682-6F07D4B6AF77}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B608E87E-A2EA-4BE0-8682-6F07D4B6AF77}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B608E87E-A2EA-4BE0-8682-6F07D4B6AF77}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{BBB00A65-7380-45A8-8167-2F981AA6AA1F} = {A87208F3-D73C-4AD4-9FF5-0314968EDD74}
+		{B608E87E-A2EA-4BE0-8682-6F07D4B6AF77} = {A87208F3-D73C-4AD4-9FF5-0314968EDD74}
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {50141A57-D8A5-4310-B52C-9F958D15FAE7}
 	EndGlobalSection
 EndGlobal
