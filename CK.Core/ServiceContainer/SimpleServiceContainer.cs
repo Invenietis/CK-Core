@@ -84,7 +84,7 @@ namespace CK.Core
                 SimpleServiceContainer v = value as SimpleServiceContainer;
                 while( v != null )
                 {
-                    if( v == this ) throw new CKException( "BaseProvider circle detected" );
+                    if( v == this ) throw new Exception( "BaseProvider circle detected" );
                     v = v.BaseProvider as SimpleServiceContainer;
                 }
                 _baseProvider = value; 
@@ -105,7 +105,7 @@ namespace CK.Core
         {
             if( ReferenceEquals( serviceType, null ) ) throw new ArgumentNullException( "serviceType" );
             if( serviceInstance == null ) throw new ArgumentNullException( "serviceInstance" );
-            if( GetDirectService( serviceType ) != null ) throw new CKException( CoreResources.ServiceAlreadyDirectlySupported, serviceType.FullName );
+            if( GetDirectService( serviceType ) != null ) throw new Exception( String.Format( CoreResources.ServiceAlreadyDirectlySupported, serviceType.FullName ) );
             DoAdd( serviceType, new ServiceEntry() { Instance = null, Creator = serviceInstance, OnRemove = onRemove } );
             return this;
         }
@@ -121,8 +121,8 @@ namespace CK.Core
         {
             if( ReferenceEquals( serviceType, null ) ) throw new ArgumentNullException( "serviceType" );
             if( serviceInstance == null ) throw new ArgumentNullException( "serviceInstance" );
-            if( GetDirectService( serviceType ) != null ) throw new CKException( CoreResources.ServiceAlreadyDirectlySupported, serviceType.FullName );
-            if( !serviceType.IsAssignableFrom( serviceInstance.GetType() ) ) throw new CKException( CoreResources.ServiceImplTypeMismatch, serviceType.FullName, serviceInstance.GetType().FullName );
+            if( GetDirectService( serviceType ) != null ) throw new Exception( String.Format( CoreResources.ServiceAlreadyDirectlySupported, serviceType.FullName ) );
+            if( !serviceType.IsAssignableFrom( serviceInstance.GetType() ) ) throw new Exception( String.Format( CoreResources.ServiceImplTypeMismatch, serviceType.FullName, serviceInstance.GetType().FullName ) );
             DoAdd( serviceType, new ServiceEntry() { Instance = serviceInstance, Creator = null, OnRemove = onRemove } );
             return this;
         }
@@ -143,7 +143,7 @@ namespace CK.Core
         public ISimpleServiceContainer AddDisabled( Type serviceType )
         {
             if( ReferenceEquals( serviceType, null ) ) throw new ArgumentNullException( "serviceType" );
-            if( GetDirectService( serviceType ) != null ) throw new CKException( CoreResources.DirectServicesCanNotBeDisabled, serviceType.FullName );
+            if( GetDirectService( serviceType ) != null ) throw new Exception( String.Format( CoreResources.DirectServicesCanNotBeDisabled, serviceType.FullName ) );
             DoAdd( serviceType, new ServiceEntry() );
             return this;
         }
@@ -205,7 +205,7 @@ namespace CK.Core
                         result = e.Creator();
                         if( result != null )
                         {
-                            if( !serviceType.IsAssignableFrom( result.GetType() ) ) throw new CKException( CoreResources.ServiceImplCallbackTypeMismatch, serviceType.FullName, result.GetType().FullName );
+                            if( !serviceType.IsAssignableFrom( result.GetType() ) ) throw new Exception( string.Format( CoreResources.ServiceImplCallbackTypeMismatch, serviceType.FullName, result.GetType().FullName ) );
                             // Release Creator reference to minimize (subtle) leaks.
                             e.Creator = null;
                             e.Instance = result;
@@ -275,7 +275,7 @@ namespace CK.Core
             catch( ArgumentException ex )
             {
                 if( _services.ContainsKey( s ) )
-                    throw new CKException( ex, CoreResources.ServiceAlreadyRegistered, s.FullName );
+                    throw new Exception( String.Format( CoreResources.ServiceAlreadyRegistered, s.FullName ), ex );
                 throw;
             }
         }

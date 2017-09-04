@@ -246,7 +246,7 @@ namespace CK.Core.Tests.Collection
         private static void CheckList(TestInt a, params int[] p)
         {
             a.CheckList();
-            a.ShouldAllBeEquivalentTo(p, o => o.WithStrictOrdering());
+            a.SequenceEqual( p ).Should().BeTrue();
         }
 
         [Test]

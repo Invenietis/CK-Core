@@ -134,8 +134,6 @@ namespace CK.Core
         static public CKExceptionData CreateFrom( Exception ex )
         {
             if( ex == null ) return null;
-            CKException ckEx = ex as CKException;
-            if( ckEx != null ) return ckEx.EnsureExceptionData();
             Type t = ex.GetType();
             string exceptionTypeName = t.Name;
             string exceptionTypeAssemblyQualifiedName = t.AssemblyQualifiedName;
@@ -169,9 +167,7 @@ namespace CK.Core
                 if( fileNFEx != null )
                 {
                     fileName = fileNFEx.FileName;
-                    #if NET451 || NET46
                     detailedInfo = fileNFEx.FusionLog.NormalizeEOL();
-                    #endif
                 }
                 else
                 {
@@ -179,19 +175,7 @@ namespace CK.Core
                     if( loadFileEx != null )
                     {
                         fileName = loadFileEx.FileName;
-                        #if NET451 || NET46
                         detailedInfo = loadFileEx.FusionLog.NormalizeEOL();
-                        #endif
-                    }
-                    else
-                    {
-                        #if NET451 || NET46
-                        var configEx = ex as System.Configuration.ConfigurationException;
-                        if( configEx != null )
-                        {
-                            fileName = configEx.Filename;
-                        }
-                        #endif
                     }
                 }
             }

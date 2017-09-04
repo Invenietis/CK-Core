@@ -24,7 +24,6 @@ namespace CK.Core.Tests.Collection
                 for (int i = 0; i < iTry; ++i) f.Push(default(T));
                 foreach (var i in saved) f.Push(i);
                 while (f.Count > saved.Length) f.Pop();
-                //f.ShouldAllBeEquivalentTo( saved, o => o.WithStrictOrdering() );
                 f.SequenceEqual( saved ).Should().BeTrue();
                 testPredicate( f);
             }
@@ -50,8 +49,8 @@ namespace CK.Core.Tests.Collection
         static void AssertContains<T>(FIFOBuffer<T> f, params T[] values)
         {
             f.Count.Should().Be(values.Length);
-            f.ShouldAllBeEquivalentTo(values, o => o.WithStrictOrdering());
-            f.ToArray().ShouldAllBeEquivalentTo(values, o => o.WithStrictOrdering());
+            f.SequenceEqual( values ).Should().BeTrue();
+            f.ToArray().SequenceEqual( values ).Should().BeTrue();
         }
 
         static void AssertEmpty<T>(FIFOBuffer<T> f)
@@ -97,29 +96,29 @@ namespace CK.Core.Tests.Collection
                    var array = (int[])initialArray.Clone();
                    b.Push(1);
                    b.CopyTo(array, 3, 2);
-                   array.ShouldAllBeEquivalentTo(new int[] { -1, 0, 0, 1, 0, 0, -1 }, o => o.WithStrictOrdering());
+                   array.SequenceEqual( new int[] { -1, 0, 0, 1, 0, 0, -1 } ).Should().BeTrue();
                    array[3] = 0;
                    b.Push(2);
                    b.CopyTo(array, 3, 2);
-                   array.ShouldAllBeEquivalentTo(new int[] { -1, 0, 0, 1, 2, 0, -1 }, o => o.WithStrictOrdering());
+                   array.SequenceEqual( new int[] { -1, 0, 0, 1, 2, 0, -1 } ).Should().BeTrue();
 
                    array[3] = 0; array[4] = 0;
                    b.Push(3);
                    b.CopyTo(array, 3, 3);
-                   array.ShouldAllBeEquivalentTo(new int[] { -1, 0, 0, 1, 2, 3, -1 }, o => o.WithStrictOrdering());
+                   array.SequenceEqual( new int[] { -1, 0, 0, 1, 2, 3, -1 } ).Should().BeTrue();
 
                    array[3] = 0; array[4] = 0; array[5] = 0;
                    b.Push(4);
                    b.CopyTo(array, 3, 3);
-                   array.ShouldAllBeEquivalentTo(new int[] { -1, 0, 0, 2, 3, 4, -1 }, o => o.WithStrictOrdering());
+                   array.SequenceEqual( new int[] { -1, 0, 0, 2, 3, 4, -1 } ).Should().BeTrue();
 
                    array[3] = 0; array[4] = 0; array[5] = 0;
                    b.CopyTo(array, 2, 4);
-                   array.ShouldAllBeEquivalentTo(new int[] { -1, 0, 1, 2, 3, 4, -1 }, o => o.WithStrictOrdering());
+                   array.SequenceEqual( new int[] { -1, 0, 1, 2, 3, 4, -1 } ).Should().BeTrue();
 
                    array[3] = 0; array[4] = 0; array[5] = 0;
                    b.CopyTo(array, 2, 5).Should().Be(4);
-                   array.ShouldAllBeEquivalentTo(new int[] { -1, 0, 1, 2, 3, 4, -1 }, o => o.WithStrictOrdering(), "Sentinel is not changed: there is only 4 items to copy.");
+                   array.SequenceEqual( new int[] { -1, 0, 1, 2, 3, 4, -1 } ).Should().BeTrue( "Sentinel is not changed: there is only 4 items to copy." );
 
                    Should.Throw<IndexOutOfRangeException>(() => b.CopyTo(array, 2, 6), "Even if the items fit, there must be an exception.");
 
@@ -138,15 +137,15 @@ namespace CK.Core.Tests.Collection
 
                    array[3] = 0; array[4] = 0; array[5] = 0;
                    b.CopyTo(array, 1).Should().Be(5);
-                   array.ShouldAllBeEquivalentTo(new int[] { -1, 7, 8, 9, 10, 11, -1 }, o => o.WithStrictOrdering(), "Sentinel is not changed: there is only 5 items to copy.");
+                   array.SequenceEqual( new int[] { -1, 7, 8, 9, 10, 11, -1 } ).Should().BeTrue("Sentinel is not changed: there is only 5 items to copy.");
 
                    array[5] = 0;
                    b.CopyTo(array, 0).Should().Be(5);
-                   array.ShouldAllBeEquivalentTo(new int[] { 7, 8, 9, 10, 11, 0, -1 }, o => o.WithStrictOrdering());
+                   array.SequenceEqual( new int[] { 7, 8, 9, 10, 11, 0, -1 } ).Should().BeTrue();
 
                    b.CopyTo(array, 5).Should().Be(2);
-                   array.ShouldAllBeEquivalentTo(new int[] { 7, 8, 9, 10, 11, 10, 11 }, o => o.WithStrictOrdering());
-               });
+                   array.SequenceEqual( new int[] { 7, 8, 9, 10, 11, 10, 11 } ).Should().BeTrue();
+               } );
         }
 
         [Test]
@@ -378,7 +377,7 @@ namespace CK.Core.Tests.Collection
                b.Push(9);
                b[0].Should().Be(8);
                b[1].Should().Be(9);
-               b.ToArray().ShouldAllBeEquivalentTo(new int[] { 8, 9 }, o => o.WithStrictOrdering());
+               b.ToArray().SequenceEqual(new int[] { 8, 9 } ).Should().BeTrue();
                b.Peek().Should().Be(8);
                b.PeekLast().Should().Be(9);
                b.Pop().Should().Be(8);

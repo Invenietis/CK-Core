@@ -140,7 +140,7 @@ namespace CK.Core.Tests
 
             container.GetService(typeof(IAddService)).Should().BeNull();
             container.GetService<IAddService>().Should().BeNull();
-            Should.Throw<CKException>(() => container.GetService<IAddService>(true));
+            Should.Throw<Exception>(() => container.GetService<IAddService>(true));
         }
 
         [Test]
@@ -159,7 +159,7 @@ namespace CK.Core.Tests
 
             container.GetService(typeof(DisposableThatReenterClearWhenDisposed)).Should().BeNull();
             container.GetService<DisposableThatReenterClearWhenDisposed>().Should().BeNull();
-            Should.Throw<CKException>(() => container.GetService<DisposableThatReenterClearWhenDisposed>(true));
+            Should.Throw<Exception>(() => container.GetService<DisposableThatReenterClearWhenDisposed>(true));
         }
 
         [Test]
@@ -181,7 +181,7 @@ namespace CK.Core.Tests
 
             container.GetService(typeof(DisposableThatReenterClearWhenDisposed)).Should().BeNull();
             container.GetService<DisposableThatReenterClearWhenDisposed>().Should().BeNull();
-            Should.Throw<CKException>(() => container.GetService<DisposableThatReenterClearWhenDisposed>(true));
+            Should.Throw<Exception>(() => container.GetService<DisposableThatReenterClearWhenDisposed>(true));
         }
 
         [Test]
@@ -191,14 +191,14 @@ namespace CK.Core.Tests
             container.GetService<IServiceProvider>().Should().BeSameAs(container);
             container.GetService<ISimpleServiceContainer>().Should().BeSameAs(container);
 
-            Should.Throw<CKException>(() => container.Add<ISimpleServiceContainer>(container));
-            Should.Throw<CKException>(() => container.Add<ISimpleServiceContainer>(new SimpleServiceContainer()));
-            Should.Throw<CKException>(() => container.Add<ISimpleServiceContainer>(JustAFunc<ISimpleServiceContainer>));
+            Should.Throw<Exception>(() => container.Add<ISimpleServiceContainer>(container));
+            Should.Throw<Exception>(() => container.Add<ISimpleServiceContainer>(new SimpleServiceContainer()));
+            Should.Throw<Exception>(() => container.Add<ISimpleServiceContainer>(JustAFunc<ISimpleServiceContainer>));
 
-            Should.Throw<CKException>(() => container.Add<IServiceProvider>(container));
-            Should.Throw<CKException>(() => container.Add<IServiceProvider>(new SimpleServiceContainer()));
-            Should.Throw<CKException>(() => container.Add<IServiceProvider>(JustAFunc<IServiceProvider>));
-            Should.Throw<CKException>(() => container.AddDisabled(typeof(IServiceProvider)));
+            Should.Throw<Exception>(() => container.Add<IServiceProvider>(container));
+            Should.Throw<Exception>(() => container.Add<IServiceProvider>(new SimpleServiceContainer()));
+            Should.Throw<Exception>(() => container.Add<IServiceProvider>(JustAFunc<IServiceProvider>));
+            Should.Throw<Exception>(() => container.AddDisabled(typeof(IServiceProvider)));
 
         }
 
@@ -207,10 +207,10 @@ namespace CK.Core.Tests
         {
             SimpleServiceContainer container = new SimpleServiceContainer();
 
-            Should.Throw<CKException>(() => container.Add(typeof(int), new ProvidedClass(5), null));
+            Should.Throw<Exception>(() => container.Add(typeof(int), new ProvidedClass(5), null));
 
             container.Add(typeof(ProvidedClass), () => { return new EmptyClass(); }, null);
-            Should.Throw<CKException>(() => container.GetService<ProvidedClass>());
+            Should.Throw<Exception>(() => container.GetService<ProvidedClass>());
         }
 
         [ExcludeFromCodeCoverage]
@@ -244,21 +244,21 @@ namespace CK.Core.Tests
             SimpleServiceContainer secondContainer = new SimpleServiceContainer();
             SimpleServiceContainer thirdContainer = new SimpleServiceContainer();
 
-            Should.Throw<CKException>(() => firstContainer.BaseProvider = firstContainer);
+            Should.Throw<Exception>(() => firstContainer.BaseProvider = firstContainer);
 
             //firstContainer( secondContainer )
             firstContainer.BaseProvider = secondContainer;
-            Should.Throw<CKException>(() => secondContainer.BaseProvider = firstContainer);
+            Should.Throw<Exception>(() => secondContainer.BaseProvider = firstContainer);
 
             //firstContainer( secondContainer( thirdContainer ) )
             secondContainer.BaseProvider = thirdContainer;
-            Should.Throw<CKException>(() => thirdContainer.BaseProvider = firstContainer);
-            Should.Throw<CKException>(() => thirdContainer.BaseProvider = secondContainer);
+            Should.Throw<Exception>(() => thirdContainer.BaseProvider = firstContainer);
+            Should.Throw<Exception>(() => thirdContainer.BaseProvider = secondContainer);
 
             //firstContainer( thirdContainer ) and secondContainer( thirdContainer ) 
             firstContainer.BaseProvider = thirdContainer;
-            Should.Throw<CKException>(() => thirdContainer.BaseProvider = secondContainer);
-            Should.Throw<CKException>(() => thirdContainer.BaseProvider = firstContainer);
+            Should.Throw<Exception>(() => thirdContainer.BaseProvider = secondContainer);
+            Should.Throw<Exception>(() => thirdContainer.BaseProvider = firstContainer);
 
         }
 
@@ -344,13 +344,13 @@ namespace CK.Core.Tests
         private static void IServiceContainerConformanceAddFailsWhenExisting(ISimpleServiceContainer container, Func<IAddService> creatorFunc)
         {
             container.Add<IAddService>(new AddServiceImpl());
-            Should.Throw<CKException>(() => container.Add(creatorFunc));
-            Should.Throw<CKException>(() => container.Add<IAddService>(creatorFunc, s => { }));
-            Should.Throw<CKException>(() => container.Add(typeof(IAddService), new AddServiceImpl()));
-            Should.Throw<CKException>(() => container.Add(typeof(IAddService), new AddServiceImpl(), s => { }));
-            Should.Throw<CKException>(() => container.Add<IAddService>(new AddServiceImpl()));
-            Should.Throw<CKException>(() => container.Add<IAddService>(new AddServiceImpl(), s => { }));
-            Should.Throw<CKException>(() => container.AddDisabled(typeof(IAddService)));
+            Should.Throw<Exception>(() => container.Add(creatorFunc));
+            Should.Throw<Exception>(() => container.Add<IAddService>(creatorFunc, s => { }));
+            Should.Throw<Exception>(() => container.Add(typeof(IAddService), new AddServiceImpl()));
+            Should.Throw<Exception>(() => container.Add(typeof(IAddService), new AddServiceImpl(), s => { }));
+            Should.Throw<Exception>(() => container.Add<IAddService>(new AddServiceImpl()));
+            Should.Throw<Exception>(() => container.Add<IAddService>(new AddServiceImpl(), s => { }));
+            Should.Throw<Exception>(() => container.AddDisabled(typeof(IAddService)));
             container.Remove(typeof(IAddService));
         }
 
@@ -359,7 +359,7 @@ namespace CK.Core.Tests
             container.GetService<IAddService>().Should().BeNull("Starting with no IAddService.");
 
             container.Add<IAddService>(creatorFunc);
-            Should.Throw<CKException>(() => container.Add<IAddService>(creatorFunc), "Adding an already existing service throws an exception.");
+            Should.Throw<Exception>(() => container.Add<IAddService>(creatorFunc), "Adding an already existing service throws an exception.");
 
             container.GetService<IAddService>().Should().NotBeNull("Deferred creation occured.");
             container.Remove(typeof(IAddService));

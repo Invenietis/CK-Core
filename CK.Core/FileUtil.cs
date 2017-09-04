@@ -298,7 +298,7 @@ namespace CK.Core
                 }
                 else
                 {
-                    if( counter == maxTryBeforeGuid + 1 ) throw new CKException( Impl.CoreResources.FileUtilUnableToCreateUniqueTimedFile );
+                    if( counter == maxTryBeforeGuid + 1 ) throw new Exception( Impl.CoreResources.FileUtilUnableToCreateUniqueTimedFile );
                     if( counter == maxTryBeforeGuid )
                     {
                         result = pathPrefix + FormatTimedUniqueFilePart( time ) + fileSuffix;

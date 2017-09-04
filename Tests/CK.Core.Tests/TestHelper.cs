@@ -15,15 +15,9 @@ namespace CK.Core.Tests
 
     public static class Should
     {
-        public static void Throw<T>(Action a) where T : Exception => a.ShouldThrow<T>();
-        public static void Throw<T>(Action a, string because) where T : Exception => a.ShouldThrow<T>(because);
+        public static void Throw<T>( Action a ) where T : Exception => a.ShouldThrow<T>();
+        public static void Throw<T>( Action a, string because ) where T : Exception => a.ShouldThrow<T>( because );
     }
-
-#if !NET451
-    class ExcludeFromCodeCoverageAttribute : Attribute
-    {
-    }
-#endif
 
 
     static partial class TestHelper
@@ -39,7 +33,7 @@ namespace CK.Core.Tests
         {
             get
             {
-                if (_testFolder == null) InitializePaths();
+                if( _testFolder == null ) InitializePaths();
                 return _testFolder;
             }
         }
@@ -48,52 +42,52 @@ namespace CK.Core.Tests
         {
             get
             {
-                if (_solutionFolder == null) InitializePaths();
+                if( _solutionFolder == null ) InitializePaths();
                 return _solutionFolder;
             }
         }
 
         public static void CleanupTestFolder()
         {
-            DeleteFolder(TestFolder, true);
+            DeleteFolder( TestFolder, true );
         }
 
-        public static void DeleteFolder(string directoryPath, bool recreate = false)
+        public static void DeleteFolder( string directoryPath, bool recreate = false )
         {
             int tryCount = 0;
-            for (;;)
+            for(; ; )
             {
                 try
                 {
-                    if (Directory.Exists(directoryPath)) Directory.Delete(directoryPath, true);
-                    if (recreate)
+                    if( Directory.Exists( directoryPath ) ) Directory.Delete( directoryPath, true );
+                    if( recreate )
                     {
-                        Directory.CreateDirectory(directoryPath);
-                        File.WriteAllText(Path.Combine(directoryPath, "TestWrite.txt"), "Test write works.");
-                        File.Delete(Path.Combine(directoryPath, "TestWrite.txt"));
+                        Directory.CreateDirectory( directoryPath );
+                        File.WriteAllText( Path.Combine( directoryPath, "TestWrite.txt" ), "Test write works." );
+                        File.Delete( Path.Combine( directoryPath, "TestWrite.txt" ) );
                     }
                     return;
                 }
-                catch (Exception ex)
+                catch( Exception ex )
                 {
-                    if (++tryCount == 20) throw;
-                    Console.WriteLine("{1} - While cleaning up directory '{0}'. Retrying.", directoryPath, ex.Message);
-                    System.Threading.Thread.Sleep(100);
+                    if( ++tryCount == 20 ) throw;
+                    Console.WriteLine( "{1} - While cleaning up directory '{0}'. Retrying.", directoryPath, ex.Message );
+                    System.Threading.Thread.Sleep( 100 );
                 }
             }
         }
 
         static void InitializePaths()
         {
-            _solutionFolder = Path.GetDirectoryName(Path.GetDirectoryName(GetTestProjectPath()));
-            _testFolder = Path.Combine(_solutionFolder, "Tests", "CK.Core.Tests", "TestDir");
-            Console.WriteLine($"SolutionFolder is: {_solutionFolder}.");
-            Console.WriteLine($"TestFolder is: {_testFolder}.");
-            Console.WriteLine($"Core path: {typeof(string).GetTypeInfo().Assembly.CodeBase}.");
+            _solutionFolder = Path.GetDirectoryName( Path.GetDirectoryName( GetTestProjectPath() ) );
+            _testFolder = Path.Combine( _solutionFolder, "Tests", "CK.Core.Tests", "TestDir" );
+            Console.WriteLine( $"SolutionFolder is: {_solutionFolder}." );
+            Console.WriteLine( $"TestFolder is: {_testFolder}." );
+            Console.WriteLine( $"Core path: {typeof( string ).GetTypeInfo().Assembly.CodeBase}." );
             CleanupTestFolder();
         }
 
-        static string GetTestProjectPath([CallerFilePath]string path = null) => Path.GetDirectoryName(path);
+        static string GetTestProjectPath( [CallerFilePath]string path = null ) => Path.GetDirectoryName( path );
 
     }
 }
