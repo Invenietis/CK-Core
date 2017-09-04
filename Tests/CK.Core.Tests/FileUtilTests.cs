@@ -235,7 +235,6 @@ namespace CK.Core.Tests
             TestHelper.CleanupTestFolder();
         }
 
-
         [Test]
         public void test_IndexOfInvalidFileNameChars()
         {

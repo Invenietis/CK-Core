@@ -77,13 +77,13 @@ namespace CK.Core
         {
             internal ErrorEventArgs( Error[] e )
             {
-                LoggingErrors = e;
+                Errors = e;
             }
 
             /// <summary>
             /// The <see cref="Error"/>s. When more than one error exist, the oldest come first.
             /// </summary>
-            public readonly IReadOnlyList<Error> LoggingErrors;
+            public readonly IReadOnlyList<Error> Errors;
         }
 
 
@@ -180,7 +180,7 @@ namespace CK.Core
                     ErrorEventArgs e = CreateEvent();
                     if( e != null )
                     {
-                        raisedCount += e.LoggingErrors.Count;
+                        raisedCount += e.Errors.Count;
                         // Thread-safe (C# 4.0 compiler use CompareExchange).
                         var h = OnErrorFromBackgroundThreads;
                         if( h != null )
