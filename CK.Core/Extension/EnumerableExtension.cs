@@ -213,5 +213,109 @@ namespace CK.Core
             return -1;
         }
 
+#if NET461
+        /// <summary>
+        /// Internal implementation of Append extension method.
+        /// </summary>
+        /// <typeparam name="T">Type of source sequence.</typeparam>
+        class EAppend<T> : IEnumerable<T>
+        {
+            readonly IEnumerable<T> _source;
+            readonly T _item;
+
+            class E : IEnumerator<T>
+            {
+                readonly EAppend<T> _a;
+                T _current;
+                IEnumerator<T> _first;
+                int _status;
+
+                public E( EAppend<T> a )
+                {
+                    _a = a;
+                    _first = _a._source.GetEnumerator();
+                }
+
+                public T Current => _current;
+                // see https://github.com/dotnet/corefx/issues/15716
+                //{
+                //    get
+                //    {
+                //        if( _status <= 0 ) throw new InvalidOperationException();
+                //        return _current;
+                //    }
+                //}
+
+                public void Dispose()
+                {
+                    if( _first != null )
+                    {
+                        _first.Dispose();
+                        _first = null;
+                        _status = -1;
+                    }
+                }
+
+                object System.Collections.IEnumerator.Current => Current;
+
+                public bool MoveNext()
+                {
+                    if( _status < 0 ) throw new InvalidOperationException();
+                    if( _status == 2 )
+                    {
+                        Dispose();
+                        return false;
+                    }
+                    if( _first.MoveNext() )
+                    {
+                        _status = 1;
+                        _current = _first.Current;
+                    }
+                    else
+                    {
+                        _current = _a._item;
+                        _status = 2;
+                    }
+                    return true;
+                }
+
+                public void Reset()
+                {
+                    _first = _a._source.GetEnumerator();
+                    _status = 0;
+                }
+            }
+
+            public EAppend( IEnumerable<T> s, T item )
+            {
+                _source = s;
+                _item = item;
+            }
+
+            public IEnumerator<T> GetEnumerator()
+            {
+                return new E( this );
+            }
+
+            System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
+            {
+                return GetEnumerator();
+            }
+        }
+
+        /// <summary>
+        /// Creates an <see cref="IEnumerable{T}"/> that appends one item to an existing enumerable.
+        /// </summary>
+        /// <typeparam name="TSource">Type of source sequence.</typeparam>
+        /// <param name="this">Source sequence.</param>
+        /// <param name="item">Item to append.</param>
+        /// <returns>An enumerable that appends the item to trhe sequence.</returns>
+        public static IEnumerable<TSource> Append<TSource>( this IEnumerable<TSource> @this, TSource item )
+        {
+            if( @this == null ) throw new NullReferenceException();
+            return new EAppend<TSource>( @this, item );
+        }
+#endif
+
     }
 }
