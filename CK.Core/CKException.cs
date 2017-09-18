@@ -12,7 +12,6 @@ namespace CK.Core
     [Serializable]
     public class CKException : Exception
     {
-        [NonSerialized]
         CKExceptionData _exceptionData;
 
         /// <summary>
@@ -22,9 +21,6 @@ namespace CK.Core
         public CKException( string message )
             : base( message )
         {
-            #if NET451 || NET46
-            SerializeObjectState += DoSerialize;
-            #endif
         }
 
         /// <summary>
@@ -35,9 +31,6 @@ namespace CK.Core
         public CKException( string message, Exception innerException )
             : base( message, innerException )
         {
-            #if NET451 || NET46
-            SerializeObjectState += DoSerialize;
-            #endif
         }
 
         /// <summary>
@@ -89,11 +82,11 @@ namespace CK.Core
         /// Gets the <see cref="CKExceptionData"/> if it exists: use <see cref="EnsureExceptionData"/> to 
         /// create if this is null, a data that describes this exception.
         /// </summary>
-        public CKExceptionData ExceptionData { get { return _exceptionData; } }
+        public CKExceptionData ExceptionData => _exceptionData;
 
         /// <summary>
-        /// If <see cref="ExceptionData"/> is null, this method creates the <see cref="CKExceptionData"/> with the details
-        /// from this exception.
+        /// If <see cref="ExceptionData"/> is null, this method creates the <see cref="CKExceptionData"/>
+        /// with the details from this exception.
         /// </summary>
         /// <returns>The <see cref="CKExceptionData"/> that describes this exception.</returns>
         public CKExceptionData EnsureExceptionData()
@@ -104,31 +97,6 @@ namespace CK.Core
             }
             return _exceptionData; 
         }
-
-        #if NET451 || NET46
-        void DoSerialize( object sender, SafeSerializationEventArgs e )
-        {
-            if( _exceptionData != null ) e.AddSerializedState( new SerialData() { ExData = _exceptionData } );
-        }
-
-        /// <summary>
-        /// Implements the ISafeSerializationData interface: this is the recommended way starting with .Net 4 
-        /// to be able to use this in partially trusted environment (the GetObjectData method is now marked with the SecurityCriticalAttribute).
-        /// </summary>
-        [Serializable]
-        struct SerialData : ISafeSerializationData
-        {
-            /// <summary>
-            /// The exception data from <see cref="CKException"/> that must be serialized.
-            /// </summary>
-            public CKExceptionData ExData;
-
-            void ISafeSerializationData.CompleteDeserialization( object obj )
-            {
-                ((CKException)obj)._exceptionData = ExData;
-            }
-        }
-        #endif
 
     }
 }

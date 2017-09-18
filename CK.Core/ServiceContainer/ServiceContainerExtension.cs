@@ -43,7 +43,7 @@ namespace CK.Core
         public static T GetService<T>( this IServiceProvider @this, bool throwOnNull )
         {
             T s = (T)@this.GetService( typeof( T ) );
-            if( throwOnNull && s == null ) throw new CKException( Impl.CoreResources.UnregisteredServiceInServiceProvider, typeof( T ).FullName );
+            if( throwOnNull && s == null ) throw new Exception( String.Format( Impl.CoreResources.UnregisteredServiceInServiceProvider, typeof( T ).FullName ) );
             return s;
         }
 

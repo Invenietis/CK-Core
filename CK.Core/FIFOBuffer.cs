@@ -423,7 +423,6 @@ namespace CK.Core
             return String.Format( "Count = {0} (Capacity = {1})", _count, _buffer.Length );
         }
 
-        #if NET451 || NET461 || NETSTANDARD2_0
         /// <summary>
         /// Deserialization constructor.
         /// </summary>
@@ -454,7 +453,6 @@ namespace CK.Core
             info.AddValue( "d", ToArray() );
         }
 
-        #endif
 
     }
 }

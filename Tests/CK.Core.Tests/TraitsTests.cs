@@ -385,20 +385,19 @@ namespace CK.Core.Tests
                 CKTrait[] sorted = f.ToArray();
                 Array.Sort( sorted );
                 Array.Reverse( sorted );
-                sorted.ShouldAllBeEquivalentTo( f, o => o.WithStrictOrdering(), "CKTrait.CompareTo respects the fallbacks (fallbacks is in reverse order)." );
+                sorted.SequenceEqual( f ).Should().BeTrue( "CKTrait.CompareTo respects the fallbacks (fallbacks is in reverse order)." );
             }
             {
                 CKTrait m = c.FindOrCreate( "Alpha+Beta+Combo+Fridge+F+K+Ju+J+A+B" );
                 IReadOnlyList<CKTrait> f = m.Fallbacks.ToArray();
-                f.OrderBy( trait => trait ).Reverse().ShouldAllBeEquivalentTo( f, o => o.WithStrictOrdering(), "CKTrait.CompareTo is ok." );
+                f.OrderBy( trait => trait ).Reverse().SequenceEqual( f ).Should().BeTrue( "CKTrait.CompareTo is ok." );
             }
             {
                 CKTrait m = c.FindOrCreate( "xz+lz+ded+az+zer+t+zer+ce+ret+ert+ml+a+nzn" );
                 IReadOnlyList<CKTrait> f = m.Fallbacks.ToArray();
-                f.OrderBy( trait => trait ).Reverse().ShouldAllBeEquivalentTo( f, o => o.WithStrictOrdering(), "CKTrait.CompareTo is ok." );
+                f.OrderBy( trait => trait ).Reverse().SequenceEqual( f ).Should().BeTrue( "CKTrait.CompareTo is ok." );
             }
         }
-
 
         [Test]
         public void test_FindIfAllExist()

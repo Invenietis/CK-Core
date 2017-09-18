@@ -213,7 +213,7 @@ namespace CK.Core
             return -1;
         }
 
-#if !NETSTANDARD1_6
+#if NET461
         /// <summary>
         /// Internal implementation of Append extension method.
         /// </summary>
@@ -230,20 +230,21 @@ namespace CK.Core
                 IEnumerator<T> _first;
                 int _status;
 
-                public E( EAppend<T> a ) 
-                { 
+                public E( EAppend<T> a )
+                {
                     _a = a;
                     _first = _a._source.GetEnumerator();
                 }
 
-                public T Current
-                {
-                    get 
-                    {
-                        if( _status <= 0 ) throw new InvalidOperationException();
-                        return _current; 
-                    }
-                }
+                public T Current => _current;
+                // see https://github.com/dotnet/corefx/issues/15716
+                //{
+                //    get
+                //    {
+                //        if( _status <= 0 ) throw new InvalidOperationException();
+                //        return _current;
+                //    }
+                //}
 
                 public void Dispose()
                 {
@@ -255,7 +256,7 @@ namespace CK.Core
                     }
                 }
 
-                object System.Collections.IEnumerator.Current => Current; 
+                object System.Collections.IEnumerator.Current => Current;
 
                 public bool MoveNext()
                 {

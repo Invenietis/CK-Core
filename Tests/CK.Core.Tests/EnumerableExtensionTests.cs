@@ -145,31 +145,6 @@ namespace CK.Core.Tests
 
             var tX = t.Append(2).Append(3).Append(4).Append(5);
             tX.Should().BeEquivalentTo(2, 3, 4, 5);
-
-            var e = tX.GetEnumerator();
-#if !NETCOREAPP1_0
-            // See: https://github.com/dotnet/corefx/issues/15716
-            Should.Throw<InvalidOperationException>(() => Console.Write(e.Current));
-#endif
-            e.MoveNext().Should().BeTrue();
-            e.Current.Should().Be(2);
-#if !NETCOREAPP1_0
-            e.Reset();
-            e.MoveNext().Should().BeTrue();
-            e.Current.Should().Be(2);
-            e.MoveNext().Should().BeTrue();
-            e.Current.Should().Be(3);
-            e.MoveNext().Should().BeTrue();
-            e.Current.Should().Be(4);
-            e.MoveNext().Should().BeTrue();
-            e.Current.Should().Be(5);
-            e.MoveNext().Should().BeFalse();
-            Should.Throw<InvalidOperationException>(() => Console.Write(e.Current));
-            Should.Throw<InvalidOperationException>(() => e.MoveNext());
-            t = null;
-            Should.Throw<NullReferenceException>(() => t.Append(5));
-#endif
-
         }
 
         [Test]

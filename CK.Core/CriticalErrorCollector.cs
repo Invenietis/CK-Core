@@ -28,6 +28,7 @@ namespace CK.Core
         {
             internal Error( string c, Exception e, int n, int lostErrorCount )
             {
+                ErrorCreationTimeUtc = DateTime.UtcNow;
                 Comment = c;
                 Exception = e;
                 SequenceNumber = n;
@@ -51,11 +52,16 @@ namespace CK.Core
             /// Never null but can be empty if no comment is provided while calling <see cref="CriticalErrorCollector.Add"/>.
             /// </summary>
             public readonly string Comment;
-            
+
             /// <summary>
             /// The exception.
             /// </summary>
             public readonly Exception Exception;
+
+            /// <summary>
+            /// The creation date time (Utc).
+            /// </summary>
+            public readonly DateTime ErrorCreationTimeUtc;
 
             /// <summary>
             /// Overridden to return <see cref="Comment"/> and <see cref="P:Exception"/> message.
@@ -77,13 +83,13 @@ namespace CK.Core
         {
             internal ErrorEventArgs( Error[] e )
             {
-                LoggingErrors = e;
+                Errors = e;
             }
 
             /// <summary>
             /// The <see cref="Error"/>s. When more than one error exist, the oldest come first.
             /// </summary>
-            public readonly IReadOnlyList<Error> LoggingErrors;
+            public readonly IReadOnlyList<Error> Errors;
         }
 
 
@@ -180,7 +186,7 @@ namespace CK.Core
                     ErrorEventArgs e = CreateEvent();
                     if( e != null )
                     {
-                        raisedCount += e.LoggingErrors.Count;
+                        raisedCount += e.Errors.Count;
                         // Thread-safe (C# 4.0 compiler use CompareExchange).
                         var h = OnErrorFromBackgroundThreads;
                         if( h != null )
