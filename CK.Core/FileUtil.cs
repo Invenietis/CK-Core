@@ -67,12 +67,12 @@ namespace CK.Core
         /// <summary>
         /// Gets the <see cref="Path.DirectorySeparatorChar"/> as a string.
         /// </summary>
-        public static readonly string DirectorySeparatorString = new String( Path.DirectorySeparatorChar, 1 );
+        public static readonly string DirectorySeparatorString = NormalizedPath.DirectorySeparatorString;
 
         /// <summary>
         /// Gets the <see cref="Path.AltDirectorySeparatorChar"/> as a string.
         /// </summary>
-        public static readonly string AltDirectorySeparatorString = new String( Path.AltDirectorySeparatorChar, 1 );
+        public static readonly string AltDirectorySeparatorString = NormalizedPath.AltDirectorySeparatorString;
 
         /// <summary>
         /// A display format for <see cref="DateTime"/> that supports round-trips, is readable and can be used in path 
