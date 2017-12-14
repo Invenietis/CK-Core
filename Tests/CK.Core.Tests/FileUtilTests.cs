@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using NUnit.Framework;
 using System.Globalization;
 using FluentAssertions;
+using System.Collections.Concurrent;
 
 namespace CK.Core.Tests
 {
@@ -52,7 +53,7 @@ namespace CK.Core.Tests
         }
 
         [Test]
-        public void UniqueTimedFile_is_28_characters_long_as_a_string()
+        public void UniqueTimedFile_is_27_characters_long_as_a_string_or_50_with_the_GUID_uniquifier()
         {
             DateTime.UtcNow.ToString( FileUtil.FileNameUniqueTimeUtcFormat, CultureInfo.InvariantCulture ).Length
                        .Should().Be( 27, "FileNameUniqueTimeUtcFormat => 27 characters long." );
@@ -98,19 +99,48 @@ namespace CK.Core.Tests
             TestHelper.CleanupTestFolder();
             DateTime now = DateTime.UtcNow;
             string prefix = Path.Combine( TestHelper.TestFolder, "Clash " );
-            List<string> files = new List<string>();
-            for( int i = 0; i < 10; ++i )
+            var files = new string[100];
+            Parallel.ForEach( Enumerable.Range( 0, 100 ), i =>
             {
-                files.Add( FileUtil.WriteUniqueTimedFile( prefix, String.Empty, now, null, false, 0 ) );
-            }
-            files.Count.Should().Be( 10 );
-            files.All( f => f.StartsWith( prefix ) );
-            files.All( f => File.Exists( f ) );
-            for( int i = 1; i < 10; ++i )
+                files[i] = FileUtil.WriteUniqueTimedFile( prefix, String.Empty, now, null, false, 0 );
+            } );
+            files.Should().NotContainNulls();
+            files.Should().OnlyContain( f => f.StartsWith( prefix ) );
+            files.Should().OnlyContain( f => File.Exists( f ) );
+            var winner = files.MaxBy( f => -f.Length );
+            files.Where( f => f.Length == winner.Length + 1 + 22 ).Should().HaveCount( 99, "Ends with Url compliant Base64 GUID." );
+        }
+
+        [Test]
+        public void CreateUniqueTimedFolder_simple_test()
+        {
+            TestHelper.CleanupTestFolder();
+            DateTime now = DateTime.UtcNow;
+            var prefix = Path.Combine( TestHelper.TestFolder,"F/Simple/F-" );
+            var f1 = FileUtil.CreateUniqueTimedFolder( prefix, String.Empty, now );
+            var f2 = FileUtil.CreateUniqueTimedFolder( prefix, String.Empty, now );
+            f1.Should().NotBe( f2 );
+            Directory.Exists( f1 ).Should().BeTrue();
+            Directory.Exists( f2 ).Should().BeTrue();
+        }
+
+        [Test]
+        public void CreateUniqueTimedFolder_clash_never_happen()
+        {
+            TestHelper.CleanupTestFolder();
+            DateTime now = DateTime.UtcNow;
+            var prefixes = new[] {
+                Path.Combine( TestHelper.TestFolder, "F-Clash/FA" ),
+                Path.Combine( TestHelper.TestFolder, "F-Clash/FB" ),
+                Path.Combine( TestHelper.TestFolder, "F-Clash/FA/F1" ) };
+            var folders = new string[100];
+            Parallel.ForEach( Enumerable.Range( 0, 100 ), i =>
             {
-                files[i].Length.Should().Be( files[0].Length + 1 + 22, "Ends with Url compliant Base64 GUID." );
-            }
-            files.SequenceEqual( files.Distinct() ).Should().BeTrue();
+                folders[i] = FileUtil.CreateUniqueTimedFolder( prefixes[i % 3], String.Empty, now );
+            } );
+            folders.Should().NotContainNulls();
+            folders.Should().OnlyContain( f => f.StartsWith( prefixes[0] ) || f.StartsWith( prefixes[1] ) || f.StartsWith( prefixes[2] ) );
+            folders.Should().OnlyContain( f => Directory.Exists( f ) );
         }
 
         [Test]

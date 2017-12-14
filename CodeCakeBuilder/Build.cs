@@ -182,7 +182,7 @@ namespace CodeCake
                             || gitInfo.PreReleaseName == "prerelease"
                             || gitInfo.PreReleaseName == "rc" )
                         {
-                            PushNuGetPackages( "MYGET_RELEASE_API_KEY", "https://www.myget.org/F/invenietis-preview/api/v2/package", nugetPackages );
+                            PushNuGetPackages( "MYGET_RELEASE_API_KEY", "https://www.myget.org/F/invenietis-release/api/v2/package", nugetPackages );
                         }
                         else
                         {

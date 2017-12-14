@@ -194,7 +194,7 @@ namespace CK.Core
         {
             if( access == FileAccess.Read ) throw new ArgumentException( Impl.CoreResources.FileUtilNoReadOnlyWhenCreateFile, "access" );
             FileStream f = null;
-            FindUniqueTimedFile( pathPrefix, fileSuffix, time, maxTryBeforeGuid, p => TryCreateNew( p, access, share, bufferSize, options, out f ) );
+            FindUniqueTimedFileOrFolder( pathPrefix, fileSuffix, time, maxTryBeforeGuid, p => TryCreateNew( p, access, share, bufferSize, options, out f ) );
             return f;
         }
 
@@ -230,7 +230,7 @@ namespace CK.Core
         {
             if( sourceFilePath == null ) throw new ArgumentNullException( "sourceFilePath" );
             if( !File.Exists( sourceFilePath ) ) throw new FileNotFoundException( Impl.CoreResources.FileMustExist, sourceFilePath );
-            return FindUniqueTimedFile( pathPrefix, fileSuffix, time, maxTryBeforeGuid, p => TryMoveTo( sourceFilePath, p ) );
+            return FindUniqueTimedFileOrFolder( pathPrefix, fileSuffix, time, maxTryBeforeGuid, p => TryMoveTo( sourceFilePath, p ) );
         }
 
         /// <summary>
@@ -241,12 +241,12 @@ namespace CK.Core
         /// <param name="fileSuffix">Suffix for the file name. Must not be null. Typically an extension (like ".txt").</param>
         /// <param name="time">The time that will be used to create the file name. It must be an UTC time.</param>
         /// <param name="maxTryBeforeGuid">
-        /// Maximum value for short hexadecimal uniquifier before using a base 64 guid suffix. Must greater than 0.
+        /// Maximum value for short hexadecimal uniquifier before using a base 64 guid suffix. Must be greater than 0.
         /// </param>
         /// <returns>A string to a necessarily unique named file path.</returns>
         public static string EnsureUniqueTimedFile( string pathPrefix, string fileSuffix, DateTime time, int maxTryBeforeGuid = 512 )
         {
-            return FindUniqueTimedFile( pathPrefix, fileSuffix, time, maxTryBeforeGuid, p => TryCreateFile( p ) );
+            return FindUniqueTimedFileOrFolder( pathPrefix, fileSuffix, time, maxTryBeforeGuid, TryCreateFile );
         }
 
         static bool TryCreateFile( string path )
@@ -264,6 +264,56 @@ namespace CK.Core
             return false;
         }
 
+        /// <summary>
+        /// Gets a path to a necessarily unique time-based named folder.
+        /// The folder name is based on a <see cref="DateTime"/>, with an eventual uniquifier if a folder already exists with the same name.
+        /// </summary>
+        /// <param name="pathPrefix">The path prefix. Must not be null. Must be a valid path and may ends with a prefix for the file name itself.</param>
+        /// <param name="folderSuffix">Suffix for the folder name. Can be null or empty.</param>
+        /// <param name="time">The time that will be used to create the file name. It must be an UTC time.</param>
+        /// <param name="maxTryBeforeGuid">
+        /// Maximum value for short hexadecimal uniquifier before using a base 64 guid suffix. Must be greater than 0.
+        /// </param>
+        /// <returns>The path to a necessarily unique folder.</returns>
+        public static string CreateUniqueTimedFolder( string pathPrefix, string folderSuffix, DateTime time, int maxTryBeforeGuid = 512 )
+        {
+            if( folderSuffix == null ) folderSuffix = String.Empty;
+            return FindUniqueTimedFileOrFolder( pathPrefix, folderSuffix, time, maxTryBeforeGuid, TryCreateFolder );
+        }
+
+        static bool TryCreateFolder( string path )
+        {
+            string origin = null;
+            try
+            {
+                if( Directory.Exists( path ) ) return false;
+                // Directory.CreateDirectory can not be used here.
+                // The trick n°1 is moving an empty folder: it fails if the destination already exists.
+                // The second trick is to always create the parent folder:
+                //  - Move requires it to exist...
+                //  - ... but since we WILL succeed to create the unique folder, we can do it safely.
+                origin = Path.GetTempPath() + Guid.NewGuid().ToString( "N" );
+                Directory.CreateDirectory( origin );
+                Directory.CreateDirectory( Path.GetDirectoryName( path ) );
+                Directory.Move( origin, path );
+                return true;
+            }
+            catch( IOException ex )
+            {
+                if( ex is PathTooLongException ) throw;
+                try
+                {
+                    if( origin != null && Directory.Exists( origin ) ) Directory.Delete( origin );
+                }
+                catch
+                {
+                    // Forget the temp folder suppression.
+                }
+            }
+            return false;
+        }
+
+
         static bool TryMoveTo( string sourceFilePath, string timedPath )
         {
             try
@@ -279,7 +329,7 @@ namespace CK.Core
             return false;
         }
 
-        static string FindUniqueTimedFile( string pathPrefix, string fileSuffix, DateTime time, int maxTryBeforeGuid, Func<string, bool> tester )
+        static string FindUniqueTimedFileOrFolder( string pathPrefix, string fileSuffix, DateTime time, int maxTryBeforeGuid, Func<string, bool> tester )
         {
             if( pathPrefix == null ) throw new ArgumentNullException( "pathPrefix" );
             if( fileSuffix == null ) throw new ArgumentNullException( "fileSuffix" );
@@ -298,7 +348,7 @@ namespace CK.Core
                 }
                 else
                 {
-                    if( counter == maxTryBeforeGuid + 1 ) throw new Exception( Impl.CoreResources.FileUtilUnableToCreateUniqueTimedFile );
+                    if( counter == maxTryBeforeGuid + 1 ) throw new Exception( Impl.CoreResources.FileUtilUnableToCreateUniqueTimedFileOrFolder );
                     if( counter == maxTryBeforeGuid )
                     {
                         result = pathPrefix + FormatTimedUniqueFilePart( time ) + fileSuffix;

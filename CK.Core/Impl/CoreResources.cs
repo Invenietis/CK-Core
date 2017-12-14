@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 
 namespace CK.Core.Impl
 {
@@ -43,7 +43,7 @@ namespace CK.Core.Impl
 
         public static readonly string FileUtilNoReadOnlyWhenCreateFile = "Access set to FileAccess.Read is stupid when creating a file.";
 
-        public static readonly string FileUtilUnableToCreateUniqueTimedFile = "Unable to create a unique timed file.";
+        public static readonly string FileUtilUnableToCreateUniqueTimedFileOrFolder = "Unable to create a unique timed file or folder.";
 
         public static readonly string InnerExceptionMustBeTheFirstAggregatedException = "The InnerException must be the first AggregatedExceptions.";
 
