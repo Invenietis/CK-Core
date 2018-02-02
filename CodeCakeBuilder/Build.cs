@@ -182,18 +182,27 @@ namespace CodeCake
                             || gitInfo.PreReleaseName == "prerelease"
                             || gitInfo.PreReleaseName == "rc" )
                         {
-                            PushNuGetPackages( "MYGET_RELEASE_API_KEY", "https://www.myget.org/F/invenietis-release/api/v2/package", nugetPackages );
+                            PushNuGetPackages( "MYGET_RELEASE_API_KEY",
+                                                "https://www.myget.org/F/invenietis-release/api/v2/package",
+                                                "https://www.myget.org/F/invenietis-release/symbols/api/v2/package",
+                                                nugetPackages );
                         }
                         else
                         {
                            // An alpha, beta, delta, epsilon, gamma, kappa goes to invenietis-preview.
-                           PushNuGetPackages( "MYGET_PREVIEW_API_KEY", "https://www.myget.org/F/invenietis-preview/api/v2/package", nugetPackages );
+                           PushNuGetPackages( "MYGET_PREVIEW_API_KEY",
+                                                "https://www.myget.org/F/invenietis-preview/api/v2/package",
+                                                "https://www.myget.org/F/invenietis-preview/symbols/api/v2/package",
+                                                nugetPackages );
                         }
                     }
                     else
                     {
                         Debug.Assert( gitInfo.IsValidCIBuild );
-                        PushNuGetPackages( "MYGET_CI_API_KEY", "https://www.myget.org/F/invenietis-ci/api/v2/package", nugetPackages );
+                        PushNuGetPackages( "MYGET_CI_API_KEY",
+                                            "https://www.myget.org/F/invenietis-ci/api/v2/package",
+                                            "https://www.myget.org/F/invenietis-ci/symbols/api/v2/package",
+                                            nugetPackages );
                     }
                     if( Cake.AppVeyor().IsRunningOnAppVeyor )
                     {
@@ -207,13 +216,13 @@ namespace CodeCake
 
         }
 
-        void PushNuGetPackages( string apiKeyName, string pushUrl, IEnumerable<FilePath> nugetPackages )
+        void PushNuGetPackages( string apiKeyName, string pushUrl, string pushSymbolUrl, IEnumerable<FilePath> nugetPackages )
         {
             // Resolves the API key.
             var apiKey = Cake.InteractiveEnvironmentVariable( apiKeyName );
             if( string.IsNullOrEmpty( apiKey ) )
             {
-                Cake.Information( "Could not resolve {0}. Push to {1} is skipped.", apiKeyName, pushUrl );
+                Cake.Information( $"Could not resolve {apiKeyName}. Push to {pushUrl} is skipped." );
             }
             else
             {
@@ -223,11 +232,31 @@ namespace CodeCake
                     ApiKey = apiKey,
                     Verbosity = NuGetVerbosity.Detailed
                 };
-
-                foreach( var nupkg in nugetPackages.Where( p => !p.FullPath.EndsWith( ".symbols.nupkg" ) ) )
+                NuGetPushSettings symbSettings = null;
+                if( pushSymbolUrl != null )
                 {
-                    Cake.Information( $"Pushing '{nupkg}' to '{pushUrl}'." );
-                    Cake.NuGetPush( nupkg, settings );
+                    symbSettings = new NuGetPushSettings
+                    {
+                        Source = pushSymbolUrl,
+                        ApiKey = apiKey,
+                        Verbosity = NuGetVerbosity.Detailed
+                    };
+                }
+                foreach( var nupkg in nugetPackages )
+                {
+                    if( !nupkg.FullPath.EndsWith( ".symbols.nupkg" ) )
+                    {
+                        Cake.Information( $"Pushing '{nupkg}' to '{pushUrl}'." );
+                        Cake.NuGetPush( nupkg, settings );
+                    }
+                    else
+                    {
+                        if( symbSettings != null )
+                        {
+                            Cake.Information( $"Pushing Symbols '{nupkg}' to '{pushSymbolUrl}'." );
+                            Cake.NuGetPush( nupkg, symbSettings );
+                        }
+                    }
                 }
             }
         }

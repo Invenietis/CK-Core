@@ -26,7 +26,7 @@ namespace CK.Core
         Viewer = 16,
 
         /// <summary>
-        /// Actor can contribute to the object but cannot modifiy the object itself.
+        /// Actor can contribute to the object but cannot modify the object itself.
         /// </summary>
         Contributor = 32,
 
