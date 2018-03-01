@@ -2,12 +2,12 @@
   "profiles": {
     "NUnit Debug": {
       "commandName": "Executable",
-      "executablePath": "..\\..\\packages\\NUnit.Runners.Net4.2.6.4\\tools\\nunit.exe",
+      "executablePath": "%USERPROFILE%\\.nuget\\packages\\nunit.runners.net4\\2.6.4\\tools\\nunit.exe",
       "commandLineArgs": "bin\\Debug\\net461\\CK.Core.Tests.dll"
     },
     "NUnit Release": {
       "commandName": "Executable",
-      "executablePath": "..\\..\\packages\\NUnit.Runners.Net4.2.6.4\\tools\\nunit.exe",
+      "executablePath": "%USERPROFILE%\\.nuget\\packages\\nunit.runners.net4\\2.6.4\\tools\\nunit.exe",
       "commandLineArgs": "bin\\Release\\net461\\CK.Core.Tests.dll"
     }
   }
