@@ -240,3 +240,4 @@ Tests/CK.Monitoring.Tests/TestFolder/
 CodeCakeBuilder/Tools/nuget.exe
 SGVVersionInfo.cs
 Tests/CK.Core.NetCore.Tests/TestDir/
+TestResult.*.xml
