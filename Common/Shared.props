@@ -43,7 +43,6 @@
     <AssemblyOriginatorKeyFile>$(SharedDir)SharedKey.snk</AssemblyOriginatorKeyFile>
     <SignAssembly>true</SignAssembly>
     <PublicSign Condition=" '$(OS)' != 'Windows_NT' ">true</PublicSign>
-    <RepositoryType>git</RepositoryType>
 
     <!-- Invenietis standard properties. -->
     <Copyright>Copyright Invenietis 2007-$([System.DateTime]::UtcNow.ToString("yyyy"))</Copyright>
