@@ -87,9 +87,9 @@ namespace CK.Core.Tests.Collection
             FIFOBuffer<int> f = new FIFOBuffer<int>(5);
             f.ToArray().Length.Should().Be(0);
 
-            Should.Throw<ArgumentNullException>(() => f.CopyTo(null));
-            Should.Throw<ArgumentNullException>(() => f.CopyTo(null, 0));
-            Should.Throw<ArgumentNullException>(() => f.CopyTo(null, 0, 0));
+            f.Invoking( sut => sut.CopyTo(null)).Should().Throw<ArgumentNullException>();
+            f.Invoking( sut => sut.CopyTo(null, 0)).Should().Throw<ArgumentNullException>();
+            f.Invoking( sut => sut.CopyTo(null, 0, 0)).Should().Throw<ArgumentNullException>();
 
             TestWithInternalOffsets(f, b =>
                {
@@ -120,7 +120,7 @@ namespace CK.Core.Tests.Collection
                    b.CopyTo(array, 2, 5).Should().Be(4);
                    array.SequenceEqual( new int[] { -1, 0, 1, 2, 3, 4, -1 } ).Should().BeTrue( "Sentinel is not changed: there is only 4 items to copy." );
 
-                   Should.Throw<IndexOutOfRangeException>(() => b.CopyTo(array, 2, 6), "Even if the items fit, there must be an exception.");
+                   b.Invoking( sut => sut.CopyTo(array, 2, 6)).Should().Throw<IndexOutOfRangeException>( "Even if the items fit, there must be an exception." );
 
                    b.Truncate(1);
                    b.Peek().Should().Be(4);
@@ -151,92 +151,92 @@ namespace CK.Core.Tests.Collection
         [Test]
         public void FIFO_change_capacity_preserves_items()
         {
-            FIFOBuffer<int> f = new FIFOBuffer<int>(0);
-            f.Capacity.Should().Be(0);
-            AssertEmpty(f);
-            f.Push(5);
-            AssertEmpty(f);
-            f.Push(12);
-            AssertEmpty(f);
+            FIFOBuffer<int> f = new FIFOBuffer<int>( 0 );
+            f.Capacity.Should().Be( 0 );
+            AssertEmpty( f );
+            f.Push( 5 );
+            AssertEmpty( f );
+            f.Push( 12 );
+            AssertEmpty( f );
 
             f.Capacity = 1;
-            f.Capacity.Should().Be(1);
-            AssertEmpty(f);
-            f.Push(5);
-            AssertContains(f, 5);
-            f.Push(6);
-            AssertContains(f, 6);
+            f.Capacity.Should().Be( 1 );
+            AssertEmpty( f );
+            f.Push( 5 );
+            AssertContains( f, 5 );
+            f.Push( 6 );
+            AssertContains( f, 6 );
 
             f.Capacity = 2;
-            f.Capacity.Should().Be(2);
-            AssertContains(f, 6);
-            f.Push(7);
-            AssertContains(f, 6, 7);
-            f.Push(8);
-            AssertContains(f, 7, 8);
+            f.Capacity.Should().Be( 2 );
+            AssertContains( f, 6 );
+            f.Push( 7 );
+            AssertContains( f, 6, 7 );
+            f.Push( 8 );
+            AssertContains( f, 7, 8 );
 
             f.Capacity = 4;
-            f.Capacity.Should().Be(4);
-            AssertContains(f, 7, 8);
-            f.Push(9);
-            AssertContains(f, 7, 8, 9);
-            f.Push(10);
-            AssertContains(f, 7, 8, 9, 10);
-            f.Push(11);
-            AssertContains(f, 8, 9, 10, 11);
+            f.Capacity.Should().Be( 4 );
+            AssertContains( f, 7, 8 );
+            f.Push( 9 );
+            AssertContains( f, 7, 8, 9 );
+            f.Push( 10 );
+            AssertContains( f, 7, 8, 9, 10 );
+            f.Push( 11 );
+            AssertContains( f, 8, 9, 10, 11 );
 
             f.Capacity = 7;
-            f.Capacity.Should().Be(7);
-            AssertContains(f, 8, 9, 10, 11);
-            f.Push(12);
-            AssertContains(f, 8, 9, 10, 11, 12);
-            f.Push(13);
-            AssertContains(f, 8, 9, 10, 11, 12, 13);
-            f.Push(14);
-            AssertContains(f, 8, 9, 10, 11, 12, 13, 14);
-            f.Push(15);
-            AssertContains(f, 9, 10, 11, 12, 13, 14, 15);
+            f.Capacity.Should().Be( 7 );
+            AssertContains( f, 8, 9, 10, 11 );
+            f.Push( 12 );
+            AssertContains( f, 8, 9, 10, 11, 12 );
+            f.Push( 13 );
+            AssertContains( f, 8, 9, 10, 11, 12, 13 );
+            f.Push( 14 );
+            AssertContains( f, 8, 9, 10, 11, 12, 13, 14 );
+            f.Push( 15 );
+            AssertContains( f, 9, 10, 11, 12, 13, 14, 15 );
 
             f.Capacity = 2;
-            f.Capacity.Should().Be(2);
-            AssertContains(f, 14, 15);
+            f.Capacity.Should().Be( 2 );
+            AssertContains( f, 14, 15 );
 
             f.Capacity = 3;
-            f.Capacity.Should().Be(3);
-            AssertContains(f, 14, 15);
-            f.Push(16);
-            AssertContains(f, 14, 15, 16);
+            f.Capacity.Should().Be( 3 );
+            AssertContains( f, 14, 15 );
+            f.Push( 16 );
+            AssertContains( f, 14, 15, 16 );
 
             f.Capacity = 2;
-            f.Capacity.Should().Be(2);
-            AssertContains(f, 15, 16);
+            f.Capacity.Should().Be( 2 );
+            AssertContains( f, 15, 16 );
 
             f.Capacity = 1;
-            f.Capacity.Should().Be(1);
-            AssertContains(f, 16);
+            f.Capacity.Should().Be( 1 );
+            AssertContains( f, 16 );
 
             f.Capacity = 0;
-            f.Capacity.Should().Be(0);
-            AssertEmpty(f);
+            f.Capacity.Should().Be( 0 );
+            AssertEmpty( f );
 
             f.Capacity = 2;
             f.Capacity = 2;
-            f.Capacity.Should().Be(2);
+            f.Capacity.Should().Be( 2 );
 
-            f.ToString().Should().Be(String.Format("Count = {0} (Capacity = {1})", 0, 2));
+            f.ToString().Should().Be( String.Format( "Count = {0} (Capacity = {1})", 0, 2 ) );
 
             //ExceptionTest
-            Should.Throw<ArgumentException>(() => f.Capacity = -1);
-            Should.Throw<ArgumentException>(() => new FIFOBuffer<int>(-1));
-            Should.Throw<IndexOutOfRangeException>(() => f.CopyTo(new int[2], 0, -1));
+            f.Invoking( sut => sut.Capacity = -1 ).Should().Throw<ArgumentException>();
+            f.Invoking( sut => new FIFOBuffer<int>( -1 ) ).Should().Throw<ArgumentException>();
+            f.Invoking( sut => sut.CopyTo( new int[2], 0, -1 ) ).Should().Throw<IndexOutOfRangeException>();
         }
 
         [Test]
         public void FIFO_supports_removeAt()
         {
             FIFOBuffer<int> f = new FIFOBuffer<int>(0);
-            Should.Throw<IndexOutOfRangeException>(() => f.RemoveAt(0));
-            Should.Throw<IndexOutOfRangeException>(() => f.RemoveAt(-1));
+            f.Invoking( sut => sut.RemoveAt(0)).Should().Throw<IndexOutOfRangeException>();
+            f.Invoking( sut => sut.RemoveAt(-1)).Should().Throw<IndexOutOfRangeException>();
 
             f.Capacity = 1;
             f.Push(1);
@@ -317,43 +317,43 @@ namespace CK.Core.Tests.Collection
         public void FIFO_supports_Peek_and_PeekLast()
         {
             FIFOBuffer<int> f = new FIFOBuffer<int>(0);
-            Should.Throw<IndexOutOfRangeException>(() => Console.Write(f[-1]));
-            Should.Throw<IndexOutOfRangeException>(() => Console.Write(f[0]));
-            Should.Throw<InvalidOperationException>(() => f.Peek());
-            Should.Throw<InvalidOperationException>(() => f.PeekLast());
+            f.Invoking( sut => Console.Write(sut[-1])).Should().Throw<IndexOutOfRangeException>();
+            f.Invoking( sut => Console.Write(sut[0])).Should().Throw<IndexOutOfRangeException>();
+            f.Invoking( sut => sut.Peek()).Should().Throw<InvalidOperationException>();
+            f.Invoking( sut => sut.PeekLast()).Should().Throw<InvalidOperationException>();
 
             f.Push(5);
-            Should.Throw<IndexOutOfRangeException>(() => Console.Write(f[0]));
-            Should.Throw<InvalidOperationException>(() => f.Peek());
-            Should.Throw<InvalidOperationException>(() => f.PeekLast());
+            f.Invoking( sut => Console.Write(sut[0])).Should().Throw<IndexOutOfRangeException>();
+            f.Invoking( sut => sut.Peek()).Should().Throw<InvalidOperationException>();
+            f.Invoking( sut => sut.PeekLast()).Should().Throw<InvalidOperationException>();
 
             f.Capacity = 1;
-            TestWithInternalOffsets(f, b =>
-           {
-               b.Push(5);
-               b[0].Should().Be(5);
-               Should.Throw<IndexOutOfRangeException>(() => Console.Write(b[1]));
-               b.Peek().Should().Be(5);
-               b.PeekLast().Should().Be(5);
-               b.Push(6);
-               b[0].Should().Be(6, "Only one item in it.");
-               Should.Throw<IndexOutOfRangeException>(() => Console.Write(b[1]));
-               b.Peek().Should().Be(6);
-               b.PeekLast().Should().Be(6);
-           });
+            TestWithInternalOffsets( f, b =>
+            {
+                b.Push( 5 );
+                b[0].Should().Be( 5 );
+                b.Invoking( sut => Console.Write( sut[1] ) ).Should().Throw<IndexOutOfRangeException>();
+                b.Peek().Should().Be( 5 );
+                b.PeekLast().Should().Be( 5 );
+                b.Push( 6 );
+                b[0].Should().Be( 6, "Only one item in it." );
+                b.Invoking( sut => Console.Write( sut[1] ) ).Should().Throw<IndexOutOfRangeException>();
+                b.Peek().Should().Be( 6 );
+                b.PeekLast().Should().Be( 6 );
+            } );
 
             f.Clear();
-            Should.Throw<IndexOutOfRangeException>(() => Console.Write(f[0]));
-            Should.Throw<IndexOutOfRangeException>(() => Console.Write(f[1]));
-            Should.Throw<InvalidOperationException>(() => f.Peek());
-            Should.Throw<InvalidOperationException>(() => f.PeekLast());
+            f.Invoking( sut => Console.Write(sut[0])).Should().Throw<IndexOutOfRangeException>();
+            f.Invoking( sut => Console.Write(sut[1])).Should().Throw<IndexOutOfRangeException>();
+            f.Invoking( sut => sut.Peek()).Should().Throw<InvalidOperationException>();
+            f.Invoking( sut => sut.PeekLast()).Should().Throw<InvalidOperationException>();
 
             f.Capacity = 2;
             TestWithInternalOffsets(f, b =>
            {
                b.Push(5);
                b[0].Should().Be(5);
-               Should.Throw<IndexOutOfRangeException>(() => Console.Write(b[1]));
+               b.Invoking( sut => Console.Write( sut[1] ) ).Should().Throw<IndexOutOfRangeException>();
                b.Peek().Should().Be(5);
                b.PeekLast().Should().Be(5);
                b.Push(6);
@@ -363,14 +363,14 @@ namespace CK.Core.Tests.Collection
                b.PeekLast().Should().Be(6);
                b.Pop();
                b[0].Should().Be(6);
-               Should.Throw<IndexOutOfRangeException>(() => Console.Write(b[1]));
+               b.Invoking( sut => Console.Write(sut[1])).Should().Throw<IndexOutOfRangeException>();
                b.Peek().Should().Be(6);
                b.PeekLast().Should().Be(6);
                b.Pop();
-               Should.Throw<IndexOutOfRangeException>(() => Console.Write(b[0]));
-               Should.Throw<IndexOutOfRangeException>(() => Console.Write(b[1]));
-               Should.Throw<InvalidOperationException>(() => b.Peek());
-               Should.Throw<InvalidOperationException>(() => b.PeekLast());
+               b.Invoking( sut => Console.Write(sut[0])).Should().Throw<IndexOutOfRangeException>();
+               b.Invoking( sut => Console.Write(sut[1])).Should().Throw<IndexOutOfRangeException>();
+               b.Invoking( sut => sut.Peek()).Should().Throw<InvalidOperationException>();
+               b.Invoking( sut => sut.PeekLast()).Should().Throw<InvalidOperationException>();
 
                b.Push(7);
                b.Push(8);
@@ -446,7 +446,7 @@ namespace CK.Core.Tests.Collection
                b[2].Should().Be(15);
                b[3].Should().Be(16);
                b[4].Should().Be(17);
-               Should.Throw<IndexOutOfRangeException>(() => Console.Write(f[5]));
+               f.Invoking( sut => Console.Write( sut[5] ) ).Should().Throw<IndexOutOfRangeException>();
            });
         }
 
@@ -491,7 +491,7 @@ namespace CK.Core.Tests.Collection
             AssertContains(f, null, null);
             f.PopLast().Should().BeNull();
             f.PopLast().Should().BeNull();
-            Should.Throw<InvalidOperationException>(() => f.PopLast());
+            f.Invoking( sut => sut.PopLast() ).Should().Throw<InvalidOperationException>();
         }
 
         [Test]

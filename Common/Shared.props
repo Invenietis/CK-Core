@@ -27,8 +27,7 @@
   
   <!-- 
     When building from the CI (ie. from Cake, hence directly with the msbuild tool, SolutionDir is not defined),
-    we unify the behavior here as well as setting the BaseIntermediateOutputPath (the /obj folder)
-    below CodeCakeBuilder/Releases/ so that compilation from external sources does not interfere with visual studio work.
+    we unify the behavior here.
   -->
   <PropertyGroup Condition=" '$(CakeBuild)' == 'true' ">
     <SolutionDir>$([System.IO.Path]::GetDirectoryName($([System.IO.Path]::GetDirectoryName($(MSBuildThisFileDirectory)))))\</SolutionDir>

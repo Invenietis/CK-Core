@@ -12,14 +12,6 @@ using System.Runtime.CompilerServices;
 
 namespace CK.Core.Tests
 {
-
-    public static class Should
-    {
-        public static void Throw<T>( Action a ) where T : Exception => a.ShouldThrow<T>();
-        public static void Throw<T>( Action a, string because ) where T : Exception => a.ShouldThrow<T>( because );
-    }
-
-
     static partial class TestHelper
     {
         static string _testFolder;
