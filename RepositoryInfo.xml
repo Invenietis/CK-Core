@@ -1,6 +1,5 @@
-<?xml version="1.0" encoding="utf-8"?>
 <RepositoryInfo xmlns="http://csemver.org/schemas/2015">
-	<StartingVersionForCSemVer>v6.0.0-alpha</StartingVersionForCSemVer>
+  <StartingVersionForCSemVer>v6.0.0-alpha</StartingVersionForCSemVer>
   <!--<Debug IgnoreDirtyWorkingFolder="true"/>-->
   <PossibleVersionsMode>AllSuccessors</PossibleVersionsMode>
   <Branches>
