@@ -4,5 +4,6 @@
   <PossibleVersionsMode>AllSuccessors</PossibleVersionsMode>
   <Branches>
     <Branch Name="develop" VersionName="develop" CIVersionMode="LastReleaseBased" />
+    <Branch Name="develop-local" VersionName="blank" CIVersionMode="LastReleaseBased" />
   </Branches>
 </RepositoryInfo>
