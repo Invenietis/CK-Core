@@ -252,7 +252,7 @@ namespace CK.Core.Tests.Collection
             l.IndexOf(i => i == 7).Should().Be(1);
             l.IndexOf(i => i == 8).Should().Be(5);
             l.IndexOf(i => i == 0).Should().Be(-1);
-            Should.Throw<ArgumentNullException>(() => l.IndexOf(null));
+            l.Invoking( sut => sut.IndexOf(null)).Should().Throw<ArgumentNullException>();
         }
 
     }

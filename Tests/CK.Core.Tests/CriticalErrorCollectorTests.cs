@@ -16,13 +16,13 @@ namespace CK.Core.Tests
         public void simple_add_exception_to_CriticalErrorCollector()
         {
             CriticalErrorCollector c = new CriticalErrorCollector();
-            Should.Throw<ArgumentNullException>(() => c.Add(null, ""));
-            c.Add(new Exception("A"), null);
-            c.Add(new Exception("B"), "Comment");
+            c.Invoking( sut => sut.Add( null, "" ) ).Should().Throw<ArgumentNullException>();
+            c.Add( new Exception( "A" ), null );
+            c.Add( new Exception( "B" ), "Comment" );
 
             var errors = c.ToArray();
-            errors[0].ToString().Should().Be(" - A");
-            errors[1].ToString().Should().Be("Comment - B");
+            errors[0].ToString().Should().Be( " - A" );
+            errors[1].ToString().Should().Be( "Comment - B" );
         }
 
         [Test]

@@ -21,8 +21,10 @@ namespace CK.Core.Tests
         {
             if( Path.DirectorySeparatorChar == '\\' )
             {
-                Should.Throw<ArgumentNullException>( () => FileUtil.NormalizePathSeparator( null, true ) );
-                Should.Throw<ArgumentNullException>( () => FileUtil.NormalizePathSeparator( null, false ) );
+                Action a = () => FileUtil.NormalizePathSeparator( null, true );
+                a.Should().Throw<ArgumentNullException>();
+                a = () => FileUtil.NormalizePathSeparator( null, false );
+                a.Should().Throw<ArgumentNullException>();
 
                 FileUtil.NormalizePathSeparator( "", true ).Should().Be( "" );
                 FileUtil.NormalizePathSeparator( "", false ).Should().Be( "" );
@@ -47,9 +49,12 @@ namespace CK.Core.Tests
             File.ReadAllText( f1 ).Should().Be( "Hello..." );
             File.ReadAllText( f2 ).Should().Be( "...World!" );
 
-            Should.Throw<ArgumentOutOfRangeException>( () => FileUtil.WriteUniqueTimedFile( prefix, String.Empty, DateTime.UtcNow, null, true, -1 ) );
-            Should.Throw<ArgumentNullException>( () => FileUtil.WriteUniqueTimedFile( prefix, null, DateTime.UtcNow, null, true ) );
-            Should.Throw<ArgumentNullException>( () => FileUtil.WriteUniqueTimedFile( null, String.Empty, DateTime.UtcNow, null, true ) );
+            Action a = () => FileUtil.WriteUniqueTimedFile( prefix, String.Empty, DateTime.UtcNow, null, true, -1 );
+            a.Should().Throw<ArgumentOutOfRangeException>();
+            a = () => FileUtil.WriteUniqueTimedFile( prefix, null, DateTime.UtcNow, null, true );
+            a.Should().Throw<ArgumentNullException>();
+            a = () => FileUtil.WriteUniqueTimedFile( null, String.Empty, DateTime.UtcNow, null, true );
+            a.Should().Throw<ArgumentNullException>();
         }
 
         [Test]
@@ -162,7 +167,8 @@ namespace CK.Core.Tests
             AssertContains( testDir.FullName, Directory.GetFiles( testDir.FullName ), "azerty.png", "hiddenAzerty.gif" );
             AssertContains( copyDir.FullName, Directory.GetFiles( copyDir.FullName ), "azerty.png", "hiddenAzerty.gif" );
 
-            Should.Throw<IOException>( () => FileUtil.CopyDirectory( testDir, copyDir ) );
+            Action a = () => FileUtil.CopyDirectory( testDir, copyDir );
+            a.Should().Throw<IOException>();
 
             CleanupDir( copyDir.FullName );
 
@@ -204,15 +210,17 @@ namespace CK.Core.Tests
 
             CleanupDir( copyDir.FullName );
 
-            FileUtil.CopyDirectory( testDir, copyDir, true, true, a => { return a.Name == "azerty.png"; }, a => { return a.Name != recursiveDir.Name; } );
+            FileUtil.CopyDirectory( testDir, copyDir, true, true, x => { return x.Name == "azerty.png"; }, x => { return x.Name != recursiveDir.Name; } );
             AssertContains( testDir.FullName, Directory.GetFiles( testDir.FullName ), "azerty.png", "hiddenAzerty.gif" );
             AssertContains( recursiveDir.FullName, Directory.GetFiles( recursiveDir.FullName ), "REC.png", "hiddenREC.gif" );
             AssertContains( copyDir.FullName, Directory.GetFiles( copyDir.FullName ), "azerty.png" );
             Directory.Exists( Path.Combine( copyDir.FullName, recursiveDir.Name ) ).Should().BeFalse();
 
             // Exception Test
-            Should.Throw<ArgumentNullException>( () => FileUtil.CopyDirectory( null, testDir ) );
-            Should.Throw<ArgumentNullException>( () => FileUtil.CopyDirectory( testDir, null ) );
+            a = () => FileUtil.CopyDirectory( null, testDir );
+            a.Should().Throw<ArgumentNullException>();
+            a = () => FileUtil.CopyDirectory( testDir, null );
+            a.Should().Throw<ArgumentNullException>();
 
             Thread.Sleep( 100 );
             TestHelper.CleanupTestFolder();
@@ -235,7 +243,8 @@ namespace CK.Core.Tests
         [Test]
         public void CheckForWriteAccess_is_immediately_true_when_file_does_not_exist_or_is_writeable()
         {
-            Should.Throw<ArgumentNullException>( () => FileUtil.CheckForWriteAccess( null, 0 ) );
+            Action a = () => FileUtil.CheckForWriteAccess( null, 0 );
+            a.Should().Throw<ArgumentNullException>();
             TestHelper.CleanupTestFolder();
             string path = Path.Combine( TestHelper.TestFolder, "Locked.txt" );
             FileUtil.CheckForWriteAccess( path, 0 ).Should().BeTrue( "If the file does not exist, it is writeable." );

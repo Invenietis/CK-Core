@@ -68,15 +68,15 @@ namespace CK.Core.Tests.Collection
         [Test]
         public void SortedArrayKeyList_does_not_accept_null_entries()
         {
-            var b = new CKSortedArrayKeyList<ClassToTest, string>(i => i.ToString(), false);
-            ClassToTest classToTest = new ClassToTest("A");
+            var b = new CKSortedArrayKeyList<ClassToTest, string>( i => i.ToString(), false );
+            ClassToTest classToTest = new ClassToTest( "A" );
 
-            b.Add(classToTest);
-            b.Add(new ClassToTest("B"));
+            b.Add( classToTest );
+            b.Add( new ClassToTest( "B" ) );
 
-            b.Contains(classToTest).Should().BeTrue();
-            b.IndexOf(classToTest).Should().Be(0);
-            Should.Throw<ArgumentNullException>(() => b.IndexOf((ClassToTest)null));
+            b.Contains( classToTest ).Should().BeTrue();
+            b.IndexOf( classToTest ).Should().Be( 0 );
+            b.Invoking( sut => sut.IndexOf( (ClassToTest)null ) ).Should().Throw<ArgumentNullException>();
         }
 
         [Test]
@@ -153,7 +153,7 @@ namespace CK.Core.Tests.Collection
 
         private static void CheckList(IEnumerable<int> a, params int[] p)
         {
-            a.ShouldBeEquivalentTo(p, o => o.WithStrictOrdering());
+            a.Should().BeEquivalentTo(p, o => o.WithStrictOrdering());
         }
 
         class ClassToTest

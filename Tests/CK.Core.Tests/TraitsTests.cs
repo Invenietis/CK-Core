@@ -79,8 +79,11 @@ namespace CK.Core.Tests
         [Test]
         public void Traits_must_belong_to_the_same_context()
         {
-            Should.Throw<ArgumentException>( () => new CKTraitContext( null ) );
-            Should.Throw<ArgumentException>( () => new CKTraitContext( "  " ) );
+            Action a = () => new CKTraitContext( null );
+            a.Should().Throw<ArgumentException>();
+
+            a = () => new CKTraitContext( "  " );
+            a.Should().Throw<ArgumentException>();
 
             CKTraitContext c1 = new CKTraitContext( "C1" );
             CKTraitContext c2 = new CKTraitContext( "C2" );
@@ -88,24 +91,24 @@ namespace CK.Core.Tests
             var t1 = c1.FindOrCreate( "T1" );
             var t2 = c2.FindOrCreate( "T2" );
             t1.Should().NotBeSameAs( t2 );
-            Should.Throw<InvalidOperationException>( () => t1.Union( t2 ) );
-            Should.Throw<InvalidOperationException>( () => t1.Intersect( t2 ) );
-            Should.Throw<InvalidOperationException>( () => t1.Except( t2 ) );
-            Should.Throw<InvalidOperationException>( () => t1.SymmetricExcept( t2 ) );
+            t1.Invoking( sut => sut.Union( t2 ) ).Should().Throw<InvalidOperationException>();
+            t1.Invoking( sut => sut.Intersect( t2 ) ).Should().Throw<InvalidOperationException>();
+            t1.Invoking( sut => sut.Except( t2 ) ).Should().Throw<InvalidOperationException>();
+            t1.Invoking( sut => sut.SymmetricExcept( t2 ) ).Should().Throw<InvalidOperationException>();
 
-            Should.Throw<InvalidOperationException>( () => t1.Overlaps( t2 ) );
-            Should.Throw<InvalidOperationException>( () => t1.IsSupersetOf( t2 ) );
+            t1.Invoking( sut => sut.Overlaps( t2 ) ).Should().Throw<InvalidOperationException>();
+            t1.Invoking( sut => sut.IsSupersetOf( t2 ) ).Should().Throw<InvalidOperationException>();
 
-            Should.Throw<ArgumentNullException>( () => t1.Union( null ) );
-            Should.Throw<ArgumentNullException>( () => t1.Intersect( null ) );
-            Should.Throw<ArgumentNullException>( () => t1.Except( null ) );
-            Should.Throw<ArgumentNullException>( () => t1.SymmetricExcept( null ) );
+            t1.Invoking( sut => sut.Union( null ) ).Should().Throw<ArgumentNullException>();
+            t1.Invoking( sut => sut.Intersect( null ) ).Should().Throw<ArgumentNullException>();
+            t1.Invoking( sut => sut.Except( null ) ).Should().Throw<ArgumentNullException>();
+            t1.Invoking( sut => sut.SymmetricExcept( null ) ).Should().Throw<ArgumentNullException>();
 
-            Should.Throw<ArgumentNullException>( () => t1.Overlaps( null ) );
-            Should.Throw<ArgumentNullException>( () => t1.IsSupersetOf( null ) );
+            t1.Invoking( sut => sut.Overlaps( null ) ).Should().Throw<ArgumentNullException>();
+            t1.Invoking( sut => sut.IsSupersetOf( null ) ).Should().Throw<ArgumentNullException>();
 
-            Should.Throw<ArgumentNullException>( () => t1.CompareTo( null ) );
-            Should.Throw<ArgumentNullException>( () => c1.CompareTo( null ) );
+            t1.Invoking( sut => sut.CompareTo( null ) ).Should().Throw<ArgumentNullException>();
+            t1.Invoking( sut => sut.CompareTo( null ) ).Should().Throw<ArgumentNullException>();
         }
 
         [Test]
@@ -120,8 +123,8 @@ namespace CK.Core.Tests
             c.FindOrCreate( null ).Should().BeSameAs( m, "Null gives the empty trait." );
             c.FindOrCreate( "" ).Should().BeSameAs( m, "Obtaining empty string gives the empty trait." );
             c.FindOrCreate( "+" ).Should().BeSameAs( m, "Obtaining '+' gives the empty trait." );
-            Should.Throw<ArgumentException>( () => c.FindOrCreate( " \t \n  " ), "No \n inside." );
-            Should.Throw<ArgumentException>( () => c.FindOrCreate( " \r " ), "No \r inside." );
+            c.Invoking( sut => sut.FindOrCreate( " \t \n  " ) ).Should().Throw<ArgumentException>( "No \n inside." );
+            c.Invoking( sut => sut.FindOrCreate( " \r " ) ).Should().Throw<ArgumentException>( "No \r inside." );
             c.FindOrCreate( "+ \t +" ).Should().BeSameAs( m, "Leading and trailing '+' are ignored." );
             c.FindOrCreate( "++++" ).Should().BeSameAs( m, "Multiple + are ignored" );
             c.FindOrCreate( "++  +++  + \t +" ).Should().BeSameAs( m, "Multiple empty strings leads to empty trait." );

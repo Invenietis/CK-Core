@@ -28,17 +28,21 @@ namespace CK.Core.Tests
         public void CKEnumeratorMono_works()
         {
             var e = new CKEnumeratorMono<int>(9);
-            Should.Throw<InvalidOperationException>(() => Console.WriteLine(e.Current));
+            Action a = () => Console.WriteLine(e.Current);
+            a.Should().Throw<InvalidOperationException>();
             e.MoveNext().Should().BeTrue();
             e.Current.Should().Be(9);
             e.MoveNext().Should().BeFalse();
-            Should.Throw<InvalidOperationException>(() => Console.WriteLine(e.Current));
+            a = () => Console.WriteLine(e.Current);
+            a.Should().Throw<InvalidOperationException>();
             e.Reset();
-            Should.Throw<InvalidOperationException>(() => Console.WriteLine(e.Current));
+            a = () => Console.WriteLine(e.Current);
+            a.Should().Throw<InvalidOperationException>();
             e.MoveNext().Should().BeTrue();
             e.Current.Should().Be(9);
             e.MoveNext().Should().BeFalse();
-            Should.Throw<InvalidOperationException>(() => Console.WriteLine(e.Current));
+            a = () => Console.WriteLine(e.Current);
+            a.Should().Throw<InvalidOperationException>();
         }
     }
 }
