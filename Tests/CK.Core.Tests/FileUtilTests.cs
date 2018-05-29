@@ -121,7 +121,21 @@ namespace CK.Core.Tests
         {
             TestHelper.CleanupTestFolder();
             DateTime now = DateTime.UtcNow;
-            var prefix = Path.Combine( TestHelper.TestFolder,"F/Simple/F-" );
+            var prefix = Path.Combine( TestHelper.TestFolder, "F/Simple/F-" );
+            var f1 = FileUtil.CreateUniqueTimedFolder( prefix, String.Empty, now );
+            var f2 = FileUtil.CreateUniqueTimedFolder( prefix, String.Empty, now );
+            f1.Should().NotBe( f2 );
+            Directory.Exists( f1 ).Should().BeTrue();
+            Directory.Exists( f2 ).Should().BeTrue();
+        }
+
+        [Explicit]
+        [TestCase( "E:" )]
+        [TestCase( @"E:\TestSub\Sub" )]
+        public void CreateUniqueTimedFolder_simple_test_on_non_default_volume( string rootTestPath )
+        {
+            DateTime now = DateTime.UtcNow;
+            var prefix = Path.Combine( rootTestPath, "F/Simple/F-" );
             var f1 = FileUtil.CreateUniqueTimedFolder( prefix, String.Empty, now );
             var f2 = FileUtil.CreateUniqueTimedFolder( prefix, String.Empty, now );
             f1.Should().NotBe( f2 );
@@ -138,6 +152,26 @@ namespace CK.Core.Tests
                 Path.Combine( TestHelper.TestFolder, "F-Clash/FA" ),
                 Path.Combine( TestHelper.TestFolder, "F-Clash/FB" ),
                 Path.Combine( TestHelper.TestFolder, "F-Clash/FA/F1" ) };
+            var folders = new string[100];
+            Parallel.ForEach( Enumerable.Range( 0, 100 ), i =>
+            {
+                folders[i] = FileUtil.CreateUniqueTimedFolder( prefixes[i % 3], String.Empty, now );
+            } );
+            folders.Should().NotContainNulls();
+            folders.Should().OnlyContain( f => f.StartsWith( prefixes[0] ) || f.StartsWith( prefixes[1] ) || f.StartsWith( prefixes[2] ) );
+            folders.Should().OnlyContain( f => Directory.Exists( f ) );
+        }
+
+        [Explicit]
+        [TestCase( "E:" )]
+        [TestCase( @"E:\TestSub\Sub" )]
+        public void CreateUniqueTimedFolder_clash_never_happen_on_non_default_volume( string rootTestPath )
+        {
+            DateTime now = DateTime.UtcNow;
+            var prefixes = new[] {
+                Path.Combine( rootTestPath, "F-Clash/FA" ),
+                Path.Combine( rootTestPath, "F-Clash/FB" ),
+                Path.Combine( rootTestPath, "F-Clash/FA/F1" ) };
             var folders = new string[100];
             Parallel.ForEach( Enumerable.Range( 0, 100 ), i =>
             {
