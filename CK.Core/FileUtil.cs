@@ -292,9 +292,24 @@ namespace CK.Core
                 // The second trick is to always create the parent folder:
                 //  - Move requires it to exist...
                 //  - ... but since we WILL succeed to create the unique folder, we can do it safely.
-                origin = Path.GetTempPath() + Guid.NewGuid().ToString( "N" );
+                var originParent = Path.GetTempPath();
+                var rootOfPathToCreate = Path.GetPathRoot( path );
+                var parentOfPathToCreate = Path.GetDirectoryName( path );
+                if( Path.GetPathRoot( originParent ) != rootOfPathToCreate )
+                {
+                    // Path to create is not on the same volume as the Temporary folder.
+                    // We need to create our origin folder on the same volume: we try to create
+                    // it as close as possible to the target folder.
+                    originParent = parentOfPathToCreate;
+                    while( originParent.Length > rootOfPathToCreate.Length && !Directory.Exists( originParent ) )
+                    {
+                        originParent = Path.GetDirectoryName( originParent );
+                    }
+                    if( originParent.Length > rootOfPathToCreate.Length ) originParent += DirectorySeparatorString;
+                }
+                origin = originParent + Guid.NewGuid().ToString( "N" );
                 Directory.CreateDirectory( origin );
-                Directory.CreateDirectory( Path.GetDirectoryName( path ) );
+                Directory.CreateDirectory( parentOfPathToCreate );
                 Directory.Move( origin, path );
                 return true;
             }
