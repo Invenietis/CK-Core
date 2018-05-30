@@ -7,11 +7,11 @@
     <None Remove="TestResult.xml" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="CK.Text" Version="0.0.0-0" />
-    <PackageReference Include="Code.Cake" Version="0.0.0-0" />
+    <PackageReference Include="CK.Text" Version="6.2.2-C0050-develop" />
+    <PackageReference Include="Code.Cake" Version="0.25.1-C0040-develop" />
     <PackageReference Include="NUnit.ConsoleRunner" Version="3.8.0" />
     <PackageReference Include="NUnit.Runners.Net4" Version="2.6.4" />
-    <PackageReference Include="SimpleGitVersion.Cake" Version="0.0.0-0" />
-    <PackageReference Include="SimpleGitVersion.Core" Version="0.0.0-0" />
+    <PackageReference Include="SimpleGitVersion.Cake" Version="0.32.1-C0022-explore" />
+    <PackageReference Include="SimpleGitVersion.Core" Version="0.32.1-C0022-explore" />
   </ItemGroup>
 </Project>
