@@ -1,4 +1,5 @@
 using System;
+using System.IO;
 
 namespace CK.Core
 {
@@ -9,6 +10,11 @@ namespace CK.Core
     public interface ICKBinaryReader : IDisposable
     {
         #region BinaryReader methods.
+
+        /// <summary>
+        /// Get the the underlying stream.
+        /// </summary>
+        Stream BaseStream { get; }
 
         /// <summary>
         /// Returns the next available character and does not advance the byte or character
@@ -109,7 +115,7 @@ namespace CK.Core
 
         /// <summary>
         /// Reads a decimal value from the current stream and advances the current position
-        //  of the stream by sixteen bytes.
+        /// of the stream by sixteen bytes.
         /// </summary>
         /// <returns>A decimal value read from the current stream.</returns>
         decimal ReadDecimal();

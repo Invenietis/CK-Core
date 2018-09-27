@@ -1,4 +1,5 @@
 using System;
+using System.IO;
 
 namespace CK.Core
 {
@@ -9,6 +10,13 @@ namespace CK.Core
     public interface ICKBinaryWriter : IDisposable
     {
         #region BinaryWriter methods.
+
+        /// <summary>
+        /// Gets the underlying stream.
+        /// Note that calling <see cref="Flush"/> before any direct writes into this stream
+        /// should definitly be a good idea...
+        /// </summary>
+        Stream BaseStream { get; }
 
         /// <summary>
         /// Clears all buffers for the current writer and causes any buffered data to be
@@ -159,14 +167,73 @@ namespace CK.Core
         /// </summary>
         CKBinaryWriter.ObjectPool<string> StringPool { get; }
 
-
-        void Write( DateTime d );
-        void Write( DateTimeOffset ds );
-        void Write( Guid g );
-        void Write( TimeSpan t );
+        /// <summary>
+        /// Writes a 32-bit 0 or positive integer in compressed format. See remarks.
+        /// </summary>
+        /// <param name="value">A 32-bit integer (should not be negative).</param>
+        /// <remarks>
+        /// Using this method to write a negative integer is the same as using it with a large
+        /// positive number: the storage will actually require more than 4 bytes.
+        /// It is perfectly valid, except that it is more "expansion" than "compression" :). 
+        /// </remarks>
         void WriteNonNegativeSmallInt32( int value );
-        void WriteNullableString( string s );
-        void WriteSharedString( string s );
+
+        /// <summary>
+        /// Writes a 32-bit integer in compressed format, accomodating rooms for some negative values.
+        /// The <paramref name="minNegativeValue"/> simply offsets the written value.
+        /// Use <see cref="CKBinaryReader.ReadSmallInt32(int)"/> with the 
+        /// same <paramref name="minNegativeValue"/> to read it back.
+        /// </summary>
+        /// <param name="value">A 32-bit integer (greater or equal to <paramref name="minNegativeValue"/>).</param>
+        /// <param name="minNegativeValue">Lowest possible negative value.</param>
+        /// <remarks>
+        /// <para>
+        /// Writing a negative value lower than the <paramref name="minNegativeValue"/> is totally possible, however
+        /// more than 4 bytes will be required for them.
+        /// </para>
+        /// <para>
+        /// The default value of -1 is perfect to write small integers that are greater or equal to -1.
+        /// </para>
+        /// </remarks>
         void WriteSmallInt32( int value, int minNegativeValue = -1 );
+
+        /// <summary>
+        /// Writes a potentially null string.
+        /// You can use <see cref="WriteSharedString(string)"/> if the string
+        /// has good chances to appear multiple times. 
+        /// </summary>
+        /// <param name="s">String to write.</param>
+        void WriteNullableString( string s );
+
+        /// <summary>
+        /// Writes a string, using the default <see cref="StringPool"/>.
+        /// </summary>
+        /// <param name="s">The string to write. Can be null.</param>
+        void WriteSharedString( string s );
+
+        /// <summary>
+        /// Writes a DateTime value.
+        /// </summary>
+        /// <param name="d">The value to write.</param>
+        void Write( DateTime d );
+
+        /// <summary>
+        /// Writes a TimeSpan value.
+        /// </summary>
+        /// <param name="t">The value to write.</param>
+        void Write( TimeSpan t );
+
+        /// <summary>
+        /// Writes a DateTimeOffset value.
+        /// </summary>
+        /// <param name="ds">The value to write.</param>
+        void Write( DateTimeOffset ds );
+
+        /// <summary>
+        /// Writes a DateTimeOffset value.
+        /// </summary>
+        /// <param name="g">The value to write.</param>
+        void Write( Guid g );
+
     }
 }

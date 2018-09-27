@@ -133,7 +133,7 @@ namespace CK.Core
         /// </summary>
         /// <param name="value">A 32-bit integer (should not be negative).</param>
         /// <remarks>
-        /// Using this method to write a negative integer is the same as using ot with a large
+        /// Using this method to write a negative integer is the same as using it with a large
         /// positive number: the storage will actually require more than 4 bytes.
         /// It is perfectly valid, except that it is more "expansion" than "compression" :). 
         /// </remarks>
@@ -153,13 +153,15 @@ namespace CK.Core
         /// more than 4 bytes will be required for them.
         /// </para>
         /// <para>
-        ///The default value of -1 is perfect to write small integers that are greater or equal to -1.
+        /// The default value of -1 is perfect to write small integers that are greater or equal to -1.
         /// </para>
         /// </remarks>
         public void WriteSmallInt32( int value, int minNegativeValue = -1 ) => Write7BitEncodedInt( value - minNegativeValue );
 
         /// <summary>
         /// Writes a potentially null string.
+        /// You can use <see cref="WriteSharedString(string)"/> if the string
+        /// has good chances to appear multiple times. 
         /// </summary>
         /// <param name="s">String to write.</param>
         public void WriteNullableString( string s )
