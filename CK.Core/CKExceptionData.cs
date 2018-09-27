@@ -126,6 +126,19 @@ namespace CK.Core
             }
         }
 
+
+        /// <summary>
+        /// Creates a new "fake" <see cref="CKExceptionData"/> that can be used whenever no actual exception is available.
+        /// </summary>
+        /// <param name="message">Message of the exception. Must not be null.</param>
+        /// <param name="exceptionTypeName">Type name of the exception (no namespace nor assembly). Must not be null nor empty..</param>
+        /// <param name="exceptionTypeAssemblyQualifiedName">Full type name of the exception. Must not be null nor empty.</param>
+        /// <returns>The data that describes the exception.</returns>
+        static public CKExceptionData Create( string message, string exceptionTypeName = "Not.An.Exception", string exceptionTypeAssemblyQualifiedName = "Not.An.Exception, No.Assembly" )
+        {
+            return new CKExceptionData( message, exceptionTypeName, exceptionTypeAssemblyQualifiedName, null, null, null, null, null, null );
+        }
+
         /// <summary>
         /// Creates a <see cref="CKExceptionData"/> from any <see cref="Exception"/>.
         /// </summary>
