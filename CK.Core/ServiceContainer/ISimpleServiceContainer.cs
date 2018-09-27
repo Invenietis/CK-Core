@@ -50,15 +50,19 @@ namespace CK.Core
         /// <param name="onRemove">Optional action that will be called whenever <see cref="Remove"/>, <see cref="Clear"/> or <see cref="IDisposable.Dispose"/>.</param>
         /// <returns>This object to enable fluent syntax.</returns>
         ISimpleServiceContainer Add( Type serviceType, object serviceInstance, Action<Object> onRemove = null );
-        
+
         /// <summary>
         /// Unregisters a service. Can be called even if the service does not exist.
         /// The service is first removed and then the OnRemove associated action is called if it exists:
         /// this enables OnRemove action to be bound to a method that safely calls back this Remove method.
         /// </summary>
         /// <param name="serviceType">Service type to unregister.</param>
+        /// <param name="autoCallDispose">
+        /// False to not call Dispose if the instance exists and is disposable.
+        /// OnRemove action if it exists is always executed.
+        /// </param>
         /// <returns>This object to enable fluent syntax.</returns>
-        ISimpleServiceContainer Remove( Type serviceType );
+        ISimpleServiceContainer Remove( Type serviceType, bool autoCallDispose = true );
               
         /// <summary>
         /// Unregisters all the services. Any "on remove" actions are executed.
