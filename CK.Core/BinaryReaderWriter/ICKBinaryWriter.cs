@@ -7,7 +7,7 @@ namespace CK.Core
     /// Reproduces <see cref="System.IO.BinaryWriter"/> interface and adds support for
     /// standard basic types like <see cref="WriteSharedString(string)"/> or <see cref="Write(Guid)"/>.
     /// </summary>
-    public interface ICKBinaryWriter : IDisposable
+    public interface ICKBinaryWriter
     {
         #region BinaryWriter methods.
 

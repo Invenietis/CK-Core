@@ -79,7 +79,7 @@ namespace CK.Core
             /// <param name="actualWriter">
             /// Actual writer. Must not be null.
             /// Note that it will not be called if the value is the default of the <typeparamref name="T"/>:
-            /// for reference types, the value will never be null.
+            /// for reference types, the actual writer will never have to handle null.
             /// </param>
             public void Write( T o, Action<ICKBinaryWriter,T> actualWriter )
             {

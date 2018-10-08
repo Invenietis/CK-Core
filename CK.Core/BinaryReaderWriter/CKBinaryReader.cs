@@ -35,7 +35,7 @@ namespace CK.Core
             }
 
             /// <summary>
-            /// Capture the <see cref="TryRead(out T)"/> result.
+            /// Captures the <see cref="TryRead(out T)"/> result.
             /// When <see cref="Success"/> is false, <see cref="SetReadResult(T)"/> must be called
             /// as soon as the object has been read.
             /// </summary>
@@ -110,8 +110,8 @@ namespace CK.Core
             }
 
             /// <summary>
-            /// Reads a value either from this pool or, when not yet read, thanks to an
-            /// actual reader function.
+            /// Reads a value either from this pool it it has already been read or, when not yet read,
+            /// thanks to an actual reader function.
             /// </summary>
             /// <param name="actualReader">Function that will be called if the value must actually be read.</param>
             /// <returns>The value.</returns>
