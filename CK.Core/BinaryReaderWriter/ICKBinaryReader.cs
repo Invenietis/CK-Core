@@ -7,7 +7,7 @@ namespace CK.Core
     /// Reproduces <see cref="System.IO.BinaryReader"/> interface and adds support for
     /// standard basic types like <see cref="ReadDateTime"/>.
     /// </summary>
-    public interface ICKBinaryReader : IDisposable
+    public interface ICKBinaryReader
     {
         #region BinaryReader methods.
 
