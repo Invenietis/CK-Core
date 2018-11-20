@@ -12,9 +12,9 @@ namespace CodeCake
 {
     public partial class Build
     {
-        void StandardUnitTests( string configuration, IEnumerable<SolutionProject> testProjects, string commitSHA1 )
+        void StandardUnitTests( CheckRepositoryInfo globalInfo, IEnumerable<SolutionProject> testProjects )
         {
-            string memoryFilePath = $"CodeCakeBuilder/UnitTestsDone.{commitSHA1}.txt";
+            string memoryFilePath = $"CodeCakeBuilder/UnitTestsDone.{globalInfo.GitInfo.CommitSha}.txt";
 
             void WriteTestDone( Cake.Core.IO.FilePath test )
             {
@@ -35,9 +35,9 @@ namespace CodeCake
                          {
                              CSProjPath = p.Path,
                              ProjectPath = p.Path.GetDirectory(),
-                             NetCoreAppDll21 = p.Path.GetDirectory().CombineWithFilePath( "bin/" + configuration + "/netcoreapp2.1/" + p.Name + ".dll" ),
-                             Net461Dll = p.Path.GetDirectory().CombineWithFilePath( "bin/" + configuration + "/net461/" + p.Name + ".dll" ),
-                             Net461Exe = p.Path.GetDirectory().CombineWithFilePath( "bin/" + configuration + "/net461/" + p.Name + ".exe" ),
+                             NetCoreAppDll21 = p.Path.GetDirectory().CombineWithFilePath( "bin/" + globalInfo.BuildConfiguration + "/netcoreapp2.1/" + p.Name + ".dll" ),
+                             Net461Dll = p.Path.GetDirectory().CombineWithFilePath( "bin/" + globalInfo.BuildConfiguration + "/net461/" + p.Name + ".dll" ),
+                             Net461Exe = p.Path.GetDirectory().CombineWithFilePath( "bin/" + globalInfo.BuildConfiguration + "/net461/" + p.Name + ".exe" ),
                          } );
 
             foreach( var test in testDlls )
@@ -75,8 +75,9 @@ namespace CodeCake
                     if( CheckTestDone( dllFilePath ) ) return;
                     Cake.DotNetCoreTest( projectPath, new DotNetCoreTestSettings()
                     {
-                        Configuration = configuration,
+                        Configuration = globalInfo.BuildConfiguration,
                         Framework = framework,
+                        NoRestore = true,
                         NoBuild = true
                     } );
                 }
