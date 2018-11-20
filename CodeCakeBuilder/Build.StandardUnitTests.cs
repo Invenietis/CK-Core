@@ -24,7 +24,7 @@ namespace CodeCake
             bool CheckTestDone( Cake.Core.IO.FilePath test )
             {
                 bool done = System.IO.File.Exists( memoryFilePath )
-                            ?  System.IO.File.ReadAllLines( memoryFilePath ).Contains( test.ToString() )
+                            ? System.IO.File.ReadAllLines( memoryFilePath ).Contains( test.ToString() )
                             : false;
                 if( done ) Cake.Information( "Test already done on this commit." );
                 return done;
@@ -60,7 +60,7 @@ namespace CodeCake
                         WriteTestDone( net461 );
                     }
                 }
-                if( Cake.FileExists( test.NetCoreAppDll21 )  )
+                if( Cake.FileExists( test.NetCoreAppDll21 ) )
                 {
                     TestNetCore( test.CSProjPath.FullPath, test.NetCoreAppDll21, "netcoreapp2.1" );
                 }
