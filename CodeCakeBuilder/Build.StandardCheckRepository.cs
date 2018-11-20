@@ -2,19 +2,11 @@ using Cake.Common;
 using Cake.Common.Build;
 using Cake.Common.Diagnostics;
 using Cake.Common.Solution;
-using Cake.Common.Tools.NuGet;
-using Cake.Common.Tools.NuGet.List;
-using Cake.Core;
 using CK.Text;
 using CSemVer;
-using NuGet.Protocol.Core.Types;
 using SimpleGitVersion;
-using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
-using System.Net.Http;
-using System.Threading.Tasks;
 
 namespace CodeCake
 {
@@ -25,11 +17,26 @@ namespace CodeCake
         /// </summary>
         class CheckRepositoryInfo
         {
+            /// <summary>
+            /// Gets the remote target feeds.
+            /// (This is extracted as an independent function to be more easily transformable.)
+            /// </summary>
+            /// <returns></returns>
+            public static IEnumerable<NuGetHelper.Feed> GetTargetRemoteFeeds()
+            {
+                return new NuGetHelper.Feed[]{
+                    new SignatureVSTSFeed( "Signature-OpenSource", "Default" )
+                };
+            }
+
             public CheckRepositoryInfo( SimpleRepositoryInfo gitInfo, IEnumerable<SolutionProject> projectsToPublish )
             {
                 GitInfo = gitInfo;
                 Version = SVersion.TryParse( gitInfo.SafeNuGetVersion );
-                NuGetPackagesToPublish = projectsToPublish.Select( p => new SimplePackageId( p.Name, Version ) ).ToList();
+                if( Version.IsValid )
+                {
+                    NuGetPackagesToPublish = projectsToPublish.Select( p => new SimplePackageId( p.Name, Version ) ).ToList();
+                }
             }
 
             /// <summary>
@@ -159,7 +166,7 @@ namespace CodeCake
                 // Creating the right remote feed.
                 if( !isLocalCIRelease )
                 {
-                    result.Feeds.Add( new SignatureVSTSFeed( "Signature-OpenSource", "Default" ) );
+                    result.Feeds.AddRange( CheckRepositoryInfo.GetTargetRemoteFeeds() );
                 }
             }
 
