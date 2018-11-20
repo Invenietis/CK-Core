@@ -21,11 +21,13 @@ namespace CodeCake
                 System.IO.File.AppendAllLines( memoryFilePath, new[] { test.ToString() } );
             }
 
-            bool IsTestDone( Cake.Core.IO.FilePath test )
+            bool CheckTestDone( Cake.Core.IO.FilePath test )
             {
-                return System.IO.File.Exists( memoryFilePath )
-                        ?  System.IO.File.ReadAllLines( memoryFilePath ).Contains( test.ToString() )
-                        : false;
+                bool done = System.IO.File.Exists( memoryFilePath )
+                            ?  System.IO.File.ReadAllLines( memoryFilePath ).Contains( test.ToString() )
+                            : false;
+                if( done ) Cake.Information( "Test already done on this commit." );
+                return done;
             }
 
             var testDlls = testProjects.Select( p =>
@@ -47,13 +49,9 @@ namespace CodeCake
                                     : null;
                 if( net461 != null )
                 {
-                    if( IsTestDone( net461 ) )
+                    Cake.Information( $"Testing via NUnit (net461): {net461}" );
+                    if( !CheckTestDone( net461 ) )
                     {
-                        Cake.Information( "Test already done on this commit." );
-                    }
-                    else
-                    {
-                        Cake.Information( $"Testing via NUnit (net461): {net461}" );
                         Cake.NUnit( new[] { net461 }, new NUnitSettings()
                         {
                             Framework = "v4.5",
@@ -70,15 +68,11 @@ namespace CodeCake
 
             void TestNetCore( string projectPath, Cake.Core.IO.FilePath dllFilePath, string framework )
             {
-                if( IsTestDone( dllFilePath ) )
-                {
-                    Cake.Information( "Test already done on this commit." );
-                    return;
-                }
                 var e = XDocument.Load( projectPath ).Root;
                 if( e.Descendants( "PackageReference" ).Any( r => r.Attribute( "Include" )?.Value == "Microsoft.NET.Test.Sdk" ) )
                 {
                     Cake.Information( $"Testing via VSTest ({framework}): {dllFilePath}" );
+                    if( CheckTestDone( dllFilePath ) ) return;
                     Cake.DotNetCoreTest( projectPath, new DotNetCoreTestSettings()
                     {
                         Configuration = configuration,
@@ -89,6 +83,7 @@ namespace CodeCake
                 else
                 {
                     Cake.Information( $"Testing via NUnitLite ({framework}): {dllFilePath}" );
+                    if( CheckTestDone( dllFilePath ) ) return;
                     Cake.DotNetCoreExecute( dllFilePath );
                 }
                 WriteTestDone( dllFilePath );
