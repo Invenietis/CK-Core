@@ -52,6 +52,7 @@ namespace CodeCake
 
             /// <summary>
             /// Gets the version of the packages.
+            /// <see cref="SVersion.IsValid"/> is false if the working folder is not ready to be published.
             /// </summary>
             public SVersion Version { get; }
 
