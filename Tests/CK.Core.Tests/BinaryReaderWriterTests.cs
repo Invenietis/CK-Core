@@ -24,7 +24,7 @@ namespace CK.Core.Tests
         public static readonly sbyte DefSByte = -128;
         public static readonly DateTime DefDateTime = new DateTime( 2018, 9, 5, 16, 6, 47, DateTimeKind.Local );
         public static readonly TimeSpan DefTimeSpan = new TimeSpan( 3, 2, 1, 59, 995 );
-        public static readonly DateTimeOffset DefDateTimeOffset = new DateTimeOffset( DefDateTime, DateTimeOffset.Now.Offset );
+        public static readonly DateTimeOffset DefDateTimeOffset = new DateTimeOffset( DefDateTime, TimeZoneInfo.Local.GetUtcOffset( DefDateTime ) );
         public static readonly double DefDouble = 35.9783e-78;
         public static readonly float DefSingle = (float)0.38974e-4;
         public static readonly char DefChar = 'c';
