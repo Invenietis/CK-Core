@@ -15,12 +15,12 @@ namespace CK.Core.Tests
     [TestFixture]
     public class SHA1Tests
     {
-        static string GetFilePath( [CallerFilePath]string p = null ) => p;
+        static readonly string ThisFile = Path.Combine( TestHelper.SolutionFolder, "Tests", "CK.Core.Tests", "SHA1Tests.cs" );
 
         [Test]
         public void SHA1_ToString_and_Parse()
         {
-            var sha = SHA1Value.ComputeFileSHA1( GetFilePath() );
+            var sha = SHA1Value.ComputeFileSHA1( ThisFile );
             var s = sha.ToString();
             var shaBis = SHA1Value.Parse( s );
             shaBis.Should().Be( sha );
@@ -59,12 +59,12 @@ namespace CK.Core.Tests
         [Test]
         public async Task SHA1_from_file_async()
         {
-            var sha = SHA1Value.ComputeFileSHA1( GetFilePath() );
-            var sha2 = await SHA1Value.ComputeFileSHA1Async( GetFilePath() );
+            var sha = SHA1Value.ComputeFileSHA1( ThisFile );
+            var sha2 = await SHA1Value.ComputeFileSHA1Async( ThisFile );
             sha2.Should().Be( sha );
             using( var compressedPath = new TemporaryFile() )
             {
-                using( var input = new FileStream( GetFilePath(), FileMode.Open, FileAccess.Read, FileShare.Read, 4096, FileOptions.SequentialScan | FileOptions.Asynchronous ) )
+                using( var input = new FileStream( ThisFile, FileMode.Open, FileAccess.Read, FileShare.Read, 4096, FileOptions.SequentialScan | FileOptions.Asynchronous ) )
                 using( var compressed = new FileStream( compressedPath.Path, FileMode.Truncate, FileAccess.Write, FileShare.None, 4096, FileOptions.SequentialScan | FileOptions.Asynchronous ) )
                 {
                     var writer = GetCompressShellAsync( w => input.CopyToAsync( w ) );
