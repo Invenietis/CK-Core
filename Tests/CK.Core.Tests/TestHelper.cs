@@ -73,7 +73,7 @@ namespace CK.Core.Tests
         static void InitializePaths()
         {
             NormalizedPath path = AppContext.BaseDirectory;
-            var s = path.PathsToFirstPart( null, new[] { "CK-Text.sln" } ).FirstOrDefault( p => File.Exists( p ) );
+            var s = path.PathsToFirstPart( null, new[] { "CK-Core.sln" } ).FirstOrDefault( p => File.Exists( p ) );
             if( s.IsEmpty ) throw new InvalidOperationException( $"Unable to find CK-Core.sln above '{AppContext.BaseDirectory}'." );
             _solutionFolder = s.RemoveLastPart();
             _testFolder = Path.Combine( _solutionFolder, "Tests", "CK.Core.Tests", "TestDir" );
