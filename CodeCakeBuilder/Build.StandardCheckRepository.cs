@@ -26,7 +26,7 @@ namespace CodeCake
             {
                 return new NuGetHelper.Feed[]{
 
-new SignatureVSTSFeed( "Signature-OpenSource", "CKEnvTest3" )
+new SignatureVSTSFeed( "Signature-OpenSource", "Default" )
 };
             }
 
