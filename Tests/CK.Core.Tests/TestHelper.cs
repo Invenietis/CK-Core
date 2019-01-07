@@ -9,6 +9,7 @@ using NUnit.Framework;
 using FluentAssertions;
 using System.Reflection;
 using System.Runtime.CompilerServices;
+using CK.Text;
 
 namespace CK.Core.Tests
 {
@@ -71,15 +72,16 @@ namespace CK.Core.Tests
 
         static void InitializePaths()
         {
-            _solutionFolder = Path.GetDirectoryName( Path.GetDirectoryName( GetTestProjectPath() ) );
+            NormalizedPath path = AppContext.BaseDirectory;
+            var s = path.PathsToFirstPart( null, new[] { "CK-Core.sln" } ).FirstOrDefault( p => File.Exists( p ) );
+            if( s.IsEmpty ) throw new InvalidOperationException( $"Unable to find CK-Core.sln above '{AppContext.BaseDirectory}'." );
+            _solutionFolder = s.RemoveLastPart();
             _testFolder = Path.Combine( _solutionFolder, "Tests", "CK.Core.Tests", "TestDir" );
             Console.WriteLine( $"SolutionFolder is: {_solutionFolder}." );
             Console.WriteLine( $"TestFolder is: {_testFolder}." );
             Console.WriteLine( $"Core path: {typeof( string ).GetTypeInfo().Assembly.CodeBase}." );
             CleanupTestFolder();
         }
-
-        static string GetTestProjectPath( [CallerFilePath]string path = null ) => Path.GetDirectoryName( path );
 
     }
 }
