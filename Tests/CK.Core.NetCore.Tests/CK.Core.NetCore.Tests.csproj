@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <Import Project="..\..\Common\Shared.props" />
   <PropertyGroup>
-    <TargetFramework>netcoreapp2.0</TargetFramework>
+    <TargetFramework>netcoreapp2.1</TargetFramework>
     <OutputType>Exe</OutputType>
     <OriginProjectName>CK.Core.Tests</OriginProjectName>
   </PropertyGroup>
@@ -9,7 +9,7 @@
     <ProjectReference Include="..\..\CK.Core\CK.Core.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="FluentAssertions" Version="5.4.1" />
+    <PackageReference Include="FluentAssertions" Version="5.4.2" />
     <PackageReference Include="NUnitLite" Version="3.10.1" />
     <PackageReference Include="NUnit" Version="3.10.1" />
   </ItemGroup>

@@ -150,23 +150,33 @@ namespace CK.Core
 
         /// <summary>
         /// Unregisters a service. Can be called even if the service does not exist.
-        /// The service is first removed and then the OnRemove associated action is called if it exists.
+        /// The service is first removed, then the OnRemove associated action is called if it exists
+        /// and if the instance is <see cref="IDisposable"/>, its Dispose method is called.
         /// </summary>
         /// <param name="serviceType">Service type to unregister.</param>
+        /// <param name="autoCallDispose">
+        /// False to not call Dispose if the instance exists and is disposable.
+        /// OnRemove action if it exists is always executed.
+        /// </param>
         /// <returns>This object to enable fluent syntax.</returns>
-        public ISimpleServiceContainer Remove( Type serviceType )
+        public ISimpleServiceContainer Remove( Type serviceType, bool autoCallDispose = true )
         {
             ServiceEntry e;
             if( _services.TryGetValue( serviceType, out e ) )
             {
                 _services.Remove( serviceType );
-                if( e.Instance != null && e.OnRemove != null ) e.OnRemove( e.Instance );
+                if( e.Instance != null )
+                {
+                    e.OnRemove?.Invoke( e.Instance );
+                    if( e.Instance is IDisposable d ) d.Dispose(); 
+                }
             }
             return this;
         }
 
         /// <summary>
-        /// Unregisters all the services. Any "on remove" actions are executed.
+        /// Unregisters all the services. Any "on remove" actions are executed and
+        /// IDisposable instances are automatically disposed.
         /// </summary>
         /// <returns>This object to enable fluent syntax.</returns>
         public ISimpleServiceContainer Clear()
@@ -263,7 +273,7 @@ namespace CK.Core
         }
 
         /// <summary>
-        /// Correct ArgumentException throw by a Dictionary when adding an existing key. 
+        /// Corrects ArgumentException throw by a Dictionary when adding an existing key. 
         /// </summary>
         void DoAdd( Type s, ServiceEntry e )
         {
