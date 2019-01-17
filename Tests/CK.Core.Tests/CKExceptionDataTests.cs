@@ -50,6 +50,10 @@ namespace CK.Core.Tests
             var d = CKExceptionData.CreateFrom( e );
             CheckSimpleExceptionData( d, s => s == "Outer", true );
             CheckSimpleExceptionData( d.InnerException, s => s == "Inner", false );
+            var backToEx = new CKException( d );
+            var backToData = CKExceptionData.CreateFrom( backToEx );
+            CheckSimpleExceptionData( backToData, s => s == "Outer", true );
+            CheckSimpleExceptionData( backToData.InnerException, s => s == "Inner", false );
         }
 
         [Test]
