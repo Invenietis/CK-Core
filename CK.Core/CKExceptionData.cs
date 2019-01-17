@@ -147,6 +147,7 @@ namespace CK.Core
         static public CKExceptionData CreateFrom( Exception ex )
         {
             if( ex == null ) return null;
+            if( ex is CKException ckEx ) return ckEx.EnsureExceptionData();
             Type t = ex.GetType();
             string exceptionTypeName = t.Name;
             string exceptionTypeAssemblyQualifiedName = t.AssemblyQualifiedName;

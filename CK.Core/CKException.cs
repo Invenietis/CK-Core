@@ -93,7 +93,8 @@ namespace CK.Core
         {
             if( _exceptionData == null )
             {
-                _exceptionData = new CKExceptionData( Message, "CKException", GetType().AssemblyQualifiedName, StackTrace, CKExceptionData.CreateFrom( InnerException ), null, null, null, null );
+                var inner = CKExceptionData.CreateFrom( InnerException );
+                _exceptionData = new CKExceptionData( Message, "CKException", GetType().AssemblyQualifiedName, StackTrace, inner, null, null, null, null );
             }
             return _exceptionData; 
         }
