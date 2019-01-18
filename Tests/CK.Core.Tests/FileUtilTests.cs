@@ -16,27 +16,26 @@ namespace CK.Core.Tests
 
     public class FileUtilTests
     {
+        static string ToPlatform( string s ) => s.Replace( Path.AltDirectorySeparatorChar, Path.DirectorySeparatorChar );
+
         [Test]
         public void NormalizePathSeparator_uses_current_environment()
         {
-            if( Path.DirectorySeparatorChar == '\\' )
-            {
-                Action a = () => FileUtil.NormalizePathSeparator( null, true );
-                a.Should().Throw<ArgumentNullException>();
-                a = () => FileUtil.NormalizePathSeparator( null, false );
-                a.Should().Throw<ArgumentNullException>();
+            Action a = () => FileUtil.NormalizePathSeparator( null, true );
+            a.Should().Throw<ArgumentNullException>();
+            a = () => FileUtil.NormalizePathSeparator( null, false );
+            a.Should().Throw<ArgumentNullException>();
 
-                FileUtil.NormalizePathSeparator( "", true ).Should().Be( "" );
-                FileUtil.NormalizePathSeparator( "", false ).Should().Be( "" );
+            FileUtil.NormalizePathSeparator( "", true ).Should().Be( "" );
+            FileUtil.NormalizePathSeparator( "", false ).Should().Be( "" );
 
-                FileUtil.NormalizePathSeparator( @"/\C", false ).Should().Be( @"\\C" );
-                FileUtil.NormalizePathSeparator( @"/\C/", true ).Should().Be( @"\\C\" );
-                FileUtil.NormalizePathSeparator( @"/\C\", true ).Should().Be( @"\\C\" );
-                FileUtil.NormalizePathSeparator( @"/\C", true ).Should().Be( @"\\C\" );
+            FileUtil.NormalizePathSeparator( @"/\C", false ).Should().Be( ToPlatform( @"\\C" ) );
+            FileUtil.NormalizePathSeparator( @"/\C/", true ).Should().Be( ToPlatform( @"\\C\" ) );
+            FileUtil.NormalizePathSeparator( @"/\C\", true ).Should().Be( ToPlatform( @"\\C\" ) );
+            FileUtil.NormalizePathSeparator( @"/\C", true ).Should().Be( ToPlatform( @"\\C\" ) );
 
-                FileUtil.NormalizePathSeparator( @"/", false ).Should().Be( @"\" );
-                FileUtil.NormalizePathSeparator( @"/a", true ).Should().Be( @"\a\" );
-            }
+            FileUtil.NormalizePathSeparator( @"/", false ).Should().Be( ToPlatform( @"\" ) );
+            FileUtil.NormalizePathSeparator( @"/a", true ).Should().Be( ToPlatform( @"\a\" ) );
         }
 
         [Test]
@@ -83,7 +82,7 @@ namespace CK.Core.Tests
                 files.Add( FileUtil.WriteUniqueTimedFile( prefix, String.Empty, now, content, true, 6 ) );
             }
             files.Count.Should().Be( 10 );
-            files.ForEach( f => f.Should().StartWith( prefix ) );
+            files.ForEach( f => f.Should().StartWith( ToPlatform( prefix ) ) );
             files.ForEach( f => File.Exists( f ).Should().BeTrue() );
             files[1].Should().Be( files[0] + "(1)" );
             files[2].Should().Be( files[0] + "(2)" );
@@ -103,7 +102,7 @@ namespace CK.Core.Tests
         {
             TestHelper.CleanupTestFolder();
             DateTime now = DateTime.UtcNow;
-            string prefix = Path.Combine( TestHelper.TestFolder, "Clash " );
+            string prefix = ToPlatform( Path.Combine( TestHelper.TestFolder, "Clash " ) );
             var files = new string[100];
             Parallel.ForEach( Enumerable.Range( 0, 100 ), i =>
             {
@@ -129,8 +128,8 @@ namespace CK.Core.Tests
             Directory.Exists( f2 ).Should().BeTrue();
         }
 
-        [Explicit]
-        [TestCase( "E:" )]
+        [Explicit( "This test requires a E:\\ volume." )]
+        [TestCase( @"E:\" )]
         [TestCase( @"E:\TestSub\Sub" )]
         public void CreateUniqueTimedFolder_simple_test_on_non_default_volume( string rootTestPath )
         {
@@ -162,8 +161,8 @@ namespace CK.Core.Tests
             folders.Should().OnlyContain( f => Directory.Exists( f ) );
         }
 
-        [Explicit]
-        [TestCase( "E:" )]
+        [Explicit( "This test requires a E:\\ volume." )]
+        [TestCase( @"E:\" )]
         [TestCase( @"E:\TestSub\Sub" )]
         public void CreateUniqueTimedFolder_clash_never_happen_on_non_default_volume( string rootTestPath )
         {
@@ -173,7 +172,7 @@ namespace CK.Core.Tests
                 Path.Combine( rootTestPath, "F-Clash/FB" ),
                 Path.Combine( rootTestPath, "F-Clash/FA/F1" ) };
             var folders = new string[100];
-            Parallel.ForEach( Enumerable.Range( 0, 100 ), i =>
+            Parallel.ForEach( Enumerable.Range( 0, 1 ), i =>
             {
                 folders[i] = FileUtil.CreateUniqueTimedFolder( prefixes[i % 3], String.Empty, now );
             } );
@@ -295,14 +294,14 @@ namespace CK.Core.Tests
             string path = Path.Combine( TestHelper.TestFolder, "Locked.txt" );
             object startLock = new object();
             Task.Factory.StartNew( () =>
-             {
-                 using( FileStream fs = File.OpenWrite( path ) )
-                 {
-                     Thread.Sleep( 2 );
-                     lock( startLock ) Monitor.Pulse( startLock );
-                     Thread.Sleep( lockTimeMilliSecond );
-                 }
-             } );
+            {
+                using( FileStream fs = File.OpenWrite( path ) )
+                {
+                    Thread.Sleep( 2 );
+                    lock( startLock ) Monitor.Pulse( startLock );
+                    Thread.Sleep( lockTimeMilliSecond );
+                }
+            } );
             lock( startLock ) Monitor.Wait( startLock );
             FileUtil.CheckForWriteAccess( path, nbMaxMilliSecond ).Should().Be( result );
             TestHelper.CleanupTestFolder();
