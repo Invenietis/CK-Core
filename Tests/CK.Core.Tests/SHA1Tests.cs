@@ -7,9 +7,10 @@ using System.IO;
 using System.IO.Compression;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
-
+using System.Linq;
 namespace CK.Core.Tests
 {
     [TestFixture]
@@ -24,6 +25,23 @@ namespace CK.Core.Tests
             var s = sha.ToString();
             var shaBis = SHA1Value.Parse( s );
             shaBis.Should().Be( sha );
+        }
+
+        [Test]
+        public void SHA1_ByteAmount()
+        {
+            var sha = SHA1Value.ComputeFileSHA1( ThisFile );
+            sha.GetBytes().Count.Should().Be( 20 );
+            sha.ToString().Length.Should().Be( 40 );
+        }
+
+        [Test]
+        public void SHA1Empty_IsValid()
+        {
+            SHA1Managed sha1 = new SHA1Managed();
+            byte[] computedValue = sha1.ComputeHash( new byte[0] );
+            IReadOnlyList<byte> storedValue = SHA1Value.EmptySHA1.GetBytes();
+            storedValue.SequenceEqual( computedValue );
         }
 
         [TestCase( "0000000000000000000000000000000000000000", "0000000000000000000000000000000000000000", '=' )]
