@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace CK.Core.Tests
+namespace CK.Core.Collection.Tests
 {
     public class OrderedArrayBestKeeper<T> : IReadOnlyCollection<T>
     {
