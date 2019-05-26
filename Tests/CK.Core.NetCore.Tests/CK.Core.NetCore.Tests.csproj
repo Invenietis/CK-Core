@@ -9,7 +9,8 @@
     <ProjectReference Include="..\..\CK.Core\CK.Core.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="FluentAssertions" Version="5.4.2" />
+    <PackageReference Include="CK.MicroBenchmark" Version="0.1.2--0020-develop" />
+    <PackageReference Include="FluentAssertions" Version="5.6.0" />
     <PackageReference Include="NUnitLite" Version="3.10.1" />
     <PackageReference Include="NUnit" Version="3.10.1" />
   </ItemGroup>
