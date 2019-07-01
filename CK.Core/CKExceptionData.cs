@@ -313,7 +313,8 @@ namespace CK.Core
         /// </summary>
         /// <param name="b">The StringBuilder to write to.</param>
         /// <param name="prefix">Prefix that will appear at the start of each line.</param>
-        public void ToStringBuilder( StringBuilder b, string prefix )
+        /// <param name="endWithNewLine">Whether a new line is appended to the end of the text or not.</param>
+        public void ToStringBuilder( StringBuilder b, string prefix, bool endWithNewLine = true )
         {
             if( prefix == null ) prefix = string.Empty;
             if( prefix.Length == 0 && _toString != null )
@@ -380,8 +381,11 @@ namespace CK.Core
                     .AppendLine();
             }
             b.Append( prefix )
-                .Append( " └─────────────────────────────────────────────────────────────────────────" )
-                .AppendLine();
+                .Append( " └─────────────────────────────────────────────────────────────────────────" );
+            if( endWithNewLine )
+            {
+                b.AppendLine();
+            }
         }
 
         static StringBuilder AppendField( StringBuilder b, string prefix, string label, string text )
