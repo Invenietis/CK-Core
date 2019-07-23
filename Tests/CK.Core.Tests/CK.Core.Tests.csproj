@@ -2,6 +2,7 @@
   <Import Project="..\..\Common\Shared.props" />
   <PropertyGroup>
     <TargetFramework>net461</TargetFramework>
+    <IsPackable>False</IsPackable>
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\CK.Core\CK.Core.csproj" />

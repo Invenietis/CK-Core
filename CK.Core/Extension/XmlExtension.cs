@@ -119,7 +119,6 @@ namespace CK.Core
         /// Gets a line/column information that may be an empty one (<see cref="System.Xml.IXmlLineInfo.HasLineInfo()"/> is
         /// false) if this information is not known.
         /// </summary>
-        /// <typeparam name="T">This element type.</typeparam>
         /// <param name="this">This XObject.</param>
         /// <returns>The associated information.</returns>
         public static System.Xml.IXmlLineInfo GetLineColumnInfo( this XObject @this )
