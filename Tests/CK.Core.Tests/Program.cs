@@ -1,7 +1,7 @@
-﻿using NUnitLite;
+using NUnitLite;
 using System.Reflection;
 
-namespace CK.StObj.Engine.Tests.NetCore
+namespace CK.StObj.Engine.Tests
 {
     public static class Program
     {

@@ -1,14 +1,16 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
   <Import Project="..\..\Common\Shared.props" />
   <PropertyGroup>
-    <TargetFramework>net461</TargetFramework>
+    <TargetFrameworks>net461;netcoreapp2.1</TargetFrameworks>
+    <OutputType>Exe</OutputType>
     <IsPackable>False</IsPackable>
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\CK.Core\CK.Core.csproj" />
     <PackageReference Include="CK.MicroBenchmark" Version="0.1.2--0023-develop" />
     <PackageReference Include="FluentAssertions" Version="5.6.0" />
-    <PackageReference Include="NUnit" Version="[2.6.4]" />
+    <PackageReference Include="NUnitLite" Version="3.10.1" />
+    <PackageReference Include="NUnit" Version="3.10.1" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Properties\" />
