@@ -6,7 +6,7 @@
     </Description>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="CK.Text" Version="8.0.4--0005-develop" />
+    <PackageReference Include="CK.Text" Version="8.0.3" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Properties\" />
