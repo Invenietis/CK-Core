@@ -7,9 +7,9 @@
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\CK.Core\CK.Core.csproj" />
-    <PackageReference Include="CK.MicroBenchmark" Version="0.1.2--0024-develop" />
+    <PackageReference Include="CK.MicroBenchmark" Version="0.1.2--0025-develop" />
     <PackageReference Include="FluentAssertions" Version="5.7.0" />
-    <PackageReference Include="NUnitLite" Version="3.10.1" />
+    <PackageReference Include="NUnitLite" Version="3.12.0" />
     <PackageReference Include="NUnit" Version="3.12.0" />
   </ItemGroup>
   <ItemGroup>
