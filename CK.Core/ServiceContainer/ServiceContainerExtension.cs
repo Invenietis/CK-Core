@@ -48,17 +48,6 @@ namespace CK.Core
         }
 
         /// <summary>
-        /// Strongly typed version of <see cref="IServiceProvider.GetService"/> that returns null if service is not found.
-        /// (Same behavior as <see cref="IServiceProvider.GetService"/>.)
-        /// </summary>
-        /// <param name="this">This service provider.</param>
-        /// <returns>A service object of the required type or null if not found.</returns>
-        public static T GetService<T>( this IServiceProvider @this )
-        {
-            return (T)@this.GetService( typeof( T ) );
-        }
-
-        /// <summary>
         /// Type safe version to remove a registered type.
         /// </summary>
         /// <param name="this">This <see cref="ISimpleServiceContainer"/> object.</param>
