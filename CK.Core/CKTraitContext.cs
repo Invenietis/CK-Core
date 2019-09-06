@@ -12,7 +12,7 @@ namespace CK.Core
     /// Thread-safe registration root for <see cref="CKTrait"/> objects.
     /// Each context has a <see cref="Name"/> that uniquely, and definitely, identifies it. Any number of named contexts
     /// can be created in an Application Domain: as long as they define the same <see cref="Separator"/>, they all are actually
-    /// the exact same internal context. (If Separator differ during a redefinition, an <see cref="InvalidOperationException"/> is thrown).
+    /// the exact same internal context. (If Separator differ during a redefinition, an <see cref="InvalidOperationException"/> is thrown.)
     /// </summary>
     public readonly struct CKTraitContext : IComparable<CKTraitContext>, IEquatable<CKTraitContext>
     {
@@ -337,7 +337,7 @@ namespace CK.Core
         }
 
         /// <summary>
-        /// Writes the <see cref="Name"/> and <see cref="Separator"/> so that <see cref="ctor(ICKBinaryReader)"/> can
+        /// Writes the <see cref="Name"/> and <see cref="Separator"/> so that <see cref="CKTraitContext(ICKBinaryReader)"/> can
         /// rebuild or rebind to the context.
         /// </summary>
         /// <param name="w">The binary writer to use.</param>
@@ -435,6 +435,22 @@ namespace CK.Core
         /// </summary>
         /// <returns>A readable string.</returns>
         public override string ToString() => _c.ToString();
+
+        /// <summary>
+        /// Mimics reference equality: this context lokks like a reference.
+        /// </summary>
+        /// <param name="c1">The first context.</param>
+        /// <param name="c2">The second context.</param>
+        /// <returns>True if the the 2 contexts are the same, false otherwise.</returns>
+        public static bool operator ==( in CKTraitContext c1, in CKTraitContext c2 ) => c1._c == c2._c;
+
+        /// <summary>
+        /// Mimics reference inequality: this context lokks like a reference.
+        /// </summary>
+        /// <param name="c1">The first context.</param>
+        /// <param name="c2">The second context.</param>
+        /// <returns>True if the the 2 contexts are different, false when they ar the same.</returns>
+        public static bool operator !=( in CKTraitContext c1, in CKTraitContext c2 ) => c1._c != c2._c;
 
     }
 }

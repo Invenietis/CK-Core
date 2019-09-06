@@ -122,7 +122,7 @@ namespace CK.Core
 
         /// <summary>
         /// Gets whether a service is available.
-        /// (This simply calls <see cref="GetService{T}(IServiceProvider)"/> and checks for a non null value.)
+        /// (This simply calls <see cref="IServiceProvider.GetService(Type)"/> and checks for a non null value.)
         /// </summary>
         /// <typeparam name="T">Type of the service.</typeparam>
         /// <param name="this">This container.</param>
