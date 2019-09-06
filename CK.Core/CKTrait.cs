@@ -146,7 +146,7 @@ namespace CK.Core
         public bool IsSupersetOf( CKTrait other )
         {
             if( other == null ) throw new ArgumentNullException( "other" );
-            if( other.Context != _context ) throw new InvalidOperationException( Impl.CoreResources.TraitsMustBelongToTheSameContext );
+            if( other.Context != _context ) throw new InvalidOperationException( "TraitsMustBelongToTheSameContext" );
             if( _traits.Count < other._traits.Count ) return false;
             bool foundAlien = false;
             Process( this, other,
@@ -169,7 +169,7 @@ namespace CK.Core
         public bool Overlaps( CKTrait other )
         {
             if( other == null ) throw new ArgumentNullException( "other" );
-            if( other.Context != _context ) throw new InvalidOperationException( Impl.CoreResources.TraitsMustBelongToTheSameContext );
+            if( other.Context != _context ) throw new InvalidOperationException( "TraitsMustBelongToTheSameContext" );
             bool found = false;
             Process( this, other,
                 null,
@@ -196,7 +196,7 @@ namespace CK.Core
         {
             if( ReferenceEquals( other, this ) ) return this;
             if( other == null ) throw new ArgumentNullException( "other" );
-            if( other.Context != _context ) throw new InvalidOperationException( Impl.CoreResources.TraitsMustBelongToTheSameContext );
+            if( other.Context != _context ) throw new InvalidOperationException( "TraitsMustBelongToTheSameContext" );
             ListTrait m = new ListTrait();
             Process( this, other, null, null, m.TrueAdd );
             return _context.FindOrCreate( m );
@@ -212,7 +212,7 @@ namespace CK.Core
         {
             if( ReferenceEquals( other, this ) ) return this;
             if( other == null ) throw new ArgumentNullException( nameof( other ) );
-            if( other.Context != _context ) throw new InvalidOperationException( Impl.CoreResources.TraitsMustBelongToTheSameContext );
+            if( other.Context != _context ) throw new InvalidOperationException( "TraitsMustBelongToTheSameContext" );
             ListTrait m = new ListTrait();
             Func<CKTrait,bool> add = m.TrueAdd;
             Process( this, other, add, add, add );
@@ -228,7 +228,7 @@ namespace CK.Core
         {
             if( ReferenceEquals( other, this ) ) return _context.EmptyTrait;
             if( other == null ) throw new ArgumentNullException( nameof( other ) );
-            if( other.Context != _context ) throw new InvalidOperationException( Impl.CoreResources.TraitsMustBelongToTheSameContext );
+            if( other.Context != _context ) throw new InvalidOperationException( "TraitsMustBelongToTheSameContext" );
             ListTrait m = new ListTrait();
             Process( this, other, m.TrueAdd, null, null );
             return _context.FindOrCreate( m );
@@ -244,7 +244,7 @@ namespace CK.Core
         {
             if( ReferenceEquals( other, this ) ) return _context.EmptyTrait;
             if( other == null ) throw new ArgumentNullException( "other" );
-            if( other.Context != _context ) throw new InvalidOperationException( Impl.CoreResources.TraitsMustBelongToTheSameContext );
+            if( other.Context != _context ) throw new InvalidOperationException( "TraitsMustBelongToTheSameContext" );
             ListTrait m = new ListTrait();
             Func<CKTrait,bool> add = m.TrueAdd;
             Process( this, other, add, add, null );
