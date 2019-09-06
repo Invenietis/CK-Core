@@ -36,33 +36,16 @@ namespace CK.Core.Tests
     /// </summary>
     public class TraitsTests
     {
-        //CKTraitContext Context;
-
-        //public TraitsTests()
-        //{
-        //    Context = new CKTraitContext( "Test", '+' );
-        //}
-
-        //static object _lock = new object();
-        //[SetUp]
-        //public void Lock() => Monitor.Enter( _lock );
-
-        //[TearDown]
-        //public void Unlock() => Monitor.Exit( _lock );
-
         CKTraitContext ContextWithPlusSeparator() => new CKTraitContext( "Test", '+' );
-
 
         [Test]
         public void Comparing_traits()
         {
             CKTraitContext c1 = new CKTraitContext( "C1" );
-            CKTraitContext c1Bis = new CKTraitContext( "C1" );
             CKTraitContext c2 = new CKTraitContext( "C2" );
 
             c1.CompareTo( c1 ).Should().Be( 0 );
             c1.CompareTo( c2 ).Should().BeLessThan( 0 );
-            c1Bis.CompareTo( c1 ).Should().BeGreaterThan( 0 );
 
             var tAc1 = c1.FindOrCreate( "A" );
             var tBc1 = c1.FindOrCreate( "B" );
@@ -79,7 +62,7 @@ namespace CK.Core.Tests
         [Test]
         public void Traits_must_belong_to_the_same_context()
         {
-            Action a = () => new CKTraitContext( null );
+            Action a = () => new CKTraitContext( (string)null );
             a.Should().Throw<ArgumentException>();
 
             a = () => new CKTraitContext( "  " );
@@ -152,10 +135,12 @@ namespace CK.Core.Tests
             c.FindOrCreate( "+Alpha+++" ).Should().BeSameAs( m, "Multiple + are ignored" );
             c.FindOrCreate( "++ Alpha +++ \t\t  + \t +" ).Should().BeSameAs( m, "Multiple empty strings are ignored." );
 
-            c.FindOnlyExisting( "Beta" ).Should().BeNull();
-            c.FindOnlyExisting( "Beta+Gamma" ).Should().BeNull();
+            var notExist1 = Guid.NewGuid().ToString();
+            var notExist2 = Guid.NewGuid().ToString();
+            c.FindOnlyExisting( notExist1 ).Should().BeNull();
+            c.FindOnlyExisting( $"{notExist1}+{notExist2}" ).Should().BeNull();
             c.FindOnlyExisting( "Alpha" ).Should().BeSameAs( m );
-            c.FindOnlyExisting( "Beta+Gamma+Alpha" ).Should().BeSameAs( m );
+            c.FindOnlyExisting( $"{notExist1}+{notExist2}+Alpha" ).Should().BeSameAs( m );
         }
 
         [Test]
@@ -173,15 +158,20 @@ namespace CK.Core.Tests
             c.FindOrCreate( "+ +\t++ Alpha+++Beta++" ).Should().BeSameAs( m, "Extra characters and empty traits are ignored." );
 
             c.FindOrCreate( "Alpha+Beta+Alpha" ).Should().BeSameAs( m, "Multiple identical traits are removed." );
-            c.FindOrCreate( "Alpha+ +Beta\t ++Beta+ + Alpha +    Beta   ++ " ).Should().BeSameAs( m, "Multiple identical traits are removed." );
+            c.FindOrCreate( "Alpha+ +Beta\t ++Beta+ + Alpha +    Beta   ++ " )
+                .Should().BeSameAs( m, "Multiple identical traits are removed." );
 
             CKTrait m2 = c.FindOrCreate( "Beta+Alpha+Zeta+Tau+Pi+Omega+Epsilon" );
-            c.FindOrCreate( "++Beta+Zeta+Omega+Epsilon+Alpha+Zeta+Epsilon+Zeta+Tau+Epsilon+Pi+Tau+Beta+Zeta+Omega+Beta+Pi+Alpha" ).Should().BeSameAs( m2, "Unicity of Atomic trait is ensured." );
+            c.FindOrCreate( "++Beta+Zeta+Omega+Epsilon+Alpha+Zeta+Epsilon+Zeta+Tau+Epsilon+Pi+Tau+Beta+Zeta+Omega+Beta+Pi+Alpha" )
+                .Should().BeSameAs( m2, "Unicity of Atomic trait is ensured." );
 
+            var notExists1 = Guid.NewGuid().ToString();
+            var notExists2 = Guid.NewGuid().ToString();
+            var notExists3 = Guid.NewGuid().ToString();
             c.FindOnlyExisting( "Beta" ).ToString().Should().Be( "Beta" );
-            c.FindOnlyExisting( "Beta+Gamma" ).ToString().Should().Be( "Beta" );
-            c.FindOnlyExisting( "Beta+Gamma+Nimp+Alpha+Other" ).Should().BeSameAs( m );
-            c.FindOnlyExisting( "Beta+Gamma+Nimp+Alpha+Other+Tau+Pi" ).ToString().Should().Be( "Alpha+Beta+Pi+Tau" );
+            c.FindOnlyExisting( $"Beta+{notExists1}" ).ToString().Should().Be( "Beta" );
+            c.FindOnlyExisting( $"Beta+{notExists1}+{notExists2}+Alpha+{notExists3}" ).Should().BeSameAs( m );
+            c.FindOnlyExisting( $"Beta+  {notExists1} + {notExists2} +Alpha+{notExists3}+Tau+Pi" ).ToString().Should().Be( "Alpha+Beta+Pi+Tau" );
         }
 
         [Test]
@@ -192,12 +182,18 @@ namespace CK.Core.Tests
             List<string> collector = new List<string>();
             c.FindOrCreate( "Beta+Alpha+Tau+Pi" );
 
-            c.FindOnlyExisting( "Beta+Gamma+Nimp+Alpha+Other+Tau+Pi+Zeta", t => { collector.Add( t ); return true; } ).ToString().Should().Be( "Alpha+Beta+Pi+Tau" );
-            String.Join( ",", collector ).Should().Be( "Gamma,Nimp,Other,Zeta" );
+            var noExists1 = "A" + Guid.NewGuid().ToString();
+            var noExists2 = "B" + Guid.NewGuid().ToString();
+            var noExists3 = "C" + Guid.NewGuid().ToString();
+            var noExists4 = "D" + Guid.NewGuid().ToString();
+            c.FindOnlyExisting( $"Beta+{noExists1}+{noExists2}+Alpha+{noExists3}+Tau+Pi+{noExists4}", t => { collector.Add( t ); return true; } ).ToString()
+                .Should().Be( "Alpha+Beta+Pi+Tau" );
+            String.Join( ",", collector ).Should().Be( $"{noExists1},{noExists2},{noExists3},{noExists4}" );
 
             collector.Clear();
-            c.FindOnlyExisting( "Beta+Gamma+Nimp+Alpha+Other+Tau+Pi", t => { collector.Add( t ); return t != "Other"; } ).ToString().Should().Be( "Alpha+Beta" );
-            String.Join( ",", collector ).Should().Be( "Gamma,Nimp,Other" );
+            c.FindOnlyExisting( $"Beta+{noExists1}+{noExists2}+Alpha+{noExists3}+Tau+Pi", t => { collector.Add( t ); return t != noExists3; } ).ToString()
+                .Should().Be( "Alpha+Beta" );
+            String.Join( ",", collector ).Should().Be( $"{noExists1},{noExists2},{noExists3}" );
         }
 
         [Test]
