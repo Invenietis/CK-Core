@@ -9,15 +9,13 @@ using System.ComponentModel;
 namespace CK.Core
 {
     /// <summary>
-    /// A trait is an immutable object (thread-safe), associated to a unique string inside a <see cref="Context"/>, that can be atomic ("Alt", "Home", "Ctrl") or 
-    /// combined ("Alt|Ctrl", "Alt|Ctrl|Home"). The only way to obtain a CKTrait is to call <see cref="CKTraitContext.FindOrCreate(string)"/> (from 
-    /// a string) or to use one of the available combination methods (<see cref="Union"/>, <see cref="Except"/>, <see cref="SymmetricExcept"/> or <see cref="Intersect"/> ).
+    /// OBSLETE.
+    /// Use CKTag (instead of CKTrait) and CKTagContext (instead of CKTraitContext).
+    /// These are functionnaly equivalent but CKTagContext enable multiple (re)definition of contexts
+    /// and serialization of tags without knowing the tag's context. Trait were not able to be serialized
+    /// without explicit knowledge of the (typically static) context instance.
     /// </summary>
-    /// <remarks>
-    /// A CKTrait is not serializable: since it is relative to <see cref="CKTraitContext"/>, it must be recreated in the right context. A CKTraitContext is typically
-    /// a static object that exists in the origin application domain. A CKTrait must be serialized as its <see cref="ToString"/> representation and it is up to the 
-    /// code to call <see cref="CKTraitContext.FindOrCreate(string)"/> on the appropriate context when deserializing it.
-    /// </remarks>
+    [Obsolete("Use CKTag (instead of CKTrait) and CKTagContext (instead of CKTraitContext). These are functionnaly equivalent but CKTagContext enable multiple (re)definition of contexts and serialization of tags without knowing the tag's context. Trait were not able to be serialized without explicit knowledge of the (typically static) context instance.", true )]
     public sealed class CKTrait : IComparable<CKTrait>, IEquatable<CKTrait>
     {
         readonly CKTraitContext _context;
@@ -62,13 +60,19 @@ namespace CK.Core
         /// <summary>
         /// Gets the <see cref="CKTraitContext"/> to which this trait belongs. 
         /// </summary>
-        public CKTraitContext Context => _context;
+        public CKTraitContext Context
+        {
+            get { return _context; }
+        }
 
         /// <summary>
         /// Gets the multi traits in an ordered manner separated by +.
         /// </summary>
         /// <returns>This multi trait as a string.</returns>
-        public override string ToString() => _trait;
+        public override string ToString()
+        {
+            return _trait;
+        }
 
         /// <summary>
         /// Gets the atomic traits that this trait contains.
@@ -76,13 +80,19 @@ namespace CK.Core
         /// same as the <see cref="ToString"/> representation.
         /// Note that it is in reverse order regarding <see cref="CompareTo"/> ("A" that is stronger than "B" appears before "B").
         /// </summary>
-        public IReadOnlyList<CKTrait> AtomicTraits => _traits; 
+        public IReadOnlyList<CKTrait> AtomicTraits
+        {
+            get { return _traits; }
+        }
 
         /// <summary>
         /// Gets a boolean indicating whether this trait is the empty trait (<see cref="AtomicTraits"/> is empty
         /// and <see cref="Fallbacks"/> contains only itself).
         /// </summary>
-        public bool IsEmpty => _trait.Length == 0; 
+        public bool IsEmpty
+        {
+            get { return _trait.Length == 0; }
+        }
 
         /// <summary>
         /// Gets a boolean indicating whether this trait contains zero 
@@ -91,7 +101,10 @@ namespace CK.Core
         /// <remarks>
         /// For atomic traits (and the empty trait itself), <see cref="Fallbacks"/> contains only the <see cref="CKTraitContext.EmptyTrait"/>.
         /// </remarks>
-        public bool IsAtomic => _traits.Count <= 1; 
+        public bool IsAtomic
+        {
+            get { return _traits.Count <= 1; }
+        }
 
         /// <summary>
         /// Compares this trait with another one.
@@ -105,12 +118,9 @@ namespace CK.Core
         {
             if( other == null ) throw new ArgumentNullException( "other" );
             if( ReferenceEquals( this, other ) ) return 0;
-            int cmp = _context.CompareTo( other._context );
-            if( cmp == 0 )
-            {
-                cmp = _traits.Count - other.AtomicTraits.Count;
-                if( cmp == 0 ) cmp = StringComparer.Ordinal.Compare( other._trait, _trait );
-            }
+            if( _context != other._context ) return _context.CompareTo( other._context );
+            int cmp = _traits.Count - other.AtomicTraits.Count;
+            if( cmp == 0 ) cmp = StringComparer.Ordinal.Compare( other._trait, _trait );
             return cmp;
         }
 
@@ -233,7 +243,7 @@ namespace CK.Core
         public CKTrait SymmetricExcept( CKTrait other )
         {
             if( ReferenceEquals( other, this ) ) return _context.EmptyTrait;
-            if( other == null ) throw new ArgumentNullException( nameof( other ) );
+            if( other == null ) throw new ArgumentNullException( "other" );
             if( other.Context != _context ) throw new InvalidOperationException( Impl.CoreResources.TraitsMustBelongToTheSameContext );
             ListTrait m = new ListTrait();
             Func<CKTrait,bool> add = m.TrueAdd;
@@ -249,15 +259,12 @@ namespace CK.Core
         /// <returns>Resulting trait.</returns>
         public CKTrait Apply( CKTrait other, SetOperation operation )
         {
-            if( other == null ) throw new ArgumentNullException( nameof( other ) );
-            switch( operation )
-            {
-                case SetOperation.Union: return Union( other );
-                case SetOperation.Except: return Except( other );
-                case SetOperation.Intersect: return Intersect( other );
-                case SetOperation.SymetricExcept: return SymmetricExcept( other );
-                case SetOperation.None: return this;
-            }
+            if( other == null ) throw new ArgumentNullException( "other" );
+            if( operation == SetOperation.Union ) return Union( other );
+            else if( operation == SetOperation.Except ) return Except( other );
+            else if( operation == SetOperation.Intersect ) return Intersect( other );
+            else if( operation == SetOperation.SymetricExcept ) return SymmetricExcept( other );
+            else if( operation == SetOperation.None ) return this;
             Debug.Assert( operation == SetOperation.Replace, "All operations are covered." );
             return other;
         }

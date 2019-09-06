@@ -114,7 +114,7 @@ namespace CK.Core
             // that is called (unit tests asserts this).
             // To allow the covariance, we MUST constrain the type T to be a reference class (hence the where clause).
             //
-            // On the other hand, for the onRemove action we can not do any miracle: we need to adapt the call.
+            // On the other hand, for the onRemove action we cannot do any miracle: we need to adapt the call.
             //
             if( onRemove == null ) throw new ArgumentNullException( nameof( onRemove ) );
             return @this.Add( typeof( T ), serviceInstance, o => onRemove( (T)o ) );

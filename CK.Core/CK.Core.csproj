@@ -2,8 +2,7 @@
   <Import Project="..\Common\Shared.props" />
   <PropertyGroup>
     <TargetFrameworks>netstandard2.0;net461</TargetFrameworks>
-    <Description>CK.Core contains types and helpers that are used across different projects. Main types are: CKTrait, DateTimeStamp, SimpleServiceContainer, CriticalErrorCollector, FIFOBuffer, TemporaryFile.
-    </Description>
+    <Description>CK.Core contains types and helpers that are used across different projects. Main types are: CKTag, DateTimeStamp, SimpleServiceContainer, CriticalErrorCollector, FIFOBuffer, TemporaryFile, BestKeeper, SHA1/SHA512Stream and SHA1/SHA512Value.</Description>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="CK.Text" Version="8.0.4--0013-develop" />
