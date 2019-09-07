@@ -1,184 +1,262 @@
-#region LGPL License
-/*----------------------------------------------------------------------------
-* This file (CK.Core\Trait\CKTraitContext.cs) is part of CiviKey. 
-*  
-* CiviKey is free software: you can redistribute it and/or modify 
-* it under the terms of the GNU Lesser General Public License as published 
-* by the Free Software Foundation, either version 3 of the License, or 
-* (at your option) any later version. 
-*  
-* CiviKey is distributed in the hope that it will be useful, 
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
-* GNU Lesser General Public License for more details. 
-* You should have received a copy of the GNU Lesser General Public License 
-* along with CiviKey.  If not, see <http://www.gnu.org/licenses/>. 
-*  
-* Copyright © 2007-2015, 
-*     Invenietis <http://www.invenietis.com>,
-*     In’Tech INFO <http://www.intechinfo.fr>,
-* All rights reserved. 
-*-----------------------------------------------------------------------------*/
-#endregion
-
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
-using CK.Core;
-using System.Collections.Concurrent;
 using System.Threading;
 
 namespace CK.Core
 {
     /// <summary>
-    /// OBSLETE.
-    /// Use CKTag (instead of CKTrait) and CKTagContext (instead of CKTraitContext).
-    /// These are functionnaly equivalent but CKTagContext enable multiple (re)definition of contexts
-    /// and serialization of tags without knowing the tag's context. Trait were not able to be serialized
-    /// without explicit knowledge of the (typically static) context instance.
+    /// Thread-safe registration root for <see cref="CKTrait"/> objects.
+    /// Each context has a <see cref="Name"/> that uniquely, and definitely, identifies it when <see cref="IsShared"/> is true.
+    /// Shared contexts with the same name can be <see cref="Create"/>ed multiple times: as long as they define the same <see cref="Separator"/>,
+    /// they all are actually the exact same context. (If Separator differ during a redefinition, an <see cref="InvalidOperationException"/>
+    /// is thrown.)
     /// </summary>
-    [Obsolete( "Use CKTag (instead of CKTrait) and CKTagContext (instead of CKTraitContext). These are functionnaly equivalent but CKTagContext enable multiple (re)definition of contexts and serialization of tags without knowing the tag's context. Trait were not able to be serialized without explicit knowledge of the (typically static) context instance.", true )]
     public sealed class CKTraitContext : IComparable<CKTraitContext>
     {
-        static int _index;
+        static int _nextIndependentIndex = 0;
 
-        readonly CKTrait _empty;
-        readonly IEnumerable<CKTrait> _enumerableWithEmpty;
         readonly Regex _canonize2;
-
-        readonly ConcurrentDictionary<string, CKTrait> _traits;
+        readonly ConcurrentDictionary<string, CKTrait> _tags;
         readonly object _creationLock;
-        readonly string _uniqueName;
-        readonly int _uniqueIndex;
         readonly string _separatorString;
-        readonly char _separator;
+        readonly int _independentIndex;
 
-        /// <summary>
-        /// Initializes a new context for traits with the given separator.
-        /// </summary>
-        /// <param name="name">Name for the context. Must not be null nor whitespace.</param>
-        /// <param name="separator">Separator if it must differ from '|'.</param>
-        public CKTraitContext( string name, char separator = '|' )
+        CKTraitContext( string name, char separator, bool shared, ICKBinaryReader r )
         {
-            if( String.IsNullOrWhiteSpace( name ) ) throw new ArgumentException( Impl.CoreResources.ArgumentMustNotBeNullOrWhiteSpace, "uniqueName" );
-            _uniqueName = name.Normalize();
-            _uniqueIndex = Interlocked.Increment( ref _index );
-            _separator = separator;
-            _separatorString = new String( separator, 1 );
-            string pattern = "(\\s*" + Regex.Escape( _separatorString ) + "\\s*)+";
-            _canonize2 = new Regex( pattern, RegexOptions.Compiled | RegexOptions.ExplicitCapture | RegexOptions.CultureInvariant );
-            _empty = new CKTrait( this );
-            _traits = new ConcurrentDictionary<string, CKTrait>( StringComparer.Ordinal );
-            _traits[ String.Empty ] = _empty;
-            _enumerableWithEmpty = new CKTrait[] { _empty };
+            if( String.IsNullOrWhiteSpace( name ) ) throw new ArgumentException( Core.Impl.CoreResources.ArgumentMustNotBeNullOrWhiteSpace, "uniqueName" );
+            Name = name.Normalize();
+            Separator = separator;
+            if( !shared ) Monitor.Enter( _basicLock );
+            var found = _regexes.FirstOrDefault( reg => reg.Key[0] == separator );
+            if( found.Key == null )
+            {
+                _separatorString = new String( separator, 1 );
+                string pattern = "(\\s*" + Regex.Escape( _separatorString ) + "\\s*)+";
+                _canonize2 = new Regex( pattern, RegexOptions.Compiled | RegexOptions.ExplicitCapture | RegexOptions.CultureInvariant );
+                _regexes.Add( new KeyValuePair<string, Regex>( _separatorString, _canonize2 ) );
+            }
+            else
+            {
+                _separatorString = found.Key;
+                _canonize2 = found.Value;
+            }
+            if( !shared ) Monitor.Exit( _basicLock );
+            EmptyTrait = new CKTrait( this );
+            if( r != null )
+            {
+                IEnumerable<KeyValuePair<string,CKTrait>> Read()
+                {
+                    yield return new KeyValuePair<string, CKTrait>( String.Empty, EmptyTrait );
+                    int count = r.ReadInt32();
+                    for( int i = 0; i < count; ++i )
+                    {
+                        var s = r.ReadString();
+                        yield return new KeyValuePair<string, CKTrait>( s, new CKTrait( this, s ) );
+                    }
+                }
+                _tags = new ConcurrentDictionary<string, CKTrait>( Read(), StringComparer.Ordinal );
+            }
+            else
+            {
+                _tags = new ConcurrentDictionary<string, CKTrait>( StringComparer.Ordinal );
+                _tags[String.Empty] = EmptyTrait;
+            }
+            EnumWithEmpty = new CKTrait[] { EmptyTrait };
             _creationLock = new Object();
+            _independentIndex = shared ? 0 : Interlocked.Increment( ref _nextIndependentIndex );
         }
 
         /// <summary>
-        /// Gets the separator to use to separate combined traits. It is | by default.
+        /// This is basic. And we don't really need more: CKTraitContext are typically created once, statically.
+        /// The only "really dynamic" sollicitation of this list will be during deserialization.
         /// </summary>
-        public char Separator { get { return _separator; } }
+        static readonly List<CKTraitContext> _allContexts;
+        static readonly List<KeyValuePair<string,Regex>> _regexes;
+        static readonly object _basicLock;
+
+        static CKTraitContext()
+        {
+            _allContexts = new List<CKTraitContext>();
+            _regexes = new List<KeyValuePair<string, Regex>>();
+            _basicLock = new object();
+        }
+
+        /// <summary>
+        /// Initializes a new context for tags with the given separator.
+        /// When <paramref name="shared"/> is true, if a context with the same name but a different separator
+        /// has already been created, this raises a <see cref="InvalidOperationException"/>.
+        /// </summary>
+        /// <param name="name">Name for the context that identifies it. Must not be null nor whitespace.</param>
+        /// <param name="separator">Separator (if it must differ from '|').</param>
+        /// <param name="shared">False to create an independent context: other contexts with the same name coexist with this one.</param>
+        public static CKTraitContext Create( string name, char separator = '|', bool shared = true )
+        {
+            return shared ? Bind( name, separator, null ) : new CKTraitContext( name, separator, false, null );
+        }
+
+        static CKTraitContext Bind( string name, char separator, ICKBinaryReader tagReader )
+        {
+            CKTraitContext c, exists;
+            lock( _basicLock )
+            {
+                c = exists = _allContexts.FirstOrDefault( x => x.Name == name );
+                if( exists == null ) _allContexts.Add( c = new CKTraitContext( name, separator, true, tagReader ) );
+            }
+            if( exists != null )
+            {
+                if( exists.Separator != separator )
+                {
+                    throw new InvalidOperationException( $"CKTraitContext named '{name}' is already defined with the separator '{exists.Separator}', it cannot be redefined with the separator '{separator}'." );
+                }
+                if( tagReader != null )
+                {
+                    int count = tagReader.ReadInt32();
+                    while( --count >= 0 )
+                    {
+                        c.FindOrCreateAtomicTrait( tagReader.ReadString(), true );
+                    }
+                }
+            }
+            return c;
+        }
+
+        /// <summary>
+        /// Reads a <see cref="CKTraitContext"/> that has been previously written by <see cref="Write"/>.
+        /// </summary>
+        /// <param name="r">The binary reader to use.</param>
+        public static CKTraitContext Read( ICKBinaryReader r )
+        {
+            byte vS = r.ReadByte();
+            bool shared = (vS & 128) != 0;
+            bool withTags = (vS & 64) != 0;
+
+            var name = shared ? r.ReadSharedString() : r.ReadString();
+            var sep = r.ReadChar();
+            var tagReader = withTags ? r : null;
+            return shared ? Bind( name, sep, tagReader ) : new CKTraitContext( name, sep, false, tagReader );
+        }
+
+        /// <summary>
+        /// Writes the <see cref="Name"/> and <see cref="Separator"/> so that <see cref="Read(ICKBinaryReader)"/> can
+        /// rebuild or rebind to the context.
+        /// </summary>
+        /// <param name="w">The binary writer to use.</param>
+        /// <param name="writeAllTags">True to write all existing tags.</param>
+        public void Write( ICKBinaryWriter w, bool writeAllTags = false )
+        {
+            byte version = 0;
+            if( IsShared ) version |= 128;
+            if( writeAllTags ) version |= 64;
+            w.Write( version );
+            if( IsShared ) w.WriteSharedString( Name );
+            else w.Write( Name );
+            w.Write( Separator );
+            if( writeAllTags )
+            {
+                // ConcurrentDictionary.Values is a napshot in a ReadOnlyCollection<CKTrait> that wraps a List<CKTrait>.
+                // Using Values means concretizing the list of all the traits where we only need atomic ones and internally locking
+                // the dictionary.
+                // Using the GetEnumerator has no lock.
+                var atomics = new List<string>();
+                foreach( var t in _tags )
+                {
+                    if( t.Value.IsAtomic && !t.Value.IsEmpty ) atomics.Add( t.Key );
+                }
+                w.Write( atomics.Count );
+                foreach( var s in atomics )
+                {
+                    w.Write( s );
+                }
+            }
+        }
+
+        /// <summary>
+        /// Gets the separator to use to separate combined tags. It is | by default.
+        /// </summary>
+        public char Separator { get; }
 
         /// <summary>
         /// Gets the name of this context.
         /// </summary>
-        public string Name { get { return _uniqueName; } }
+        public string Name { get; }
 
         /// <summary>
-        /// Compares this context to another one.
-        /// The key is <see cref="Separator"/>, then <see cref="Name"/> and if they are equal, a unique number is 
-        /// used to order the two contexts.
+        /// Gets whether this context is shared.
         /// </summary>
-        /// <param name="other">Context to compare.</param>
-        /// <returns>0 for the exact same object (ReferenceEquals), greater/lower than 0 otherwise.</returns>
-        public int CompareTo( CKTraitContext other )
-        {
-            if( other == null ) throw new ArgumentNullException( "other" );
-            if( ReferenceEquals( this, other ) ) return 0;
-            int cmp = _separator - other._separator;
-            if( cmp == 0 )
-            {
-                cmp = StringComparer.Ordinal.Compare( _uniqueName, other._uniqueName );
-                if( cmp == 0 ) cmp = _uniqueIndex - other._uniqueIndex;
-            }
-            return cmp;
-        }
+        public bool IsShared => _independentIndex == 0;
 
         /// <summary>
-        /// Gets the empty trait for this context. It corresponds to the empty string.
+        /// Gets the empty tag for this context. It corresponds to the empty string.
         /// </summary>
-        public CKTrait EmptyTrait { get { return _empty; } }
+        public CKTrait EmptyTrait { get; }
 
         /// <summary>
         /// Obtains a <see cref="CKTrait"/> (either combined or atomic).
         /// </summary>
-        /// <param name="traits">Atomic trait or traits separated by <see cref="Separator"/>.</param>
-        /// <returns>A trait.</returns>
-        public CKTrait FindOrCreate( string traits )
-        {
-            return FindOrCreate( traits, true );
-        }
+        /// <param name="tags">Atomic tag or tags separated by <see cref="Separator"/>.</param>
+        /// <returns>A tag.</returns>
+        public CKTrait FindOrCreate( string tags ) => FindOrCreate( tags, true );
 
         /// <summary>
         /// Finds a <see cref="CKTrait"/> (either combined or atomic) only if all 
-        /// of its atomic traits already exists: if any of the atomic traits are not already 
+        /// of its atomic tags already exists: if any of the atomic tags are not already 
         /// registered, null is returned.
         /// </summary>
-        /// <param name="traits">Atomic trait or traits separated by <see cref="Separator"/>.</param>
-        /// <returns>A trait or null if the trait does not exists.</returns>
-        public CKTrait FindIfAllExist( string traits )
-        {
-            return FindOrCreate( traits, false );
-        }
+        /// <param name="tags">Atomic tag or tags separated by <see cref="Separator"/>.</param>
+        /// <returns>A tag or null if the tag does not exists.</returns>
+        public CKTrait FindIfAllExist( string tags ) => FindOrCreate( tags, false );
 
         /// <summary>
-        /// Finds a <see cref="CKTrait"/> with only already existing atomic traits (null when not found).
+        /// Finds a <see cref="CKTrait"/> with only already existing atomic tags (null when not found).
         /// </summary>
-        /// <param name="traits">Atomic trait or traits separated by <see cref="Separator"/>.</param>
-        /// <param name="collector">Optional collector for unknown trait. As soon as the collector returns false, the process stops.</param>
-        /// <returns>A trait that contains only already existing trait or null if none already exists.</returns>
-        public CKTrait FindOnlyExisting( string traits, Func<string,bool> collector = null )
+        /// <param name="tags">Atomic tag or tags separated by <see cref="Separator"/>.</param>
+        /// <param name="collector">Optional collector for unknown tag. As soon as the collector returns false, the process stops.</param>
+        /// <returns>A tag that contains only already existing tag or null if none already exists.</returns>
+        public CKTrait FindOnlyExisting( string tags, Func<string, bool> collector = null )
         {
-            if( traits == null || traits.Length == 0 ) return null;
-            traits = traits.Normalize(NormalizationForm.FormC);
+            if( tags == null || tags.Length == 0 ) return null;
+            tags = tags.Normalize( NormalizationForm.FormC );
             CKTrait m;
-            if( !_traits.TryGetValue( traits, out m ) )
+            if( !_tags.TryGetValue( tags, out m ) )
             {
-                int traitCount;
-                string[] splitTraits = SplitMultiTrait( traits, out traitCount );
-                if( traitCount <= 0 ) return null;
-                if( traitCount == 1 )
+                int tagCount;
+                string[] splitTags = SplitMultiTag( tags, out tagCount );
+                if( tagCount <= 0 ) return null;
+                if( tagCount == 1 )
                 {
-                    m = FindOrCreateAtomicTrait( splitTraits[0], false );
+                    m = FindOrCreateAtomicTrait( splitTags[0], false );
                 }
                 else
                 {
-                    traits = String.Join( _separatorString, splitTraits, 0, traitCount );
-                    if( !_traits.TryGetValue( traits, out m ) )
+                    tags = String.Join( _separatorString, splitTags, 0, tagCount );
+                    if( !_tags.TryGetValue( tags, out m ) )
                     {
                         List<CKTrait> atomics = new List<CKTrait>();
-                        for( int i = 0; i < traitCount; ++i )
+                        for( int i = 0; i < tagCount; ++i )
                         {
-                            CKTrait trait = FindOrCreateAtomicTrait( splitTraits[i], false );
-                            if( trait == null )
+                            CKTrait tag = FindOrCreateAtomicTrait( splitTags[i], false );
+                            if( tag == null )
                             {
-                                if( collector != null && !collector( splitTraits[i] ) ) break;
+                                if( collector != null && !collector( splitTags[i] ) ) break;
                             }
-                            else atomics.Add( trait );
+                            else atomics.Add( tag );
                         }
                         if( atomics.Count != 0 )
                         {
-                            traits = String.Join( _separatorString, atomics );
-                            if( !_traits.TryGetValue( traits, out m ) )
+                            tags = String.Join( _separatorString, atomics );
+                            if( !_tags.TryGetValue( tags, out m ) )
                             {
                                 lock( _creationLock )
                                 {
-                                    if( !_traits.TryGetValue( traits, out m ) )
+                                    if( !_tags.TryGetValue( tags, out m ) )
                                     {
-                                        m = new CKTrait( this, traits, atomics.ToArray() );
-                                        _traits[traits] = m;
+                                        m = new CKTrait( this, tags, atomics.ToArray() );
+                                        _tags[tags] = m;
                                     }
                                 }
                             }
@@ -189,187 +267,215 @@ namespace CK.Core
             return m;
         }
 
-
-        CKTrait FindOrCreate( string traits, bool create )
+        /// <summary>
+        /// Compares this context to another one. The keys are <see cref="Separator"/>, then <see cref="Name"/>.
+        /// </summary>
+        /// <param name="other">Context to compare.</param>
+        /// <returns>0 for the exact same context, greater/lower than 0 otherwise.</returns>
+        public int CompareTo( CKTraitContext other )
         {
-            if( traits == null || traits.Length == 0 ) return _empty;
-            traits = traits.Normalize();
-            if( traits.IndexOfAny( new[] { '\n', '\r' } ) >= 0 ) throw new ArgumentException( "TraitsMustBelongToTheSameContext" );
-            CKTrait m;
-            if( !_traits.TryGetValue( traits, out m ) )
+            if( other == null ) return 1;
+            if( ReferenceEquals( this, other ) ) return 0;
+            int cmp = Separator - other.Separator;
+            if( cmp == 0 )
             {
-                int traitCount;
-                string[] splitTraits = SplitMultiTrait( traits, out traitCount );
-                if( traitCount <= 0 ) return _empty;
-                if( traitCount == 1 )
+                cmp = StringComparer.Ordinal.Compare( Name, other.Name );
+                if( cmp == 0 )
                 {
-                    m = FindOrCreateAtomicTrait( splitTraits[0], create );
+                    Debug.Assert( _independentIndex != 0 );
+                    cmp = _independentIndex - other._independentIndex;
+                }
+            }
+            return cmp;
+        }
+
+        /// <summary>
+        /// Overridden to return the <see cref="Name"/> and <see cref="Separator"/>.
+        /// </summary>
+        /// <returns>A readable string.</returns>
+        public override string ToString() => $"CKTraitContext {Name} '{Separator}'";
+
+        /// <summary>
+        /// Gets the fallback for empty and atomic tags.
+        /// </summary>
+        internal IEnumerable<CKTrait> EnumWithEmpty { get; }
+
+        CKTrait FindOrCreate( string tags, bool create )
+        {
+            if( tags == null || tags.Length == 0 ) return EmptyTrait;
+            tags = tags.Normalize();
+            if( tags.IndexOfAny( new[] { '\n', '\r' } ) >= 0 ) throw new ArgumentException( Core.Impl.CoreResources.TagsMustNotBeMultiLineString );
+            CKTrait m;
+            if( !_tags.TryGetValue( tags, out m ) )
+            {
+                int tagCount;
+                string[] splitTags = SplitMultiTag( tags, out tagCount );
+                if( tagCount <= 0 ) return EmptyTrait;
+                if( tagCount == 1 )
+                {
+                    m = FindOrCreateAtomicTrait( splitTags[0], create );
                 }
                 else
                 {
-                    traits = String.Join( _separatorString, splitTraits, 0, traitCount );
-                    if( !_traits.TryGetValue( traits, out m ) )
+                    tags = String.Join( _separatorString, splitTags, 0, tagCount );
+                    if( !_tags.TryGetValue( tags, out m ) )
                     {
-                        CKTrait[] atomics = new CKTrait[traitCount];
-                        for( int i = 0; i < traitCount; ++i )
+                        CKTrait[] atomics = new CKTrait[tagCount];
+                        for( int i = 0; i < tagCount; ++i )
                         {
-                            CKTrait trait = FindOrCreateAtomicTrait( splitTraits[i], create );
-                            if( (atomics[i] = trait) == null ) return null;
+                            CKTrait tag = FindOrCreateAtomicTrait( splitTags[i], create );
+                            if( (atomics[i] = tag) == null ) return null;
                         }
                         lock( _creationLock )
                         {
-                            if( !_traits.TryGetValue( traits, out m ) )
+                            if( !_tags.TryGetValue( tags, out m ) )
                             {
-                                m = new CKTrait( this, traits, atomics );
-                                _traits[traits] = m;
+                                m = new CKTrait( this, tags, atomics );
+                                _tags[tags] = m;
                             }
                         }
                     }
-                    Debug.Assert( !m.IsAtomic && m.AtomicTraits.Count == traitCount, "Combined trait." );
+                    Debug.Assert( !m.IsAtomic && m.AtomicTraits.Count == tagCount, "Combined tag." );
                 }
             }
             return m;
         }
 
-        CKTrait FindOrCreateAtomicTrait( string trait, bool create )
-        {
-            CKTrait m;
-            if( !_traits.TryGetValue( trait, out m ) && create )
-            {
-                lock( _creationLock )
-                {
-                    if( !_traits.TryGetValue( trait, out m ) )
-                    {
-                        m = new CKTrait( this, trait );
-                        _traits[trait] = m;
-                    }
-                }
-                Debug.Assert( m.IsAtomic, "Special construction for atomic traits." );
-            }
-            return m;
-        }
 
         /// <summary>
-        /// Gets the fallback for empty and atomic traits.
-        /// </summary>
-        internal IEnumerable<CKTrait> EnumWithEmpty { get { return _enumerableWithEmpty; } }
-
-        /// <summary>
-        /// Obtains a trait from a list of atomic (already sorted) traits.
+        /// Obtains a tag from a list of atomic (already sorted) tags.
         /// Used by the Add, Toggle, Remove, Intersect methods.
         /// </summary>
-        internal CKTrait FindOrCreate( List<CKTrait> atomicTraits )
+        internal CKTrait FindOrCreateFromAtomicSortedList( List<CKTrait> atomicTags )
         {
-            if( atomicTraits.Count == 0 ) return _empty;
-            Debug.Assert( atomicTraits[0].Context == this, "This is one of our traits." );
-            Debug.Assert( atomicTraits[0].AtomicTraits.Count == 1, "This is an atomic trait and not the empty one." );
-            if( atomicTraits.Count == 1 ) return atomicTraits[0];
-            StringBuilder b = new StringBuilder( atomicTraits[0].ToString() );
-            for( int i = 1; i < atomicTraits.Count; ++i )
+            if( atomicTags.Count == 0 ) return EmptyTrait;
+            Debug.Assert( atomicTags[0].Context == this, "This is one of our tags." );
+            Debug.Assert( atomicTags[0].AtomicTraits.Count == 1, "This is an atomic tag and not the empty one." );
+            if( atomicTags.Count == 1 ) return atomicTags[0];
+            StringBuilder b = new StringBuilder( atomicTags[0].ToString() );
+            for( int i = 1; i < atomicTags.Count; ++i )
             {
-                Debug.Assert( atomicTraits[i].Context == this, "This is one of our traits." );
-                Debug.Assert( atomicTraits[i].AtomicTraits.Count == 1, "This is an atomic trait and not the empty one." );
-                Debug.Assert( StringComparer.Ordinal.Compare( atomicTraits[i - 1].ToString(), atomicTraits[i].ToString() ) < 0,
-                    "Traits are already sorted and NO DUPLICATES exist." );
-                b.Append( _separator ).Append( atomicTraits[i].ToString() );
+                Debug.Assert( atomicTags[i].Context == this, "This is one of our tags." );
+                Debug.Assert( atomicTags[i].AtomicTraits.Count == 1, "This is an atomic tag and not the empty one." );
+                Debug.Assert( StringComparer.Ordinal.Compare( atomicTags[i - 1].ToString(), atomicTags[i].ToString() ) < 0,
+                    "Tags are already sorted and NO DUPLICATES exist." );
+                b.Append( Separator ).Append( atomicTags[i].ToString() );
             }
-            string traits = b.ToString();
+            string tags = b.ToString();
             CKTrait m;
-            if( !_traits.TryGetValue( traits, out m ) )
+            if( !_tags.TryGetValue( tags, out m ) )
             {
                 lock( _creationLock )
                 {
-                    if( !_traits.TryGetValue( traits, out m ) )
+                    if( !_tags.TryGetValue( tags, out m ) )
                     {
-                        m = new CKTrait( this, traits, atomicTraits.ToArray() );
-                        _traits[traits] = m;
+                        m = new CKTrait( this, tags, atomicTags.ToArray() );
+                        _tags[tags] = m;
                     }
                 }
+            }
+            return m;
+        }
+
+        internal CKTrait FindOrCreateAtomicTrait( string tag, bool create )
+        {
+            CKTrait m;
+            if( !_tags.TryGetValue( tag, out m ) && create )
+            {
+                lock( _creationLock )
+                {
+                    if( !_tags.TryGetValue( tag, out m ) )
+                    {
+                        m = new CKTrait( this, tag );
+                        _tags[tag] = m;
+                    }
+                }
+                Debug.Assert( m.IsAtomic, "Special construction for atomic tags." );
             }
             return m;
         }
 
         /// <summary>
-        /// Obtains a trait from a list of atomic (already sorted) traits.
+        /// Obtains a tag from a list of atomic (already sorted) tags.
         /// Used by fall back generation.
         /// </summary>
-        internal CKTrait FindOrCreate( CKTrait[] atomicTraits, int count )
+        internal CKTrait FindOrCreate( CKTrait[] atomicTags, int count )
         {
-            Debug.Assert( count > 1, "Atomic traits are handled directly." );
+            Debug.Assert( count > 1, "Atomic tags are handled directly." );
 
-            Debug.Assert( !Array.Exists( atomicTraits, mA => mA.Context != this || mA.AtomicTraits.Count != 1 ), "Traits are from this Context and they are atomic and not empty." );
+            Debug.Assert( !Array.Exists( atomicTags, mA => mA.Context != this || mA.AtomicTraits.Count != 1 ), "Tags are from this Context and they are atomic and not empty." );
 
-            StringBuilder b = new StringBuilder( atomicTraits[0].ToString() );
+            StringBuilder b = new StringBuilder( atomicTags[0].ToString() );
             for( int i = 1; i < count; ++i )
             {
-                Debug.Assert( StringComparer.Ordinal.Compare( atomicTraits[i - 1].ToString(), atomicTraits[i].ToString() ) < 0, "Traits are already sorted and NO DUPLICATE exists." );
-                b.Append( _separator ).Append( atomicTraits[i].ToString() );
+                Debug.Assert( StringComparer.Ordinal.Compare( atomicTags[i - 1].ToString(), atomicTags[i].ToString() ) < 0, "Tags are already sorted and NO DUPLICATE exists." );
+                b.Append( Separator ).Append( atomicTags[i].ToString() );
             }
-            string traits = b.ToString();
+            string tags = b.ToString();
             CKTrait m;
-            if( !_traits.TryGetValue( traits, out m ) )
+            if( !_tags.TryGetValue( tags, out m ) )
             {
                 // We must clone the array since fall backs generation reuses it.
-                if( atomicTraits.Length != count )
+                if( atomicTags.Length != count )
                 {
                     CKTrait[] subArray = new CKTrait[count];
-                    Array.Copy( atomicTraits, subArray, count );
-                    atomicTraits = subArray;
+                    Array.Copy( atomicTags, subArray, count );
+                    atomicTags = subArray;
                 }
-                else atomicTraits = (CKTrait[])atomicTraits.Clone();
+                else atomicTags = (CKTrait[])atomicTags.Clone();
                 lock( _creationLock )
                 {
-                    if( !_traits.TryGetValue( traits, out m ) )
+                    if( !_tags.TryGetValue( tags, out m ) )
                     {
-                        m = new CKTrait( this, traits, atomicTraits );
-                        _traits[traits] = m;
+                        m = new CKTrait( this, tags, atomicTags );
+                        _tags[tags] = m;
                     }
                 }
             }
             return m;
         }
 
-        string[] SplitMultiTrait( string s, out int count )
+        string[] SplitMultiTag( string s, out int count )
         {
-            string[] traits = _canonize2.Split( s.Trim() );
-            count = traits.Length;
+            string[] tags = _canonize2.Split( s.Trim() );
+            count = tags.Length;
             Debug.Assert( count != 0, "Split always create a cell." );
-            int i = traits[0].Length == 0 ? 1 : 0;
+            int i = tags[0].Length == 0 ? 1 : 0;
             // Special handling for first and last slots if they are empty.
-            if( traits[count - 1].Length == 0 ) count = count - 1 - i;
+            if( tags[count - 1].Length == 0 ) count = count - 1 - i;
             else count = count - i;
-            if( count != traits.Length )
+            if( count != tags.Length )
             {
                 if( count <= 0 ) return Util.Array.Empty<string>();
                 string[] m = new string[count];
-                Array.Copy( traits, i, m, 0, count );
-                traits = m;
+                Array.Copy( tags, i, m, 0, count );
+                tags = m;
             }
-            // Sort if necessary (more than one atomic trait).
+            // Sort if necessary (more than one atomic tag).
             if( count > 1 )
             {
-                Array.Sort( traits, StringComparer.Ordinal );
+                Array.Sort( tags, StringComparer.Ordinal );
                 // And removes duplicates. Since this occur very rarely
                 // and that count is small we use a O(n) process that shifts
-                // the traits array.
+                // the tags array.
                 i = count - 1;
-                string last = traits[i];
+                string last = tags[i];
                 while( --i >= 0 )
                 {
                     Debug.Assert( last.Length > 0, "There is no empty strings." );
-                    string cur = traits[i];
+                    string cur = tags[i];
                     if( StringComparer.Ordinal.Equals( cur, last ) )
                     {
                         int delta = (--count) - i - 1;
                         if( delta > 0 )
                         {
-                            Array.Copy( traits, i + 2, traits, i + 1, delta );
+                            Array.Copy( tags, i + 2, tags, i + 1, delta );
                         }
                     }
                     last = cur;
                 }
             }
-            return traits;
+            return tags;
         }
 
     }
