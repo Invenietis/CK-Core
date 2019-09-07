@@ -9,17 +9,17 @@ namespace CK.Core.Tests
 {
 
     /// <summary>
-    /// This class test operations on CKTag (FindOrCreate, Intersect, etc.).
+    /// This class test operations on CKTrait (FindOrCreate, Intersect, etc.).
     /// </summary>
-    public class CKTagTests
+    public class CKTraitTests
     {
-        CKTagContext ContextWithPlusSeparator() => new CKTagContext( "Test", '+' );
+        CKTraitContext ContextWithPlusSeparator() => CKTraitContext.Create( "Test", '+' );
 
         [Test]
         public void Comparing_tags()
         {
-            CKTagContext c1 = new CKTagContext( "C1" );
-            CKTagContext c2 = new CKTagContext( "C2" );
+            CKTraitContext c1 = CKTraitContext.Create( "C1" );
+            CKTraitContext c2 = CKTraitContext.Create( "C2" );
 
             c1.CompareTo( c1 ).Should().Be( 0 );
             c1.CompareTo( c2 ).Should().BeLessThan( 0 );
@@ -39,14 +39,14 @@ namespace CK.Core.Tests
         [Test]
         public void Tags_must_belong_to_the_same_context()
         {
-            Action a = () => new CKTagContext( (string)null );
+            Action a = () => CKTraitContext.Create( null );
             a.Should().Throw<ArgumentException>();
 
-            a = () => new CKTagContext( "  " );
+            a = () => CKTraitContext.Create( "  " );
             a.Should().Throw<ArgumentException>();
 
-            CKTagContext c1 = new CKTagContext( "C1" );
-            CKTagContext c2 = new CKTagContext( "C2" );
+            CKTraitContext c1 = CKTraitContext.Create( "C1" );
+            CKTraitContext c2 = CKTraitContext.Create( "C2" );
 
             var t1 = c1.FindOrCreate( "T1" );
             var t2 = c2.FindOrCreate( "T2" );
@@ -75,10 +75,10 @@ namespace CK.Core.Tests
         public void EmptyTag_is_everywhere()
         {
             var c = ContextWithPlusSeparator();
-            CKTag m = c.EmptyTag;
+            CKTrait m = c.EmptyTrait;
             m.ToString().Should().BeSameAs( string.Empty, "Empty tag is the empty string." );
             m.IsAtomic.Should().BeTrue( "Empty tag is considered as atomic." );
-            m.AtomicTags.Should().BeEmpty( "Empty tag has no atomic tags inside." );
+            m.AtomicTraits.Should().BeEmpty( "Empty tag has no atomic tags inside." );
 
             c.FindOrCreate( null ).Should().BeSameAs( m, "Null gives the empty tag." );
             c.FindOrCreate( "" ).Should().BeSameAs( m, "Obtaining empty string gives the empty tag." );
@@ -102,10 +102,10 @@ namespace CK.Core.Tests
         public void test_AtomicTag_parsing()
         {
             var c = ContextWithPlusSeparator();
-            CKTag m = c.FindOrCreate( "Alpha" );
+            CKTrait m = c.FindOrCreate( "Alpha" );
             m.IsAtomic.Should().BeTrue();
-            m.AtomicTags.Count.Should().Be( 1, "Not a combined one." );
-            m.AtomicTags[0].Should().BeSameAs( m, "Atomic tags are self-contained." );
+            m.AtomicTraits.Count.Should().Be( 1, "Not a combined one." );
+            m.AtomicTraits[0].Should().BeSameAs( m, "Atomic tags are self-contained." );
 
             c.FindOrCreate( " \t Alpha\t\t  " ).Should().BeSameAs( m, "Strings are trimmed." );
             c.FindOrCreate( "+ \t Alpha+" ).Should().BeSameAs( m, "Leading and trailing '+' are ignored." );
@@ -125,11 +125,11 @@ namespace CK.Core.Tests
         {
             var c = ContextWithPlusSeparator();
 
-            CKTag m = c.FindOrCreate( "Beta+Alpha" );
+            CKTrait m = c.FindOrCreate( "Beta+Alpha" );
             m.IsAtomic.Should().BeFalse();
-            m.AtomicTags.Should().HaveCount( 2, "Combined tag." );
-            m.AtomicTags[0].Should().BeSameAs( c.FindOrCreate( "Alpha" ), "Atomic Alpha is the first one." );
-            m.AtomicTags[1].Should().BeSameAs( c.FindOrCreate( "Beta" ), "Atomic Beta is the second one." );
+            m.AtomicTraits.Should().HaveCount( 2, "Combined tag." );
+            m.AtomicTraits[0].Should().BeSameAs( c.FindOrCreate( "Alpha" ), "Atomic Alpha is the first one." );
+            m.AtomicTraits[1].Should().BeSameAs( c.FindOrCreate( "Beta" ), "Atomic Beta is the second one." );
 
             c.FindOrCreate( "Alpha+Beta" ).Should().BeSameAs( m, "Canonical order is ensured." );
             c.FindOrCreate( "+ +\t++ Alpha+++Beta++" ).Should().BeSameAs( m, "Extra characters and empty tags are ignored." );
@@ -138,7 +138,7 @@ namespace CK.Core.Tests
             c.FindOrCreate( "Alpha+ +Beta\t ++Beta+ + Alpha +    Beta   ++ " )
                 .Should().BeSameAs( m, "Multiple identical tags are removed." );
 
-            CKTag m2 = c.FindOrCreate( "Beta+Alpha+Zeta+Tau+Pi+Omega+Epsilon" );
+            CKTrait m2 = c.FindOrCreate( "Beta+Alpha+Zeta+Tau+Pi+Omega+Epsilon" );
             c.FindOrCreate( "++Beta+Zeta+Omega+Epsilon+Alpha+Zeta+Epsilon+Zeta+Tau+Epsilon+Pi+Tau+Beta+Zeta+Omega+Beta+Pi+Alpha" )
                 .Should().BeSameAs( m2, "Unicity of Atomic tag is ensured." );
 
@@ -178,21 +178,21 @@ namespace CK.Core.Tests
         {
             var c = ContextWithPlusSeparator();
 
-            CKTag m1 = c.FindOrCreate( "Beta+Alpha+Fridge+Combo" );
-            CKTag m2 = c.FindOrCreate( "Xtra+Combo+Another+Fridge+Alt" );
+            CKTrait m1 = c.FindOrCreate( "Beta+Alpha+Fridge+Combo" );
+            CKTrait m2 = c.FindOrCreate( "Xtra+Combo+Another+Fridge+Alt" );
 
             m1.Intersect( m2 ).ToString().Should().Be( "Combo+Fridge", "Works as expected :-)" );
             m2.Intersect( m1 ).Should().BeSameAs( m1.Intersect( m2 ), "Same object in both calls." );
 
-            m2.Intersect( c.EmptyTag ).Should().BeSameAs( c.EmptyTag, "Intersecting empty gives empty." );
+            m2.Intersect( c.EmptyTrait ).Should().BeSameAs( c.EmptyTrait, "Intersecting empty gives empty." );
         }
 
         [Test]
         public void test_Union_of_tags()
         {
             var c = ContextWithPlusSeparator();
-            CKTag m1 = c.FindOrCreate( "Beta+Alpha+Fridge+Combo" );
-            CKTag m2 = c.FindOrCreate( "Xtra+Combo+Another+Fridge+Alt" );
+            CKTrait m1 = c.FindOrCreate( "Beta+Alpha+Fridge+Combo" );
+            CKTrait m2 = c.FindOrCreate( "Xtra+Combo+Another+Fridge+Alt" );
 
             m1.Union( m2 ).ToString().Should().Be( "Alpha+Alt+Another+Beta+Combo+Fridge+Xtra", "Works as expected :-)" );
             m2.Union( m1 ).Should().BeSameAs( m1.Union( m2 ), "Same in both calls." );
@@ -202,14 +202,14 @@ namespace CK.Core.Tests
         public void test_Except_of_tags()
         {
             var c = ContextWithPlusSeparator();
-            CKTag m1 = c.FindOrCreate( "Beta+Alpha+Fridge+Combo" );
-            CKTag m2 = c.FindOrCreate( "Xtra+Combo+Another+Fridge+Alt" );
+            CKTrait m1 = c.FindOrCreate( "Beta+Alpha+Fridge+Combo" );
+            CKTrait m2 = c.FindOrCreate( "Xtra+Combo+Another+Fridge+Alt" );
 
             m1.Except( m2 ).ToString().Should().Be( "Alpha+Beta", "Works as expected :-)" );
             m2.Except( m1 ).ToString().Should().Be( "Alt+Another+Xtra", "Works as expected..." );
 
-            m2.Except( c.EmptyTag ).Should().BeSameAs( m2, "Removing empty does nothing." );
-            m1.Except( c.EmptyTag ).Should().BeSameAs( m1, "Removing empty does nothing." );
+            m2.Except( c.EmptyTrait ).Should().BeSameAs( m2, "Removing empty does nothing." );
+            m1.Except( c.EmptyTrait ).Should().BeSameAs( m1, "Removing empty does nothing." );
         }
 
 
@@ -218,10 +218,10 @@ namespace CK.Core.Tests
         {
             var c = ContextWithPlusSeparator();
 
-            CKTag m = c.FindOrCreate( "Beta+Alpha+Fridge+Combo" );
+            CKTrait m = c.FindOrCreate( "Beta+Alpha+Fridge+Combo" );
 
-            c.EmptyTag.IsSupersetOf( c.EmptyTag ).Should().BeTrue( "Empty is contained by definition in itself." );
-            m.IsSupersetOf( c.EmptyTag ).Should().BeTrue( "Empty is contained by definition." );
+            c.EmptyTrait.IsSupersetOf( c.EmptyTrait ).Should().BeTrue( "Empty is contained by definition in itself." );
+            m.IsSupersetOf( c.EmptyTrait ).Should().BeTrue( "Empty is contained by definition." );
             m.IsSupersetOf( c.FindOrCreate( "Fridge+Alpha" ) ).Should().BeTrue();
             m.IsSupersetOf( c.FindOrCreate( "Fridge" ) ).Should().BeTrue();
             m.IsSupersetOf( c.FindOrCreate( "Fridge+Alpha+Combo" ) ).Should().BeTrue();
@@ -238,18 +238,18 @@ namespace CK.Core.Tests
             m.Overlaps( c.FindOrCreate( "AFridge+ALol" ) ).Should().BeFalse();
             m.Overlaps( c.FindOrCreate( "Murfn" ) ).Should().BeFalse();
             m.Overlaps( c.FindOrCreate( "QF+QA+QC+QL" ) ).Should().BeFalse();
-            m.Overlaps( c.EmptyTag ).Should().BeFalse( "Empty is NOT contained 'ONE' since EmptyTag.AtomicTags.Count == 0..." );
-            c.EmptyTag.Overlaps( c.EmptyTag ).Should().BeFalse( "Empty is NOT contained 'ONE' in itself." );
+            m.Overlaps( c.EmptyTrait ).Should().BeFalse( "Empty is NOT contained 'ONE' since EmptyTag.AtomicTags.Count == 0..." );
+            c.EmptyTrait.Overlaps( c.EmptyTrait ).Should().BeFalse( "Empty is NOT contained 'ONE' in itself." );
         }
 
         [Test]
         public void tag_separator_can_be_changed_from_the_default_pipe()
         {
-            var c = new CKTagContext( "SemiColonContext", ';' );
-            CKTag m = c.FindOrCreate( "Beta;Alpha;Fridge;Combo" );
+            var c = CKTraitContext.Create( "SemiColonContext", ';' );
+            CKTrait m = c.FindOrCreate( "Beta;Alpha;Fridge;Combo" );
 
-            c.EmptyTag.IsSupersetOf( c.EmptyTag ).Should().BeTrue( "Empty is contained by definition in itself." );
-            m.IsSupersetOf( c.EmptyTag ).Should().BeTrue( "Empty is contained by definition." );
+            c.EmptyTrait.IsSupersetOf( c.EmptyTrait ).Should().BeTrue( "Empty is contained by definition in itself." );
+            m.IsSupersetOf( c.EmptyTrait ).Should().BeTrue( "Empty is contained by definition." );
             m.IsSupersetOf( c.FindOrCreate( "Fridge;Alpha" ) ).Should().BeTrue();
             m.IsSupersetOf( c.FindOrCreate( "Fridge" ) ).Should().BeTrue();
             m.IsSupersetOf( c.FindOrCreate( "Fridge;Alpha;Combo" ) ).Should().BeTrue();
@@ -266,15 +266,15 @@ namespace CK.Core.Tests
             m.Overlaps( c.FindOrCreate( "AFridge;ALol" ) ).Should().BeFalse();
             m.Overlaps( c.FindOrCreate( "Murfn" ) ).Should().BeFalse();
             m.Overlaps( c.FindOrCreate( "QF;QA;QC;QL" ) ).Should().BeFalse();
-            m.Overlaps( c.EmptyTag ).Should().BeFalse( "Empty is NOT contained 'ONE' since EmptyTag.AtomicTags.Count == 0..." );
-            c.EmptyTag.Overlaps( c.EmptyTag ).Should().BeFalse( "Empty is NOT contained 'ONE' in itself." );
+            m.Overlaps( c.EmptyTrait ).Should().BeFalse( "Empty is NOT contained 'ONE' since EmptyTag.AtomicTags.Count == 0..." );
+            c.EmptyTrait.Overlaps( c.EmptyTrait ).Should().BeFalse( "Empty is NOT contained 'ONE' in itself." );
         }
 
         [Test]
         public void Toggle_is_SymmetricExcept()
         {
             var c = ContextWithPlusSeparator();
-            CKTag m = c.FindOrCreate( "Beta+Alpha+Fridge+Combo" );
+            CKTrait m = c.FindOrCreate( "Beta+Alpha+Fridge+Combo" );
             m.SymmetricExcept( c.FindOrCreate( "Beta" ) ).ToString().Should().Be( "Alpha+Combo+Fridge" );
             m.SymmetricExcept( c.FindOrCreate( "Fridge+Combo" ) ).ToString().Should().Be( "Alpha+Beta" );
             m.SymmetricExcept( c.FindOrCreate( "Beta+Fridge+Combo" ) ).ToString().Should().Be( "Alpha" );
@@ -286,28 +286,27 @@ namespace CK.Core.Tests
             m.SymmetricExcept( c.FindOrCreate( "Zenon+Alpha+Xtra+Fridge" ) ).ToString().Should().Be( "Beta+Combo+Xtra+Zenon" );
         }
 
-
         [Test]
         public void Fallbacks_generation()
         {
             var c = ContextWithPlusSeparator();
             {
-                CKTag m = c.FindOrCreate( "" );
-                IReadOnlyList<CKTag> f = m.Fallbacks.ToArray();
+                CKTrait m = c.FindOrCreate( "" );
+                IReadOnlyList<CKTrait> f = m.Fallbacks.ToArray();
                 m.FallbacksCount.Should().Be( f.Count );
                 f.Count.Should().Be( 1 );
                 f[0].ToString().Should().Be( "" );
             }
             {
-                CKTag m = c.FindOrCreate( "Alpha" );
-                IReadOnlyList<CKTag> f = m.Fallbacks.ToArray();
+                CKTrait m = c.FindOrCreate( "Alpha" );
+                IReadOnlyList<CKTrait> f = m.Fallbacks.ToArray();
                 m.FallbacksCount.Should().Be( f.Count );
                 f.Count.Should().Be( 1 );
                 f[0].ToString().Should().Be( "" );
             }
             {
-                CKTag m = c.FindOrCreate( "Alpha+Beta" );
-                IReadOnlyList<CKTag> f = m.Fallbacks.ToArray();
+                CKTrait m = c.FindOrCreate( "Alpha+Beta" );
+                IReadOnlyList<CKTrait> f = m.Fallbacks.ToArray();
                 m.FallbacksCount.Should().Be( f.Count );
                 f.Count.Should().Be( 3 );
                 f[0].ToString().Should().Be( "Alpha" );
@@ -315,8 +314,8 @@ namespace CK.Core.Tests
                 f[2].ToString().Should().Be( "" );
             }
             {
-                CKTag m = c.FindOrCreate( "Alpha+Beta+Combo" );
-                IReadOnlyList<CKTag> f = m.Fallbacks.ToArray();
+                CKTrait m = c.FindOrCreate( "Alpha+Beta+Combo" );
+                IReadOnlyList<CKTrait> f = m.Fallbacks.ToArray();
                 m.FallbacksCount.Should().Be( f.Count );
                 f.Count.Should().Be( 7 );
                 f[0].ToString().Should().Be( "Alpha+Beta" );
@@ -328,8 +327,8 @@ namespace CK.Core.Tests
                 f[6].ToString().Should().Be( "" );
             }
             {
-                CKTag m = c.FindOrCreate( "Alpha+Beta+Combo+Fridge" );
-                IReadOnlyList<CKTag> f = m.Fallbacks.ToArray();
+                CKTrait m = c.FindOrCreate( "Alpha+Beta+Combo+Fridge" );
+                IReadOnlyList<CKTrait> f = m.Fallbacks.ToArray();
                 m.FallbacksCount.Should().Be( f.Count );
                 f.Count.Should().Be( 15 );
                 f[0].ToString().Should().Be( "Alpha+Beta+Combo" );
@@ -355,36 +354,37 @@ namespace CK.Core.Tests
         {
             var c = ContextWithPlusSeparator();
             {
-                CKTag m = c.FindOrCreate( "Alpha+Beta+Combo+Fridge" );
-                IReadOnlyList<CKTag> f = m.Fallbacks.ToArray();
+                CKTrait m = c.FindOrCreate( "Alpha+Beta+Combo+Fridge" );
+                IReadOnlyList<CKTrait> f = m.Fallbacks.ToArray();
 
-                CKTag[] sorted = f.ToArray();
+                CKTrait[] sorted = f.ToArray();
                 Array.Sort( sorted );
                 Array.Reverse( sorted );
-                sorted.SequenceEqual( f ).Should().BeTrue( "CKTag.CompareTo respects the fallbacks (fallbacks is in reverse order)." );
+                sorted.SequenceEqual( f ).Should().BeTrue( "CKTrait.CompareTo respects the fallbacks (fallbacks is in reverse order)." );
             }
             {
-                CKTag m = c.FindOrCreate( "Alpha+Beta+Combo+Fridge+F+K+Ju+J+A+B" );
-                IReadOnlyList<CKTag> f = m.Fallbacks.ToArray();
-                f.OrderBy( tag => tag ).Reverse().SequenceEqual( f ).Should().BeTrue( "CKTag.CompareTo is ok." );
+                CKTrait m = c.FindOrCreate( "Alpha+Beta+Combo+Fridge+F+K+Ju+J+A+B" );
+                IReadOnlyList<CKTrait> f = m.Fallbacks.ToArray();
+                f.OrderBy( tag => tag ).Reverse().SequenceEqual( f ).Should().BeTrue( "CKTrait.CompareTo is ok." );
             }
             {
-                CKTag m = c.FindOrCreate( "xz+lz+ded+az+zer+t+zer+ce+ret+ert+ml+a+nzn" );
-                IReadOnlyList<CKTag> f = m.Fallbacks.ToArray();
-                f.OrderBy( tag => tag ).Reverse().SequenceEqual( f ).Should().BeTrue( "CKTag.CompareTo is ok." );
+                CKTrait m = c.FindOrCreate( "xz+lz+ded+az+zer+t+zer+ce+ret+ert+ml+a+nzn" );
+                IReadOnlyList<CKTrait> f = m.Fallbacks.ToArray();
+                f.OrderBy( tag => tag ).Reverse().SequenceEqual( f ).Should().BeTrue( "CKTrait.CompareTo is ok." );
             }
         }
 
         [Test]
         public void FindIfAllExist_tests()
         {
-            var c = new CKTagContext( "Indep", '|', false );
+            var c = CKTraitContext.Create( "Indep", '+', shared: false );
 
-            CKTag m = c.FindOrCreate( "Alpha+Beta+Combo+Fridge" );
+            CKTrait m = c.FindOrCreate( "Alpha+Beta+Combo+Fridge" );
 
-            c.FindIfAllExist( "" ).Should().Be( c.EmptyTag );
+            c.FindIfAllExist( "" ).Should().Be( c.EmptyTrait );
             c.FindIfAllExist( "bo" ).Should().BeNull();
-            c.FindIfAllExist( "Alpha" ).Should().Be( c.FindOrCreate( "Alpha" ) );
+            var alpha = c.FindOrCreate( "Alpha" );
+            c.FindIfAllExist( "Alpha" ).Should().Be( alpha );
             c.FindIfAllExist( "bo+pha" ).Should().BeNull();
             c.FindIfAllExist( "Fridge+Combo+Alpha+Beta" ).Should().BeSameAs( m );
         }
@@ -392,22 +392,22 @@ namespace CK.Core.Tests
         [Test]
         public void independent_or_shared_contexts()
         {
-            var shared = new CKTagContext( "Shared", '+' );
-            Action notPossible = () => new CKTagContext( "Shared", '-' );
+            var shared = CKTraitContext.Create( "Shared", '+' );
+            Action notPossible = () => CKTraitContext.Create( "Shared", '-' );
             notPossible.Should().Throw<InvalidOperationException>();
 
             var here = shared.FindOrCreate( "Here!" );
 
-            var independent1 = new CKTagContext( "Shared", '-', shared: false );
+            var independent1 = CKTraitContext.Create( "Shared", '-', shared: false );
             independent1.FindOnlyExisting( "Here!" ).Should().BeNull();
 
             independent1.FindOrCreate( "In Independent n°1" );
 
-            var independent2 = new CKTagContext( "Shared", '-', shared: false );
+            var independent2 = CKTraitContext.Create( "Shared", '-', shared: false );
             independent2.FindOnlyExisting( "Here!" ).Should().BeNull();
             independent2.FindOnlyExisting( "In Independent n°1" ).Should().BeNull();
 
-            var anotherShared = new CKTagContext( "Shared", '+' );
+            var anotherShared = CKTraitContext.Create( "Shared", '+' );
             anotherShared.FindOnlyExisting( "Here!" ).Should().BeSameAs( here );
 
             (anotherShared == shared).Should().BeTrue();

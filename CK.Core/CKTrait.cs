@@ -9,125 +9,114 @@ using System.ComponentModel;
 namespace CK.Core
 {
     /// <summary>
-    /// OBSLETE.
-    /// Use CKTag (instead of CKTrait) and CKTagContext (instead of CKTraitContext).
-    /// These are functionnaly equivalent but CKTagContext enable multiple (re)definition of contexts
-    /// and serialization of tags without knowing the tag's context. Trait were not able to be serialized
-    /// without explicit knowledge of the (typically static) context instance.
+    /// A tag is an immutable object (thread-safe), associated to a unique string inside a <see cref="Context"/>, that can be atomic ("Alt", "Home", "Ctrl") or 
+    /// combined ("Alt|Ctrl", "Alt|Ctrl|Home"). The only way to obtain a CKTrait is to call <see cref="CKTraitContext.FindOrCreate(string)"/> (from 
+    /// a string) or to use one of the available combination methods (<see cref="Union"/>, <see cref="Except"/>, <see cref="SymmetricExcept"/> or <see cref="Intersect"/> ).
     /// </summary>
-    [Obsolete("Use CKTag (instead of CKTrait) and CKTagContext (instead of CKTraitContext). These are functionnaly equivalent but CKTagContext enable multiple (re)definition of contexts and serialization of tags without knowing the tag's context. Trait were not able to be serialized without explicit knowledge of the (typically static) context instance.", true )]
+    /// <remarks>
+    /// A CKTrait is easily serializable as its <see cref="ToString"/> representation and restored with <see cref="CKTraitContext.FindOrCreate(string)"/>
+    /// on the appropriate context.
+    /// </remarks>
     public sealed class CKTrait : IComparable<CKTrait>, IEquatable<CKTrait>
     {
         readonly CKTraitContext _context;
-        readonly string _trait;
-        readonly IReadOnlyList<CKTrait> _traits;
+        readonly string _tag;
+        readonly IReadOnlyList<CKTrait> _tags;
 
         /// <summary>
-        /// Initializes the new empty trait of a CKTraitContext.
+        /// Initializes the new empty tag of a CKTraitContext.
         /// </summary>
         internal CKTrait( CKTraitContext ctx )
         {
-            Debug.Assert( ctx.EmptyTrait == null, "There is only one empty trait per context." );
+            Debug.Assert( ctx.EmptyTrait == null, "There is only one empty tag per context." );
             _context = ctx;
-            _trait = String.Empty;
-            _traits = Util.Array.Empty<CKTrait>();
+            _tag = String.Empty;
+            _tags = Util.Array.Empty<CKTrait>();
         }
 
         /// <summary>
-        /// Initializes a new atomic trait.
+        /// Initializes a new atomic tag.
         /// </summary>
-        internal CKTrait( CKTraitContext ctx, string atomicTrait )
+        internal CKTrait( CKTraitContext ctx, string atomicTag )
         {
-            Debug.Assert( atomicTrait.Contains( ctx.Separator ) == false );
+            Debug.Assert( atomicTag.Contains( ctx.Separator ) == false );
             _context = ctx;
-            _trait = atomicTrait;
-            _traits = new CKTrait[] { this };
+            _tag = atomicTag;
+            _tags = new CKTrait[] { this };
         }
 
         /// <summary>
-        /// Initializes a new combined trait.
+        /// Initializes a new combined tag.
         /// </summary>
-        internal CKTrait( CKTraitContext ctx, string combinedTrait, IReadOnlyList<CKTrait> traits )
+        internal CKTrait( CKTraitContext ctx, string combinedTag, IReadOnlyList<CKTrait> tags )
         {
-            Debug.Assert( combinedTrait.IndexOf( ctx.Separator ) > 0 && traits.Count > 1, "There is more than one trait in a Combined Trait." );
-            Debug.Assert( traits.All( m => m.IsAtomic ), "Provided traits are all atomic." );
-            Debug.Assert( traits.GroupBy( m => m ).Where( g => g.Count() != 1 ).Count() == 0, "No duplicate in atomic in traits." );
+            Debug.Assert( combinedTag.IndexOf( ctx.Separator ) > 0 && tags.Count > 1, "There is more than one tag in a Combined Tag." );
+            Debug.Assert( tags.All( m => m.IsAtomic ), "Provided tags are all atomic." );
+            Debug.Assert( tags.GroupBy( m => m ).Where( g => g.Count() != 1 ).Count() == 0, "No duplicate in atomic in tags." );
             _context = ctx;
-            _trait = combinedTrait;
-            _traits = traits;
+            _tag = combinedTag;
+            _tags = tags;
         }
 
         /// <summary>
-        /// Gets the <see cref="CKTraitContext"/> to which this trait belongs. 
+        /// Gets the <see cref="CKTraitContext"/> to which this tag belongs. 
         /// </summary>
-        public CKTraitContext Context
-        {
-            get { return _context; }
-        }
+        public CKTraitContext Context => _context;
 
         /// <summary>
-        /// Gets the multi traits in an ordered manner separated by +.
+        /// Gets the multi tags in an ordered manner separated by +.
         /// </summary>
-        /// <returns>This multi trait as a string.</returns>
-        public override string ToString()
-        {
-            return _trait;
-        }
+        /// <returns>This multi tags as a string.</returns>
+        public override string ToString() => _tag;
 
         /// <summary>
-        /// Gets the atomic traits that this trait contains.
-        /// This list does not contain the empty trait and is sorted according to the name of the atomic traits (lexical order): this is the 
+        /// Gets the atomic tags that this tag contains.
+        /// This list does not contain the empty tag and is sorted according to the name of the atomic tags (lexical order): this is the 
         /// same as the <see cref="ToString"/> representation.
         /// Note that it is in reverse order regarding <see cref="CompareTo"/> ("A" that is stronger than "B" appears before "B").
         /// </summary>
-        public IReadOnlyList<CKTrait> AtomicTraits
-        {
-            get { return _traits; }
-        }
+        public IReadOnlyList<CKTrait> AtomicTraits => _tags;
 
         /// <summary>
-        /// Gets a boolean indicating whether this trait is the empty trait (<see cref="AtomicTraits"/> is empty
+        /// Gets a boolean indicating whether this tag is the empty tag (<see cref="AtomicTraits"/> is empty
         /// and <see cref="Fallbacks"/> contains only itself).
         /// </summary>
-        public bool IsEmpty
-        {
-            get { return _trait.Length == 0; }
-        }
+        public bool IsEmpty => _tag.Length == 0; 
 
         /// <summary>
-        /// Gets a boolean indicating whether this trait contains zero 
-        /// (the empty trait is considered as an atomic trait) or only one atomic trait.
+        /// Gets a boolean indicating whether this tag contains zero 
+        /// (the empty tag is considered as an atomic tag) or only one atomic tag.
         /// </summary>
         /// <remarks>
-        /// For atomic traits (and the empty trait itself), <see cref="Fallbacks"/> contains only the <see cref="CKTraitContext.EmptyTrait"/>.
+        /// For atomic tags (and the empty tag itself), <see cref="Fallbacks"/> contains only the <see cref="CKTraitContext.EmptyTrait"/>.
         /// </remarks>
-        public bool IsAtomic
-        {
-            get { return _traits.Count <= 1; }
-        }
+        public bool IsAtomic => _tags.Count <= 1; 
 
         /// <summary>
-        /// Compares this trait with another one.
+        /// Compares this tag with another one.
         /// The <see cref="Context"/> is the primary key (see <see cref="CKTraitContext.CompareTo"/>), then comes 
-        /// the number of traits (more traits is greater) and then comes the string representation of the trait in 
+        /// the number of tags (more tags is greater) and then comes the string representation of the tag in 
         /// reverse lexical order (<see cref="StringComparer.Ordinal"/>): "A" is greater than "B".
         /// </summary>
-        /// <param name="other">The trait to compare to.</param>
+        /// <param name="other">The tag to compare to.</param>
         /// <returns>A negative, zero or positive value.</returns>
         public int CompareTo( CKTrait other )
         {
             if( other == null ) throw new ArgumentNullException( "other" );
             if( ReferenceEquals( this, other ) ) return 0;
-            if( _context != other._context ) return _context.CompareTo( other._context );
-            int cmp = _traits.Count - other.AtomicTraits.Count;
-            if( cmp == 0 ) cmp = StringComparer.Ordinal.Compare( other._trait, _trait );
+            int cmp = _context.CompareTo( other._context );
+            if( cmp == 0 )
+            {
+                cmp = _tags.Count - other.AtomicTraits.Count;
+                if( cmp == 0 ) cmp = StringComparer.Ordinal.Compare( other._tag, _tag );
+            }
             return cmp;
         }
 
         /// <summary>
-        /// Checks equality of this trait with another one.
+        /// Checks equality of this tag with another one.
         /// </summary>
-        /// <param name="other">The trait to compare to.</param>
+        /// <param name="other">The tag to compare to.</param>
         /// <returns>True on equality.</returns>
         public bool Equals( CKTrait other )
         {
@@ -135,41 +124,41 @@ namespace CK.Core
         }
 
         /// <summary>
-        /// Checks if each and every atomic traits of <paramref name="other" /> exists in this trait.
+        /// Checks if each and every atomic tags of <paramref name="other" /> exists in this tag.
         /// </summary>
-        /// <param name="other">The trait(s) to find.</param>
-        /// <returns>True if all the specified traits appear in this trait.</returns>
+        /// <param name="other">The tag(s) to find.</param>
+        /// <returns>True if all the specified tags appear in this tag.</returns>
         /// <remarks>
-        /// Note that <see cref="CKTraitContext.EmptyTrait"/> is contained (in the sense of this IsSupersetOf method) by definition in any trait 
+        /// Note that <see cref="CKTraitContext.EmptyTrait"/> is contained (in the sense of this IsSupersetOf method) by definition in any tag 
         /// (including itself): this is the opposite of the <see cref="Overlaps"/> method.
         /// </remarks>
         public bool IsSupersetOf( CKTrait other )
         {
             if( other == null ) throw new ArgumentNullException( "other" );
-            if( other.Context != _context ) throw new InvalidOperationException( "TraitsMustBelongToTheSameContext" );
-            if( _traits.Count < other._traits.Count ) return false;
+            if( other.Context != _context ) throw new InvalidOperationException( Impl.CoreResources.TagsMustBelongToTheSameContext );
+            if( _tags.Count < other._tags.Count ) return false;
             bool foundAlien = false;
             Process( this, other,
-                null,
-                delegate( CKTrait m ) { foundAlien = true; return false; },
-                null );
+                     null,
+                     delegate( CKTrait m ) { foundAlien = true; return false; },
+                     null );
             return !foundAlien;
         }
 
         /// <summary>
-        /// Checks if one of the atomic traits of <paramref name="other" /> exists in this trait.
+        /// Checks if one of the atomic tags of <paramref name="other" /> exists in this tag.
         /// </summary>
-        /// <param name="other">The trait to find.</param>
-        /// <returns>Returns true if one of the specified traits appears in this trait.</returns>
+        /// <param name="other">The tag to find.</param>
+        /// <returns>Returns true if one of the specified tags appears in this tag.</returns>
         /// <remarks>
         /// When true, this ensures that <see cref="Intersect"/>( <paramref name="other"/> ) != <see cref="CKTraitContext.EmptyTrait"/>. 
-        /// The empty trait is not contained (in the sense of this ContainsOne method) in any trait (including itself). This is the opposite
+        /// The empty tag is not contained (in the sense of this ContainsOne method) in any tag (including itself). This is the opposite
         /// of the <see cref="IsSupersetOf"/> method.
         /// </remarks>
         public bool Overlaps( CKTrait other )
         {
             if( other == null ) throw new ArgumentNullException( "other" );
-            if( other.Context != _context ) throw new InvalidOperationException( "TraitsMustBelongToTheSameContext" );
+            if( other.Context != _context ) throw new InvalidOperationException( Impl.CoreResources.TagsMustBelongToTheSameContext );
             bool found = false;
             Process( this, other,
                 null,
@@ -178,7 +167,7 @@ namespace CK.Core
             return found;
         }
 
-        class ListTrait : List<CKTrait>
+        class ListTag : List<CKTrait>
         {
             public bool TrueAdd( CKTrait t )
             {
@@ -188,94 +177,97 @@ namespace CK.Core
         }
 
         /// <summary>
-        /// Obtains a <see cref="CKTrait"/> that contains the atomic traits from both this trait and <paramref name="other"/>.
+        /// Obtains a <see cref="CKTrait"/> that contains the atomic tags from both this tag and <paramref name="other"/>.
         /// </summary>
-        /// <param name="other">Trait that must be kept.</param>
-        /// <returns>The resulting trait.</returns>
+        /// <param name="other">Tag that must be kept.</param>
+        /// <returns>The resulting tag.</returns>
         public CKTrait Intersect( CKTrait other )
         {
             if( ReferenceEquals( other, this ) ) return this;
             if( other == null ) throw new ArgumentNullException( "other" );
-            if( other.Context != _context ) throw new InvalidOperationException( "TraitsMustBelongToTheSameContext" );
-            ListTrait m = new ListTrait();
+            if( other.Context != _context ) throw new InvalidOperationException( Impl.CoreResources.TagsMustBelongToTheSameContext );
+            ListTag m = new ListTag();
             Process( this, other, null, null, m.TrueAdd );
-            return _context.FindOrCreate( m );
+            return _context.FindOrCreateFromAtomicSortedList( m );
         }
 
         /// <summary>
         /// Obtains a <see cref="CKTrait"/> that combines this one and 
-        /// the trait(s) specified by the parameter. 
+        /// the tzg(s) specified by the parameter. 
         /// </summary>
-        /// <param name="other">Trait to add.</param>
-        /// <returns>The resulting trait.</returns>
+        /// <param name="other">Tag to add.</param>
+        /// <returns>The resulting tag.</returns>
         public CKTrait Union( CKTrait other )
         {
             if( ReferenceEquals( other, this ) ) return this;
             if( other == null ) throw new ArgumentNullException( nameof( other ) );
-            if( other.Context != _context ) throw new InvalidOperationException( "TraitsMustBelongToTheSameContext" );
-            ListTrait m = new ListTrait();
+            if( other.Context != _context ) throw new InvalidOperationException( Impl.CoreResources.TagsMustBelongToTheSameContext );
+            ListTag m = new ListTag();
             Func<CKTrait,bool> add = m.TrueAdd;
             Process( this, other, add, add, add );
-            return _context.FindOrCreate( m );
+            return _context.FindOrCreateFromAtomicSortedList( m );
         }
 
         /// <summary>
-        /// Obtains a <see cref="CKTrait"/> from which trait(s) specified by the parameter are removed.
+        /// Obtains a <see cref="CKTrait"/> from which tag(s) specified by the parameter are removed.
         /// </summary>
-        /// <param name="other">Trait to remove.</param>
-        /// <returns>The resulting trait.</returns>
+        /// <param name="other">Tag to remove.</param>
+        /// <returns>The resulting tag.</returns>
         public CKTrait Except( CKTrait other )
         {
             if( ReferenceEquals( other, this ) ) return _context.EmptyTrait;
             if( other == null ) throw new ArgumentNullException( nameof( other ) );
-            if( other.Context != _context ) throw new InvalidOperationException( "TraitsMustBelongToTheSameContext" );
-            ListTrait m = new ListTrait();
+            if( other.Context != _context ) throw new InvalidOperationException( Impl.CoreResources.TagsMustBelongToTheSameContext );
+            ListTag m = new ListTag();
             Process( this, other, m.TrueAdd, null, null );
-            return _context.FindOrCreate( m );
+            return _context.FindOrCreateFromAtomicSortedList( m );
         }
 
         /// <summary>
-        /// Obtains a <see cref="CKTrait"/> where the atomic traits of <paramref name="other" /> are removed (resp. added) depending 
-        /// on whether they exist (resp. do not exist) in this trait. This is like an Exclusive Or (XOR).
+        /// Obtains a <see cref="CKTrait"/> where the atomic tags of <paramref name="other" /> are removed (resp. added) depending 
+        /// on whether they exist (resp. do not exist) in this tag. This is like an Exclusive Or (XOR).
         /// </summary>
-        /// <param name="other">Trait to toggle.</param>
-        /// <returns>The resulting trait.</returns>
+        /// <param name="other">Tag to toggle.</param>
+        /// <returns>The resulting tag.</returns>
         public CKTrait SymmetricExcept( CKTrait other )
         {
             if( ReferenceEquals( other, this ) ) return _context.EmptyTrait;
-            if( other == null ) throw new ArgumentNullException( "other" );
-            if( other.Context != _context ) throw new InvalidOperationException( "TraitsMustBelongToTheSameContext" );
-            ListTrait m = new ListTrait();
+            if( other == null ) throw new ArgumentNullException( nameof( other ) );
+            if( other.Context != _context ) throw new InvalidOperationException( Impl.CoreResources.TagsMustBelongToTheSameContext );
+            ListTag m = new ListTag();
             Func<CKTrait,bool> add = m.TrueAdd;
             Process( this, other, add, add, null );
-            return _context.FindOrCreate( m );
+            return _context.FindOrCreateFromAtomicSortedList( m );
         }
 
         /// <summary>
         /// Applies the given <see cref="SetOperation"/>.
         /// </summary>
-        /// <param name="other">Trait to combine.</param>
+        /// <param name="other">Tag to combine.</param>
         /// <param name="operation">Set operation.</param>
-        /// <returns>Resulting trait.</returns>
+        /// <returns>Resulting tag.</returns>
         public CKTrait Apply( CKTrait other, SetOperation operation )
         {
-            if( other == null ) throw new ArgumentNullException( "other" );
-            if( operation == SetOperation.Union ) return Union( other );
-            else if( operation == SetOperation.Except ) return Except( other );
-            else if( operation == SetOperation.Intersect ) return Intersect( other );
-            else if( operation == SetOperation.SymetricExcept ) return SymmetricExcept( other );
-            else if( operation == SetOperation.None ) return this;
+            if( other == null ) throw new ArgumentNullException( nameof( other ) );
+            switch( operation )
+            {
+                case SetOperation.Union: return Union( other );
+                case SetOperation.Except: return Except( other );
+                case SetOperation.Intersect: return Intersect( other );
+                case SetOperation.SymetricExcept: return SymmetricExcept( other );
+                case SetOperation.None: return this;
+            }
             Debug.Assert( operation == SetOperation.Replace, "All operations are covered." );
             return other;
         }
 
         /// <summary>
-        /// Common process function where 3 predicates drive the result: each atomic trait is submitted to one of the 3 predicates
-        /// depending on whether it is only in the left, only in the right or appears in both traits.
+        /// Common process function where 3 predicates drive the result: each atomic tag is submitted to one of the 3 predicates
+        /// depending on whether it is only in the left, only in the right or appears in both tags.
         /// When returning false, a predicate stops the process.
         /// </summary>
         /// <remarks>
-        /// When this predicate is 'adding the trait to a list', we can draw the following table where '1' means the predicate exists and '0' means
+        /// When this predicate is 'adding the tag to a list', we can draw the following table where '1' means the predicate exists and '0' means
         /// no predicate (or the 'always true' one):
         /// 
         ///             0, 0, 0 =  -- 'Empty'
@@ -347,62 +339,56 @@ namespace CK.Core
         }
 
         /// <summary>
-        /// Gets the number of <see cref="Fallbacks"/>. It is 2^<see cref="AtomicTraits"/>.<see cref="IReadOnlyCollection{T}.Count"/> - 1 since this
-        /// trait itself does not appear in the fallbacks, but it is always 1 for atomic and the empty trait (the empty trait always ends the list).
+        /// Gets the number of <see cref="Fallbacks"/>. It is 2^<see cref="AtomicTags"/>.<see cref="IReadOnlyCollection{T}.Count"/> - 1 since this
+        /// tag itself does not appear in the fallbacks, but it is always 1 for atomic and the empty tag (the empty tag always ends the list).
         /// </summary>
-        public int FallbacksCount
-        {
-            get { return _traits.Count > 1 ? ( 1 << _traits.Count ) - 1 : 1; }
-        }
+        public int FallbacksCount => _tags.Count > 1 ? ( 1 << _tags.Count ) - 1 : 1;
 
         /// <summary>
-        /// Gets the number of <see cref="Fallbacks"/>. It is 2^<see cref="AtomicTraits"/>.<see cref="IReadOnlyCollection{T}.Count"/> - 1 since this
-        /// trait itself does not appear in the fallbacks, but it is always 1 for atomic and the empty trait (the empty trait always ends the list).
+        /// Gets the number of <see cref="Fallbacks"/>. It is 2^<see cref="AtomicTags"/>.<see cref="IReadOnlyCollection{T}.Count"/> - 1 since this
+        /// tag itself does not appear in the fallbacks, but it is always 1 for atomic and the empty tag (the empty tag always ends the list).
         /// </summary>
-        public long FallbacksLongCount
-        {
-            get { return _traits.Count > 1 ? ( 1L << _traits.Count ) - 1L : 1L; }
-        }
+        public long FallbacksLongCount => _tags.Count > 1 ? ( 1L << _tags.Count ) - 1L : 1L; 
 
         /// <summary>
-        /// Gets an enumeration of fallbacks to consider for this trait ordered from best to worst.
-        /// This trait does not start the list but the <see cref="CKTraitContext.EmptyTrait"/> always ends this list.
+        /// Gets an enumeration of fallbacks to consider for this tag ordered from best to worst.
+        /// This tag does not start the list but the <see cref="CKTraitContext.EmptyTrait"/> always ends this list.
         /// </summary>
         /// <remarks>
-        /// For atomic traits (and the empty trait itself), <see cref="Fallbacks"/> contains only the <see cref="CKTraitContext.EmptyTrait"/>.
+        /// For atomic tags (and the empty tag itself), <see cref="Fallbacks"/> contains only the <see cref="CKTraitContext.EmptyTrait"/>.
         /// </remarks>
         public IEnumerable<CKTrait> Fallbacks
         {
             get
             {
-                if( _traits.Count <= 1 ) return _context.EnumWithEmpty;
+                if( _tags.Count <= 1 ) return _context.EnumWithEmpty;
                 return ComputeFallbacks();
             }
         }
 
         IEnumerable<CKTrait> ComputeFallbacks()
         {
-            int _currentLength = _traits.Count - 1;
-            Debug.Assert( _currentLength >= 1, "Empty and atomic traits are handled explicitly (EnumWithEmpty)." );
+            int _currentLength = _tags.Count - 1;
+            Debug.Assert( _currentLength >= 1, "Empty and atomic tags are handled explicitly (EnumWithEmpty)." );
             if( _currentLength > 1 )
             {
-                int nbTraits = _traits.Count;
-                bool[] kept = new bool[nbTraits];
+                int nbTag = _tags.Count;
+                bool[] kept = new bool[nbTag];
                 CKTrait[] v = new CKTrait[_currentLength];
                 do
                 {
-                    int i = nbTraits;
+                    int i = nbTag;
                     while( --i >= _currentLength ) kept[i] = false;
                     int kMax = i;
                     while( i >= 0 ) kept[i--] = true;
                     do
                     {
                         i = 0;
-                        for( int j = 0; j < nbTraits; ++j )
+                        for( int j = 0; j < nbTag; ++j )
                         {
-                            if( kept[j] ) v[i++] = _traits[j];
+                            if( kept[j] ) v[i++] = _tags[j];
                         }
-                        Debug.Assert( i == _currentLength, "We kept the right number of traits." );
+                        Debug.Assert( i == _currentLength, "We kept the right number of tags." );
                         yield return _context.FindOrCreate( v, i );
                     }
                     while( Forward( kept, ref kMax ) );
@@ -410,7 +396,7 @@ namespace CK.Core
                 while( --_currentLength > 1 );
             }
             // Special processing for currentLength = 1 (optimization)
-            foreach( CKTrait m in _traits ) yield return m;
+            foreach( CKTrait m in _tags ) yield return m;
             yield return _context.EmptyTrait;
         }
 
