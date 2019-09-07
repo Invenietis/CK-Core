@@ -288,7 +288,7 @@ namespace CK.Core.Tests
 
 
         [Test]
-        public void test_Fallbacks_generation()
+        public void Fallbacks_generation()
         {
             var c = ContextWithPlusSeparator();
             {
@@ -351,7 +351,7 @@ namespace CK.Core.Tests
         }
 
         [Test]
-        public void test_Fallbacks_ordering()
+        public void Fallbacks_ordering()
         {
             var c = ContextWithPlusSeparator();
             {
@@ -376,9 +376,9 @@ namespace CK.Core.Tests
         }
 
         [Test]
-        public void test_FindIfAllExist()
+        public void FindIfAllExist_tests()
         {
-            var c = ContextWithPlusSeparator();
+            var c = new CKTagContext( "Indep", '|', false );
 
             CKTag m = c.FindOrCreate( "Alpha+Beta+Combo+Fridge" );
 
@@ -388,5 +388,51 @@ namespace CK.Core.Tests
             c.FindIfAllExist( "bo+pha" ).Should().BeNull();
             c.FindIfAllExist( "Fridge+Combo+Alpha+Beta" ).Should().BeSameAs( m );
         }
+
+        [Test]
+        public void independent_or_shared_contexts()
+        {
+            var shared = new CKTagContext( "Shared", '+' );
+            Action notPossible = () => new CKTagContext( "Shared", '-' );
+            notPossible.Should().Throw<InvalidOperationException>();
+
+            var here = shared.FindOrCreate( "Here!" );
+
+            var independent1 = new CKTagContext( "Shared", '-', shared: false );
+            independent1.FindOnlyExisting( "Here!" ).Should().BeNull();
+
+            independent1.FindOrCreate( "In Independent n°1" );
+
+            var independent2 = new CKTagContext( "Shared", '-', shared: false );
+            independent2.FindOnlyExisting( "Here!" ).Should().BeNull();
+            independent2.FindOnlyExisting( "In Independent n°1" ).Should().BeNull();
+
+            var anotherShared = new CKTagContext( "Shared", '+' );
+            anotherShared.FindOnlyExisting( "Here!" ).Should().BeSameAs( here );
+
+            (anotherShared == shared).Should().BeTrue();
+            (anotherShared != shared).Should().BeFalse();
+            anotherShared.Equals( shared ).Should().BeTrue();
+            anotherShared.CompareTo( shared ).Should().Be( 0 );
+
+            var here1 = independent1.FindOrCreate( "Here!" );
+            var here2 = independent2.FindOrCreate( "Here!" );
+
+            here.Should().NotBeSameAs( here1 );
+            here.Should().NotBeSameAs( here2 );
+            here1.Should().NotBeSameAs( here2 );
+
+            // Comparisons across contexts: a unique index "sorts" the independent contexts.
+            // This index is positive for independent contexts: shared context's tags come first.
+
+            here.CompareTo( here1 ).Should().BeNegative();
+            here1.CompareTo( here2 ).Should().BeNegative();
+            here.CompareTo( here2 ).Should().BeNegative();
+
+            here1.CompareTo( here ).Should().BePositive();
+            here2.CompareTo( here1 ).Should().BePositive();
+            here2.CompareTo( here ).Should().BePositive();
+        }
+
     }
 }

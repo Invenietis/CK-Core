@@ -5,6 +5,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Threading;
 
 namespace CK.Core
 {
@@ -21,12 +22,15 @@ namespace CK.Core
         /// </summary>
         sealed class Impl : IComparable<Impl>
         {
+            static int _nextIndependentIndex = 0;
+
             readonly Regex _canonize2;
             readonly ConcurrentDictionary<string, CKTag> _tags;
             readonly object _creationLock;
             readonly string _separatorString;
+            readonly int _independentIndex;
 
-            public Impl( string name, char separator = '|' )
+            public Impl( string name, char separator, bool shared, ICKBinaryReader r )
             {
                 if( String.IsNullOrWhiteSpace( name ) ) throw new ArgumentException( Core.Impl.CoreResources.ArgumentMustNotBeNullOrWhiteSpace, "uniqueName" );
                 Name = name.Normalize();
@@ -35,15 +39,57 @@ namespace CK.Core
                 string pattern = "(\\s*" + Regex.Escape( _separatorString ) + "\\s*)+";
                 _canonize2 = new Regex( pattern, RegexOptions.Compiled | RegexOptions.ExplicitCapture | RegexOptions.CultureInvariant );
                 EmptyTag = new CKTag( new CKTagContext( this ) );
-                _tags = new ConcurrentDictionary<string, CKTag>( StringComparer.Ordinal );
-                _tags[String.Empty] = EmptyTag;
+                if( r != null )
+                {
+                    IEnumerable<KeyValuePair<string,CKTag>> Read()
+                    {
+                        yield return new KeyValuePair<string, CKTag>( String.Empty, EmptyTag );
+                        int count = r.ReadInt32();
+                        for( int i = 0; i < count; ++i )
+                        {
+                            var s = r.ReadString();
+                            yield return new KeyValuePair<string, CKTag>( s, new CKTag( new CKTagContext( this ), s ) );
+                        }
+                    }
+                    _tags = new ConcurrentDictionary<string, CKTag>( Read(), StringComparer.Ordinal );
+                }
+                else
+                {
+                    _tags = new ConcurrentDictionary<string, CKTag>( StringComparer.Ordinal );
+                    _tags[String.Empty] = EmptyTag;
+                }
                 EnumWithEmpty = new CKTag[] { EmptyTag };
                 _creationLock = new Object();
+                _independentIndex = shared ? 0 : Interlocked.Increment( ref _nextIndependentIndex );
             }
 
             public readonly char Separator;
 
             public readonly string Name;
+
+            public readonly CKTag EmptyTag;
+
+            public bool IsShared => _independentIndex == 0;
+
+            public readonly IEnumerable<CKTag> EnumWithEmpty;
+
+            public void WriteTags( ICKBinaryWriter w )
+            {
+                // ConcurrentDictionary.Values is a napshot in a ReadOnlyCollection<CKTag> that wraps a List<CKTag>.
+                // Using Values means concretizing the list of all the traits where we only need atomic ones and internally locking
+                // the dictionary.
+                // Using the GetEnumerator has no lock.
+                var atomics = new List<string>();
+                foreach( var t in _tags )
+                {
+                    if( t.Value.IsAtomic && !t.Value.IsEmpty ) atomics.Add( t.Key );
+                }
+                w.Write( atomics.Count );
+                foreach( var s in atomics )
+                {
+                    w.Write( s );
+                }
+            }
 
             public int CompareTo( Impl other )
             {
@@ -52,14 +98,14 @@ namespace CK.Core
                 if( cmp == 0 )
                 {
                     cmp = StringComparer.Ordinal.Compare( Name, other.Name );
-                    Debug.Assert( cmp != 0 );
+                    if( cmp == 0 )
+                    {
+                        Debug.Assert( _independentIndex != 0 );
+                        cmp = _independentIndex - other._independentIndex;
+                    }
                 }
                 return cmp;
             }
-
-            public readonly CKTag EmptyTag;
-
-            public readonly IEnumerable<CKTag> EnumWithEmpty;
 
             public CKTag FindOnlyExisting( string tags, Func<string, bool> collector = null )
             {
@@ -152,7 +198,7 @@ namespace CK.Core
                 return m;
             }
 
-            CKTag FindOrCreateAtomicTag( string tag, bool create )
+            internal CKTag FindOrCreateAtomicTag( string tag, bool create )
             {
                 CKTag m;
                 if( !_tags.TryGetValue( tag, out m ) && create )
@@ -170,7 +216,7 @@ namespace CK.Core
                 return m;
             }
 
-            public CKTag FindOrCreate( List<CKTag> atomicTags )
+            public CKTag FindOrCreateFromAtomicSortedList( List<CKTag> atomicTags )
             {
                 if( atomicTags.Count == 0 ) return EmptyTag;
                 Debug.Assert( atomicTags[0].Context._c == this, "This is one of our tags." );
@@ -302,27 +348,39 @@ namespace CK.Core
 
         /// <summary>
         /// Initializes a new context for tags with the given separator.
-        /// If a context with the ame name but a different separator has already been created, this
-        /// raises a <see cref="InvalidOperationException"/>.
+        /// When <paramref name="shared"/> is true, if a context with the same name but a different separator
+        /// has already been created, this raises a <see cref="InvalidOperationException"/>.
         /// </summary>
         /// <param name="name">Name for the context that identifies it. Must not be null nor whitespace.</param>
         /// <param name="separator">Separator (if it must differ from '|').</param>
-        public CKTagContext( string name, char separator = '|' )
+        /// <param name="shared">False to create an independent context: other contexts with the same name coexist with this one.</param>
+        public CKTagContext( string name, char separator = '|', bool shared = true )
         {
-            _c = Bind( name, separator );
+            _c = shared ? Bind( name, separator, null ) : new Impl( name, separator, false, null );
         }
 
-        static Impl Bind( string name, char separator )
+        static Impl Bind( string name, char separator, ICKBinaryReader tagReader )
         {
             Impl c, exists;
             lock( _basicLock )
             {
                 c = exists = _allContexts.FirstOrDefault( x => x.Name == name );
-                if( exists == null ) _allContexts.Add( c = new Impl( name, separator ) );
+                if( exists == null ) _allContexts.Add( c = new Impl( name, separator, true, tagReader ) );
             }
-            if( exists != null && exists.Separator != separator )
+            if( exists != null )
             {
-                throw new InvalidOperationException( $"CKTagContext named '{name}' is already defined with the separator '{exists.Separator}', it cannot be redefined with the separator '{separator}'." );
+                if( exists.Separator != separator )
+                {
+                    throw new InvalidOperationException( $"CKTagContext named '{name}' is already defined with the separator '{exists.Separator}', it cannot be redefined with the separator '{separator}'." );
+                }
+                if( tagReader != null )
+                {
+                    int count = tagReader.ReadInt32();
+                    while( --count >= 0 )
+                    {
+                        c.FindOrCreateAtomicTag( tagReader.ReadString(), true );
+                    }
+                }
             }
             return c;
         }
@@ -333,7 +391,14 @@ namespace CK.Core
         /// <param name="r">The binary reader to use.</param>
         public CKTagContext( ICKBinaryReader r )
         {
-            _c = Bind( r.ReadSharedString(), r.ReadChar() );
+            byte vS = r.ReadByte();
+            bool shared = (vS & 128) != 0;
+            bool withTags = (vS & 64) != 0;
+
+            var name = shared ? r.ReadSharedString() : r.ReadString();
+            var sep = r.ReadChar();
+            var tagReader = withTags ? r : null;
+            _c = shared ? Bind( name, sep, tagReader ) : new Impl( name, sep, false, tagReader );
         }
 
         /// <summary>
@@ -341,10 +406,17 @@ namespace CK.Core
         /// rebuild or rebind to the context.
         /// </summary>
         /// <param name="w">The binary writer to use.</param>
-        public void Write( ICKBinaryWriter w )
+        /// <param name="writeAllTags">True to write all existing tags.</param>
+        public void Write( ICKBinaryWriter w, bool writeAllTags = false )
         {
-            w.WriteSharedString( _c.Name );
+            byte version = 0;
+            if( _c.IsShared ) version |= 128;
+            if( writeAllTags ) version |= 64;
+            w.Write( version );
+            if( _c.IsShared ) w.WriteSharedString( _c.Name );
+            else w.Write( _c.Name );
             w.Write( _c.Separator );
+            if( writeAllTags ) _c.WriteTags( w );
         }
 
         /// <summary>
@@ -356,6 +428,11 @@ namespace CK.Core
         /// Gets the name of this context.
         /// </summary>
         public string Name => _c.Name;
+
+        /// <summary>
+        /// Gets whether this context is shared.
+        /// </summary>
+        public bool IsShared => _c.IsShared;
 
         /// <summary>
         /// Gets the empty tag for this context. It corresponds to the empty string.
@@ -395,7 +472,7 @@ namespace CK.Core
         /// Obtains a tag from a list of atomic (already sorted) tags.
         /// Used by the Add, Toggle, Remove, Intersect methods.
         /// </summary>
-        internal CKTag FindOrCreate( List<CKTag> atomicTags ) => _c.FindOrCreate( atomicTags );
+        internal CKTag FindOrCreate( List<CKTag> atomicTags ) => _c.FindOrCreateFromAtomicSortedList( atomicTags );
 
         /// <summary>
         /// Obtains a tag from a list of atomic (already sorted) tags.
