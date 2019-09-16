@@ -15,6 +15,7 @@ namespace CK.Core
     public class BestKeeper<T> : IReadOnlyCollection<T>
     {
         readonly T[] _items;
+        readonly Action<T> _collector;
         int _count;
 
         class ComparerAdapter : IComparer<T>
@@ -31,8 +32,9 @@ namespace CK.Core
         /// </summary>
         /// <param name="capacity">The fixed, maximal, number of items.</param>
         /// <param name="comparator">The comparator function.</param>
-        public BestKeeper( int capacity, Func<T, T, int> comparator )
-            : this( capacity, new ComparerAdapter( comparator ) )
+        /// <param name="collector">The collector of items eliminated from the <see cref="BestKeeper{T}"/>.</param>
+        public BestKeeper( int capacity, Func<T, T, int> comparator, Action<T> collector = null )
+            : this( capacity, new ComparerAdapter( comparator ), collector )
         {
         }
 
@@ -42,9 +44,11 @@ namespace CK.Core
         /// </summary>
         /// <param name="capacity">The fixed, maximal, number of items.</param>
         /// <param name="comparer">The optional comparer.</param>
-        public BestKeeper( int capacity, IComparer<T> comparer = null )
+        /// <param name="collector">The collector of items eliminated from the <see cref="BestKeeper{T}"/>.</param>
+        public BestKeeper( int capacity, IComparer<T> comparer = null, Action<T> collector = null )
         {
             if( capacity <= 0 ) throw new ArgumentException( "The max count must be greater than 0.", nameof( capacity ) );
+            _collector = collector;
             Comparer = comparer ?? Comparer<T>.Default;
             _items = new T[capacity];
         }
@@ -111,6 +115,7 @@ namespace CK.Core
         void AddFromTop( T candidate )
         {
             int idx = 0;
+            T removedItem = _items[ 0 ];
             _items[ 0 ] = candidate;
 
             while( true )
@@ -123,7 +128,11 @@ namespace CK.Core
                 else smallestIdx = idx;
                 if( rightIdx < _count && Comparer.Compare( _items[ rightIdx ], _items[ smallestIdx ] ) < 0 ) smallestIdx = rightIdx;
 
-                if( smallestIdx == idx ) return;
+                if( smallestIdx == idx )
+                {
+                    if( _collector != null ) _collector( removedItem );
+                    return;
+                }
 
                 Swap( smallestIdx, idx );
                 idx = smallestIdx;
