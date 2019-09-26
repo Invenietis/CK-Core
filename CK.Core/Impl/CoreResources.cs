@@ -51,7 +51,7 @@ namespace CK.Core.Impl
 
         public static readonly string StringMatcherForwardPastEnd = "Unable to forward past the end of the string.";
 
-        public static readonly string TraitsMustBelongToTheSameContext = "Traits must belong to the same context.";
+        public static readonly string TagsMustBelongToTheSameContext = "Tags must belong to the same context.";
         
         public static readonly string ServiceAlreadyDirectlySupported = "Service {0} is directly supported by the container.";
 
@@ -65,6 +65,6 @@ namespace CK.Core.Impl
 
         public static readonly string UnregisteredServiceInServiceProvider = "Unable to find service '{0}'.";
 
-        public static readonly string TraitsMustNotBeMultiLineString = "Trait must not be multi line (CR and LF characters are forbidden).";
+        public static readonly string TagsMustNotBeMultiLineString = "Tag must not be multi line (CR and LF characters are forbidden).";
     }
 }

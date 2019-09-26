@@ -1,26 +1,3 @@
-#region LGPL License
-/*----------------------------------------------------------------------------
-* This file (Tests\CK.Core.Tests\Traits.cs) is part of CiviKey. 
-*  
-* CiviKey is free software: you can redistribute it and/or modify 
-* it under the terms of the GNU Lesser General Public License as published 
-* by the Free Software Foundation, either version 3 of the License, or 
-* (at your option) any later version. 
-*  
-* CiviKey is distributed in the hope that it will be useful, 
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
-* GNU Lesser General Public License for more details. 
-* You should have received a copy of the GNU Lesser General Public License 
-* along with CiviKey.  If not, see <http://www.gnu.org/licenses/>. 
-*  
-* Copyright © 2007-2015, 
-*     Invenietis <http://www.invenietis.com>,
-*     In’Tech INFO <http://www.intechinfo.fr>,
-* All rights reserved. 
-*-----------------------------------------------------------------------------*/
-#endregion
-
 using FluentAssertions;
 using System;
 using System.Collections.Generic;
@@ -34,35 +11,18 @@ namespace CK.Core.Tests
     /// <summary>
     /// This class test operations on CKTrait (FindOrCreate, Intersect, etc.).
     /// </summary>
-    public class TraitsTests
+    public class CKTraitTests
     {
-        //CKTraitContext Context;
-
-        //public TraitsTests()
-        //{
-        //    Context = new CKTraitContext( "Test", '+' );
-        //}
-
-        //static object _lock = new object();
-        //[SetUp]
-        //public void Lock() => Monitor.Enter( _lock );
-
-        //[TearDown]
-        //public void Unlock() => Monitor.Exit( _lock );
-
-        CKTraitContext ContextWithPlusSeparator() => new CKTraitContext( "Test", '+' );
-
+        CKTraitContext ContextWithPlusSeparator() => CKTraitContext.Create( "Test", '+' );
 
         [Test]
-        public void Comparing_traits()
+        public void Comparing_tags()
         {
-            CKTraitContext c1 = new CKTraitContext( "C1" );
-            CKTraitContext c1Bis = new CKTraitContext( "C1" );
-            CKTraitContext c2 = new CKTraitContext( "C2" );
+            CKTraitContext c1 = CKTraitContext.Create( "C1" );
+            CKTraitContext c2 = CKTraitContext.Create( "C2" );
 
             c1.CompareTo( c1 ).Should().Be( 0 );
             c1.CompareTo( c2 ).Should().BeLessThan( 0 );
-            c1Bis.CompareTo( c1 ).Should().BeGreaterThan( 0 );
 
             var tAc1 = c1.FindOrCreate( "A" );
             var tBc1 = c1.FindOrCreate( "B" );
@@ -77,16 +37,16 @@ namespace CK.Core.Tests
         }
 
         [Test]
-        public void Traits_must_belong_to_the_same_context()
+        public void Tags_must_belong_to_the_same_context()
         {
-            Action a = () => new CKTraitContext( null );
+            Action a = () => CKTraitContext.Create( null );
             a.Should().Throw<ArgumentException>();
 
-            a = () => new CKTraitContext( "  " );
+            a = () => CKTraitContext.Create( "  " );
             a.Should().Throw<ArgumentException>();
 
-            CKTraitContext c1 = new CKTraitContext( "C1" );
-            CKTraitContext c2 = new CKTraitContext( "C2" );
+            CKTraitContext c1 = CKTraitContext.Create( "C1" );
+            CKTraitContext c2 = CKTraitContext.Create( "C2" );
 
             var t1 = c1.FindOrCreate( "T1" );
             var t2 = c2.FindOrCreate( "T2" );
@@ -112,22 +72,22 @@ namespace CK.Core.Tests
         }
 
         [Test]
-        public void EmptyTrait_is_everywhere()
+        public void EmptyTag_is_everywhere()
         {
             var c = ContextWithPlusSeparator();
             CKTrait m = c.EmptyTrait;
-            m.ToString().Should().BeSameAs( string.Empty, "Empty trait is the empty string." );
-            m.IsAtomic.Should().BeTrue( "Empty trait is considered as atomic." );
-            m.AtomicTraits.Should().BeEmpty( "Empty trait has no atomic traits inside." );
+            m.ToString().Should().BeSameAs( string.Empty, "Empty tag is the empty string." );
+            m.IsAtomic.Should().BeTrue( "Empty tag is considered as atomic." );
+            m.AtomicTraits.Should().BeEmpty( "Empty tag has no atomic tags inside." );
 
-            c.FindOrCreate( null ).Should().BeSameAs( m, "Null gives the empty trait." );
-            c.FindOrCreate( "" ).Should().BeSameAs( m, "Obtaining empty string gives the empty trait." );
-            c.FindOrCreate( "+" ).Should().BeSameAs( m, "Obtaining '+' gives the empty trait." );
+            c.FindOrCreate( null ).Should().BeSameAs( m, "Null gives the empty tag." );
+            c.FindOrCreate( "" ).Should().BeSameAs( m, "Obtaining empty string gives the empty tag." );
+            c.FindOrCreate( "+" ).Should().BeSameAs( m, "Obtaining '+' gives the empty tag." );
             c.Invoking( sut => sut.FindOrCreate( " \t \n  " ) ).Should().Throw<ArgumentException>( "No \n inside." );
             c.Invoking( sut => sut.FindOrCreate( " \r " ) ).Should().Throw<ArgumentException>( "No \r inside." );
             c.FindOrCreate( "+ \t +" ).Should().BeSameAs( m, "Leading and trailing '+' are ignored." );
             c.FindOrCreate( "++++" ).Should().BeSameAs( m, "Multiple + are ignored" );
-            c.FindOrCreate( "++  +++  + \t +" ).Should().BeSameAs( m, "Multiple empty strings leads to empty trait." );
+            c.FindOrCreate( "++  +++  + \t +" ).Should().BeSameAs( m, "Multiple empty strings leads to empty tag." );
 
             c.FindOnlyExisting( null ).Should().BeNull();
             c.FindOnlyExisting( "" ).Should().BeNull();
@@ -139,49 +99,56 @@ namespace CK.Core.Tests
         }
 
         [Test]
-        public void test_AtomicTrait_parsing()
+        public void test_AtomicTag_parsing()
         {
             var c = ContextWithPlusSeparator();
             CKTrait m = c.FindOrCreate( "Alpha" );
             m.IsAtomic.Should().BeTrue();
             m.AtomicTraits.Count.Should().Be( 1, "Not a combined one." );
-            m.AtomicTraits[0].Should().BeSameAs( m, "Atomic traits are self-contained." );
+            m.AtomicTraits[0].Should().BeSameAs( m, "Atomic tags are self-contained." );
 
             c.FindOrCreate( " \t Alpha\t\t  " ).Should().BeSameAs( m, "Strings are trimmed." );
             c.FindOrCreate( "+ \t Alpha+" ).Should().BeSameAs( m, "Leading and trailing '+' are ignored." );
             c.FindOrCreate( "+Alpha+++" ).Should().BeSameAs( m, "Multiple + are ignored" );
             c.FindOrCreate( "++ Alpha +++ \t\t  + \t +" ).Should().BeSameAs( m, "Multiple empty strings are ignored." );
 
-            c.FindOnlyExisting( "Beta" ).Should().BeNull();
-            c.FindOnlyExisting( "Beta+Gamma" ).Should().BeNull();
+            var notExist1 = Guid.NewGuid().ToString();
+            var notExist2 = Guid.NewGuid().ToString();
+            c.FindOnlyExisting( notExist1 ).Should().BeNull();
+            c.FindOnlyExisting( $"{notExist1}+{notExist2}" ).Should().BeNull();
             c.FindOnlyExisting( "Alpha" ).Should().BeSameAs( m );
-            c.FindOnlyExisting( "Beta+Gamma+Alpha" ).Should().BeSameAs( m );
+            c.FindOnlyExisting( $"{notExist1}+{notExist2}+Alpha" ).Should().BeSameAs( m );
         }
 
         [Test]
-        public void test_Combined_traits_parsing()
+        public void test_Combined_tags_parsing()
         {
             var c = ContextWithPlusSeparator();
 
             CKTrait m = c.FindOrCreate( "Beta+Alpha" );
             m.IsAtomic.Should().BeFalse();
-            m.AtomicTraits.Should().HaveCount( 2, "Combined trait." );
+            m.AtomicTraits.Should().HaveCount( 2, "Combined tag." );
             m.AtomicTraits[0].Should().BeSameAs( c.FindOrCreate( "Alpha" ), "Atomic Alpha is the first one." );
             m.AtomicTraits[1].Should().BeSameAs( c.FindOrCreate( "Beta" ), "Atomic Beta is the second one." );
 
             c.FindOrCreate( "Alpha+Beta" ).Should().BeSameAs( m, "Canonical order is ensured." );
-            c.FindOrCreate( "+ +\t++ Alpha+++Beta++" ).Should().BeSameAs( m, "Extra characters and empty traits are ignored." );
+            c.FindOrCreate( "+ +\t++ Alpha+++Beta++" ).Should().BeSameAs( m, "Extra characters and empty tags are ignored." );
 
-            c.FindOrCreate( "Alpha+Beta+Alpha" ).Should().BeSameAs( m, "Multiple identical traits are removed." );
-            c.FindOrCreate( "Alpha+ +Beta\t ++Beta+ + Alpha +    Beta   ++ " ).Should().BeSameAs( m, "Multiple identical traits are removed." );
+            c.FindOrCreate( "Alpha+Beta+Alpha" ).Should().BeSameAs( m, "Multiple identical tags are removed." );
+            c.FindOrCreate( "Alpha+ +Beta\t ++Beta+ + Alpha +    Beta   ++ " )
+                .Should().BeSameAs( m, "Multiple identical tags are removed." );
 
             CKTrait m2 = c.FindOrCreate( "Beta+Alpha+Zeta+Tau+Pi+Omega+Epsilon" );
-            c.FindOrCreate( "++Beta+Zeta+Omega+Epsilon+Alpha+Zeta+Epsilon+Zeta+Tau+Epsilon+Pi+Tau+Beta+Zeta+Omega+Beta+Pi+Alpha" ).Should().BeSameAs( m2, "Unicity of Atomic trait is ensured." );
+            c.FindOrCreate( "++Beta+Zeta+Omega+Epsilon+Alpha+Zeta+Epsilon+Zeta+Tau+Epsilon+Pi+Tau+Beta+Zeta+Omega+Beta+Pi+Alpha" )
+                .Should().BeSameAs( m2, "Unicity of Atomic tag is ensured." );
 
+            var notExists1 = Guid.NewGuid().ToString();
+            var notExists2 = Guid.NewGuid().ToString();
+            var notExists3 = Guid.NewGuid().ToString();
             c.FindOnlyExisting( "Beta" ).ToString().Should().Be( "Beta" );
-            c.FindOnlyExisting( "Beta+Gamma" ).ToString().Should().Be( "Beta" );
-            c.FindOnlyExisting( "Beta+Gamma+Nimp+Alpha+Other" ).Should().BeSameAs( m );
-            c.FindOnlyExisting( "Beta+Gamma+Nimp+Alpha+Other+Tau+Pi" ).ToString().Should().Be( "Alpha+Beta+Pi+Tau" );
+            c.FindOnlyExisting( $"Beta+{notExists1}" ).ToString().Should().Be( "Beta" );
+            c.FindOnlyExisting( $"Beta+{notExists1}+{notExists2}+Alpha+{notExists3}" ).Should().BeSameAs( m );
+            c.FindOnlyExisting( $"Beta+  {notExists1} + {notExists2} +Alpha+{notExists3}+Tau+Pi" ).ToString().Should().Be( "Alpha+Beta+Pi+Tau" );
         }
 
         [Test]
@@ -192,16 +159,22 @@ namespace CK.Core.Tests
             List<string> collector = new List<string>();
             c.FindOrCreate( "Beta+Alpha+Tau+Pi" );
 
-            c.FindOnlyExisting( "Beta+Gamma+Nimp+Alpha+Other+Tau+Pi+Zeta", t => { collector.Add( t ); return true; } ).ToString().Should().Be( "Alpha+Beta+Pi+Tau" );
-            String.Join( ",", collector ).Should().Be( "Gamma,Nimp,Other,Zeta" );
+            var noExists1 = "A" + Guid.NewGuid().ToString();
+            var noExists2 = "B" + Guid.NewGuid().ToString();
+            var noExists3 = "C" + Guid.NewGuid().ToString();
+            var noExists4 = "D" + Guid.NewGuid().ToString();
+            c.FindOnlyExisting( $"Beta+{noExists1}+{noExists2}+Alpha+{noExists3}+Tau+Pi+{noExists4}", t => { collector.Add( t ); return true; } ).ToString()
+                .Should().Be( "Alpha+Beta+Pi+Tau" );
+            String.Join( ",", collector ).Should().Be( $"{noExists1},{noExists2},{noExists3},{noExists4}" );
 
             collector.Clear();
-            c.FindOnlyExisting( "Beta+Gamma+Nimp+Alpha+Other+Tau+Pi", t => { collector.Add( t ); return t != "Other"; } ).ToString().Should().Be( "Alpha+Beta" );
-            String.Join( ",", collector ).Should().Be( "Gamma,Nimp,Other" );
+            c.FindOnlyExisting( $"Beta+{noExists1}+{noExists2}+Alpha+{noExists3}+Tau+Pi", t => { collector.Add( t ); return t != noExists3; } ).ToString()
+                .Should().Be( "Alpha+Beta" );
+            String.Join( ",", collector ).Should().Be( $"{noExists1},{noExists2},{noExists3}" );
         }
 
         [Test]
-        public void test_Intersect_between_traits()
+        public void test_Intersect_between_tags()
         {
             var c = ContextWithPlusSeparator();
 
@@ -215,7 +188,7 @@ namespace CK.Core.Tests
         }
 
         [Test]
-        public void test_Union_of_traits()
+        public void test_Union_of_tags()
         {
             var c = ContextWithPlusSeparator();
             CKTrait m1 = c.FindOrCreate( "Beta+Alpha+Fridge+Combo" );
@@ -226,7 +199,7 @@ namespace CK.Core.Tests
         }
 
         [Test]
-        public void test_Except_of_traits()
+        public void test_Except_of_tags()
         {
             var c = ContextWithPlusSeparator();
             CKTrait m1 = c.FindOrCreate( "Beta+Alpha+Fridge+Combo" );
@@ -265,14 +238,14 @@ namespace CK.Core.Tests
             m.Overlaps( c.FindOrCreate( "AFridge+ALol" ) ).Should().BeFalse();
             m.Overlaps( c.FindOrCreate( "Murfn" ) ).Should().BeFalse();
             m.Overlaps( c.FindOrCreate( "QF+QA+QC+QL" ) ).Should().BeFalse();
-            m.Overlaps( c.EmptyTrait ).Should().BeFalse( "Empty is NOT contained 'ONE' since EmptyTrait.AtomicTraits.Count == 0..." );
+            m.Overlaps( c.EmptyTrait ).Should().BeFalse( "Empty is NOT contained 'ONE' since EmptyTag.AtomicTags.Count == 0..." );
             c.EmptyTrait.Overlaps( c.EmptyTrait ).Should().BeFalse( "Empty is NOT contained 'ONE' in itself." );
         }
 
         [Test]
-        public void trait_separator_can_be_changed_from_the_default_pipe()
+        public void tag_separator_can_be_changed_from_the_default_pipe()
         {
-            var c = new CKTraitContext( "SemiColonContext", ';' );
+            var c = CKTraitContext.Create( "SemiColonContext", ';' );
             CKTrait m = c.FindOrCreate( "Beta;Alpha;Fridge;Combo" );
 
             c.EmptyTrait.IsSupersetOf( c.EmptyTrait ).Should().BeTrue( "Empty is contained by definition in itself." );
@@ -293,7 +266,7 @@ namespace CK.Core.Tests
             m.Overlaps( c.FindOrCreate( "AFridge;ALol" ) ).Should().BeFalse();
             m.Overlaps( c.FindOrCreate( "Murfn" ) ).Should().BeFalse();
             m.Overlaps( c.FindOrCreate( "QF;QA;QC;QL" ) ).Should().BeFalse();
-            m.Overlaps( c.EmptyTrait ).Should().BeFalse( "Empty is NOT contained 'ONE' since EmptyTrait.AtomicTraits.Count == 0..." );
+            m.Overlaps( c.EmptyTrait ).Should().BeFalse( "Empty is NOT contained 'ONE' since EmptyTag.AtomicTags.Count == 0..." );
             c.EmptyTrait.Overlaps( c.EmptyTrait ).Should().BeFalse( "Empty is NOT contained 'ONE' in itself." );
         }
 
@@ -313,9 +286,8 @@ namespace CK.Core.Tests
             m.SymmetricExcept( c.FindOrCreate( "Zenon+Alpha+Xtra+Fridge" ) ).ToString().Should().Be( "Beta+Combo+Xtra+Zenon" );
         }
 
-
         [Test]
-        public void test_Fallbacks_generation()
+        public void Fallbacks_generation()
         {
             var c = ContextWithPlusSeparator();
             {
@@ -378,7 +350,7 @@ namespace CK.Core.Tests
         }
 
         [Test]
-        public void test_Fallbacks_ordering()
+        public void Fallbacks_ordering()
         {
             var c = ContextWithPlusSeparator();
             {
@@ -393,27 +365,74 @@ namespace CK.Core.Tests
             {
                 CKTrait m = c.FindOrCreate( "Alpha+Beta+Combo+Fridge+F+K+Ju+J+A+B" );
                 IReadOnlyList<CKTrait> f = m.Fallbacks.ToArray();
-                f.OrderBy( trait => trait ).Reverse().SequenceEqual( f ).Should().BeTrue( "CKTrait.CompareTo is ok." );
+                f.OrderBy( tag => tag ).Reverse().SequenceEqual( f ).Should().BeTrue( "CKTrait.CompareTo is ok." );
             }
             {
                 CKTrait m = c.FindOrCreate( "xz+lz+ded+az+zer+t+zer+ce+ret+ert+ml+a+nzn" );
                 IReadOnlyList<CKTrait> f = m.Fallbacks.ToArray();
-                f.OrderBy( trait => trait ).Reverse().SequenceEqual( f ).Should().BeTrue( "CKTrait.CompareTo is ok." );
+                f.OrderBy( tag => tag ).Reverse().SequenceEqual( f ).Should().BeTrue( "CKTrait.CompareTo is ok." );
             }
         }
 
         [Test]
-        public void test_FindIfAllExist()
+        public void FindIfAllExist_tests()
         {
-            var c = ContextWithPlusSeparator();
+            var c = CKTraitContext.Create( "Indep", '+', shared: false );
 
             CKTrait m = c.FindOrCreate( "Alpha+Beta+Combo+Fridge" );
 
             c.FindIfAllExist( "" ).Should().Be( c.EmptyTrait );
             c.FindIfAllExist( "bo" ).Should().BeNull();
-            c.FindIfAllExist( "Alpha" ).Should().Be( c.FindOrCreate( "Alpha" ) );
+            var alpha = c.FindOrCreate( "Alpha" );
+            c.FindIfAllExist( "Alpha" ).Should().Be( alpha );
             c.FindIfAllExist( "bo+pha" ).Should().BeNull();
             c.FindIfAllExist( "Fridge+Combo+Alpha+Beta" ).Should().BeSameAs( m );
         }
+
+        [Test]
+        public void independent_or_shared_contexts()
+        {
+            var shared = CKTraitContext.Create( "Shared", '+' );
+            Action notPossible = () => CKTraitContext.Create( "Shared", '-' );
+            notPossible.Should().Throw<InvalidOperationException>();
+
+            var here = shared.FindOrCreate( "Here!" );
+
+            var independent1 = CKTraitContext.Create( "Shared", '-', shared: false );
+            independent1.FindOnlyExisting( "Here!" ).Should().BeNull();
+
+            independent1.FindOrCreate( "In Independent n°1" );
+
+            var independent2 = CKTraitContext.Create( "Shared", '-', shared: false );
+            independent2.FindOnlyExisting( "Here!" ).Should().BeNull();
+            independent2.FindOnlyExisting( "In Independent n°1" ).Should().BeNull();
+
+            var anotherShared = CKTraitContext.Create( "Shared", '+' );
+            anotherShared.FindOnlyExisting( "Here!" ).Should().BeSameAs( here );
+
+            (anotherShared == shared).Should().BeTrue();
+            (anotherShared != shared).Should().BeFalse();
+            anotherShared.Equals( shared ).Should().BeTrue();
+            anotherShared.CompareTo( shared ).Should().Be( 0 );
+
+            var here1 = independent1.FindOrCreate( "Here!" );
+            var here2 = independent2.FindOrCreate( "Here!" );
+
+            here.Should().NotBeSameAs( here1 );
+            here.Should().NotBeSameAs( here2 );
+            here1.Should().NotBeSameAs( here2 );
+
+            // Comparisons across contexts: a unique index "sorts" the independent contexts.
+            // This index is positive for independent contexts: shared context's tags come first.
+
+            here.CompareTo( here1 ).Should().BeNegative();
+            here1.CompareTo( here2 ).Should().BeNegative();
+            here.CompareTo( here2 ).Should().BeNegative();
+
+            here1.CompareTo( here ).Should().BePositive();
+            here2.CompareTo( here1 ).Should().BePositive();
+            here2.CompareTo( here ).Should().BePositive();
+        }
+
     }
 }

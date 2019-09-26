@@ -133,6 +133,7 @@ namespace CK.Core.Tests
         [TestCase( @"E:\TestSub\Sub" )]
         public void CreateUniqueTimedFolder_simple_test_on_non_default_volume( string rootTestPath )
         {
+            Assume.That( Directory.Exists( Path.GetPathRoot( rootTestPath ) ) );
             DateTime now = DateTime.UtcNow;
             var prefix = Path.Combine( rootTestPath, "F/Simple/F-" );
             var f1 = FileUtil.CreateUniqueTimedFolder( prefix, String.Empty, now );
@@ -166,6 +167,7 @@ namespace CK.Core.Tests
         [TestCase( @"E:\TestSub\Sub" )]
         public void CreateUniqueTimedFolder_clash_never_happen_on_non_default_volume( string rootTestPath )
         {
+            Assume.That( Directory.Exists( Path.GetPathRoot( rootTestPath ) ) );
             DateTime now = DateTime.UtcNow;
             var prefixes = new[] {
                 Path.Combine( rootTestPath, "F-Clash/FA" ),

@@ -99,7 +99,7 @@ namespace CK.Core.Tests
             ProvidedClass providedClass = new ProvidedClass( 5 );
             container.Add( providedClass );
 
-            ProvidedClass retrievedObject = container.GetService<ProvidedClass>();
+            ProvidedClass retrievedObject = container.GetService<ProvidedClass>( false );
             retrievedObject.Should().NotBeNull();
             retrievedObject.Age.Should().Be( 5 );
         }
@@ -118,7 +118,7 @@ namespace CK.Core.Tests
             baseProvider.Add( typeof( IMultService ), multService, o => removedServicesCount++ );
             ISimpleServiceContainer container = new SimpleServiceContainer( baseProvider );
 
-            IServiceContainerConformanceTest( container, baseProvider, baseProvider.GetService<IMultService>() );
+            IServiceContainerConformanceTest( container, baseProvider, baseProvider.GetService<IMultService>( false ) );
 
             removedServicesCount.Should().Be( 1 );
         }
@@ -131,7 +131,7 @@ namespace CK.Core.Tests
             SimpleServiceContainer container = new SimpleServiceContainer();
             container.Add( typeof( IAddService ), new AddServiceImpl(), o => removedServicesCount++ );
 
-            IAddService service = container.GetService<IAddService>();
+            IAddService service = container.GetService<IAddService>( false );
             service.Should().BeOfType<AddServiceImpl>();
 
             removedServicesCount.Should().Be( 0 );
@@ -139,7 +139,7 @@ namespace CK.Core.Tests
             removedServicesCount.Should().Be( 1 );
 
             container.GetService( typeof( IAddService ) ).Should().BeNull();
-            container.GetService<IAddService>().Should().BeNull();
+            container.GetService<IAddService>( false ).Should().BeNull();
             container.Invoking( sut => sut.GetService<IAddService>( true ) ).Should().Throw<Exception>();
         }
 
@@ -151,14 +151,14 @@ namespace CK.Core.Tests
             disposableClass.ServiceContainer = container;
             container.Add( disposableClass, Util.ActionDispose );
 
-            DisposableThatReenterClearWhenDisposed service = container.GetService<DisposableThatReenterClearWhenDisposed>();
+            DisposableThatReenterClearWhenDisposed service = container.GetService<DisposableThatReenterClearWhenDisposed>( false );
             service.Should().NotBeNull();
             service.GetType().Should().Be( typeof( DisposableThatReenterClearWhenDisposed ) );
 
             container.Clear();
 
             container.GetService( typeof( DisposableThatReenterClearWhenDisposed ) ).Should().BeNull();
-            container.GetService<DisposableThatReenterClearWhenDisposed>().Should().BeNull();
+            container.GetService<DisposableThatReenterClearWhenDisposed>( false ).Should().BeNull();
             container.Invoking( sut => sut.GetService<DisposableThatReenterClearWhenDisposed>( true ) ).Should().Throw<Exception>();
         }
 
@@ -174,13 +174,13 @@ namespace CK.Core.Tests
             container.Add( disposableClass, Util.ActionDispose );
             container.Add( stupidObject, e => container.Clear() );
 
-            DisposableThatReenterClearWhenDisposed service = container.GetService<DisposableThatReenterClearWhenDisposed>();
+            DisposableThatReenterClearWhenDisposed service = container.GetService<DisposableThatReenterClearWhenDisposed>( false );
             service.Should().BeOfType<DisposableThatReenterClearWhenDisposed>();
 
             container.Remove<EmptyClass>();
 
             container.GetService( typeof( DisposableThatReenterClearWhenDisposed ) ).Should().BeNull();
-            container.GetService<DisposableThatReenterClearWhenDisposed>().Should().BeNull();
+            container.GetService<DisposableThatReenterClearWhenDisposed>( false ).Should().BeNull();
             container.Invoking( sut => sut.GetService<DisposableThatReenterClearWhenDisposed>( true ) ).Should().Throw<Exception>();
         }
 
@@ -188,8 +188,8 @@ namespace CK.Core.Tests
         public void SimpleServiceContainer_exposes_its_own_IServiceProvier_and_ISimpleServiceContainer_implementation()
         {
             SimpleServiceContainer container = new SimpleServiceContainer();
-            container.GetService<IServiceProvider>().Should().BeSameAs( container );
-            container.GetService<ISimpleServiceContainer>().Should().BeSameAs( container );
+            container.GetService<IServiceProvider>( false ).Should().BeSameAs( container );
+            container.GetService<ISimpleServiceContainer>( false ).Should().BeSameAs( container );
 
             container.Invoking( sut => sut.Add<ISimpleServiceContainer>( container ) ).Should().Throw<Exception>();
             container.Invoking( sut => sut.Add<ISimpleServiceContainer>( new SimpleServiceContainer() ) ).Should().Throw<Exception>();
@@ -210,7 +210,7 @@ namespace CK.Core.Tests
             container.Invoking( sut => sut.Add( typeof( int ), new ProvidedClass( 5 ), null ) ).Should().Throw<Exception>();
 
             container.Add( typeof( ProvidedClass ), () => { return new EmptyClass(); }, null );
-            container.Invoking( sut => sut.GetService<ProvidedClass>() ).Should().Throw<Exception>();
+            container.Invoking( sut => sut.GetService<ProvidedClass>( false ) ).Should().Throw<Exception>();
         }
 
         [ExcludeFromCodeCoverage]
@@ -292,12 +292,12 @@ namespace CK.Core.Tests
             container.Add<IAddService>( creatorFunc );
             container.Add<ISubstractService>( new SubstractServiceImpl() );
 
-            IAddService service = container.GetService<IAddService>();
+            IAddService service = container.GetService<IAddService>( false );
             service.Should().NotBeNull();
             service.GetType().Should().Be( typeof( AddServiceImpl ) );
             service.Add( 1, 1 ).Should().Be( 2 );
 
-            ISubstractService substractService = container.GetService<ISubstractService>();
+            ISubstractService substractService = container.GetService<ISubstractService>( false );
             substractService.Should().NotBeNull();
             substractService.GetType().Should().Be( typeof( SubstractServiceImpl ) );
             substractService.Substract( 1, 1 ).Should().Be( 0 );
@@ -305,30 +305,30 @@ namespace CK.Core.Tests
             //clear test
             container.Clear();
 
-            container.GetService<IAddService>().Should().BeNull();
-            container.GetService<ISubstractService>().Should().BeNull();
+            container.GetService<IAddService>( false ).Should().BeNull();
+            container.GetService<ISubstractService>( false ).Should().BeNull();
 
             //base provider test
             if( baseProvider != null && baseProviderServiceToTest != null )
             {
-                T baseService = container.GetService<T>();
+                T baseService = container.GetService<T>( false );
                 baseService.Should().NotBeNull( "The baseProvider contains the specified service." );
 
                 container.Remove( typeof( T ) );
-                baseService = container.GetService<T>();
+                baseService = container.GetService<T>( false );
                 baseService.Should().NotBeNull( "Trying to remove a base service from a child provider does nothing." );
 
                 container.AddDisabled( typeof( T ) );
-                container.GetService<T>().Should().BeNull( "Access to this service is disabled" );
+                container.GetService<T>( false ).Should().BeNull( "Access to this service is disabled" );
 
                 baseProvider.Remove( typeof( T ) );
-                container.GetService<T>().Should().BeNull( "Access to this service is disabled & The service doesn't exist anymore on the baseProvider" );
+                container.GetService<T>( false ).Should().BeNull( "Access to this service is disabled & The service doesn't exist anymore on the baseProvider" );
 
                 container.Remove( typeof( T ) );
-                container.GetService<T>().Should().BeNull( "The service doesn't exist anymore on the baseProvider" );
+                container.GetService<T>( false ).Should().BeNull( "The service doesn't exist anymore on the baseProvider" );
 
                 baseProvider.Add( baseProviderServiceToTest );
-                container.GetService<T>().Should().NotBeNull( "Back to the beginning's state, the service is retrieved from the base provider." );
+                container.GetService<T>( false ).Should().NotBeNull( "Back to the beginning's state, the service is retrieved from the base provider." );
             }
         }
 
@@ -336,7 +336,7 @@ namespace CK.Core.Tests
         {
             bool removedCall = false;
             container.Add<IAddService>( new AddServiceImpl(), s => { removedCall = true; container.Remove( typeof( IAddService ) ); } );
-            container.GetService<IAddService>().Should().NotBeNull();
+            container.GetService<IAddService>( false ).Should().NotBeNull();
             container.Remove( typeof( IAddService ) );
             removedCall.Should().BeTrue( "OnRemove has been called and can safely remove the service again without stack overflow exception." );
         }
@@ -356,14 +356,14 @@ namespace CK.Core.Tests
 
         private static void IServiceContainerConformanceAddRemove( ISimpleServiceContainer container, Func<IAddService> creatorFunc )
         {
-            container.GetService<IAddService>().Should().BeNull( "Starting with no IAddService." );
+            container.GetService<IAddService>( false ).Should().BeNull( "Starting with no IAddService." );
 
             container.Add( creatorFunc );
             container.Invoking( sut => sut.Add( creatorFunc ) ).Should().Throw<Exception>( "Adding an already existing service throws an exception." );
 
-            container.GetService<IAddService>().Should().NotBeNull( "Deferred creation occured." );
+            container.GetService<IAddService>( false ).Should().NotBeNull( "Deferred creation occured." );
             container.Remove( typeof( IAddService ) );
-            container.GetService<IAddService>().Should().BeNull( "Remove works." );
+            container.GetService<IAddService>( false ).Should().BeNull( "Remove works." );
 
             // Removing an unexisting service is okay.
             container.Remove( typeof( IAddService ) );
@@ -374,7 +374,7 @@ namespace CK.Core.Tests
             removed.Should().BeFalse( "Since the service has never been required, it has not been created, hence, OnRemove action has not been called." );
 
             container.Add<IAddService>( creatorFunc, s => removed = true );
-            container.GetService<IAddService>().Should().NotBeNull( "Service has been created." );
+            container.GetService<IAddService>( false ).Should().NotBeNull( "Service has been created." );
             container.Remove( typeof( IAddService ) );
             removed.Should().BeTrue( "This time, OnRemove action has been called." );
 

@@ -48,17 +48,6 @@ namespace CK.Core
         }
 
         /// <summary>
-        /// Strongly typed version of <see cref="IServiceProvider.GetService"/> that returns null if service is not found.
-        /// (Same behavior as <see cref="IServiceProvider.GetService"/>.)
-        /// </summary>
-        /// <param name="this">This service provider.</param>
-        /// <returns>A service object of the required type or null if not found.</returns>
-        public static T GetService<T>( this IServiceProvider @this )
-        {
-            return (T)@this.GetService( typeof( T ) );
-        }
-
-        /// <summary>
         /// Type safe version to remove a registered type.
         /// </summary>
         /// <param name="this">This <see cref="ISimpleServiceContainer"/> object.</param>
@@ -125,7 +114,7 @@ namespace CK.Core
             // that is called (unit tests asserts this).
             // To allow the covariance, we MUST constrain the type T to be a reference class (hence the where clause).
             //
-            // On the other hand, for the onRemove action we can not do any miracle: we need to adapt the call.
+            // On the other hand, for the onRemove action we cannot do any miracle: we need to adapt the call.
             //
             if( onRemove == null ) throw new ArgumentNullException( nameof( onRemove ) );
             return @this.Add( typeof( T ), serviceInstance, o => onRemove( (T)o ) );
@@ -133,7 +122,7 @@ namespace CK.Core
 
         /// <summary>
         /// Gets whether a service is available.
-        /// (This simply calls <see cref="GetService{T}(IServiceProvider)"/> and checks for a non null value.)
+        /// (This simply calls <see cref="IServiceProvider.GetService(Type)"/> and checks for a non null value.)
         /// </summary>
         /// <typeparam name="T">Type of the service.</typeparam>
         /// <param name="this">This container.</param>

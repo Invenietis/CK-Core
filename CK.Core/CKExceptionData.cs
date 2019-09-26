@@ -1,13 +1,9 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
 using System.Text;
-using CK.Core;
-using System.Threading.Tasks;
 using System.IO;
 using System.Diagnostics;
-using System.Runtime.Serialization;
 using CK.Text;
 
 namespace CK.Core
