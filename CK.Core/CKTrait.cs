@@ -339,13 +339,13 @@ namespace CK.Core
         }
 
         /// <summary>
-        /// Gets the number of <see cref="Fallbacks"/>. It is 2^<see cref="AtomicTags"/>.<see cref="IReadOnlyCollection{T}.Count"/> - 1 since this
+        /// Gets the number of <see cref="Fallbacks"/>. It is 2^<see cref="AtomicTraits"/>.<see cref="IReadOnlyCollection{T}.Count"/> - 1 since this
         /// tag itself does not appear in the fallbacks, but it is always 1 for atomic and the empty tag (the empty tag always ends the list).
         /// </summary>
         public int FallbacksCount => _tags.Count > 1 ? ( 1 << _tags.Count ) - 1 : 1;
 
         /// <summary>
-        /// Gets the number of <see cref="Fallbacks"/>. It is 2^<see cref="AtomicTags"/>.<see cref="IReadOnlyCollection{T}.Count"/> - 1 since this
+        /// Gets the number of <see cref="Fallbacks"/>. It is 2^<see cref="AtomicTraits"/>.<see cref="IReadOnlyCollection{T}.Count"/> - 1 since this
         /// tag itself does not appear in the fallbacks, but it is always 1 for atomic and the empty tag (the empty tag always ends the list).
         /// </summary>
         public long FallbacksLongCount => _tags.Count > 1 ? ( 1L << _tags.Count ) - 1L : 1L; 

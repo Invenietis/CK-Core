@@ -1,6 +1,7 @@
 using CK.Text;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -175,11 +176,11 @@ namespace CK.Core
         /// <summary>
         /// Reads in a 32-bit integer in compressed format.
         /// </summary>
-        /// <returns>A 32-bit integer</returns>
+        /// <returns>A 32-bit integer.</returns>
         public int ReadNonNegativeSmallInt32() => Read7BitEncodedInt();
 
         /// <summary>
-        /// Reads in a 32-bit integer in compressed format written by <see cref="CKBinaryWriter.WriteSmallInt32(int, int)"/>.
+        /// Reads in a 64-bit integer in compressed format written by <see cref="CKBinaryWriter.WriteSmallInt32(int, int)"/>.
         /// </summary>
         /// <param name="minNegativeValue">The same negative value used to write the integer.</param>
         /// <returns>A 32-bit integer</returns>
@@ -262,6 +263,154 @@ namespace CK.Core
         public Guid ReadGuid()
         {
             return new Guid( ReadBytes( 16 ) );
+        }
+
+        /// <summary>
+        /// Reads a nullable byte value.
+        /// </summary>
+        /// <returns>The nullable byte read.</returns>
+        public byte? ReadNullableByte()
+        {
+            var v = ReadByte();
+            if( v == 0xFE ) return null;
+            if( v == 0xFF ) v = ReadByte();
+            return v;
+        }
+
+        /// <summary>
+        /// Reads a nullable bool value.
+        /// </summary>
+        /// <returns>The nullable bool read.</returns>
+        public bool? ReadNullableBool()
+        {
+            switch( ReadByte() )
+            {
+                case 1: return true;
+                case 2: return false;
+                case 3: return null;
+            }
+            throw new InvalidDataException();
+        }
+
+        /// <summary>
+        /// Reads a nullable signed byte value.
+        /// </summary>
+        /// <returns>The nullable sbyte read.</returns>
+        public sbyte? ReadNullableSByte()
+        {
+            var v = ReadSByte();
+            if( v == 0x7F ) return null;
+            if( v == -128 ) v = ReadSByte();
+            return v;
+        }
+
+
+        /// <summary>
+        /// Reads a nullable ushort (<see cref="UInt16"/>) value.
+        /// </summary>
+        /// <returns>The nullable ushort read.</returns>
+        public ushort? ReadNullableUInt16()
+        {
+            var v = ReadUInt16();
+            if( v == UInt16.MaxValue-1 ) return null;
+            if( v == UInt16.MaxValue ) v = (ushort)(UInt16.MaxValue - ReadByte());
+            return v;
+        }
+
+        /// <summary>
+        /// Reads a nullable short (<see cref="Int16"/>) value.
+        /// </summary>
+        /// <returns>The nullable short read.</returns>
+        public short? ReadNullableInt16()
+        {
+            var v = ReadInt16();
+            if( v == Int16.MaxValue ) return null;
+            if( v == Int16.MinValue ) v = ReadByte() == 0 ? Int16.MinValue : Int16.MaxValue;
+            return v;
+        }
+
+        /// <summary>
+        /// Reads a nullable unsigned int (<see cref="UInt32"/>) value.
+        /// </summary>
+        /// <returns>The nullable uint read.</returns>
+        public uint? ReadNullableUInt32()
+        {
+            var v = ReadUInt32();
+            if( v == UInt32.MaxValue - 1 ) return null;
+            if( v == UInt32.MaxValue ) v = UInt32.MaxValue - ReadByte();
+            return v;
+        }
+
+        /// <summary>
+        /// Reads a nullable int (<see cref="Int32"/>) value.
+        /// </summary>
+        /// <returns>The nullable int read.</returns>
+        public int? ReadNullableInt32()
+        {
+            var v = ReadInt32();
+            if( v == Int32.MaxValue ) return null;
+            if( v == Int32.MinValue ) v = ReadByte() == 0 ? Int32.MinValue : Int32.MaxValue;
+            return v;
+        }
+
+        /// <summary>
+        /// Reads a nullable unsigned long (<see cref="UInt64"/>) value.
+        /// </summary>
+        /// <returns>The nullable ulong read.</returns>
+        public ulong? ReadNullableUInt64()
+        {
+            var v = ReadUInt64();
+            if( v == UInt64.MaxValue - 1 ) return null;
+            if( v == UInt64.MaxValue ) v = UInt64.MaxValue - ReadByte();
+            return v;
+        }
+
+        /// <summary>
+        /// Reads a nullable long (<see cref="Int64"/>) value.
+        /// </summary>
+        /// <returns>The nullable int read.</returns>
+        public long? ReadNullableInt64()
+        {
+            var v = ReadInt64();
+            if( v == Int64.MaxValue ) return null;
+            if( v == Int64.MinValue ) v = ReadByte() == 0 ? Int64.MinValue : Int64.MaxValue;
+            return v;
+        }
+
+        /// <summary>
+        /// Reads an enum value previously written by <see cref="ICKBinaryWriter.WriteEnum{T}(T)"/>.
+        /// </summary>
+        /// <typeparam name="T">The enum type.</typeparam>
+        public T ReadEnum<T>() where T : struct, Enum
+        {
+            var u = typeof( T ).GetEnumUnderlyingType();
+            if( u == typeof( int ) ) return (T)(object)ReadInt32();
+            if( u == typeof( byte ) ) return (T)(object)ReadByte();
+            if( u == typeof( short ) ) return (T)(object)ReadInt16();
+            if( u == typeof( long ) ) return (T)(object)ReadInt64();
+            if( u == typeof( sbyte ) ) return (T)(object)ReadSByte();
+            if( u == typeof( uint ) ) return (T)(object)ReadUInt32();
+            if( u == typeof( ushort ) ) return (T)(object)ReadUInt16();
+            if( u == typeof( ulong ) ) return (T)(object)ReadUInt64();
+            throw new NotSupportedException( $"Unhandled base enum type: {u}" );
+        }
+
+        /// <summary>
+        /// Reads an enum value previously written by <see cref="ICKBinaryWriter.WriteNullableEnum{T}(T?)"/>.
+        /// </summary>
+        /// <typeparam name="T">The enum type.</typeparam>
+        public T? ReadNullableEnum<T>() where T : struct, Enum
+        {
+            var u = typeof( T ).GetEnumUnderlyingType();
+            if( u == typeof( int ) ) { var v = ReadNullableInt32(); if( v.HasValue ) return (T)(object)v.Value; else return null; }
+            if( u == typeof( byte ) ) { var v = ReadNullableByte(); if( v.HasValue ) return (T)(object)v.Value; else return null; }
+            if( u == typeof( short ) ) { var v = ReadNullableInt16(); if( v.HasValue ) return (T)(object)v.Value; else return null; }
+            if( u == typeof( long ) ) { var v = ReadNullableInt64(); if( v.HasValue ) return (T)(object)v.Value; else return null; }
+            if( u == typeof( sbyte ) ) { var v = ReadNullableSByte(); if( v.HasValue ) return (T)(object)v.Value; else return null; }
+            if( u == typeof( uint ) ) { var v = ReadNullableUInt32(); if( v.HasValue ) return (T)(object)v.Value; else return null; }
+            if( u == typeof( ushort ) ) { var v = ReadNullableUInt16(); if( v.HasValue ) return (T)(object)v.Value; else return null; }
+            if( u == typeof( ulong ) ) { var v = ReadNullableUInt64(); if( v.HasValue ) return (T)(object)v.Value; else return null; }
+            throw new NotSupportedException( $"Unhandled base enum type: {u}" );
         }
     }
 

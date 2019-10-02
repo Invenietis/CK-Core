@@ -267,5 +267,72 @@ namespace CK.Core
         /// </summary>
         /// <returns>The string or null.</returns>
         string ReadSharedString();
+
+        /// <summary>
+        /// Reads a nullable byte value.
+        /// </summary>
+        /// <returns>The nullable byte read.</returns>
+        byte? ReadNullableByte();
+
+        /// <summary>
+        /// Reads a nullable bool value.
+        /// </summary>
+        /// <returns>The nullable bool read.</returns>
+        bool? ReadNullableBool();
+
+        /// <summary>
+        /// Reads a nullable signed byte value.
+        /// </summary>
+        /// <returns>The nullable sbyte read.</returns>
+        sbyte? ReadNullableSByte();
+
+        /// <summary>
+        /// Reads a nullable unsigned short (<see cref="UInt16"/>) value.
+        /// </summary>
+        /// <returns>The nullable ushort read.</returns>
+        ushort? ReadNullableUInt16();
+
+        /// <summary>
+        /// Reads a nullable short (<see cref="Int16"/>) value.
+        /// </summary>
+        /// <returns>The nullable short read.</returns>
+        short? ReadNullableInt16();
+
+        /// <summary>
+        /// Reads a nullable unsigned int (<see cref="UInt32"/>) value.
+        /// </summary>
+        /// <returns>The nullable uint read.</returns>
+        uint? ReadNullableUInt32();
+
+        /// <summary>
+        /// Reads a nullable int (<see cref="Int32"/>) value.
+        /// </summary>
+        /// <returns>The nullable int read.</returns>
+        int? ReadNullableInt32();
+
+        /// <summary>
+        /// Reads a nullable unsigned long (<see cref="UInt64"/>) value.
+        /// </summary>
+        /// <returns>The nullable ulong read.</returns>
+        ulong? ReadNullableUInt64();
+
+        /// <summary>
+        /// Reads a nullable long (<see cref="Int64"/>) value.
+        /// </summary>
+        /// <returns>The nullable int read.</returns>
+        long? ReadNullableInt64();
+
+        /// <summary>
+        /// Reads an enum value previously written by <see cref="ICKBinaryWriter.WriteEnum{T}(T)"/>.
+        /// </summary>
+        /// <typeparam name="T">The enum type.</typeparam>
+        T ReadEnum<T>() where T : struct, Enum;
+
+        /// <summary>
+        /// Reads an enum value previously written by <see cref="ICKBinaryWriter.WriteNullableEnum{T}(T?)"/>.
+        /// </summary>
+        /// <typeparam name="T">The enum type.</typeparam>
+        T? ReadNullableEnum<T>() where T : struct, Enum;
+
     }
 }
