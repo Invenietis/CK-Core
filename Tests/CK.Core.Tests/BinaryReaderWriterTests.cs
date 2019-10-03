@@ -424,7 +424,7 @@ namespace CK.Core.Tests
                     {
                         char c = Convert.ToChar( i );
                         if( char.IsSurrogate( c ) ) continue;
-                        totalCharSize += Encoding.Default.GetByteCount( new[] { c } );
+                        totalCharSize += Encoding.UTF8.GetByteCount( new[] { c } );
                         w.WriteNullableChar( c );
                     }
                 } ).Should()
