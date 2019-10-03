@@ -392,6 +392,25 @@ namespace CK.Core
         }
 
         /// <summary>
+        /// Writes a nullable unicode character (<see cref="Char"/>).
+        /// Actual byte length depends directly on the used string encoding.
+        /// Null and values above <see cref="Char.MinValue"/>+1 use one character (2 bytes below 0xff, 3 bytes below 0xffff, etc.).
+        /// <see cref="Char.MinValue"/>+1 and <see cref="Char.MinValue"/> use one character (2 bytes below 0xff, 3 bytes below 0xffff, etc.), plus one byte.
+        /// </summary>
+        /// <param name="v">The value to write.</param>
+        public void WriteNullableChar( char? v )
+        {
+            if( !v.HasValue ) Write( (char)(Char.MinValue + 1) );
+            else
+            {
+                char i = v.Value;
+                if( i == (char)(Char.MinValue + 1) ) { Write( Char.MinValue ); Write( (byte)0x01 ); }
+                else if( i == Char.MinValue ) { Write( Char.MinValue ); Write( (byte)0x00 ); }
+                else Write( i );
+            }
+        }
+
+        /// <summary>
         /// Writes the enum value as its number value (<see cref="ICKBinaryWriter.Write(byte)"/> ... <see cref="ICKBinaryWriter.Write(ulong)"/>)
         /// depending on its <see cref="Type.GetEnumUnderlyingType()"/>.
         /// </summary>

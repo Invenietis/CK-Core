@@ -377,6 +377,19 @@ namespace CK.Core
             return v;
         }
 
+
+        /// <summary>
+        /// Reads a nullable char (<see cref="Char"/>) value.
+        /// </summary>
+        /// <returns>The nullable char read.</returns>
+        public ushort? ReadNullableChar()
+        {
+            var v = ReadChar();
+            if( v == (char)(Char.MinValue + 1) ) return null;
+            if( v == Char.MinValue ) v = ReadByte() == 0x01 ? (char) (Char.MinValue + 1) : Char.MinValue;
+            return v;
+        }
+
         /// <summary>
         /// Reads an enum value previously written by <see cref="ICKBinaryWriter.WriteEnum{T}(T)"/>.
         /// </summary>

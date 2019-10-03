@@ -320,5 +320,13 @@ namespace CK.Core
         /// <typeparam name="T">The enum type.</typeparam>
         /// <param name="v">The enum value.</param>
         void WriteNullableEnum<T>( T? v ) where T : struct, Enum;
+
+        /// <summary>
+        /// Writes a nullable 2-byte unicode character (<see cref="Char"/>).
+        /// Null and values below <see cref="Char.MaxValue"/>-1 use 2 bytes.
+        /// <see cref="Char.MaxValue"/>-1 and <see cref="Char.MaxValue"/> use 3 bytes.
+        /// </summary>
+        /// <param name="v">The value to write.</param>
+        void WriteNullableChar( char? v );
     }
 }

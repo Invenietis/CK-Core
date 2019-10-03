@@ -334,5 +334,10 @@ namespace CK.Core
         /// <typeparam name="T">The enum type.</typeparam>
         T? ReadNullableEnum<T>() where T : struct, Enum;
 
+        /// <summary>
+        /// Reads a nullable char (<see cref="Char"/>) value.
+        /// </summary>
+        /// <returns>The nullable char read.</returns>
+        ushort? ReadNullableChar();
     }
 }

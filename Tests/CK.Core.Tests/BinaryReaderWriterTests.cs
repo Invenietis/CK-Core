@@ -393,6 +393,45 @@ namespace CK.Core.Tests
         }
 
         [Test]
+        public void nullable_types_size_check_Char()
+        {
+            ReadWrite( w =>
+                {
+                    w.WriteNullableChar( (char)(Char.MinValue + 1) );
+                    w.WriteNullableChar( Char.MinValue );
+                }, r =>
+                {
+                    r.ReadNullableChar().Should().Be( (char)(Char.MinValue + 1) );
+                    r.ReadNullableChar().Should().Be( Char.MinValue );
+                } ).Should()
+                .Be( (2 * 2), "Two single-byte chars, plus their respective 0x00 or 0x01 discriminator byte" );
+
+            ReadWrite( w =>
+                {
+                    w.WriteNullableChar( 'の' ); // 'HIRAGANA LETTER NO' (U+306E - UTF-8: 0xE3 0x81 0xAE)
+                }, r =>
+                {
+                    r.ReadNullableChar().Should().Be( 'の' );
+                } ).Should()
+                .Be( 3, "One 3-byte char" );
+
+            int totalCharSize = 0;
+            ReadWrite( w =>
+                {
+                    w.WriteNullableChar( null );
+                    // We write Char.MaxValue values (zero based).
+                    for( int i = 0x00; i < Char.MaxValue - 1; ++i )
+                    {
+                        char c = Convert.ToChar( i );
+                        if( char.IsSurrogate( c ) ) continue;
+                        totalCharSize += Encoding.Default.GetByteCount( new[] { c } );
+                        w.WriteNullableChar( c );
+                    }
+                } ).Should()
+                .Be( 2 + totalCharSize + 1, "Null: 0xFF00, plus the written size of all characters, plus the single 0x01 added to the very first char" );
+        }
+
+        [Test]
         public void object_pool_work()
         {
             using( var mem = new MemoryStream() )
