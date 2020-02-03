@@ -6,7 +6,7 @@
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\CK.Core\CK.Core.csproj" />
-    <PackageReference Include="CK.MicroBenchmark" Version="0.2.0-a00-00-0011-develop" />
+    <PackageReference Include="CK.MicroBenchmark" Version="0.2.0-a00-00-0002-develop" />
     <PackageReference Include="FluentAssertions" Version="5.9.0" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.4.0" />
     <PackageReference Include="NUnit3TestAdapter" Version="3.16.1" />

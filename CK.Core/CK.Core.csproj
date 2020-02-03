@@ -6,7 +6,7 @@
     <Description>CK.Core contains types and helpers that are used across different projects. Main types are: CKTrait, DateTimeStamp, SimpleServiceContainer, CriticalErrorCollector, FIFOBuffer, TemporaryFile, BestKeeper, SHA1/SHA512Stream and SHA1/SHA512Value.</Description>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="CK.Text" Version="9.0.0-a00-00-0016-develop" />
+    <PackageReference Include="CK.Text" Version="9.0.0-a00-00-0003-develop" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Properties\" />
