@@ -1,12 +1,12 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <Import Project="..\Common\Shared.props" />
   <PropertyGroup>
-    <TargetFrameworks>netstandard2.0;net461</TargetFrameworks>
+    <TargetFrameworks>netstandard2.0</TargetFrameworks>
     <LangVersion>8.0</LangVersion>
     <Description>CK.Core contains types and helpers that are used across different projects. Main types are: CKTrait, DateTimeStamp, SimpleServiceContainer, CriticalErrorCollector, FIFOBuffer, TemporaryFile, BestKeeper, SHA1/SHA512Stream and SHA1/SHA512Value.</Description>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="CK.Text" Version="8.0.4" />
+    <PackageReference Include="CK.Text" Version="9.0.0" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Properties\" />
