@@ -66,9 +66,6 @@ namespace CK.Core.Tests
 
             t1.Invoking( sut => sut.Overlaps( null ) ).Should().Throw<ArgumentNullException>();
             t1.Invoking( sut => sut.IsSupersetOf( null ) ).Should().Throw<ArgumentNullException>();
-
-            t1.Invoking( sut => sut.CompareTo( null ) ).Should().Throw<ArgumentNullException>();
-            t1.Invoking( sut => sut.CompareTo( null ) ).Should().Throw<ArgumentNullException>();
         }
 
         [Test]
