@@ -66,9 +66,6 @@ namespace CK.Core.Tests
 
             t1.Invoking( sut => sut.Overlaps( null ) ).Should().Throw<ArgumentNullException>();
             t1.Invoking( sut => sut.IsSupersetOf( null ) ).Should().Throw<ArgumentNullException>();
-
-            t1.Invoking( sut => sut.CompareTo( null ) ).Should().Throw<ArgumentNullException>();
-            t1.Invoking( sut => sut.CompareTo( null ) ).Should().Throw<ArgumentNullException>();
         }
 
         [Test]
@@ -432,6 +429,115 @@ namespace CK.Core.Tests
             here1.CompareTo( here ).Should().BePositive();
             here2.CompareTo( here1 ).Should().BePositive();
             here2.CompareTo( here ).Should().BePositive();
+        }
+
+        [Test]
+        public void comparison_operators_work()
+        {
+            var c = CKTraitContext.Create( "Indep", '+', shared: false );
+            var t1 = c.FindOrCreate( "A" );
+            var t2 = c.FindOrCreate( "B" );
+            //
+            (t1 > t2).Should().BeTrue( "A is better than B." );
+            (t1 >= t2).Should().BeTrue();
+            (t1 != t2).Should().BeTrue();
+            (t1 == t2).Should().BeFalse();
+            (t1 < t2).Should().BeFalse();
+            (t1 <= t2).Should().BeFalse();
+            //
+            t2 = null;
+            (t1 > t2).Should().BeTrue( "Any tag is better than null." );
+            (t1 >= t2).Should().BeTrue();
+            (t1 != t2).Should().BeTrue();
+            (t1 == t2).Should().BeFalse();
+            (t1 < t2).Should().BeFalse();
+            (t1 <= t2).Should().BeFalse();
+            //
+            t1 = null;
+            (t1 > t2).Should().BeFalse( "null is the same as null." );
+            (t1 < t2).Should().BeFalse();
+            (t1 >= t2).Should().BeTrue( "null is the same as null." );
+            (t1 <= t2).Should().BeTrue();
+            (t1 == t2).Should().BeTrue();
+            (t1 != t2).Should().BeFalse();
+            //
+            t2 = c.FindOrCreate( "B" );
+            (t1 > t2).Should().BeFalse( "null is smaller that any tag." );
+            (t1 >= t2).Should().BeFalse();
+            (t1 != t2).Should().BeTrue();
+            (t1 == t2).Should().BeFalse();
+            (t1 < t2).Should().BeTrue();
+            (t1 <= t2).Should().BeTrue();
+        }
+
+        [Test]
+        public void comparison_operators_work_cross_contexts()
+        {
+            var c = CKTraitContext.Create( "Indep", '+', shared: false );
+            var cAfter = CKTraitContext.Create( "Indep+", '+', shared: false );
+            var t1 = cAfter.FindOrCreate( "B" );
+            var t2 = c.FindOrCreate( "B" );
+            //
+            (t1 > t2).Should().BeTrue( "Tag with same name relies on context's separator and then name ('greater' separator and then name are better)." );
+            (t1 >= t2).Should().BeTrue();
+            (t1 != t2).Should().BeTrue();
+            (t1 == t2).Should().BeFalse();
+            (t1 < t2).Should().BeFalse();
+            (t1 <= t2).Should().BeFalse();
+        }
+
+        [Test]
+        public void binary_operators_work()
+        {
+            var ctx = CKTraitContext.Create( "Indep", ',', shared: false );
+            var a = ctx.FindOrCreate( "A" );
+            var b = ctx.FindOrCreate( "B" );
+            var c = ctx.FindOrCreate( "C" );
+            var d = ctx.FindOrCreate( "D" );
+            var ab = ctx.FindOrCreate( "A,B" );
+            var cd = ctx.FindOrCreate( "C,D" );
+            var abc = ctx.FindOrCreate( "A,B,C" );
+            var abcd = ctx.FindOrCreate( "A,B,C,D" );
+            (ab + cd).Should()
+                    .BeSameAs( abcd )
+                    .And.BeSameAs( c + d + b + a )
+                    .And.BeSameAs( cd + ab )
+                    .And.BeSameAs( abc | d )
+                    .And.BeSameAs( a | b | c | d );
+
+            (ab & cd).Should().BeSameAs( ctx.EmptyTrait );
+            (abc & cd).Should().BeSameAs( c );
+            (abcd & cd).Should().BeSameAs( cd );
+
+            (ab ^ cd).Should().BeSameAs( abcd );
+            (abc ^ cd).Should().BeSameAs( a | b | d );
+            ((a|b|d) ^ cd).Should().BeSameAs( abc );
+            (abcd ^ cd).Should().BeSameAs( ab );
+
+            CKTrait v = a;
+            v += b;
+            v.Should().BeSameAs( ab );
+            v += d;
+            v.Should().BeSameAs( a | b | d );
+            v -= c;
+            v.Should().BeSameAs( a | b | d );
+            v -= abcd;
+            v.IsEmpty.Should().BeTrue();
+
+            v |= abcd;
+            v &= cd;
+            v.Should().BeSameAs( cd );
+            v &= d;
+            v.Should().BeSameAs( d );
+            v |= abcd;
+            v.Should().BeSameAs( abcd );
+            v ^= b;
+            v.Should().BeSameAs( a | cd );
+            v ^= ab;
+            v.Should().BeSameAs( b | cd );
+
+            v &= ctx.EmptyTrait;
+            v.IsEmpty.Should().BeTrue();
         }
 
     }
