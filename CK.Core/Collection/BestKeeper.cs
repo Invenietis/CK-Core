@@ -9,7 +9,7 @@ namespace CK.Core
     /// <summary>
     /// Implements a min heap: best items (depending on <see cref="Comparer"/>.
     /// It is important to note that kept items are not ordered inside the heap
-    /// (hence this specializes IReadOnlyCollection instead of IReadOnlyList).
+    /// (hence this implements IReadOnlyCollection instead of IReadOnlyList).
     /// </summary>
     /// <typeparam name="T">Type of the items.</typeparam>
     public class BestKeeper<T> : IReadOnlyCollection<T>

@@ -9,9 +9,16 @@ using System.ComponentModel;
 namespace CK.Core
 {
     /// <summary>
-    /// A tag is an immutable object (thread-safe), associated to a unique string inside a <see cref="Context"/>, that can be atomic ("Alt", "Home", "Ctrl") or 
-    /// combined ("Alt|Ctrl", "Alt|Ctrl|Home"). The only way to obtain a CKTrait is to call <see cref="CKTraitContext.FindOrCreate(string)"/> (from 
-    /// a string) or to use one of the available combination methods (<see cref="Union"/>, <see cref="Except"/>, <see cref="SymmetricExcept"/> or <see cref="Intersect"/> ).
+    /// A tag is an immutable object, associated to a unique string inside a <see cref="Context"/> (that is thread-safe), that can be
+    /// atomic ("Alt", "Home", "Ctrl") or combined ("Alt|Ctrl", "Alt|Ctrl|Home") with a <see cref="CKTraitContext.Separator"/> character.
+    /// <para>
+    /// It supports implicit conversion to its string representation, however no conversion is possible the other way around (from mere string
+    /// to trait) since a Context must be specified.
+    /// </para>
+    /// <para>
+    /// The only way to obtain a CKTrait is to call <see cref="CKTraitContext.FindOrCreate(string)"/> (from a string) or to use one of the available combination
+    /// methods (<see cref="Union"/>, <see cref="Except"/>, <see cref="SymmetricExcept"/> or <see cref="Intersect"/> ).
+    /// </para>
     /// </summary>
     /// <remarks>
     /// A CKTrait is easily serializable as its <see cref="ToString"/> representation and restored with <see cref="CKTraitContext.FindOrCreate(string)"/>
@@ -64,7 +71,7 @@ namespace CK.Core
         public CKTraitContext Context => _context;
 
         /// <summary>
-        /// Gets the multi tags in an ordered manner separated by +.
+        /// Gets the multi tags in an ordered manner separated by <see cref="CKTraitContext.Separator"/>.
         /// </summary>
         /// <returns>This multi tags as a string.</returns>
         public override string ToString() => _tag;
@@ -98,11 +105,11 @@ namespace CK.Core
         /// the number of tags (more tags is greater) and then comes the string representation of the tag in 
         /// reverse lexical order (<see cref="StringComparer.Ordinal"/>): "A" is greater than "B".
         /// </summary>
-        /// <param name="other">The tag to compare to.</param>
+        /// <param name="other">The tag to compare to. Can be null: any trait is greater than null.</param>
         /// <returns>A negative, zero or positive value.</returns>
         public int CompareTo( CKTrait other )
         {
-            if( other == null ) throw new ArgumentNullException( "other" );
+            if( other == null ) return 1;
             if( ReferenceEquals( this, other ) ) return 0;
             int cmp = _context.CompareTo( other._context );
             if( cmp == 0 )
@@ -118,10 +125,7 @@ namespace CK.Core
         /// </summary>
         /// <param name="other">The tag to compare to.</param>
         /// <returns>True on equality.</returns>
-        public bool Equals( CKTrait other )
-        {
-            return ReferenceEquals( this, other );
-        }
+        public bool Equals( CKTrait other ) => ReferenceEquals( this, other );
 
         /// <summary>
         /// Checks if each and every atomic tags of <paramref name="other" /> exists in this tag.
@@ -225,7 +229,8 @@ namespace CK.Core
 
         /// <summary>
         /// Obtains a <see cref="CKTrait"/> where the atomic tags of <paramref name="other" /> are removed (resp. added) depending 
-        /// on whether they exist (resp. do not exist) in this tag. This is like an Exclusive Or (XOR).
+        /// on whether they exist (resp. do not exist) in this tag. This is like an Exclusive Or (XOR), this implements a "toggle"
+        /// operation.
         /// </summary>
         /// <param name="other">Tag to toggle.</param>
         /// <returns>The resulting tag.</returns>
@@ -260,6 +265,86 @@ namespace CK.Core
             Debug.Assert( operation == SetOperation.Replace, "All operations are covered." );
             return other;
         }
+
+        /// <summary>
+        /// Implicit conversion to sting: simply returns the normalized <see cref="ToString"/> form.
+        /// </summary>
+        /// <param name="t">The trait to convert.</param>
+        public static implicit operator String( CKTrait t ) => t._tag;
+
+        /// <summary>
+        /// Lesser than comparison.
+        /// </summary>
+        /// <param name="t1">The first trait to compare.</param>
+        /// <param name="t2">The second trait to compare.</param>
+        /// <returns>Whether t1 is smaller than t2.</returns>
+        public static bool operator <( CKTrait t1, CKTrait t2 ) => t1 == null ? t2 != null : t1.CompareTo( t2 ) < 0;
+
+        /// <summary>
+        /// Greater than comparison.
+        /// </summary>
+        /// <param name="t1">The trait to convert.</param>
+        /// <param name="t2">The trait to convert.</param>
+        /// <returns>Whether t1 is greater than t2.</returns>
+        public static bool operator >( CKTrait t1, CKTrait t2 ) => t2 == null ? t1 != null : t2.CompareTo( t1 ) <= 0;
+
+        /// <summary>
+        /// Lesser or equal comparison.
+        /// </summary>
+        /// <param name="t1">The first trait to compare.</param>
+        /// <param name="t2">The second trait to compare.</param>
+        /// <returns>Whether t1 is smaller or equal to t2.</returns>
+        public static bool operator <=( CKTrait t1, CKTrait t2 ) => t1 == null ? true : t1.CompareTo( t2 ) <= 0;
+
+        /// <summary>
+        /// Greater or equal comparison.
+        /// </summary>
+        /// <param name="t1">The first trait to compare.</param>
+        /// <param name="t2">The second trait to compare.</param>
+        /// <returns>Whether t1 is greater or equal to t2.</returns>
+        public static bool operator >=( CKTrait t1, CKTrait t2 ) => t2 == null ? true : t2.CompareTo( t1 ) < 0;
+
+        /// <summary>
+        /// Calls <see cref="Union(CKTrait)"/> (<see cref="Context"/> must be the same).
+        /// This is the same operator as the | operator.
+        /// </summary>
+        /// <param name="t1">The first tag to combine.</param>
+        /// <param name="t2">The second tag to combine.</param>
+        /// <returns>The combined trait.</returns>
+        public static CKTrait operator +( CKTrait t1, CKTrait t2 ) => t1 == null ? t2 : (t2 == null ? t1 : t1.Union( t2 ));
+
+        /// <summary>
+        /// Calls <see cref="Union(CKTrait)"/> (<see cref="Context"/> must be the same).
+        /// This is the same operator as the + operator.
+        /// </summary>
+        /// <param name="t1">The first tag to combine.</param>
+        /// <param name="t2">The second tag to combine.</param>
+        /// <returns>The combined trait.</returns>
+        public static CKTrait operator |( CKTrait t1, CKTrait t2 ) => t1 == null ? t2 : (t2 == null ? t1 : t1.Union( t2 ));
+
+        /// <summary>
+        /// Calls <see cref="Except"/> (<see cref="Context"/> must be the same).
+        /// </summary>
+        /// <param name="t1">The first tag to combine.</param>
+        /// <param name="t2">The second tag to combine.</param>
+        /// <returns>The combined trait.</returns>
+        public static CKTrait operator -( CKTrait t1, CKTrait t2 ) => t1 == null ? t2 : (t2 == null ? t1 : t1.Except( t2 ));
+
+        /// <summary>
+        /// Calls <see cref="Intersect"/> (<see cref="Context"/> must be the same).
+        /// </summary>
+        /// <param name="t1">The first tag to combine.</param>
+        /// <param name="t2">The second tag to combine.</param>
+        /// <returns>The combined trait.</returns>
+        public static CKTrait operator &( CKTrait t1, CKTrait t2 ) => t1 == null ? t2 : (t2 == null ? t1 : t1.Intersect( t2 ));
+
+        /// <summary>
+        /// Calls <see cref="SymmetricExcept"/> (<see cref="Context"/> must be the same).
+        /// </summary>
+        /// <param name="t1">The first tag to combine.</param>
+        /// <param name="t2">The second tag to combine.</param>
+        /// <returns>The combined trait.</returns>
+        public static CKTrait operator ^( CKTrait t1, CKTrait t2 ) => t1 == null ? t2 : (t2 == null ? t1 : t1.SymmetricExcept( t2 ));
 
         /// <summary>
         /// Common process function where 3 predicates drive the result: each atomic tag is submitted to one of the 3 predicates
