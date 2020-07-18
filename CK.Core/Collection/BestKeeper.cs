@@ -9,7 +9,7 @@ namespace CK.Core
     /// <summary>
     /// Implements a min heap: best items (depending on <see cref="Comparer"/>.
     /// It is important to note that kept items are not ordered inside the heap
-    /// (hence this specializes IReadOnlyCollection instead of IReadOnlyList).
+    /// (hence this implements IReadOnlyCollection instead of IReadOnlyList).
     /// </summary>
     /// <typeparam name="T">Type of the items.</typeparam>
     public class BestKeeper<T> : IReadOnlyCollection<T>
@@ -53,13 +53,14 @@ namespace CK.Core
         /// Adds a item and signals whether it has been kept.
         /// </summary>
         /// <param name="candidate">The candidate item.</param>
+        /// <param name="collector">The optional collector of items eliminated from the current <see cref="BestKeeper{T}"/>.</param>
         /// <returns>Whether the candidate has been kept.</returns>
-        public bool Add( T candidate )
+        public bool Add( T candidate, Action<T> collector = null )
         {
             if( IsFull )
             {
                 if( Comparer.Compare( candidate, _items[ 0 ] ) < 0 ) return false;
-                AddFromTop( candidate );
+                AddFromTop( candidate, collector );
                 return true;
             }
 
@@ -108,9 +109,10 @@ namespace CK.Core
             _count++;
         }
 
-        void AddFromTop( T candidate )
+        void AddFromTop( T candidate, Action<T> collector )
         {
             int idx = 0;
+            T removedItem = _items[ 0 ];
             _items[ 0 ] = candidate;
 
             while( true )
@@ -123,7 +125,11 @@ namespace CK.Core
                 else smallestIdx = idx;
                 if( rightIdx < _count && Comparer.Compare( _items[ rightIdx ], _items[ smallestIdx ] ) < 0 ) smallestIdx = rightIdx;
 
-                if( smallestIdx == idx ) return;
+                if( smallestIdx == idx )
+                {
+                    if( collector != null ) collector( removedItem );
+                    return;
+                }
 
                 Swap( smallestIdx, idx );
                 idx = smallestIdx;

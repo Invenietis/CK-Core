@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -81,7 +82,7 @@ namespace CK.Core
             /// Note that it will not be called if the value is the default of the <typeparamref name="T"/>:
             /// for reference types, the actual writer will never have to handle null.
             /// </param>
-            public void Write( T o, Action<ICKBinaryWriter,T> actualWriter )
+            public void Write( T o, Action<ICKBinaryWriter, T> actualWriter )
             {
                 if( MustWrite( o ) ) actualWriter( _w, o );
             }
@@ -222,6 +223,235 @@ namespace CK.Core
         {
             Write( g.ToByteArray() );
         }
+
+        /// <summary>
+        /// Writes a nullable byte value.
+        /// Null and values in [0,253] use 1 byte.
+        /// 254 and 255 use 2 bytes.
+        /// </summary>
+        /// <param name="b">The value to write.</param>
+        public void WriteNullableByte( byte? b )
+        {
+            if( !b.HasValue ) Write( (byte)0xFE );
+            else
+            {
+                // BinaryWriter is always little endian.
+                // The LSB goes first and then comes the MSB: here we want 0xFF to be
+                // the escaped value read as a byte, so we have to write the ushort 0xFEFF.
+                byte v = b.Value;
+                if( v == 0xFE ) Write( (ushort)0xFEFF );
+                else if( v == 0xFF ) Write( (ushort)0xFFFF );
+                else Write( v );
+            }
+        }
+
+        /// <summary>
+        /// Writes a nullable bool value.
+        /// </summary>
+        /// <param name="b">The value to write.</param>
+        public void WriteNullableBool( bool? b )
+        {
+            if( !b.HasValue ) Write( (byte)0x03 );
+            else Write( b.Value ? (byte)0x01 : (byte)0x02 );
+        }
+
+        /// <summary>
+        /// Writes a nullable signed byte value.
+        /// Null and values in [-127,126] use 1 byte.
+        /// -128 and 127 use 2 bytes.
+        /// </summary>
+        /// <param name="b">The value to write.</param>
+        public void WriteNullableSByte( sbyte? b )
+        {
+            if( !b.HasValue ) Write( (byte)0x7F );
+            else
+            {
+                // BinaryWriter is always little endian.
+                // The LSB goes first and then comes the MSB: here we want 0x80 to be
+                // the escaped value read as a byte, so we have to write the ushort 0x7F80.
+                sbyte v = b.Value;
+                if( v == 0x7F ) Write( (ushort)0x7F80 );
+                else if( v == -128 ) Write( (ushort)0x8080 );
+                else Write( v );
+            }
+        }
+
+        static readonly byte[] _signedMax = new byte[] { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x80, 0x01 };
+        static readonly byte[] _signedMinusMax = new byte[] { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x80, 0x00 };
+
+        static readonly byte[] _unsignedMaxMinus1 = new byte[]{ 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0x01 };
+        static readonly byte[] _unsignedMax = new byte[] { 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0x00 };
+
+
+        /// <summary>
+        /// Writes a nullable short value (<see cref="Int16"/>).
+        /// Null and values between <see cref="Int16.MinValue"/> and <see cref="Int16.MaxValue"/> use 2 bytes.
+        /// <see cref="Int16.MinValue"/> and <see cref="Int16.MaxValue"/> use 3 bytes.
+        /// </summary>
+        /// <param name="v">The value to write.</param>
+        public void WriteNullableInt16( short? v )
+        {
+            if( !v.HasValue ) Write( Int16.MaxValue );
+            else
+            {
+                short i = v.Value;
+                if( i == Int16.MaxValue ) Write( _signedMax, 6, 3 );
+                else if( i == Int16.MinValue ) Write( _signedMinusMax, 6, 3 );
+                else Write( i );
+            }
+        }
+
+        /// <summary>
+        /// Writes a nullable short value (<see cref="UInt16"/>).
+        /// Null and values below <see cref="UInt16.MaxValue"/>-1 use 2 bytes.
+        /// <see cref="UInt16.MaxValue"/>-1 and <see cref="UInt16.MaxValue"/> use 3 bytes.
+        /// </summary>
+        /// <param name="v">The value to write.</param>
+        public void WriteNullableUInt16( ushort? v )
+        {
+            if( !v.HasValue ) Write( UInt16.MaxValue-1 );
+            else
+            {
+                ushort i = v.Value;
+                if( i == UInt16.MaxValue - 1 ) Write( _unsignedMaxMinus1, 6, 3 );
+                else if( i == UInt16.MaxValue ) Write( _unsignedMax, 6, 3 );
+                else Write( i );
+            }
+        }
+
+        /// <summary>
+        /// Writes a nullable int value (<see cref="Int32"/>).
+        /// Null and values between <see cref="Int32.MinValue"/> and <see cref="Int32.MaxValue"/> use 4 bytes.
+        /// <see cref="Int32.MinValue"/> and <see cref="Int32.MaxValue"/> use 5 bytes.
+        /// </summary>
+        /// <param name="v">The value to write.</param>
+        public void WriteNullableInt32( int? v )
+        {
+            if( !v.HasValue ) Write( Int32.MaxValue );
+            else
+            {
+                int i = v.Value;
+                if( i == Int32.MaxValue ) Write( _signedMax, 4, 5 );
+                else if( i == Int32.MinValue ) Write( _signedMinusMax, 4, 5 );
+                else Write( i );
+            }
+        }
+
+        /// <summary>
+        /// Writes a nullable unsigned int value (<see cref="UInt32"/>).
+        /// Null and values below <see cref="UInt32.MaxValue"/>-1 use 4 bytes.
+        /// <see cref="UInt32.MaxValue"/>-1 and <see cref="UInt32.MaxValue"/> use 5 bytes.
+        /// </summary>
+        /// <param name="v">The value to write.</param>
+        public void WriteNullableUInt32( uint? v )
+        {
+            if( !v.HasValue ) Write( UInt32.MaxValue - 1 );
+            else
+            {
+                uint i = v.Value;
+                if( i == UInt32.MaxValue - 1 ) Write( _unsignedMaxMinus1, 4, 5 );
+                else if( i == UInt32.MaxValue ) Write( _unsignedMax, 4, 5 );
+                else Write( i );
+            }
+        }
+
+        /// <summary>
+        /// Writes a nullable long value (<see cref="Int64"/>).
+        /// Null and values between <see cref="Int64.MinValue"/> and <see cref="Int64.MaxValue"/> use 8 bytes.
+        /// <see cref="Int64.MinValue"/> and <see cref="Int64.MaxValue"/> use 9 bytes.
+        /// </summary>
+        /// <param name="v">The value to write.</param>
+        public void WriteNullableInt64( long? v )
+        {
+            if( !v.HasValue ) Write( Int64.MaxValue );
+            else
+            {
+                long i = v.Value;
+                if( i == Int64.MaxValue ) Write( _signedMax, 0, 9 );
+                else if( i == Int64.MinValue ) Write( _signedMinusMax, 0, 9 );
+                else Write( i );
+            }
+        }
+
+        /// <summary>
+        /// Writes a nullable unsigned long value (<see cref="UInt64"/>).
+        /// Null and values below <see cref="UInt32.MaxValue"/>-1 use 8 bytes.
+        /// <see cref="UInt64.MaxValue"/>-1 and <see cref="UInt64.MaxValue"/> use 9 bytes.
+        /// </summary>
+        /// <param name="v">The value to write.</param>
+        public void WriteNullableUInt64( ulong? v )
+        {
+            if( !v.HasValue ) Write( UInt64.MaxValue - 1 );
+            else
+            {
+                ulong i = v.Value;
+                if( i == UInt64.MaxValue - 1 ) Write( _unsignedMaxMinus1, 0, 9 );
+                else if( i == UInt64.MaxValue ) Write( _unsignedMax, 0, 9 );
+                else Write( i );
+            }
+        }
+
+        /// <summary>
+        /// Writes a nullable unicode character (<see cref="Char"/>).
+        /// Actual byte length depends directly on the used string encoding.
+        /// Null and values above <see cref="Char.MinValue"/>+1 use one character (2 bytes below 0xff, 3 bytes below 0xffff, etc.).
+        /// <see cref="Char.MinValue"/>+1 and <see cref="Char.MinValue"/> use one character (2 bytes below 0xff, 3 bytes below 0xffff, etc.), plus one byte.
+        /// </summary>
+        /// <param name="v">The value to write.</param>
+        public void WriteNullableChar( char? v )
+        {
+            if( !v.HasValue ) Write( (char)(Char.MinValue + 1) );
+            else
+            {
+                char i = v.Value;
+                if( i == (char)(Char.MinValue + 1) ) { Write( Char.MinValue ); Write( (byte)0x01 ); }
+                else if( i == Char.MinValue ) { Write( Char.MinValue ); Write( (byte)0x00 ); }
+                else Write( i );
+            }
+        }
+
+        /// <summary>
+        /// Writes the enum value as its number value (<see cref="ICKBinaryWriter.Write(byte)"/> ... <see cref="ICKBinaryWriter.Write(ulong)"/>)
+        /// depending on its <see cref="Type.GetEnumUnderlyingType()"/>.
+        /// </summary>
+        /// <typeparam name="T">The enum type.</typeparam>
+        /// <param name="v">The enum value.</param>
+        public void WriteEnum<T>( T v ) where T : struct, Enum
+        {
+            var u = typeof( T ).GetEnumUnderlyingType();
+            if( u == typeof( int ) ) Write( (int)(object)v );
+            else if( u == typeof( byte ) ) Write( (byte)(object)v );
+            else if( u == typeof( short ) ) Write( (short)(object)v );
+            else if( u == typeof( long ) ) Write( (long)(object)v );
+            else if( u == typeof( sbyte ) ) Write( (sbyte)(object)v );
+            else if( u == typeof( uint ) ) Write( (uint)(object)v );
+            else if( u == typeof( ushort ) ) Write( (ushort)(object)v );
+            else if( u == typeof( ulong ) ) Write( (ulong)(object)v );
+            else throw new NotSupportedException( $"Unhandled base enum type: {u}" );
+        }
+
+        /// <summary>
+        /// Writes the enum value as its nullable number value (<see cref="WriteNullableByte(byte?)"/> ... <see cref="WriteNullableUInt64(ulong?)"/>)
+        /// depending on its <see cref="Type.GetEnumUnderlyingType()"/>.
+        /// </summary>
+        /// <typeparam name="T">The enum type.</typeparam>
+        /// <param name="v">The enum value.</param>
+        public void WriteNullableEnum<T>( T? v ) where T : struct, Enum
+        {
+            // This is ABSOLUTELY ugly... but it does the job.
+            // This SHOULD be improved!
+            var u = typeof( T ).GetEnumUnderlyingType();
+            if( u == typeof( int ) ) { if( v.HasValue ) WriteNullableInt32( (int)(object)v.Value ); else WriteNullableInt32( null ); }
+            else if( u == typeof( byte ) ) { if( v.HasValue ) WriteNullableByte( (byte)(object)v.Value ); else WriteNullableByte( null ); }
+            else if( u == typeof( short ) ) { if( v.HasValue ) WriteNullableInt16( (short)(object)v.Value ); else WriteNullableInt16( null ); }
+            else if( u == typeof( long ) ) { if( v.HasValue ) WriteNullableInt64( (long)(object)v.Value ); else WriteNullableInt64( null ); }
+            else if( u == typeof( sbyte ) ) { if( v.HasValue ) WriteNullableSByte( (sbyte)(object)v.Value ); else WriteNullableSByte( null ); }
+            else if( u == typeof( uint ) ) { if( v.HasValue ) WriteNullableUInt32( (uint)(object)v.Value ); else WriteNullableUInt32( null ); }
+            else if( u == typeof( ushort ) ) { if( v.HasValue ) WriteNullableUInt16( (ushort)(object)v.Value ); else WriteNullableUInt16( null ); }
+            else if( u == typeof( ulong ) ) { if( v.HasValue ) WriteNullableUInt64( (ulong)(object)v.Value ); else WriteNullableUInt64( null ); }
+            else throw new NotSupportedException( $"Unhandled base enum type: {u}" );
+        }
+
     }
 
 }

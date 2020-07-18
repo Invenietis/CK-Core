@@ -17,10 +17,10 @@ namespace CK.Core
     [DebuggerTypeProxy( typeof(Debugging.ReadOnlyCollectionDebuggerView<> ) )]
     public class FIFOBuffer<T> : ICKReadOnlyList<T>, ICKWritableCollector<T>, ISerializable
     {
+        T[] _buffer;
         int _count;
         int _first;
         int _next;
-        T[] _buffer;
 
         /// <summary>
         /// Initializes a new <see cref="FIFOBuffer{T}"/> with an initial capacity.
@@ -65,10 +65,7 @@ namespace CK.Core
         /// <summary>
         /// Gets the actual count of element: it is necessary less than or equal to <see cref="Capacity"/>.
         /// </summary>
-        public int Count
-        {
-            get { return _count; }
-        }
+        public int Count => _count; 
 
         /// <summary>
         /// Truncates the queue: only the <paramref name="newCount"/> newest items are kept.
@@ -92,10 +89,7 @@ namespace CK.Core
         /// </summary>
         /// <param name="item">Object to test.</param>
         /// <returns>True if the object exists.</returns>
-        public bool Contains( object item )
-        {
-            return IndexOf( item ) >= 0;
-        }
+        public bool Contains( object item ) => IndexOf( item ) >= 0;
 
         /// <summary>
         /// Gets the index of the given object.

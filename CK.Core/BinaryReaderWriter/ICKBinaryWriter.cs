@@ -235,5 +235,98 @@ namespace CK.Core
         /// <param name="g">The value to write.</param>
         void Write( Guid g );
 
+        /// <summary>
+        /// Writes a nullable byte value.
+        /// Null and values in [0,253] use 1 byte.
+        /// 254 and 255 use 2 bytes.
+        /// </summary>
+        /// <param name="b">The value to write.</param>
+        void WriteNullableByte( byte? b );
+
+        /// <summary>
+        /// Writes a nullable bool value.
+        /// </summary>
+        /// <param name="b">The value to write.</param>
+        void WriteNullableBool( bool? b );
+
+        /// <summary>
+        /// Writes a nullable signed byte value.
+        /// Null and values in [-127,126] use 1 byte.
+        /// -128 and 127 use 2 bytes.
+        /// </summary>
+        /// <param name="b">The value to write.</param>
+        void WriteNullableSByte( sbyte? b );
+
+        /// <summary>
+        /// Writes a nullable short value (<see cref="Int16"/>).
+        /// Null and values between <see cref="Int16.MinValue"/> and <see cref="Int16.MaxValue"/> use 2 bytes.
+        /// <see cref="Int16.MinValue"/> and <see cref="Int16.MaxValue"/> use 3 bytes.
+        /// </summary>
+        /// <param name="b">The value to write.</param>
+        void WriteNullableInt16( short? b );
+
+        /// <summary>
+        /// Writes a nullable unsigned short value (<see cref="UInt16"/>).
+        /// Null and values below <see cref="UInt16.MaxValue"/>-1 use 2 bytes.
+        /// <see cref="UInt16.MaxValue"/>-1 and <see cref="UInt16.MaxValue"/> use 3 bytes.
+        /// </summary>
+        /// <param name="b">The value to write.</param>
+        void WriteNullableUInt16( ushort? b );
+
+        /// <summary>
+        /// Writes a nullable int value (<see cref="Int32"/>).
+        /// Null and values between <see cref="Int32.MinValue"/> and <see cref="Int32.MaxValue"/> use 4 bytes.
+        /// <see cref="Int32.MinValue"/> and <see cref="Int32.MaxValue"/> use 5 bytes.
+        /// </summary>
+        /// <param name="b">The value to write.</param>
+        void WriteNullableInt32( int? b );
+
+        /// <summary>
+        /// Writes a nullable unsigned int value (<see cref="UInt32"/>).
+        /// Null and values below <see cref="UInt32.MaxValue"/>-1 use 4 bytes.
+        /// <see cref="UInt32.MaxValue"/>-1 and <see cref="UInt32.MaxValue"/> use 5 bytes.
+        /// </summary>
+        /// <param name="b">The value to write.</param>
+        void WriteNullableUInt32( uint? b );
+
+        /// <summary>
+        /// Writes a nullable long value (<see cref="Int64"/>).
+        /// Null and values between <see cref="Int64.MinValue"/> and <see cref="Int64.MaxValue"/> use 8 bytes.
+        /// <see cref="Int64.MinValue"/> and <see cref="Int64.MaxValue"/> use 9 bytes.
+        /// </summary>
+        /// <param name="b">The value to write.</param>
+        void WriteNullableInt64( long? b );
+
+        /// <summary>
+        /// Writes a nullable unsigned long value (<see cref="UInt64"/>).
+        /// Null and values below <see cref="UInt32.MaxValue"/>-1 use 8 bytes.
+        /// <see cref="UInt64.MaxValue"/>-1 and <see cref="UInt64.MaxValue"/> use 9 bytes.
+        /// </summary>
+        /// <param name="b">The value to write.</param>
+        void WriteNullableUInt64( ulong? b );
+
+        /// <summary>
+        /// Writes the enum value as its number value (<see cref="Write(byte)"/> ... <see cref="Write(ulong)"/>)
+        /// depending on its <see cref="Type.GetEnumUnderlyingType()"/>.
+        /// </summary>
+        /// <typeparam name="T">The enum type.</typeparam>
+        /// <param name="v">The enum value.</param>
+        void WriteEnum<T>( T v ) where T : struct, Enum;
+
+        /// <summary>
+        /// Writes the enum value as its nullable number value (<see cref="WriteNullableByte(byte?)"/> ... <see cref="WriteNullableUInt64(ulong?)"/>)
+        /// depending on its <see cref="Type.GetEnumUnderlyingType()"/>.
+        /// </summary>
+        /// <typeparam name="T">The enum type.</typeparam>
+        /// <param name="v">The enum value.</param>
+        void WriteNullableEnum<T>( T? v ) where T : struct, Enum;
+
+        /// <summary>
+        /// Writes a nullable 2-byte unicode character (<see cref="Char"/>).
+        /// Null and values below <see cref="Char.MaxValue"/>-1 use 2 bytes.
+        /// <see cref="Char.MaxValue"/>-1 and <see cref="Char.MaxValue"/> use 3 bytes.
+        /// </summary>
+        /// <param name="v">The value to write.</param>
+        void WriteNullableChar( char? v );
     }
 }
