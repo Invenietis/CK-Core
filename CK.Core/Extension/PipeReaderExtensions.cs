@@ -1,6 +1,7 @@
 #nullable enable
 using System;
 using System.Buffers;
+using System.ComponentModel;
 using System.IO.Pipelines;
 using System.Runtime.CompilerServices;
 using System.Threading;
@@ -11,11 +12,13 @@ namespace CK.Core.Extension
     public static class PipeReaderExtensions
     {
         /// <summary>
-        /// Asynchronously reads a sequence of bytes which is size is at least <paramref name="minimumByteCount"/> from the current System.IO.Pipelines.PipeReader.
+        /// Asynchronously reads a sequence of at least <paramref name="minimumByteCount"/> bytes  from this <see cref="PipeReader"/>.
         /// Asking big <paramref name="minimumByteCount"/> will make the circular buffer grow, avoid doing that.
         /// </summary>
-        /// <param name="reader">The instance to read from.</param>
-        /// <returns></returns>
+        /// <param name="reader">This instance to read from.</param>
+        /// <param name="minimumByteCount">Minimum number of bytes that must be available in the buffered sequence reader.</param>
+        /// <param name="cancellationToken">A cancellation token to cancel the operation.</param>
+        /// <returns>The <see cref="ReadResult"/> that exposes the buffer.</returns>
         /// <remarks>
         /// The buffer size may be smaller if:
         /// <list type="bullet">
@@ -27,10 +30,15 @@ namespace CK.Core.Extension
         public static async ValueTask<ReadResult> ReadAsync( this PipeReader reader, int minimumByteCount, CancellationToken cancellationToken = default )
         {
             ReadResult result = await reader.ReadAsync( cancellationToken );
-            while( result.Buffer.Length < minimumByteCount )//Loop until we get the requested bytes.
+            // Loop until the result's Buffer has the requested bytes.
+            while( result.Buffer.Length < minimumByteCount )
             {
-                if( result.IsCanceled || result.IsCompleted ) return result;//Completed/Canceled, we can't read any more bytes, so we return.
-                //We need to signal that we examined the data, so the next read will fetch more data. If we don't the next read won't wait for more data.
+                if( result.IsCanceled || result.IsCompleted )
+                {
+                    // Completed/Canceled: we can't read any more bytes, so we return.
+                    return result;
+                }
+                // We need to signal that we examined the data, so the next read will fetch more data. If we don't the next read won't wait for more data.
                 reader.AdvanceTo( result.Buffer.Start, result.Buffer.End );
                 result = await reader.ReadAsync( cancellationToken );
             }
@@ -38,44 +46,35 @@ namespace CK.Core.Extension
         }
 
         /// <summary>
-        /// Represent if the fill was succesfull, or if it's an error.
+        /// Fills the a byte buffer with the data from this <see cref="PipeReader"/>.
         /// </summary>
-        public enum FillStatus
-        {
-            /// <summary>
-            /// The fill was successfull and the buffer has been clompletly filled.
-            /// </summary>
-            Done,
-            /// <summary>
-            /// Operation has been canceled, the buffer is empty or partially filled.
-            /// </summary>
-            Canceled,
-            /// <summary>
-            /// Unexpected end of stream, the buffer is empty or partially filled.
-            /// </summary>
-            UnexpectedEndOfStream
-        }
-
-        /// <summary>
-        /// Fill the given buffer with the data from the given <see cref="PipeReader"/>
-        /// </summary>
-        /// <param name="reader">The <see cref="PipeReader"/> to read data from.</param>
+        /// <param name="reader">This <see cref="PipeReader"/> to read data from.</param>
         /// <param name="buffer">The buffer to fill.</param>
         /// <param name="cancellationToken">A cancellation token to cancel the operation.</param>
-        /// <returns>An enum representing the status of the the operation.</returns>
-        public static async ValueTask<FillStatus> FillBuffer( this PipeReader reader, Memory<byte> buffer, CancellationToken cancellationToken )
+        /// <returns>The current read result.</returns>
+        public static async ValueTask<ReadResult> FillBufferAndReadAsync( this PipeReader reader, Memory<byte> buffer, CancellationToken cancellationToken = default )
         {
             while( true )
             {
                 ReadResult result = await reader.ReadAsync( cancellationToken );
                 ReadOnlySequence<byte> readBuffer = result.Buffer;
-                if( readBuffer.Length > buffer.Length ) readBuffer = readBuffer.Slice( 0, buffer.Length );//slice the pipe buffer if bigger than target.
-                readBuffer.CopyTo( buffer.Span );//copy data to the input buffer.
-                buffer = buffer.Slice( (int)readBuffer.Length );//then truncate the input buffer, so we don't overwrite our data.
-                reader.AdvanceTo( readBuffer.End );//and don't forget to signal that we consumed the data.
-                if( buffer.Length == 0 ) return FillStatus.Done;
-                if( result.IsCanceled || cancellationToken.IsCancellationRequested ) return FillStatus.Canceled;
-                if( result.IsCompleted ) return FillStatus.UnexpectedEndOfStream;
+                // Slices the pipe buffer if bigger than target.
+                if( readBuffer.Length > buffer.Length ) readBuffer = readBuffer.Slice( 0, buffer.Length );
+                // Copies data to the input buffer...
+                readBuffer.CopyTo( buffer.Span );
+                //... and truncates the input buffer, so we don't overwrite our data.
+                buffer = buffer.Slice( (int)readBuffer.Length );
+                // And don't forget to signal that we consumed the data.
+                reader.AdvanceTo( readBuffer.End );
+
+                if( buffer.Length == 0
+                    || result.IsCompleted
+                    || result.IsCanceled || cancellationToken.IsCancellationRequested )
+                {
+                    return new ReadResult( result.Buffer.Slice( readBuffer.Length ),
+                                            result.IsCompleted,
+                                            result.IsCanceled || cancellationToken.IsCancellationRequested );
+                }
             }
         }
     }
