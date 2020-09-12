@@ -72,8 +72,9 @@ namespace CK.Core.Extension
                     || result.IsCanceled || cancellationToken.IsCancellationRequested )
                 {
                     return new ReadResult( result.Buffer.Slice( readBuffer.Length ),
-                                            result.IsCompleted,
-                                            result.IsCanceled || cancellationToken.IsCancellationRequested );
+                                           result.IsCanceled || cancellationToken.IsCancellationRequested,
+                                           result.IsCompleted
+                    );
                 }
             }
         }
