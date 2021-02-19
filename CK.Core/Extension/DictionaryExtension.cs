@@ -22,7 +22,10 @@
 #endregion
 
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Collections.Specialized;
+using System.Diagnostics.CodeAnalysis;
 
 namespace CK.Core
 {
@@ -31,7 +34,7 @@ namespace CK.Core
     /// </summary>
     public static class DictionaryExtension
     {
-
+#nullable enable
         /// <summary>
         /// Gets the value associated with the specified key if it exists otherwise returns the <paramref name="defaultValue"/>.
         /// </summary>
@@ -41,12 +44,14 @@ namespace CK.Core
         /// <returns>
         /// The value associated with the specified key, if the key is found; otherwise, the <paramref name="defaultValue"/>. 
         /// </returns>
-        public static TValue GetValueWithDefault<TKey, TValue>( this IDictionary<TKey, TValue> @this, TKey key, TValue defaultValue )
+        [return: NotNullIfNotNull( "defaultValue" )]
+        public static TValue? GetValueWithDefault<TKey, TValue>( this IDictionary<TKey, TValue> @this, TKey key, TValue? defaultValue )
         {
             TValue result;
             if( !@this.TryGetValue( key, out result ) ) result = defaultValue;
             return result;
         }
+#nullable disable
 
         /// <summary>
         /// Gets the value associated with the specified key if it exists otherwise calls the <paramref name="defaultValue"/> function.
@@ -58,7 +63,7 @@ namespace CK.Core
         /// The value associated with the specified key, if the key is found; otherwise, the result 
         /// of the <paramref name="defaultValue"/> delegate.
         /// </returns>
-        public static TValue GetValueWithDefaultFunc<TKey, TValue>( this IDictionary<TKey, TValue> @this, TKey key, Func<TKey,TValue> defaultValue )
+        public static TValue GetValueWithDefaultFunc<TKey, TValue>( this IDictionary<TKey, TValue> @this, TKey key, Func<TKey, TValue> defaultValue )
         {
             TValue result;
             if( !@this.TryGetValue( key, out result ) ) result = defaultValue( key );
