@@ -2,12 +2,18 @@
   <Import Project="..\Common\Shared.props" />
   <PropertyGroup>
     <TargetFrameworks>netstandard2.1;netstandard2.0</TargetFrameworks>
-    <LangVersion>8.0</LangVersion>
+    <LangVersion>9.0</LangVersion>
     <Description>CK.Core contains types and helpers that are used across different projects. Main types are: CKTrait, DateTimeStamp, SimpleServiceContainer, CriticalErrorCollector, FIFOBuffer, TemporaryFile, BestKeeper, SHA1/SHA512Stream and SHA1/SHA512Value.</Description>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="CK.Text" Version="9.0.2--0005-develop" />
   </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="TunnelVisionLabs.ReferenceAssemblyAnnotator" Version="1.0.0-alpha.160" PrivateAssets="all" />
+    <PackageDownload Include="Microsoft.NETCore.App.Ref" Version="[3.1.0]" />
+  </ItemGroup>
+  
   <ItemGroup>
     <Folder Include="Properties\" />
   </ItemGroup>
