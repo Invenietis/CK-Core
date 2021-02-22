@@ -21,7 +21,7 @@ namespace CK.Core
         /// </summary>
         public CKReadOnlyCollectionOnICollection()
         {
-            _values = Util.Array.Empty<T>();
+            _values = Array.Empty<T>();
         }
 
         /// <summary>
@@ -38,7 +38,7 @@ namespace CK.Core
         /// Gets or sets the wrapped collection.
         /// Can never be null (default to an empty collection).
         /// </summary>
-        public ICollection<T> Values { get => _values; set => _values = value ?? Util.Array.Empty<T>(); }
+        public ICollection<T> Values { get => _values; set => _values = value ?? Array.Empty<T>(); }
 
         /// <summary>
         /// Gets the count of items.

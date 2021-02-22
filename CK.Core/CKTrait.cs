@@ -38,7 +38,7 @@ namespace CK.Core
             Debug.Assert( ctx.EmptyTrait == null, "There is only one empty tag per context." );
             _context = ctx;
             _tag = String.Empty;
-            _tags = Util.Array.Empty<CKTrait>();
+            _tags = Array.Empty<CKTrait>();
         }
 
         /// <summary>

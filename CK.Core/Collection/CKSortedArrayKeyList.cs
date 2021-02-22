@@ -35,13 +35,13 @@ namespace CK.Core
     [DebuggerTypeProxy( typeof( CKSortedArrayKeyList<,>.DebuggerView ) ), DebuggerDisplay( "Count = {Count}" )]
     public class CKSortedArrayKeyList<T, TKey> : CKSortedArrayList<T>, ICKReadOnlyMultiKeyedCollection<T, TKey>
     {
-        Func<T,TKey> _keySelector;
-        Comparison<TKey> _keyComparison;
+        readonly Func<T,TKey> _keySelector;
+        readonly Comparison<TKey> _keyComparison;
 
         [ExcludeFromCodeCoverage]
         class DebuggerView
         {
-            CKSortedArrayKeyList<T, TKey> _c;
+            readonly CKSortedArrayKeyList<T, TKey> _c;
 
             public DebuggerView( CKSortedArrayKeyList<T, TKey> c )
             {
@@ -148,7 +148,7 @@ namespace CK.Core
         public IReadOnlyCollection<T> GetAllByKey( TKey key )
         {
             int idx = Util.BinarySearch( Store, 0, Count, key, ComparisonKey );
-            if( idx < 0 ) return Util.Array.Empty<T>();
+            if( idx < 0 ) return Array.Empty<T>();
             if( !AllowDuplicates ) return new T[] { Store[idx] };
             int min = idx - 1;
             while( min >= 0 && ComparisonKey( Store[min], key ) == 0 ) --min;
@@ -185,8 +185,8 @@ namespace CK.Core
         /// <returns>The index of the item in the collection.</returns>
         public override int IndexOf( object item )
         {
-            if( item is T ) return IndexOf( (T)item );
-            if( item is TKey ) return IndexOf( (TKey)item );
+            if( item is T t ) return IndexOf( t );
+            if( item is TKey key ) return IndexOf( key );
             return Int32.MinValue;
         }
 

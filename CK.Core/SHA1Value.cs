@@ -18,7 +18,7 @@ namespace CK.Core
     public struct SHA1Value : IEquatable<SHA1Value>, IComparable<SHA1Value>
     {
         /// <summary>
-        /// The "zero" SHA1 (20 bytes full of zeroes).
+        /// The "zero" SHA1 (20 bytes full of zeros).
         /// This is the default value of a new SHA1Value().
         /// </summary>
         public static readonly SHA1Value ZeroSHA1;
@@ -148,7 +148,7 @@ namespace CK.Core
         static public bool operator ==( SHA1Value x, SHA1Value y ) => x.Equals( y );
 
         /// <summary>
-        /// Defines unequality operator.
+        /// Defines inequality operator.
         /// </summary>
         /// <param name="x">First sha1.</param>
         /// <param name="y">Second sha1.</param>
@@ -254,7 +254,7 @@ namespace CK.Core
         }
 
         /// <summary>
-        /// Gets the SHA1 as a 20 bytes readonly list.
+        /// Gets the SHA1 as a 20 bytes read only list.
         /// </summary>
         /// <returns>The sha1 bytes.</returns>
         public IReadOnlyList<byte> GetBytes() => _bytes ?? ZeroSHA1._bytes;
@@ -262,7 +262,7 @@ namespace CK.Core
         /// <summary>
         /// Writes this SHA1 value in a <see cref="BinaryWriter"/>.
         /// </summary>
-        /// <param name="w">Targtet binary writer.</param>
+        /// <param name="w">Target binary writer.</param>
         public void Write( BinaryWriter w ) => w.Write( _bytes ?? ZeroSHA1._bytes );
 
         /// <summary>

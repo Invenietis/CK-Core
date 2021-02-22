@@ -168,6 +168,36 @@ namespace CK.Core
             return a;
         }
 
+#if NETSTANDARD2_1
+        /// <summary>
+        /// Gets an enumeration value.
+        /// </summary>
+        /// <typeparam name="T">Type of the enumeration.</typeparam>
+        /// <param name="this">This <see cref="XElement"/>.</param>
+        /// <param name="name">Name of the attribute.</param>
+        /// <param name="ignoreCase">True to ignore the enumeration case sensitivity.</param>
+        /// <param name="defaultValue">Default value if the attribute does not exist or can not be parsed.</param>
+        /// <returns>The parsed value or the default value.</returns>
+        static public T AttributeEnum<T>( this XElement @this, XName name, bool ignoreCase, T defaultValue ) where T : Enum
+        {
+            XAttribute a = @this.Attribute( name );
+            if( a == null || !Enum.TryParse( typeof( T ), a.Value, ignoreCase, out var sResult ) ) return defaultValue;
+            return (T)sResult;
+        }
+
+        /// <summary>
+        /// Gets an enumeration value, using a case-insensitive comparison for enumeration names.
+        /// </summary>
+        /// <typeparam name="T">Type of the enumeration.</typeparam>
+        /// <param name="this">This <see cref="XElement"/>.</param>
+        /// <param name="name">Name of the attribute.</param>
+        /// <param name="defaultValue">Default value if the attribute does not exist or can not be parsed.</param>
+        /// <returns>The parsed value or the default value.</returns>
+        static public T AttributeEnum<T>( this XElement @this, XName name, T defaultValue ) where T : Enum => AttributeEnum( @this, name, true, defaultValue );
+#endif
+
+#if NETSTANDARD2_0
+
         /// <summary>
         /// Gets an enum value.
         /// </summary>
@@ -184,6 +214,8 @@ namespace CK.Core
             if( a == null || !Enum.TryParse( a.Value, out result ) ) result = defaultValue;
             return result;
         }
+#endif
 
     }
+
 }

@@ -87,7 +87,7 @@ namespace CK.Core.Tests
             Util.InterlockedRemove(ref a, 6);
             a.Should().BeEquivalentTo(new[] { 2 }, o => o.WithStrictOrdering());
             Util.InterlockedRemove(ref a, 2);
-            a.Should().BeEquivalentTo(Util.Array.Empty<int>(), o => o.WithStrictOrdering());
+            a.Should().BeEmpty();
 
             var aEmpty = a;
             Util.InterlockedRemove(ref a, 2);
@@ -109,7 +109,7 @@ namespace CK.Core.Tests
             Util.InterlockedRemoveAll(ref a, i => i % 2 == 0);
             a.Should().BeEquivalentTo(new[] { 1, 3, 5, 7, 9 }, o => o.WithStrictOrdering());
             Util.InterlockedRemoveAll(ref a, i => i % 2 != 0);
-            a.Should().BeEquivalentTo(Util.Array.Empty<int>(), o => o.WithStrictOrdering());
+            a.Should().BeEmpty();
 
             a = null;
             Util.InterlockedRemoveAll(ref a, i => i % 2 != 0);

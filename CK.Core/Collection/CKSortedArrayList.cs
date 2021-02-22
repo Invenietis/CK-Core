@@ -81,7 +81,7 @@ namespace CK.Core
         /// <param name="allowDuplicates">True to allow duplicate elements.</param>
         public CKSortedArrayList( Comparison<T> comparison, bool allowDuplicates = false )
         {
-            _tab = Util.Array.Empty<T>();
+            _tab = Array.Empty<T>();
             Comparator = comparison;
             if( allowDuplicates ) _version = 1;
         }
@@ -218,7 +218,7 @@ namespace CK.Core
                 if( _tab.Length != value )
                 {
                     if( value < _count ) throw new ArgumentException( "Capacity less than Count." );
-                    if( value == 0 ) _tab = Util.Array.Empty<T>();
+                    if( value == 0 ) _tab = Array.Empty<T>();
                     else 
                     {
                         T[] tempValues = new T[value];
@@ -234,7 +234,6 @@ namespace CK.Core
         /// </summary>
         /// <param name="index">Zero based position of the item in this list.</param>
         /// <returns>The item.</returns>
-        [System.Diagnostics.CodeAnalysis.SuppressMessage( "Microsoft.Design", "CA1065:DoNotRaiseExceptionsInUnexpectedLocations", Justification="This is a the right location to raise this exception!" )]
         public T this[int index]
         {
             get

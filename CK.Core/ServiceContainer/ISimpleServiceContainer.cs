@@ -38,7 +38,7 @@ namespace CK.Core
         /// <param name="serviceType">Service type to register. It must not already exist in this container otherwise an exception is thrown.</param>
         /// <param name="serviceInstance">Delegate to call when needed. Can not be null.</param>
         /// <param name="onRemove">Optional action that will be called whenever <see cref="Remove"/>, <see cref="Clear"/> or <see cref="IDisposable.Dispose"/>
-        /// is called and a service as been successfuly obtained.</param>
+        /// is called and a service as been successfully obtained.</param>
         /// <returns>This object to enable fluent syntax.</returns>
         ISimpleServiceContainer Add( Type serviceType, Func<Object> serviceInstance, Action<Object> onRemove = null );
 

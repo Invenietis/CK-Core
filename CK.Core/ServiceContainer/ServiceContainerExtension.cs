@@ -106,7 +106,7 @@ namespace CK.Core
         /// <param name="this">This <see cref="ISimpleServiceContainer"/> object.</param>
         /// <param name="serviceInstance">Delegate to call when needed. Can not be null.</param>
         /// <param name="onRemove">Action that will be called whenever <see cref="ISimpleServiceContainer.Remove"/>, <see cref="ISimpleServiceContainer.Clear"/> or <see cref="IDisposable.Dispose"/>
-        /// is called and a service as been successfuly obtained.</param>
+        /// is called and a service as been successfully obtained.</param>
         /// <returns>This object to enable fluent syntax.</returns>
         public static ISimpleServiceContainer Add<T>( this ISimpleServiceContainer @this, Func<T> serviceInstance, Action<T> onRemove ) where T : class
         {

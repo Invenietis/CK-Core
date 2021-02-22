@@ -73,7 +73,7 @@ namespace CK.Core
 
         /// <summary>
         /// This is basic. And we don't really need more: CKTraitContext are typically created once, statically.
-        /// The only "really dynamic" sollicitation of this list will be during deserialization.
+        /// The only "really dynamic" solicitation of this list will be during deserialization.
         /// </summary>
         static readonly List<CKTraitContext> _allContexts;
         static readonly List<KeyValuePair<string,Regex>> _regexes;
@@ -442,11 +442,17 @@ namespace CK.Core
             Debug.Assert( count != 0, "Split always create a cell." );
             int i = tags[0].Length == 0 ? 1 : 0;
             // Special handling for first and last slots if they are empty.
-            if( tags[count - 1].Length == 0 ) count = count - 1 - i;
-            else count = count - i;
+            if( tags[count - 1].Length == 0 )
+            {
+                count = count - 1 - i;
+            }
+            else
+            {
+                count -= i;
+            }
             if( count != tags.Length )
             {
-                if( count <= 0 ) return Util.Array.Empty<string>();
+                if( count <= 0 ) return Array.Empty<string>();
                 string[] m = new string[count];
                 Array.Copy( tags, i, m, 0, count );
                 tags = m;
