@@ -119,7 +119,7 @@ namespace CK.Core
         public T GetByKey( TKey key, out bool exists )
         {
             int idx = Util.BinarySearch( Store, 0, Count, key, ComparisonKey );
-            return (exists = idx >= 0) ? Store[idx] : default( T );
+            return (exists = idx >= 0) ? Store[idx] : default;
         }
 
         /// <summary>
@@ -199,8 +199,8 @@ namespace CK.Core
         /// <returns>True if a corresponding element in this list can be found.</returns>
         public override bool Contains( object item )
         {
-            if( item is T ) return Contains( (T)item );
-            if( item is TKey ) return Contains( (TKey)item );
+            if( item is T t ) return Contains( t );
+            if( item is TKey key ) return Contains( key );
             return false;
         }
 

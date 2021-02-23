@@ -347,8 +347,10 @@ namespace CK.Core
                 {
                     if( !p( current[i] ) )
                     {
-                        List<T> collector = new List<T>();
-                        collector.Add( current[i] );
+                        List<T> collector = new List<T>
+                        {
+                            current[i]
+                        };
                         while( ++i < len )
                         {
                             if( !p( current[i] ) ) collector.Add( current[i] );
@@ -421,7 +423,7 @@ namespace CK.Core
         {
             if( tester == null ) throw new ArgumentNullException( "tester" );
             if( factory == null ) throw new ArgumentNullException( "factory" );
-            TItem newE = default( TItem );
+            TItem newE = default;
             bool needFactory = true;
             return InterlockedSet( ref items, oldItems =>
             {

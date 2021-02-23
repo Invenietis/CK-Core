@@ -162,7 +162,7 @@ namespace CK.Core
         /// <returns>True if the object is found; otherwise, false.</returns>
         public virtual bool Contains( object item )
         {
-            return item is T ? Contains( (T)item ) : false;
+            return item is T i && Contains( i );
         }
 
         /// <summary>
@@ -456,7 +456,7 @@ namespace CK.Core
             int nbToCopy = newCount - index;
             if( index < 0 || nbToCopy < 0 ) throw new IndexOutOfRangeException();
             if( nbToCopy > 0 ) Array.Copy( _tab, index + 1, _tab, index, nbToCopy );
-            _tab[(_count = newCount)] = default( T );
+            _tab[(_count = newCount)] = default;
             _version += 2;
         }
 
@@ -523,7 +523,7 @@ namespace CK.Core
             public void Dispose()
             {
                 this._index = 0;
-                this._currentValue = default( T );
+                this._currentValue = default;
             }
 
             public bool MoveNext()
@@ -535,7 +535,7 @@ namespace CK.Core
                     return true;
                 }
                 _index = -1;
-                _currentValue = default( T );
+                _currentValue = default;
                 return false;
             }
 
@@ -543,7 +543,7 @@ namespace CK.Core
             {
                 if( _version != _list._version ) throw new InvalidOperationException( "SortedList changed during enumeration." );
                 _index = 0;
-                _currentValue = default( T );
+                _currentValue = default;
             }
 
             public T Current

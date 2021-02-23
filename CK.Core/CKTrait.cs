@@ -6,6 +6,8 @@ using CK.Core;
 using System.Threading;
 using System.ComponentModel;
 
+#nullable enable
+
 namespace CK.Core
 {
     /// <summary>
@@ -107,7 +109,7 @@ namespace CK.Core
         /// </summary>
         /// <param name="other">The tag to compare to. Can be null: any trait is greater than null.</param>
         /// <returns>A negative, zero or positive value.</returns>
-        public int CompareTo( CKTrait other )
+        public int CompareTo( CKTrait? other )
         {
             if( other == null ) return 1;
             if( ReferenceEquals( this, other ) ) return 0;
@@ -125,7 +127,7 @@ namespace CK.Core
         /// </summary>
         /// <param name="other">The tag to compare to.</param>
         /// <returns>True on equality.</returns>
-        public bool Equals( CKTrait other ) => ReferenceEquals( this, other );
+        public bool Equals( CKTrait? other ) => ReferenceEquals( this, other );
 
         /// <summary>
         /// Checks if each and every atomic tags of <paramref name="other" /> exists in this tag.
@@ -278,7 +280,7 @@ namespace CK.Core
         /// <param name="t1">The first trait to compare.</param>
         /// <param name="t2">The second trait to compare.</param>
         /// <returns>Whether t1 is smaller than t2.</returns>
-        public static bool operator <( CKTrait t1, CKTrait t2 ) => t1 == null ? t2 != null : t1.CompareTo( t2 ) < 0;
+        public static bool operator <( CKTrait? t1, CKTrait? t2 ) => t1 == null ? t2 != null : t1.CompareTo( t2 ) < 0;
 
         /// <summary>
         /// Greater than comparison.
@@ -286,7 +288,7 @@ namespace CK.Core
         /// <param name="t1">The trait to convert.</param>
         /// <param name="t2">The trait to convert.</param>
         /// <returns>Whether t1 is greater than t2.</returns>
-        public static bool operator >( CKTrait t1, CKTrait t2 ) => t2 == null ? t1 != null : t2.CompareTo( t1 ) <= 0;
+        public static bool operator >( CKTrait? t1, CKTrait? t2 ) => t2 == null ? t1 != null : t2.CompareTo( t1 ) <= 0;
 
         /// <summary>
         /// Lesser or equal comparison.
@@ -294,7 +296,7 @@ namespace CK.Core
         /// <param name="t1">The first trait to compare.</param>
         /// <param name="t2">The second trait to compare.</param>
         /// <returns>Whether t1 is smaller or equal to t2.</returns>
-        public static bool operator <=( CKTrait t1, CKTrait t2 ) => t1 == null ? true : t1.CompareTo( t2 ) <= 0;
+        public static bool operator <=( CKTrait? t1, CKTrait? t2 ) => t1 == null || t1.CompareTo( t2 ) <= 0;
 
         /// <summary>
         /// Greater or equal comparison.
@@ -302,7 +304,7 @@ namespace CK.Core
         /// <param name="t1">The first trait to compare.</param>
         /// <param name="t2">The second trait to compare.</param>
         /// <returns>Whether t1 is greater or equal to t2.</returns>
-        public static bool operator >=( CKTrait t1, CKTrait t2 ) => t2 == null ? true : t2.CompareTo( t1 ) < 0;
+        public static bool operator >=( CKTrait? t1, CKTrait? t2 ) => t2 == null || t2.CompareTo( t1 ) < 0;
 
         /// <summary>
         /// Calls <see cref="Union(CKTrait)"/> (<see cref="Context"/> must be the same).
@@ -311,7 +313,7 @@ namespace CK.Core
         /// <param name="t1">The first tag to combine.</param>
         /// <param name="t2">The second tag to combine.</param>
         /// <returns>The combined trait.</returns>
-        public static CKTrait operator +( CKTrait t1, CKTrait t2 ) => t1 == null ? t2 : (t2 == null ? t1 : t1.Union( t2 ));
+        public static CKTrait? operator +( CKTrait? t1, CKTrait? t2 ) => t1 == null ? t2 : (t2 == null ? t1 : t1.Union( t2 ));
 
         /// <summary>
         /// Calls <see cref="Union(CKTrait)"/> (<see cref="Context"/> must be the same).
@@ -320,7 +322,7 @@ namespace CK.Core
         /// <param name="t1">The first tag to combine.</param>
         /// <param name="t2">The second tag to combine.</param>
         /// <returns>The combined trait.</returns>
-        public static CKTrait operator |( CKTrait t1, CKTrait t2 ) => t1 == null ? t2 : (t2 == null ? t1 : t1.Union( t2 ));
+        public static CKTrait? operator |( CKTrait? t1, CKTrait? t2 ) => t1 == null ? t2 : (t2 == null ? t1 : t1.Union( t2 ));
 
         /// <summary>
         /// Calls <see cref="Except"/> (<see cref="Context"/> must be the same).
@@ -328,7 +330,7 @@ namespace CK.Core
         /// <param name="t1">The first tag to combine.</param>
         /// <param name="t2">The second tag to combine.</param>
         /// <returns>The combined trait.</returns>
-        public static CKTrait operator -( CKTrait t1, CKTrait t2 ) => t1 == null ? t2 : (t2 == null ? t1 : t1.Except( t2 ));
+        public static CKTrait? operator -( CKTrait? t1, CKTrait? t2 ) => t1 == null ? t2 : (t2 == null ? t1 : t1.Except( t2 ));
 
         /// <summary>
         /// Calls <see cref="Intersect"/> (<see cref="Context"/> must be the same).
@@ -336,7 +338,7 @@ namespace CK.Core
         /// <param name="t1">The first tag to combine.</param>
         /// <param name="t2">The second tag to combine.</param>
         /// <returns>The combined trait.</returns>
-        public static CKTrait operator &( CKTrait t1, CKTrait t2 ) => t1 == null ? t2 : (t2 == null ? t1 : t1.Intersect( t2 ));
+        public static CKTrait? operator &( CKTrait? t1, CKTrait? t2 ) => t1 == null ? t2 : (t2 == null ? t1 : t1.Intersect( t2 ));
 
         /// <summary>
         /// Calls <see cref="SymmetricExcept"/> (<see cref="Context"/> must be the same).
@@ -344,7 +346,7 @@ namespace CK.Core
         /// <param name="t1">The first tag to combine.</param>
         /// <param name="t2">The second tag to combine.</param>
         /// <returns>The combined trait.</returns>
-        public static CKTrait operator ^( CKTrait t1, CKTrait t2 ) => t1 == null ? t2 : (t2 == null ? t1 : t1.SymmetricExcept( t2 ));
+        public static CKTrait? operator ^( CKTrait? t1, CKTrait? t2 ) => t1 == null ? t2 : (t2 == null ? t1 : t1.SymmetricExcept( t2 ));
 
         /// <summary>
         /// Common process function where 3 predicates drive the result: each atomic tag is submitted to one of the 3 predicates
@@ -366,7 +368,7 @@ namespace CK.Core
         /// 
         /// This shows that our 4 methods Intersect, Remove, Toggle and Add cover the interesting cases - others are either symetric or useless.
         /// </remarks>
-        static void Process( CKTrait left, CKTrait right, Func<CKTrait,bool> onLeft, Func<CKTrait,bool> onRight, Func<CKTrait,bool> onBoth )
+        static void Process( CKTrait left, CKTrait right, Func<CKTrait,bool>? onLeft, Func<CKTrait,bool>? onRight, Func<CKTrait,bool>? onBoth )
         {
             IReadOnlyList<CKTrait> l = left.AtomicTraits;
             int cL = l.Count;

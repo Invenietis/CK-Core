@@ -7,6 +7,8 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
 
+#nullable enable
+
 namespace CK.Core
 {
     /// <summary>
@@ -26,7 +28,7 @@ namespace CK.Core
         readonly string _separatorString;
         readonly int _independentIndex;
 
-        CKTraitContext( string name, char separator, bool shared, ICKBinaryReader r )
+        CKTraitContext( string name, char separator, bool shared, ICKBinaryReader? r )
         {
             if( String.IsNullOrWhiteSpace( name ) ) throw new ArgumentException( Core.Impl.CoreResources.ArgumentMustNotBeNullOrWhiteSpace, "uniqueName" );
             Name = name.Normalize();
@@ -99,7 +101,7 @@ namespace CK.Core
             return shared ? Bind( name, separator, null ) : new CKTraitContext( name, separator, false, null );
         }
 
-        static CKTraitContext Bind( string name, char separator, ICKBinaryReader tagReader )
+        static CKTraitContext Bind( string name, char separator, ICKBinaryReader? tagReader )
         {
             CKTraitContext c, exists;
             lock( _basicLock )
@@ -200,7 +202,7 @@ namespace CK.Core
         /// </summary>
         /// <param name="tags">Atomic tag or tags separated by <see cref="Separator"/>.</param>
         /// <returns>A tag.</returns>
-        public CKTrait FindOrCreate( string tags ) => FindOrCreate( tags, true );
+        public CKTrait FindOrCreate( string tags ) => FindOrCreate( tags, true )!;
 
         /// <summary>
         /// Finds a <see cref="CKTrait"/> (either combined or atomic) only if all 
@@ -209,7 +211,7 @@ namespace CK.Core
         /// </summary>
         /// <param name="tags">Atomic tag or tags separated by <see cref="Separator"/>.</param>
         /// <returns>A tag or null if the tag does not exists.</returns>
-        public CKTrait FindIfAllExist( string tags ) => FindOrCreate( tags, false );
+        public CKTrait? FindIfAllExist( string tags ) => FindOrCreate( tags, false );
 
         /// <summary>
         /// Finds a <see cref="CKTrait"/> with only already existing atomic tags (null when not found).
@@ -217,12 +219,11 @@ namespace CK.Core
         /// <param name="tags">Atomic tag or tags separated by <see cref="Separator"/>.</param>
         /// <param name="collector">Optional collector for unknown tag. As soon as the collector returns false, the process stops.</param>
         /// <returns>A tag that contains only already existing tag or null if none already exists.</returns>
-        public CKTrait FindOnlyExisting( string tags, Func<string, bool> collector = null )
+        public CKTrait? FindOnlyExisting( string tags, Func<string, bool>? collector = null )
         {
             if( tags == null || tags.Length == 0 ) return null;
             tags = tags.Normalize( NormalizationForm.FormC );
-            CKTrait m;
-            if( !_tags.TryGetValue( tags, out m ) )
+            if( !_tags.TryGetValue( tags, out CKTrait? m ) )
             {
                 int tagCount;
                 string[] splitTags = SplitMultiTag( tags, out tagCount );
@@ -239,7 +240,7 @@ namespace CK.Core
                         List<CKTrait> atomics = new List<CKTrait>();
                         for( int i = 0; i < tagCount; ++i )
                         {
-                            CKTrait tag = FindOrCreateAtomicTrait( splitTags[i], false );
+                            CKTrait? tag = FindOrCreateAtomicTrait( splitTags[i], false );
                             if( tag == null )
                             {
                                 if( collector != null && !collector( splitTags[i] ) ) break;
@@ -272,7 +273,7 @@ namespace CK.Core
         /// </summary>
         /// <param name="other">Context to compare.</param>
         /// <returns>0 for the exact same context, greater/lower than 0 otherwise.</returns>
-        public int CompareTo( CKTraitContext other )
+        public int CompareTo( CKTraitContext? other )
         {
             if( other == null ) return 1;
             if( ReferenceEquals( this, other ) ) return 0;
@@ -300,13 +301,12 @@ namespace CK.Core
         /// </summary>
         internal IEnumerable<CKTrait> EnumWithEmpty { get; }
 
-        CKTrait FindOrCreate( string tags, bool create )
+        CKTrait? FindOrCreate( string tags, bool create )
         {
             if( tags == null || tags.Length == 0 ) return EmptyTrait;
             tags = tags.Normalize();
             if( tags.IndexOfAny( new[] { '\n', '\r' } ) >= 0 ) throw new ArgumentException( Core.Impl.CoreResources.TagsMustNotBeMultiLineString );
-            CKTrait m;
-            if( !_tags.TryGetValue( tags, out m ) )
+            if( !_tags.TryGetValue( tags, out CKTrait? m ) )
             {
                 int tagCount;
                 string[] splitTags = SplitMultiTag( tags, out tagCount );
@@ -323,8 +323,9 @@ namespace CK.Core
                         CKTrait[] atomics = new CKTrait[tagCount];
                         for( int i = 0; i < tagCount; ++i )
                         {
-                            CKTrait tag = FindOrCreateAtomicTrait( splitTags[i], create );
-                            if( (atomics[i] = tag) == null ) return null;
+                            CKTrait? tag = FindOrCreateAtomicTrait( splitTags[i], create );
+                            if( tag == null ) return null;
+                            atomics[i] = tag;
                         }
                         lock( _creationLock )
                         {
@@ -362,8 +363,7 @@ namespace CK.Core
                 b.Append( Separator ).Append( atomicTags[i].ToString() );
             }
             string tags = b.ToString();
-            CKTrait m;
-            if( !_tags.TryGetValue( tags, out m ) )
+            if( !_tags.TryGetValue( tags, out CKTrait? m ) )
             {
                 lock( _creationLock )
                 {
@@ -377,10 +377,9 @@ namespace CK.Core
             return m;
         }
 
-        internal CKTrait FindOrCreateAtomicTrait( string tag, bool create )
+        CKTrait? FindOrCreateAtomicTrait( string tag, bool create )
         {
-            CKTrait m;
-            if( !_tags.TryGetValue( tag, out m ) && create )
+            if( !_tags.TryGetValue( tag, out CKTrait? m ) && create )
             {
                 lock( _creationLock )
                 {
@@ -390,7 +389,7 @@ namespace CK.Core
                         _tags[tag] = m;
                     }
                 }
-                Debug.Assert( m.IsAtomic, "Special construction for atomic tags." );
+                Debug.Assert( m != null && m.IsAtomic, "Special construction for atomic tags." );
             }
             return m;
         }
@@ -412,8 +411,7 @@ namespace CK.Core
                 b.Append( Separator ).Append( atomicTags[i].ToString() );
             }
             string tags = b.ToString();
-            CKTrait m;
-            if( !_tags.TryGetValue( tags, out m ) )
+            if( !_tags.TryGetValue( tags, out CKTrait? m ) )
             {
                 // We must clone the array since fall backs generation reuses it.
                 if( atomicTags.Length != count )

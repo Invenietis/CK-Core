@@ -69,7 +69,7 @@ namespace CK.Core
         }
 
         /// <summary>
-        /// Gets the comprarer that is used to determine the "best" to keep.
+        /// Gets the comparer that is used to determine the "best" to keep.
         /// </summary>
         public IComparer<T> Comparer { get; }
 
@@ -127,7 +127,7 @@ namespace CK.Core
 
                 if( smallestIdx == idx )
                 {
-                    if( collector != null ) collector( removedItem );
+                    collector?.Invoke( removedItem );
                     return;
                 }
 

@@ -64,6 +64,7 @@ namespace CK.Core
         /// <typeparam name="T">The type of the collection items.</typeparam>
         /// <param name="this">This collection.</param>
         /// <returns>This collection or an adapter.</returns>
+        [Obsolete( "Please use the AsIReadOnlyCollection() extension method (that handles covariance instead).", true )]
         public static IReadOnlyCollection<T> AsReadOnlyCollection<T>( this ICollection<T> @this )
         {
             IReadOnlyCollection<T> c = @this as IReadOnlyCollection<T>;

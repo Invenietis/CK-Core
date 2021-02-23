@@ -119,9 +119,9 @@ namespace CK.Core
         static public bool WeakenAssemblyQualifiedName( string assemblyQualifiedName, out string weakTypeName )
         {
             weakTypeName = String.Empty;
-            string fullTypeName, assemblyFullName, assemblyName, versionCultureAndPublicKeyToken;
+            string fullTypeName, assemblyFullName, assemblyName;
             if( SplitAssemblyQualifiedName( assemblyQualifiedName, out fullTypeName, out assemblyFullName )
-                && SplitAssemblyFullName( assemblyFullName, out assemblyName, out versionCultureAndPublicKeyToken ) )
+                && SplitAssemblyFullName( assemblyFullName, out assemblyName, out _ ) )
             {
                 weakTypeName = fullTypeName + ", " + assemblyName;
                 return true;

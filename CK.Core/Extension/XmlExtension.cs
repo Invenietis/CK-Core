@@ -209,9 +209,8 @@ namespace CK.Core
         /// <returns>The parsed value or the default value.</returns>
         static public T AttributeEnum<T>( this XElement @this, XName name, T defaultValue ) where T : struct
         {
-            T result;
             XAttribute a = @this.Attribute( name );
-            if( a == null || !Enum.TryParse( a.Value, out result ) ) result = defaultValue;
+            if( a == null || !Enum.TryParse( a.Value, out T result ) ) result = defaultValue;
             return result;
         }
 #endif

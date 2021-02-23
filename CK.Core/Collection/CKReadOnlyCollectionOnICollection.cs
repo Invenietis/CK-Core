@@ -12,12 +12,13 @@ namespace CK.Core
     /// </summary>
     /// <typeparam name="T">Type of the collection items.</typeparam>
     [ExcludeFromCodeCoverage]
+    [Obsolete( "Please use the AsIReadOnlyCollection() extension method (that handles covariance instead).", true)]
     public class CKReadOnlyCollectionOnICollection<T> : IReadOnlyCollection<T>
     {
         ICollection<T> _values;
 
         /// <summary>
-        /// Initializes a new <see cref="CKReadOnlyCollectionOnICollection{T}"/> with aa empty <see cref="Values"/>.
+        /// Initializes a new <see cref="CKReadOnlyCollectionOnICollection{T}"/> with an empty <see cref="Values"/>.
         /// </summary>
         public CKReadOnlyCollectionOnICollection()
         {
