@@ -22,7 +22,14 @@
 #endregion
 
 using System;
+using System.Collections;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Collections.Specialized;
+using System.Diagnostics.CodeAnalysis;
+using System.Linq;
+
+#nullable enable
 
 namespace CK.Core
 {
@@ -31,6 +38,53 @@ namespace CK.Core
     /// </summary>
     public static class DictionaryExtension
     {
+
+        class ReadOnlyDictionaryWrapper<TKey, TValue, TReadOnlyValue> : IReadOnlyDictionary<TKey, TReadOnlyValue>
+                    where TValue : TReadOnlyValue
+                    where TKey : notnull
+        {
+            readonly IDictionary<TKey, TValue> _dictionary;
+
+            public ReadOnlyDictionaryWrapper( IDictionary<TKey, TValue> dictionary )
+            {
+                _dictionary = dictionary ?? throw new ArgumentNullException( nameof( dictionary ) );
+            }
+            public bool ContainsKey( TKey key ) => _dictionary.ContainsKey( key );
+
+            public IEnumerable<TKey> Keys => _dictionary.Keys;
+
+            public bool TryGetValue( TKey key, [MaybeNullWhen( false )] out TReadOnlyValue value )
+            {
+                var r = _dictionary.TryGetValue( key, out var v );
+                value = v!;
+                return r;
+            }
+
+            public IEnumerable<TReadOnlyValue> Values => _dictionary.Values.Cast<TReadOnlyValue>();
+
+            public TReadOnlyValue this[TKey key] => _dictionary[key];
+
+            public int Count => _dictionary.Count;
+
+            public IEnumerator<KeyValuePair<TKey, TReadOnlyValue>> GetEnumerator() => _dictionary.Select( x => new KeyValuePair<TKey, TReadOnlyValue>( x.Key, x.Value ) ).GetEnumerator();
+
+            IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+        }
+
+        /// <summary>
+        /// Creates a wrapper (a read only facade) on a dictionary that adapts the type of the values.
+        /// </summary>
+        /// <typeparam name="TKey">The dictionary key.</typeparam>
+        /// <typeparam name="TValue">The dictionary value.</typeparam>
+        /// <typeparam name="TReadOnlyValue">The base type of the <typeparamref name="TValue"/>.</typeparam>
+        /// <param name="this">This dictionary.</param>
+        /// <returns>A dictionary where values are a base type of this dictionary.</returns>
+        public static IReadOnlyDictionary<TKey, TReadOnlyValue> AsIReadOnlyDictionary<TKey, TValue, TReadOnlyValue>( this IDictionary<TKey, TValue> @this )
+            where TValue : TReadOnlyValue
+            where TKey : notnull
+        {
+            return new ReadOnlyDictionaryWrapper<TKey, TValue, TReadOnlyValue>( @this );
+        }
 
         /// <summary>
         /// Gets the value associated with the specified key if it exists otherwise returns the <paramref name="defaultValue"/>.
@@ -41,7 +95,8 @@ namespace CK.Core
         /// <returns>
         /// The value associated with the specified key, if the key is found; otherwise, the <paramref name="defaultValue"/>. 
         /// </returns>
-        public static TValue GetValueWithDefault<TKey, TValue>( this IDictionary<TKey, TValue> @this, TKey key, TValue defaultValue )
+        [return: NotNullIfNotNull( "defaultValue" )]
+        public static TValue? GetValueWithDefault<TKey, TValue>( this IDictionary<TKey, TValue> @this, TKey key, TValue? defaultValue ) where TKey : notnull
         {
             TValue result;
             if( !@this.TryGetValue( key, out result ) ) result = defaultValue;
@@ -58,12 +113,13 @@ namespace CK.Core
         /// The value associated with the specified key, if the key is found; otherwise, the result 
         /// of the <paramref name="defaultValue"/> delegate.
         /// </returns>
-        public static TValue GetValueWithDefaultFunc<TKey, TValue>( this IDictionary<TKey, TValue> @this, TKey key, Func<TKey,TValue> defaultValue )
+        public static TValue? GetValueWithDefaultFunc<TKey, TValue>( this IDictionary<TKey, TValue> @this, TKey key, Func<TKey, TValue?> defaultValue ) where TKey : notnull
         {
-            TValue result;
+            TValue? result;
             if( !@this.TryGetValue( key, out result ) ) result = defaultValue( key );
             return result;
         }
+
 
         /// <summary>
         /// Gets the value associated with the specified key if it exists otherwise calls the <paramref name="createValue"/> function
@@ -76,7 +132,7 @@ namespace CK.Core
         /// The value associated with the specified key, if the key is found; otherwise, the result 
         /// of the <paramref name="createValue"/> delegate (this result has been added to the dictionary).
         /// </returns>
-        public static TValue GetOrSet<TKey, TValue>( this IDictionary<TKey, TValue> @this, TKey key, Func<TKey, TValue> createValue )
+        public static TValue GetOrSet<TKey, TValue>( this IDictionary<TKey, TValue> @this, TKey key, Func<TKey, TValue> createValue ) where TKey : notnull
         {
             TValue result;
             if( !@this.TryGetValue( key, out result ) )
@@ -94,11 +150,10 @@ namespace CK.Core
         /// <typeparam name="TValue">The type of values in the dictionary.</typeparam>
         /// <param name="this">This generic IDictionary.</param>
         /// <param name="source">The <see cref="IEnumerable{T}"/> of <see cref="KeyValuePair {TKey,TValue}"/> from which content will be copied.</param>
-        public static void AddRange<TKey, TValue>( this IDictionary<TKey, TValue> @this, IEnumerable<KeyValuePair<TKey, TValue>> source )
+        public static void AddRange<TKey, TValue>( this IDictionary<TKey, TValue> @this, IEnumerable<KeyValuePair<TKey, TValue>> source ) where TKey : notnull
         {
             foreach( var e in source ) @this.Add( e.Key, e.Value );
         }
-
 
     }
 }

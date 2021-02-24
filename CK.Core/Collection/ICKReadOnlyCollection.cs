@@ -12,7 +12,7 @@ namespace CK.Core
         /// <summary>
         /// Determines whether collection contains a specific value.
         /// </summary>
-        /// <param name="item">The object to find in the collecion.</param>
+        /// <param name="item">The object to find in the collection.</param>
         /// <returns>True if item is found in the collection; otherwise, false.</returns>
         bool Contains( object item );
 

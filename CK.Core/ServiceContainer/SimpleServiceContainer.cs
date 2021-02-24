@@ -51,7 +51,7 @@ namespace CK.Core
             public Action<Object> OnRemove;
         }
 
-        Dictionary<Type,ServiceEntry> _services;
+        readonly Dictionary<Type,ServiceEntry> _services;
         IServiceProvider _baseProvider;
 
         /// <summary>

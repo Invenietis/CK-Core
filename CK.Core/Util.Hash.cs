@@ -30,11 +30,13 @@ namespace CK.Core
 {
 	static public partial class Util
 	{
+
         /// <summary>
         /// Provides methods to combine hash values: use <see cref="StartValue"/> and then 
         /// chain calls to the <see cref="M:Combine"/> methods.
         /// Based on Daniel J. Bernstein algorithm (http://cr.yp.to/cdb/cdb.txt).
         /// </summary>
+        [Obsolete( "Please use the new standard HashCode helper: https://docs.microsoft.com/en-us/dotnet/api/system.hashcode.", true)]
         public static class Hash
         {
 

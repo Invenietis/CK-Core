@@ -20,8 +20,7 @@ namespace CK.Core
         /// <returns>The item that matches the key, default(T) if the key can not be found.</returns>
         static public T GetByKey<T, TKey>( this ICKReadOnlyUniqueKeyedCollection<T, TKey> @this, TKey key )
         {
-            bool exists;
-            return @this.GetByKey( key, out exists );
+            return @this.GetByKey( key, out _ );
         }
 
         /// <summary>

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
@@ -24,27 +24,9 @@ namespace CK.Core
         /// </summary>
         static public readonly DateTime UtcMaxValue = new DateTime( 0x2bca2875f4373fffL, DateTimeKind.Utc );
 
-        /// <summary>
-        /// Supports Empty&lt;T&gt;() for all DNX targets.
-        /// </summary>
+        [Obsolete("Use the standard Array.Empty<T>()",true)]
         public static class Array
         {
-#if NET451
-            static class E<T>
-            {
-                public readonly static T[] Value = new T[0];
-            }
-
-            /// <summary>
-            /// Gets an empty array for a type.
-            /// </summary>
-            /// <typeparam name="T">Type of the array items.</typeparam>
-            /// <returns>An empty array.</returns>
-            public static T[] Empty<T>()
-            {
-                return E<T>.Value;
-            }
-#else
             /// <summary>
             /// Gets an empty array for a type.
             /// </summary>
@@ -54,9 +36,7 @@ namespace CK.Core
             {
                 return System.Array.Empty<T>();
             }
-#endif
         }
-
 
         /// <summary>
         /// Centralized <see cref="IDisposable.Dispose"/> action call: it adapts an <see cref="IDisposable"/> interface to an <see cref="Action"/>.
@@ -99,12 +79,12 @@ namespace CK.Core
         public static readonly IDisposable EmptyDisposable = new VoidDisposable();
 
         /// <summary>
-        /// Unix Epoch (1st of january 1970).
+        /// Unix Epoch (1st of January 1970).
         /// </summary>
         public static DateTime UnixEpoch  = new DateTime(1970,1,1);
 
         /// <summary>
-        /// Sql Server Epoch (1st of january 1900): this is the 0 legacy datetime.
+        /// Sql Server Epoch (1st of January 1900): this is the 0 legacy datetime.
         /// </summary>
         public static DateTime SqlServerEpoch  = new DateTime(1900,1,1);
 
@@ -318,7 +298,7 @@ namespace CK.Core
                 if( current == null || current.Length == 0 ) return current;
                 int idx = System.Array.IndexOf( current, item );
                 if( idx < 0 ) return current;
-                if( current.Length == 1 ) return Array.Empty<T>();
+                if( current.Length == 1 ) return System.Array.Empty<T>();
                 var newArray = new T[current.Length - 1];
                 System.Array.Copy( current, 0, newArray, 0, idx );
                 System.Array.Copy( current, idx + 1, newArray, idx, newArray.Length - idx );
@@ -341,7 +321,7 @@ namespace CK.Core
                 if( current == null || current.Length == 0 ) return current;
                 int idx = current.IndexOf( p );
                 if( idx < 0 ) return current;
-                if( current.Length == 1 ) return Array.Empty<T>();
+                if( current.Length == 1 ) return System.Array.Empty<T>();
                 var newArray = new T[current.Length - 1];
                 System.Array.Copy( current, 0, newArray, 0, idx );
                 System.Array.Copy( current, idx + 1, newArray, idx, newArray.Length - idx );
@@ -367,8 +347,10 @@ namespace CK.Core
                 {
                     if( !p( current[i] ) )
                     {
-                        List<T> collector = new List<T>();
-                        collector.Add( current[i] );
+                        List<T> collector = new List<T>
+                        {
+                            current[i]
+                        };
                         while( ++i < len )
                         {
                             if( !p( current[i] ) ) collector.Add( current[i] );
@@ -376,7 +358,7 @@ namespace CK.Core
                         return collector.ToArray();
                     }
                 }
-                return Array.Empty<T>();
+                return System.Array.Empty<T>();
             } );
         }
 
@@ -441,7 +423,7 @@ namespace CK.Core
         {
             if( tester == null ) throw new ArgumentNullException( "tester" );
             if( factory == null ) throw new ArgumentNullException( "factory" );
-            TItem newE = default( TItem );
+            TItem newE = default;
             bool needFactory = true;
             return InterlockedSet( ref items, oldItems =>
             {

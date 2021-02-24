@@ -81,7 +81,7 @@ namespace CK.Core
         /// <param name="allowDuplicates">True to allow duplicate elements.</param>
         public CKSortedArrayList( Comparison<T> comparison, bool allowDuplicates = false )
         {
-            _tab = Util.Array.Empty<T>();
+            _tab = Array.Empty<T>();
             Comparator = comparison;
             if( allowDuplicates ) _version = 1;
         }
@@ -162,7 +162,7 @@ namespace CK.Core
         /// <returns>True if the object is found; otherwise, false.</returns>
         public virtual bool Contains( object item )
         {
-            return item is T ? Contains( (T)item ) : false;
+            return item is T i && Contains( i );
         }
 
         /// <summary>
@@ -218,7 +218,7 @@ namespace CK.Core
                 if( _tab.Length != value )
                 {
                     if( value < _count ) throw new ArgumentException( "Capacity less than Count." );
-                    if( value == 0 ) _tab = Util.Array.Empty<T>();
+                    if( value == 0 ) _tab = Array.Empty<T>();
                     else 
                     {
                         T[] tempValues = new T[value];
@@ -234,7 +234,6 @@ namespace CK.Core
         /// </summary>
         /// <param name="index">Zero based position of the item in this list.</param>
         /// <returns>The item.</returns>
-        [System.Diagnostics.CodeAnalysis.SuppressMessage( "Microsoft.Design", "CA1065:DoNotRaiseExceptionsInUnexpectedLocations", Justification="This is a the right location to raise this exception!" )]
         public T this[int index]
         {
             get
@@ -457,7 +456,7 @@ namespace CK.Core
             int nbToCopy = newCount - index;
             if( index < 0 || nbToCopy < 0 ) throw new IndexOutOfRangeException();
             if( nbToCopy > 0 ) Array.Copy( _tab, index + 1, _tab, index, nbToCopy );
-            _tab[(_count = newCount)] = default( T );
+            _tab[(_count = newCount)] = default;
             _version += 2;
         }
 
@@ -524,7 +523,7 @@ namespace CK.Core
             public void Dispose()
             {
                 this._index = 0;
-                this._currentValue = default( T );
+                this._currentValue = default;
             }
 
             public bool MoveNext()
@@ -536,7 +535,7 @@ namespace CK.Core
                     return true;
                 }
                 _index = -1;
-                _currentValue = default( T );
+                _currentValue = default;
                 return false;
             }
 
@@ -544,7 +543,7 @@ namespace CK.Core
             {
                 if( _version != _list._version ) throw new InvalidOperationException( "SortedList changed during enumeration." );
                 _index = 0;
-                _currentValue = default( T );
+                _currentValue = default;
             }
 
             public T Current

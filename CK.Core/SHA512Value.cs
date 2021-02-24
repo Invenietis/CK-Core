@@ -18,7 +18,7 @@ namespace CK.Core
     public struct SHA512Value : IEquatable<SHA512Value>, IComparable<SHA512Value>
     {
         /// <summary>
-        /// The "zero" SHA512 (64 bytes full of zeroes).
+        /// The "zero" SHA512 (64 bytes full of zeros).
         /// This is the default value of a new SHA512Value().
         /// </summary>
         public static readonly SHA512Value ZeroSHA512;
@@ -148,7 +148,7 @@ namespace CK.Core
         static public bool operator ==( SHA512Value x, SHA512Value y ) => x.Equals( y );
 
         /// <summary>
-        /// Defines unequality operator.
+        /// Defines inequality operator.
         /// </summary>
         /// <param name="x">First SHA512.</param>
         /// <param name="y">Second SHA512.</param>
@@ -254,7 +254,7 @@ namespace CK.Core
         }
 
         /// <summary>
-        /// Gets the SHA512 as a 64 bytes readonly list.
+        /// Gets the SHA512 as a 64 bytes read only list.
         /// </summary>
         /// <returns>The SHA512 bytes.</returns>
         public IReadOnlyList<byte> GetBytes() => _bytes ?? ZeroSHA512._bytes;
@@ -262,7 +262,7 @@ namespace CK.Core
         /// <summary>
         /// Writes this SHA512 value in a <see cref="BinaryWriter"/>.
         /// </summary>
-        /// <param name="w">Targtet binary writer.</param>
+        /// <param name="w">Target binary writer.</param>
         public void Write( BinaryWriter w ) => w.Write( _bytes ?? ZeroSHA512._bytes );
 
         /// <summary>

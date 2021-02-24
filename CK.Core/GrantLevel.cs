@@ -44,7 +44,7 @@ namespace CK.Core
 
         /// <summary>
         /// Actor can edit all properties of the object and can 
-        /// change the security settings by choosing an acl among defined security
+        /// change the security settings by choosing an Acl among defined security
         /// contexts. The actor can not destroy the object.
         /// </summary>
         SafeAdministrator = 112,

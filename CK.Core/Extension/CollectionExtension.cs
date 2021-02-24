@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
@@ -57,6 +58,39 @@ namespace CK.Core
             }
         }
 
+
+        class ReadOnlyCollectionWrapper<T> : IReadOnlyCollection<T>
+        {
+            readonly ICollection<T> _values;
+
+            public ReadOnlyCollectionWrapper( ICollection<T> values ) => _values = values;
+
+            public ICollection<T> Values => _values;
+
+            public int Count => _values.Count;
+
+            public IEnumerator<T> GetEnumerator() => _values.GetEnumerator();
+
+            IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+        }
+
+        /// <summary>
+        /// Returns this collection if the implementation supports <see cref="IReadOnlyCollection{T}"/> 
+        /// or a simple wrapper that adapts the interface.
+        /// </summary>
+        /// <typeparam name="T">The type of the collection items.</typeparam>
+        /// <param name="this">This collection.</param>
+        /// <returns>This collection or a simple wrapper that adapts the interface.</returns>
+        public static IReadOnlyCollection<T> AsIReadOnlyCollection<T>( this ICollection<T> @this )
+        {
+            if( !(@this is IReadOnlyCollection<T> c) )
+            {
+                if( @this == null ) throw new NullReferenceException();
+                c = new ReadOnlyCollectionWrapper<T>( @this );
+            }
+            return c;
+        }
+
         /// <summary>
         /// Returns this collection if the implementation supports <see cref="IReadOnlyCollection{T}"/> 
         /// or a <see cref="CKReadOnlyCollectionOnICollection{T}"/> adapter instance.
@@ -64,6 +98,7 @@ namespace CK.Core
         /// <typeparam name="T">The type of the collection items.</typeparam>
         /// <param name="this">This collection.</param>
         /// <returns>This collection or an adapter.</returns>
+        [Obsolete( "Please use the AsIReadOnlyCollection() extension method.", true )]
         public static IReadOnlyCollection<T> AsReadOnlyCollection<T>( this ICollection<T> @this )
         {
             IReadOnlyCollection<T> c = @this as IReadOnlyCollection<T>;

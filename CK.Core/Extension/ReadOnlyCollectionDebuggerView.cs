@@ -46,8 +46,7 @@ namespace CK.Core.Debugging
         /// <param name="collection">The collection to debug.</param>
         public ReadOnlyCollectionDebuggerView( IReadOnlyCollection<T> collection )
         {
-            if( collection == null ) throw new ArgumentNullException( "collection" );
-            _collection = collection;
+            _collection = collection ?? throw new ArgumentNullException( "collection" );
         }
 
         /// <summary>
@@ -83,8 +82,7 @@ namespace CK.Core.Debugging
         /// <param name="collection">The collection to debug.</param>
         public ReadOnlyCollectionDebuggerView( IReadOnlyCollection<T> collection )
         {
-            if( collection == null ) throw new ArgumentNullException( "collection" );
-            _collection = collection;
+            _collection = collection ?? throw new ArgumentNullException( "collection" );
         }
 
         /// <summary>
