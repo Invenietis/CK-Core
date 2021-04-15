@@ -68,7 +68,7 @@ namespace CK.Core
 		}
 
         [ExcludeFromCodeCoverage]
-		object IEnumerator.Current => Current; 
+		object? IEnumerator.Current => Current; 
 
         /// <summary>
         /// Move to the next element.

@@ -22,6 +22,7 @@
 #endregion
 
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 
 namespace CK.Core
 {
@@ -54,6 +55,7 @@ namespace CK.Core
         /// to define a method with an ( out T ) parameter where T is covariant: we can not define 
         /// the standard TryGetValue method but this "opposite" form.
         /// </remarks>
+        [return: MaybeNull]
         T GetByKey( TKey key, out bool exists );
 
     }

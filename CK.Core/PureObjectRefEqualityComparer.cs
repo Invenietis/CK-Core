@@ -25,7 +25,7 @@ namespace CK.Core
         /// <param name="x">The first object to compare.</param>
         /// <param name="y">The second object to compare.</param>
         /// <returns>true if objA is the same instance as objB or if both are null; otherwise, false.</returns>
-        public bool Equals( T x, T y ) => ReferenceEquals( x, y );
+        public bool Equals( T? x, T? y ) => ReferenceEquals( x, y );
 
         /// <summary>
         /// Simple relay to <see cref="RuntimeHelpers.GetHashCode(object)"/>.

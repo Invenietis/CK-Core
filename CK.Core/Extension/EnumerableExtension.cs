@@ -141,7 +141,7 @@ namespace CK.Core
         /// <returns>The maximal element, according to the projection.</returns>
         /// <exception cref="ArgumentNullException"><paramref name="this"/> or <paramref name="selector"/> is null</exception>
         /// <exception cref="InvalidOperationException"><paramref name="this"/> is empty</exception>       
-        public static TSource MaxBy<TSource, TKey>( this IEnumerable<TSource> @this, Func<TSource, TKey> selector, Comparison<TKey> comparison = null )
+        public static TSource MaxBy<TSource, TKey>( this IEnumerable<TSource> @this, Func<TSource, TKey> selector, Comparison<TKey>? comparison = null )
         {
             if( selector == null ) throw new ArgumentNullException( "selector" );
             if( comparison == null ) comparison = Comparer<TKey>.Default.Compare;

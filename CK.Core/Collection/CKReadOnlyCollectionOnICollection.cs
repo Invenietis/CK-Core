@@ -32,7 +32,7 @@ namespace CK.Core
         /// <param name="values">Collection to wrap. Can be null.</param>
         public CKReadOnlyCollectionOnICollection( ICollection<T> values )
         {
-            Values = values;
+            _values = values ?? Array.Empty<T>();
         }
 
         /// <summary>

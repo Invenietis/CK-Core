@@ -3,6 +3,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.IO;
 using System.IO.Compression;
@@ -193,12 +194,12 @@ namespace CK.Core
         public static FileStream CreateAndOpenUniqueTimedFile( string pathPrefix, string fileSuffix, DateTime time, FileAccess access, FileShare share, int bufferSize, FileOptions options, int maxTryBeforeGuid = 512 )
         {
             if( access == FileAccess.Read ) throw new ArgumentException( Impl.CoreResources.FileUtilNoReadOnlyWhenCreateFile, "access" );
-            FileStream f = null;
+            FileStream? f = null;
             FindUniqueTimedFileOrFolder( pathPrefix, fileSuffix, time, maxTryBeforeGuid, p => TryCreateNew( p, access, share, bufferSize, options, out f ) );
-            return f;
+            return f!;
         }
 
-        static bool TryCreateNew( string timedPath, FileAccess access, FileShare share, int bufferSize, FileOptions options, out FileStream f )
+        static bool TryCreateNew( string timedPath, FileAccess access, FileShare share, int bufferSize, FileOptions options, [NotNullWhen(true)]out FileStream? f )
         {
             f = null;
             try
@@ -283,7 +284,7 @@ namespace CK.Core
 
         static bool TryCreateFolder( string path )
         {
-            string origin = null;
+            string? origin = null;
             try
             {
                 if( Directory.Exists( path ) ) return false;
@@ -292,8 +293,8 @@ namespace CK.Core
                 // The second trick is to always create the parent folder:
                 //  - Move requires it to exist...
                 //  - ... but since we WILL succeed to create the unique folder, we can do it safely.
-                var originParent = Path.GetTempPath();
-                var rootOfPathToCreate = Path.GetPathRoot( path );
+                string? originParent = Path.GetTempPath();
+                string rootOfPathToCreate = Path.GetPathRoot( path )!;
                 var parentOfPathToCreate = Path.GetDirectoryName( path );
                 if( Path.GetPathRoot( originParent ) != rootOfPathToCreate )
                 {
@@ -301,11 +302,17 @@ namespace CK.Core
                     // We need to create our origin folder on the same volume: we try to create
                     // it as close as possible to the target folder.
                     originParent = parentOfPathToCreate;
-                    while( originParent.Length > rootOfPathToCreate.Length && !Directory.Exists( originParent ) )
+                    Debug.Assert( originParent != null );
+                    while( originParent.Length > rootOfPathToCreate.Length
+                            && !Directory.Exists( originParent ) )
                     {
                         originParent = Path.GetDirectoryName( originParent );
+                        Debug.Assert( originParent != null );
                     }
-                    if( originParent.Length > rootOfPathToCreate.Length ) originParent += DirectorySeparatorString;
+                    if( originParent.Length > rootOfPathToCreate.Length )
+                    {
+                        originParent += DirectorySeparatorString;
+                    }
                 }
                 origin = originParent + Guid.NewGuid().ToString( "N" );
                 Directory.CreateDirectory( origin );
@@ -400,7 +407,7 @@ namespace CK.Core
         /// <param name="withHiddenFolders">False to skip hidden folders.</param>
         /// <param name="fileFilter">Optional predicate for directories.</param>
         /// <param name="dirFilter">Optional predicate for files.</param>
-        public static void CopyDirectory( DirectoryInfo src, DirectoryInfo target, bool withHiddenFiles = true, bool withHiddenFolders = true, Func<FileInfo, bool> fileFilter = null, Func<DirectoryInfo, bool> dirFilter = null )
+        public static void CopyDirectory( DirectoryInfo src, DirectoryInfo target, bool withHiddenFiles = true, bool withHiddenFolders = true, Func<FileInfo, bool>? fileFilter = null, Func<DirectoryInfo, bool>? dirFilter = null )
         {
             if( src == null ) throw new ArgumentNullException( "src" );
             if( target == null ) throw new ArgumentNullException( "target" );

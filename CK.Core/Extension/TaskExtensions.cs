@@ -17,9 +17,10 @@ namespace CK.Core
         /// Asynchronously waits for a task to be completed within a maximum amount of time (and/or as long
         /// as the <paramref name="cancellation"/> is not signaled), whatever the task is.
         /// </summary>
+        /// <param name="task">This task.</param>
         /// <param name="millisecondsTimeout">The timeout in milliseconds to wait before returning false.</param>
         /// <param name="cancellation">Optional cancellation token.</param>
-        /// <returns>True if <see cref="IsCompleted"/> is true, false if the timeout occurred before.</returns>
+        /// <returns>True if <see cref="Task.IsCompleted"/> is true, false if the timeout occurred before.</returns>
         public static async Task<bool> WaitAsync( this Task task, int millisecondsTimeout, CancellationToken cancellation = default )
         {
             // Fast path.

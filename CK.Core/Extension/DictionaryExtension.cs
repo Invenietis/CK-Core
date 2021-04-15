@@ -98,7 +98,7 @@ namespace CK.Core
         [return: NotNullIfNotNull( "defaultValue" )]
         public static TValue? GetValueWithDefault<TKey, TValue>( this IDictionary<TKey, TValue> @this, TKey key, TValue? defaultValue ) where TKey : notnull
         {
-            TValue result;
+            TValue? result;
             if( !@this.TryGetValue( key, out result ) ) result = defaultValue;
             return result;
         }
@@ -134,7 +134,7 @@ namespace CK.Core
         /// </returns>
         public static TValue GetOrSet<TKey, TValue>( this IDictionary<TKey, TValue> @this, TKey key, Func<TKey, TValue> createValue ) where TKey : notnull
         {
-            TValue result;
+            TValue? result;
             if( !@this.TryGetValue( key, out result ) )
             {
                 result = createValue( key );

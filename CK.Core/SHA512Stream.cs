@@ -18,8 +18,8 @@ namespace CK.Core
     public class SHA512Stream : Stream
     {
         SHA512Managed _sha512;
-        readonly Stream _reader;
-        readonly Stream _writer;
+        readonly Stream? _reader;
+        readonly Stream? _writer;
         readonly bool _leaveOpen;
 
         /// <summary>
@@ -65,7 +65,7 @@ namespace CK.Core
             if( disposing && _sha512 != null )
             {
                 _sha512.Dispose();
-                _sha512 = null;
+                _sha512 = null!;
                 if( !_leaveOpen )
                 {
                     _reader?.Dispose();

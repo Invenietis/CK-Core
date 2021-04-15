@@ -14,10 +14,10 @@ namespace CK.Core
     /// </summary>
     /// <typeparam name="T">Type of the items.</typeparam>
     [Serializable]
-    [DebuggerTypeProxy( typeof(Debugging.ReadOnlyCollectionDebuggerView<> ) )]
-    public class FIFOBuffer<T> : ICKReadOnlyList<T>, ICKWritableCollector<T>, ISerializable
+    [DebuggerTypeProxy( typeof( Debugging.ReadOnlyCollectionDebuggerView<> ) )]
+    public class FIFOBuffer<T> : ICKReadOnlyList<T?>, ICKWritableCollector<T?>, ISerializable
     {
-        T[] _buffer;
+        T?[] _buffer;
         int _count;
         int _first;
         int _next;
@@ -65,7 +65,7 @@ namespace CK.Core
         /// <summary>
         /// Gets the actual count of element: it is necessary less than or equal to <see cref="Capacity"/>.
         /// </summary>
-        public int Count => _count; 
+        public int Count => _count;
 
         /// <summary>
         /// Truncates the queue: only the <paramref name="newCount"/> newest items are kept.
@@ -89,16 +89,16 @@ namespace CK.Core
         /// </summary>
         /// <param name="item">Object to test.</param>
         /// <returns>True if the object exists.</returns>
-        public bool Contains( object item ) => IndexOf( item ) >= 0;
+        public bool Contains( object? item ) => IndexOf( item ) >= 0;
 
         /// <summary>
         /// Gets the index of the given object.
         /// </summary>
         /// <param name="item">Object to find.</param>
-        /// <returns>The index of the object or -1 if not found.</returns>
-        public int IndexOf( object item )
+        /// <returns>The index of the object or a negative value if not found.</returns>
+        public int IndexOf( object? item )
         {
-            return (item == null && default( T ) == null) || item is T ? IndexOf( (T)item ) : Int32.MinValue;
+            return item is T || (item == null && default( T ) == null) ? IndexOf( (T?)item ) : Int32.MinValue;
         }
 
         /// <summary>
@@ -109,7 +109,7 @@ namespace CK.Core
         /// The index of the object or the bitwise complement of <see cref="Count"/> if not 
         /// found (that is a negative value, see <see cref="ICKReadOnlyList{T}.IndexOf"/>).
         /// </returns>
-        public int IndexOf( T item )
+        public int IndexOf( T? item )
         {
             var comparer = EqualityComparer<T>.Default;
             int bufferIndex = _first;
@@ -127,7 +127,7 @@ namespace CK.Core
         /// <param name="index">Index must be positive and less than <see cref="Count"/>.</param>
         /// <returns>The indexed element.</returns>
         [System.Diagnostics.CodeAnalysis.SuppressMessage( "Microsoft.Design", "CA1065:DoNotRaiseExceptionsInUnexpectedLocations", Justification="This is the right location to raise this exception!" )]
-        public T this[int index]
+        public T? this[int index]
         {
             get
             {
@@ -221,7 +221,7 @@ namespace CK.Core
         /// Adds an item.
         /// </summary>
         /// <param name="item">Item to push.</param>
-        public void Push( T item )
+        public void Push( T? item )
         {
             Debug.Assert( _count <= _buffer.Length );
             if( _buffer.Length > 0 )
@@ -241,7 +241,7 @@ namespace CK.Core
         /// <see cref="Count"/> must be greater than 0 otherwise an exception is thrown.
         /// </summary>
         /// <returns>The first (oldest) item.</returns>
-        public T Pop()
+        public T? Pop()
         {
             if( _count == 0 ) throw new InvalidOperationException( Impl.CoreResources.FIFOBufferEmpty );
             var item = _buffer[_first];
@@ -256,7 +256,7 @@ namespace CK.Core
         /// <see cref="Count"/> must be greater than 0 otherwise an exception is thrown.
         /// </summary>
         /// <returns>The last (newest) item.</returns>
-        public T PopLast()
+        public T? PopLast()
         {
             if( _count == 0 ) throw new InvalidOperationException( Impl.CoreResources.FIFOBufferEmpty );
             if( --_next < 0 ) _next = _first + _count - 1;
@@ -271,7 +271,7 @@ namespace CK.Core
         /// <see cref="Count"/> must be greater than 0 otherwise an exception is thrown.
         /// </summary>
         /// <returns>The first (oldest) item.</returns>
-        public T Peek()
+        public T? Peek()
         {
             if( _count == 0 ) throw new InvalidOperationException( Impl.CoreResources.FIFOBufferEmpty );
             return _buffer[_first];
@@ -282,7 +282,7 @@ namespace CK.Core
         /// <see cref="Count"/> must be greater than 0 otherwise an exception is thrown.
         /// </summary>
         /// <returns>The last (newest) item.</returns>
-        public T PeekLast()
+        public T? PeekLast()
         {
             if( _count == 0 ) throw new InvalidOperationException( Impl.CoreResources.FIFOBufferEmpty );
             int t = _next-1;
@@ -290,7 +290,7 @@ namespace CK.Core
             return _buffer[t];
         }
 
-        bool ICKWritableCollector<T>.Add( T e )
+        bool ICKWritableCollector<T?>.Add( T? e )
         {
             Push( e );
             return true;
@@ -378,7 +378,7 @@ namespace CK.Core
         /// Gets the enumerator (from oldest to newest item).
         /// </summary>
         /// <returns>An enumerator.</returns>
-        public IEnumerator<T> GetEnumerator()
+        public IEnumerator<T?> GetEnumerator()
         {
             int bufferIndex = _first;
             for( int i = 0; i < _count; i++, bufferIndex++ )
@@ -426,7 +426,7 @@ namespace CK.Core
         {
             _buffer = new T[info.GetInt32( "c" )];
             _count = info.GetInt32( "n" );
-            T[] a = (T[])info.GetValue( "d", typeof(object) );
+            var a = (T?[])info.GetValue( "d", typeof(object) )!;
             a.CopyTo( _buffer, 0 );
         }
 

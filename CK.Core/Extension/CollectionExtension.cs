@@ -101,7 +101,7 @@ namespace CK.Core
         [Obsolete( "Please use the AsIReadOnlyCollection() extension method.", true )]
         public static IReadOnlyCollection<T> AsReadOnlyCollection<T>( this ICollection<T> @this )
         {
-            IReadOnlyCollection<T> c = @this as IReadOnlyCollection<T>;
+            IReadOnlyCollection<T>? c = @this as IReadOnlyCollection<T>;
             if( c == null )
             {
                 if( @this == null ) throw new NullReferenceException();

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text;
 
@@ -18,6 +19,7 @@ namespace CK.Core
         /// <param name="this">Keyed collection of elements.</param>
         /// <param name="key">The item key.</param>
         /// <returns>The item that matches the key, default(T) if the key can not be found.</returns>
+        [return: MaybeNull]
         static public T GetByKey<T, TKey>( this ICKReadOnlyUniqueKeyedCollection<T, TKey> @this, TKey key )
         {
             return @this.GetByKey( key, out _ );

@@ -51,10 +51,10 @@ namespace CK.Core
 
         class DisposableAction : IDisposable
         {
-            public Action A;
+            public Action? A;
             public void Dispose()
             {
-                Action a = A;
+                Action? a = A;
                 if( a != null && Interlocked.CompareExchange( ref A, null, a ) == a ) a();
             }
         }
@@ -239,9 +239,9 @@ namespace CK.Core
         /// <param name="target">Reference (address) to set.</param>
         /// <param name="transformer">Function that knows how to obtain the desired object from the current one. This function may be called more than once.</param>
         /// <returns>The object that has actually been set. Note that it may differ from the "current" target value if another thread already changed it.</returns>
-        public static T InterlockedSet<T>( ref T target, Func<T, T> transformer ) where T : class
+        public static T? InterlockedSet<T>( ref T? target, Func<T?, T> transformer ) where T : class
         {
-            T current = target;
+            T? current = target;
             T newOne = transformer( current );
             if( Interlocked.CompareExchange( ref target, newOne, current ) != current )
             {
@@ -265,12 +265,14 @@ namespace CK.Core
         /// <typeparam name="TArg">Type of the first parameter.</typeparam>
         /// <param name="target">Reference (address) to set.</param>
         /// <param name="a">Argument of the transformer.</param>
-        /// <param name="transformer">Function that knows how to obtain the desired object from the current one. This function may be called more than once.</param>
+        /// <param name="transformer">
+        /// Function that knows how to obtain the desired object from the current one. This function may be called more than once.
+        /// </param>
         /// <returns>The object that has actually been set. Note that it may differ from the "current" target value if another thread already changed it.</returns>
-        public static T InterlockedSet<T, TArg>( ref T target, TArg a, Func<T, TArg, T> transformer ) where T : class
+        public static T? InterlockedSet<T, TArg>( ref T? target, TArg a, Func<T?, TArg, T?> transformer ) where T : class
         {
-            T current = target;
-            T newOne = transformer( current, a );
+            T? current = target;
+            T? newOne = transformer( current, a );
             if( Interlocked.CompareExchange( ref target, newOne, current ) != current )
             {
                 SpinWait sw = new SpinWait();
@@ -291,7 +293,7 @@ namespace CK.Core
         /// <param name="items">Reference (address) of the array. Can be null.</param>
         /// <param name="o">Item to remove.</param>
         /// <returns>The array without the item. Note that it may differ from the "current" items content since another thread may have already changed it.</returns>
-        public static T[] InterlockedRemove<T>( ref T[] items, T o )
+        public static T[]? InterlockedRemove<T>( ref T[]? items, T o )
         {
             return InterlockedSet( ref items, o, ( current, item ) =>
             {
@@ -313,7 +315,7 @@ namespace CK.Core
         /// <param name="items">Reference (address) of the array. Can be null.</param>
         /// <param name="predicate">Predicate that identifies the item to remove.</param>
         /// <returns>The array containing the new item. Note that it may differ from the "current" items content since another thread may have already changed it.</returns>
-        public static T[] InterlockedRemove<T>( ref T[] items, Func<T, bool> predicate )
+        public static T[]? InterlockedRemove<T>( ref T[]? items, Func<T, bool> predicate )
         {
             if( predicate == null ) throw new ArgumentNullException( "predicate" );
             return InterlockedSet( ref items, predicate, ( current, p ) =>
@@ -335,8 +337,8 @@ namespace CK.Core
         /// <typeparam name="T">Type of the item array.</typeparam>
         /// <param name="items">Reference (address) of the array. Can be null.</param>
         /// <param name="predicate">Predicate that identifies items to remove.</param>
-        /// <returns>The array containing the new item. Note that it may differ from the "current" items content since another thread may have already changed it.</returns>
-        public static T[] InterlockedRemoveAll<T>( ref T[] items, Func<T, bool> predicate )
+        /// <returns>The cleaned array (may be the empty one). Note that it may differ from the "current" items content since another thread may have already changed it.</returns>
+        public static T[]? InterlockedRemoveAll<T>( ref T[]? items, Func<T, bool> predicate )
         {
             if( predicate == null ) throw new ArgumentNullException( "predicate" );
             return InterlockedSet( ref items, predicate, ( current, p ) =>
@@ -370,7 +372,7 @@ namespace CK.Core
         /// <param name="o">The item to insert at position 0 (if <paramref name="prepend"/> is true) or at the end only if it does not already appear in the array.</param>
         /// <param name="prepend">True to insert the item at the head of the array (index 0) instead of at its end.</param>
         /// <returns>The array containing the new item. Note that it may differ from the "current" items content since another thread may have already changed it.</returns>
-        public static T[] InterlockedAddUnique<T>( ref T[] items, T o, bool prepend = false )
+        public static T[] InterlockedAddUnique<T>( ref T[]? items, T o, bool prepend = false )
         {
             return InterlockedSet( ref items, o, ( oldItems, item ) =>
             {
@@ -380,7 +382,7 @@ namespace CK.Core
                 System.Array.Copy( oldItems, 0, newArray, prepend ? 1 : 0, oldItems.Length );
                 newArray[prepend ? 0 : oldItems.Length] = item;
                 return newArray;
-            } );
+            } )!;
         }
 
         /// <summary>
@@ -391,7 +393,7 @@ namespace CK.Core
         /// <param name="o">The item to insert at position 0 (if <paramref name="prepend"/> is true) or at the end.</param>
         /// <param name="prepend">True to insert the item at the head of the array (index 0) instead of at its end.</param>
         /// <returns>The array containing the new item. Note that it may differ from the "current" items content since another thread may have already changed it.</returns>
-        public static T[] InterlockedAdd<T>( ref T[] items, T o, bool prepend = false )
+        public static T[] InterlockedAdd<T>( ref T[]? items, T o, bool prepend = false )
         {
             return InterlockedSet( ref items, o, ( oldItems, item ) =>
             {
@@ -400,7 +402,7 @@ namespace CK.Core
                 System.Array.Copy( oldItems, 0, newArray, prepend ? 1 : 0, oldItems.Length );
                 newArray[prepend ? 0 : oldItems.Length] = item;
                 return newArray;
-            } );
+            } )!;
         }
 
         /// <summary>
@@ -419,11 +421,11 @@ namespace CK.Core
         /// <remarks>
         /// The factory function MUST return an item that satisfies the tester function otherwise a <see cref="InvalidOperationException"/> is thrown.
         /// </remarks>
-        public static T[] InterlockedAdd<T, TItem>( ref T[] items, Func<TItem, bool> tester, Func<TItem> factory, bool prepend = false ) where TItem : T
+        public static T[] InterlockedAdd<T, TItem>( ref T[]? items, Func<TItem, bool> tester, Func<TItem> factory, bool prepend = false ) where TItem : T
         {
             if( tester == null ) throw new ArgumentNullException( "tester" );
             if( factory == null ) throw new ArgumentNullException( "factory" );
-            TItem newE = default;
+            TItem newE = default!;
             bool needFactory = true;
             return InterlockedSet( ref items, oldItems =>
             {
@@ -445,7 +447,7 @@ namespace CK.Core
                     newArray[prepend ? 0 : oldItems.Length] = newE;
                 }
                 return newArray;
-            } );
+            } )!;
         }
 
         #endregion

@@ -137,7 +137,7 @@ namespace CK.Core
             bool shared = (vS & 128) != 0;
             bool withTags = (vS & 64) != 0;
 
-            var name = shared ? r.ReadSharedString() : r.ReadString();
+            var name = shared ? r.ReadSharedString()! : r.ReadString();
             var sep = r.ReadChar();
             var tagReader = withTags ? r : null;
             return shared ? Bind( name, sep, tagReader ) : new CKTraitContext( name, sep, false, tagReader );
@@ -160,7 +160,7 @@ namespace CK.Core
             w.Write( Separator );
             if( writeAllTags )
             {
-                // ConcurrentDictionary.Values is a napshot in a ReadOnlyCollection<CKTrait> that wraps a List<CKTrait>.
+                // ConcurrentDictionary.Values is a snapshot in a ReadOnlyCollection<CKTrait> that wraps a List<CKTrait>.
                 // Using Values means concretizing the list of all the traits where we only need atomic ones and internally locking
                 // the dictionary.
                 // Using the GetEnumerator has no lock.

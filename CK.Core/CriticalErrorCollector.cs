@@ -24,7 +24,7 @@ namespace CK.Core
         /// Encapsulates error information <see cref="CriticalErrorCollector.Add"/>ed by external code
         /// or raised by a <see cref="CriticalErrorCollector.OnErrorFromBackgroundThreads"/> event itself.
         /// </summary>
-        public struct Error
+        public readonly struct Error
         {
             internal Error( string c, Exception e, int n, int lostErrorCount )
             {
@@ -116,7 +116,7 @@ namespace CK.Core
         /// be raised (to the remaining handlers).
         /// <para>Caution: the event always fire on a background thread (adding an error is not a blocking operation).</para>
         /// </summary>
-        public event EventHandler<ErrorEventArgs> OnErrorFromBackgroundThreads;
+        public event EventHandler<ErrorEventArgs>? OnErrorFromBackgroundThreads;
 
         /// <summary>
         /// Initializes a new <see cref="CriticalErrorCollector"/> with a default <see cref="Capacity"/> set to 128.
@@ -170,7 +170,7 @@ namespace CK.Core
             }
         }
 
-        void DoRaiseInBackground( object unusedState )
+        void DoRaiseInBackground( object? unusedState )
         {
             int raisedCount = 0;
             bool again;
@@ -183,7 +183,7 @@ namespace CK.Core
                 lock( _raiseLock )
                 {
                     Interlocked.Exchange( ref _dispatchWorkItemIsReady, 0 ); 
-                    ErrorEventArgs e = CreateEvent();
+                    ErrorEventArgs? e = CreateEvent();
                     if( e != null )
                     {
                         raisedCount += e.Errors.Count;
@@ -226,7 +226,7 @@ namespace CK.Core
             }
         }
 
-        ErrorEventArgs CreateEvent()
+        ErrorEventArgs? CreateEvent()
         {
             Error[] toRaise;
             lock( _collector )

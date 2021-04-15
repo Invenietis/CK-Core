@@ -31,7 +31,7 @@ namespace CK.Core
         /// <param name="values">List to wrap.</param>
         public CKReadOnlyListOnIList( IList<T> values )
         {
-            Values = values;
+            _values = values ?? Array.Empty<T>();
         }
 
         /// <summary>

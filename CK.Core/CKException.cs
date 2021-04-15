@@ -12,7 +12,7 @@ namespace CK.Core
     [Serializable]
     public class CKException : Exception
     {
-        CKExceptionData _exceptionData;
+        CKExceptionData? _exceptionData;
 
         /// <summary>
         /// Initializes a new <see cref="CKException"/>.
@@ -72,7 +72,7 @@ namespace CK.Core
         /// </summary>
         /// <param name="data">Data of an exception for which a <see cref="CKException"/> wrapper must be created. Can be null: null is returned.</param>
         /// <returns>The exception that wraps the data.</returns>
-        static public CKException CreateFrom( CKExceptionData data )
+        static public CKException? CreateFrom( CKExceptionData data )
         {
             if( data == null ) return null;
             return new CKException( data );
@@ -82,7 +82,7 @@ namespace CK.Core
         /// Gets the <see cref="CKExceptionData"/> if it exists: use <see cref="EnsureExceptionData"/> to 
         /// create if this is null, a data that describes this exception.
         /// </summary>
-        public CKExceptionData ExceptionData => _exceptionData;
+        public CKExceptionData? ExceptionData => _exceptionData;
 
         /// <summary>
         /// If <see cref="ExceptionData"/> is null, this method creates the <see cref="CKExceptionData"/>
@@ -94,7 +94,7 @@ namespace CK.Core
             if( _exceptionData == null )
             {
                 var inner = CKExceptionData.CreateFrom( InnerException );
-                _exceptionData = new CKExceptionData( Message, "CKException", GetType().AssemblyQualifiedName, StackTrace, inner, null, null, null, null );
+                _exceptionData = new CKExceptionData( Message, "CKException", GetType().AssemblyQualifiedName!, StackTrace, inner, null, null, null, null );
             }
             return _exceptionData; 
         }

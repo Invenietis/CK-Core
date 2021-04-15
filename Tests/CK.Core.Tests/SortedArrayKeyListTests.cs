@@ -54,9 +54,13 @@ namespace CK.Core.Tests.Collection
             o = "42";
             a.Contains(o).Should().BeFalse();
 
+            a.Count.Should().Be( 11 );
+            a.KeyCount( "10" ).Should().Be( 1 );
             a.Remove("10");
             a.KeyCount("10").Should().Be(0);
-            CheckList(a, 1, 100, 1000, 10000, 2, 20, 3, 30, 46, 56);
+            a.Count.Should().Be( 10 );
+
+            CheckList( a, 1, 100, 1000, 10000, 2, 20, 3, 30, 46, 56);
             a.Remove("20");
             CheckList(a, 1, 100, 1000, 10000, 2, 3, 30, 46, 56);
             a.Remove("100");
@@ -148,8 +152,6 @@ namespace CK.Core.Tests.Collection
             a.GetAllByKey("5454").Should().BeEmpty();
 
         }
-
-
 
         private static void CheckList(IEnumerable<int> a, params int[] p)
         {

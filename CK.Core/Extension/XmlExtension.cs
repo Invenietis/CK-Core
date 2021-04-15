@@ -134,7 +134,7 @@ namespace CK.Core
         /// <param name="format">Default format is "- {0},{1}" where {0} is the line and {1} is the column number.</param>
         /// <param name="noLineInformation">Defaults to a null string.</param>
         /// <returns>A string based on <paramref name="format"/> or the <paramref name="noLineInformation"/>.</returns>
-        public static string GetLineColumnString( this XObject @this, string format = "- @{0},{1}", string noLineInformation = null )
+        public static string? GetLineColumnString( this XObject @this, string format = "- @{0},{1}", string? noLineInformation = null )
         {
             return GetLineColumnInfo( @this ).GetLineColumnString( format, noLineInformation );
         }
@@ -146,7 +146,7 @@ namespace CK.Core
         /// <param name="format">Default format is "- @Line,Column".</param>
         /// <param name="noLineInformation">Defaults to a null string when <see cref="IXmlLineInfo.HasLineInfo()"/> is false.</param>
         /// <returns>A string based on <paramref name="format"/> or <paramref name="noLineInformation"/>.</returns>
-        static public string GetLineColumnString( this IXmlLineInfo @this, string format = "- @{0},{1}", string noLineInformation = null )
+        static public string? GetLineColumnString( this IXmlLineInfo @this, string format = "- @{0},{1}", string? noLineInformation = null )
         {
             if( @this.HasLineInfo() ) return String.Format( format, @this.LineNumber, @this.LinePosition );
             return noLineInformation;
@@ -182,7 +182,7 @@ namespace CK.Core
         {
             XAttribute a = @this.Attribute( name );
             if( a == null || !Enum.TryParse( typeof( T ), a.Value, ignoreCase, out var sResult ) ) return defaultValue;
-            return (T)sResult;
+            return (T)sResult!;
         }
 
         /// <summary>
