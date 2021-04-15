@@ -236,13 +236,13 @@ namespace CK.Core
         /// false if the end-of-line is LF only.
         /// </param>
         /// <returns>The string that can be null.</returns>
-        string ReadNullableString( bool streamIsCRLF );
+        string? ReadNullableString( bool streamIsCRLF );
 
         /// <summary>
         /// Reads a potentially null string.
         /// </summary>
         /// <returns>The string that can be null.</returns>
-        string ReadNullableString();
+        string? ReadNullableString();
 
         /// <summary>
         /// Reads in a 32-bit integer in compressed format written by <see cref="CKBinaryWriter.WriteSmallInt32(int, int)"/>. 
@@ -266,7 +266,7 @@ namespace CK.Core
         /// Reads a string, using the default <see cref="StringPool"/>.
         /// </summary>
         /// <returns>The string or null.</returns>
-        string ReadSharedString();
+        string? ReadSharedString();
 
         /// <summary>
         /// Reads a nullable byte value.

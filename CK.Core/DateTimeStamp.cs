@@ -173,19 +173,13 @@ namespace CK.Core
         /// </summary>
         /// <param name="other">Other object.</param>
         /// <returns>True when this is equal to other.</returns>
-        public override bool Equals( object other )
-        {
-            return (other is DateTimeStamp) && Equals( (DateTimeStamp)other );
-        }
+        public override bool Equals( object? other ) => other is DateTimeStamp o && Equals( o );
 
         /// <summary>
         /// Overridden to match <see cref="Equals(DateTimeStamp)"/>.
         /// </summary>
         /// <returns>The hash code.</returns>
-        public override int GetHashCode()
-        {
-            return TimeUtc.GetHashCode() ^ Uniquifier;
-        }
+        public override int GetHashCode() => TimeUtc.GetHashCode() ^ Uniquifier;
 
         /// <summary>
         /// @"{0:yyyy-MM-dd HH\hmm.ss.fffffff}({1})" is the format that will be used to format log time when the <see cref="Uniquifier"/> is not zero.
@@ -199,7 +193,9 @@ namespace CK.Core
         /// <returns>A string that can be successfully matched.</returns>
         public override string ToString()
         {
-            return Uniquifier != 0 ? String.Format( FormatWhenUniquifier, TimeUtc, Uniquifier ) : TimeUtc.ToString( FileUtil.FileNameUniqueTimeUtcFormat, CultureInfo.InvariantCulture );
+            return Uniquifier != 0
+                    ? String.Format( FormatWhenUniquifier, TimeUtc, Uniquifier )
+                    : TimeUtc.ToString( FileUtil.FileNameUniqueTimeUtcFormat, CultureInfo.InvariantCulture );
         }
 
         /// <summary>

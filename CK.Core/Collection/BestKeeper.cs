@@ -19,11 +19,11 @@ namespace CK.Core
 
         class ComparerAdapter : IComparer<T>
         {
-            readonly Func<T, T, int> _comparator;
+            readonly Func<T?, T?, int> _comparator;
 
-            public ComparerAdapter( Func<T, T, int> comparator ) => _comparator = comparator;
+            public ComparerAdapter( Func<T?, T?, int> comparator ) => _comparator = comparator;
 
-            public int Compare( T x, T y ) => _comparator( x, y );
+            public int Compare( T? x, T? y ) => _comparator( x, y );
         }
 
         /// <summary>
@@ -31,7 +31,7 @@ namespace CK.Core
         /// </summary>
         /// <param name="capacity">The fixed, maximal, number of items.</param>
         /// <param name="comparator">The comparator function.</param>
-        public BestKeeper( int capacity, Func<T, T, int> comparator )
+        public BestKeeper( int capacity, Func<T?, T?, int> comparator )
             : this( capacity, new ComparerAdapter( comparator ) )
         {
         }
@@ -42,7 +42,7 @@ namespace CK.Core
         /// </summary>
         /// <param name="capacity">The fixed, maximal, number of items.</param>
         /// <param name="comparer">The optional comparer.</param>
-        public BestKeeper( int capacity, IComparer<T> comparer = null )
+        public BestKeeper( int capacity, IComparer<T>? comparer = null )
         {
             if( capacity <= 0 ) throw new ArgumentException( "The max count must be greater than 0.", nameof( capacity ) );
             Comparer = comparer ?? Comparer<T>.Default;
@@ -55,7 +55,7 @@ namespace CK.Core
         /// <param name="candidate">The candidate item.</param>
         /// <param name="collector">The optional collector of items eliminated from the current <see cref="BestKeeper{T}"/>.</param>
         /// <returns>Whether the candidate has been kept.</returns>
-        public bool Add( T candidate, Action<T> collector = null )
+        public bool Add( T candidate, Action<T>? collector = null )
         {
             if( IsFull )
             {
@@ -109,7 +109,7 @@ namespace CK.Core
             _count++;
         }
 
-        void AddFromTop( T candidate, Action<T> collector )
+        void AddFromTop( T candidate, Action<T>? collector )
         {
             int idx = 0;
             T removedItem = _items[ 0 ];

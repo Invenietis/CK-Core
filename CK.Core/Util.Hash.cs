@@ -68,7 +68,7 @@ namespace CK.Core
             /// <param name="hash">Current hash.</param>
             /// <param name="o">Object whose hash must be combined (can be null).</param>
             /// <returns>A combined hash.</returns>
-            public static long Combine( long hash, object o )
+            public static long Combine( long hash, object? o )
             {
                 return Combine( hash, o != null ? o.GetHashCode() : 0 );
             }
@@ -84,7 +84,7 @@ namespace CK.Core
                 int nb = 0;
                 if( c != null )
                 {
-                    foreach( object o in c )
+                    foreach( object? o in c )
                     {
                         hash = Combine( hash, o );
                         nb++;

@@ -2,6 +2,7 @@ using CK.Text;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -21,7 +22,7 @@ namespace CK.Core
         /// <typeparam name="T">The type of the object.</typeparam>
         public class ObjectPool<T>
         {
-            readonly List<T> _objects;
+            readonly List<T?> _objects;
             readonly ICKBinaryReader _r;
 
             /// <summary>
@@ -31,7 +32,7 @@ namespace CK.Core
             public ObjectPool( ICKBinaryReader r )
             {
                 if( r == null ) throw new ArgumentNullException( nameof( r ) );
-                _objects = new List<T>();
+                _objects = new List<T?>();
                 _r = r;
             }
 
@@ -42,7 +43,7 @@ namespace CK.Core
             /// </summary>
             public struct ReadState
             {
-                ObjectPool<T> _pool;
+                ObjectPool<T>? _pool;
                 int _num;
                 byte _writeMarker;
 
@@ -70,7 +71,7 @@ namespace CK.Core
                 /// <returns>The read value.</returns>
                 public T SetReadResult( T read )
                 {
-                    if( Success ) throw new InvalidOperationException();
+                    if( _pool == null ) throw new InvalidOperationException();
                     _pool._objects[_num] = read;
                     return read;
                 }
@@ -99,7 +100,7 @@ namespace CK.Core
             /// The read state. When <see cref="ReadState.Success"/> is false, the object must be read
             /// and <see cref="ReadState.SetReadResult(T)"/> must be called.
             /// </returns>
-            public ReadState TryRead( out T already )
+            public ReadState TryRead( [MaybeNull]out T already )
             {
                 byte b = _r.ReadByte();
                 switch( b )
@@ -111,12 +112,12 @@ namespace CK.Core
             }
 
             /// <summary>
-            /// Reads a value either from this pool it it has already been read or, when not yet read,
+            /// Reads a value either from this pool if it has already been read or, when not yet read,
             /// thanks to an actual reader function.
             /// </summary>
             /// <param name="actualReader">Function that will be called if the value must actually be read.</param>
             /// <returns>The value.</returns>
-            public T Read( Func<ReadState,ICKBinaryReader,T> actualReader )
+            public T? Read( Func<ReadState,ICKBinaryReader,T> actualReader )
             {
                 byte b = _r.ReadByte();
                 switch( b )
@@ -205,7 +206,7 @@ namespace CK.Core
         /// <param name="streamIsCRLF">True if the <see cref="BinaryReader.BaseStream"/> contains 
         /// strings with CRLF end-of-line, false if the end-of-line is LF only.</param>
         /// <returns>The string or null.</returns>
-        public string ReadNullableString( bool streamIsCRLF )
+        public string? ReadNullableString( bool streamIsCRLF )
         {
             return ReadBoolean() ? ReadString( streamIsCRLF ) : null;
         }
@@ -214,7 +215,7 @@ namespace CK.Core
         /// Reads a potentially null string.
         /// </summary>
         /// <returns>The string or null.</returns>
-        public string ReadNullableString()
+        public string? ReadNullableString()
         {
             return ReadBoolean() ? ReadString() : null;
         }
@@ -223,9 +224,9 @@ namespace CK.Core
         /// Reads a string, using the default <see cref="StringPool"/>.
         /// </summary>
         /// <returns>The string or null.</returns>
-        public string ReadSharedString()
+        public string? ReadSharedString()
         {
-            var r = StringPool.TryRead( out string s );
+            var r = StringPool.TryRead( out string? s );
             return r.Success ? s : r.SetReadResult( ReadString() );
         }
 

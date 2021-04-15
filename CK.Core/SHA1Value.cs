@@ -35,7 +35,7 @@ namespace CK.Core
         /// <param name="fullPath">The file full path.</param>
         /// <param name="wrapReader">Optional stream wrapper reader.</param>
         /// <returns>The SHA1 of the file.</returns>
-        public static SHA1Value ComputeFileSHA1( string fullPath, Func<Stream, Stream> wrapReader = null )
+        public static SHA1Value ComputeFileSHA1( string fullPath, Func<Stream, Stream>? wrapReader = null )
         {
             using( var shaCompute = new SHA1Stream() )
             using( var file = new FileStream( fullPath, FileMode.Open, FileAccess.Read, FileShare.Read, 4096, FileOptions.SequentialScan | FileOptions.Asynchronous ) )
@@ -77,7 +77,7 @@ namespace CK.Core
         /// <param name="fullPath">The file full path.</param>
         /// <param name="wrapReader">Optional stream wrapper reader.</param>
         /// <returns>The SHA1 of the file.</returns>
-        public static async Task<SHA1Value> ComputeFileSHA1Async( string fullPath, Func<Stream,Stream> wrapReader = null )
+        public static async Task<SHA1Value> ComputeFileSHA1Async( string fullPath, Func<Stream,Stream>? wrapReader = null )
         {
             using( var shaCompute = new SHA1Stream() )
             using( var file = new FileStream( fullPath, FileMode.Open, FileAccess.Read, FileShare.Read, 4096, FileOptions.SequentialScan | FileOptions.Asynchronous ) )
@@ -270,11 +270,7 @@ namespace CK.Core
         /// </summary>
         /// <param name="obj">Any object.</param>
         /// <returns>True if other is a SHA1Value with the same value, false otherwise.</returns>
-        public override bool Equals( object obj )
-        {
-            if( obj is SHA1Value ) return Equals( (SHA1Value)obj );
-            return false;
-        }
+        public override bool Equals( object? obj ) => obj is SHA1Value s && Equals( s );
 
         /// <summary>
         /// Gets the hash code of this SHA1.

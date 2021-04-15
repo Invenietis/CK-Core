@@ -46,13 +46,13 @@ namespace CK.Core
 	{
         struct ServiceEntry
         {
-            public object Instance;
-            public Func<Object> Creator;
-            public Action<Object> OnRemove;
+            public object? Instance;
+            public Func<Object>? Creator;
+            public Action<Object>? OnRemove;
         }
 
         readonly Dictionary<Type,ServiceEntry> _services;
-        IServiceProvider _baseProvider;
+        IServiceProvider? _baseProvider;
 
         /// <summary>
         /// Initializes a new <see cref="SimpleServiceContainer"/>.
@@ -66,7 +66,7 @@ namespace CK.Core
         /// Initializes a new <see cref="SimpleServiceContainer"/> with a <see cref="BaseProvider"/>.
         /// </summary>
         /// <param name="baseProvider">Base <see cref="IServiceProvider"/> provider.</param>
-        public SimpleServiceContainer( IServiceProvider baseProvider )
+        public SimpleServiceContainer( IServiceProvider? baseProvider )
         {
             _baseProvider = baseProvider;
             _services = new Dictionary<Type, ServiceEntry>();
@@ -76,12 +76,12 @@ namespace CK.Core
         /// Gets or sets the <see cref="IServiceProvider"/> that is queried whenever a service
         /// is not found in this container.
         /// </summary>
-        public IServiceProvider BaseProvider
+        public IServiceProvider? BaseProvider
         {
             get { return _baseProvider; }
             set 
             {
-                SimpleServiceContainer v = value as SimpleServiceContainer;
+                SimpleServiceContainer? v = value as SimpleServiceContainer;
                 while( v != null )
                 {
                     if( v == this ) throw new Exception( "BaseProvider circle detected" );
@@ -101,10 +101,10 @@ namespace CK.Core
         /// <param name="onRemove">Optional action that will be called whenever <see cref="Remove"/>, <see cref="Clear"/> or <see cref="IDisposable.Dispose"/>
         /// is called and a service as been successfully obtained.</param>
         /// <returns>This object to enable fluent syntax.</returns>
-        public ISimpleServiceContainer Add( Type serviceType, Func<Object> serviceInstance, Action<Object> onRemove = null )
+        public ISimpleServiceContainer Add( Type serviceType, Func<Object> serviceInstance, Action<Object>? onRemove = null )
         {
-            if( ReferenceEquals( serviceType, null ) ) throw new ArgumentNullException( "serviceType" );
-            if( serviceInstance == null ) throw new ArgumentNullException( "serviceInstance" );
+            if( ReferenceEquals( serviceType, null ) ) throw new ArgumentNullException( nameof( serviceType ) );
+            if( serviceInstance == null ) throw new ArgumentNullException( nameof( serviceInstance ) );
             if( GetDirectService( serviceType ) != null ) throw new Exception( String.Format( CoreResources.ServiceAlreadyDirectlySupported, serviceType.FullName ) );
             DoAdd( serviceType, new ServiceEntry() { Instance = null, Creator = serviceInstance, OnRemove = onRemove } );
             return this;
@@ -117,10 +117,10 @@ namespace CK.Core
         /// <param name="serviceInstance">Implementation of the service. Can not be null.</param>
         /// <param name="onRemove">Optional action that will be called whenever <see cref="Remove"/>, <see cref="Clear"/> or <see cref="IDisposable.Dispose"/>.</param>
         /// <returns>This object to enable fluent syntax.</returns>
-        public ISimpleServiceContainer Add( Type serviceType, object serviceInstance, Action<Object> onRemove = null )
+        public ISimpleServiceContainer Add( Type serviceType, object serviceInstance, Action<Object>? onRemove = null )
         {
-            if( ReferenceEquals( serviceType, null ) ) throw new ArgumentNullException( "serviceType" );
-            if( serviceInstance == null ) throw new ArgumentNullException( "serviceInstance" );
+            if( ReferenceEquals( serviceType, null ) ) throw new ArgumentNullException( nameof( serviceType ) );
+            if( serviceInstance == null ) throw new ArgumentNullException( nameof( serviceInstance ) );
             if( GetDirectService( serviceType ) != null ) throw new Exception( String.Format( CoreResources.ServiceAlreadyDirectlySupported, serviceType.FullName ) );
             if( !serviceType.IsAssignableFrom( serviceInstance.GetType() ) ) throw new Exception( String.Format( CoreResources.ServiceImplTypeMismatch, serviceType.FullName, serviceInstance.GetType().FullName ) );
             DoAdd( serviceType, new ServiceEntry() { Instance = serviceInstance, Creator = null, OnRemove = onRemove } );
@@ -197,10 +197,10 @@ namespace CK.Core
         /// </summary>
         /// <param name="serviceType">Type of the service to obtain.</param>
         /// <returns>Built-in service, registered service, service from <see cref="BaseProvider"/> or null.</returns>
-        public object GetService( Type serviceType )
+        public object? GetService( Type serviceType )
         {
             if( ReferenceEquals( serviceType, null ) ) throw new ArgumentNullException( "serviceType" );
-            object result = GetDirectService( serviceType );
+            object? result = GetDirectService( serviceType );
             if( result == null )
             {
                 ServiceEntry e;
@@ -236,7 +236,7 @@ namespace CK.Core
         /// </summary>
         /// <param name="serviceType">Type of the service to obtain.</param>
         /// <returns>A built-in service or null.</returns>
-        protected virtual object GetDirectService( Type serviceType )
+        protected virtual object? GetDirectService( Type serviceType )
         {
             if( serviceType.Equals( typeof( IServiceProvider ) ) || serviceType.Equals( typeof( ISimpleServiceContainer ) ) ) return this;
             return null;

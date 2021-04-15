@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 
 namespace CK.Core
 {
@@ -91,18 +92,12 @@ namespace CK.Core
         /// returns a boolean.
         /// </summary>
         /// <param name="item">Item to add.</param>
-        void ICollection<T>.Add( T item )
-        {
-            Add( item );
-        }
+        void ICollection<T>.Add( T item ) => Add( item );
 
         /// <summary>
         /// Gets whether this list allows duplicated items.
         /// </summary>
-        public bool AllowDuplicates 
-        { 
-            get { return (_version & 1) != 0; } 
-        }
+        public bool AllowDuplicates  => (_version & 1) != 0; 
 
         /// <summary>
         /// Locates an element (one of the occurrences when duplicates are allowed) in this list (logarithmic). 
@@ -178,18 +173,12 @@ namespace CK.Core
         /// <summary>
         /// Gets the number of elements in this sorted list.
         /// </summary>
-        public int Count
-        {
-            get { return _count; }
-        }
+        public int Count => _count; 
 
         /// <summary>
         /// Explicit implementation that always returns false.
         /// </summary>
-        bool ICollection<T>.IsReadOnly
-        {
-            get { return false; }
-        }
+        bool ICollection<T>.IsReadOnly => false; 
 
         /// <summary>
         /// Removes a value and returns true if found; otherwise returns false.
@@ -456,7 +445,14 @@ namespace CK.Core
             int nbToCopy = newCount - index;
             if( index < 0 || nbToCopy < 0 ) throw new IndexOutOfRangeException();
             if( nbToCopy > 0 ) Array.Copy( _tab, index + 1, _tab, index, nbToCopy );
-            _tab[(_count = newCount)] = default;
+#if NETSTANDARD2_1
+            if( System.Runtime.CompilerServices.RuntimeHelpers.IsReferenceOrContainsReferences<T>() )
+            {
+                _tab[(_count = newCount)] = default!;
+            }
+#else
+            _tab[(_count = newCount)] = default!;
+#endif
             _version += 2;
         }
 
@@ -498,69 +494,88 @@ namespace CK.Core
         /// <returns></returns>
         public IEnumerator<T> GetEnumerator()
         {
-            return new E( this );
+            return new Enumerator( this );
         }
 
         IEnumerator IEnumerable.GetEnumerator()
         {
-            return new E( this );
+            return new Enumerator( this );
         }
 
-        private sealed class E : IEnumerator<T>
+        public struct Enumerator : IEnumerator<T>, IEnumerator
         {
-            readonly CKSortedArrayList<T> _list;
-            readonly int _version;
-            T _currentValue;
-            int _index;
+            private readonly CKSortedArrayList<T> _list;
+            private int _index;
+            private readonly int _version;
+            private T? _current;
 
-            // Methods
-            internal E( CKSortedArrayList<T> l )
+            internal Enumerator( CKSortedArrayList<T> list )
             {
-                _list = l;
-                _version = l._version;
+                _list = list;
+                _index = 0;
+                _version = list._version;
+                _current = default;
             }
 
             public void Dispose()
             {
-                this._index = 0;
-                this._currentValue = default;
             }
 
             public bool MoveNext()
             {
-                if( _version != _list._version ) throw new InvalidOperationException( "SortedList changed during enumeration." );
-                if( _index < _list.Count )
+                var localList = _list;
+
+                if( _version == localList._version && ((uint)_index < (uint)localList._count) )
                 {
-                    _currentValue = _list._tab[_index++];
+                    _current = localList._tab[_index];
+                    _index++;
                     return true;
                 }
-                _index = -1;
-                _currentValue = default;
+                return MoveNextRare();
+            }
+
+            bool MoveNextRare()
+            {
+                if( _version != _list._version )
+                {
+                    throw new InvalidOperationException( "Collection was modified; enumeration operation may not execute." );
+                }
+                _index = _list._count + 1;
+                _current = default;
                 return false;
+            }
+
+            public T Current => _current!;
+
+            object? IEnumerator.Current
+            {
+                get
+                {
+                    if( _index == 0 || _index == _list._count + 1 )
+                    {
+                        ThrowEnumNotpossible();
+                    }
+                    return Current;
+                }
+            }
+
+            [DoesNotReturn]
+            static void ThrowEnumNotpossible()
+            {
+                throw new InvalidOperationException( "Enumeration has either not started or has already finished." );
             }
 
             void IEnumerator.Reset()
             {
-                if( _version != _list._version ) throw new InvalidOperationException( "SortedList changed during enumeration." );
-                _index = 0;
-                _currentValue = default;
-            }
-
-            public T Current
-            {
-                get 
+                if( _version != _list._version )
                 {
-                    if( _index <= 0 ) throw new InvalidOperationException();
-                    return _currentValue; 
+                    throw new InvalidOperationException( "Collection was modified; enumeration operation may not execute." );
                 }
-            }
-
-            object IEnumerator.Current
-            {
-                get { return Current; }
+                _index = 0;
+                _current = default;
             }
         }
-
-        #endregion
     }
+    #endregion
 }
+

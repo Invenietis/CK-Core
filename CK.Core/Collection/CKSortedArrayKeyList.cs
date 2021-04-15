@@ -116,6 +116,7 @@ namespace CK.Core
         /// <param name="key">The key.</param>
         /// <param name="exists">True if the key has been found, otherwise false.</param>
         /// <returns>The item or default(T) if not found.</returns>
+        [return: MaybeNull]
         public T GetByKey( TKey key, out bool exists )
         {
             int idx = Util.BinarySearch( Store, 0, Count, key, ComparisonKey );

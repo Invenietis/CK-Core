@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -19,7 +20,7 @@ namespace CK.Core
         /// companion.
         /// </summary>
         /// <typeparam name="T">Type of the object.</typeparam>
-        public class ObjectPool<T>
+        public class ObjectPool<T> where T : notnull
         {
             readonly Dictionary<T, int> _pool;
             readonly ICKBinaryWriter _w;
@@ -29,7 +30,7 @@ namespace CK.Core
             /// </summary>
             /// <param name="w">The binary writer. Must not be null.</param>
             /// <param name="comparer">The comparer to use.</param>
-            public ObjectPool( ICKBinaryWriter w, IEqualityComparer<T> comparer = null )
+            public ObjectPool( ICKBinaryWriter w, IEqualityComparer<T>? comparer = null )
             {
                 if( w == null ) throw new ArgumentNullException( nameof( w ) );
                 _pool = new Dictionary<T, int>( comparer );
@@ -54,13 +55,14 @@ namespace CK.Core
             /// True if the object must be written, false if it has already been and
             /// there is nothing to do.
             /// </returns>
-            public bool MustWrite( T o, byte mustWriteMarker = 2 )
+            public bool MustWrite( [AllowNull]T o, byte mustWriteMarker = 2 )
             {
                 if( EqualityComparer<T>.Default.Equals( o, default( T ) ) )
                 {
                     _w.Write( (byte)0 );
                     return false;
                 }
+                Debug.Assert( o != null );
                 if( _pool.TryGetValue( o, out var num ) )
                 {
                     _w.Write( (byte)1 );
@@ -165,7 +167,7 @@ namespace CK.Core
         /// has good chances to appear multiple times. 
         /// </summary>
         /// <param name="s">String to write.</param>
-        public void WriteNullableString( string s )
+        public void WriteNullableString( string? s )
         {
             if( s != null )
             {
@@ -179,10 +181,11 @@ namespace CK.Core
         /// Writes a string, using the default <see cref="StringPool"/>.
         /// </summary>
         /// <param name="s">The string to write. Can be null.</param>
-        public void WriteSharedString( string s )
+        public void WriteSharedString( string? s )
         {
             if( StringPool.MustWrite( s ) )
             {
+                Debug.Assert( s != null );
                 Write( s );
             }
         }

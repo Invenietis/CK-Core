@@ -43,8 +43,14 @@ namespace CK.Core
         public static T GetService<T>( this IServiceProvider @this, bool throwOnNull )
         {
             T s = (T)@this.GetService( typeof( T ) );
-            if( throwOnNull && s == null ) throw new Exception( String.Format( Impl.CoreResources.UnregisteredServiceInServiceProvider, typeof( T ).FullName ) );
+            if( throwOnNull && s == null ) ThrowUnregistered<T>();
             return s;
+        }
+
+        [DoesNotReturn]
+        static void ThrowUnregistered<T>()
+        {
+            throw new Exception( String.Format( Impl.CoreResources.UnregisteredServiceInServiceProvider, typeof( T ).FullName ) );
         }
 
         /// <summary>
@@ -65,7 +71,14 @@ namespace CK.Core
         /// <returns>This object to enable fluent syntax.</returns>
         public static ISimpleServiceContainer Add<T>( this ISimpleServiceContainer @this, T serviceInstance )
         {
+            if( serviceInstance == null ) ThrowArgumentNull( nameof(serviceInstance) );
             return @this.Add( typeof( T ), serviceInstance, null );
+        }
+
+        [DoesNotReturn]
+        static void ThrowArgumentNull( string parameterName )
+        {
+            throw new ArgumentNullException( parameterName );
         }
 
         /// <summary>
@@ -78,7 +91,8 @@ namespace CK.Core
         /// <returns>This object to enable fluent syntax.</returns>
         public static ISimpleServiceContainer Add<T>( this ISimpleServiceContainer @this, T serviceInstance, Action<T> onRemove )
         {
-            if( onRemove == null ) throw new ArgumentNullException( nameof( onRemove ) );
+            if( onRemove == null ) ThrowArgumentNull( nameof( onRemove ) );
+            if( serviceInstance == null ) ThrowArgumentNull( nameof( serviceInstance ) );
             return @this.Add( typeof( T ), serviceInstance, o => onRemove( (T)o ) );
         }
 
@@ -116,7 +130,7 @@ namespace CK.Core
             //
             // On the other hand, for the onRemove action we cannot do any miracle: we need to adapt the call.
             //
-            if( onRemove == null ) throw new ArgumentNullException( nameof( onRemove ) );
+            if( onRemove == null ) ThrowArgumentNull( nameof( onRemove ) );
             return @this.Add( typeof( T ), serviceInstance, o => onRemove( (T)o ) );
         }
 

@@ -40,7 +40,7 @@ namespace CK.Core
         /// <param name="onRemove">Optional action that will be called whenever <see cref="Remove"/>, <see cref="Clear"/> or <see cref="IDisposable.Dispose"/>
         /// is called and a service as been successfully obtained.</param>
         /// <returns>This object to enable fluent syntax.</returns>
-        ISimpleServiceContainer Add( Type serviceType, Func<Object> serviceInstance, Action<Object> onRemove = null );
+        ISimpleServiceContainer Add( Type serviceType, Func<Object> serviceInstance, Action<Object>? onRemove = null );
 
         /// <summary>
         /// Registers a service with its implementation (and an optional callback that will be called when the service will be removed).
@@ -49,7 +49,7 @@ namespace CK.Core
         /// <param name="serviceInstance">Implementation of the service. Can not be null.</param>
         /// <param name="onRemove">Optional action that will be called whenever <see cref="Remove"/>, <see cref="Clear"/> or <see cref="IDisposable.Dispose"/>.</param>
         /// <returns>This object to enable fluent syntax.</returns>
-        ISimpleServiceContainer Add( Type serviceType, object serviceInstance, Action<Object> onRemove = null );
+        ISimpleServiceContainer Add( Type serviceType, object serviceInstance, Action<Object>? onRemove = null );
 
         /// <summary>
         /// Unregisters a service. Can be called even if the service does not exist.
