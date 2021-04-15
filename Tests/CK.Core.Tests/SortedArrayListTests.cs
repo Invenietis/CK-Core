@@ -229,17 +229,11 @@ namespace CK.Core.Tests.Collection
             {
             }
 
-            public int[] Tab { get { return Store; } }
+            public int[] Tab => Store;
 
             public void CheckList()
             {
                 this.IsSortedStrict();
-                int i = Count;
-                while( i < Tab.Length )
-                {
-                    Tab[i].Should().Be( default( int ) );
-                    ++i;
-                }
             }
         }
 
@@ -380,13 +374,13 @@ namespace CK.Core.Tests.Collection
             a.Invoking( sut => sut.CheckPosition( 2 ) ).Should().Throw<IndexOutOfRangeException>();
             a.Invoking( sut => { Mammal test = a[-1]; } ).Should().Throw<IndexOutOfRangeException>();
 
-            //Enumerator Exception
-            var enumerator = a.GetEnumerator();
-            enumerator.Invoking( sut => { Mammal temp = sut.Current; } ).Should().Throw<InvalidOperationException>();
+            //Enumerator Exception (considering the non generic version since generics have weaken the invariants).
+            var enumerator = ((System.Collections.IEnumerable)a).GetEnumerator();
+            enumerator.Invoking( sut => { object temp = sut.Current; } ).Should().Throw<InvalidOperationException>();
             enumerator.MoveNext();
             enumerator.Current.Should().Be( a[0] );
             enumerator.Reset();
-            enumerator.Invoking( sut => { Mammal temp = sut.Current; } ).Should().Throw<InvalidOperationException>();
+            enumerator.Invoking( sut => { object temp = sut.Current; } ).Should().Throw<InvalidOperationException>();
             a.Clear(); //change _version
             enumerator.Invoking( sut => sut.Reset() ).Should().Throw<InvalidOperationException>();
             enumerator.Invoking( sut => sut.MoveNext() ).Should().Throw<InvalidOperationException>();

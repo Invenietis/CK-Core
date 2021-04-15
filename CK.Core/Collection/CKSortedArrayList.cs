@@ -445,13 +445,14 @@ namespace CK.Core
             int nbToCopy = newCount - index;
             if( index < 0 || nbToCopy < 0 ) throw new IndexOutOfRangeException();
             if( nbToCopy > 0 ) Array.Copy( _tab, index + 1, _tab, index, nbToCopy );
+            _count = newCount;
 #if NETSTANDARD2_1
             if( System.Runtime.CompilerServices.RuntimeHelpers.IsReferenceOrContainsReferences<T>() )
             {
-                _tab[(_count = newCount)] = default!;
+                _tab[newCount] = default!;
             }
 #else
-            _tab[(_count = newCount)] = default!;
+            _tab[newCount] = default!;
 #endif
             _version += 2;
         }
@@ -502,6 +503,7 @@ namespace CK.Core
             return new Enumerator( this );
         }
 
+#pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
         public struct Enumerator : IEnumerator<T>, IEnumerator
         {
             private readonly CKSortedArrayList<T> _list;
@@ -575,6 +577,7 @@ namespace CK.Core
                 _current = default;
             }
         }
+#pragma warning restore CS1591 // Missing XML comment for publicly visible type or member
     }
     #endregion
 }

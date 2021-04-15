@@ -14,7 +14,7 @@ namespace CK.Core
     /// </summary>
     /// <typeparam name="T">Type of the items.</typeparam>
     [Serializable]
-    [DebuggerTypeProxy( typeof(Debugging.ReadOnlyCollectionDebuggerView<> ) )]
+    [DebuggerTypeProxy( typeof( Debugging.ReadOnlyCollectionDebuggerView<> ) )]
     public class FIFOBuffer<T> : ICKReadOnlyList<T?>, ICKWritableCollector<T?>, ISerializable
     {
         T?[] _buffer;
@@ -65,7 +65,7 @@ namespace CK.Core
         /// <summary>
         /// Gets the actual count of element: it is necessary less than or equal to <see cref="Capacity"/>.
         /// </summary>
-        public int Count => _count; 
+        public int Count => _count;
 
         /// <summary>
         /// Truncates the queue: only the <paramref name="newCount"/> newest items are kept.
@@ -89,16 +89,16 @@ namespace CK.Core
         /// </summary>
         /// <param name="item">Object to test.</param>
         /// <returns>True if the object exists.</returns>
-        public bool Contains( object item ) => IndexOf( item ) >= 0;
+        public bool Contains( object? item ) => IndexOf( item ) >= 0;
 
         /// <summary>
         /// Gets the index of the given object.
         /// </summary>
         /// <param name="item">Object to find.</param>
         /// <returns>The index of the object or a negative value if not found.</returns>
-        public int IndexOf( object item )
+        public int IndexOf( object? item )
         {
-            return item is T i ? IndexOf( i ) : Int32.MinValue;
+            return item is T || (item == null && default( T ) == null) ? IndexOf( (T?)item ) : Int32.MinValue;
         }
 
         /// <summary>
@@ -109,7 +109,7 @@ namespace CK.Core
         /// The index of the object or the bitwise complement of <see cref="Count"/> if not 
         /// found (that is a negative value, see <see cref="ICKReadOnlyList{T}.IndexOf"/>).
         /// </returns>
-        public int IndexOf( T item )
+        public int IndexOf( T? item )
         {
             var comparer = EqualityComparer<T>.Default;
             int bufferIndex = _first;
