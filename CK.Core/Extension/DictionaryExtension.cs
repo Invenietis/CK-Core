@@ -113,10 +113,9 @@ namespace CK.Core
         /// The value associated with the specified key, if the key is found; otherwise, the result 
         /// of the <paramref name="defaultValue"/> delegate.
         /// </returns>
-        public static TValue? GetValueWithDefaultFunc<TKey, TValue>( this IDictionary<TKey, TValue> @this, TKey key, Func<TKey, TValue?> defaultValue ) where TKey : notnull
+        public static TResult GetValueWithDefaultFunc<TKey, TValue, TResult>( this IDictionary<TKey, TValue> @this, TKey key, Func<TKey, TResult> defaultValue ) where TValue : TResult
         {
-            TValue? result;
-            if( !@this.TryGetValue( key, out result ) ) result = defaultValue( key );
+            if( !@this.TryGetValue( key, out var result ) ) return defaultValue( key );
             return result;
         }
 
