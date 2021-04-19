@@ -5,6 +5,7 @@ using System.Text;
 using System.IO;
 using System.Diagnostics;
 using CK.Text;
+using System.Diagnostics.CodeAnalysis;
 
 namespace CK.Core
 {
@@ -140,6 +141,7 @@ namespace CK.Core
         /// </summary>
         /// <param name="ex">Exception for which data must be created. Can be null: null is returned.</param>
         /// <returns>The data that describes the exception.</returns>
+        [return: NotNullIfNotNull( "ex" )]
         static public CKExceptionData? CreateFrom( Exception? ex )
         {
             if( ex == null ) return null;
