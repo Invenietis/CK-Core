@@ -72,7 +72,7 @@ namespace CK.Core
         /// </summary>
         /// <param name="data">Data of an exception for which a <see cref="CKException"/> wrapper must be created. Can be null: null is returned.</param>
         /// <returns>The exception that wraps the data.</returns>
-        static public CKException? CreateFrom( CKExceptionData data )
+        static public CKException? CreateFrom( CKExceptionData? data )
         {
             if( data == null ) return null;
             return new CKException( data );

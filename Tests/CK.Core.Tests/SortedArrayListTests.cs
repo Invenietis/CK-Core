@@ -55,9 +55,11 @@ namespace CK.Core.Tests.Collection
         [Test]
         public void Covariance_support_via_ICKReadOnlyList_and_ICKWritableCollection()
         {
-            var a = new CKSortedArrayList<Mammal>( ( a1, a2 ) => a1.Name.CompareTo( a2.Name ) );
-            a.Add( new Mammal( "B", 12 ) );
-            a.Add( new Canidae( "A", 12, true ) );
+            var a = new CKSortedArrayList<Mammal>( ( a1, a2 ) => a1.Name.CompareTo( a2.Name ) )
+            {
+                new Mammal( "B", 12 ),
+                new Canidae( "A", 12, true )
+            };
 
             IReadOnlyList<Animal> baseObjects = a;
             for( int i = 0; i < baseObjects.Count; ++i )
@@ -81,13 +83,15 @@ namespace CK.Core.Tests.Collection
         [Test]
         public void CheckPosition_locally_reorders_the_items()
         {
-            var a = new TestMammals( ( a1, a2 ) => a1.Name.CompareTo( a2.Name ) );
-            a.Add( new Mammal( "B" ) );
-            a.Add( new Mammal( "A" ) );
-            a.Add( new Mammal( "D" ) );
-            a.Add( new Mammal( "F" ) );
-            a.Add( new Mammal( "C" ) );
-            a.Add( new Mammal( "E" ) );
+            var a = new TestMammals( ( a1, a2 ) => a1.Name.CompareTo( a2.Name ) )
+            {
+                new Mammal( "B" ),
+                new Mammal( "A" ),
+                new Mammal( "D" ),
+                new Mammal( "F" ),
+                new Mammal( "C" ),
+                new Mammal( "E" )
+            };
             String.Join( "", a.Select( m => m.Name ) ).Should().Be( "ABCDEF" );
 
             for( int i = 0; i < a.Count; ++i )
@@ -136,9 +140,11 @@ namespace CK.Core.Tests.Collection
             a.CheckPosition( 3 ).Should().Be( 1 );
             CheckList( a, "ABCDEF" );
 
-            var b = new TestMammals( ( a1, a2 ) => a1.Name.CompareTo( a2.Name ) );
-            b.Add( new Mammal( "B" ) );
-            b.Add( new Mammal( "A" ) );
+            var b = new TestMammals( ( a1, a2 ) => a1.Name.CompareTo( a2.Name ) )
+            {
+                new Mammal( "B" ),
+                new Mammal( "A" )
+            };
             String.Join( "", b.Select( m => m.Name ) ).Should().Be( "AB" );
 
             b[0].Name = "Z";
@@ -146,9 +152,11 @@ namespace CK.Core.Tests.Collection
             b.CheckPosition( 0 ).Should().Be( 1 );
             CheckList( b, "BZ" );
 
-            var c = new TestMammals( ( a1, a2 ) => a1.Name.CompareTo( a2.Name ), true );
-            c.Add( new Mammal( "B" ) );
-            c.Add( new Mammal( "A" ) );
+            var c = new TestMammals( ( a1, a2 ) => a1.Name.CompareTo( a2.Name ), true )
+            {
+                new Mammal( "B" ),
+                new Mammal( "A" )
+            };
             String.Join( "", c.Select( m => m.Name ) ).Should().Be( "AB" );
 
             c[0].Name = "Z";
@@ -156,9 +164,11 @@ namespace CK.Core.Tests.Collection
             c.CheckPosition( 0 ).Should().Be( 1 );
             CheckList( c, "BZ" );
 
-            var d = new TestMammals( ( a1, a2 ) => a1.Name.CompareTo( a2.Name ) );
-            d.Add( new Mammal( "B" ) );
-            d.Add( new Mammal( "C" ) );
+            var d = new TestMammals( ( a1, a2 ) => a1.Name.CompareTo( a2.Name ) )
+            {
+                new Mammal( "B" ),
+                new Mammal( "C" )
+            };
             String.Join( "", d.Select( m => m.Name ) ).Should().Be( "BC" );
 
             d[1].Name = "A";
@@ -170,13 +180,15 @@ namespace CK.Core.Tests.Collection
         [Test]
         public void using_binary_search_algorithms_on_SortedArrayList()
         {
-            var a = new TestMammals( ( a1, a2 ) => a1.Name.CompareTo( a2.Name ) );
-            a.Add( new Mammal( "B" ) );
-            a.Add( new Mammal( "A" ) );
-            a.Add( new Mammal( "D" ) );
-            a.Add( new Mammal( "F" ) );
-            a.Add( new Mammal( "C" ) );
-            a.Add( new Mammal( "E" ) );
+            var a = new TestMammals( ( a1, a2 ) => a1.Name.CompareTo( a2.Name ) )
+            {
+                new Mammal( "B" ),
+                new Mammal( "A" ),
+                new Mammal( "D" ),
+                new Mammal( "F" ),
+                new Mammal( "C" ),
+                new Mammal( "E" )
+            };
 
             int idx;
 
@@ -386,8 +398,10 @@ namespace CK.Core.Tests.Collection
             enumerator.Invoking( sut => sut.MoveNext() ).Should().Throw<InvalidOperationException>();
 
             //Exception
-            IList<Mammal> testException = new CKSortedArrayList<Mammal>();
-            testException.Add( new Mammal( "Nothing" ) );
+            IList<Mammal> testException = new CKSortedArrayList<Mammal>
+            {
+                new Mammal( "Nothing" )
+            };
             testException.Invoking( sut => sut[-1] = new Mammal( "A" ) ).Should().Throw<IndexOutOfRangeException>();
             testException.Invoking( sut => sut[1] = new Mammal( "A" ) ).Should().Throw<IndexOutOfRangeException>();
             testException.Invoking( sut => sut[0] = null ).Should().Throw<ArgumentNullException>();

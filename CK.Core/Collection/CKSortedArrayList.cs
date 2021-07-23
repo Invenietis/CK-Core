@@ -147,7 +147,7 @@ namespace CK.Core
         /// if the item can structurally NOT appear in this list.</returns>
         public virtual int IndexOf( object item )
         {
-            return item is T ? IndexOf( (T)item ) : Int32.MinValue;
+            return item is T i ? IndexOf( i ) : Int32.MinValue;
         }
 
         /// <summary>
