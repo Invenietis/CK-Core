@@ -225,8 +225,7 @@ namespace CK.Core
             tags = tags.Normalize( NormalizationForm.FormC );
             if( !_tags.TryGetValue( tags, out CKTrait? m ) )
             {
-                int tagCount;
-                string[] splitTags = SplitMultiTag( tags, out tagCount );
+                string[] splitTags = SplitMultiTag( tags, out int tagCount );
                 if( tagCount <= 0 ) return null;
                 if( tagCount == 1 )
                 {
@@ -308,8 +307,7 @@ namespace CK.Core
             if( tags.IndexOfAny( new[] { '\n', '\r' } ) >= 0 ) throw new ArgumentException( Core.Impl.CoreResources.TagsMustNotBeMultiLineString );
             if( !_tags.TryGetValue( tags, out CKTrait? m ) )
             {
-                int tagCount;
-                string[] splitTags = SplitMultiTag( tags, out tagCount );
+                string[] splitTags = SplitMultiTag( tags, out int tagCount );
                 if( tagCount <= 0 ) return EmptyTrait;
                 if( tagCount == 1 )
                 {

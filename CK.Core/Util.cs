@@ -372,8 +372,9 @@ namespace CK.Core
         /// <param name="o">The item to insert at position 0 (if <paramref name="prepend"/> is true) or at the end only if it does not already appear in the array.</param>
         /// <param name="prepend">True to insert the item at the head of the array (index 0) instead of at its end.</param>
         /// <returns>The array containing the new item. Note that it may differ from the "current" items content since another thread may have already changed it.</returns>
-        public static T[] InterlockedAddUnique<T>( ref T[]? items, T o, bool prepend = false )
+        public static T[] InterlockedAddUnique<T>( [NotNull] ref T[]? items, T o, bool prepend = false )
         {
+#pragma warning disable CS8777 // Parameter must have a non-null value when exiting.
             return InterlockedSet( ref items, o, ( oldItems, item ) =>
             {
                 if( oldItems == null || oldItems.Length == 0 ) return new T[] { item };
@@ -383,6 +384,7 @@ namespace CK.Core
                 newArray[prepend ? 0 : oldItems.Length] = item;
                 return newArray;
             } )!;
+#pragma warning restore CS8777 // Parameter must have a non-null value when exiting.
         }
 
         /// <summary>
@@ -393,8 +395,9 @@ namespace CK.Core
         /// <param name="o">The item to insert at position 0 (if <paramref name="prepend"/> is true) or at the end.</param>
         /// <param name="prepend">True to insert the item at the head of the array (index 0) instead of at its end.</param>
         /// <returns>The array containing the new item. Note that it may differ from the "current" items content since another thread may have already changed it.</returns>
-        public static T[] InterlockedAdd<T>( ref T[]? items, T o, bool prepend = false )
+        public static T[] InterlockedAdd<T>( [NotNull] ref T[]? items, T o, bool prepend = false )
         {
+#pragma warning disable CS8777 // Parameter must have a non-null value when exiting.
             return InterlockedSet( ref items, o, ( oldItems, item ) =>
             {
                 if( oldItems == null || oldItems.Length == 0 ) return new T[] { item };
@@ -403,6 +406,7 @@ namespace CK.Core
                 newArray[prepend ? 0 : oldItems.Length] = item;
                 return newArray;
             } )!;
+#pragma warning restore CS8777 // Parameter must have a non-null value when exiting.
         }
 
         /// <summary>
@@ -421,18 +425,19 @@ namespace CK.Core
         /// <remarks>
         /// The factory function MUST return an item that satisfies the tester function otherwise a <see cref="InvalidOperationException"/> is thrown.
         /// </remarks>
-        public static T[] InterlockedAdd<T, TItem>( ref T[]? items, Func<TItem, bool> tester, Func<TItem> factory, bool prepend = false ) where TItem : T
+        public static T[] InterlockedAdd<T, TItem>( [NotNull]ref T[]? items, Func<TItem, bool> tester, Func<TItem> factory, bool prepend = false ) where TItem : T
         {
             if( tester == null ) throw new ArgumentNullException( "tester" );
             if( factory == null ) throw new ArgumentNullException( "factory" );
             TItem newE = default!;
             bool needFactory = true;
+#pragma warning disable CS8777 // Parameter must have a non-null value when exiting.
             return InterlockedSet( ref items, oldItems =>
             {
                 T[] newArray;
                 if( oldItems != null )
                     foreach( var e in oldItems )
-                        if( e is TItem && tester( (TItem)e ) ) return oldItems;
+                        if( e is TItem item && tester( item ) ) return oldItems;
                 if( needFactory )
                 {
                     needFactory = false;
@@ -448,6 +453,7 @@ namespace CK.Core
                 }
                 return newArray;
             } )!;
+#pragma warning restore CS8777 // Parameter must have a non-null value when exiting.
         }
 
         #endregion

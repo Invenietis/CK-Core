@@ -83,7 +83,7 @@ namespace CK.Core
         /// <returns>This collection or a simple wrapper that adapts the interface.</returns>
         public static IReadOnlyCollection<T> AsIReadOnlyCollection<T>( this ICollection<T> @this )
         {
-            if( !(@this is IReadOnlyCollection<T> c) )
+            if( @this is not IReadOnlyCollection<T> c )
             {
                 if( @this == null ) throw new NullReferenceException();
                 c = new ReadOnlyCollectionWrapper<T>( @this );
@@ -101,8 +101,7 @@ namespace CK.Core
         [Obsolete( "Please use the AsIReadOnlyCollection() extension method.", true )]
         public static IReadOnlyCollection<T> AsReadOnlyCollection<T>( this ICollection<T> @this )
         {
-            IReadOnlyCollection<T>? c = @this as IReadOnlyCollection<T>;
-            if( c == null )
+            if( @this is not IReadOnlyCollection<T> c )
             {
                 if( @this == null ) throw new NullReferenceException();
                 c = new CKReadOnlyCollectionOnICollection<T>( @this );
