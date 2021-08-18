@@ -335,9 +335,33 @@ namespace CK.Core
         T? ReadNullableEnum<T>() where T : struct, Enum;
 
         /// <summary>
-        /// Reads a nullable char (<see cref="Char"/>) value.
+        /// Reads a nullable character value.
         /// </summary>
-        /// <returns>The nullable char read.</returns>
-        ushort? ReadNullableChar();
+        /// <returns>The nullable character read.</returns>
+        char? ReadNullableChar();
+
+        /// <summary>
+        /// Reads a nullable DateTime value.
+        /// </summary>
+        /// <returns>The nullable DateTime.</returns>
+        DateTime? ReadNullableDateTime();
+
+        /// <summary>
+        /// Reads a nullable TimeSpan value.
+        /// </summary>
+        /// <returns>The nullable TimeSpan.</returns>
+        TimeSpan? ReadNullableTimeSpan();
+
+        /// <summary>
+        /// Reads a nullable DateTimeOffset value.
+        /// </summary>
+        /// <returns>The nullable DateTimeOffset.</returns>
+        DateTimeOffset? ReadNullableDateTimeOffset();
+
+        /// <summary>
+        /// Reads a nullable Guid value.
+        /// </summary>
+        /// <returns>The nullable Guid.</returns>
+        Guid? ReadNullableGuid();
     }
 }

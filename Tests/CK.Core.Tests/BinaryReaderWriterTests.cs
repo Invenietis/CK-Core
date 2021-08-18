@@ -166,9 +166,18 @@ namespace CK.Core.Tests
                 w.WriteNullableBool( null );
                 w.WriteNullableByte( null );
                 w.WriteNullableSByte( null );
+                w.WriteNullableDateTime( null );
+                w.WriteNullableTimeSpan( null );
+                w.WriteNullableDateTimeOffset( null );
+                w.WriteNullableGuid( null );
 
+                w.WriteNullableDateTime( DefDateTime );
+                w.WriteNullableTimeSpan( DefTimeSpan );
+                w.WriteNullableDateTimeOffset( DefDateTimeOffset );
+                w.WriteNullableGuid( DefGuid );
                 w.WriteNullableBool( true );
                 w.WriteNullableBool( false );
+
 
                 for( int i = Byte.MinValue; i <= Byte.MaxValue; ++i ) w.WriteNullableByte( (byte)i );
                 for( int i = SByte.MinValue; i <= SByte.MaxValue; ++i ) w.WriteNullableSByte( (sbyte)i );
@@ -181,7 +190,15 @@ namespace CK.Core.Tests
                 r.ReadNullableBool().Should().Be( null );
                 r.ReadNullableByte().Should().Be( null );
                 r.ReadNullableSByte().Should().Be( null );
+                r.ReadNullableDateTime().Should().Be( null );
+                r.ReadNullableTimeSpan().Should().Be( null );
+                r.ReadNullableDateTimeOffset().Should().Be( null );
+                r.ReadNullableGuid().Should().Be( null );
 
+                r.ReadNullableDateTime().Should().Be( DefDateTime );
+                r.ReadNullableTimeSpan().Should().Be( DefTimeSpan );
+                r.ReadNullableDateTimeOffset().Should().Be( DefDateTimeOffset );
+                r.ReadNullableGuid().Should().Be( DefGuid );
                 r.ReadNullableBool().Should().Be( true );
                 r.ReadNullableBool().Should().Be( false );
 

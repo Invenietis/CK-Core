@@ -126,47 +126,16 @@ namespace CK.Core
             StringPool = new ObjectPool<string>( this, StringComparer.Ordinal );
         }
 
-        /// <summary>
-        /// Gets a string pool, bound to <see cref="StringComparer.Ordinal"/> comparer.
-        /// </summary>
+        /// <inheritdoc />
         public ObjectPool<string> StringPool { get; }
 
-        /// <summary>
-        /// Writes a 32-bit 0 or positive integer in compressed format. See remarks.
-        /// </summary>
-        /// <param name="value">A 32-bit integer (should not be negative).</param>
-        /// <remarks>
-        /// Using this method to write a negative integer is the same as using it with a large
-        /// positive number: the storage will actually require more than 4 bytes.
-        /// It is perfectly valid, except that it is more "expansion" than "compression" :). 
-        /// </remarks>
+        /// <inheritdoc />
         public void WriteNonNegativeSmallInt32( int value ) => Write7BitEncodedInt( value );
 
-        /// <summary>
-        /// Writes a 32-bit integer in compressed format, accomodating rooms for some negative values.
-        /// The <paramref name="minNegativeValue"/> simply offsets the written value.
-        /// Use <see cref="CKBinaryReader.ReadSmallInt32(int)"/> with the 
-        /// same <paramref name="minNegativeValue"/> to read it back.
-        /// </summary>
-        /// <param name="value">A 32-bit integer (greater or equal to <paramref name="minNegativeValue"/>).</param>
-        /// <param name="minNegativeValue">Lowest possible negative value.</param>
-        /// <remarks>
-        /// <para>
-        /// Writing a negative value lower than the <paramref name="minNegativeValue"/> is totally possible, however
-        /// more than 4 bytes will be required for them.
-        /// </para>
-        /// <para>
-        /// The default value of -1 is perfect to write small integers that are greater or equal to -1.
-        /// </para>
-        /// </remarks>
+        /// <inheritdoc />
         public void WriteSmallInt32( int value, int minNegativeValue = -1 ) => Write7BitEncodedInt( value - minNegativeValue );
 
-        /// <summary>
-        /// Writes a potentially null string.
-        /// You can use <see cref="WriteSharedString(string)"/> if the string
-        /// has good chances to appear multiple times. 
-        /// </summary>
-        /// <param name="s">String to write.</param>
+        /// <inheritdoc />
         public void WriteNullableString( string? s )
         {
             if( s != null )
@@ -177,10 +146,7 @@ namespace CK.Core
             else Write( false );
         }
 
-        /// <summary>
-        /// Writes a string, using the default <see cref="StringPool"/>.
-        /// </summary>
-        /// <param name="s">The string to write. Can be null.</param>
+        /// <inheritdoc />
         public void WriteSharedString( string? s )
         {
             if( StringPool.MustWrite( s ) )
@@ -190,49 +156,32 @@ namespace CK.Core
             }
         }
 
-        /// <summary>
-        /// Writes a DateTime value.
-        /// </summary>
-        /// <param name="d">The value to write.</param>
+        /// <inheritdoc />
         public void Write( DateTime d )
         {
             Write( d.ToBinary() );
         }
 
-        /// <summary>
-        /// Writes a TimeSpan value.
-        /// </summary>
-        /// <param name="t">The value to write.</param>
+        /// <inheritdoc />
         public void Write( TimeSpan t )
         {
             Write( t.Ticks );
         }
 
-        /// <summary>
-        /// Writes a DateTimeOffset value.
-        /// </summary>
-        /// <param name="ds">The value to write.</param>
+        /// <inheritdoc />
         public void Write( DateTimeOffset ds )
         {
             Write( ds.DateTime );
             Write( (short)ds.Offset.TotalMinutes );
         }
 
-        /// <summary>
-        /// Writes a DateTimeOffset value.
-        /// </summary>
-        /// <param name="g">The value to write.</param>
+        /// <inheritdoc />
         public void Write( Guid g )
         {
             Write( g.ToByteArray() );
         }
 
-        /// <summary>
-        /// Writes a nullable byte value.
-        /// Null and values in [0,253] use 1 byte.
-        /// 254 and 255 use 2 bytes.
-        /// </summary>
-        /// <param name="b">The value to write.</param>
+        /// <inheritdoc />
         public void WriteNullableByte( byte? b )
         {
             if( !b.HasValue ) Write( (byte)0xFE );
@@ -248,22 +197,14 @@ namespace CK.Core
             }
         }
 
-        /// <summary>
-        /// Writes a nullable bool value.
-        /// </summary>
-        /// <param name="b">The value to write.</param>
+        /// <inheritdoc />
         public void WriteNullableBool( bool? b )
         {
             if( !b.HasValue ) Write( (byte)0x03 );
             else Write( b.Value ? (byte)0x01 : (byte)0x02 );
         }
 
-        /// <summary>
-        /// Writes a nullable signed byte value.
-        /// Null and values in [-127,126] use 1 byte.
-        /// -128 and 127 use 2 bytes.
-        /// </summary>
-        /// <param name="b">The value to write.</param>
+        /// <inheritdoc />
         public void WriteNullableSByte( sbyte? b )
         {
             if( !b.HasValue ) Write( (byte)0x7F );
@@ -286,12 +227,7 @@ namespace CK.Core
         static readonly byte[] _unsignedMax = new byte[] { 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0x00 };
 
 
-        /// <summary>
-        /// Writes a nullable short value (<see cref="Int16"/>).
-        /// Null and values between <see cref="Int16.MinValue"/> and <see cref="Int16.MaxValue"/> use 2 bytes.
-        /// <see cref="Int16.MinValue"/> and <see cref="Int16.MaxValue"/> use 3 bytes.
-        /// </summary>
-        /// <param name="v">The value to write.</param>
+        /// <inheritdoc />
         public void WriteNullableInt16( short? v )
         {
             if( !v.HasValue ) Write( Int16.MaxValue );
@@ -304,12 +240,7 @@ namespace CK.Core
             }
         }
 
-        /// <summary>
-        /// Writes a nullable short value (<see cref="UInt16"/>).
-        /// Null and values below <see cref="UInt16.MaxValue"/>-1 use 2 bytes.
-        /// <see cref="UInt16.MaxValue"/>-1 and <see cref="UInt16.MaxValue"/> use 3 bytes.
-        /// </summary>
-        /// <param name="v">The value to write.</param>
+        /// <inheritdoc />
         public void WriteNullableUInt16( ushort? v )
         {
             if( !v.HasValue ) Write( UInt16.MaxValue-1 );
@@ -322,12 +253,7 @@ namespace CK.Core
             }
         }
 
-        /// <summary>
-        /// Writes a nullable int value (<see cref="Int32"/>).
-        /// Null and values between <see cref="Int32.MinValue"/> and <see cref="Int32.MaxValue"/> use 4 bytes.
-        /// <see cref="Int32.MinValue"/> and <see cref="Int32.MaxValue"/> use 5 bytes.
-        /// </summary>
-        /// <param name="v">The value to write.</param>
+        /// <inheritdoc />
         public void WriteNullableInt32( int? v )
         {
             if( !v.HasValue ) Write( Int32.MaxValue );
@@ -340,12 +266,7 @@ namespace CK.Core
             }
         }
 
-        /// <summary>
-        /// Writes a nullable unsigned int value (<see cref="UInt32"/>).
-        /// Null and values below <see cref="UInt32.MaxValue"/>-1 use 4 bytes.
-        /// <see cref="UInt32.MaxValue"/>-1 and <see cref="UInt32.MaxValue"/> use 5 bytes.
-        /// </summary>
-        /// <param name="v">The value to write.</param>
+        /// <inheritdoc />
         public void WriteNullableUInt32( uint? v )
         {
             if( !v.HasValue ) Write( UInt32.MaxValue - 1 );
@@ -358,12 +279,7 @@ namespace CK.Core
             }
         }
 
-        /// <summary>
-        /// Writes a nullable long value (<see cref="Int64"/>).
-        /// Null and values between <see cref="Int64.MinValue"/> and <see cref="Int64.MaxValue"/> use 8 bytes.
-        /// <see cref="Int64.MinValue"/> and <see cref="Int64.MaxValue"/> use 9 bytes.
-        /// </summary>
-        /// <param name="v">The value to write.</param>
+        /// <inheritdoc />
         public void WriteNullableInt64( long? v )
         {
             if( !v.HasValue ) Write( Int64.MaxValue );
@@ -376,12 +292,7 @@ namespace CK.Core
             }
         }
 
-        /// <summary>
-        /// Writes a nullable unsigned long value (<see cref="UInt64"/>).
-        /// Null and values below <see cref="UInt32.MaxValue"/>-1 use 8 bytes.
-        /// <see cref="UInt64.MaxValue"/>-1 and <see cref="UInt64.MaxValue"/> use 9 bytes.
-        /// </summary>
-        /// <param name="v">The value to write.</param>
+        /// <inheritdoc />
         public void WriteNullableUInt64( ulong? v )
         {
             if( !v.HasValue ) Write( UInt64.MaxValue - 1 );
@@ -394,13 +305,7 @@ namespace CK.Core
             }
         }
 
-        /// <summary>
-        /// Writes a nullable unicode character (<see cref="Char"/>).
-        /// Actual byte length depends directly on the used string encoding.
-        /// Null and values above <see cref="Char.MinValue"/>+1 use one character (2 bytes below 0xff, 3 bytes below 0xffff, etc.).
-        /// <see cref="Char.MinValue"/>+1 and <see cref="Char.MinValue"/> use one character (2 bytes below 0xff, 3 bytes below 0xffff, etc.), plus one byte.
-        /// </summary>
-        /// <param name="v">The value to write.</param>
+        /// <inheritdoc />
         public void WriteNullableChar( char? v )
         {
             if( !v.HasValue ) Write( (char)(Char.MinValue + 1) );
@@ -413,12 +318,7 @@ namespace CK.Core
             }
         }
 
-        /// <summary>
-        /// Writes the enum value as its number value (<see cref="ICKBinaryWriter.Write(byte)"/> ... <see cref="ICKBinaryWriter.Write(ulong)"/>)
-        /// depending on its <see cref="Type.GetEnumUnderlyingType()"/>.
-        /// </summary>
-        /// <typeparam name="T">The enum type.</typeparam>
-        /// <param name="v">The enum value.</param>
+        /// <inheritdoc />
         public void WriteEnum<T>( T v ) where T : struct, Enum
         {
             var u = typeof( T ).GetEnumUnderlyingType();
@@ -433,12 +333,7 @@ namespace CK.Core
             else throw new NotSupportedException( $"Unhandled base enum type: {u}" );
         }
 
-        /// <summary>
-        /// Writes the enum value as its nullable number value (<see cref="WriteNullableByte(byte?)"/> ... <see cref="WriteNullableUInt64(ulong?)"/>)
-        /// depending on its <see cref="Type.GetEnumUnderlyingType()"/>.
-        /// </summary>
-        /// <typeparam name="T">The enum type.</typeparam>
-        /// <param name="v">The enum value.</param>
+        /// <inheritdoc />
         public void WriteNullableEnum<T>( T? v ) where T : struct, Enum
         {
             // This is ABSOLUTELY ugly... but it does the job.
@@ -453,6 +348,42 @@ namespace CK.Core
             else if( u == typeof( ushort ) ) { if( v.HasValue ) WriteNullableUInt16( (ushort)(object)v.Value ); else WriteNullableUInt16( null ); }
             else if( u == typeof( ulong ) ) { if( v.HasValue ) WriteNullableUInt64( (ulong)(object)v.Value ); else WriteNullableUInt64( null ); }
             else throw new NotSupportedException( $"Unhandled base enum type: {u}" );
+        }
+
+        /// <inheritdoc />
+        public void WriteNullableDateTime( DateTime? v )
+        {
+            // No risk and still efficient: there is a MaxTicks that is below
+            // long.MaxValue: null and all DateTime requires 8 bytes (never 9).
+            Debug.Assert( DateTime.MaxValue.Ticks < long.MaxValue );
+            WriteNullableInt64( v?.ToBinary() );
+        }
+
+        /// <inheritdoc />
+        public void WriteNullableTimeSpan( TimeSpan? t )
+        {
+            WriteNullableInt64( t?.Ticks );
+        }
+
+        /// <inheritdoc />
+        public void WriteNullableDateTimeOffset( DateTimeOffset? ds )
+        {
+            WriteNullableInt64( ds?.DateTime.ToBinary() );
+            if( ds.HasValue ) Write( (short)ds.Value.Offset.TotalMinutes );
+        }
+
+        /// <inheritdoc />
+        public void WriteNullableGuid( Guid? g )
+        {
+            if( g.HasValue )
+            {
+                Write( true );
+                Write( g.Value );
+            }
+            else
+            {
+                Write( false );
+            }
         }
 
     }
