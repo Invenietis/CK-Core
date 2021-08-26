@@ -21,12 +21,12 @@ namespace CK.Core
         TaskAwaiter GetAwaiter();
 
         /// <summary>
-        /// Gets the exception data if an exception has been set.
+        /// Gets the exception if an exception has been set.
         /// Just like <see cref="HasFailed"/> and <see cref="HasBeenCanceled"/>, this is independent
         /// of any error transformation applied by the <see cref="ICompletable"/> or <see cref="ICompletable{TResult}"/>
         /// OnError implemented method: it is always captured and available if an exception has been set.
         /// </summary>
-        CKExceptionData? Exception { get; }
+        Exception? OriginalException { get; }
 
         /// <summary>
         /// Gets whether the command completed.
@@ -34,17 +34,17 @@ namespace CK.Core
         bool IsCompleted { get; }
 
         /// <summary>
-        /// Gets whether the command succeeded (SetResult or TrySetResult methods have been called).
+        /// Gets whether the command succeeded (SetResult or TrySetResult methods have been called successfully).
         /// </summary>
         bool HasSucceed { get; }
 
         /// <summary>
-        /// Gets whether the command failed (SetException or TrySetException have been called).
+        /// Gets whether the command failed (SetException or TrySetException have been called successfully).
         /// </summary>
         bool HasFailed { get; }
 
         /// <summary>
-        /// Gets whether the command has been canceled (SetCanceled or TrySetCanceled have been called).
+        /// Gets whether the command has been canceled (SetCanceled or TrySetCanceled have been called successfully).
         /// </summary>
         bool HasBeenCanceled { get; }
     }
