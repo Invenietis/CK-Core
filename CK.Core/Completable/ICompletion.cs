@@ -29,22 +29,28 @@ namespace CK.Core
         Exception? OriginalException { get; }
 
         /// <summary>
-        /// Gets whether the command completed.
+        /// Gets whether the command completed (succeed, canceled or on error).
         /// </summary>
         bool IsCompleted { get; }
 
         /// <summary>
         /// Gets whether the command succeeded (SetResult or TrySetResult methods have been called successfully).
+        /// When this is true, the <see cref="Task.Status"/> is also on success (<see cref="TaskStatus.RanToCompletion"/>).
         /// </summary>
         bool HasSucceed { get; }
 
         /// <summary>
         /// Gets whether the command failed (SetException or TrySetException have been called successfully).
+        /// When this is true, the <see cref="Task.Status"/> can be also on error (<see cref="TaskStatus.Faulted"/>),
+        /// but if a transformation occurred, the task may be on success (<see cref="TaskStatus.RanToCompletion"/>) or
+        /// canceled (<see cref="TaskStatus.Canceled"/>.
         /// </summary>
         bool HasFailed { get; }
 
         /// <summary>
         /// Gets whether the command has been canceled (SetCanceled or TrySetCanceled have been called successfully).
+        /// When this is true, the <see cref="Task.Status"/> can be also canceled (<see cref="TaskStatus.Canceled"/>),
+        /// but if a transformation occurred, the task can be on success (<see cref="TaskStatus.RanToCompletion"/>).
         /// </summary>
         bool HasBeenCanceled { get; }
     }
