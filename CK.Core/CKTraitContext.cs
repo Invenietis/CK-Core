@@ -236,7 +236,7 @@ namespace CK.Core
                     tags = String.Join( _separatorString, splitTags, 0, tagCount );
                     if( !_tags.TryGetValue( tags, out m ) )
                     {
-                        List<CKTrait> atomics = new List<CKTrait>();
+                        var atomics = new List<CKTrait>();
                         for( int i = 0; i < tagCount; ++i )
                         {
                             CKTrait? tag = FindOrCreateAtomicTrait( splitTags[i], false );
@@ -351,7 +351,7 @@ namespace CK.Core
             Debug.Assert( atomicTags[0].Context == this, "This is one of our tags." );
             Debug.Assert( atomicTags[0].AtomicTraits.Count == 1, "This is an atomic tag and not the empty one." );
             if( atomicTags.Count == 1 ) return atomicTags[0];
-            StringBuilder b = new StringBuilder( atomicTags[0].ToString() );
+            var b = new StringBuilder( atomicTags[0].ToString() );
             for( int i = 1; i < atomicTags.Count; ++i )
             {
                 Debug.Assert( atomicTags[i].Context == this, "This is one of our tags." );
@@ -402,7 +402,7 @@ namespace CK.Core
 
             Debug.Assert( !Array.Exists( atomicTags, mA => mA.Context != this || mA.AtomicTraits.Count != 1 ), "Tags are from this Context and they are atomic and not empty." );
 
-            StringBuilder b = new StringBuilder( atomicTags[0].ToString() );
+            var b = new StringBuilder( atomicTags[0].ToString() );
             for( int i = 1; i < count; ++i )
             {
                 Debug.Assert( StringComparer.Ordinal.Compare( atomicTags[i - 1].ToString(), atomicTags[i].ToString() ) < 0, "Tags are already sorted and NO DUPLICATE exists." );

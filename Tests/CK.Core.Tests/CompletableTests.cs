@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using NUnit.Framework;
 using CK.Text;
 using FluentAssertions;
+using System.Diagnostics;
 
 namespace CK.Core.Tests
 {
@@ -105,7 +106,7 @@ namespace CK.Core.Tests
                     await c.Completion;
                     c.Completion.IsCompleted.Should().BeTrue();
                 }
-                catch( OperationCanceledException _ )
+                catch( OperationCanceledException )
                 {
                     (c.RunAction == CommandAction.Canceled || (c.RunAction == CommandAction.Error && c.OnErrorHook == CommandAction.Canceled))
                         .Should().BeTrue();
@@ -125,6 +126,7 @@ namespace CK.Core.Tests
                 switch( c.RunAction )
                 {
                     case CommandAction.Error:
+                        Debug.Assert( c.Completion.OriginalException != null );
                         c.Completion.OriginalException.Message.Should().BeSameAs( RunException.Message );
                         c.Completion.HasFailed.Should().BeTrue();
                         switch( c.OnErrorHook )
@@ -136,6 +138,7 @@ namespace CK.Core.Tests
                                 c.Completion.Task.Status.Should().Be( TaskStatus.RanToCompletion );
                                 break;
                             case CommandAction.Error:
+                                Debug.Assert( c.Completion.Task.Exception != null );
                                 c.Completion.Task.Status.Should().Be( TaskStatus.Faulted );
                                 c.Completion.Task.Exception.Message.Should().Contain( (c.OverriddenExceptionOnError ?? RunException).Message );
                                 break;
@@ -232,7 +235,7 @@ namespace CK.Core.Tests
                     await c.Completion;
                     c.Completion.IsCompleted.Should().BeTrue();
                 }
-                catch( OperationCanceledException _ )
+                catch( OperationCanceledException )
                 {
                     (c.RunAction == CommandAction.Canceled || (c.RunAction == CommandAction.Error && c.OnErrorHook == CommandAction.Canceled))
                         .Should().BeTrue();
@@ -255,6 +258,7 @@ namespace CK.Core.Tests
                 switch( c.RunAction )
                 {
                     case CommandAction.Error:
+                        Debug.Assert( c.Completion.OriginalException != null );
                         c.Completion.OriginalException.Message.Should().BeSameAs( RunException.Message );
                         c.Completion.HasFailed.Should().BeTrue();
                         switch( c.OnErrorHook )
@@ -267,6 +271,7 @@ namespace CK.Core.Tests
                                 c.Completion.Result.Should().Be( 1 );
                                 break;
                             case CommandAction.Error:
+                                Debug.Assert( c.Completion.Task.Exception != null );
                                 c.Completion.Task.Status.Should().Be( TaskStatus.Faulted );
                                 c.Completion.Task.Exception.Message.Should().Contain( (c.OverriddenExceptionOnError ?? RunException).Message );
                                 break;

@@ -103,14 +103,12 @@ namespace CK.Core
         /// </summary>
         public ref struct OnError
         {
-            readonly CompletionSource _c;
             internal Exception? ResultError;
             internal bool Called;
             internal bool ResultCancel;
 
             internal OnError( CompletionSource c )
             {
-                _c = c;
                 Called = false;
                 ResultError = null;
                 ResultCancel = false;
@@ -236,13 +234,11 @@ namespace CK.Core
         /// </summary>
         public ref struct OnCanceled
         {
-            readonly CompletionSource _c;
             internal bool Called;
             internal bool ResultSuccess;
 
             internal OnCanceled( CompletionSource c )
             {
-                _c = c;
                 Called = false;
                 ResultSuccess = false;
             }

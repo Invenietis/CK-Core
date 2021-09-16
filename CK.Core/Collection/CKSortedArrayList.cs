@@ -503,7 +503,6 @@ namespace CK.Core
             return new Enumerator( this );
         }
 
-#pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
         public struct Enumerator : IEnumerator<T>, IEnumerator
         {
             private readonly CKSortedArrayList<T> _list;
@@ -577,7 +576,6 @@ namespace CK.Core
                 _current = default;
             }
         }
-#pragma warning restore CS1591 // Missing XML comment for publicly visible type or member
     }
     #endregion
 }

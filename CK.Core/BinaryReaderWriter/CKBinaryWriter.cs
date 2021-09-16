@@ -32,9 +32,8 @@ namespace CK.Core
             /// <param name="comparer">The comparer to use.</param>
             public ObjectPool( ICKBinaryWriter w, IEqualityComparer<T>? comparer = null )
             {
-                if( w == null ) throw new ArgumentNullException( nameof( w ) );
                 _pool = new Dictionary<T, int>( comparer );
-                _w = w;
+                _w = w ?? throw new ArgumentNullException( nameof( w ) );
             }
 
             /// <summary>
@@ -57,7 +56,7 @@ namespace CK.Core
             /// </returns>
             public bool MustWrite( [AllowNull]T o, byte mustWriteMarker = 2 )
             {
-                if( EqualityComparer<T>.Default.Equals( o, default( T ) ) )
+                if( EqualityComparer<T>.Default.Equals( o, default ) )
                 {
                     _w.Write( (byte)0 );
                     return false;

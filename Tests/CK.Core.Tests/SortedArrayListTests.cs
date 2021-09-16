@@ -20,7 +20,7 @@ namespace CK.Core.Tests.Collection
             a.Contains( 14 ).Should().BeFalse();
             a.IndexOf( 12 ).Should().Be( 2 );
 
-            object o = 21;
+            object? o = 21;
             a.Contains( o ).Should().BeFalse();
             a.IndexOf( o ).Should().BeLessThan( 0 );
 
@@ -29,8 +29,8 @@ namespace CK.Core.Tests.Collection
             a.IndexOf( o ).Should().Be( 2 );
 
             o = null;
-            a.Contains( o ).Should().BeFalse();
-            a.IndexOf( o ).Should().Be( int.MinValue );
+            a.Contains( o! ).Should().BeFalse();
+            a.IndexOf( o! ).Should().Be( int.MinValue );
 
             int[] arrayToTest = new int[5];
             a.CopyTo( arrayToTest, 1 );
@@ -374,10 +374,10 @@ namespace CK.Core.Tests.Collection
         {
             var a = new CKSortedArrayList<Mammal>( ( a1, a2 ) => a1.Name.CompareTo( a2.Name ) );
 
-            a.Invoking( sut => sut.IndexOf( null ) ).Should().Throw<ArgumentNullException>();
-            a.Invoking( sut => sut.IndexOf( null ) ).Should().Throw<ArgumentNullException>();
-            a.Invoking( sut => sut.IndexOf<Mammal>( new Mammal( "Nothing" ), null ) ).Should().Throw<ArgumentNullException>();
-            a.Invoking( sut => sut.Add( null ) ).Should().Throw<ArgumentNullException>();
+            a.Invoking( sut => sut.IndexOf( null! ) ).Should().Throw<ArgumentNullException>();
+            a.Invoking( sut => sut.IndexOf( null! ) ).Should().Throw<ArgumentNullException>();
+            a.Invoking( sut => sut.IndexOf<Mammal>( new Mammal( "Nothing" ), null! ) ).Should().Throw<ArgumentNullException>();
+            a.Invoking( sut => sut.Add( null! ) ).Should().Throw<ArgumentNullException>();
 
             a.Add( new Mammal( "A" ) );
             a.Add( new Mammal( "B" ) );
@@ -388,11 +388,11 @@ namespace CK.Core.Tests.Collection
 
             //Enumerator Exception (considering the non generic version since generics have weaken the invariants).
             var enumerator = ((System.Collections.IEnumerable)a).GetEnumerator();
-            enumerator.Invoking( sut => { object temp = sut.Current; } ).Should().Throw<InvalidOperationException>();
+            enumerator.Invoking( sut => { object? temp = sut.Current; } ).Should().Throw<InvalidOperationException>();
             enumerator.MoveNext();
             enumerator.Current.Should().Be( a[0] );
             enumerator.Reset();
-            enumerator.Invoking( sut => { object temp = sut.Current; } ).Should().Throw<InvalidOperationException>();
+            enumerator.Invoking( sut => { object? temp = sut.Current; } ).Should().Throw<InvalidOperationException>();
             a.Clear(); //change _version
             enumerator.Invoking( sut => sut.Reset() ).Should().Throw<InvalidOperationException>();
             enumerator.Invoking( sut => sut.MoveNext() ).Should().Throw<InvalidOperationException>();
@@ -404,11 +404,11 @@ namespace CK.Core.Tests.Collection
             };
             testException.Invoking( sut => sut[-1] = new Mammal( "A" ) ).Should().Throw<IndexOutOfRangeException>();
             testException.Invoking( sut => sut[1] = new Mammal( "A" ) ).Should().Throw<IndexOutOfRangeException>();
-            testException.Invoking( sut => sut[0] = null ).Should().Throw<ArgumentNullException>();
+            testException.Invoking( sut => sut[0] = null! ).Should().Throw<ArgumentNullException>();
             testException.Invoking( sut => sut.Insert( -1, new Mammal( "A" ) ) ).Should().Throw<IndexOutOfRangeException>();
             testException.Invoking( sut => sut.Insert( 2, new Mammal( "A" ) ) ).Should().Throw<IndexOutOfRangeException>();
 
-            testException.Invoking( sut => sut.Insert( 0, null ) ).Should().Throw<ArgumentNullException>();
+            testException.Invoking( sut => sut.Insert( 0, null! ) ).Should().Throw<ArgumentNullException>();
         }
 
         [Test]

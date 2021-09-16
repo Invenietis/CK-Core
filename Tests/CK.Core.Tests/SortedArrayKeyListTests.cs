@@ -42,13 +42,13 @@ namespace CK.Core.Tests.Collection
 
             a.KeyCount("100").Should().Be(1);
 
-            object o;
+            object? o;
             o = "2";
             a.IndexOf(o).Should().Be(5);
             o = 2;
             a.IndexOf(o).Should().Be(5);
             o = null;
-            a.IndexOf(o).Should().Be(Int32.MinValue);
+            a.IndexOf(o!).Should().Be(Int32.MinValue);
             o = new ClassToTest("A");
             a.IndexOf(o).Should().Be(Int32.MinValue);
             o = "42";
@@ -80,7 +80,7 @@ namespace CK.Core.Tests.Collection
 
             b.Contains( classToTest ).Should().BeTrue();
             b.IndexOf( classToTest ).Should().Be( 0 );
-            b.Invoking( sut => sut.IndexOf( (ClassToTest)null ) ).Should().Throw<ArgumentNullException>();
+            b.Invoking( sut => sut.IndexOf( (ClassToTest)null! ) ).Should().Throw<ArgumentNullException>();
         }
 
         [Test]
@@ -98,13 +98,13 @@ namespace CK.Core.Tests.Collection
             a.Contains("1").Should().BeTrue();
             a.Contains("21").Should().BeFalse();
 
-            object o;
+            object? o;
             o = "2";
             a.Contains(o).Should().BeTrue("Using the key.");
             o = 2;
             a.Contains(o).Should().BeTrue("Using the value itself.");
             o = null;
-            a.Contains(o).Should().BeFalse();
+            a.Contains(o!).Should().BeFalse();
             o = 42;
             a.Contains(o).Should().BeFalse();
             o = "42";

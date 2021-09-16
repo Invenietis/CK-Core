@@ -29,6 +29,8 @@ namespace CK.Core.Tests
         public static readonly float DefSingle = (float)0.38974e-4;
         public static readonly char DefChar = 'c';
         public static readonly bool DefBoolean = true;
+        public static readonly Index DefIndex = new Index( 3712, true );
+        public static readonly Range DefRange = 5..^7;
 
         [Test]
         public void basic_types_writing_and_reading()
@@ -58,6 +60,8 @@ namespace CK.Core.Tests
                     w.Write( DefSingle );
                     w.Write( DefChar );
                     w.Write( DefBoolean );
+                    w.Write( DefIndex );
+                    w.Write( DefRange );
 
                     w.WriteSharedString( sShared );
                 }
@@ -84,6 +88,9 @@ namespace CK.Core.Tests
                     r.ReadSingle().Should().Be( DefSingle );
                     r.ReadChar().Should().Be( DefChar );
                     r.ReadBoolean().Should().Be( DefBoolean );
+                    r.ReadIndex().Should().Be( DefIndex );
+                    r.ReadRange().Should().Be( DefRange );
+
                     r.ReadSharedString().Should().Be( sShared );
                 }
             }
@@ -170,6 +177,8 @@ namespace CK.Core.Tests
                 w.WriteNullableTimeSpan( null );
                 w.WriteNullableDateTimeOffset( null );
                 w.WriteNullableGuid( null );
+                w.WriteNullableIndex( null );
+                w.WriteNullableRange( null );
 
                 w.WriteNullableDateTime( DefDateTime );
                 w.WriteNullableTimeSpan( DefTimeSpan );
@@ -177,7 +186,8 @@ namespace CK.Core.Tests
                 w.WriteNullableGuid( DefGuid );
                 w.WriteNullableBool( true );
                 w.WriteNullableBool( false );
-
+                w.WriteNullableIndex( DefIndex );
+                w.WriteNullableRange( DefRange );
 
                 for( int i = Byte.MinValue; i <= Byte.MaxValue; ++i ) w.WriteNullableByte( (byte)i );
                 for( int i = SByte.MinValue; i <= SByte.MaxValue; ++i ) w.WriteNullableSByte( (sbyte)i );
@@ -194,6 +204,8 @@ namespace CK.Core.Tests
                 r.ReadNullableTimeSpan().Should().Be( null );
                 r.ReadNullableDateTimeOffset().Should().Be( null );
                 r.ReadNullableGuid().Should().Be( null );
+                r.ReadNullableIndex().Should().Be( null );
+                r.ReadNullableRange().Should().Be( null );
 
                 r.ReadNullableDateTime().Should().Be( DefDateTime );
                 r.ReadNullableTimeSpan().Should().Be( DefTimeSpan );
@@ -201,6 +213,8 @@ namespace CK.Core.Tests
                 r.ReadNullableGuid().Should().Be( DefGuid );
                 r.ReadNullableBool().Should().Be( true );
                 r.ReadNullableBool().Should().Be( false );
+                r.ReadNullableIndex().Should().Be( DefIndex );
+                r.ReadNullableRange().Should().Be( DefRange );
 
                 for( int i = Byte.MinValue; i <= Byte.MaxValue; ++i ) r.ReadNullableByte().Should().Be( (byte)i );
                 for( int i = SByte.MinValue; i <= SByte.MaxValue; ++i ) r.ReadNullableSByte().Should().Be( (sbyte)i );
@@ -485,9 +499,9 @@ namespace CK.Core.Tests
                 using( var r = new CKBinaryReader( mem, Encoding.UTF8, true ) )
                 {
                     var pool = new CKBinaryReader.ObjectPool<string>( r );
-                    string rA = pool.TryRead( out rA ).SetReadResult( r.ReadString() );
+                    string? rA = pool.TryRead( out rA ).SetReadResult( r.ReadString() );
                     rA.Should().Be( sA );
-                    string rB = pool.Read( ( state, reader ) => reader.ReadString() );
+                    string? rB = pool.Read( ( state, reader ) => reader.ReadString() );
                     rB.Should().Be( sB );
                     for( int i = 0; i < 50; ++i )
                     {
@@ -540,7 +554,7 @@ namespace CK.Core.Tests
             }
         }
 
-        static int ReadWrite( Action<ICKBinaryWriter> writer, Action<ICKBinaryReader> reader = null )
+        static int ReadWrite( Action<ICKBinaryWriter> writer, Action<ICKBinaryReader>? reader = null )
         {
             using( var mem = new MemoryStream() )
             {

@@ -31,9 +31,8 @@ namespace CK.Core
             /// <param name="r">The reader. Must not be null.</param>
             public ObjectPool( ICKBinaryReader r )
             {
-                if( r == null ) throw new ArgumentNullException( nameof( r ) );
                 _objects = new List<T?>();
-                _r = r;
+                _r = r ?? throw new ArgumentNullException( nameof( r ) );
             }
 
             /// <summary>
@@ -41,11 +40,11 @@ namespace CK.Core
             /// When <see cref="Success"/> is false, <see cref="SetReadResult(T)"/> must be called
             /// as soon as the object has been read.
             /// </summary>
-            public struct ReadState
+            public readonly struct ReadState
             {
-                ObjectPool<T>? _pool;
-                int _num;
-                byte _writeMarker;
+                readonly ObjectPool<T>? _pool;
+                readonly int _num;
+                readonly byte _writeMarker;
 
                 /// <summary>
                 /// Gets whether the object has been read.
@@ -81,7 +80,7 @@ namespace CK.Core
                     _pool = p;
                     _num = p._objects.Count;
                     _writeMarker = marker;
-                    p._objects.Add( default( T ) );
+                    p._objects.Add( default );
                 }
 
                 internal ReadState( byte marker )
@@ -105,9 +104,9 @@ namespace CK.Core
                 byte b = _r.ReadByte();
                 switch( b )
                 {
-                    case 0: already = default( T ); return new ReadState();
+                    case 0: already = default; return new ReadState();
                     case 1: already = _objects[_r.ReadNonNegativeSmallInt32()]; return new ReadState( 1 );
-                    default:already = default( T ); return new ReadState( this, b );
+                    default:already = default; return new ReadState( this, b );
                 }
             }
 
@@ -122,7 +121,7 @@ namespace CK.Core
                 byte b = _r.ReadByte();
                 switch( b )
                 {
-                    case 0: return default( T );
+                    case 0: return default;
                     case 1: return _objects[_r.ReadNonNegativeSmallInt32()];
                     default:
                         {
@@ -240,13 +239,13 @@ namespace CK.Core
         /// <inheritdoc/>
         public bool? ReadNullableBool()
         {
-            switch( ReadByte() )
+            return ReadByte() switch
             {
-                case 1: return true;
-                case 2: return false;
-                case 3: return null;
-            }
-            throw new InvalidDataException();
+                1 => true,
+                2 => false,
+                3 => null,
+                _ => throw new InvalidDataException(),
+            };
         }
 
         /// <inheritdoc/>

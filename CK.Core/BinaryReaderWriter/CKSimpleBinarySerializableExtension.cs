@@ -28,7 +28,7 @@ namespace CK.Core
                 @this.Write( w );
                 w.Flush();
                 m.Position = 0;
-                return (T)Activator.CreateInstance( typeof( T ), new object[] { r } );
+                return (T)Activator.CreateInstance( typeof( T ), new object[] { r } )!;
             }
         }
 

@@ -247,7 +247,7 @@ namespace CK.Core
             {
                 // After a lot of readings of msdn and internet, I use the SpinWait struct...
                 // This is the recommended way, so...
-                SpinWait sw = new SpinWait();
+                var sw = new SpinWait();
                 do
                 {
                     sw.SpinOnce();
