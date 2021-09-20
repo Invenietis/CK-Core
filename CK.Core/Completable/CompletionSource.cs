@@ -27,8 +27,8 @@ namespace CK.Core
         /// Adapter waiting for .Net 5 TaskCompletionSource.
         readonly TaskCompletionSource<object?> _tcs;
         readonly ICompletable _holder;
-        CKExceptionData? _exception;
-        byte _state;
+        volatile Exception? _exception;
+        volatile int _state;
 
         /// <summary>
         /// Creates a <see cref="CompletionSource"/>.
@@ -54,17 +54,7 @@ namespace CK.Core
         public TaskAwaiter GetAwaiter() => Task.GetAwaiter();
 
         /// <inheritdoc />
-        public CKExceptionData? Exception
-        {
-            get
-            {
-                if( _exception == null && _tcs.Task.IsFaulted )
-                {
-                    _exception = CKExceptionData.CreateFrom( _tcs.Task.Exception );
-                }
-                return _exception;
-            }
-        }
+        public Exception? OriginalException => _exception;
 
         /// <inheritdoc />
         public bool IsCompleted => _state != 0;
@@ -85,8 +75,8 @@ namespace CK.Core
         /// </summary>
         public void SetResult()
         {
+            if( _state == 0 ) _state = 1;
             _tcs.SetResult( null );
-            _state |= 1;
         }
 
         /// <summary>
@@ -97,11 +87,13 @@ namespace CK.Core
         /// </returns>
         public bool TrySetResult()
         {
+            if( _state != 0 ) return false;
+            _state |= 1;
             if( _tcs.TrySetResult( null ) )
             {
-                _state |= 1;
                 return true;
             }
+            _state &= ~1;
             return false;
         }
 
@@ -111,15 +103,15 @@ namespace CK.Core
         /// </summary>
         public ref struct OnError
         {
-            readonly CompletionSource _c;
-            internal bool Try;
+            internal Exception? ResultError;
             internal bool Called;
+            internal bool ResultCancel;
 
-            internal OnError( CompletionSource c, bool t )
+            internal OnError( CompletionSource c )
             {
-                _c = c;
-                Try = t;
                 Called = false;
+                ResultError = null;
+                ResultCancel = false;
             }
 
             internal static void ThrowMustBeCalledOnlyOnce()
@@ -137,14 +129,7 @@ namespace CK.Core
             {
                 if( Called ) ThrowMustBeCalledOnlyOnce();
                 Called = true;
-                if( Try )
-                {
-                    Try = _c._tcs.TrySetException( ex );
-                }
-                else
-                {
-                    _c._tcs.SetException( ex );
-                }
+                ResultError = ex;
             }
 
             /// <summary>
@@ -159,14 +144,6 @@ namespace CK.Core
             {
                 if( Called ) ThrowMustBeCalledOnlyOnce();
                 Called = true;
-                if( Try )
-                {
-                    Try = _c._tcs.TrySetResult( null );
-                }
-                else
-                {
-                    _c._tcs.SetResult( null );
-                }
             }
 
             /// <summary>
@@ -181,14 +158,7 @@ namespace CK.Core
             {
                 if( Called ) ThrowMustBeCalledOnlyOnce();
                 Called = true;
-                if( Try )
-                {
-                    Try = _c._tcs.TrySetCanceled();
-                }
-                else
-                {
-                    _c._tcs.SetCanceled();
-                }
+                ResultCancel = true;
             }
 
         }
@@ -196,31 +166,66 @@ namespace CK.Core
         /// <inheritdoc />
         public void SetException( Exception exception )
         {
-            var o = new OnError( this, false );
+            // Fast path if already resolved: the framework exception will be raised.
+            // This protects the current state.
+            // Only on concurrent SetException will the state be inconsistent.
+            if( _state != 0 ) _tcs.SetException( exception );
+            var o = new OnError( this );
             _holder.OnError( exception, ref o );
             if( !o.Called ) ThrowOnErrorCalledRequired();
             _state |= 2;
-            if( !_tcs.Task.IsFaulted )
+            _exception = exception;
+            if( o.ResultError != null )
             {
-                _exception = CKExceptionData.CreateFrom( exception );
+                _tcs.SetException( o.ResultError );
+            }
+            else if( o.ResultCancel )
+            {
+                _tcs.SetCanceled();
+            }
+            else
+            {
+                _tcs.SetResult( null );
             }
         }
 
         /// <inheritdoc />
         public bool TrySetException( Exception exception )
         {
-            var o = new OnError( this, true );
+            if( _state != 0 ) return false;
+            var o = new OnError( this );
             _holder.OnError( exception, ref o );
             if( !o.Called ) ThrowOnErrorCalledRequired();
-            if( o.Try )
+            _state |= 2;
+            _exception = exception;
+            if( o.ResultError != null )
             {
-                _state |= 2;
-                if( !_tcs.Task.IsFaulted )
+                if( !_tcs.TrySetException( o.ResultError ) )
                 {
-                    _exception = CKExceptionData.CreateFrom( exception );
+                    _state &= ~2;
+                    _exception = null;
+                    return false;
                 }
             }
-            return o.Try;
+            else if( o.ResultCancel )
+            {
+                if( !_tcs.TrySetCanceled() )
+                {
+                    _state &= ~2;
+                    _exception = null;
+                    return false;
+                }
+            }
+            else
+            {
+                if( !_tcs.TrySetResult( null ) )
+                {
+                    _state &= ~2;
+                    _exception = null;
+                    return false;
+                }
+            }
+            return true;
         }
 
         /// <summary>
@@ -229,15 +234,13 @@ namespace CK.Core
         /// </summary>
         public ref struct OnCanceled
         {
-            readonly CompletionSource _c;
-            internal bool Try;
             internal bool Called;
+            internal bool ResultSuccess;
 
-            internal OnCanceled( CompletionSource c, bool t )
+            internal OnCanceled( CompletionSource c )
             {
-                _c = c;
-                Try = t;
                 Called = false;
+                ResultSuccess = false;
             }
             internal static void ThrowMustBeCalledOnlyOnce()
             {
@@ -256,14 +259,7 @@ namespace CK.Core
             {
                 if( Called ) ThrowMustBeCalledOnlyOnce();
                 Called = true;
-                if( Try )
-                {
-                    Try = _c._tcs.TrySetResult( null );
-                }
-                else
-                {
-                    _c._tcs.SetResult( null );
-                }
+                ResultSuccess = true;
             }
 
             /// <summary>
@@ -279,14 +275,6 @@ namespace CK.Core
             {
                 if( Called ) ThrowMustBeCalledOnlyOnce();
                 Called = true;
-                if( Try )
-                {
-                    Try = _c._tcs.TrySetCanceled();
-                }
-                else
-                {
-                    _c._tcs.SetCanceled();
-                }
             }
 
         }
@@ -294,20 +282,46 @@ namespace CK.Core
         /// <inheritdoc />
         public void SetCanceled()
         {
-            var o = new OnCanceled( this, false );
+            if( _state != 0 ) _tcs.SetCanceled();
+            var o = new OnCanceled( this );
             _holder.OnCanceled( ref o );
             if( !o.Called ) ThrowOnCancelCalledRequired();
             _state |= 4;
+            if( o.ResultSuccess )
+            {
+                _tcs.SetResult( null );
+            }
+            else
+            {
+                _tcs.SetCanceled();
+            }
         }
 
         /// <inheritdoc />
         public bool TrySetCanceled()
         {
-            var o = new OnCanceled( this, true );
+            if( _state != 0 ) return false;
+            var o = new OnCanceled( this );
             _holder.OnCanceled( ref o );
             if( !o.Called ) ThrowOnCancelCalledRequired();
-            if( o.Try ) _state |= 4;
-            return o.Try;
+            _state |= 4;
+           if( o.ResultSuccess )
+            {
+                if( !_tcs.TrySetResult( null ) )
+                {
+                    _state &= ~4;
+                    return false;
+                };
+            }
+            else
+            {
+                if( !_tcs.TrySetCanceled() )
+                {
+                    _state &= ~4;
+                    return false;
+                }
+            }
+            return true;
         }
 
         internal static void ThrowOnCancelCalledRequired()
@@ -327,7 +341,7 @@ namespace CK.Core
         /// <returns>The current status.</returns>
         public override string ToString() => GetStatus( _tcs.Task.Status, _state );
 
-        static internal string GetStatus( TaskStatus t, byte s )
+        static internal string GetStatus( TaskStatus t, int s )
         {
             return t switch
             {

@@ -18,7 +18,8 @@ namespace CK.Core
         /// </para>
         /// <para>
         /// Note that, on success, <see cref="ICompletion.HasFailed"/> is set to true, regardless of any alteration of
-        /// the Task's result by Command's <see cref="ICompletable"/> or <see cref="ICompletable{TResult}"/> implementation.
+        /// the Task's result by Command's <see cref="ICompletable"/> or <see cref="ICompletable{TResult}"/> implementation
+        /// and this <see cref="ICompletion.OriginalException"/> data is also available.
         /// </para>
         /// </summary>
         void SetException( Exception exception );
@@ -28,7 +29,8 @@ namespace CK.Core
         /// can be changed by the command's overridden <see cref="ICompletable"/> or <see cref="ICompletable{TResult}"/> implementation).
         /// <para>
         /// Note that, on success, <see cref="ICompletion.HasFailed"/> is set to true, regardless of any alteration of
-        /// the Task's result by Command's <see cref="ICompletable"/> or <see cref="ICompletable{TResult}"/> implementation.
+        /// the Task's result by Command's <see cref="ICompletable"/> or <see cref="ICompletable{TResult}"/> implementation
+        /// and this <see cref="ICompletion.OriginalException"/> data is also available.
         /// </para>
         /// </summary> 
         /// <returns>

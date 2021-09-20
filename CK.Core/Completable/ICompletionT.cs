@@ -14,5 +14,12 @@ namespace CK.Core
         /// Gets an awaiter for this completion.
         /// </summary>
         new IAwaitable<TResult> GetAwaiter();
+
+        /// <summary>
+        /// Gets the <see cref="ICompletion.Task"/>'s result.
+        /// This must be called only on successful completion (or if the <see cref="ICompletable{TResult}.OnError(Exception, ref CompletionSource{TResult}.OnError)"/>
+        /// has set a result.
+        /// </summary>
+        TResult Result { get; }
     }
 }

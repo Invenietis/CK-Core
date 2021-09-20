@@ -21,30 +21,36 @@ namespace CK.Core
         TaskAwaiter GetAwaiter();
 
         /// <summary>
-        /// Gets the exception data if an exception has been set.
+        /// Gets the exception if an exception has been set.
         /// Just like <see cref="HasFailed"/> and <see cref="HasBeenCanceled"/>, this is independent
         /// of any error transformation applied by the <see cref="ICompletable"/> or <see cref="ICompletable{TResult}"/>
         /// OnError implemented method: it is always captured and available if an exception has been set.
         /// </summary>
-        CKExceptionData? Exception { get; }
+        Exception? OriginalException { get; }
 
         /// <summary>
-        /// Gets whether the command completed.
+        /// Gets whether the command completed (succeed, canceled or on error).
         /// </summary>
         bool IsCompleted { get; }
 
         /// <summary>
-        /// Gets whether the command succeeded (SetResult or TrySetResult methods have been called).
+        /// Gets whether the command succeeded (SetResult or TrySetResult methods have been called successfully).
+        /// When this is true, the <see cref="Task.Status"/> is also on success (<see cref="TaskStatus.RanToCompletion"/>).
         /// </summary>
         bool HasSucceed { get; }
 
         /// <summary>
-        /// Gets whether the command failed (SetException or TrySetException have been called).
+        /// Gets whether the command failed (SetException or TrySetException have been called successfully).
+        /// When this is true, the <see cref="Task.Status"/> can be also on error (<see cref="TaskStatus.Faulted"/>),
+        /// but if a transformation occurred, the task may be on success (<see cref="TaskStatus.RanToCompletion"/>) or
+        /// canceled (<see cref="TaskStatus.Canceled"/>.
         /// </summary>
         bool HasFailed { get; }
 
         /// <summary>
-        /// Gets whether the command has been canceled (SetCanceled or TrySetCanceled have been called).
+        /// Gets whether the command has been canceled (SetCanceled or TrySetCanceled have been called successfully).
+        /// When this is true, the <see cref="Task.Status"/> can be also canceled (<see cref="TaskStatus.Canceled"/>),
+        /// but if a transformation occurred, the task can be on success (<see cref="TaskStatus.RanToCompletion"/>).
         /// </summary>
         bool HasBeenCanceled { get; }
     }

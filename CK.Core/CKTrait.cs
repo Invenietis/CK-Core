@@ -358,12 +358,12 @@ namespace CK.Core
         /// no predicate (or the 'always true' one):
         /// 
         ///             0, 0, 0 =  -- 'Empty'
-        /// Intersect   0, 0, 1 = Intersect (keep commons) => /Toggle
+        /// Intersect   0, 0, 1 = Intersect (keep commons) => /Toggle (SymmetricExcept)
         ///             0, 1, 0 =  -- 'Cleanup' (keep theirs only) => /Remove 
         ///             0, 1, 1 =  -- 'Other' (keep theirs and commons, reject mine) => /This
         /// Except      1, 0, 0 = Remove (keep mine only) => /Cleanup
         ///             1, 0, 1 =  -- 'This' (keep mine and commons and reject theirs) => /Other
-        /// Toggle      1, 1, 0 = Toggle (keep mine, theirs, but reject commons) => /Intersect
+        /// Toggle      1, 1, 0 = Toggle (SymmetricExcept) (keep mine, theirs, but reject commons) => /Intersect
         /// Union       1, 1, 1 = Add
         /// 
         /// This shows that our 4 methods Intersect, Remove, Toggle and Add cover the interesting cases - others are either symetric or useless.

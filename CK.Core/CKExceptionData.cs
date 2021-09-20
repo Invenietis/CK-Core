@@ -5,6 +5,7 @@ using System.Text;
 using System.IO;
 using System.Diagnostics;
 using CK.Text;
+using System.Diagnostics.CodeAnalysis;
 
 namespace CK.Core
 {
@@ -140,6 +141,7 @@ namespace CK.Core
         /// </summary>
         /// <param name="ex">Exception for which data must be created. Can be null: null is returned.</param>
         /// <returns>The data that describes the exception.</returns>
+        [return: NotNullIfNotNull( "ex" )]
         static public CKExceptionData? CreateFrom( Exception? ex )
         {
             if( ex == null ) return null;
@@ -150,8 +152,7 @@ namespace CK.Core
 
             CKExceptionData? innerException;
             CKExceptionData[]? aggregatedExceptions = null;
-            var aggEx = ex as AggregateException;
-            if( aggEx != null )
+            if( ex is AggregateException aggEx )
             {
                 CKExceptionData[] a = new CKExceptionData[aggEx.InnerExceptions.Count];
                 for( int i = 0; i < a.Length; ++i ) a[i] = CreateFrom( aggEx.InnerExceptions[i] )!;
@@ -164,8 +165,7 @@ namespace CK.Core
             string? detailedInfo = null;
 
             CKExceptionData[]? loaderExceptions = null;
-            var typeLoadEx = ex as ReflectionTypeLoadException;
-            if( typeLoadEx != null && typeLoadEx.LoaderExceptions != null )
+            if( ex is ReflectionTypeLoadException typeLoadEx && typeLoadEx.LoaderExceptions != null )
             {
                 CKExceptionData[] a = new CKExceptionData[typeLoadEx.LoaderExceptions.Length];
                 for( int i = 0; i < a.Length; ++i ) a[i] = CreateFrom( typeLoadEx.LoaderExceptions[i] )!;
@@ -173,16 +173,14 @@ namespace CK.Core
             }
             else
             {
-                var fileNFEx = ex as FileNotFoundException;
-                if( fileNFEx != null )
+                if( ex is FileNotFoundException fileNFEx )
                 {
                     fileName = fileNFEx.FileName;
                     detailedInfo = fileNFEx.FusionLog.NormalizeEOL();
                 }
                 else
                 {
-                    var loadFileEx = ex as FileLoadException;
-                    if( loadFileEx != null )
+                    if( ex is FileLoadException loadFileEx )
                     {
                         fileName = loadFileEx.FileName;
                         detailedInfo = loadFileEx.FusionLog.NormalizeEOL();
@@ -325,7 +323,6 @@ namespace CK.Core
             b.Append( " ■──────────────────────────" );
             b.AppendLine();
             Debug.Assert( ("──────────────────────────■ Exception: " + " ■──────────────────────────").Length == 39 + 28 );
-            int lenHeader = _exceptionTypeName.Length + 39 + 28;
 
             string locPrefix = prefix + " | ";
 
@@ -400,7 +397,7 @@ namespace CK.Core
         {
             if( _toString == null )
             {
-                StringBuilder b = new StringBuilder();
+                StringBuilder b = new();
                 ToStringBuilder( b, string.Empty );
                 _toString = b.ToString();
             }

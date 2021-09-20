@@ -144,7 +144,7 @@ namespace CK.Core
         /// </summary>
         /// <param name="comment">Comment associated to the error (such as the name of the culprit). Can be null.</param>
         /// <param name="ex">The unexpected exception. Must not be null.</param>
-        public void Add( Exception ex, string comment )
+        public void Add( Exception ex, string? comment )
         {
             if( ex == null ) throw new ArgumentNullException( "ex" );
             if( _lostErrorCount > 1024 ) return;
@@ -276,9 +276,7 @@ namespace CK.Core
         /// </summary>
         public void Clear()
         {
-            int cleared = 0;
-            int waiting = 0;
-            Clear( out cleared, out waiting );
+            Clear( out _, out _ );
         }
 
         /// <summary>

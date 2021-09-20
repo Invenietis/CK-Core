@@ -147,7 +147,7 @@ namespace CK.Core
         /// if the item can structurally NOT appear in this list.</returns>
         public virtual int IndexOf( object item )
         {
-            return item is T ? IndexOf( (T)item ) : Int32.MinValue;
+            return item is T i ? IndexOf( i ) : Int32.MinValue;
         }
 
         /// <summary>
@@ -503,7 +503,6 @@ namespace CK.Core
             return new Enumerator( this );
         }
 
-#pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
         public struct Enumerator : IEnumerator<T>, IEnumerator
         {
             private readonly CKSortedArrayList<T> _list;
@@ -577,7 +576,6 @@ namespace CK.Core
                 _current = default;
             }
         }
-#pragma warning restore CS1591 // Missing XML comment for publicly visible type or member
     }
     #endregion
 }
