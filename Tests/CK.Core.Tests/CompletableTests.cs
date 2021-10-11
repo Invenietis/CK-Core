@@ -9,6 +9,7 @@ using NUnit.Framework;
 using CK.Text;
 using FluentAssertions;
 using System.Diagnostics;
+using System.Runtime.CompilerServices;
 
 namespace CK.Core.Tests
 {
@@ -290,6 +291,86 @@ namespace CK.Core.Tests
             }
         }
 
+
+        class SimpleCommand : ICompletable<int>
+        {
+            public SimpleCommand()
+            {
+                CompletionSource = new CompletionSource<int>( this );
+            }
+
+            public readonly CompletionSource<int> CompletionSource;
+
+            public ICompletion<int> Completion => CompletionSource;
+
+            void ICompletable<int>.OnCanceled( ref CompletionSource<int>.OnCanceled result ) => result.SetCanceled();
+
+            public void OnError( Exception ex, ref CompletionSource<int>.OnError result )
+            {
+                // This is how OperationCanceledException can be transformed to "normal" cancellation.
+                // if( ex is OperationCanceledException ) result.SetCanceled(); else
+                result.SetException( ex );
+            }
+        }
+
+        class SimpleCommandNoResult : ICompletable
+        {
+            public SimpleCommandNoResult()
+            {
+                CompletionSource = new CompletionSource( this );
+            }
+
+            public readonly CompletionSource CompletionSource;
+
+            public ICompletion Completion => CompletionSource;
+
+            void ICompletable.OnCanceled( ref CompletionSource.OnCanceled result ) => result.SetCanceled();
+
+            public void OnError( Exception ex, ref CompletionSource.OnError result )
+            {
+                // This is how OperationCanceledException can be transformed to "normal" cancellation.
+                // if( ex is OperationCanceledException ) result.SetCanceled(); else
+                result.SetException( ex );
+            }
+        }
+
+        [TestCase( "NoResult", "OperationCanceledException" )]
+        [TestCase( "NoResult", "Exception" )]
+        [TestCase( "NoResult", "Cancel" )]
+        [TestCase( "WithResult", "OperationCanceledException" )]
+        [TestCase( "WithResult", "Exception" )]
+        [TestCase( "WithResult", "Cancel" )]
+        public void unobserved_completion_dont_raise_UnobservedTaskException( string commandType, string error )
+        {
+            bool raised = false;
+            TaskScheduler.UnobservedTaskException += ( sender, e ) => raised = true;
+
+            CreateCompleteAndForgetCommand( commandType, error );
+
+            GC.Collect();
+            GC.WaitForPendingFinalizers();
+
+            raised.Should().BeFalse();
+        }
+
+        [MethodImpl( MethodImplOptions.NoInlining )]
+        private static void CreateCompleteAndForgetCommand( string commandType, string error )
+        {
+            if( commandType == "WithResult" )
+            {
+                var cmd = new SimpleCommand();
+                if( error == "Cancel" ) cmd.CompletionSource.SetCanceled();
+                else if( error == "OperationCanceledException" ) cmd.CompletionSource.SetException( new OperationCanceledException() );
+                else cmd.CompletionSource.SetException( new Exception( "Pouf" ) );
+            }
+            else
+            {
+                var cmd = new SimpleCommandNoResult();
+                if( error == "Cancel" ) cmd.CompletionSource.SetCanceled();
+                else if( error == "OperationCanceledException" ) cmd.CompletionSource.SetException( new OperationCanceledException() );
+                else cmd.CompletionSource.SetException( new Exception( "Pouf" ) );
+            }
+        }
 
     }
 }
