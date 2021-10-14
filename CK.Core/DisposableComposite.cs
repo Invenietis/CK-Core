@@ -5,17 +5,17 @@ using System.Text;
 namespace CK.Core
 {
     /// <summary>
-    /// Hold multiples <see cref="IDisposable"/> class.
+    /// Hold multiples <see cref="IDisposable"/> classes.
     /// </summary>
-    public class MultiDisposable : IDisposable
+    public class DisposableComposite : IDisposable
     {
         readonly IDisposable?[] _disposables;
 
         /// <summary>
-        /// Instantiate a <see cref="MultiDisposable"/>.
+        /// Instantiate a <see cref="DisposableComposite"/>.
         /// </summary>
-        /// <param name="disposables">The class to dispose. Will be diposed in the same order.</param>
-        public MultiDisposable( params IDisposable?[] disposables )
+        /// <param name="disposables">The classes to dispose. Will be diposed in the same order.</param>
+        public DisposableComposite( params IDisposable?[] disposables )
         {
             _disposables = disposables;
         }
