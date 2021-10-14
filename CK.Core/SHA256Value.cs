@@ -15,7 +15,7 @@ namespace CK.Core
     /// Immutable SHA256 value. It is a wrapper around a 32 bytes array and its string representation.
     /// Default value is <see cref="ZeroSHA256"/>.
     /// </summary>
-    public struct SHA256Value : IEquatable<SHA256Value>, IComparable<SHA256Value>
+    public readonly struct SHA256Value : IEquatable<SHA256Value>, IComparable<SHA256Value>
     {
         /// <summary>
         /// The "zero" SHA256 (32 bytes full of zeros).

@@ -15,7 +15,7 @@ namespace CK.Core
     /// Immutable SHA512 value. It is a wrapper around a 64 bytes array and its string representation.
     /// Default value is <see cref="ZeroSHA512"/>.
     /// </summary>
-    public struct SHA512Value : IEquatable<SHA512Value>, IComparable<SHA512Value>
+    public readonly struct SHA512Value : IEquatable<SHA512Value>, IComparable<SHA512Value>
     {
         /// <summary>
         /// The "zero" SHA512 (64 bytes full of zeros).

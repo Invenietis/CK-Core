@@ -15,7 +15,7 @@ namespace CK.Core
     /// Immutable SHA1 value. It is a wrapper around a 20 bytes array and its string representation.
     /// Default value is <see cref="ZeroSHA1"/>.
     /// </summary>
-    public struct SHA1Value : IEquatable<SHA1Value>, IComparable<SHA1Value>
+    public readonly struct SHA1Value : IEquatable<SHA1Value>, IComparable<SHA1Value>
     {
         /// <summary>
         /// The "zero" SHA1 (20 bytes full of zeros).

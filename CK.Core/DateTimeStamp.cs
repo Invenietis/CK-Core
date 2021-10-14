@@ -13,7 +13,7 @@ namespace CK.Core
     /// to serialize it.
     /// </remarks>
     [Serializable]
-    public struct DateTimeStamp : IComparable<DateTimeStamp>, IEquatable<DateTimeStamp>
+    public readonly struct DateTimeStamp : IComparable<DateTimeStamp>, IEquatable<DateTimeStamp>
     {
         /// <summary>
         /// Represents the smallest possible value for a DateTimeStamp object.         
