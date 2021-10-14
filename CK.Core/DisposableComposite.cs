@@ -7,7 +7,7 @@ namespace CK.Core
     /// <summary>
     /// Hold multiples <see cref="IDisposable"/> classes.
     /// </summary>
-    public class DisposableComposite : IDisposable
+    public struct DisposableComposite : IDisposable
     {
         readonly IDisposable?[] _disposables;
 
