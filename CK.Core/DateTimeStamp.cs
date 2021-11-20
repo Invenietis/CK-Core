@@ -9,7 +9,7 @@ namespace CK.Core
     /// A date and time stamp encapsulates a <see cref="TimeUtc"/> (<see cref="DateTime"/> guaranteed to be in Utc) and a <see cref="Uniquifier"/>.
     /// </summary>
     [Serializable]
-    public struct DateTimeStamp : IComparable<DateTimeStamp>, IEquatable<DateTimeStamp>, ICKSimpleBinarySerializable
+    public readonly struct DateTimeStamp : IComparable<DateTimeStamp>, IEquatable<DateTimeStamp>, ICKSimpleBinarySerializable
     {
         /// <summary>
         /// Represents the smallest possible value for a DateTimeStamp object.         
