@@ -73,10 +73,12 @@ namespace CK.Core.Tests
         [TestCase( "Success" )]
         public async Task WaitAsync_on_error_canceled_or_success_returns_true( string action )
         {
+            bool actionDone = false;
             var tcs = new TaskCompletionSource<string>();
             _ = Task.Run( async () =>
             {
                 await Task.Delay( 150 );
+                actionDone = true;
                 switch( action )
                 {
                     case "Error": tcs.SetException( new Exception( "Just for fun." ) ); break;
@@ -86,7 +88,8 @@ namespace CK.Core.Tests
             } );
 
             DateTime now = DateTime.UtcNow;
-            bool gotIt = await tcs.Task.WaitAsync( 500 );
+            bool gotIt = await tcs.Task.WaitAsync( 1000 );
+            actionDone.Should().BeTrue();
             gotIt.Should().BeTrue();
             (DateTime.UtcNow - now).Should().BeCloseTo( TimeSpan.FromMilliseconds( 150 ), precision: 50 );
 

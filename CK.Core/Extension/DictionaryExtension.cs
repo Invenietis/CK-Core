@@ -87,22 +87,6 @@ namespace CK.Core
         }
 
         /// <summary>
-        /// Gets the value associated with the specified key if it exists otherwise returns the <paramref name="defaultValue"/>.
-        /// </summary>
-        /// <param name="this">This generic IDictionary.</param>
-        /// <param name="key">The key whose value to get.</param>
-        /// <param name="defaultValue">Default value to use if the key does not exist.</param>
-        /// <returns>
-        /// The value associated with the specified key, if the key is found; otherwise, the <paramref name="defaultValue"/>. 
-        /// </returns>
-        [return: NotNullIfNotNull( "defaultValue" )]
-        public static TValue? GetValueWithDefault<TKey, TValue>( this IDictionary<TKey, TValue> @this, TKey key, TValue? defaultValue ) where TKey : notnull
-        {
-            if( !@this.TryGetValue( key, out TValue? result ) ) result = defaultValue;
-            return result;
-        }
-
-        /// <summary>
         /// Gets the value associated with the specified key if it exists otherwise calls the <paramref name="defaultValue"/> function.
         /// </summary>
         /// <remarks>
@@ -125,11 +109,16 @@ namespace CK.Core
             return result;
         }
 
-
         /// <summary>
         /// Gets the value associated with the specified key if it exists otherwise calls the <paramref name="createValue"/> function
         /// and adds the newly obtained value into the dictionary.
+        /// <para>
+        /// The factory function can return a more specific type <typeparamref name="TNew"/> than <typeparamref name="TValue"/>.
+        /// </para>
         /// </summary>
+        /// <typeparam name="TKey">The dictionary key type.</typeparam>
+        /// <typeparam name="TValue">The dictionary value type.</typeparam>
+        /// <typeparam name="TNew">Type of new value. Must be or specialize TValue.</typeparam>
         /// <param name="this">This generic IDictionary.</param>
         /// <param name="key">The key whose value to get.</param>
         /// <param name="createValue">A delegate that will be called if the key does not exist.</param>
@@ -137,7 +126,9 @@ namespace CK.Core
         /// The value associated with the specified key, if the key is found; otherwise, the result 
         /// of the <paramref name="createValue"/> delegate (this result has been added to the dictionary).
         /// </returns>
-        public static TValue GetOrSet<TKey, TValue>( this IDictionary<TKey, TValue> @this, TKey key, Func<TKey, TValue> createValue ) where TKey : notnull
+        public static TValue GetOrSet<TKey, TValue, TNew>( this IDictionary<TKey, TValue> @this, TKey key, Func<TKey, TNew> createValue )
+            where TKey : notnull
+            where TNew : TValue
         {
             if( !@this.TryGetValue( key, out TValue? result ) )
             {

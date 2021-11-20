@@ -103,14 +103,16 @@ namespace CK.Core
 
         static CKTraitContext Bind( string name, char separator, ICKBinaryReader? tagReader )
         {
-            CKTraitContext c, exists;
+            CKTraitContext? c, exists;
             lock( _basicLock )
             {
                 c = exists = _allContexts.FirstOrDefault( x => x.Name == name );
                 if( exists == null ) _allContexts.Add( c = new CKTraitContext( name, separator, true, tagReader ) );
+                Debug.Assert( c != null );
             }
             if( exists != null )
             {
+                Debug.Assert( c != null );
                 if( exists.Separator != separator )
                 {
                     throw new InvalidOperationException( $"CKTraitContext named '{name}' is already defined with the separator '{exists.Separator}', it cannot be redefined with the separator '{separator}'." );

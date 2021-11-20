@@ -4,7 +4,6 @@ using System.Reflection;
 using System.Text;
 using System.IO;
 using System.Diagnostics;
-using CK.Text;
 using System.Diagnostics.CodeAnalysis;
 
 namespace CK.Core
@@ -45,16 +44,15 @@ namespace CK.Core
         /// <param name="detailedInfo">More detailed information if any.</param>
         /// <param name="loaderExceptions">Loader exceptions. <see cref="LoaderExceptions"/>.</param>
         /// <param name="aggregatedExceptions">Aggregated exceptions can be null. Otherwise, it must contain at least one exception.</param>
-        public CKExceptionData(
-            string message,
-            string exceptionTypeName,
-            string exceptionTypeAssemblyQualifiedName,
-            string? stackTrace,
-            CKExceptionData? innerException,
-            string? fileName,
-            string? detailedInfo,
-            CKExceptionData[]? loaderExceptions,
-            CKExceptionData[]? aggregatedExceptions )
+        public CKExceptionData( string message,
+                                string exceptionTypeName,
+                                string exceptionTypeAssemblyQualifiedName,
+                                string? stackTrace,
+                                CKExceptionData? innerException,
+                                string? fileName,
+                                string? detailedInfo,
+                                CKExceptionData[]? loaderExceptions,
+                                CKExceptionData[]? aggregatedExceptions )
         {
             if( message == null ) throw new ArgumentNullException( nameof( message ) );
             if( String.IsNullOrWhiteSpace( exceptionTypeName ) ) throw new ArgumentNullException( nameof( exceptionTypeName ) );
@@ -176,14 +174,14 @@ namespace CK.Core
                 if( ex is FileNotFoundException fileNFEx )
                 {
                     fileName = fileNFEx.FileName;
-                    detailedInfo = fileNFEx.FusionLog.NormalizeEOL();
+                    detailedInfo = fileNFEx.FusionLog?.NormalizeEOL();
                 }
                 else
                 {
                     if( ex is FileLoadException loadFileEx )
                     {
                         fileName = loadFileEx.FileName;
-                        detailedInfo = loadFileEx.FusionLog.NormalizeEOL();
+                        detailedInfo = loadFileEx.FusionLog?.NormalizeEOL();
                     }
                 }
             }

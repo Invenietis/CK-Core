@@ -10,7 +10,7 @@ namespace CK.Core.Tests
         [Test]
         public void InterlockedAdd_atomically_adds_an_item_to_an_array()
         {
-            int[] a = null;
+            int[]? a = null;
             Util.InterlockedAdd(ref a, 1);
             a.Should().NotBeNull();
             a.Should().BeEquivalentTo(new[] { 1 }, o => o.WithStrictOrdering());

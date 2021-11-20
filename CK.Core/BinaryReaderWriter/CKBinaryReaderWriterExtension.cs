@@ -1,6 +1,6 @@
 using System;
 using System.Collections.Generic;
-#if NETSTANDARD2_1_OR_GREATER
+using System.Text.Json;
 
 namespace CK.Core
 {
@@ -108,7 +108,29 @@ namespace CK.Core
                 w.Write( false );
             }
         }
+
+        /// <summary>
+        /// Writes a <see cref="JsonEncodedText"/>.
+        /// </summary>
+        /// <param name="this">This writer.</param>
+        /// <param name="t">The text.</param>
+        public static void Write( this CKBinaryWriter @this, JsonEncodedText t )
+        {
+            @this.WriteNonNegativeSmallInt32( t.EncodedUtf8Bytes.Length );
+            @this.Write( t.EncodedUtf8Bytes );
+        }
+
+        /// <summary>
+        /// Reads a <see cref="JsonEncodedText"/>.
+        /// </summary>
+        /// <param name="this">This reader.</param>
+        /// <returns>The read text.</returns>
+        public static JsonEncodedText ReadJsonEncodedText( this CKBinaryReader @this )
+        {
+            int len = @this.ReadNonNegativeSmallInt32();
+            return JsonEncodedText.Encode( @this.ReadBytes( len ) );
+        }
+
     }
 }
 
-#endif

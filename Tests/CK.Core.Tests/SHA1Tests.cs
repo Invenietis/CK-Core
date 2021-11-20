@@ -18,7 +18,7 @@ namespace CK.Core.Tests
         [Test]
         public void SHA1_ToString_and_Parse()
         {
-            var sha = SHA1Value.ComputeFileSHA1( ThisFile );
+            var sha = SHA1Value.ComputeFileHash( ThisFile );
             var s = sha.ToString();
             var shaBis = SHA1Value.Parse( s );
             shaBis.Should().Be( sha );
@@ -27,18 +27,17 @@ namespace CK.Core.Tests
         [Test]
         public void SHA1_ByteAmount()
         {
-            var sha = SHA1Value.ComputeFileSHA1( ThisFile );
-            sha.GetBytes().Count.Should().Be( 20 );
+            var sha = SHA1Value.ComputeFileHash( ThisFile );
+            sha.GetBytes().Length.Should().Be( 20 );
             sha.ToString().Length.Should().Be( 40 );
         }
 
         [Test]
         public void SHA1Empty_IsValid()
         {
-            SHA1Managed sha1 = new SHA1Managed();
-            byte[] computedValue = sha1.ComputeHash( new byte[0] );
-            IReadOnlyList<byte> storedValue = SHA1Value.EmptySHA1.GetBytes();
-            storedValue.SequenceEqual( computedValue );
+            byte[] computedValue = SHA1.HashData( ReadOnlySpan<byte>.Empty );
+            var storedValue = SHA1Value.EmptySHA1.GetBytes();
+            storedValue.Span.SequenceEqual( computedValue );
         }
 
         [TestCase( "0000000000000000000000000000000000000000", "0000000000000000000000000000000000000000", '=' )]
@@ -59,23 +58,28 @@ namespace CK.Core.Tests
             }
         }
 
-        [TestCase( 0, null, false )]
-        [TestCase( 1, "", false )]
-        [TestCase( 1, "X012345678901234567890123456789012345678", false )]
-        [TestCase( 2, "XY0123456789012345678901234567890123456789", true )]
-        [TestCase( 2, "--f730a999523afe0a2be07bf4c731d3d1f72fb3df-----", true )]
-       public void SHA1_invalid_parse( int offset, string s, bool success )
+        [TestCase( null, null )]
+        [TestCase( "", null )]
+        [TestCase( "012345678901234567890123456789012345678", null )]
+        [TestCase( "0123456789012345678901234567890123456789", 0 )]
+        [TestCase( "f730a999523afe0a2be07bf4c731d3d1f72fb3df-----", 5 )]
+        public void SHA1_invalid_parse( string s, int? remainderOnSuccess )
         {
             SHA1Value v;
-            SHA1Value.TryParse( s, offset, out v ).Should().Be( success );
+            var r = SHA1Value.TryParse( s.AsSpan(), out _ );
+            r.Success.Should().Be( remainderOnSuccess != null );
+            if( remainderOnSuccess != null )
+            {
+                r.Remainder.Length.Should().Be( remainderOnSuccess.Value );
+            }
         }
 
 
         [Test]
         public async Task SHA1_from_file_async()
         {
-            var sha = SHA1Value.ComputeFileSHA1( ThisFile );
-            var sha2 = await SHA1Value.ComputeFileSHA1Async( ThisFile );
+            var sha = SHA1Value.ComputeFileHash( ThisFile );
+            var sha2 = await SHA1Value.ComputeFileHashAsync( ThisFile );
             sha2.Should().Be( sha );
             using( var compressedPath = new TemporaryFile() )
             {
@@ -85,9 +89,9 @@ namespace CK.Core.Tests
                     var writer = GetCompressShellAsync( w => input.CopyToAsync( w ) );
                     await writer( compressed );
                 }
-                var shaCompressed = await SHA1Value.ComputeFileSHA1Async( compressedPath.Path );
+                var shaCompressed = await SHA1Value.ComputeFileHashAsync( compressedPath.Path );
                 shaCompressed.Should().NotBe( sha );
-                var localSha = await SHA1Value.ComputeFileSHA1Async( compressedPath.Path, r => new GZipStream( r, CompressionMode.Decompress, true ) );
+                var localSha = await SHA1Value.ComputeFileHashAsync( compressedPath.Path, r => new GZipStream( r, CompressionMode.Decompress, true ) );
                 localSha.Should().Be( sha );
             }
         }

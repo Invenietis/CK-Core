@@ -6,7 +6,6 @@ using System.Runtime.Serialization.Formatters.Binary;
 using System.Text;
 using System.Threading.Tasks;
 using NUnit.Framework;
-using CK.Text;
 using FluentAssertions;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;

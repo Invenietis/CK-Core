@@ -4,7 +4,6 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Security.Cryptography;
-using CK.Text;
 using System.Threading.Tasks;
 using System.Text;
 
@@ -15,8 +14,11 @@ namespace CK.Core
     /// Immutable SHA1 value. It is a wrapper around a 20 bytes array and its string representation.
     /// Default value is <see cref="ZeroSHA1"/>.
     /// </summary>
-    public struct SHA1Value : IEquatable<SHA1Value>, IComparable<SHA1Value>
+    public readonly struct SHA1Value : IEquatable<SHA1Value>, IComparable<SHA1Value>
     {
+        readonly byte[] _bytes;
+        readonly string _string;
+
         /// <summary>
         /// The "zero" SHA1 (20 bytes full of zeros).
         /// This is the default value of a new SHA1Value().
@@ -30,34 +32,14 @@ namespace CK.Core
         public static readonly SHA1Value EmptySHA1;
 
         /// <summary>
-        /// Computes the SHA1 of a local file by reading its content.
-        /// </summary>
-        /// <param name="fullPath">The file full path.</param>
-        /// <param name="wrapReader">Optional stream wrapper reader.</param>
-        /// <returns>The SHA1 of the file.</returns>
-        public static SHA1Value ComputeFileSHA1( string fullPath, Func<Stream, Stream>? wrapReader = null )
-        {
-            using( var shaCompute = new SHA1Stream() )
-            using( var file = new FileStream( fullPath, FileMode.Open, FileAccess.Read, FileShare.Read, 4096, FileOptions.SequentialScan | FileOptions.Asynchronous ) )
-            using( var wrap = wrapReader != null ? wrapReader( file ) : file )
-            {
-                wrap.CopyTo( shaCompute );
-                return shaCompute.GetFinalResult();
-            }
-        }
-
-        /// <summary>
         /// Computes the SHA1 of a raw byte array.
         /// </summary>
-        /// <param name="data">Byte array. Can be null.</param>
+        /// <param name="data">Bytes to compute. Can be null.</param>
         /// <returns>The SHA1 of the data: <see cref="EmptySHA1"/> if data is null or empty.</returns>
-        public static SHA1Value ComputeSHA1( byte[] data )
+        public static SHA1Value ComputeHash( ReadOnlySpan<byte> data )
         {
-            if( data == null || data.Length == 0 ) return EmptySHA1;
-            using( var n = new SHA1Managed() )
-            {
-                return new SHA1Value( n.ComputeHash( data ) );
-            }
+            if( data.Length == 0 ) return EmptySHA1;
+            return new SHA1Value( SHA1.HashData( data ) );
         }
 
         /// <summary>
@@ -65,10 +47,28 @@ namespace CK.Core
         /// </summary>
         /// <param name="data">String data. Can be null.</param>
         /// <returns>The SHA1 of the data: <see cref="EmptySHA1"/> if data is null or empty.</returns>
-        public static SHA1Value ComputeSHA1( string data )
+        public static SHA1Value ComputeHash( string? data )
         {
             if( data == null || data.Length == 0 ) return EmptySHA1;
-            return ComputeSHA1( Encoding.Default.GetBytes( data ) );
+            var bytes = System.Runtime.InteropServices.MemoryMarshal.Cast<char, byte>( data.AsSpan() );
+            return ComputeHash( bytes );
+        }
+
+        /// <summary>
+        /// Computes the SHA1 of a local file by reading its content.
+        /// </summary>
+        /// <param name="fullPath">The file full path.</param>
+        /// <param name="wrapReader">Optional stream wrapper reader. If not null, the hash is computed on its output.</param>
+        /// <returns>The SHA1 of the file.</returns>
+        public static async Task<SHA1Value> ComputeFileHashAsync( string fullPath, Func<Stream, Stream>? wrapReader = null )
+        {
+            using( var shaCompute = new HashStream( "SHA1" ) )
+            using( var file = new FileStream( fullPath, FileMode.Open, FileAccess.Read, FileShare.Read, 4096, FileOptions.SequentialScan | FileOptions.Asynchronous ) )
+            using( var wrap = wrapReader != null ? wrapReader( file ) : file )
+            {
+                await wrap.CopyToAsync( shaCompute );
+                return new SHA1Value( shaCompute.GetFinalResult() );
+            }
         }
 
         /// <summary>
@@ -77,66 +77,56 @@ namespace CK.Core
         /// <param name="fullPath">The file full path.</param>
         /// <param name="wrapReader">Optional stream wrapper reader.</param>
         /// <returns>The SHA1 of the file.</returns>
-        public static async Task<SHA1Value> ComputeFileSHA1Async( string fullPath, Func<Stream,Stream>? wrapReader = null )
+        public static SHA1Value ComputeFileHash( string fullPath, Func<Stream, Stream>? wrapReader = null )
         {
-            using( var shaCompute = new SHA1Stream() )
+            using( var shaCompute = new HashStream( "SHA1" ) )
             using( var file = new FileStream( fullPath, FileMode.Open, FileAccess.Read, FileShare.Read, 4096, FileOptions.SequentialScan | FileOptions.Asynchronous ) )
             using( var wrap = wrapReader != null ? wrapReader( file ) : file )
             {
-                await wrap.CopyToAsync( shaCompute );
-                return shaCompute.GetFinalResult();
+                wrap.CopyTo( shaCompute );
+                return new SHA1Value( shaCompute.GetFinalResult() );
             }
         }
 
         /// <summary>
-        /// A SHA1 is a non null 20 bytes long array.
+        /// A SHA1 is 20 bytes long.
         /// </summary>
         /// <param name="sha1">The potential sha1.</param>
-        /// <returns>True when 20 bytes long array, false otherwise.</returns>
-        public static bool IsValidSHA1( IReadOnlyList<byte> sha1 )
-        {
-            return sha1 != null && sha1.Count == 20;
-        }
+        /// <returns>True when 20 bytes long, false otherwise.</returns>
+        public static bool IsValid( ReadOnlySpan<byte> sha1 ) => sha1.Length == 20;
 
         /// <summary>
-        /// Parse a 40 length hexadecimal string to a SHA1 value.
+        /// Parses a 40 length hexadecimal string to a SHA1 value or throws a <see cref="FormatException"/>.
         /// </summary>
-        /// <param name="s">The string to parse.</param>
-        /// <param name="offset">The offset in the string.</param>
+        /// <param name="text">The string to parse.</param>
         /// <returns>The value.</returns>
-        public static SHA1Value Parse( string s, int offset = 0 )
+        public static SHA1Value Parse( ReadOnlySpan<char> text )
         {
-            SHA1Value v;
-            if( !TryParse( s, offset, out v ) ) throw new ArgumentException( "Invalid SHA1.", nameof(s) );
-            return v;
+            TryParse( text, out var result ).AndAtEnd().SuccessOrThrowFormatException( "Invalid SHA1" );
+            return result;
         }
 
         /// <summary>
         /// Tries to parse a 40 length hexadecimal string to a SHA1 value.
         /// The string can be longer, suffix is ignored.
         /// </summary>
-        /// <param name="s">The string to parse.</param>
-        /// <param name="offset">The offset in the string.</param>
+        /// <param name="text">The text to parse.</param>
         /// <param name="value">The value on success, <see cref="ZeroSHA1"/> on error.</param>
         /// <returns>True on success, false on error.</returns>
-        public static bool TryParse( string s, int offset, out SHA1Value value )
+        public static ROParseResult TryParse( ReadOnlySpan<char> text, out SHA1Value value )
         {
             value = ZeroSHA1;
-            if( s == null || offset + 40 > s.Length ) return false;
-            bool zero = true;
-            byte[] b = new byte[20];
-            for( int i = 0; i < 40; ++i )
+            if( text.Length < 40 ) return new ROParseResult( text, 0 );
+            try
             {
-                int vH = s[offset + i].HexDigitValue();
-                if( vH == -1 ) return false;
-                if( vH != 0 ) zero = false;
-                int vL = s[offset + ++i].HexDigitValue();
-                if( vL == -1 ) return false;
-                if( vL != 0 ) zero = false;
-                b[i >> 1] = (byte)(vH << 4 | vL);
+                var bytes = Convert.FromHexString( text.Slice( 0, 40 ) );
+                value = new SHA1Value( bytes );
+                return new ROParseResult( text, 40 );
             }
-            if( !zero ) value = new SHA1Value( b, BuildString( b ) );
-            return true;
+            catch( FormatException )
+            {
+                return new ROParseResult( text, 0 );
+            }
         }
 
         /// <summary>
@@ -161,25 +151,37 @@ namespace CK.Core
             var emptyBytes = new byte[] { 0xDA, 0x39, 0xA3, 0xEE, 0x5E, 0x6B, 0x4B, 0x0D, 0x32, 0x55, 0xBF, 0xEF, 0x95, 0x60, 0x18, 0x90, 0xAF, 0xD8, 0x07, 0x09 };
             EmptySHA1 = new SHA1Value( emptyBytes, BuildString( emptyBytes ) );
 #if DEBUG
-            using( var h = new SHA1Managed() )
-            {
-                Debug.Assert( h.ComputeHash( Array.Empty<byte>() ).SequenceEqual( EmptySHA1._bytes ) );
-            }
+            Debug.Assert( SHA1.HashData( ReadOnlySpan<byte>.Empty ).AsSpan().SequenceEqual( EmptySHA1._bytes ) );
 #endif
         }
 
-
-        readonly byte[] _bytes;
-        readonly string _string;
-
         /// <summary>
-        /// Initializes a new <see cref="SHA1Value"/> from its 20 bytes value.
+        /// Initializes a new <see cref="SHA1Value"/> from a read only 20 bytes value.
         /// </summary>
         /// <param name="twentyBytes">Binary values.</param>
-        public SHA1Value( IReadOnlyList<byte> twentyBytes )
+        public SHA1Value( ReadOnlySpan<byte> twentyBytes )
         {
-            if( !IsValidSHA1( twentyBytes ) ) throw new ArgumentException( "Invalid SHA1.", nameof( twentyBytes ) );
-            if( twentyBytes.SequenceEqual( ZeroSHA1._bytes ) )
+            if( twentyBytes.Length != 20 ) throw new ArgumentException( $"SHA1 is 20 bytes long, not {twentyBytes.Length}.", nameof( twentyBytes ) );
+            if( twentyBytes.SequenceEqual( ZeroSHA1._bytes.AsSpan() ) )
+            {
+                _bytes = ZeroSHA1._bytes;
+                _string = ZeroSHA1._string;
+            }
+            else
+            {
+                _bytes = twentyBytes.ToArray();
+                _string = BuildString( _bytes );
+            }
+        }
+
+        /// <summary>
+        /// Initializes a new <see cref="SHA1Value"/> from a read only 20 bytes value.
+        /// </summary>
+        /// <param name="twentyBytes">Binary values.</param>
+        public SHA1Value( ReadOnlyMemory<byte> twentyBytes )
+        {
+            if( twentyBytes.Length != 20 ) throw new ArgumentException( $"SHA1 is 20 bytes long, not {twentyBytes.Length}.", nameof( twentyBytes ) );
+            if( twentyBytes.Span.SequenceEqual( ZeroSHA1._bytes.AsSpan() ) )
             {
                 _bytes = ZeroSHA1._bytes;
                 _string = ZeroSHA1._string;
@@ -247,23 +249,23 @@ namespace CK.Core
         /// <returns>True if other has the same value, false otherwise.</returns>
         public bool Equals( SHA1Value other )
         {
-            return _bytes == other._bytes 
+            return _bytes == other._bytes
                     || (_bytes == null && other._bytes == ZeroSHA1._bytes)
                     || (_bytes == ZeroSHA1._bytes && other._bytes == null)
-                    || _bytes.SequenceEqual( other._bytes );
+                    || (_bytes != null && _bytes.SequenceEqual( other._bytes ));
         }
 
         /// <summary>
-        /// Gets the SHA1 as a 20 bytes read only list.
+        /// Gets the SHA1 as a 20 bytes read only memory.
         /// </summary>
         /// <returns>The sha1 bytes.</returns>
-        public IReadOnlyList<byte> GetBytes() => _bytes ?? ZeroSHA1._bytes;
+        public ReadOnlyMemory<byte> GetBytes() => _bytes ?? ZeroSHA1._bytes;
 
         /// <summary>
         /// Writes this SHA1 value in a <see cref="BinaryWriter"/>.
         /// </summary>
         /// <param name="w">Target binary writer.</param>
-        public void Write( BinaryWriter w ) => w.Write( _bytes ?? ZeroSHA1._bytes );
+        public void Write( BinaryWriter w ) => w.Write( GetBytes().Span );
 
         /// <summary>
         /// Overridden to test actual SHA1 equality.
@@ -276,7 +278,7 @@ namespace CK.Core
         /// Gets the hash code of this SHA1.
         /// </summary>
         /// <returns>The hash code.</returns>
-        public override int GetHashCode() => _bytes == null ? 0 : (_bytes[0] << 24) | (_bytes[1] << 16) | (_bytes[2] << 8) | _bytes[3];
+        public override int GetHashCode() => HashCode.Combine( _bytes );
 
         /// <summary>
         /// Returns the 40 hexadecimal characters string.
@@ -286,18 +288,9 @@ namespace CK.Core
         
         static string BuildString( byte[] b )
         { 
-            Debug.Assert( b != null && b != ZeroSHA1._bytes );
-            char[] a = new char[40];
-            for( int i = 0; i < 40; )
-            {
-                byte x = b[i>>1];
-                a[i++] = GetHexValue( x >> 4 );
-                a[i++] = GetHexValue( x & 15 );
-            }
-            return new string( a );
+            Debug.Assert( !b.AsSpan().SequenceEqual( ZeroSHA1._bytes.AsSpan() ) );
+            return Convert.ToHexString( b ).ToLowerInvariant();
         }
-
-        static char GetHexValue( int i ) => i < 10 ? (char)(i + '0') : (char)(i - 10 + 'a');
 
         /// <summary>
         /// Compares this value to another one.

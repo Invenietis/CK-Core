@@ -53,7 +53,9 @@ namespace CK.Core
 
             public bool IsCompleted => _awaiter.IsCompleted;
 
+#pragma warning disable VSTHRD002 // Avoid problematic synchronous waits
             public TResult GetResult() => _awaiter.GetResult();
+#pragma warning restore VSTHRD002 // Avoid problematic synchronous waits
 
             public void OnCompleted( Action continuation ) => _awaiter.OnCompleted( continuation );
 
@@ -74,7 +76,9 @@ namespace CK.Core
         public Task<TResult> Task => _tcs.Task;
 
         /// <inheritdoc />
+#pragma warning disable VSTHRD002 // Avoid problematic synchronous waits
         public TResult Result => _tcs.Task.Result;
+#pragma warning restore VSTHRD002 // Avoid problematic synchronous waits
 
         Task ICompletion.Task => _tcs.Task;
 

@@ -9,7 +9,6 @@ using NUnit.Framework;
 using FluentAssertions;
 using System.Reflection;
 using System.Runtime.CompilerServices;
-using CK.Text;
 
 namespace CK.Core.Tests
 {

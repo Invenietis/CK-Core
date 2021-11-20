@@ -8,12 +8,8 @@ namespace CK.Core
     /// <summary>
     /// A date and time stamp encapsulates a <see cref="TimeUtc"/> (<see cref="DateTime"/> guaranteed to be in Utc) and a <see cref="Uniquifier"/>.
     /// </summary>
-    /// <remarks>
-    /// Simply use <see cref="ToString()"/> and <see cref="DateTimeStampExtension.MatchDateTimeStamp(Text.StringMatcher, out DateTimeStamp)">MatchDateTimeStamp</see>
-    /// to serialize it.
-    /// </remarks>
     [Serializable]
-    public struct DateTimeStamp : IComparable<DateTimeStamp>, IEquatable<DateTimeStamp>
+    public struct DateTimeStamp : IComparable<DateTimeStamp>, IEquatable<DateTimeStamp>, ICKSimpleBinarySerializable
     {
         /// <summary>
         /// Represents the smallest possible value for a DateTimeStamp object.         
@@ -50,6 +46,26 @@ namespace CK.Core
         {
             TimeUtc = new DateTime( DateTime.MinValue.Ticks, DateTimeKind.Local );
             Uniquifier = 0;
+        }
+
+        /// <summary>
+        /// Deserialization constructor.
+        /// </summary>
+        /// <param name="r">The reader.</param>
+        public DateTimeStamp( ICKBinaryReader r )
+        {
+            TimeUtc = r.ReadDateTime();
+            Uniquifier = r.ReadByte();
+        }
+
+        /// <summary>
+        /// Writes this DateTimeStamp.
+        /// </summary>
+        /// <param name="w">The writer.</param>
+        public void Write( ICKBinaryWriter w )
+        {
+            w.Write( TimeUtc );
+            w.Write( Uniquifier );
         }
 
         /// <summary>
@@ -196,6 +212,34 @@ namespace CK.Core
             return Uniquifier != 0
                     ? String.Format( FormatWhenUniquifier, TimeUtc, Uniquifier )
                     : TimeUtc.ToString( FileUtil.FileNameUniqueTimeUtcFormat, CultureInfo.InvariantCulture );
+        }
+
+        /// <summary>
+        /// Tries to parse a <see cref="DateTimeStamp"/>.
+        /// </summary>
+        /// <param name="text">The text to parse.</param>
+        /// <param name="time">Resulting time stamp on successful match; <see cref="DateTimeStamp.Unknown"/> otherwise.</param>
+        /// <returns>True if the time stamp has been matched.</returns>
+        static public ROParseResult TryParse( ReadOnlySpan<char> text, out DateTimeStamp time )
+        {
+            time = DateTimeStamp.Unknown;
+            var r = FileUtil.TryParseFileNameUniqueTimeUtcFormat( text, out var t );
+            if( !r ) return new ROParseResult( text, 0 );
+
+            byte uniquifier = 0;
+            if( r.Remainder.Length > 0 && r.Remainder[0] == '(' )
+            {
+                int idx = r.Remainder.IndexOf( ')' );
+                if( idx <= 0 ) return r;
+                if( Int32.TryParse( r.Remainder.Slice( 1, idx - 1 ), NumberStyles.None, CultureInfo.InvariantCulture, out var unique ) )
+                {
+                    if( unique > 255 ) return r;
+                    uniquifier = (byte)unique;
+                    r = new ROParseResult( r.Text, r.ParsedLength + idx );
+                }
+            }
+            time = new DateTimeStamp( t, uniquifier );
+            return r;
         }
 
         /// <summary>

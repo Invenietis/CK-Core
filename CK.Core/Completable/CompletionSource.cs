@@ -24,8 +24,7 @@ namespace CK.Core
     /// </summary>
     public class CompletionSource : ICompletion, ICompletionSource
     {
-        /// Adapter waiting for .Net 5 TaskCompletionSource.
-        readonly TaskCompletionSource<object?> _tcs;
+        readonly TaskCompletionSource _tcs;
         readonly ICompletable _holder;
         volatile Exception? _exception;
         volatile int _state;
@@ -36,7 +35,7 @@ namespace CK.Core
         /// <param name="holder">The completion's holder.</param>
         public CompletionSource( ICompletable holder )
         {
-            _tcs = new TaskCompletionSource<object?>( TaskCreationOptions.RunContinuationsAsynchronously );
+            _tcs = new TaskCompletionSource( TaskCreationOptions.RunContinuationsAsynchronously );
             _holder = holder ?? throw new ArgumentNullException( nameof(holder) );
             // Continuation that handles the error (if any): this prevent the UnobservedTaskException to
             // be raised during GC (Task's finalization).
@@ -82,7 +81,7 @@ namespace CK.Core
         public void SetResult()
         {
             if( _state == 0 ) _state = 1;
-            _tcs.SetResult( null );
+            _tcs.SetResult();
         }
 
         /// <summary>
@@ -95,7 +94,7 @@ namespace CK.Core
         {
             if( _state != 0 ) return false;
             _state |= 1;
-            if( _tcs.TrySetResult( null ) )
+            if( _tcs.TrySetResult() )
             {
                 return true;
             }
@@ -191,7 +190,7 @@ namespace CK.Core
             }
             else
             {
-                _tcs.SetResult( null );
+                _tcs.SetResult();
             }
         }
 
@@ -224,7 +223,7 @@ namespace CK.Core
             }
             else
             {
-                if( !_tcs.TrySetResult( null ) )
+                if( !_tcs.TrySetResult() )
                 {
                     _state &= ~2;
                     _exception = null;
@@ -295,7 +294,7 @@ namespace CK.Core
             _state |= 4;
             if( o.ResultSuccess )
             {
-                _tcs.SetResult( null );
+                _tcs.SetResult();
             }
             else
             {
@@ -313,7 +312,7 @@ namespace CK.Core
             _state |= 4;
            if( o.ResultSuccess )
             {
-                if( !_tcs.TrySetResult( null ) )
+                if( !_tcs.TrySetResult() )
                 {
                     _state &= ~4;
                     return false;
