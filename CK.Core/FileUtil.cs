@@ -92,19 +92,17 @@ namespace CK.Core
         /// <summary>
         /// Matches a DateTime in the <see cref="FileNameUniqueTimeUtcFormat"/> format.
         /// </summary>
-        /// <param name="text">The text to parse. Will contain the remainder on success.</param>
+        /// <param name="this">This <see cref="StringMatcher"/>.</param>
         /// <param name="time">Result time on success; otherwise <see cref="Util.UtcMinValue"/>.</param>
         /// <returns>True if the time has been matched.</returns>
-        public static ROParseResult TryParseFileNameUniqueTimeUtcFormat( ReadOnlySpan<char> text, out DateTime time )
+        public static bool MatchFileNameUniqueTimeUtcFormat( this StringMatcher @this, out DateTime time )
         {
             time = Util.UtcMinValue;
             Debug.Assert( FileNameUniqueTimeUtcFormat.Replace( "\\", "" ).Length == 27 );
-            if( text.Length >= 27
-                && DateTime.TryParseExact( text, FileUtil.FileNameUniqueTimeUtcFormat, CultureInfo.InvariantCulture, DateTimeStyles.AdjustToUniversal | DateTimeStyles.AssumeUniversal, out time ) )
-            {
-                return new ROParseResult( text, 27 );
-            }
-            return new ROParseResult( text, 0 );
+            return @this.Length >= 27
+                    && DateTime.TryParseExact( @this.Text.Substring( @this.StartIndex, 27 ), FileUtil.FileNameUniqueTimeUtcFormat, CultureInfo.InvariantCulture, DateTimeStyles.AdjustToUniversal | DateTimeStyles.AssumeUniversal, out time )
+                ? @this.Forward( 27 )
+                : @this.SetError();
         }
 
         /// <summary>
@@ -117,8 +115,10 @@ namespace CK.Core
         /// <returns>True if the string has been successfully parsed.</returns>
         public static bool TryParseFileNameUniqueTimeUtcFormat( string s, out DateTime time, bool allowSuffix = false )
         {
-            return TryParseFileNameUniqueTimeUtcFormat( s.AsSpan(), out time ).AndAtEnd( !allowSuffix );
+            var m = new StringMatcher( s );
+            return m.MatchFileNameUniqueTimeUtcFormat( out time ) && (allowSuffix || m.IsEnd);
         }
+
 
         /// <summary>
         /// Finds the first character index of any characters that are invalid in a path.

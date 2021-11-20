@@ -70,20 +70,15 @@ namespace CK.Core.Tests
             }
         }
 
-        [TestCase( null, null )]
-        [TestCase( "", null )]
-        [TestCase( "0123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456", null )]
-        [TestCase( "01234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567", 0 )]
-        [TestCase( "f730a999523afe0a2be07bf4c731d3d1f72fb3dff730a999523afe0a2be07bf4c731d3d1f72fb3dff730a999523afe0a2be07bf4c731d3d1f72fb3df01234567-----", 5 )]
-        public void SHA512_invalid_parse( string s, int? remainderOnSuccess )
+        [TestCase( null, false )]
+        [TestCase( "", false )]
+        [TestCase( "0123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456", false )]
+        [TestCase( "01234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567", true )]
+        [TestCase( "f730a999523afe0a2be07bf4c731d3d1f72fb3dff730a999523afe0a2be07bf4c731d3d1f72fb3dff730a999523afe0a2be07bf4c731d3d1f72fb3df01234567-----", true )]
+        public void SHA512_invalid_parse( string s, bool success )
         {
             SHA512Value v;
-            var r = SHA512Value.TryParse( s.AsSpan(), out _ );
-            r.Success.Should().Be( remainderOnSuccess != null );
-            if( remainderOnSuccess != null )
-            {
-                r.Remainder.Length.Should().Be( remainderOnSuccess.Value );
-            }
+            var r = SHA512Value.TryParse( s.AsSpan(), out _ ).Should().Be( success );
         }
 
 

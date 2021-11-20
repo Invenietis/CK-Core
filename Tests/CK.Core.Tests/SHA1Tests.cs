@@ -58,20 +58,14 @@ namespace CK.Core.Tests
             }
         }
 
-        [TestCase( null, null )]
-        [TestCase( "", null )]
-        [TestCase( "012345678901234567890123456789012345678", null )]
-        [TestCase( "0123456789012345678901234567890123456789", 0 )]
-        [TestCase( "f730a999523afe0a2be07bf4c731d3d1f72fb3df-----", 5 )]
-        public void SHA1_invalid_parse( string s, int? remainderOnSuccess )
+        [TestCase( null, false )]
+        [TestCase( "", false )]
+        [TestCase( "012345678901234567890123456789012345678", false )]
+        [TestCase( "0123456789012345678901234567890123456789", true )]
+        [TestCase( "f730a999523afe0a2be07bf4c731d3d1f72fb3df-----", true )]
+        public void SHA1_invalid_parse( string s, bool success )
         {
-            SHA1Value v;
-            var r = SHA1Value.TryParse( s.AsSpan(), out _ );
-            r.Success.Should().Be( remainderOnSuccess != null );
-            if( remainderOnSuccess != null )
-            {
-                r.Remainder.Length.Should().Be( remainderOnSuccess.Value );
-            }
+            SHA1Value.TryParse( s.AsSpan(), out _ ).Should().Be( success );
         }
 
 

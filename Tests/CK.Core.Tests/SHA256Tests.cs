@@ -70,20 +70,15 @@ namespace CK.Core.Tests
             }
         }
 
-        [TestCase( null, null )]
-        [TestCase( "", null )]
-        [TestCase( "012345678901234567890123456789012345678901234567890123456789012", null )]
-        [TestCase( "0123456789012345678901234567890123456789012345678901234567890123", 0 )]
-        [TestCase( "f730a999523afe0a2be07bf4c731d3d1f72fb3dff730a999523afe0a2be07bf4-----", 5 )]
-        public void SHA256_invalid_parse( string s, int? remainderOnSuccess )
+        [TestCase( null, false )]
+        [TestCase( "", false )]
+        [TestCase( "012345678901234567890123456789012345678901234567890123456789012", false )]
+        [TestCase( "0123456789012345678901234567890123456789012345678901234567890123", true )]
+        [TestCase( "f730a999523afe0a2be07bf4c731d3d1f72fb3dff730a999523afe0a2be07bf4-----", true )]
+        public void SHA256_invalid_parse( string s, bool success )
         {
             SHA256Value v;
-            var r = SHA256Value.TryParse( s.AsSpan(), out _ );
-            r.Success.Should().Be( remainderOnSuccess != null );
-            if( remainderOnSuccess != null )
-            {
-                r.Remainder.Length.Should().Be( remainderOnSuccess.Value );
-            }
+            SHA256Value.TryParse( s.AsSpan(), out _ ).Should().Be( success );
         }
 
         [Test]

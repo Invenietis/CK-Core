@@ -215,34 +215,6 @@ namespace CK.Core
         }
 
         /// <summary>
-        /// Tries to parse a <see cref="DateTimeStamp"/>.
-        /// </summary>
-        /// <param name="text">The text to parse.</param>
-        /// <param name="time">Resulting time stamp on successful match; <see cref="DateTimeStamp.Unknown"/> otherwise.</param>
-        /// <returns>True if the time stamp has been matched.</returns>
-        static public ROParseResult TryParse( ReadOnlySpan<char> text, out DateTimeStamp time )
-        {
-            time = DateTimeStamp.Unknown;
-            var r = FileUtil.TryParseFileNameUniqueTimeUtcFormat( text, out var t );
-            if( !r ) return new ROParseResult( text, 0 );
-
-            byte uniquifier = 0;
-            if( r.Remainder.Length > 0 && r.Remainder[0] == '(' )
-            {
-                int idx = r.Remainder.IndexOf( ')' );
-                if( idx <= 0 ) return r;
-                if( Int32.TryParse( r.Remainder.Slice( 1, idx - 1 ), NumberStyles.None, CultureInfo.InvariantCulture, out var unique ) )
-                {
-                    if( unique > 255 ) return r;
-                    uniquifier = (byte)unique;
-                    r = new ROParseResult( r.Text, r.ParsedLength + idx );
-                }
-            }
-            time = new DateTimeStamp( t, uniquifier );
-            return r;
-        }
-
-        /// <summary>
         /// Checks equality.
         /// </summary>
         /// <param name="t1">First stamp.</param>

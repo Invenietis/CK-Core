@@ -102,7 +102,7 @@ namespace CK.Core
         /// <returns>The value.</returns>
         public static SHA1Value Parse( ReadOnlySpan<char> text )
         {
-            TryParse( text, out var result ).AndAtEnd().SuccessOrThrowFormatException( "Invalid SHA1" );
+            if( !TryParse( text, out var result ) ) throw new FormatException( "Invalid SHA1" );
             return result;
         }
 
@@ -113,19 +113,19 @@ namespace CK.Core
         /// <param name="text">The text to parse.</param>
         /// <param name="value">The value on success, <see cref="Zero"/> on error.</param>
         /// <returns>True on success, false on error.</returns>
-        public static ROParseResult TryParse( ReadOnlySpan<char> text, out SHA1Value value )
+        public static bool TryParse( ReadOnlySpan<char> text, out SHA1Value value )
         {
             value = Zero;
-            if( text.Length < 40 ) return new ROParseResult( text, 0 );
+            if( text.Length < 40 ) return false;
             try
             {
                 var bytes = Convert.FromHexString( text.Slice( 0, 40 ) );
                 value = new SHA1Value( bytes );
-                return new ROParseResult( text, 40 );
+                return true;
             }
             catch( FormatException )
             {
-                return new ROParseResult( text, 0 );
+                return false;
             }
         }
 
