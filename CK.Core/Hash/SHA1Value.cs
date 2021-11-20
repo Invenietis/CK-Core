@@ -151,7 +151,7 @@ namespace CK.Core
             var emptyBytes = new byte[] { 0xDA, 0x39, 0xA3, 0xEE, 0x5E, 0x6B, 0x4B, 0x0D, 0x32, 0x55, 0xBF, 0xEF, 0x95, 0x60, 0x18, 0x90, 0xAF, 0xD8, 0x07, 0x09 };
             Empty = new SHA1Value( emptyBytes, BuildString( emptyBytes ) );
 #if DEBUG
-            Debug.Assert( SHA1.HashData( ReadOnlySpan<byte>.Empty ).AsSpan().SequenceEqual( EmptySHA1._bytes ) );
+            Debug.Assert( SHA1.HashData( ReadOnlySpan<byte>.Empty ).AsSpan().SequenceEqual( Empty._bytes ) );
 #endif
         }
 
