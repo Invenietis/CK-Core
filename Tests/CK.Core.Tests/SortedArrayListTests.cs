@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using NUnit.Framework;
 
-namespace CK.Core.Tests.Collection
+namespace CK.Core.Tests
 {
     public class SortedArrayListTests
     {

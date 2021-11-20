@@ -7,7 +7,7 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using FluentAssertions;
 
-namespace CK.Core.Tests.Collection
+namespace CK.Core.Tests
 {
     public class TestCollection<T> : ICKReadOnlyCollection<T>
     {

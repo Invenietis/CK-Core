@@ -4,7 +4,7 @@ using System.Globalization;
 using System.Linq;
 using NUnit.Framework;
 
-namespace CK.Core.Tests.Collection
+namespace CK.Core.Tests
 {
     public class FIFOTests
     {

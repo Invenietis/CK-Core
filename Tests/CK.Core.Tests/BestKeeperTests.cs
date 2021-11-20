@@ -5,7 +5,7 @@ using System.Linq;
 using FluentAssertions;
 using NUnit.Framework;
 
-namespace CK.Core.Collection.Tests
+namespace CK.Core.Tests
 {
     [TestFixture]
     public class BestKeeperTests
