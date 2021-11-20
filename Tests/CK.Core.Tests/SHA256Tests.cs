@@ -18,7 +18,7 @@ namespace CK.Core.Tests
         [Test]
         public void SHA256_ToString_and_Parse()
         {
-            var sha = SHA256Value.ComputeFileSHA256( ThisFile );
+            var sha = SHA256Value.ComputeFileHash( ThisFile );
             var s = sha.ToString();
             var shaBis = SHA256Value.Parse( s );
             shaBis.Should().Be( sha );
@@ -27,18 +27,17 @@ namespace CK.Core.Tests
         [Test]
         public void SHA256_ByteAmount()
         {
-            var sha = SHA256Value.ComputeFileSHA256( ThisFile );
-            sha.GetBytes().Count.Should().Be( 32 );
+            var sha = SHA256Value.ComputeFileHash( ThisFile );
+            sha.GetBytes().Length.Should().Be( 32 );
             sha.ToString().Length.Should().Be( 64 );
         }
 
         [Test]
         public void SHA256Empty_IsValid()
         {
-            SHA256Managed sha256 = new SHA256Managed();
-            byte[] computedValue = sha256.ComputeHash( new byte[0] );
-            IReadOnlyList<byte> storedValue = SHA256Value.EmptySHA256.GetBytes();
-            storedValue.SequenceEqual( computedValue );
+            byte[] computedValue = SHA256.HashData( ReadOnlySpan<byte>.Empty );
+            var storedValue = SHA256Value.Empty.GetBytes();
+            storedValue.Span.SequenceEqual( computedValue );
         }
 
         [TestCase( "0000000000000000000000000000000000000000000000000000000000000000",
@@ -71,23 +70,27 @@ namespace CK.Core.Tests
             }
         }
 
-        [TestCase( 0, null, false )]
-        [TestCase( 1, "", false )]
-        [TestCase( 1, "X012345678901234567890123456789012345678901234567890123456789012", false )]
-        [TestCase( 2, "XY0123456789012345678901234567890123456789012345678901234567890123", true )]
-        [TestCase( 2, "--f730a999523afe0a2be07bf4c731d3d1f72fb3dff730a999523afe0a2be07bf4-----", true )]
-        public void SHA256_invalid_parse( int offset, string s, bool success )
+        [TestCase( null, null )]
+        [TestCase( "", null )]
+        [TestCase( "012345678901234567890123456789012345678901234567890123456789012", null )]
+        [TestCase( "0123456789012345678901234567890123456789012345678901234567890123", 0 )]
+        [TestCase( "f730a999523afe0a2be07bf4c731d3d1f72fb3dff730a999523afe0a2be07bf4-----", 5 )]
+        public void SHA256_invalid_parse( string s, int? remainderOnSuccess )
         {
             SHA256Value v;
-            SHA256Value.TryParse( s, offset, out v ).Should().Be( success );
+            var r = SHA256Value.TryParse( s.AsSpan(), out _ );
+            r.Success.Should().Be( remainderOnSuccess != null );
+            if( remainderOnSuccess != null )
+            {
+                r.Remainder.Length.Should().Be( remainderOnSuccess.Value );
+            }
         }
-
 
         [Test]
         public async Task SHA256_from_file_async()
         {
-            var sha = SHA256Value.ComputeFileSHA256( ThisFile );
-            var sha2 = await SHA256Value.ComputeFileSHA256Async( ThisFile );
+            var sha = SHA256Value.ComputeFileHash( ThisFile );
+            var sha2 = await SHA256Value.ComputeFileHashAsync( ThisFile );
             sha2.Should().Be( sha );
             using( var compressedPath = new TemporaryFile() )
             {
@@ -97,9 +100,9 @@ namespace CK.Core.Tests
                     var writer = GetCompressShellAsync( w => input.CopyToAsync( w ) );
                     await writer( compressed );
                 }
-                var shaCompressed = await SHA256Value.ComputeFileSHA256Async( compressedPath.Path );
+                var shaCompressed = await SHA256Value.ComputeFileHashAsync( compressedPath.Path );
                 shaCompressed.Should().NotBe( sha );
-                var localSha = await SHA256Value.ComputeFileSHA256Async( compressedPath.Path, r => new GZipStream( r, CompressionMode.Decompress, true ) );
+                var localSha = await SHA256Value.ComputeFileHashAsync( compressedPath.Path, r => new GZipStream( r, CompressionMode.Decompress, true ) );
                 localSha.Should().Be( sha );
             }
         }

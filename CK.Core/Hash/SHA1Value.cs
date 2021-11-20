@@ -12,7 +12,7 @@ namespace CK.Core
 
     /// <summary>
     /// Immutable SHA1 value. It is a wrapper around a 20 bytes array and its string representation.
-    /// Default value is <see cref="ZeroSHA1"/>.
+    /// Default value is <see cref="Zero"/>.
     /// </summary>
     public readonly struct SHA1Value : IEquatable<SHA1Value>, IComparable<SHA1Value>
     {
@@ -23,22 +23,22 @@ namespace CK.Core
         /// The "zero" SHA1 (20 bytes full of zeros).
         /// This is the default value of a new SHA1Value().
         /// </summary>
-        public static readonly SHA1Value ZeroSHA1;
+        public static readonly SHA1Value Zero;
 
         /// <summary>
         /// The empty SHA1 is the actual SHA1 of no bytes at all (it corresponds 
         /// to the internal initial values of the SHA1 algorithm).
         /// </summary>
-        public static readonly SHA1Value EmptySHA1;
+        public static readonly SHA1Value Empty;
 
         /// <summary>
         /// Computes the SHA1 of a raw byte array.
         /// </summary>
         /// <param name="data">Bytes to compute. Can be null.</param>
-        /// <returns>The SHA1 of the data: <see cref="EmptySHA1"/> if data is null or empty.</returns>
+        /// <returns>The SHA1 of the data: <see cref="Empty"/> if data is null or empty.</returns>
         public static SHA1Value ComputeHash( ReadOnlySpan<byte> data )
         {
-            if( data.Length == 0 ) return EmptySHA1;
+            if( data.Length == 0 ) return Empty;
             return new SHA1Value( SHA1.HashData( data ) );
         }
 
@@ -46,10 +46,10 @@ namespace CK.Core
         /// Computes the SHA1 of a string (using <see cref="Encoding.Default"/>).
         /// </summary>
         /// <param name="data">String data. Can be null.</param>
-        /// <returns>The SHA1 of the data: <see cref="EmptySHA1"/> if data is null or empty.</returns>
+        /// <returns>The SHA1 of the data: <see cref="Empty"/> if data is null or empty.</returns>
         public static SHA1Value ComputeHash( string? data )
         {
-            if( data == null || data.Length == 0 ) return EmptySHA1;
+            if( data == null || data.Length == 0 ) return Empty;
             var bytes = System.Runtime.InteropServices.MemoryMarshal.Cast<char, byte>( data.AsSpan() );
             return ComputeHash( bytes );
         }
@@ -111,11 +111,11 @@ namespace CK.Core
         /// The string can be longer, suffix is ignored.
         /// </summary>
         /// <param name="text">The text to parse.</param>
-        /// <param name="value">The value on success, <see cref="ZeroSHA1"/> on error.</param>
+        /// <param name="value">The value on success, <see cref="Zero"/> on error.</param>
         /// <returns>True on success, false on error.</returns>
         public static ROParseResult TryParse( ReadOnlySpan<char> text, out SHA1Value value )
         {
-            value = ZeroSHA1;
+            value = Zero;
             if( text.Length < 40 ) return new ROParseResult( text, 0 );
             try
             {
@@ -147,9 +147,9 @@ namespace CK.Core
 
         static SHA1Value()
         {
-            ZeroSHA1 = new SHA1Value( true );
+            Zero = new SHA1Value( true );
             var emptyBytes = new byte[] { 0xDA, 0x39, 0xA3, 0xEE, 0x5E, 0x6B, 0x4B, 0x0D, 0x32, 0x55, 0xBF, 0xEF, 0x95, 0x60, 0x18, 0x90, 0xAF, 0xD8, 0x07, 0x09 };
-            EmptySHA1 = new SHA1Value( emptyBytes, BuildString( emptyBytes ) );
+            Empty = new SHA1Value( emptyBytes, BuildString( emptyBytes ) );
 #if DEBUG
             Debug.Assert( SHA1.HashData( ReadOnlySpan<byte>.Empty ).AsSpan().SequenceEqual( EmptySHA1._bytes ) );
 #endif
@@ -162,10 +162,10 @@ namespace CK.Core
         public SHA1Value( ReadOnlySpan<byte> twentyBytes )
         {
             if( twentyBytes.Length != 20 ) throw new ArgumentException( $"SHA1 is 20 bytes long, not {twentyBytes.Length}.", nameof( twentyBytes ) );
-            if( twentyBytes.SequenceEqual( ZeroSHA1._bytes.AsSpan() ) )
+            if( twentyBytes.SequenceEqual( Zero._bytes.AsSpan() ) )
             {
-                _bytes = ZeroSHA1._bytes;
-                _string = ZeroSHA1._string;
+                _bytes = Zero._bytes;
+                _string = Zero._string;
             }
             else
             {
@@ -181,10 +181,10 @@ namespace CK.Core
         public SHA1Value( ReadOnlyMemory<byte> twentyBytes )
         {
             if( twentyBytes.Length != 20 ) throw new ArgumentException( $"SHA1 is 20 bytes long, not {twentyBytes.Length}.", nameof( twentyBytes ) );
-            if( twentyBytes.Span.SequenceEqual( ZeroSHA1._bytes.AsSpan() ) )
+            if( twentyBytes.Span.SequenceEqual( Zero._bytes.AsSpan() ) )
             {
-                _bytes = ZeroSHA1._bytes;
-                _string = ZeroSHA1._string;
+                _bytes = Zero._bytes;
+                _string = Zero._string;
             }
             else
             {
@@ -201,10 +201,10 @@ namespace CK.Core
         {
             _bytes = reader.ReadBytes( 20 );
             if( _bytes.Length < 20 ) throw new EndOfStreamException( $"Expected SHA1 (20 bytes). Got only {_bytes.Length} bytes." );
-            if( _bytes.SequenceEqual( ZeroSHA1._bytes ) )
+            if( _bytes.SequenceEqual( Zero._bytes ) )
             {
-                _bytes = ZeroSHA1._bytes;
-                _string = ZeroSHA1._string;
+                _bytes = Zero._bytes;
+                _string = Zero._string;
             }
             else _string = BuildString( _bytes );
         }
@@ -212,10 +212,10 @@ namespace CK.Core
         internal SHA1Value( byte[] b )
         {
             Debug.Assert( b != null && b.Length == 20 );
-            if( b.SequenceEqual( ZeroSHA1._bytes ) )
+            if( b.SequenceEqual( Zero._bytes ) )
             {
-                _bytes = ZeroSHA1._bytes;
-                _string = ZeroSHA1._string;
+                _bytes = Zero._bytes;
+                _string = Zero._string;
             }
             else
             {
@@ -226,7 +226,7 @@ namespace CK.Core
 
         SHA1Value( byte[] b, string s )
         {
-            Debug.Assert( b.Length == 20 && !b.SequenceEqual( ZeroSHA1._bytes ) && s != null && s.Length == 40 );
+            Debug.Assert( b.Length == 20 && !b.SequenceEqual( Zero._bytes ) && s != null && s.Length == 40 );
             _bytes = b;
             _string = s;
         }
@@ -238,9 +238,9 @@ namespace CK.Core
         }
 
         /// <summary>
-        /// Gets whether this is a <see cref="ZeroSHA1"/>.
+        /// Gets whether this is a <see cref="Zero"/>.
         /// </summary>
-        public bool IsZero => _bytes == null || _bytes == ZeroSHA1._bytes;
+        public bool IsZero => _bytes == null || _bytes == Zero._bytes;
 
         /// <summary>
         /// Tests whether this SHA1 is the same as the other one.
@@ -250,8 +250,8 @@ namespace CK.Core
         public bool Equals( SHA1Value other )
         {
             return _bytes == other._bytes
-                    || (_bytes == null && other._bytes == ZeroSHA1._bytes)
-                    || (_bytes == ZeroSHA1._bytes && other._bytes == null)
+                    || (_bytes == null && other._bytes == Zero._bytes)
+                    || (_bytes == Zero._bytes && other._bytes == null)
                     || (_bytes != null && _bytes.SequenceEqual( other._bytes ));
         }
 
@@ -259,7 +259,7 @@ namespace CK.Core
         /// Gets the SHA1 as a 20 bytes read only memory.
         /// </summary>
         /// <returns>The sha1 bytes.</returns>
-        public ReadOnlyMemory<byte> GetBytes() => _bytes ?? ZeroSHA1._bytes;
+        public ReadOnlyMemory<byte> GetBytes() => _bytes ?? Zero._bytes;
 
         /// <summary>
         /// Writes this SHA1 value in a <see cref="BinaryWriter"/>.
@@ -284,11 +284,11 @@ namespace CK.Core
         /// Returns the 40 hexadecimal characters string.
         /// </summary>
         /// <returns>The SHA1 as a string.</returns>
-        public override string ToString() => _string ?? ZeroSHA1._string;
+        public override string ToString() => _string ?? Zero._string;
         
         static string BuildString( byte[] b )
         { 
-            Debug.Assert( !b.AsSpan().SequenceEqual( ZeroSHA1._bytes.AsSpan() ) );
+            Debug.Assert( !b.AsSpan().SequenceEqual( Zero._bytes.AsSpan() ) );
             return Convert.ToHexString( b ).ToLowerInvariant();
         }
 
@@ -300,11 +300,11 @@ namespace CK.Core
         public int CompareTo( SHA1Value other )
         {
             if( _bytes == other._bytes ) return 0;
-            if( _bytes == null || _bytes == ZeroSHA1._bytes )
-                return other._bytes != null && other._bytes != ZeroSHA1._bytes
+            if( _bytes == null || _bytes == Zero._bytes )
+                return other._bytes != null && other._bytes != Zero._bytes
                         ? -1
                         : 0;
-            if( other._bytes == null || other._bytes == ZeroSHA1._bytes ) return +1;
+            if( other._bytes == null || other._bytes == Zero._bytes ) return +1;
             for( int i = 0; i < _bytes.Length; ++i )
             {
                 int cmp = _bytes[i] - other._bytes[i];

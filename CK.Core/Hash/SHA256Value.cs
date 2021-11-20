@@ -9,43 +9,43 @@ using System.Threading.Tasks;
 namespace CK.Core
 {
     /// <summary>
-    /// Immutable SHA512 value. It is a wrapper around a 64 bytes array and its string representation.
+    /// Immutable SHA256 value. It is a wrapper around a 32 bytes array and its string representation.
     /// Default value is <see cref="Zero"/>.
     /// </summary>
-    public readonly struct SHA512Value : IEquatable<SHA512Value>, IComparable<SHA512Value>
+    public readonly struct SHA256Value : IEquatable<SHA256Value>, IComparable<SHA256Value>
     {
         readonly byte[] _bytes;
         readonly string _string;
 
         /// <summary>
-        /// The "zero" SHA512 (64 bytes full of zeros).
-        /// This is the default value of a new SHA512Value().
+        /// The "zero" SHA256 (32 bytes full of zeros).
+        /// This is the default value of a new SHA256Value().
         /// </summary>
-        public static readonly SHA512Value Zero;
+        public static readonly SHA256Value Zero;
 
         /// <summary>
-        /// The empty SHA512 is the actual SHA512 of no bytes at all (it corresponds 
-        /// to the internal initial values of the SHA512 algorithm).
+        /// The empty SHA256 is the actual SHA256 of no bytes at all (it corresponds 
+        /// to the internal initial values of the SHA256 algorithm).
         /// </summary>
-        public static readonly SHA512Value Empty;
+        public static readonly SHA256Value Empty;
 
         /// <summary>
-        /// Computes the SHA512 of a raw byte array.
+        /// Computes the SHA256 of a raw byte array.
         /// </summary>
         /// <param name="data">Bytes to compute. Can be null.</param>
-        /// <returns>The SHA512 of the data: <see cref="Empty"/> if data is null or empty.</returns>
-        public static SHA512Value ComputeHash( ReadOnlySpan<byte> data )
+        /// <returns>The SHA256 of the data: <see cref="Empty"/> if data is null or empty.</returns>
+        public static SHA256Value ComputeHash( ReadOnlySpan<byte> data )
         {
             if( data.Length == 0 ) return Empty;
-            return new SHA512Value( SHA512.HashData( data ) );
+            return new SHA256Value( SHA256.HashData( data ) );
         }
 
         /// <summary>
-        /// Computes the SHA512 of a string (using <see cref="Encoding.Default"/>).
+        /// Computes the SHA256 of a string (using <see cref="Encoding.Default"/>).
         /// </summary>
         /// <param name="data">String data. Can be null.</param>
-        /// <returns>The SHA512 of the data: <see cref="Empty"/> if data is null or empty.</returns>
-        public static SHA512Value ComputeHash( string? data )
+        /// <returns>The SHA256 of the data: <see cref="Empty"/> if data is null or empty.</returns>
+        public static SHA256Value ComputeHash( string? data )
         {
             if( data == null || data.Length == 0 ) return Empty;
             var bytes = System.Runtime.InteropServices.MemoryMarshal.Cast<char, byte>( data.AsSpan() );
@@ -53,73 +53,73 @@ namespace CK.Core
         }
 
         /// <summary>
-        /// Computes the SHA512 of a local file by reading its content.
+        /// Computes the SHA256 of a local file by reading its content.
         /// </summary>
         /// <param name="fullPath">The file full path.</param>
         /// <param name="wrapReader">Optional stream wrapper reader. If not null, the hash is computed on its output.</param>
-        /// <returns>The SHA512 of the file.</returns>
-        public static async Task<SHA512Value> ComputeFileHashAsync( string fullPath, Func<Stream, Stream>? wrapReader = null )
+        /// <returns>The SHA256 of the file.</returns>
+        public static async Task<SHA256Value> ComputeFileHashAsync( string fullPath, Func<Stream, Stream>? wrapReader = null )
         {
-            using( var shaCompute = new HashStream( "SHA512" ) )
+            using( var shaCompute = new HashStream( "SHA256" ) )
             using( var file = new FileStream( fullPath, FileMode.Open, FileAccess.Read, FileShare.Read, 4096, FileOptions.SequentialScan | FileOptions.Asynchronous ) )
             using( var wrap = wrapReader != null ? wrapReader( file ) : file )
             {
                 await wrap.CopyToAsync( shaCompute );
-                return new SHA512Value( shaCompute.GetFinalResult() );
+                return new SHA256Value( shaCompute.GetFinalResult() );
             }
         }
 
         /// <summary>
-        /// Computes the SHA512 of a local file by reading its content.
+        /// Computes the SHA256 of a local file by reading its content.
         /// </summary>
         /// <param name="fullPath">The file full path.</param>
         /// <param name="wrapReader">Optional stream wrapper reader.</param>
-        /// <returns>The SHA512 of the file.</returns>
-        public static SHA512Value ComputeFileHash( string fullPath, Func<Stream, Stream>? wrapReader = null )
+        /// <returns>The SHA256 of the file.</returns>
+        public static SHA256Value ComputeFileHash( string fullPath, Func<Stream, Stream>? wrapReader = null )
         {
-            using( var shaCompute = new HashStream( "SHA512" ) )
+            using( var shaCompute = new HashStream( "SHA256" ) )
             using( var file = new FileStream( fullPath, FileMode.Open, FileAccess.Read, FileShare.Read, 4096, FileOptions.SequentialScan | FileOptions.Asynchronous ) )
             using( var wrap = wrapReader != null ? wrapReader( file ) : file )
             {
                 wrap.CopyTo( shaCompute );
-                return new SHA512Value( shaCompute.GetFinalResult() );
+                return new SHA256Value( shaCompute.GetFinalResult() );
             }
         }
 
         /// <summary>
-        /// A SHA512 is 64 bytes long.
+        /// A SHA256 is 32 bytes long.
         /// </summary>
-        /// <param name="sha512">The potential SHA512.</param>
-        /// <returns>True when 64 bytes long, false otherwise.</returns>
-        public static bool IsValid( ReadOnlySpan<byte> sha512 ) => sha512.Length == 64;
+        /// <param name="sha256">The potential SHA256.</param>
+        /// <returns>True when 32 bytes long, false otherwise.</returns>
+        public static bool IsValid( ReadOnlySpan<byte> sha256 ) => sha256.Length == 32;
 
         /// <summary>
-        /// Parses a 128 length hexadecimal string to a SHA512 value or throws a <see cref="FormatException"/>.
+        /// Parses a 128 length hexadecimal string to a SHA256 value or throws a <see cref="FormatException"/>.
         /// </summary>
         /// <param name="text">The string to parse.</param>
         /// <returns>The value.</returns>
-        public static SHA512Value Parse( ReadOnlySpan<char> text )
+        public static SHA256Value Parse( ReadOnlySpan<char> text )
         {
-            TryParse( text, out var result ).AndAtEnd().SuccessOrThrowFormatException( "Invalid SHA512" );
+            TryParse( text, out var result ).AndAtEnd().SuccessOrThrowFormatException( "Invalid SHA256" );
             return result;
         }
 
         /// <summary>
-        /// Tries to parse a 40 length hexadecimal string to a SHA512 value.
+        /// Tries to parse a 40 length hexadecimal string to a SHA256 value.
         /// The string can be longer, suffix is ignored.
         /// </summary>
         /// <param name="text">The text to parse.</param>
         /// <param name="value">The value on success, <see cref="Zero"/> on error.</param>
         /// <returns>True on success, false on error.</returns>
-        public static ROParseResult TryParse( ReadOnlySpan<char> text, out SHA512Value value )
+        public static ROParseResult TryParse( ReadOnlySpan<char> text, out SHA256Value value )
         {
             value = Zero;
-            if( text.Length < 128 ) return new ROParseResult( text, 0 );
+            if( text.Length < 64 ) return new ROParseResult( text, 0 );
             try
             {
-                var bytes = Convert.FromHexString( text.Slice( 0, 128 ) );
-                value = new SHA512Value( bytes );
-                return new ROParseResult( text, 128 );
+                var bytes = Convert.FromHexString( text.Slice( 0, 64 ) );
+                value = new SHA256Value( bytes );
+                return new ROParseResult( text, 64 );
             }
             catch( FormatException )
             {
@@ -130,36 +130,36 @@ namespace CK.Core
         /// <summary>
         /// Defines equality operator.
         /// </summary>
-        /// <param name="x">First SHA512.</param>
-        /// <param name="y">Second SHA512.</param>
+        /// <param name="x">First SHA256.</param>
+        /// <param name="y">Second SHA256.</param>
         /// <returns>True if x equals y, otherwise false.</returns>
-        static public bool operator ==( SHA512Value x, SHA512Value y ) => x.Equals( y );
+        static public bool operator ==( SHA256Value x, SHA256Value y ) => x.Equals( y );
 
         /// <summary>
         /// Defines inequality operator.
         /// </summary>
-        /// <param name="x">First SHA512.</param>
-        /// <param name="y">Second SHA512.</param>
+        /// <param name="x">First SHA256.</param>
+        /// <param name="y">Second SHA256.</param>
         /// <returns>True if x is not equal to y, otherwise false.</returns>
-        static public bool operator !=( SHA512Value x, SHA512Value y ) => !x.Equals( y );
+        static public bool operator !=( SHA256Value x, SHA256Value y ) => !x.Equals( y );
 
-        static SHA512Value()
+        static SHA256Value()
         {
-            Zero = new SHA512Value( true );
+            Zero = new SHA256Value( true );
             var emptyBytes = new byte[] { 207, 131, 225, 53, 126, 239, 184, 189, 241, 84, 40, 80, 214, 109, 128, 7, 214, 32, 228, 5, 11, 87, 21, 220, 131, 244, 169, 33, 211, 108, 233, 206, 71, 208, 209, 60, 93, 133, 242, 176, 255, 131, 24, 210, 135, 126, 236, 47, 99, 185, 49, 189, 71, 65, 122, 129, 165, 56, 50, 122, 249, 39, 218, 62 };
-            Empty = new SHA512Value( emptyBytes, BuildString( emptyBytes ) );
+            Empty = new SHA256Value( emptyBytes, BuildString( emptyBytes ) );
 #if DEBUG
-            Debug.Assert( SHA512.HashData( ReadOnlySpan<byte>.Empty ).AsSpan().SequenceEqual( Empty._bytes ) );
+            Debug.Assert( SHA256.HashData( ReadOnlySpan<byte>.Empty ).AsSpan().SequenceEqual( Empty._bytes ) );
 #endif
         }
 
         /// <summary>
-        /// Initializes a new <see cref="SHA512Value"/> from a read only 64 bytes value.
+        /// Initializes a new <see cref="SHA256Value"/> from a read only 32 bytes value.
         /// </summary>
         /// <param name="twentyBytes">Binary values.</param>
-        public SHA512Value( ReadOnlySpan<byte> twentyBytes )
+        public SHA256Value( ReadOnlySpan<byte> twentyBytes )
         {
-            if( twentyBytes.Length != 64 ) throw new ArgumentException( $"SHA512 is 64 bytes long, not {twentyBytes.Length}.", nameof( twentyBytes ) );
+            if( twentyBytes.Length != 32 ) throw new ArgumentException( $"SHA256 is 32 bytes long, not {twentyBytes.Length}.", nameof( twentyBytes ) );
             if( twentyBytes.SequenceEqual( Zero._bytes.AsSpan() ) )
             {
                 _bytes = Zero._bytes;
@@ -173,13 +173,13 @@ namespace CK.Core
         }
 
         /// <summary>
-        /// Initializes a new <see cref="SHA512Value"/> from a binary reader.
+        /// Initializes a new <see cref="SHA256Value"/> from a binary reader.
         /// </summary>
         /// <param name="reader">Binary reader.</param>
-        public SHA512Value( BinaryReader reader )
+        public SHA256Value( BinaryReader reader )
         {
-            _bytes = reader.ReadBytes( 64 );
-            if( _bytes.Length < 64 ) throw new EndOfStreamException( $"Expected SHA512 (64 bytes). Got only {_bytes.Length} bytes." );
+            _bytes = reader.ReadBytes( 32 );
+            if( _bytes.Length < 32 ) throw new EndOfStreamException( $"Expected SHA256 (32 bytes). Got only {_bytes.Length} bytes." );
             if( _bytes.SequenceEqual( Zero._bytes ) )
             {
                 _bytes = Zero._bytes;
@@ -188,9 +188,9 @@ namespace CK.Core
             else _string = BuildString( _bytes );
         }
 
-        internal SHA512Value( byte[] b )
+        internal SHA256Value( byte[] b )
         {
-            Debug.Assert( b != null && b.Length == 64 );
+            Debug.Assert( b != null && b.Length == 32 );
             if( b.SequenceEqual( Zero._bytes ) )
             {
                 _bytes = Zero._bytes;
@@ -203,14 +203,14 @@ namespace CK.Core
             }
         }
 
-        SHA512Value( byte[] b, string s )
+        SHA256Value( byte[] b, string s )
         {
-            Debug.Assert( b.Length == 64 && !b.SequenceEqual( Zero._bytes ) && s != null && s.Length == 128 );
+            Debug.Assert( b.Length == 32 && !b.SequenceEqual( Zero._bytes ) && s != null && s.Length == 128 );
             _bytes = b;
             _string = s;
         }
 
-        SHA512Value( bool forZeroSHA512Only )
+        SHA256Value( bool forZeroSHA256Only )
         {
             _bytes = new byte[20];
             _string = new string( '0', 40 );
@@ -222,11 +222,11 @@ namespace CK.Core
         public bool IsZero => _bytes == null || _bytes == Zero._bytes;
 
         /// <summary>
-        /// Tests whether this SHA512 is the same as the other one.
+        /// Tests whether this SHA256 is the same as the other one.
         /// </summary>
-        /// <param name="other">Other SHA512Value.</param>
+        /// <param name="other">Other SHA256Value.</param>
         /// <returns>True if other has the same value, false otherwise.</returns>
-        public bool Equals( SHA512Value other )
+        public bool Equals( SHA256Value other )
         {
             return _bytes == other._bytes
                     || (_bytes == null && other._bytes == Zero._bytes)
@@ -235,26 +235,26 @@ namespace CK.Core
         }
 
         /// <summary>
-        /// Gets the SHA512 as a 64 bytes read only memory.
+        /// Gets the SHA256 as a 32 bytes read only memory.
         /// </summary>
-        /// <returns>The SHA512 bytes.</returns>
+        /// <returns>The SHA256 bytes.</returns>
         public ReadOnlyMemory<byte> GetBytes() => _bytes ?? Zero._bytes;
 
         /// <summary>
-        /// Writes this SHA512 value in a <see cref="BinaryWriter"/>.
+        /// Writes this SHA256 value in a <see cref="BinaryWriter"/>.
         /// </summary>
         /// <param name="w">Target binary writer.</param>
         public void Write( BinaryWriter w ) => w.Write( GetBytes().Span );
 
         /// <summary>
-        /// Overridden to test actual SHA512 equality.
+        /// Overridden to test actual SHA256 equality.
         /// </summary>
         /// <param name="obj">Any object.</param>
-        /// <returns>True if other is a SHA512Value with the same value, false otherwise.</returns>
-        public override bool Equals( object? obj ) => obj is SHA512Value s && Equals( s );
+        /// <returns>True if other is a SHA256Value with the same value, false otherwise.</returns>
+        public override bool Equals( object? obj ) => obj is SHA256Value s && Equals( s );
 
         /// <summary>
-        /// Gets the hash code of this SHA512.
+        /// Gets the hash code of this SHA256.
         /// </summary>
         /// <returns>The hash code.</returns>
         public override int GetHashCode() => HashCode.Combine( _bytes );
@@ -262,7 +262,7 @@ namespace CK.Core
         /// <summary>
         /// Returns the 40 hexadecimal characters string.
         /// </summary>
-        /// <returns>The SHA512 as a string.</returns>
+        /// <returns>The SHA256 as a string.</returns>
         public override string ToString() => _string ?? Zero._string;
 
         static string BuildString( byte[] b )
@@ -274,9 +274,9 @@ namespace CK.Core
         /// <summary>
         /// Compares this value to another one.
         /// </summary>
-        /// <param name="other">The other SHA512 to compare.</param>
+        /// <param name="other">The other SHA256 to compare.</param>
         /// <returns>The standard positive value if this is greater than other, 0 if they are equal and a negative value otherwise.</returns>
-        public int CompareTo( SHA512Value other )
+        public int CompareTo( SHA256Value other )
         {
             if( _bytes == other._bytes ) return 0;
             if( _bytes == null || _bytes == Zero._bytes )

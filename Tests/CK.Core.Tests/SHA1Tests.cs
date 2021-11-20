@@ -36,7 +36,7 @@ namespace CK.Core.Tests
         public void SHA1Empty_IsValid()
         {
             byte[] computedValue = SHA1.HashData( ReadOnlySpan<byte>.Empty );
-            var storedValue = SHA1Value.EmptySHA1.GetBytes();
+            var storedValue = SHA1Value.Empty.GetBytes();
             storedValue.Span.SequenceEqual( computedValue );
         }
 
