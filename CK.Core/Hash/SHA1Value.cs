@@ -62,7 +62,7 @@ namespace CK.Core
         /// <returns>The SHA1 of the file.</returns>
         public static async Task<SHA1Value> ComputeFileHashAsync( string fullPath, Func<Stream, Stream>? wrapReader = null )
         {
-            using( var shaCompute = new HashStream( "SHA1" ) )
+            using( var shaCompute = new HashStream( HashAlgorithmName.SHA1 ) )
             using( var file = new FileStream( fullPath, FileMode.Open, FileAccess.Read, FileShare.Read, 4096, FileOptions.SequentialScan | FileOptions.Asynchronous ) )
             using( var wrap = wrapReader != null ? wrapReader( file ) : file )
             {
@@ -79,7 +79,7 @@ namespace CK.Core
         /// <returns>The SHA1 of the file.</returns>
         public static SHA1Value ComputeFileHash( string fullPath, Func<Stream, Stream>? wrapReader = null )
         {
-            using( var shaCompute = new HashStream( "SHA1" ) )
+            using( var shaCompute = new HashStream( HashAlgorithmName.SHA1 ) )
             using( var file = new FileStream( fullPath, FileMode.Open, FileAccess.Read, FileShare.Read, 4096, FileOptions.SequentialScan | FileOptions.Asynchronous ) )
             using( var wrap = wrapReader != null ? wrapReader( file ) : file )
             {

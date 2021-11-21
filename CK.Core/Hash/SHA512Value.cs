@@ -60,7 +60,7 @@ namespace CK.Core
         /// <returns>The SHA512 of the file.</returns>
         public static async Task<SHA512Value> ComputeFileHashAsync( string fullPath, Func<Stream, Stream>? wrapReader = null )
         {
-            using( var shaCompute = new HashStream( "SHA512" ) )
+            using( var shaCompute = new HashStream( HashAlgorithmName.SHA512 ) )
             using( var file = new FileStream( fullPath, FileMode.Open, FileAccess.Read, FileShare.Read, 4096, FileOptions.SequentialScan | FileOptions.Asynchronous ) )
             using( var wrap = wrapReader != null ? wrapReader( file ) : file )
             {
@@ -77,7 +77,7 @@ namespace CK.Core
         /// <returns>The SHA512 of the file.</returns>
         public static SHA512Value ComputeFileHash( string fullPath, Func<Stream, Stream>? wrapReader = null )
         {
-            using( var shaCompute = new HashStream( "SHA512" ) )
+            using( var shaCompute = new HashStream( HashAlgorithmName.SHA512 ) )
             using( var file = new FileStream( fullPath, FileMode.Open, FileAccess.Read, FileShare.Read, 4096, FileOptions.SequentialScan | FileOptions.Asynchronous ) )
             using( var wrap = wrapReader != null ? wrapReader( file ) : file )
             {
