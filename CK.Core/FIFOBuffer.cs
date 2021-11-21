@@ -28,7 +28,7 @@ namespace CK.Core
         public FIFOBuffer( int capacity )
         {
             if( capacity < 0 )
-                throw new ArgumentException( "Capacity must be greater than or equal to zero.", "capacity" );
+                throw new ArgumentException( "Capacity must be greater than or equal to zero.", nameof(capacity) );
             _buffer = new T[capacity];
             _count = 0;
             _first = 0;
@@ -46,7 +46,7 @@ namespace CK.Core
                 if( value == _buffer.Length ) return;
 
                 if( value < 0 )
-                    throw new ArgumentException( Impl.CoreResources.CapacityMustBeGreaterThanOrEqualToZero, "value" );
+                    throw new ArgumentException( Impl.CoreResources.CapacityMustBeGreaterThanOrEqualToZero, nameof( value ) );
 
                 var dst = new T[value];
                 if( _count > 0 ) CopyTo( dst );
@@ -73,11 +73,11 @@ namespace CK.Core
         /// <param name="newCount">The final number of items. If it is greater or equal to the current <see cref="Count"/>, nothing is done.</param>
         public void Truncate( int newCount )
         {
-            if( newCount < 0 ) throw new ArgumentOutOfRangeException( "newCount" );
+            if( newCount < 0 ) throw new ArgumentOutOfRangeException( nameof( newCount ) );
             if( newCount == 0 ) Clear();
             else while( _count > newCount )
                 {
-                    _buffer[_first] = default( T );
+                    _buffer[_first] = default;
                     if( ++_first == _buffer.Length ) _first = 0;
                     _count--;
                 }
@@ -125,7 +125,7 @@ namespace CK.Core
         /// </summary>
         /// <param name="index">Index must be positive and less than <see cref="Count"/>.</param>
         /// <returns>The indexed element.</returns>
-        [System.Diagnostics.CodeAnalysis.SuppressMessage( "Microsoft.Design", "CA1065:DoNotRaiseExceptionsInUnexpectedLocations", Justification="This is the right location to raise this exception!" )]
+        //[System.Diagnostics.CodeAnalysis.SuppressMessage( "Microsoft.Design", "CA1065:DoNotRaiseExceptionsInUnexpectedLocations", Justification="This is the right location to raise this exception!" )]
         public T? this[int index]
         {
             get
@@ -147,7 +147,7 @@ namespace CK.Core
             --_count;
             if( index == 0 )
             {
-                _buffer[_first] = default( T );
+                _buffer[_first] = default;
                 if( ++_first == _buffer.Length ) _first = 0;
                 return;
             }
@@ -162,7 +162,7 @@ namespace CK.Core
                 {
                     Debug.Assert( _next > 0 );
                     Array.Copy( _buffer, index + 1, _buffer, index, len );
-                    _buffer[_next] = default( T );
+                    _buffer[_next] = default;
                     --_next;
                 }
                 else
@@ -172,14 +172,14 @@ namespace CK.Core
                     if( len > 0 ) Array.Copy( _buffer, index + 1, _buffer, index, len );
                     if( _next > 0 )
                     {
-                        _buffer[_buffer.Length - 1] = _buffer[0];
+                        _buffer[^1] = _buffer[0];
                         Array.Copy( _buffer, 1, _buffer, 0, _next );
-                        if( _next != _first ) _buffer[_next] = default( T );
+                        if( _next != _first ) _buffer[_next] = default;
                         --_next;
                     }
                     else
                     {
-                        if( _first != 0 ) _buffer[0] = default( T );
+                        if( _first != 0 ) _buffer[0] = default;
                         _next = _buffer.Length - 1;
                     }
                 }
@@ -244,7 +244,7 @@ namespace CK.Core
         {
             if( _count == 0 ) throw new InvalidOperationException( Impl.CoreResources.FIFOBufferEmpty );
             var item = _buffer[_first];
-            _buffer[_first] = default( T );
+            _buffer[_first] = default;
             if( ++_first == _buffer.Length ) _first = 0;
             _count--;
             return item;
@@ -260,7 +260,7 @@ namespace CK.Core
             if( _count == 0 ) throw new InvalidOperationException( Impl.CoreResources.FIFOBufferEmpty );
             if( --_next < 0 ) _next = _first + _count - 1;
             var item = _buffer[_next];
-            _buffer[_next] = default( T );
+            _buffer[_next] = default;
             _count--;
             return item;
         }
@@ -317,7 +317,7 @@ namespace CK.Core
         /// <returns>Number of items copied.</returns>
         public int CopyTo( T[] array, int arrayIndex )
         {
-            if( array == null ) throw new ArgumentNullException( "array" );
+            if( array == null ) throw new ArgumentNullException( nameof( array ) );
             return CopyTo( array, arrayIndex, array.Length - arrayIndex );
         }
 
@@ -332,7 +332,7 @@ namespace CK.Core
         /// <returns>Number of items copied.</returns>
         public int CopyTo( T[] array, int arrayIndex, int count )
         {
-            if( array == null ) throw new ArgumentNullException( "array" );
+            if( array == null ) throw new ArgumentNullException( nameof( array ) );
             if( count < 0 || arrayIndex < 0 || arrayIndex + count > array.Length ) throw new IndexOutOfRangeException();
             if( count == 0 ) return 0;
 

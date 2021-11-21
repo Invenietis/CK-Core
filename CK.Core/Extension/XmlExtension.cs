@@ -163,7 +163,7 @@ namespace CK.Core
         /// <param name="name">Name of the attribute.</param>
         static public XAttribute AttributeRequired( this XElement @this, XName name )
         {
-            XAttribute a = @this.Attribute( name );
+            XAttribute? a = @this.Attribute( name );
             if( a == null ) throw new XmlException( String.Format( Impl.CoreResources.ExpectedXmlAttribute, name ) + @this.GetLineColumnString() );
             return a;
         }

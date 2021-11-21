@@ -46,7 +46,7 @@ namespace CK.Core
         {
             if( text == null ) throw new ArgumentNullException( nameof( text ) );
             if( startIndex < 0 || startIndex > text.Length ) throw new ArgumentOutOfRangeException( nameof( startIndex ) );
-            if( startIndex + length > text.Length ) throw new ArgumentException( nameof( length ) );
+            if( startIndex + length > text.Length ) throw new ArgumentException( null, nameof( length ) );
             _text = text;
             _startIndex = startIndex;
             _length = length;
@@ -125,7 +125,7 @@ namespace CK.Core
         /// You can call <see cref="ClearError"/> to clear the error.
         /// </summary>
         /// <value>The error message. Null when no error.</value>
-        public string ErrorMessage => _errorDescription; 
+        public string? ErrorMessage => _errorDescription; 
 
         /// <summary>
         /// Sets an error and always returns false. The message starts with the caller's method name.
@@ -170,15 +170,15 @@ namespace CK.Core
             return false;
         }
 
-        static string FormatMessage( object? expectedMessage, string callerName )
+        static string FormatMessage( object? expectedMessage, string? callerName )
         {
-            string d = callerName;
-            string? tail = expectedMessage != null ? expectedMessage.ToString() : null;
+            string? d = callerName;
+            string? tail = expectedMessage?.ToString();
             if( !string.IsNullOrEmpty( tail ) )
             {
                 d += ": expected '" + tail + "'.";
             }
-            return d;
+            return d ?? "Error";
         }
 
         /// <summary>
@@ -204,7 +204,7 @@ namespace CK.Core
         public bool BackwardAddError( int savedStartIndex, object? expectedMessage = null, [CallerMemberName]string? callerName = null )
         {
             int delta = _startIndex - savedStartIndex;
-            if( savedStartIndex < 0 || delta < 0 ) throw new ArgumentException( nameof( savedStartIndex ) );
+            if( savedStartIndex < 0 || delta < 0 ) throw new ArgumentException( null, nameof( savedStartIndex ) );
             _length += delta;
             _startIndex = savedStartIndex;
             return AddError( expectedMessage, true, callerName );
@@ -233,7 +233,7 @@ namespace CK.Core
         /// <returns>Always true to use it as the return statement in a match method.</returns>
         public bool Forward( int charCount )
         {
-            if( charCount < 0 ) throw new ArgumentException( nameof( charCount ) );
+            if( charCount < 0 ) throw new ArgumentException( null, nameof( charCount ) );
             int newLen = _length - charCount;
             if( newLen < 0 ) throw new InvalidOperationException( Impl.CoreResources.StringMatcherForwardPastEnd );
             _startIndex += charCount;
@@ -255,7 +255,7 @@ namespace CK.Core
         /// </summary>
         /// <param name="c">The character that must match.</param>
         /// <returns>True on success, false if the match failed.</returns>
-        public bool TryMatchChar( char c ) => !IsEnd && Head == c ? UncheckedMove( 1 ) : false;
+        public bool TryMatchChar( char c ) => !IsEnd && Head == c && UncheckedMove( 1 );
 
         /// <summary>
         /// Matches a text without setting an error if match fails.
@@ -265,13 +265,12 @@ namespace CK.Core
         /// <returns>True on success, false if the match failed.</returns>
         public bool TryMatchText( string text, StringComparison comparisonType = StringComparison.OrdinalIgnoreCase )
         {
-            if( string.IsNullOrEmpty( text ) ) throw new ArgumentException( nameof( text ) );
+            if( string.IsNullOrEmpty( text ) ) throw new ArgumentException( null, nameof( text ) );
             int len = text.Length;
             return !IsEnd
                     && len <= _length
                     && string.Compare( _text, _startIndex, text, 0, len, comparisonType ) == 0
-                ? UncheckedMove( len )
-                : false;
+                    && UncheckedMove( len );
         }
 
         /// <summary>

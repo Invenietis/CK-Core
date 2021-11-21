@@ -218,32 +218,6 @@ namespace CK.Core.Tests
             containsCalled.Should().BeTrue(); containsCalled = false;
         }
 
-        class StringInt : IComparable<int>
-        {
-            public readonly string Value;
-            public StringInt(string value) { Value = value; }
-
-            public int CompareTo(int other)
-            {
-                return Int32.Parse(Value).CompareTo(other);
-            }
-        }
-
-        
-        [TestCase("", 5, ~0)]
-        [TestCase("1", 5, ~1)]
-        [TestCase("1", -5, ~0)]
-        [TestCase("1,2,5", 5, 2)]
-        [TestCase("1,2,5", 4, ~2)]
-        [TestCase("1,2,5", 2, 1)]
-        [TestCase("1,2,5", 1, 0)]
-        [TestCase("1,2,5", 0, ~0)]
-        public void BinarySearch_on_IComparable_TValue_items(string values, int search, int resultIndex)
-        {
-            var a = values.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries).Select(v => new StringInt(v)).ToArray();
-            Util.BinarySearch(a, search).Should().Be(resultIndex);
-        }
-
         [Test]
         public void IndexOf_on_IReadOnlyList()
         {

@@ -2,6 +2,7 @@ using FluentAssertions;
 using System;
 using System.Diagnostics.CodeAnalysis;
 using NUnit.Framework;
+using System.Diagnostics;
 
 namespace CK.Core.Tests
 {
@@ -99,9 +100,13 @@ namespace CK.Core.Tests
             ProvidedClass providedClass = new ProvidedClass( 5 );
             container.Add( providedClass );
 
-            ProvidedClass retrievedObject = container.GetService<ProvidedClass>( false );
-            retrievedObject.Should().NotBeNull();
-            retrievedObject.Age.Should().Be( 5 );
+            // NotNullWhen works.
+            if( container.TryGetService<ProvidedClass>( out var retrievedObject, false ) )
+            {
+                retrievedObject.Should().NotBeNull();
+                retrievedObject.Age.Should().Be( 5 );
+            }
+            else Assert.Fail();
         }
 
 

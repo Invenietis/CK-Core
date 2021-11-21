@@ -47,7 +47,7 @@ namespace CK.Core
         /// </returns>
         static public string NormalizePathSeparator( string path, bool ensureTrailingBackslash )
         {
-            if( path == null ) throw new ArgumentNullException( "path" );
+            if( path == null ) throw new ArgumentNullException( nameof( path ) );
             path = path.Trim();
             if( path.Length == 0 ) return path;
             if( Path.DirectorySeparatorChar != '/' && Path.AltDirectorySeparatorChar != '/' )
@@ -411,8 +411,8 @@ namespace CK.Core
         /// <param name="dirFilter">Optional predicate for files.</param>
         public static void CopyDirectory( DirectoryInfo src, DirectoryInfo target, bool withHiddenFiles = true, bool withHiddenFolders = true, Func<FileInfo, bool>? fileFilter = null, Func<DirectoryInfo, bool>? dirFilter = null )
         {
-            if( src == null ) throw new ArgumentNullException( "src" );
-            if( target == null ) throw new ArgumentNullException( "target" );
+            if( src == null ) throw new ArgumentNullException( nameof( src ) );
+            if( target == null ) throw new ArgumentNullException( nameof( target ) );
             if( !target.Exists ) target.Create();
             DirectoryInfo[] dirs = src.GetDirectories();
             foreach( DirectoryInfo d in dirs )
@@ -446,7 +446,7 @@ namespace CK.Core
         /// <returns>True if the file has been correctly opened (and closed) in write mode.</returns>
         static public bool CheckForWriteAccess( string path, int nbMaxMilliSecond = 0 )
         {
-            if( path == null ) throw new ArgumentNullException( "path" );
+            if( path == null ) throw new ArgumentNullException( nameof( path ) );
             DateTime start = DateTime.UtcNow;
             if( !File.Exists( path ) ) return true;
             try

@@ -83,102 +83,84 @@ namespace CK.Core
         }
 
         /// <summary>
-        /// Matches a JSON quoted string without setting an error if match fails.
+        /// Matches hexadecimal values: between 1 and 16 0-9, A-F or a-f digits.
         /// </summary>
         /// <param name="this">This <see cref="StringMatcher"/>.</param>
-        /// <param name="content">Extracted content.</param>
-        /// <param name="allowNull">True to allow 'null'.</param>
+        /// <param name="value">Resulting value on success.</param>
+        /// <param name="minDigit">Minimal digit count. Must be between 1 and 16 and smaller or equal to <paramref name="maxDigit"/>.</param>
+        /// <param name="maxDigit">Maximal digit count. Must be between 1 and 16.</param>
         /// <returns><c>true</c> when matched, <c>false</c> otherwise.</returns>
-        public static bool TryMatchJSONQuotedString( this StringMatcher @this, out string content, bool allowNull = false )
+        public static bool TryMatchHexNumber( this StringMatcher @this, out ulong value, int minDigit = 1, int maxDigit = 16 )
         {
-            content = null;
+            if( minDigit <= 0 ) throw new ArgumentException( "Must be at least 1 digit.", nameof( minDigit ) );
+            if( maxDigit > 16 ) throw new ArgumentException( "Must be at most 16 digits.", nameof( maxDigit ) );
+            if( minDigit > maxDigit ) throw new ArgumentException( "Must be smaller than maxDigit.", nameof( minDigit ) );
+            value = 0;
             if( @this.IsEnd ) return false;
             int i = @this.StartIndex;
-            if( @this.Text[i++] != '"' )
+            int len = @this.Length;
+            while( --maxDigit >= 0 && --len >= 0 )
             {
-                return allowNull && @this.TryMatchText( "null" );
+                int cN = @this.Head.HexDigitValue();
+                if( cN < 0 || cN > 15 ) break;
+                @this.UncheckedMove( 1 );
+                value <<= 4;
+                value |= (uint)cN;
             }
-            int len = @this.Length - 1;
-            StringBuilder b = null;
-            while( len >= 0 )
-            {
-                if( len == 0 ) return false;
-                char c = @this.Text[i++];
-                --len;
-                if( c == '"' ) break;
-                if( c == '\\' )
-                {
-                    if( len == 0 ) return false;
-                    if( b == null ) b = new StringBuilder( @this.Text, @this.StartIndex + 1, i - @this.StartIndex - 2, 1024 );
-                    switch( (c = @this.Text[i++]) )
-                    {
-                        case 'r': c = '\r'; break;
-                        case 'n': c = '\n'; break;
-                        case 'b': c = '\b'; break;
-                        case 't': c = '\t'; break;
-                        case 'f': c = '\f'; break;
-                        case 'u':
-                            {
-                                if( --len == 0 ) return false;
-                                int cN;
-                                cN = StringMatcherExtension.ReadHexDigit( @this.Text[i++] );
-                                if( cN < 0 || cN > 15 ) return false;
-                                int val = cN << 12;
-                                if( --len == 0 ) return false;
-                                cN = StringMatcherExtension.ReadHexDigit( @this.Text[i++] );
-                                if( cN < 0 || cN > 15 ) return false;
-                                val |= cN << 8;
-                                if( --len == 0 ) return false;
-                                cN = StringMatcherExtension.ReadHexDigit( @this.Text[i++] );
-                                if( cN < 0 || cN > 15 ) return false;
-                                val |= cN << 4;
-                                if( --len == 0 ) return false;
-                                cN = StringMatcherExtension.ReadHexDigit( @this.Text[i++] );
-                                if( cN < 0 || cN > 15 ) return false;
-                                val |= cN;
-                                c = (char)val;
-                                break;
-                            }
-                    }
-                }
-                if( b != null ) b.Append( c );
-            }
-            int lenS = i - @this.StartIndex;
-            if( b != null ) content = b.ToString();
-            else content = @this.Text.Substring( @this.StartIndex + 1, lenS - 2 );
-            return @this.UncheckedMove( lenS );
+            if( (@this.StartIndex - i) >= minDigit ) return true;
+            @this.UncheckedMove( i - @this.StartIndex );
+            return false;
         }
-
 
         /// <summary>
-        /// Matches a quoted string without extracting its content.
+        /// Matches Int32 values that must not start with '0' ('0' is valid but '0d', where d is any digit, is not).
+        /// A signed integer starts with a '-'. '-0' is valid but '-0d' (where d is any digit) is not.
+        /// If the value is too big for an Int32, it fails.
         /// </summary>
         /// <param name="this">This <see cref="StringMatcher"/>.</param>
-        /// <param name="allowNull">True to allow 'null'.</param>
+        /// <param name="i">The result integer. 0 on failure.</param>
+        /// <param name="minValue">Optional minimal value.</param>
+        /// <param name="maxValue">Optional maximal value.</param>
         /// <returns><c>true</c> when matched, <c>false</c> otherwise.</returns>
-        public static bool TryMatchJSONQuotedString( this StringMatcher @this, bool allowNull = false )
+        public static bool MatchInt32( this StringMatcher @this, out int i, int minValue = int.MinValue, int maxValue = int.MaxValue )
         {
-            if( @this.IsEnd ) return false;
-            int i = @this.StartIndex;
-            if( @this.Text[i++] != '"' )
+            i = 0;
+            int savedIndex = @this.StartIndex;
+            int value = 0;
+            bool signed;
+            if( @this.IsEnd ) return @this.SetError();
+            if( (signed = @this.TryMatchChar( '-' )) && @this.IsEnd ) return @this.BackwardAddError( savedIndex );
+
+            char c;
+            if( @this.TryMatchChar( '0' ) )
             {
-                return allowNull && @this.TryMatchText( "null" );
+                if( !@this.IsEnd && (c = @this.Head) >= '0' && c <= '9' ) return @this.BackwardAddError( savedIndex, "0...9" );
+                return @this.ClearError();
             }
-            int len = @this.Length - 1;
-            while( len >= 0 )
+            unchecked
             {
-                if( len == 0 ) return false;
-                char c = @this.Text[i++];
-                --len;
-                if( c == '"' ) break;
-                if( c == '\\' )
+                long iMax = Int32.MaxValue;
+                if( signed ) iMax++;
+                while( !@this.IsEnd && (c = @this.Head) >= '0' && c <= '9' )
                 {
-                    i++;
-                    --len;
+                    value = value * 10 + (c - '0');
+                    if( value > iMax ) break;
+                    @this.UncheckedMove( 1 );
                 }
             }
-            return @this.UncheckedMove( i - @this.StartIndex );
+            if( @this.StartIndex > savedIndex )
+            {
+                if( signed ) value = -value;
+                if( value < minValue || value > maxValue )
+                {
+                    return @this.BackwardAddError( savedIndex, String.Format( CultureInfo.InvariantCulture, "value between {0} and {1}", minValue, maxValue ) );
+                }
+                i = (int)value;
+                return @this.ClearError();
+            }
+            return @this.SetError();
         }
+
 
         /// <summary>
         /// The <see cref="Regex"/> that <see cref="TryMatchDoubleValue(StringMatcher)"/> uses to avoid
@@ -217,66 +199,8 @@ namespace CK.Core
                 value = 0;
                 return false;
             }
-            if( !double.TryParse( @this.Text.Substring( @this.StartIndex, m.Length ), NumberStyles.Float, CultureInfo.InvariantCulture, out value ) ) return false;
+            if( !double.TryParse( @this.Text.AsSpan( @this.StartIndex, m.Length ), NumberStyles.Float, CultureInfo.InvariantCulture, out value ) ) return false;
             return @this.UncheckedMove( m.Length );
-        }
-
-        /// <summary>
-        /// Matches a JSON terminal value: a "string", null, a number (double value), true or false.
-        /// This method ignores the actual value and does not set any error if match fails.
-        /// </summary>
-        /// <param name="this">This <see cref="StringMatcher"/>.</param>
-        /// <returns>True if a JSON value has been matched, false otherwise.</returns>
-        public static bool TryMatchJSONTerminalValue( this StringMatcher @this )
-        {
-            return @this.TryMatchJSONQuotedString( true )
-                    || @this.TryMatchDoubleValue()
-                    || @this.TryMatchText( "true" )
-                    || @this.TryMatchText( "false" );
-        }
-
-        /// <summary>
-        /// Obsolete: renamed to TryMatchJSONTerminalValue.
-        /// </summary>
-        /// <param name="this">This <see cref="StringMatcher"/>.</param>
-        /// <param name="value">The parsed value. Can be null.</param>
-        /// <returns>True if a JSON value has been matched, false otherwise.</returns>
-        [Obsolete( "Use TryMatchJSONTerminalValue(@this, out value) instead." )]
-        public static bool TryMatchJSONValue( this StringMatcher @this, out object value ) => TryMatchJSONTerminalValue( @this, out value );
-
-        /// <summary>
-        /// Matches a JSON terminal value: a "string", null, a number (double value), true or false.
-        /// No error is set if match fails.
-        /// </summary>
-        /// <param name="this">This <see cref="StringMatcher"/>.</param>
-        /// <param name="value">The parsed value. Can be null.</param>
-        /// <returns>True if a JSON value has been matched, false otherwise.</returns>
-        public static bool TryMatchJSONTerminalValue( this StringMatcher @this, out object value )
-        {
-            string s;
-            if( @this.TryMatchJSONQuotedString( out s, true ) )
-            {
-                value = s;
-                return true;
-            }
-            double d;
-            if( @this.TryMatchDoubleValue( out d ) )
-            {
-                value = d;
-                return true;
-            }
-            if( @this.TryMatchText( "true" ) )
-            {
-                value = true;
-                return true;
-            }
-            if( @this.TryMatchText( "false" ) )
-            {
-                value = false;
-                return true;
-            }
-            value = null;
-            return false;
         }
     }
 }

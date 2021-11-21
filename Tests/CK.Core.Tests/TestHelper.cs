@@ -78,7 +78,7 @@ namespace CK.Core.Tests
             _testFolder = Path.Combine( _solutionFolder, "Tests", "CK.Core.Tests", "TestDir" );
             Console.WriteLine( $"SolutionFolder is: {_solutionFolder}." );
             Console.WriteLine( $"TestFolder is: {_testFolder}." );
-            Console.WriteLine( $"Core path: {typeof( string ).GetTypeInfo().Assembly.CodeBase}." );
+            Console.WriteLine( $"Core path: {typeof( string ).GetTypeInfo().Assembly.Location}." );
             CleanupTestFolder();
         }
 

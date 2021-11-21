@@ -194,13 +194,13 @@ namespace CK.Core.Tests
 
             // External use of Util.BinarySearch on the exposed Store of the SortedArrayList.
             {
-                idx = Util.BinarySearch<Mammal, string>( a.Tab, 0, a.Count, "E", ( m, name ) => m.Name.CompareTo( name ) );
+                idx = Util.BinarySearch( a.Tab, 0, a.Count, "E", ( m, name ) => m.Name.CompareTo( name ) );
                 idx.Should().Be( 4 );
 
-                idx = Util.BinarySearch<Mammal, string>( a.Tab, 0, a.Count, "A", ( m, name ) => m.Name.CompareTo( name ) );
+                idx = Util.BinarySearch( a.Tab, 0, a.Count, "A", ( m, name ) => m.Name.CompareTo( name ) );
                 idx.Should().Be( 0 );
 
-                idx = Util.BinarySearch<Mammal, string>( a.Tab, 0, a.Count, "Z", ( m, name ) => m.Name.CompareTo( name ) );
+                idx = Util.BinarySearch( a.Tab, 0, a.Count, "Z", ( m, name ) => m.Name.CompareTo( name ) );
                 idx.Should().Be( ~6 );
             }
             // Use of the extended SortedArrayList.IndexOf().

@@ -114,7 +114,7 @@ namespace CK.Core
                 {
                     var first = _parts[0];
                     Debug.Assert( first.Length > 0 );
-                    if( first[first.Length - 1] == ':' )
+                    if( first[^1] == ':' )
                     {
                         // To avoid errors and to not be too lax:
                         //  - Length = 1 or 2: "://" or "C://" are invalid (but ":/" or "C:/" are fine).
@@ -162,12 +162,12 @@ namespace CK.Core
         static string BuildNonEmptyPath( string[] parts, NormalizedPathRootKind o )
         {
             var path = parts.Concatenate( DirectorySeparatorString );
-            switch( o )
+            return o switch
             {
-                case NormalizedPathRootKind.RootedBySeparator: return DirectorySeparatorChar + path;
-                case NormalizedPathRootKind.RootedByDoubleSeparator: return DoubleDirectorySeparatorString + path;
-                default: return path;
-            }
+                NormalizedPathRootKind.RootedBySeparator => DirectorySeparatorChar + path,
+                NormalizedPathRootKind.RootedByDoubleSeparator => DoubleDirectorySeparatorString + path,
+                _ => path,
+            };
         }
 
         NormalizedPath( string[]? parts, string path, NormalizedPathRootKind o )
@@ -274,25 +274,23 @@ namespace CK.Core
             Debug.Assert( _path != null );
             if( _option == NormalizedPathRootKind.None || _option == NormalizedPathRootKind.RootedByFirstPart )
             {
-                switch( kind )
+                return kind switch
                 {
-                    case NormalizedPathRootKind.None:
-                    case NormalizedPathRootKind.RootedByFirstPart: return new NormalizedPath( _parts, _path, kind );
-                    case NormalizedPathRootKind.RootedBySeparator: return new NormalizedPath( _parts, DirectorySeparatorChar + _path, kind );
-                    case NormalizedPathRootKind.RootedByDoubleSeparator: return new NormalizedPath( _parts, DoubleDirectorySeparatorString + _path, kind );
-                    default: throw new NotSupportedException();
-                }
+                    NormalizedPathRootKind.None or NormalizedPathRootKind.RootedByFirstPart => new NormalizedPath( _parts, _path, kind ),
+                    NormalizedPathRootKind.RootedBySeparator => new NormalizedPath( _parts, DirectorySeparatorChar + _path, kind ),
+                    NormalizedPathRootKind.RootedByDoubleSeparator => new NormalizedPath( _parts, DoubleDirectorySeparatorString + _path, kind ),
+                    _ => throw new NotSupportedException(),
+                };
             }
             if( _option == NormalizedPathRootKind.RootedBySeparator || _option == NormalizedPathRootKind.RootedByDoubleSeparator )
             {
-                switch( kind )
+                return kind switch
                 {
-                    case NormalizedPathRootKind.None:
-                    case NormalizedPathRootKind.RootedByFirstPart: return new NormalizedPath( _parts, _path.Substring( _option == NormalizedPathRootKind.RootedBySeparator ? 1 : 2 ), kind );
-                    case NormalizedPathRootKind.RootedBySeparator: return new NormalizedPath( _parts, _path.Substring( 1 ), kind );
-                    case NormalizedPathRootKind.RootedByDoubleSeparator: return new NormalizedPath( _parts, DirectorySeparatorChar + _path, kind );
-                    default: throw new NotSupportedException();
-                }
+                    NormalizedPathRootKind.None or NormalizedPathRootKind.RootedByFirstPart => new NormalizedPath( _parts, _path.Substring( _option == NormalizedPathRootKind.RootedBySeparator ? 1 : 2 ), kind ),
+                    NormalizedPathRootKind.RootedBySeparator => new NormalizedPath( _parts, _path.Substring( 1 ), kind ),
+                    NormalizedPathRootKind.RootedByDoubleSeparator => new NormalizedPath( _parts, DirectorySeparatorChar + _path, kind ),
+                    _ => throw new NotSupportedException(),
+                };
             }
             Debug.Assert( _option == NormalizedPathRootKind.RootedByURIScheme );
             return RemoveFirstPart().With( kind );
@@ -448,7 +446,7 @@ namespace CK.Core
         /// <summary>
         /// Gets the last part of this path or the empty string if <see cref="IsEmptyPath"/> is true.
         /// </summary>
-        public string LastPart => _parts?[_parts.Length - 1] ?? String.Empty;
+        public string LastPart => _parts?[^1] ?? String.Empty;
 
         /// <summary>
         /// Gets the first part of this path or the empty string if <see cref="IsEmptyPath"/> is true.
@@ -493,19 +491,19 @@ namespace CK.Core
             if( count <= 0 )
             {
                 if( count == 0 ) return this;
-                throw new ArgumentOutOfRangeException();
+                throw new ArgumentOutOfRangeException( nameof( count ) );
             }
-            if( _parts == null ) throw new ArgumentOutOfRangeException();
+            if( _parts == null ) throw new ArgumentOutOfRangeException( nameof( count ) );
             if( count >= _parts.Length )
             {
                 if( count == _parts.Length ) return new NormalizedPath( _option );
-                throw new ArgumentOutOfRangeException();
+                throw new ArgumentOutOfRangeException( nameof( count ) );
             }
             Debug.Assert( _parts != null && _path != null );
             var parts = new string[_parts.Length - count];
             Array.Copy( _parts, parts, parts.Length );
-            int len = _parts[_parts.Length - 1].Length + count;
-            while( count > 1 ) len += _parts[_parts.Length - count--].Length;
+            int len = _parts[^1].Length + count;
+            while( count > 1 ) len += _parts[^(count--)].Length;
             return new NormalizedPath( parts, _path.Substring( 0, _path.Length - len ), _option );
         }
 
@@ -521,17 +519,17 @@ namespace CK.Core
             if( count <= 0 )
             {
                 if( count == 0 ) return this;
-                throw new ArgumentOutOfRangeException();
+                throw new ArgumentOutOfRangeException( nameof( count ) );
             }
             if( _parts == null )
             {
                 if( count == 0 ) return this;
-                throw new ArgumentOutOfRangeException();
+                throw new ArgumentOutOfRangeException( nameof( count ) );
             }
             if( count >= _parts.Length )
             {
                 if( count == _parts.Length ) return new NormalizedPath( _option );
-                throw new ArgumentOutOfRangeException();
+                throw new ArgumentOutOfRangeException( nameof( count ) );
             }
             var parts = new string[_parts.Length - count];
             Array.Copy( _parts, count, parts, 0, parts.Length );
@@ -549,7 +547,7 @@ namespace CK.Core
                     p = DirectorySeparatorChar + _path.Substring( len + 1 );
                     break;
                 case NormalizedPathRootKind.RootedByDoubleSeparator:
-                    p = DoubleDirectorySeparatorString + _path.Substring( len + 2 );
+                    p = string.Concat( DoubleDirectorySeparatorString, _path.AsSpan( len + 2 ) );
                     break;
                 case NormalizedPathRootKind.RootedByURIScheme:
                 case NormalizedPathRootKind.RootedByFirstPart:
@@ -580,7 +578,7 @@ namespace CK.Core
         public NormalizedPath RemoveParts( int startIndex, int count )
         {
             int to = startIndex + count;
-            if( _parts == null || startIndex < 0 || startIndex >= _parts.Length || to > _parts.Length ) throw new ArgumentOutOfRangeException();
+            if( _parts == null || startIndex < 0 || startIndex >= _parts.Length || to > _parts.Length ) throw new ArgumentOutOfRangeException( nameof( startIndex ) );
             if( count == 0 ) return this;
             if( startIndex == 0 ) return RemoveFirstPart( count );
             int nb = _parts.Length - count;
@@ -626,7 +624,7 @@ namespace CK.Core
         /// </param>
         /// <returns>True if this path starts with the other one.</returns>
         public bool StartsWith( string other, bool strict = false ) => IsEmptyPath
-                                                                        ? (strict ? false : other == null || other.Length == 0)
+                                                                        ? (!strict && (other == null || other.Length == 0))
                                                                         : (other == null || other.Length == 0)
                                                                             ? !strict
                                                                             : (_path!.Length > other.Length || (!strict && _path.Length == other.Length))
@@ -645,7 +643,7 @@ namespace CK.Core
                                                             && !IsEmptyPath
                                                             && other._parts!.Length <= _parts!.Length
                                                             && (!strict || other._parts.Length < _parts.Length)
-                                                            && StringComparer.Ordinal.Equals( other.FirstPart, _parts[_parts.Length - other._parts.Length] )
+                                                            && StringComparer.Ordinal.Equals( other.FirstPart, _parts[^other._parts.Length] )
                                                             && _path!.EndsWith( other._path!, StringComparison.Ordinal ));
 
         /// <summary>
@@ -658,7 +656,7 @@ namespace CK.Core
         /// </param>
         /// <returns>True if this path ends with the other one.</returns>
         public bool EndsWith( string other, bool strict = false ) => IsEmptyPath
-                                                                        ? (strict ? false : other == null || other.Length == 0)
+                                                                        ? (!strict && (other == null || other.Length == 0))
                                                                         : (other == null || other.Length == 0)
                                                                             ? !strict
                                                                             : (_path!.Length > other.Length || (!strict && _path.Length == other.Length))

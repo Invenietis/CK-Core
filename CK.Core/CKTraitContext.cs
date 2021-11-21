@@ -30,7 +30,7 @@ namespace CK.Core
 
         CKTraitContext( string name, char separator, bool shared, ICKBinaryReader? r )
         {
-            if( String.IsNullOrWhiteSpace( name ) ) throw new ArgumentException( Core.Impl.CoreResources.ArgumentMustNotBeNullOrWhiteSpace, "uniqueName" );
+            if( String.IsNullOrWhiteSpace( name ) ) throw new ArgumentException( Core.Impl.CoreResources.ArgumentMustNotBeNullOrWhiteSpace, nameof( name ) );
             Name = name.Normalize();
             Separator = separator;
             if( !shared ) Monitor.Enter( _basicLock );
