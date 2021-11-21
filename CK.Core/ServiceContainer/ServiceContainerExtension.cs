@@ -13,15 +13,31 @@ namespace CK.Core
     {
         /// <summary>
         /// Strongly typed version of <see cref="IServiceProvider.GetService"/>.
+        /// Unfortunately there is no way (as of today) to condition the return nullability to the <paramref name="throwOnNull"/> value:
+        /// this declares that returned object is not null even if it can be null when throwOnNull is false.
         /// </summary>
         /// <param name="this">This service provider.</param>
         /// <param name="throwOnNull">True to throw an exception if the service can not be provided (otherwise null is returned).</param>
         /// <returns>A service object of the required type or null if not found and <paramref name="throwOnNull"/> is false.</returns>
         public static T GetService<T>( this IServiceProvider @this, bool throwOnNull )
         {
-            T s = (T)@this.GetService( typeof( T ) );
+            T? s = (T?)@this.GetService( typeof( T ) );
             if( throwOnNull && s == null ) ThrowUnregistered<T>();
-            return s;
+            return s!;
+        }
+
+        /// <summary>
+        /// Strongly typed version of <see cref="IServiceProvider.GetService"/>.
+        /// </summary>
+        /// <param name="this">This service provider.</param>
+        /// <param name="service">The service if it can be resolved.</param>
+        /// <param name="throwOnNull">True to throw an exception if the service can not be provided (otherwise null is returned).</param>
+        /// <returns>A service object of the required type or null if not found and <paramref name="throwOnNull"/> is false.</returns>
+        public static bool TryGetService<T>( this IServiceProvider @this, [NotNullWhen(true)]out T? service, bool throwOnNull )
+        {
+            service = (T?)@this.GetService( typeof( T ) );
+            if( throwOnNull && service == null ) ThrowUnregistered<T>();
+            return service != null;
         }
 
         [DoesNotReturn]
