@@ -21,7 +21,7 @@ namespace CK.Core
         /// <param name="items">Multiple items to add. Can not be null.</param>
         public static void AddRange<T>( this ICollection<T> @this, IEnumerable<T> items )
         {
-            if( items == null ) throw new ArgumentNullException( "items" );
+            if( items == null ) throw new ArgumentNullException( nameof( items ) );
             foreach( var i in items ) @this.Add( i );
         }
 
@@ -72,7 +72,7 @@ namespace CK.Core
 
             public bool Equals( IReadOnlyCollection<T>? other ) => other == _values;
 
-            public override bool Equals( [NotNullWhen( true )] object? obj ) => obj == _values || (obj is ReadOnlyCollectionWrapper<T> w ? w._values == _values : false);
+            public override bool Equals( [NotNullWhen( true )] object? obj ) => obj == _values || (obj is ReadOnlyCollectionWrapper<T> w && w._values == _values);
 
             public override int GetHashCode() => _values.GetHashCode();
 

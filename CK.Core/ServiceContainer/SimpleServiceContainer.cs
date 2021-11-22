@@ -96,7 +96,7 @@ namespace CK.Core
         /// <returns>This object to enable fluent syntax.</returns>
         public ISimpleServiceContainer Add( Type serviceType, object serviceInstance, Action<Object>? onRemove = null )
         {
-            if( ReferenceEquals( serviceType, null ) ) throw new ArgumentNullException( nameof( serviceType ) );
+            if( serviceType is null ) throw new ArgumentNullException( nameof( serviceType ) );
             if( serviceInstance == null ) throw new ArgumentNullException( nameof( serviceInstance ) );
             if( GetDirectService( serviceType ) != null ) throw new Exception( String.Format( CoreResources.ServiceAlreadyDirectlySupported, serviceType.FullName ) );
             if( !serviceType.IsAssignableFrom( serviceInstance.GetType() ) ) throw new Exception( String.Format( CoreResources.ServiceImplTypeMismatch, serviceType.FullName, serviceInstance.GetType().FullName ) );
@@ -119,7 +119,7 @@ namespace CK.Core
         /// <returns>This object to enable fluent syntax.</returns>
         public ISimpleServiceContainer AddDisabled( Type serviceType )
         {
-            if( ReferenceEquals( serviceType, null ) ) throw new ArgumentNullException( nameof( serviceType ) );
+            if( serviceType is null ) throw new ArgumentNullException( nameof( serviceType ) );
             if( GetDirectService( serviceType ) != null ) throw new Exception( String.Format( CoreResources.DirectServicesCanNotBeDisabled, serviceType.FullName ) );
             DoAdd( serviceType, new ServiceEntry() );
             return this;
@@ -138,14 +138,13 @@ namespace CK.Core
         /// <returns>This object to enable fluent syntax.</returns>
         public ISimpleServiceContainer Remove( Type serviceType, bool autoCallDispose = true )
         {
-            ServiceEntry e;
-            if( _services.TryGetValue( serviceType, out e ) )
+            if( _services.TryGetValue( serviceType, out ServiceEntry e ) )
             {
                 _services.Remove( serviceType );
                 if( e.Instance != null )
                 {
                     e.OnRemove?.Invoke( e.Instance );
-                    if( e.Instance is IDisposable d ) d.Dispose(); 
+                    if( e.Instance is IDisposable d ) d.Dispose();
                 }
             }
             return this;
@@ -161,7 +160,7 @@ namespace CK.Core
             Type[] entries = new Type[ _services.Count ];
             _services.Keys.CopyTo( entries, 0 );
 
-            for (int i = 0 ; i < entries.Count() ; i++)
+            for (int i = 0 ; i < entries.Length ; i++)
             {
                 Remove( entries[i] );
             }
@@ -176,7 +175,7 @@ namespace CK.Core
         /// <returns>Built-in service, registered service, service from <see cref="BaseProvider"/> or null.</returns>
         public object? GetService( Type serviceType )
         {
-            if( ReferenceEquals( serviceType, null ) ) throw new ArgumentNullException( "serviceType" );
+            if( serviceType is null ) throw new ArgumentNullException( nameof( serviceType ) );
             object? result = GetDirectService( serviceType );
             if( result == null )
             {
@@ -253,7 +252,7 @@ namespace CK.Core
         /// </summary>
         void DoAdd( Type s, ServiceEntry e )
         {
-            Debug.Assert( !ReferenceEquals( s, null ) );
+            Debug.Assert( s is not null );
             try
             {
                 _services.Add( s, e );

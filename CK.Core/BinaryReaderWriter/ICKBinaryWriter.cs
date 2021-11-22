@@ -57,6 +57,12 @@ namespace CK.Core
         void Write( string value );
 
         /// <summary>
+        /// Writes a two-byte floating-point value.
+        /// </summary>
+        /// <param name="value">The two-byte floating-point value to write.</param>
+        void Write( Half value );
+
+        /// <summary>
         /// Writes a four-byte floating-point value to the current stream and advances the
         /// stream position by four bytes.
         /// </summary>
@@ -129,6 +135,20 @@ namespace CK.Core
         /// </summary>
         /// <param name="buffer">A byte array containing the data to write. Must not be null.</param>
         void Write( byte[] buffer );
+
+        /// <summary>
+        /// Writes a span of bytes to the current stream.
+        /// </summary>
+        /// <param name="buffer">The span of bytes to write.</param>
+        void Write( ReadOnlySpan<byte> buffer );
+
+        /// <summary>
+        /// Writes a span of characters to the current stream, and advances the current position
+        /// of the stream in accordance with the Encoding used and perhaps the specific characters
+        /// being written to the stream.
+        /// </summary>
+        /// <param name="chars">A span of chars to write.</param>
+        void Write( ReadOnlySpan<char> chars );
 
         /// <summary>
         /// Writes an unsigned byte to the current stream and advances the stream position

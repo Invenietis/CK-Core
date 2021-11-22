@@ -239,6 +239,7 @@ namespace CK.Core
         /// <typeparam name="TItem">Type of the item to add: can be any specialization of T.</typeparam>
         /// <typeparam name="TArg">Type of the argument provided to factory and tester functions.</typeparam>
         /// <param name="items">Reference (address) of the array.</param>
+        /// <param name="arg">Argument provided to tester and factory functions.</param>
         /// <param name="tester">Predicate that must be satisfied for at least one existing item.</param>
         /// <param name="factory">Factory that will be called if no existing item satisfies <paramref name="tester"/>. It will be called only once if needed.</param>
         /// <param name="prepend">True to insert the item at the head of the array (index 0) instead of at its end.</param>

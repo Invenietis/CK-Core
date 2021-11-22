@@ -120,7 +120,7 @@ namespace CK.Core.Tests
                    b.CopyTo(array, 2, 5).Should().Be(4);
                    array.SequenceEqual( new int[] { -1, 0, 1, 2, 3, 4, -1 } ).Should().BeTrue( "Sentinel is not changed: there is only 4 items to copy." );
 
-                   b.Invoking( sut => sut.CopyTo(array, 2, 6)).Should().Throw<IndexOutOfRangeException>( "Even if the items fit, there must be an exception." );
+                   b.Invoking( sut => sut.CopyTo(array, 2, 6)).Should().Throw<ArgumentOutOfRangeException>( "Even if the items fit, there must be an exception." );
 
                    b.Truncate(1);
                    b.Peek().Should().Be(4);
@@ -228,15 +228,15 @@ namespace CK.Core.Tests
             //ExceptionTest
             f.Invoking( sut => sut.Capacity = -1 ).Should().Throw<ArgumentException>();
             f.Invoking( sut => new FIFOBuffer<int>( -1 ) ).Should().Throw<ArgumentException>();
-            f.Invoking( sut => sut.CopyTo( new int[2], 0, -1 ) ).Should().Throw<IndexOutOfRangeException>();
+            f.Invoking( sut => sut.CopyTo( new int[2], 0, -1 ) ).Should().Throw<ArgumentOutOfRangeException>();
         }
 
         [Test]
         public void FIFO_supports_removeAt()
         {
             FIFOBuffer<int> f = new FIFOBuffer<int>(0);
-            f.Invoking( sut => sut.RemoveAt(0)).Should().Throw<IndexOutOfRangeException>();
-            f.Invoking( sut => sut.RemoveAt(-1)).Should().Throw<IndexOutOfRangeException>();
+            f.Invoking( sut => sut.RemoveAt(0)).Should().Throw<ArgumentOutOfRangeException>();
+            f.Invoking( sut => sut.RemoveAt(-1)).Should().Throw<ArgumentOutOfRangeException>();
 
             f.Capacity = 1;
             f.Push(1);
@@ -317,13 +317,13 @@ namespace CK.Core.Tests
         public void FIFO_supports_Peek_and_PeekLast()
         {
             FIFOBuffer<int> f = new FIFOBuffer<int>(0);
-            f.Invoking( sut => Console.Write(sut[-1])).Should().Throw<IndexOutOfRangeException>();
-            f.Invoking( sut => Console.Write(sut[0])).Should().Throw<IndexOutOfRangeException>();
+            f.Invoking( sut => Console.Write(sut[-1])).Should().Throw<ArgumentOutOfRangeException>();
+            f.Invoking( sut => Console.Write(sut[0])).Should().Throw<ArgumentOutOfRangeException>();
             f.Invoking( sut => sut.Peek()).Should().Throw<InvalidOperationException>();
             f.Invoking( sut => sut.PeekLast()).Should().Throw<InvalidOperationException>();
 
             f.Push(5);
-            f.Invoking( sut => Console.Write(sut[0])).Should().Throw<IndexOutOfRangeException>();
+            f.Invoking( sut => Console.Write(sut[0])).Should().Throw<ArgumentOutOfRangeException>();
             f.Invoking( sut => sut.Peek()).Should().Throw<InvalidOperationException>();
             f.Invoking( sut => sut.PeekLast()).Should().Throw<InvalidOperationException>();
 
@@ -332,19 +332,19 @@ namespace CK.Core.Tests
             {
                 b.Push( 5 );
                 b[0].Should().Be( 5 );
-                b.Invoking( sut => Console.Write( sut[1] ) ).Should().Throw<IndexOutOfRangeException>();
+                b.Invoking( sut => Console.Write( sut[1] ) ).Should().Throw<ArgumentOutOfRangeException>();
                 b.Peek().Should().Be( 5 );
                 b.PeekLast().Should().Be( 5 );
                 b.Push( 6 );
                 b[0].Should().Be( 6, "Only one item in it." );
-                b.Invoking( sut => Console.Write( sut[1] ) ).Should().Throw<IndexOutOfRangeException>();
+                b.Invoking( sut => Console.Write( sut[1] ) ).Should().Throw<ArgumentOutOfRangeException>();
                 b.Peek().Should().Be( 6 );
                 b.PeekLast().Should().Be( 6 );
             } );
 
             f.Clear();
-            f.Invoking( sut => Console.Write(sut[0])).Should().Throw<IndexOutOfRangeException>();
-            f.Invoking( sut => Console.Write(sut[1])).Should().Throw<IndexOutOfRangeException>();
+            f.Invoking( sut => Console.Write(sut[0])).Should().Throw<ArgumentOutOfRangeException>();
+            f.Invoking( sut => Console.Write(sut[1])).Should().Throw<ArgumentOutOfRangeException>();
             f.Invoking( sut => sut.Peek()).Should().Throw<InvalidOperationException>();
             f.Invoking( sut => sut.PeekLast()).Should().Throw<InvalidOperationException>();
 
@@ -353,7 +353,7 @@ namespace CK.Core.Tests
            {
                b.Push(5);
                b[0].Should().Be(5);
-               b.Invoking( sut => Console.Write( sut[1] ) ).Should().Throw<IndexOutOfRangeException>();
+               b.Invoking( sut => Console.Write( sut[1] ) ).Should().Throw<ArgumentOutOfRangeException>();
                b.Peek().Should().Be(5);
                b.PeekLast().Should().Be(5);
                b.Push(6);
@@ -363,12 +363,12 @@ namespace CK.Core.Tests
                b.PeekLast().Should().Be(6);
                b.Pop();
                b[0].Should().Be(6);
-               b.Invoking( sut => Console.Write(sut[1])).Should().Throw<IndexOutOfRangeException>();
+               b.Invoking( sut => Console.Write(sut[1])).Should().Throw<ArgumentOutOfRangeException>();
                b.Peek().Should().Be(6);
                b.PeekLast().Should().Be(6);
                b.Pop();
-               b.Invoking( sut => Console.Write(sut[0])).Should().Throw<IndexOutOfRangeException>();
-               b.Invoking( sut => Console.Write(sut[1])).Should().Throw<IndexOutOfRangeException>();
+               b.Invoking( sut => Console.Write(sut[0])).Should().Throw<ArgumentOutOfRangeException>();
+               b.Invoking( sut => Console.Write(sut[1])).Should().Throw<ArgumentOutOfRangeException>();
                b.Invoking( sut => sut.Peek()).Should().Throw<InvalidOperationException>();
                b.Invoking( sut => sut.PeekLast()).Should().Throw<InvalidOperationException>();
 
@@ -446,54 +446,9 @@ namespace CK.Core.Tests
                b[2].Should().Be(15);
                b[3].Should().Be(16);
                b[4].Should().Be(17);
-               f.Invoking( sut => Console.Write( sut[5] ) ).Should().Throw<IndexOutOfRangeException>();
+               f.Invoking( sut => Console.Write( sut[5] ) ).Should().Throw<ArgumentOutOfRangeException>();
            });
         }
-
-        [Test]
-        public void FIFO_supports_Null_entries()
-        {
-            var c0 = CultureInfo.InvariantCulture;
-            var c1 = this;
-
-            var f = new FIFOBuffer<object>(2);
-            AssertEmpty(f);
-
-            // When calling with null, it is the IndexOf( T ) that is called
-            // since T is a reference type.
-            int iNull = f.IndexOf(null);
-            iNull.Should().BeLessThan(0);
-
-            f.Push(c0);
-            f.Contains(null).Should().BeFalse();
-            f.IndexOf(null).Should().BeLessThan(0);
-            f.PeekLast().Should().BeSameAs(c0);
-            AssertContains(f, c0);
-
-            f.Push(null);
-            f.Count.Should().Be(2);
-            f.IndexOf(null).Should().Be(1);
-            f.IndexOf(c0).Should().Be(0);
-            f.PeekLast().Should().BeNull();
-            AssertContains(f, c0, null);
-
-            f.Push(c1);
-            f.IndexOf(null).Should().Be(0);
-            f.IndexOf(c1).Should().Be(1);
-            f.Contains(c0).Should().BeFalse();
-            f.IndexOf(c0).Should().BeLessThan(0);
-            f.PeekLast().Should().BeSameAs(c1);
-            AssertContains(f, null, c1);
-
-            f.Push(null);
-            AssertContains(f, c1, null);
-            f.Push(null);
-            AssertContains(f, null, null);
-            f.PopLast().Should().BeNull();
-            f.PopLast().Should().BeNull();
-            f.Invoking( sut => sut.PopLast() ).Should().Throw<InvalidOperationException>();
-        }
-
         [Test]
         public void FIFO_with_one_and_only_one_Value_Type()
         {

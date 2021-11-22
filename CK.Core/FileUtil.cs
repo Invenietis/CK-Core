@@ -357,9 +357,9 @@ namespace CK.Core
 
         static string FindUniqueTimedFileOrFolder( string pathPrefix, string fileSuffix, DateTime time, int maxTryBeforeGuid, Func<string, bool> tester )
         {
-            if( pathPrefix == null ) throw new ArgumentNullException( "pathPrefix" );
-            if( fileSuffix == null ) throw new ArgumentNullException( nameof( fileSuffix ) );
-            if( maxTryBeforeGuid < 0 ) throw new ArgumentOutOfRangeException( nameof( maxTryBeforeGuid ) );
+            Guard.IsNotNull( pathPrefix, nameof( pathPrefix ) );
+            Guard.IsNotNull( fileSuffix, nameof( fileSuffix ) );
+            Guard.IsGreaterThanOrEqualTo( maxTryBeforeGuid, 0, nameof( maxTryBeforeGuid ) );
 
             DateTimeStamp timeStamp = new DateTimeStamp( time );
             int counter = 0;

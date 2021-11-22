@@ -62,7 +62,7 @@ namespace CK.Core
         {
             Debug.Assert( combinedTag.IndexOf( ctx.Separator ) > 0 && tags.Count > 1, "There is more than one tag in a Combined Tag." );
             Debug.Assert( tags.All( m => m.IsAtomic ), "Provided tags are all atomic." );
-            Debug.Assert( tags.GroupBy( m => m ).Count( g => g.Count() != 1 ) == 0, "No duplicate in atomic in tags." );
+            Debug.Assert( !tags.GroupBy( m => m ).Any( g => g.Count() != 1 ), "No duplicate in atomic in tags." );
             _context = ctx;
             _tag = combinedTag;
             _tags = tags;
