@@ -198,7 +198,7 @@ namespace CK.Core
                 {
                     len = _buffer.Length - rollIdx;
                     if( len > 0 ) Array.Copy( _buffer, rollIdx + 1, _buffer, rollIdx, len );
-                    _buffer[_buffer.Length - 1] = _buffer[0];
+                    _buffer[^1] = _buffer[0];
                     if( _next > 0 ) Array.Copy( _buffer, 1, _buffer, 0, _next-- );
                     else _next = _buffer.Length - 1;
                 }

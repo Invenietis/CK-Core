@@ -1,3 +1,4 @@
+using Microsoft.Toolkit.Diagnostics;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -135,6 +136,7 @@ namespace CK.Core
         /// <param name="r">The binary reader to use.</param>
         public static CKTraitContext Read( ICKBinaryReader r )
         {
+            Guard.IsNotNull( r, nameof( r ) );
             byte vS = r.ReadByte();
             bool shared = (vS & 128) != 0;
             bool withTags = (vS & 64) != 0;

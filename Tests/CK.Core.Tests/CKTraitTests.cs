@@ -51,13 +51,13 @@ namespace CK.Core.Tests
             var t1 = c1.FindOrCreate( "T1" );
             var t2 = c2.FindOrCreate( "T2" );
             t1.Should().NotBeSameAs( t2 );
-            t1.Invoking( sut => sut.Union( t2 ) ).Should().Throw<InvalidOperationException>();
-            t1.Invoking( sut => sut.Intersect( t2 ) ).Should().Throw<InvalidOperationException>();
-            t1.Invoking( sut => sut.Except( t2 ) ).Should().Throw<InvalidOperationException>();
-            t1.Invoking( sut => sut.SymmetricExcept( t2 ) ).Should().Throw<InvalidOperationException>();
+            t1.Invoking( sut => sut.Union( t2 ) ).Should().Throw<ArgumentException>();
+            t1.Invoking( sut => sut.Intersect( t2 ) ).Should().Throw<ArgumentException>();
+            t1.Invoking( sut => sut.Except( t2 ) ).Should().Throw<ArgumentException>();
+            t1.Invoking( sut => sut.SymmetricExcept( t2 ) ).Should().Throw<ArgumentException>();
 
-            t1.Invoking( sut => sut.Overlaps( t2 ) ).Should().Throw<InvalidOperationException>();
-            t1.Invoking( sut => sut.IsSupersetOf( t2 ) ).Should().Throw<InvalidOperationException>();
+            t1.Invoking( sut => sut.Overlaps( t2 ) ).Should().Throw<ArgumentException>();
+            t1.Invoking( sut => sut.IsSupersetOf( t2 ) ).Should().Throw<ArgumentException>();
 
             t1.Invoking( sut => sut.Union( null ) ).Should().Throw<ArgumentNullException>();
             t1.Invoking( sut => sut.Intersect( null ) ).Should().Throw<ArgumentNullException>();

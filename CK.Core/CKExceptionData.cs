@@ -5,6 +5,7 @@ using System.Text;
 using System.IO;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using Microsoft.Toolkit.Diagnostics;
 
 namespace CK.Core
 {
@@ -54,9 +55,9 @@ namespace CK.Core
                                 CKExceptionData[]? loaderExceptions,
                                 CKExceptionData[]? aggregatedExceptions )
         {
-            if( message == null ) throw new ArgumentNullException( nameof( message ) );
-            if( String.IsNullOrWhiteSpace( exceptionTypeName ) ) throw new ArgumentNullException( nameof( exceptionTypeName ) );
-            if( String.IsNullOrWhiteSpace( exceptionTypeAssemblyQualifiedName ) ) throw new ArgumentNullException( nameof( exceptionTypeAssemblyQualifiedName ) );
+            Guard.IsNotNull( message, nameof( message ) );
+            Guard.IsNotNullOrWhiteSpace( exceptionTypeName, nameof( exceptionTypeName ) );
+            Guard.IsNotNullOrWhiteSpace( exceptionTypeName, nameof( exceptionTypeName ) );
             if( aggregatedExceptions != null && aggregatedExceptions.Length == 0 ) throw new ArgumentException( Impl.CoreResources.AggregatedExceptionsMustContainAtLeastOne, nameof( aggregatedExceptions ) );
             if( innerException != null && aggregatedExceptions != null && aggregatedExceptions[0] != innerException ) throw new ArgumentException( Impl.CoreResources.InnerExceptionMustBeTheFirstAggregatedException );
             // No empty array for loaderExceptions: null or at least one inside.
@@ -93,7 +94,7 @@ namespace CK.Core
         /// <param name="version">Known version.</param>
         public CKExceptionData( CKBinaryReader r, bool streamIsCRLF, int version )
         {
-            if( r == null ) throw new ArgumentNullException( "r" );
+            Guard.IsNotNull( r, nameof( r ) );
             _message = r.ReadString( streamIsCRLF );
             _exceptionTypeName = r.ReadString();
             _exceptionTypeAQName = r.ReadString();
@@ -255,7 +256,7 @@ namespace CK.Core
 
         void WriteWithoutVersion( CKBinaryWriter w )
         {
-            if( w == null ) throw new ArgumentNullException( "w" );
+            Guard.IsNotNull( w, nameof( w ) );
             w.Write( _message );
             w.Write( _exceptionTypeName );
             w.Write( _exceptionTypeAQName );

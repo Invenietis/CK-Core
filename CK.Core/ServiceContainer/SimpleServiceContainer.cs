@@ -80,7 +80,7 @@ namespace CK.Core
         /// <returns>This object to enable fluent syntax.</returns>
         public ISimpleServiceContainer Add( Type serviceType, Func<Object> serviceInstance, Action<Object>? onRemove = null )
         {
-            if( ReferenceEquals( serviceType, null ) ) throw new ArgumentNullException( nameof( serviceType ) );
+            if( serviceType is null ) throw new ArgumentNullException( nameof( serviceType ) );
             if( serviceInstance == null ) throw new ArgumentNullException( nameof( serviceInstance ) );
             if( GetDirectService( serviceType ) != null ) throw new Exception( String.Format( CoreResources.ServiceAlreadyDirectlySupported, serviceType.FullName ) );
             DoAdd( serviceType, new ServiceEntry() { Instance = null, Creator = serviceInstance, OnRemove = onRemove } );
@@ -119,7 +119,7 @@ namespace CK.Core
         /// <returns>This object to enable fluent syntax.</returns>
         public ISimpleServiceContainer AddDisabled( Type serviceType )
         {
-            if( ReferenceEquals( serviceType, null ) ) throw new ArgumentNullException( "serviceType" );
+            if( ReferenceEquals( serviceType, null ) ) throw new ArgumentNullException( nameof( serviceType ) );
             if( GetDirectService( serviceType ) != null ) throw new Exception( String.Format( CoreResources.DirectServicesCanNotBeDisabled, serviceType.FullName ) );
             DoAdd( serviceType, new ServiceEntry() );
             return this;
@@ -180,15 +180,14 @@ namespace CK.Core
             object? result = GetDirectService( serviceType );
             if( result == null )
             {
-                ServiceEntry e;
-                if( _services.TryGetValue( serviceType, out e ) )
+                if( _services.TryGetValue( serviceType, out ServiceEntry e ) )
                 {
                     result = e.Instance;
                     if( result == null )
                     {
                         // Disabled service: returns null immediately.
                         if( e.Creator == null ) return null;
-                        
+
                         result = e.Creator();
                         if( result != null )
                         {

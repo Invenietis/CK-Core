@@ -1,3 +1,4 @@
+using Microsoft.Toolkit.Diagnostics;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -105,7 +106,7 @@ namespace CK.Core
         /// <returns>The result of the <see cref="Util.BinarySearch{T}(IReadOnlyList{T}, int, int, T, Comparison{T})"/> in the internal array.</returns>
         public virtual int IndexOf( T value )
         {
-            if( value == null ) throw new ArgumentNullException( nameof( value ) );
+            if( value is null ) ThrowHelper.ThrowArgumentNullException( nameof( value ) );
             return Util.BinarySearch<T>( _tab, 0, _count, value, Comparator );
         }
 

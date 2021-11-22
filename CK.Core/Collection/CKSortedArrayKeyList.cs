@@ -21,6 +21,7 @@
 *-----------------------------------------------------------------------------*/
 #endregion
 
+using Microsoft.Toolkit.Diagnostics;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -173,7 +174,7 @@ namespace CK.Core
         /// <returns>The index in array that, if found; otherwise, –1.</returns>
         public override int IndexOf( T value )
         {
-            if( value == null ) throw new ArgumentNullException();
+            if( value is null ) ThrowHelper.ThrowArgumentNullException( nameof( value ) );
             return Array.IndexOf<T>( Store, value, 0, Count );
         }
 

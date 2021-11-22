@@ -5,6 +5,7 @@ using System.Linq;
 using CK.Core;
 using System.Threading;
 using System.ComponentModel;
+using Microsoft.Toolkit.Diagnostics;
 
 #nullable enable
 
@@ -26,7 +27,7 @@ namespace CK.Core
     /// A CKTrait is easily serializable as its <see cref="ToString"/> representation and restored with <see cref="CKTraitContext.FindOrCreate(string)"/>
     /// on the appropriate context.
     /// </remarks>
-    public sealed class CKTrait : IComparable<CKTrait>, IEquatable<CKTrait>
+    public sealed class CKTrait : IComparable<CKTrait>
     {
         readonly CKTraitContext _context;
         readonly string _tag;
@@ -61,7 +62,7 @@ namespace CK.Core
         {
             Debug.Assert( combinedTag.IndexOf( ctx.Separator ) > 0 && tags.Count > 1, "There is more than one tag in a Combined Tag." );
             Debug.Assert( tags.All( m => m.IsAtomic ), "Provided tags are all atomic." );
-            Debug.Assert( tags.GroupBy( m => m ).Where( g => g.Count() != 1 ).Count() == 0, "No duplicate in atomic in tags." );
+            Debug.Assert( tags.GroupBy( m => m ).Count( g => g.Count() != 1 ) == 0, "No duplicate in atomic in tags." );
             _context = ctx;
             _tag = combinedTag;
             _tags = tags;
@@ -123,13 +124,6 @@ namespace CK.Core
         }
 
         /// <summary>
-        /// Checks equality of this tag with another one.
-        /// </summary>
-        /// <param name="other">The tag to compare to.</param>
-        /// <returns>True on equality.</returns>
-        public bool Equals( CKTrait? other ) => ReferenceEquals( this, other );
-
-        /// <summary>
         /// Checks if each and every atomic tags of <paramref name="other" /> exists in this tag.
         /// </summary>
         /// <param name="other">The tag(s) to find.</param>
@@ -140,8 +134,8 @@ namespace CK.Core
         /// </remarks>
         public bool IsSupersetOf( CKTrait other )
         {
-            if( other == null ) throw new ArgumentNullException( "other" );
-            if( other.Context != _context ) throw new InvalidOperationException( Impl.CoreResources.TagsMustBelongToTheSameContext );
+            Guard.IsNotNull( other, nameof( other ) );
+            Guard.IsReferenceEqualTo( _context, other.Context, nameof( Context ) );
             if( _tags.Count < other._tags.Count ) return false;
             bool foundAlien = false;
             Process( this, other,
@@ -163,8 +157,8 @@ namespace CK.Core
         /// </remarks>
         public bool Overlaps( CKTrait other )
         {
-            if( other == null ) throw new ArgumentNullException( "other" );
-            if( other.Context != _context ) throw new InvalidOperationException( Impl.CoreResources.TagsMustBelongToTheSameContext );
+            Guard.IsNotNull( other, nameof( other ) );
+            Guard.IsReferenceEqualTo( _context, other.Context, nameof( Context ) );
             bool found = false;
             Process( this, other,
                 null,
@@ -190,8 +184,8 @@ namespace CK.Core
         public CKTrait Intersect( CKTrait other )
         {
             if( ReferenceEquals( other, this ) ) return this;
-            if( other == null ) throw new ArgumentNullException( "other" );
-            if( other.Context != _context ) throw new InvalidOperationException( Impl.CoreResources.TagsMustBelongToTheSameContext );
+            Guard.IsNotNull( other, nameof( other ) );
+            Guard.IsReferenceEqualTo( _context, other.Context, nameof( Context ) );
             ListTag m = new ListTag();
             Process( this, other, null, null, m.TrueAdd );
             return _context.FindOrCreateFromAtomicSortedList( m );
@@ -199,15 +193,15 @@ namespace CK.Core
 
         /// <summary>
         /// Obtains a <see cref="CKTrait"/> that combines this one and 
-        /// the tzg(s) specified by the parameter. 
+        /// the tag(s) specified by the parameter. 
         /// </summary>
         /// <param name="other">Tag to add.</param>
         /// <returns>The resulting tag.</returns>
         public CKTrait Union( CKTrait other )
         {
             if( ReferenceEquals( other, this ) ) return this;
-            if( other == null ) throw new ArgumentNullException( nameof( other ) );
-            if( other.Context != _context ) throw new InvalidOperationException( Impl.CoreResources.TagsMustBelongToTheSameContext );
+            Guard.IsNotNull( other, nameof( other ) );
+            Guard.IsReferenceEqualTo( _context, other.Context, nameof( Context ) );
             ListTag m = new ListTag();
             Func<CKTrait,bool> add = m.TrueAdd;
             Process( this, other, add, add, add );
@@ -222,8 +216,8 @@ namespace CK.Core
         public CKTrait Except( CKTrait other )
         {
             if( ReferenceEquals( other, this ) ) return _context.EmptyTrait;
-            if( other == null ) throw new ArgumentNullException( nameof( other ) );
-            if( other.Context != _context ) throw new InvalidOperationException( Impl.CoreResources.TagsMustBelongToTheSameContext );
+            Guard.IsNotNull( other, nameof( other ) );
+            Guard.IsReferenceEqualTo( _context, other.Context, nameof( Context ) );
             ListTag m = new ListTag();
             Process( this, other, m.TrueAdd, null, null );
             return _context.FindOrCreateFromAtomicSortedList( m );
@@ -239,9 +233,9 @@ namespace CK.Core
         public CKTrait SymmetricExcept( CKTrait other )
         {
             if( ReferenceEquals( other, this ) ) return _context.EmptyTrait;
-            if( other == null ) throw new ArgumentNullException( nameof( other ) );
-            if( other.Context != _context ) throw new InvalidOperationException( Impl.CoreResources.TagsMustBelongToTheSameContext );
-            ListTag m = new ListTag();
+            Guard.IsNotNull( other, nameof( other ) );
+            Guard.IsReferenceEqualTo( _context, other.Context, nameof( Context ) );
+            var m = new ListTag();
             Func<CKTrait,bool> add = m.TrueAdd;
             Process( this, other, add, add, null );
             return _context.FindOrCreateFromAtomicSortedList( m );
@@ -255,7 +249,6 @@ namespace CK.Core
         /// <returns>Resulting tag.</returns>
         public CKTrait Apply( CKTrait other, SetOperation operation )
         {
-            if( other == null ) throw new ArgumentNullException( nameof( other ) );
             switch( operation )
             {
                 case SetOperation.Union: return Union( other );

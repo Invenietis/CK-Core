@@ -1,3 +1,4 @@
+using Microsoft.Toolkit.Diagnostics;
 using System;
 using System.Buffers;
 using System.Collections;
@@ -55,7 +56,7 @@ namespace CK.Core
             if( Path.DirectorySeparatorChar != '\\' && Path.AltDirectorySeparatorChar != '\\' )
                 path = path.Replace( '\\', Path.DirectorySeparatorChar );
             path = path.Replace( Path.AltDirectorySeparatorChar, Path.DirectorySeparatorChar );
-            if( ensureTrailingBackslash && path[path.Length - 1] != Path.DirectorySeparatorChar )
+            if( ensureTrailingBackslash && path[^1] != Path.DirectorySeparatorChar )
             {
                 path += Path.DirectorySeparatorChar;
             }
@@ -190,11 +191,12 @@ namespace CK.Core
         /// </param>
         /// <param name="options">Specifies additional file options.</param>
         /// <param name="maxTryBeforeGuid">
-        /// Maximum value for short hexadecimal uniquifier before using a base 64 guid suffix. Must greater than 0.</param>
+        /// Maximum value for short hexadecimal uniquifier before using a base 64 guid suffix. Must be greater than 0.</param>
         /// <returns>An opened <see cref="FileStream"/>.</returns>
         public static FileStream CreateAndOpenUniqueTimedFile( string pathPrefix, string fileSuffix, DateTime time, FileAccess access, FileShare share, int bufferSize, FileOptions options, int maxTryBeforeGuid = 512 )
         {
-            if( access == FileAccess.Read ) throw new ArgumentException( Impl.CoreResources.FileUtilNoReadOnlyWhenCreateFile, "access" );
+            //Guard.IsNotEqualTo( access, FileAccess.Read );
+            if( access == FileAccess.Read ) throw new ArgumentException( Impl.CoreResources.FileUtilNoReadOnlyWhenCreateFile, nameof( access ) );
             FileStream? f = null;
             FindUniqueTimedFileOrFolder( pathPrefix, fileSuffix, time, maxTryBeforeGuid, p => TryCreateNew( p, access, share, bufferSize, options, out f ) );
             return f!;
@@ -230,7 +232,7 @@ namespace CK.Core
         /// <returns>An opened <see cref="FileStream"/>.</returns>
         public static string MoveToUniqueTimedFile( string sourceFilePath, string pathPrefix, string fileSuffix, DateTime time, int maxTryBeforeGuid = 512 )
         {
-            if( sourceFilePath == null ) throw new ArgumentNullException( "sourceFilePath" );
+            if( sourceFilePath == null ) throw new ArgumentNullException( nameof( sourceFilePath ) );
             if( !File.Exists( sourceFilePath ) ) throw new FileNotFoundException( Impl.CoreResources.FileMustExist, sourceFilePath );
             return FindUniqueTimedFileOrFolder( pathPrefix, fileSuffix, time, maxTryBeforeGuid, p => TryMoveTo( sourceFilePath, p ) );
         }
@@ -356,8 +358,8 @@ namespace CK.Core
         static string FindUniqueTimedFileOrFolder( string pathPrefix, string fileSuffix, DateTime time, int maxTryBeforeGuid, Func<string, bool> tester )
         {
             if( pathPrefix == null ) throw new ArgumentNullException( "pathPrefix" );
-            if( fileSuffix == null ) throw new ArgumentNullException( "fileSuffix" );
-            if( maxTryBeforeGuid < 0 ) throw new ArgumentOutOfRangeException( "maxTryBeforeGuid" );
+            if( fileSuffix == null ) throw new ArgumentNullException( nameof( fileSuffix ) );
+            if( maxTryBeforeGuid < 0 ) throw new ArgumentOutOfRangeException( nameof( maxTryBeforeGuid ) );
 
             DateTimeStamp timeStamp = new DateTimeStamp( time );
             int counter = 0;
