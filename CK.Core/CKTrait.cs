@@ -6,6 +6,7 @@ using CK.Core;
 using System.Threading;
 using System.ComponentModel;
 using Microsoft.Toolkit.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 
 #nullable enable
 
@@ -178,6 +179,9 @@ namespace CK.Core
 
         /// <summary>
         /// Obtains a <see cref="CKTrait"/> that contains the atomic tags from both this tag and <paramref name="other"/>.
+        /// <para>
+        /// Binary operator &amp; can be used as well as the &amp;= assignment operator.
+        /// </para>
         /// </summary>
         /// <param name="other">Tag that must be kept.</param>
         /// <returns>The resulting tag.</returns>
@@ -194,6 +198,9 @@ namespace CK.Core
         /// <summary>
         /// Obtains a <see cref="CKTrait"/> that combines this one and 
         /// the tag(s) specified by the parameter. 
+        /// <para>
+        /// Binary operator <see cref="operator +(CKTrait?, CKTrait?)"/> or <see cref="operator |(CKTrait?, CKTrait?)"/> can be used as well as the += or |= assignment operator.
+        /// </para>
         /// </summary>
         /// <param name="other">Tag to add.</param>
         /// <returns>The resulting tag.</returns>
@@ -210,6 +217,9 @@ namespace CK.Core
 
         /// <summary>
         /// Obtains a <see cref="CKTrait"/> from which tag(s) specified by the parameter are removed.
+        /// <para>
+        /// Binary operator <see cref="operator -(CKTrait?, CKTrait?)"/> can be used as well as the -= assignment operator.
+        /// </para>
         /// </summary>
         /// <param name="other">Tag to remove.</param>
         /// <returns>The resulting tag.</returns>
@@ -227,6 +237,9 @@ namespace CK.Core
         /// Obtains a <see cref="CKTrait"/> where the atomic tags of <paramref name="other" /> are removed (resp. added) depending 
         /// on whether they exist (resp. do not exist) in this tag. This is like an Exclusive Or (XOR), this implements a "toggle"
         /// operation.
+        /// <para>
+        /// Binary operator <see cref="operator ^(CKTrait?, CKTrait?)"/> can be used as well as the ^= assignment operator.
+        /// </para>
         /// </summary>
         /// <param name="other">Tag to toggle.</param>
         /// <returns>The resulting tag.</returns>
@@ -306,6 +319,8 @@ namespace CK.Core
         /// <param name="t1">The first tag to combine.</param>
         /// <param name="t2">The second tag to combine.</param>
         /// <returns>The combined trait.</returns>
+        [return: NotNullIfNotNull( "t1" )]
+        [return: NotNullIfNotNull( "t2" )]
         public static CKTrait? operator +( CKTrait? t1, CKTrait? t2 ) => t1 == null ? t2 : (t2 == null ? t1 : t1.Union( t2 ));
 
         /// <summary>
@@ -315,6 +330,8 @@ namespace CK.Core
         /// <param name="t1">The first tag to combine.</param>
         /// <param name="t2">The second tag to combine.</param>
         /// <returns>The combined trait.</returns>
+        [return: NotNullIfNotNull( "t1" )]
+        [return: NotNullIfNotNull( "t2" )]
         public static CKTrait? operator |( CKTrait? t1, CKTrait? t2 ) => t1 == null ? t2 : (t2 == null ? t1 : t1.Union( t2 ));
 
         /// <summary>
@@ -323,6 +340,8 @@ namespace CK.Core
         /// <param name="t1">The first tag to combine.</param>
         /// <param name="t2">The second tag to combine.</param>
         /// <returns>The combined trait.</returns>
+        [return: NotNullIfNotNull( "t1" )]
+        [return: NotNullIfNotNull( "t2" )]
         public static CKTrait? operator -( CKTrait? t1, CKTrait? t2 ) => t1 == null ? t2 : (t2 == null ? t1 : t1.Except( t2 ));
 
         /// <summary>
@@ -331,6 +350,8 @@ namespace CK.Core
         /// <param name="t1">The first tag to combine.</param>
         /// <param name="t2">The second tag to combine.</param>
         /// <returns>The combined trait.</returns>
+        [return: NotNullIfNotNull( "t1" )]
+        [return: NotNullIfNotNull( "t2" )]
         public static CKTrait? operator &( CKTrait? t1, CKTrait? t2 ) => t1 == null ? t2 : (t2 == null ? t1 : t1.Intersect( t2 ));
 
         /// <summary>
@@ -339,6 +360,8 @@ namespace CK.Core
         /// <param name="t1">The first tag to combine.</param>
         /// <param name="t2">The second tag to combine.</param>
         /// <returns>The combined trait.</returns>
+        [return: NotNullIfNotNull( "t1" )]
+        [return: NotNullIfNotNull( "t2" )]
         public static CKTrait? operator ^( CKTrait? t1, CKTrait? t2 ) => t1 == null ? t2 : (t2 == null ? t1 : t1.SymmetricExcept( t2 ));
 
         /// <summary>
@@ -359,7 +382,7 @@ namespace CK.Core
         /// Toggle      1, 1, 0 = Toggle (SymmetricExcept) (keep mine, theirs, but reject commons) => /Intersect
         /// Union       1, 1, 1 = Add
         /// 
-        /// This shows that our 4 methods Intersect, Remove, Toggle and Add cover the interesting cases - others are either symetric or useless.
+        /// This shows that our 4 methods Intersect, Remove, Toggle and Add cover the interesting cases - others are either symmetric or useless.
         /// </remarks>
         static void Process( CKTrait left, CKTrait right, Func<CKTrait,bool>? onLeft, Func<CKTrait,bool>? onRight, Func<CKTrait,bool>? onBoth )
         {

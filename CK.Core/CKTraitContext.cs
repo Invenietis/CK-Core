@@ -25,6 +25,10 @@ namespace CK.Core
 
         readonly Regex _canonize2;
         readonly ConcurrentDictionary<string, CKTrait> _tags;
+        // We don't want to expose the concurrent dictionary content at any time with
+        // a CKTrait that will not be the final, unique, one. As msdn states: "AddOrUpdate is not atomic with regards to
+        // all other operations on the ConcurrentDictionary<TKey,TValue> class.": this could lead to duplicates to appear
+        // in the wild. We use a stronger lock (with double check) when adding new CKtrait.
         readonly object _creationLock;
         readonly string _separatorString;
         readonly int _independentIndex;
@@ -70,7 +74,7 @@ namespace CK.Core
                 _tags[String.Empty] = EmptyTrait;
             }
             EnumWithEmpty = new CKTrait[] { EmptyTrait };
-            _creationLock = new Object();
+            _creationLock = new object();
             _independentIndex = shared ? 0 : Interlocked.Increment( ref _nextIndependentIndex );
         }
 
