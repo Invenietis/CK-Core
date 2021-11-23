@@ -14,8 +14,8 @@ namespace CK.Core.Tests
 {
     static partial class TestHelper
     {
-        static string _testFolder;
-        static string _solutionFolder;
+        static string? _testFolder;
+        static string? _solutionFolder;
 
         static TestHelper()
         {
@@ -69,10 +69,11 @@ namespace CK.Core.Tests
             }
         }
 
+        [MemberNotNull( nameof( _solutionFolder ), nameof( _testFolder ) )]
         static void InitializePaths()
         {
             NormalizedPath path = AppContext.BaseDirectory;
-            var s = path.PathsToFirstPart( null, new[] { "CK-Core.sln" } ).FirstOrDefault( p => File.Exists( p ) );
+            var s = path.PathsToFirstPart( null!, new[] { "CK-Core.sln" } ).FirstOrDefault( p => File.Exists( p ) );
             if( s.IsEmptyPath ) throw new InvalidOperationException( $"Unable to find CK-Core.sln above '{AppContext.BaseDirectory}'." );
             _solutionFolder = s.RemoveLastPart();
             _testFolder = Path.Combine( _solutionFolder, "Tests", "CK.Core.Tests", "TestDir" );

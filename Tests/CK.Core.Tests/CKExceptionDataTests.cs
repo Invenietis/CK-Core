@@ -140,7 +140,7 @@ namespace CK.Core.Tests
 
         static AggregateException ThrowAggregatedException()
         {
-            AggregateException eAgg = null;
+            AggregateException? eAgg = null;
             try
             {
                 Parallel.For( 0, 50, i =>
@@ -154,7 +154,7 @@ namespace CK.Core.Tests
             {
                 eAgg = ex;
             }
-            return eAgg;
+            return eAgg!;
         }
 
         static Exception ThrowExceptionWithInner( bool loaderException = false )
@@ -183,10 +183,10 @@ namespace CK.Core.Tests
 
         static Exception ThrowLoaderException()
         {
-            Exception e = null;
+            Exception? e = null;
             try { Type.GetType( "A.Type, An.Unexisting.Assembly", true ); }
             catch( Exception ex ) { e = ex; }
-            return e;
+            return e!;
         }
 
     }

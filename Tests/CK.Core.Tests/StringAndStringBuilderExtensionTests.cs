@@ -9,9 +9,9 @@ namespace CK.Core.Tests
     public class StringAndStringBuilderExtensionTests
     {
         [Test]
-        public void concat_method_uses_StringBuilder_AppendStrings_inside()
+        public void concat_method_uses_String_Join_inside()
         {
-            var strings = new string[] { "A", "Hello", "B", "World", null, "End" };
+            var strings = new string[] { "A", "Hello", "B", "World", null!, "End" };
             var s = strings.Concatenate( "|+|" );
             s.Should().Be( "A|+|Hello|+|B|+|World|+||+|End" );
         }
@@ -19,7 +19,7 @@ namespace CK.Core.Tests
         [Test]
         public void StringBuilder_AppendStrings_method_does_not_skip_null_entries()
         {
-            var strings = new string[] { "A", "Hello", "B", "World", null, "End" };
+            var strings = new string[] { "A", "Hello", "B", "World", null!, "End" };
             var b = new StringBuilder();
             b.AppendStrings( strings, "|+|" );
             b.ToString().Should().Be( "A|+|Hello|+|B|+|World|+||+|End" );
@@ -44,7 +44,7 @@ namespace CK.Core.Tests
         public void appends_multiple_strings_silently_ignores_null_or_empty_string_to_repeat()
         {
             new StringBuilder().Append( "", 20 ).ToString().Should().BeEmpty();
-            new StringBuilder().Append( (string?)null, 20 ).ToString().Should().BeEmpty();
+            new StringBuilder().Append( (string?)null!, 20 ).ToString().Should().BeEmpty();
         }
 
         [TestCase( '0', 0 )]
@@ -82,7 +82,7 @@ namespace CK.Core.Tests
             }
             {
                 StringBuilder b = new StringBuilder();
-                string text = null;
+                string text = null!;
                 string t = b.AppendMultiLine( "|", text, true ).ToString();
                 t.Should().Be( @"|" );
             }
@@ -100,7 +100,7 @@ namespace CK.Core.Tests
             }
             {
                 StringBuilder b = new StringBuilder();
-                string text = null;
+                string text = null!;
                 string t = b.AppendMultiLine( "|", text, false ).ToString();
                 t.Should().Be( @"" );
             }
@@ -149,7 +149,7 @@ Second line.
 Last line.";
                 // Here, normalizing the source embedded string is to support 
                 // git clone with LF in files instead of CRLF. 
-                // Our (slow) AppendMultiLine normalizes the end of lines to Environment.NewLine.
+                // Our AppendMultiLine normalizes the end of lines to Environment.NewLine.
                 string t = b.AppendMultiLine( "|", text, true ).ToString();
                 t.Should().Be( @"|First line.
 |Second line.

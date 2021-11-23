@@ -10,26 +10,11 @@ namespace CK.Core.Collection.Tests
         IComparer<T> _comparer;
         int _count;
 
-        class ComparerAdapter : IComparer<T>
-        {
-            readonly Func<T, T, int> _comparator;
-
-            public ComparerAdapter( Func<T, T, int> comparator )
-            {
-                _comparator = comparator;
-            }
-
-            public int Compare( T x, T y )
-            {
-                return _comparator( x, y );
-            }
-        }
-
-        public OrderedArrayBestKeeper( int maxCount, Func<T, T, int> comparator = null )
+        public OrderedArrayBestKeeper( int maxCount, Comparison<T>? comparator )
         {
             if( maxCount < 0 ) throw new ArgumentException();
             if( comparator == null ) _comparer = Comparer<T>.Default;
-            else _comparer = new ComparerAdapter( comparator );
+            else _comparer = Comparer<T>.Create( comparator );
             _items = new T[ maxCount ];
         }
 

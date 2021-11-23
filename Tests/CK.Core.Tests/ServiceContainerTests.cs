@@ -77,11 +77,11 @@ namespace CK.Core.Tests
 
     public class DisposableThatReenterClearWhenDisposed : IDisposable
     {
-        public ISimpleServiceContainer ServiceContainer { get; set; }
+        public ISimpleServiceContainer? ServiceContainer { get; set; }
 
         public void Dispose()
         {
-            ServiceContainer.Clear();
+            ServiceContainer?.Clear();
         }
     }
 
@@ -219,10 +219,10 @@ namespace CK.Core.Tests
         }
 
         [ExcludeFromCodeCoverage]
-        static object JustAFunc() { return null; }
+        static object JustAFunc() { return null!; }
 
         [ExcludeFromCodeCoverage]
-        static T JustAFunc<T>() where T : class { return null; }
+        static T JustAFunc<T>() where T : class { return null!; }
 
         [Test]
         public void checking_null_arguments()
@@ -230,16 +230,16 @@ namespace CK.Core.Tests
             ISimpleServiceContainer container = new SimpleServiceContainer();
 
             //SimpleServiceContainer.Add( Type serviceType, object serviceInstance, Action<Object> onRemove = null )
-            container.Invoking( sut => sut.Add( null, new ProvidedClass( 5 ) ) ).Should().Throw<ArgumentNullException>();
-            container.Invoking( sut => sut.Add( typeof( ProvidedClass ), (object)null ) ).Should().Throw<ArgumentNullException>();
+            container.Invoking( sut => sut.Add( null!, new ProvidedClass( 5 ) ) ).Should().Throw<ArgumentNullException>();
+            container.Invoking( sut => sut.Add( typeof( ProvidedClass ), (object)null! ) ).Should().Throw<ArgumentNullException>();
 
             //SimpleServiceContainer.Add( Type serviceType, Func<Object> serviceInstance, Action<Object> onRemove = null )
-            container.Invoking( sut => sut.Add( null, JustAFunc ) ).Should().Throw<ArgumentNullException>();
-            container.Invoking( sut => sut.Add( typeof( ProvidedClass ), (Func<Object>)null ) ).Should().Throw<ArgumentNullException>();
+            container.Invoking( sut => sut.Add( null!, JustAFunc ) ).Should().Throw<ArgumentNullException>();
+            container.Invoking( sut => sut.Add( typeof( ProvidedClass ), (Func<Object>)null! ) ).Should().Throw<ArgumentNullException>();
 
-            container.Invoking( sut => sut.AddDisabled( null ) ).Should().Throw<ArgumentNullException>();
-            container.Invoking( sut => sut.GetService( null ) ).Should().Throw<ArgumentNullException>();
-            container.Invoking( sut => sut.Add<ProvidedClass>( JustAFunc<ProvidedClass>, null ) ).Should().Throw<ArgumentNullException>();
+            container.Invoking( sut => sut.AddDisabled( null! ) ).Should().Throw<ArgumentNullException>();
+            container.Invoking( sut => sut.GetService( null! ) ).Should().Throw<ArgumentNullException>();
+            container.Invoking( sut => sut.Add<ProvidedClass>( JustAFunc<ProvidedClass>, null! ) ).Should().Throw<ArgumentNullException>();
         }
 
         [Test]
@@ -273,7 +273,7 @@ namespace CK.Core.Tests
         /// <param name="container">the ISimpleServiceContainer implementation to test</param>
         public void IServiceContainerConformanceTest( ISimpleServiceContainer container )
         {
-            IServiceContainerConformanceTest<object>( container, null, null );
+            IServiceContainerConformanceTest<object>( container, null!, null! );
         }
 
         /// <summary>

@@ -77,15 +77,16 @@ namespace CK.Core.Tests
         [TestCase( "f730a999523afe0a2be07bf4c731d3d1f72fb3dff730a999523afe0a2be07bf4c731d3d1f72fb3dff730a999523afe0a2be07bf4c731d3d1f72fb3df01234567-----", true )]
         public void SHA512_invalid_parse( string s, bool success )
         {
-            SHA512Value v;
-            var r = SHA512Value.TryParse( s.AsSpan(), out _ ).Should().Be( success );
+            SHA512Value.TryParse( s.AsSpan(), out _ ).Should().Be( success );
         }
 
 
         [Test]
         public async Task SHA512_from_file_async()
         {
+#pragma warning disable VSTHRD103 // Call async methods when in an async method
             var sha = SHA512Value.ComputeFileHash( ThisFile );
+#pragma warning restore VSTHRD103 // Call async methods when in an async method
             var sha2 = await SHA512Value.ComputeFileHashAsync( ThisFile );
             sha2.Should().Be( sha );
             using( var compressedPath = new TemporaryFile() )
@@ -93,7 +94,7 @@ namespace CK.Core.Tests
                 using( var input = new FileStream( ThisFile, FileMode.Open, FileAccess.Read, FileShare.Read, 4096, FileOptions.SequentialScan | FileOptions.Asynchronous ) )
                 using( var compressed = new FileStream( compressedPath.Path, FileMode.Truncate, FileAccess.Write, FileShare.None, 4096, FileOptions.SequentialScan | FileOptions.Asynchronous ) )
                 {
-                    var writer = GetCompressShellAsync( w => input.CopyToAsync( w ) );
+                    var writer = GetCompressShell( w => input.CopyToAsync( w ) );
                     await writer( compressed );
                 }
                 var shaCompressed = await SHA512Value.ComputeFileHashAsync( compressedPath.Path );
@@ -103,14 +104,14 @@ namespace CK.Core.Tests
             }
         }
 
-        static Func<Stream, Task> GetCompressShellAsync( Func<Stream, Task> writer )
+        static Func<Stream, Task> GetCompressShell( Func<Stream, Task> writer )
         {
             return async w =>
             {
                 using( var compressor = new GZipStream( w, CompressionLevel.Optimal, true ) )
                 {
                     await writer( compressor );
-                    compressor.Flush();
+                    await compressor.FlushAsync();
                 }
             };
         }

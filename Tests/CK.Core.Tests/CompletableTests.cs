@@ -78,7 +78,7 @@ namespace CK.Core.Tests
             }
         }
 
-        static async Task CommandExecute( Command c )
+        static async Task CommandExecuteAsync( Command c )
         {
             await Task.Delay( c.ExecutionTime ).ConfigureAwait( false );
             switch( c.RunAction )
@@ -97,7 +97,7 @@ namespace CK.Core.Tests
             var commands = Enumerable.Range( 0, nb ).Select( _ => new Command( random ) ).ToArray();
             foreach( var c in commands )
             {
-                _ = CommandExecute( c );
+                _ = CommandExecuteAsync( c );
             }
             foreach( var c in commands )
             {
@@ -207,7 +207,7 @@ namespace CK.Core.Tests
             }
         }
 
-        static async Task CommandExecute( CommandWithResult c )
+        static async Task CommandExecuteAsync( CommandWithResult c )
         {
             await Task.Delay( c.ExecutionTime ).ConfigureAwait( false );
             switch( c.RunAction )
@@ -226,7 +226,7 @@ namespace CK.Core.Tests
             var commands = Enumerable.Range( 0, nb ).Select( _ => new CommandWithResult( random ) ).ToArray();
             foreach( var c in commands )
             {
-                _ = CommandExecute( c );
+                _ = CommandExecuteAsync( c );
             }
             foreach( var c in commands )
             {

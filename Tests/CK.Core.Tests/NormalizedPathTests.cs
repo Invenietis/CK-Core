@@ -368,7 +368,7 @@ namespace CK.Core.Tests
         public void PathsToFirstPart_with_null_subPaths_at_work( string root, string parts, string result )
         {
             var nParts = parts.Split( ',' ).Where( x => x.Length > 0 );
-            new NormalizedPath( root ).PathsToFirstPart( null, nParts ).Select( a => a.ToString() )
+            new NormalizedPath( root ).PathsToFirstPart( null!, nParts ).Select( a => a.ToString() )
                     .Should().BeEquivalentTo( NormalizeExpectedResultAsStrings( result ), o => o.WithStrictOrdering() );
         }
 
