@@ -9,7 +9,7 @@ namespace CK.Core
     /// A date and time stamp encapsulates a <see cref="TimeUtc"/> (<see cref="DateTime"/> guaranteed to be in Utc) and a <see cref="Uniquifier"/>.
     /// </summary>
     [Serializable]
-    public readonly struct DateTimeStamp : IComparable<DateTimeStamp>, IEquatable<DateTimeStamp>, ICKSimpleBinarySerializable
+    public readonly struct DateTimeStamp : IComparable<DateTimeStamp>, IEquatable<DateTimeStamp>, ICKSimpleBinarySerializable, ISpanFormattable
     {
         /// <summary>
         /// Represents the smallest possible value for a DateTimeStamp object.         
@@ -213,6 +213,47 @@ namespace CK.Core
                     ? String.Format( FormatWhenUniquifier, TimeUtc, Uniquifier )
                     : TimeUtc.ToString( FileUtil.FileNameUniqueTimeUtcFormat, CultureInfo.InvariantCulture );
         }
+
+        /// <summary>
+        /// Tries to format this DatetimeStamp into the provided span of characters.
+        /// The destination must be at least between 27 and 32 long.
+        /// </summary>
+        /// <param name="destination">
+        /// When this method returns, this instance's value formatted as a span of characters.
+        /// </param>
+        /// <param name="charsWritten">When this method returns, the number of characters that were written in destination.</param>
+        /// <param name="format">Ignored: no custom format exists.</param>
+        /// <param name="provider">Ignored: the format is culture invariant.</param>
+        /// <returns>True if the formatting was successful; otherwise, False.</returns>
+        public bool TryFormat( Span<char> destination, out int charsWritten, ReadOnlySpan<char> format = default, IFormatProvider? provider = null )
+        {
+            Debug.Assert( FileUtil.FileNameUniqueTimeUtcFormat.Replace( "\\", "" ).Length == 27 );
+            if( Uniquifier != 0 )
+            {
+                int len = 30 + (Uniquifier >= 100 ? 2 : Uniquifier < 10 ? 0 : 1);
+                if( destination.Length < len )
+                {
+                    charsWritten = 0;
+                    return false;
+                }
+                TimeUtc.TryFormat( destination, out charsWritten, FileUtil.FileNameUniqueTimeUtcFormat.AsSpan(), null );
+                destination = destination.Slice( charsWritten );
+                destination[0] = '(';
+                destination = destination.Slice( 1 );
+                Uniquifier.TryFormat( destination, out charsWritten, ReadOnlySpan<char>.Empty, null );
+                destination[charsWritten] = ')';
+                charsWritten = len;
+                return true;
+            }
+            if( destination.Length < 27 )
+            {
+                charsWritten = 0;
+                return false;
+            }
+            return TimeUtc.TryFormat( destination, out charsWritten, FileUtil.FileNameUniqueTimeUtcFormat.AsSpan(), null );
+        }
+
+        string IFormattable.ToString( string? format, IFormatProvider? formatProvider ) => ToString();
 
         /// <summary>
         /// Checks equality.
