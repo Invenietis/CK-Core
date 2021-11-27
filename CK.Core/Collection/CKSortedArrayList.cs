@@ -446,14 +446,10 @@ namespace CK.Core
             if( index < 0 || nbToCopy < 0 ) throw new IndexOutOfRangeException();
             if( nbToCopy > 0 ) Array.Copy( _tab, index + 1, _tab, index, nbToCopy );
             _count = newCount;
-#if NETSTANDARD2_1
             if( System.Runtime.CompilerServices.RuntimeHelpers.IsReferenceOrContainsReferences<T>() )
             {
                 _tab[newCount] = default!;
             }
-#else
-            _tab[newCount] = default!;
-#endif
             _version += 2;
         }
 
