@@ -1,3 +1,4 @@
+using Microsoft.Toolkit.Diagnostics;
 using System;
 using System.Diagnostics;
 using System.IO;
@@ -94,18 +95,18 @@ namespace CK.Core
         public static bool IsValid( ReadOnlySpan<byte> sha256 ) => sha256.Length == 32;
 
         /// <summary>
-        /// Parses a 128 length hexadecimal string to a SHA256 value or throws a <see cref="FormatException"/>.
+        /// Parses a 64 length hexadecimal string to a SHA256 value or throws a <see cref="FormatException"/>.
         /// </summary>
         /// <param name="text">The string to parse.</param>
         /// <returns>The value.</returns>
         public static SHA256Value Parse( ReadOnlySpan<char> text )
         {
-            if( !TryParse( text, out var result ) ) throw new FormatException( "Invalid SHA256" );
+            if( !TryParse( text, out var result ) ) ThrowHelper.ThrowArgumentException( nameof( text ), "Invalid SHA256." );
             return result;
         }
 
         /// <summary>
-        /// Tries to parse a 40 length hexadecimal string to a SHA256 value.
+        /// Tries to parse a 64 length hexadecimal string to a SHA256 value.
         /// The string can be longer, suffix is ignored.
         /// </summary>
         /// <param name="text">The text to parse.</param>
@@ -156,18 +157,18 @@ namespace CK.Core
         /// <summary>
         /// Initializes a new <see cref="SHA256Value"/> from a read only 32 bytes value.
         /// </summary>
-        /// <param name="twentyBytes">Binary values.</param>
-        public SHA256Value( ReadOnlySpan<byte> twentyBytes )
+        /// <param name="thirtyTwoBytes">Binary values.</param>
+        public SHA256Value( ReadOnlySpan<byte> thirtyTwoBytes )
         {
-            if( twentyBytes.Length != 32 ) throw new ArgumentException( $"SHA256 is 32 bytes long, not {twentyBytes.Length}.", nameof( twentyBytes ) );
-            if( twentyBytes.SequenceEqual( Zero._bytes.AsSpan() ) )
+            if( thirtyTwoBytes.Length != 32 ) ThrowHelper.ThrowArgumentException( nameof( thirtyTwoBytes ), $"SHA256 is 32 bytes long, not {thirtyTwoBytes.Length}." );
+            if( thirtyTwoBytes.SequenceEqual( Zero._bytes.AsSpan() ) )
             {
                 _bytes = Zero._bytes;
                 _string = Zero._string;
             }
             else
             {
-                _bytes = twentyBytes.ToArray();
+                _bytes = thirtyTwoBytes.ToArray();
                 _string = BuildString( _bytes );
             }
         }

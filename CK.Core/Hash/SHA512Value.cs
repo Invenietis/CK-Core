@@ -1,3 +1,4 @@
+using Microsoft.Toolkit.Diagnostics;
 using System;
 using System.Diagnostics;
 using System.IO;
@@ -100,7 +101,7 @@ namespace CK.Core
         /// <returns>The value.</returns>
         public static SHA512Value Parse( ReadOnlySpan<char> text )
         {
-            if( !TryParse( text, out var result ) ) throw new FormatException( "Invalid SHA512" );
+            if( !TryParse( text, out var result ) ) ThrowHelper.ThrowArgumentException( nameof( text ), "Invalid SHA512." );
             return result;
         }
 
@@ -156,18 +157,18 @@ namespace CK.Core
         /// <summary>
         /// Initializes a new <see cref="SHA512Value"/> from a read only 64 bytes value.
         /// </summary>
-        /// <param name="twentyBytes">Binary values.</param>
-        public SHA512Value( ReadOnlySpan<byte> twentyBytes )
+        /// <param name="sixtyFourBytes">Binary values.</param>
+        public SHA512Value( ReadOnlySpan<byte> sixtyFourBytes )
         {
-            if( twentyBytes.Length != 64 ) throw new ArgumentException( $"SHA512 is 64 bytes long, not {twentyBytes.Length}.", nameof( twentyBytes ) );
-            if( twentyBytes.SequenceEqual( Zero._bytes.AsSpan() ) )
+            if( sixtyFourBytes.Length != 64 ) ThrowHelper.ThrowArgumentException( nameof( sixtyFourBytes ), $"SHA512 is 64 bytes long, not {sixtyFourBytes.Length}." );
+            if( sixtyFourBytes.SequenceEqual( Zero._bytes.AsSpan() ) )
             {
                 _bytes = Zero._bytes;
                 _string = Zero._string;
             }
             else
             {
-                _bytes = twentyBytes.ToArray();
+                _bytes = sixtyFourBytes.ToArray();
                 _string = BuildString( _bytes );
             }
         }

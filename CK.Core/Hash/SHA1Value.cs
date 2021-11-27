@@ -6,6 +6,7 @@ using System.Linq;
 using System.Security.Cryptography;
 using System.Threading.Tasks;
 using System.Text;
+using Microsoft.Toolkit.Diagnostics;
 
 namespace CK.Core
 {
@@ -102,7 +103,7 @@ namespace CK.Core
         /// <returns>The value.</returns>
         public static SHA1Value Parse( ReadOnlySpan<char> text )
         {
-            if( !TryParse( text, out var result ) ) throw new FormatException( "Invalid SHA1" );
+            if( !TryParse( text, out var result ) ) ThrowHelper.ThrowArgumentException( nameof( text ), "Invalid SHA1." );
             return result;
         }
 
@@ -161,7 +162,7 @@ namespace CK.Core
         /// <param name="twentyBytes">Binary values.</param>
         public SHA1Value( ReadOnlySpan<byte> twentyBytes )
         {
-            if( twentyBytes.Length != 20 ) throw new ArgumentException( $"SHA1 is 20 bytes long, not {twentyBytes.Length}.", nameof( twentyBytes ) );
+            if( twentyBytes.Length != 20 ) ThrowHelper.ThrowArgumentException( nameof( twentyBytes ), $"SHA1 is 20 bytes long, not {twentyBytes.Length}." );
             if( twentyBytes.SequenceEqual( Zero._bytes.AsSpan() ) )
             {
                 _bytes = Zero._bytes;
