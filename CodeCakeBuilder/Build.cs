@@ -13,7 +13,7 @@ using Cake.Common.Tools.NUnit;
 using Cake.Core;
 using Cake.Core.Diagnostics;
 using Cake.Core.IO;
-using CK.Text;
+
 using SimpleGitVersion;
 using System;
 using System.Collections.Generic;
