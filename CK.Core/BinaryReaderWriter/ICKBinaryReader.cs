@@ -236,13 +236,13 @@ namespace CK.Core
         /// false if the end-of-line is LF only.
         /// </param>
         /// <returns>The string that can be null.</returns>
-        string ReadNullableString( bool streamIsCRLF );
+        string? ReadNullableString( bool streamIsCRLF );
 
         /// <summary>
         /// Reads a potentially null string.
         /// </summary>
         /// <returns>The string that can be null.</returns>
-        string ReadNullableString();
+        string? ReadNullableString();
 
         /// <summary>
         /// Reads in a 32-bit integer in compressed format written by <see cref="CKBinaryWriter.WriteSmallInt32(int, int)"/>. 
@@ -266,7 +266,7 @@ namespace CK.Core
         /// Reads a string, using the default <see cref="StringPool"/>.
         /// </summary>
         /// <returns>The string or null.</returns>
-        string ReadSharedString();
+        string? ReadSharedString();
 
         /// <summary>
         /// Reads a nullable byte value.
@@ -335,9 +335,33 @@ namespace CK.Core
         T? ReadNullableEnum<T>() where T : struct, Enum;
 
         /// <summary>
-        /// Reads a nullable char (<see cref="Char"/>) value.
+        /// Reads a nullable character value.
         /// </summary>
-        /// <returns>The nullable char read.</returns>
-        ushort? ReadNullableChar();
+        /// <returns>The nullable character read.</returns>
+        char? ReadNullableChar();
+
+        /// <summary>
+        /// Reads a nullable DateTime value.
+        /// </summary>
+        /// <returns>The nullable DateTime.</returns>
+        DateTime? ReadNullableDateTime();
+
+        /// <summary>
+        /// Reads a nullable TimeSpan value.
+        /// </summary>
+        /// <returns>The nullable TimeSpan.</returns>
+        TimeSpan? ReadNullableTimeSpan();
+
+        /// <summary>
+        /// Reads a nullable DateTimeOffset value.
+        /// </summary>
+        /// <returns>The nullable DateTimeOffset.</returns>
+        DateTimeOffset? ReadNullableDateTimeOffset();
+
+        /// <summary>
+        /// Reads a nullable Guid value.
+        /// </summary>
+        /// <returns>The nullable Guid.</returns>
+        Guid? ReadNullableGuid();
     }
 }

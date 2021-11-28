@@ -1,8 +1,10 @@
-using CK.Text;
+using Microsoft.Toolkit.Diagnostics;
 using System;
+using System.Buffers;
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.IO;
 using System.IO.Compression;
@@ -16,14 +18,14 @@ namespace CK.Core
     /// <summary>
     /// Helper functions related to file system.
     /// </summary>
-    public static class FileUtil
+    public static partial class FileUtil
     {
         /// <summary>
         /// Combination of <see cref="FileAttributes"/> that can not exist: it can be used to 
         /// tag non existing files among other existing (i.e. valid) file attributes.
         /// </summary>
         static readonly public FileAttributes InexistingFile = FileAttributes.Normal | FileAttributes.Offline;
-        
+
         /// <summary>
         /// The file header for gzipped files.
         /// </summary>
@@ -46,7 +48,7 @@ namespace CK.Core
         /// </returns>
         static public string NormalizePathSeparator( string path, bool ensureTrailingBackslash )
         {
-            if( path == null ) throw new ArgumentNullException( "path" );
+            if( path == null ) throw new ArgumentNullException( nameof( path ) );
             path = path.Trim();
             if( path.Length == 0 ) return path;
             if( Path.DirectorySeparatorChar != '/' && Path.AltDirectorySeparatorChar != '/' )
@@ -54,7 +56,7 @@ namespace CK.Core
             if( Path.DirectorySeparatorChar != '\\' && Path.AltDirectorySeparatorChar != '\\' )
                 path = path.Replace( '\\', Path.DirectorySeparatorChar );
             path = path.Replace( Path.AltDirectorySeparatorChar, Path.DirectorySeparatorChar );
-            if( ensureTrailingBackslash && path[path.Length - 1] != Path.DirectorySeparatorChar )
+            if( ensureTrailingBackslash && path[^1] != Path.DirectorySeparatorChar )
             {
                 path += Path.DirectorySeparatorChar;
             }
@@ -77,7 +79,7 @@ namespace CK.Core
         /// <summary>
         /// A display format for <see cref="DateTime"/> that supports round-trips, is readable and can be used in path 
         /// or url (the DateTime should be in UTC since <see cref="DateTime.Kind"/> is ignored).
-        /// Use <see cref="MatchFileNameUniqueTimeUtcFormat"/> or <see cref="TryParseFileNameUniqueTimeUtcFormat"/> to parse it (it uses the correct <see cref="DateTimeStyles"/>).
+        /// Use <see cref="TryParseFileNameUniqueTimeUtcFormat"/> or <see cref="TryParseFileNameUniqueTimeUtcFormat"/> to parse it (it uses the correct <see cref="DateTimeStyles"/>).
         /// It is: @"yyyy-MM-dd HH\hmm.ss.fffffff"
         /// </summary>
         public static readonly string FileNameUniqueTimeUtcFormat = @"yyyy-MM-dd HH\hmm.ss.fffffff";
@@ -98,7 +100,7 @@ namespace CK.Core
         {
             time = Util.UtcMinValue;
             Debug.Assert( FileNameUniqueTimeUtcFormat.Replace( "\\", "" ).Length == 27 );
-            return @this.Length >= 27 
+            return @this.Length >= 27
                     && DateTime.TryParseExact( @this.Text.Substring( @this.StartIndex, 27 ), FileUtil.FileNameUniqueTimeUtcFormat, CultureInfo.InvariantCulture, DateTimeStyles.AdjustToUniversal | DateTimeStyles.AssumeUniversal, out time )
                 ? @this.Forward( 27 )
                 : @this.SetError();
@@ -117,6 +119,7 @@ namespace CK.Core
             var m = new StringMatcher( s );
             return m.MatchFileNameUniqueTimeUtcFormat( out time ) && (allowSuffix || m.IsEnd);
         }
+
 
         /// <summary>
         /// Finds the first character index of any characters that are invalid in a path.
@@ -188,17 +191,18 @@ namespace CK.Core
         /// </param>
         /// <param name="options">Specifies additional file options.</param>
         /// <param name="maxTryBeforeGuid">
-        /// Maximum value for short hexadecimal uniquifier before using a base 64 guid suffix. Must greater than 0.</param>
+        /// Maximum value for short hexadecimal uniquifier before using a base 64 guid suffix. Must be greater than 0.</param>
         /// <returns>An opened <see cref="FileStream"/>.</returns>
         public static FileStream CreateAndOpenUniqueTimedFile( string pathPrefix, string fileSuffix, DateTime time, FileAccess access, FileShare share, int bufferSize, FileOptions options, int maxTryBeforeGuid = 512 )
         {
-            if( access == FileAccess.Read ) throw new ArgumentException( Impl.CoreResources.FileUtilNoReadOnlyWhenCreateFile, "access" );
-            FileStream f = null;
+            //Guard.IsNotEqualTo( access, FileAccess.Read );
+            if( access == FileAccess.Read ) throw new ArgumentException( Impl.CoreResources.FileUtilNoReadOnlyWhenCreateFile, nameof( access ) );
+            FileStream? f = null;
             FindUniqueTimedFileOrFolder( pathPrefix, fileSuffix, time, maxTryBeforeGuid, p => TryCreateNew( p, access, share, bufferSize, options, out f ) );
-            return f;
+            return f!;
         }
 
-        static bool TryCreateNew( string timedPath, FileAccess access, FileShare share, int bufferSize, FileOptions options, out FileStream f )
+        static bool TryCreateNew( string timedPath, FileAccess access, FileShare share, int bufferSize, FileOptions options, [NotNullWhen(true)]out FileStream? f )
         {
             f = null;
             try
@@ -228,7 +232,7 @@ namespace CK.Core
         /// <returns>An opened <see cref="FileStream"/>.</returns>
         public static string MoveToUniqueTimedFile( string sourceFilePath, string pathPrefix, string fileSuffix, DateTime time, int maxTryBeforeGuid = 512 )
         {
-            if( sourceFilePath == null ) throw new ArgumentNullException( "sourceFilePath" );
+            if( sourceFilePath == null ) throw new ArgumentNullException( nameof( sourceFilePath ) );
             if( !File.Exists( sourceFilePath ) ) throw new FileNotFoundException( Impl.CoreResources.FileMustExist, sourceFilePath );
             return FindUniqueTimedFileOrFolder( pathPrefix, fileSuffix, time, maxTryBeforeGuid, p => TryMoveTo( sourceFilePath, p ) );
         }
@@ -283,7 +287,7 @@ namespace CK.Core
 
         static bool TryCreateFolder( string path )
         {
-            string origin = null;
+            string? origin = null;
             try
             {
                 if( Directory.Exists( path ) ) return false;
@@ -292,20 +296,27 @@ namespace CK.Core
                 // The second trick is to always create the parent folder:
                 //  - Move requires it to exist...
                 //  - ... but since we WILL succeed to create the unique folder, we can do it safely.
-                var originParent = Path.GetTempPath();
-                var rootOfPathToCreate = Path.GetPathRoot( path );
+                string? originParent = Path.GetTempPath();
+                string rootOfPathToCreate = Path.GetPathRoot( path )!;
                 var parentOfPathToCreate = Path.GetDirectoryName( path );
+                if( parentOfPathToCreate == null ) return false;
                 if( Path.GetPathRoot( originParent ) != rootOfPathToCreate )
                 {
                     // Path to create is not on the same volume as the Temporary folder.
                     // We need to create our origin folder on the same volume: we try to create
                     // it as close as possible to the target folder.
                     originParent = parentOfPathToCreate;
-                    while( originParent.Length > rootOfPathToCreate.Length && !Directory.Exists( originParent ) )
+                    Debug.Assert( originParent != null );
+                    while( originParent.Length > rootOfPathToCreate.Length
+                            && !Directory.Exists( originParent ) )
                     {
                         originParent = Path.GetDirectoryName( originParent );
+                        Debug.Assert( originParent != null );
                     }
-                    if( originParent.Length > rootOfPathToCreate.Length ) originParent += DirectorySeparatorString;
+                    if( originParent.Length > rootOfPathToCreate.Length )
+                    {
+                        originParent += DirectorySeparatorString;
+                    }
                 }
                 origin = originParent + Guid.NewGuid().ToString( "N" );
                 Directory.CreateDirectory( origin );
@@ -346,9 +357,9 @@ namespace CK.Core
 
         static string FindUniqueTimedFileOrFolder( string pathPrefix, string fileSuffix, DateTime time, int maxTryBeforeGuid, Func<string, bool> tester )
         {
-            if( pathPrefix == null ) throw new ArgumentNullException( "pathPrefix" );
-            if( fileSuffix == null ) throw new ArgumentNullException( "fileSuffix" );
-            if( maxTryBeforeGuid < 0 ) throw new ArgumentOutOfRangeException( "maxTryBeforeGuid" );
+            Guard.IsNotNull( pathPrefix, nameof( pathPrefix ) );
+            Guard.IsNotNull( fileSuffix, nameof( fileSuffix ) );
+            Guard.IsGreaterThanOrEqualTo( maxTryBeforeGuid, 0, nameof( maxTryBeforeGuid ) );
 
             DateTimeStamp timeStamp = new DateTimeStamp( time );
             int counter = 0;
@@ -400,10 +411,10 @@ namespace CK.Core
         /// <param name="withHiddenFolders">False to skip hidden folders.</param>
         /// <param name="fileFilter">Optional predicate for directories.</param>
         /// <param name="dirFilter">Optional predicate for files.</param>
-        public static void CopyDirectory( DirectoryInfo src, DirectoryInfo target, bool withHiddenFiles = true, bool withHiddenFolders = true, Func<FileInfo, bool> fileFilter = null, Func<DirectoryInfo, bool> dirFilter = null )
+        public static void CopyDirectory( DirectoryInfo src, DirectoryInfo target, bool withHiddenFiles = true, bool withHiddenFolders = true, Func<FileInfo, bool>? fileFilter = null, Func<DirectoryInfo, bool>? dirFilter = null )
         {
-            if( src == null ) throw new ArgumentNullException( "src" );
-            if( target == null ) throw new ArgumentNullException( "target" );
+            if( src == null ) throw new ArgumentNullException( nameof( src ) );
+            if( target == null ) throw new ArgumentNullException( nameof( target ) );
             if( !target.Exists ) target.Create();
             DirectoryInfo[] dirs = src.GetDirectories();
             foreach( DirectoryInfo d in dirs )
@@ -437,7 +448,7 @@ namespace CK.Core
         /// <returns>True if the file has been correctly opened (and closed) in write mode.</returns>
         static public bool CheckForWriteAccess( string path, int nbMaxMilliSecond = 0 )
         {
-            if( path == null ) throw new ArgumentNullException( "path" );
+            if( path == null ) throw new ArgumentNullException( nameof( path ) );
             DateTime start = DateTime.UtcNow;
             if( !File.Exists( path ) ) return true;
             try
@@ -471,11 +482,16 @@ namespace CK.Core
         /// </summary>
         /// <param name="sourceFilePath">The source file path.</param>
         /// <param name="destinationPath">The destination path. If it doesn't exist, it will be created. If it exists, it will be replaced.</param>
-        /// <param name="cancellationToken">Optional cancellation token for the task.</param>
         /// <param name="deleteSourceFileOnSuccess">If set to <c>true</c>, will delete source file if no error occurred during compression.</param>
         /// <param name="level">Compression level to use.</param>
         /// <param name="bufferSize">Size of the buffer, in bytes.</param>
-        public static async Task CompressFileToGzipFileAsync( string sourceFilePath, string destinationPath, CancellationToken cancellationToken = default(CancellationToken), bool deleteSourceFileOnSuccess = true, CompressionLevel level = CompressionLevel.Optimal, int bufferSize = 64*1024 )
+        /// <param name="cancellationToken">Optional cancellation token for the task.</param>
+        public static async Task CompressFileToGzipFileAsync( string sourceFilePath,
+                                                              string destinationPath,
+                                                              bool deleteSourceFileOnSuccess = true,
+                                                              CompressionLevel level = CompressionLevel.Optimal,
+                                                              int bufferSize = 64 * 1024,
+                                                              CancellationToken cancellationToken = default )
         {
             using( FileStream source = new FileStream( sourceFilePath, FileMode.Open, FileAccess.Read, FileShare.None, bufferSize, FileOptions.Asynchronous|FileOptions.SequentialScan ) )
             {

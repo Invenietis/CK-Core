@@ -1,23 +1,21 @@
+using Microsoft.Toolkit.Diagnostics;
 using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Runtime.Serialization;
+using System.Runtime.CompilerServices;
 
 namespace CK.Core
 {
     /// <summary>
     /// Simple implementation of a fixed size FIFO stack based on a circular buffer. 
     /// The .Net <see cref="Queue{T}"/>'s size increase as needed whereas this FIFO automatically loses the oldest items.
-    /// Note that when <typeparamref name="T"/> is a reference type, null can be pushed and pop.
     /// This can easily be used as a LIFO stack thanks to <see cref="PopLast"/> and <see cref="PeekLast"/> methods.
     /// </summary>
     /// <typeparam name="T">Type of the items.</typeparam>
-    [Serializable]
-    [DebuggerTypeProxy( typeof(Debugging.ReadOnlyCollectionDebuggerView<> ) )]
-    public class FIFOBuffer<T> : ICKReadOnlyList<T>, ICKWritableCollector<T>, ISerializable
+    public sealed class FIFOBuffer<T> : ICKReadOnlyList<T>, ICKWritableCollector<T>
     {
-        T[] _buffer;
+        T?[] _buffer;
         int _count;
         int _first;
         int _next;
@@ -29,7 +27,7 @@ namespace CK.Core
         public FIFOBuffer( int capacity )
         {
             if( capacity < 0 )
-                throw new ArgumentException( "Capacity must be greater than or equal to zero.", "capacity" );
+                throw new ArgumentException( "Capacity must be greater than or equal to zero.", nameof(capacity) );
             _buffer = new T[capacity];
             _count = 0;
             _first = 0;
@@ -47,7 +45,7 @@ namespace CK.Core
                 if( value == _buffer.Length ) return;
 
                 if( value < 0 )
-                    throw new ArgumentException( Impl.CoreResources.CapacityMustBeGreaterThanOrEqualToZero, "value" );
+                    throw new ArgumentException( Impl.CoreResources.CapacityMustBeGreaterThanOrEqualToZero, nameof( value ) );
 
                 var dst = new T[value];
                 if( _count > 0 ) CopyTo( dst );
@@ -65,7 +63,7 @@ namespace CK.Core
         /// <summary>
         /// Gets the actual count of element: it is necessary less than or equal to <see cref="Capacity"/>.
         /// </summary>
-        public int Count => _count; 
+        public int Count => _count;
 
         /// <summary>
         /// Truncates the queue: only the <paramref name="newCount"/> newest items are kept.
@@ -74,11 +72,11 @@ namespace CK.Core
         /// <param name="newCount">The final number of items. If it is greater or equal to the current <see cref="Count"/>, nothing is done.</param>
         public void Truncate( int newCount )
         {
-            if( newCount < 0 ) throw new ArgumentOutOfRangeException( "newCount" );
+            if( newCount < 0 ) throw new ArgumentOutOfRangeException( nameof( newCount ) );
             if( newCount == 0 ) Clear();
             else while( _count > newCount )
                 {
-                    _buffer[_first] = default( T );
+                    _buffer[_first] = default;
                     if( ++_first == _buffer.Length ) _first = 0;
                     _count--;
                 }
@@ -95,10 +93,10 @@ namespace CK.Core
         /// Gets the index of the given object.
         /// </summary>
         /// <param name="item">Object to find.</param>
-        /// <returns>The index of the object or -1 if not found.</returns>
+        /// <returns>The index of the object or a negative value if not found.</returns>
         public int IndexOf( object item )
         {
-            return (item == null && default( T ) == null) || item is T ? IndexOf( (T)item ) : Int32.MinValue;
+            return item is T i ? IndexOf( i ) : Int32.MinValue;
         }
 
         /// <summary>
@@ -126,15 +124,15 @@ namespace CK.Core
         /// </summary>
         /// <param name="index">Index must be positive and less than <see cref="Count"/>.</param>
         /// <returns>The indexed element.</returns>
-        [System.Diagnostics.CodeAnalysis.SuppressMessage( "Microsoft.Design", "CA1065:DoNotRaiseExceptionsInUnexpectedLocations", Justification="This is the right location to raise this exception!" )]
         public T this[int index]
         {
+            [MethodImpl( MethodImplOptions.AggressiveInlining )]
             get
             {
-                if( index < 0 || index >= _count ) throw new IndexOutOfRangeException();
+                Guard.IsInRange( index, 0, _count, nameof( index ) );
                 index += _first;
                 int rollIdx = index - _buffer.Length;
-                return _buffer[rollIdx >= 0 ? rollIdx : index];
+                return _buffer[rollIdx >= 0 ? rollIdx : index]!;
             }
         }
 
@@ -144,11 +142,11 @@ namespace CK.Core
         /// <param name="index">Index must be positive and less than <see cref="Count"/>.</param>
         public void RemoveAt( int index )
         {
-            if( index < 0 || index >= _count ) throw new IndexOutOfRangeException();
+            Guard.IsInRange( index, 0, _count, nameof( index ) );
             --_count;
             if( index == 0 )
             {
-                _buffer[_first] = default( T );
+                _buffer[_first] = default;
                 if( ++_first == _buffer.Length ) _first = 0;
                 return;
             }
@@ -163,7 +161,7 @@ namespace CK.Core
                 {
                     Debug.Assert( _next > 0 );
                     Array.Copy( _buffer, index + 1, _buffer, index, len );
-                    _buffer[_next] = default( T );
+                    _buffer[_next] = default;
                     --_next;
                 }
                 else
@@ -173,14 +171,14 @@ namespace CK.Core
                     if( len > 0 ) Array.Copy( _buffer, index + 1, _buffer, index, len );
                     if( _next > 0 )
                     {
-                        _buffer[_buffer.Length - 1] = _buffer[0];
+                        _buffer[^1] = _buffer[0];
                         Array.Copy( _buffer, 1, _buffer, 0, _next );
-                        if( _next != _first ) _buffer[_next] = default( T );
+                        if( _next != _first ) _buffer[_next] = default;
                         --_next;
                     }
                     else
                     {
-                        if( _first != 0 ) _buffer[0] = default( T );
+                        if( _first != 0 ) _buffer[0] = default;
                         _next = _buffer.Length - 1;
                     }
                 }
@@ -199,7 +197,7 @@ namespace CK.Core
                 {
                     len = _buffer.Length - rollIdx;
                     if( len > 0 ) Array.Copy( _buffer, rollIdx + 1, _buffer, rollIdx, len );
-                    _buffer[_buffer.Length - 1] = _buffer[0];
+                    _buffer[^1] = _buffer[0];
                     if( _next > 0 ) Array.Copy( _buffer, 1, _buffer, 0, _next-- );
                     else _next = _buffer.Length - 1;
                 }
@@ -221,7 +219,7 @@ namespace CK.Core
         /// Adds an item.
         /// </summary>
         /// <param name="item">Item to push.</param>
-        public void Push( T item )
+        public void Push( T? item )
         {
             Debug.Assert( _count <= _buffer.Length );
             if( _buffer.Length > 0 )
@@ -243,9 +241,10 @@ namespace CK.Core
         /// <returns>The first (oldest) item.</returns>
         public T Pop()
         {
-            if( _count == 0 ) throw new InvalidOperationException( Impl.CoreResources.FIFOBufferEmpty );
+            if( _count == 0 ) ThrowHelper.ThrowInvalidOperationException( Impl.CoreResources.FIFOBufferEmpty );
             var item = _buffer[_first];
-            _buffer[_first] = default( T );
+            Debug.Assert( item != null );
+            _buffer[_first] = default;
             if( ++_first == _buffer.Length ) _first = 0;
             _count--;
             return item;
@@ -258,10 +257,11 @@ namespace CK.Core
         /// <returns>The last (newest) item.</returns>
         public T PopLast()
         {
-            if( _count == 0 ) throw new InvalidOperationException( Impl.CoreResources.FIFOBufferEmpty );
+            if( _count == 0 ) ThrowHelper.ThrowInvalidOperationException( Impl.CoreResources.FIFOBufferEmpty );
             if( --_next < 0 ) _next = _first + _count - 1;
             var item = _buffer[_next];
-            _buffer[_next] = default( T );
+            Debug.Assert( item != null );
+            _buffer[_next] = default;
             _count--;
             return item;
         }
@@ -273,8 +273,8 @@ namespace CK.Core
         /// <returns>The first (oldest) item.</returns>
         public T Peek()
         {
-            if( _count == 0 ) throw new InvalidOperationException( Impl.CoreResources.FIFOBufferEmpty );
-            return _buffer[_first];
+            if( _count == 0 ) ThrowHelper.ThrowInvalidOperationException( Impl.CoreResources.FIFOBufferEmpty );
+            return _buffer[_first]!;
         }
 
         /// <summary>
@@ -284,10 +284,10 @@ namespace CK.Core
         /// <returns>The last (newest) item.</returns>
         public T PeekLast()
         {
-            if( _count == 0 ) throw new InvalidOperationException( Impl.CoreResources.FIFOBufferEmpty );
+            if( _count == 0 ) ThrowHelper.ThrowInvalidOperationException( Impl.CoreResources.FIFOBufferEmpty );
             int t = _next-1;
             if( t < 0 ) t = _first + _count - 1;
-            return _buffer[t];
+            return _buffer[t]!;
         }
 
         bool ICKWritableCollector<T>.Add( T e )
@@ -318,7 +318,7 @@ namespace CK.Core
         /// <returns>Number of items copied.</returns>
         public int CopyTo( T[] array, int arrayIndex )
         {
-            if( array == null ) throw new ArgumentNullException( "array" );
+            Guard.IsNotNull( array, nameof( array ) );
             return CopyTo( array, arrayIndex, array.Length - arrayIndex );
         }
 
@@ -333,10 +333,35 @@ namespace CK.Core
         /// <returns>Number of items copied.</returns>
         public int CopyTo( T[] array, int arrayIndex, int count )
         {
-            if( array == null ) throw new ArgumentNullException( "array" );
-            if( count < 0 || arrayIndex < 0 || arrayIndex + count > array.Length ) throw new IndexOutOfRangeException();
-            if( count == 0 ) return 0;
+            Guard.IsNotNull( array, nameof( array ) );
+            return CopyTo( array.AsSpan( arrayIndex, count ) );
+        }
 
+        /// <summary>
+        /// Copies as much possible items into the given span. Order is from oldest to newest.
+        /// If the span's length is less than <see cref="Count"/>, the newest ones
+        /// are copied (the oldest, the ones that will <see cref="Pop"/> first, are skipped).
+        /// </summary>
+        /// <param name="destination">Span that will contain the items.</param>
+        /// <returns>Number of items copied.</returns>
+        public int CopyTo( Span<T> destination )
+        {
+            if( destination.IsEmpty ) return 0;
+            int count = GetCopyInfo(destination.Length, out Span<T> first, out Span<T> second );
+            if( count > 0 )
+            {
+                first.CopyTo( destination.Slice( 0, first.Length ) );
+                if( second.Length > 0 )
+                {
+                    second.CopyTo(destination.Slice( first.Length, second.Length ) );
+                }
+            }
+            return count;
+        }
+
+        int GetCopyInfo( int count, out Span<T> first, out Span<T> second )
+        {
+            Debug.Assert( count > 0 );
             // Number of item to copy: 
             // if there is enough available space, we copy the whole buffer (_count items) from head to tail.
             // if we need to copy less, we want to copy the count last items (and not the first ones).
@@ -356,21 +381,26 @@ namespace CK.Core
                 count = _count;
                 Debug.Assert( head == _first, "The head for the copy is the current head." );
             }
+#pragma warning disable CS8619 // Nullability of reference types in value doesn't match target type.
             // Detects whether we need 2 or only one copy.
             int afterHead = _buffer.Length - head;
             if( afterHead >= count )
             {
                 // Count items are available right after the head.
-                Array.Copy( _buffer, head, array, arrayIndex, count );
+                first = _buffer.AsSpan( head, count );
+                second = default;
             }
             else
             {
                 // We need two copies.
                 // 1 - From head to the end.
-                Array.Copy( _buffer, head, array, arrayIndex, afterHead );
+                first = _buffer.AsSpan( head, afterHead );
+                // Array.Copy( _buffer, head, array, arrayIndex, afterHead );
                 // 2 - From start to tail.
-                Array.Copy( _buffer, 0, array, arrayIndex + afterHead, _next );
+                second = _buffer.AsSpan( 0, _next );
+                //Array.Copy( _buffer, 0, array, arrayIndex + afterHead, _next );
             }
+#pragma warning restore CS8619 // Nullability of reference types in value doesn't match target type.
             return count;
         }
 
@@ -384,7 +414,7 @@ namespace CK.Core
             for( int i = 0; i < _count; i++, bufferIndex++ )
             {
                 if( bufferIndex == _buffer.Length ) bufferIndex = 0;
-                yield return _buffer[bufferIndex];
+                yield return _buffer[bufferIndex]!;
             }
         }
 
@@ -394,6 +424,7 @@ namespace CK.Core
         /// <returns>An array with the contained items. Never null.</returns>
         public T[] ToArray()
         {
+            if( _count == 0 ) return Array.Empty<T>();
             var t = new T[_count];
             CopyTo( t, 0, _count );
             return t;
@@ -403,50 +434,13 @@ namespace CK.Core
         /// Non-generic version of <see cref="GetEnumerator"/>.
         /// </summary>
         /// <returns></returns>
-        IEnumerator IEnumerable.GetEnumerator()
-        {
-            return (IEnumerator)GetEnumerator();
-        }
+        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
         /// <summary>
         /// Overridden to display the current count of items and capacity for this buffer.
         /// </summary>
         /// <returns>Current count and capacity.</returns>
-        public override string ToString()
-        {
-            return String.Format( "Count = {0} (Capacity = {1})", _count, _buffer.Length );
-        }
-
-        /// <summary>
-        /// Deserialization constructor.
-        /// </summary>
-        /// <param name="info">Serialization information.</param>
-        /// <param name="context">Serialization context.</param>
-        protected FIFOBuffer( SerializationInfo info, StreamingContext context )
-        {
-            _buffer = new T[info.GetInt32( "c" )];
-            _count = info.GetInt32( "n" );
-            T[] a = (T[])info.GetValue( "d", typeof(object) );
-            a.CopyTo( _buffer, 0 );
-        }
-
-        void ISerializable.GetObjectData( SerializationInfo info, StreamingContext context )
-        {
-            GetObjectData( info, context );
-        }
-
-        /// <summary>
-        /// Serialization.
-        /// </summary>
-        /// <param name="info">Serialization information.</param>
-        /// <param name="context">Serialization context.</param>
-        protected virtual void GetObjectData( SerializationInfo info, StreamingContext context )
-        {
-            info.AddValue( "c", _buffer.Length );
-            info.AddValue( "n", _count );
-            info.AddValue( "d", ToArray() );
-        }
-
+        public override string ToString() => $"Count = {_count} (Capacity = {_buffer.Length})";
 
     }
 }

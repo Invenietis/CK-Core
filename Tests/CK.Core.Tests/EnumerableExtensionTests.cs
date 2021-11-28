@@ -22,13 +22,13 @@ namespace CK.Core.Tests
 
             listWithDuplicate.IsSortedStrict().Should().BeFalse();
             listWithDuplicate.IsSortedLarge().Should().BeTrue();
-            listWithDuplicate.Invoking( sut => sut.IsSortedLarge( null ) ).Should().Throw<ArgumentNullException>();
-            listWithDuplicate.Invoking( sut => sut.IsSortedStrict( null ) ).Should().Throw<ArgumentNullException>();
+            listWithDuplicate.Invoking( sut => sut.IsSortedLarge( null! ) ).Should().Throw<ArgumentNullException>();
+            listWithDuplicate.Invoking( sut => sut.IsSortedStrict( null! ) ).Should().Throw<ArgumentNullException>();
 
             listWithoutDuplicate.IsSortedStrict().Should().BeTrue();
             listWithoutDuplicate.IsSortedLarge().Should().BeTrue();
-            listWithoutDuplicate.Invoking( sut => sut.IsSortedLarge( null ) ).Should().Throw<ArgumentNullException>();
-            listWithoutDuplicate.Invoking( sut => sut.IsSortedStrict( null ) ).Should().Throw<ArgumentNullException>();
+            listWithoutDuplicate.Invoking( sut => sut.IsSortedLarge( null! ) ).Should().Throw<ArgumentNullException>();
+            listWithoutDuplicate.Invoking( sut => sut.IsSortedStrict( null! ) ).Should().Throw<ArgumentNullException>();
 
             listWithDuplicate.Reverse( 0, listWithDuplicate.Count );
             listWithoutDuplicate.Reverse( 0, listWithoutDuplicate.Count );
@@ -80,7 +80,7 @@ namespace CK.Core.Tests
             listWithoutDuplicate.IsSortedStrict().Should().BeTrue();
             listWithoutDuplicate.IsSortedLarge().Should().BeTrue();
 
-            listWithDuplicate = null;
+            listWithDuplicate = null!;
             listWithDuplicate.Invoking( sut => sut.IsSortedLarge() ).Should().Throw<NullReferenceException>();
             listWithDuplicate.Invoking( sut => sut.IsSortedStrict() ).Should().Throw<NullReferenceException>();
         }
@@ -88,7 +88,7 @@ namespace CK.Core.Tests
         [Test]
         public void test_IndexOf_extension_method()
         {
-            List<int> listToTest = new List<int>();
+            var listToTest = new List<int>();
             listToTest.AddRangeArray<int>( 1, 2 );
 
             listToTest.IndexOf( a => a == 0 ).Should().Be( -1 );
@@ -103,11 +103,11 @@ namespace CK.Core.Tests
             listToTest.IndexOf( a => a == 2 ).Should().Be( 1 );
             listToTest.IndexOf( ( a, idx ) => idx == 2 && a == 2 ).Should().Be( 2 );
 
-            Func<int, bool> nullFunc = null;
-            Func<int, int, bool> nullFuncWithIndex = null;
+            Func<int, bool> nullFunc = null!;
+            Func<int, int, bool> nullFuncWithIndex = null!;
             listToTest.Invoking( sut => sut.IndexOf( nullFunc ) ).Should().Throw<ArgumentNullException>();
             listToTest.Invoking( sut => sut.IndexOf( nullFuncWithIndex ) ).Should().Throw<ArgumentNullException>();
-            listToTest = null;
+            listToTest = null!;
             listToTest.Invoking( sut => sut.IndexOf( a => a == 0 ) ).Should().Throw<NullReferenceException>();
             listToTest.Invoking( sut => sut.IndexOf( ( a, idx ) => a == 0 ) ).Should().Throw<NullReferenceException>();
         }
@@ -167,9 +167,9 @@ namespace CK.Core.Tests
             t.MaxBy( i => i.ToString() ).Should().Be( 9, "Lexicographical ordering." );
 
             t.MaxBy( i => i, ( x, y ) => x - y ).Should().Be( 12 );
-
-            t.Invoking( sut => sut.MaxBy<int, int>( null ) ).Should().Throw<ArgumentNullException>();
-            t = null;
+            
+            t.Invoking( sut => sut.MaxBy<int, int>( null! ) ).Should().Throw<ArgumentNullException>();
+            t = null!;
             t.Invoking( sut => sut.MaxBy( Util.FuncIdentity ) ).Should().Throw<NullReferenceException>();
         }
     }

@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics.CodeAnalysis;
 
 namespace CK.Core
 {
@@ -8,15 +9,15 @@ namespace CK.Core
     /// </summary>
     public static class SimpleTypeFinder
     {
-        static Func<string, bool, Type> _resolver = WeakResolver;
-        static Func<string, bool, Type> _coreResolver = Type.GetType;
+        static Func<string, bool, Type?> _resolver = WeakResolver;
+        static Func<string, bool, Type?> _coreResolver = Type.GetType;
 
         /// <summary>
         /// Gets or sets a global resolver. This resolver MUST always throw a <see cref="TypeLoadException"/> 
         /// when the boolean parameter is true: this is what <see cref="StandardResolver(string, bool)"/> do.
         /// Defaults to <see cref="WeakResolver(string, bool)"/>.
         /// </summary>
-        public static Func<string, bool, Type> Resolver
+        public static Func<string, bool, Type?> Resolver
         {
             get { return _resolver; }
             set
@@ -30,7 +31,7 @@ namespace CK.Core
         /// The <see cref="Type.GetType(string, bool)"/> function that <see cref="StandardResolver(string, bool)"/> 
         /// and <see cref="WeakResolver(string, bool)"/> use. Another function may be injected in advanced scenario if needed.
         /// </summary>
-        public static Func<string, bool, Type> RawGetType
+        public static Func<string, bool, Type?> RawGetType
         {
             get { return _coreResolver; }
             set
@@ -53,9 +54,9 @@ namespace CK.Core
         /// When <paramref name="throwOnError"/> is true, always throws a type load exception.
         /// The original error (not a <see cref="TypeLoadException"/>) is available in the <see cref="Exception.InnerException"/>.
         /// </exception>
-        public static Type WeakResolver( string assemblyQualifiedName, bool throwOnError )
+        public static Type? WeakResolver( string assemblyQualifiedName, bool throwOnError )
         {
-            Type done = StandardResolver( assemblyQualifiedName, false );
+            Type? done = StandardResolver( assemblyQualifiedName, false );
             if( ReferenceEquals( done, null ) )
             {
                 string weakTypeName;
@@ -84,7 +85,7 @@ namespace CK.Core
         /// When <paramref name="throwOnError"/> is true, always throws a type load exception.
         /// The original error (not a <see cref="TypeLoadException"/>) is available in the <see cref="Exception.InnerException"/>.
         /// </exception>
-        public static Type StandardResolver( string assemblyQualifiedName, bool throwOnError )
+        public static Type? StandardResolver( string assemblyQualifiedName, bool throwOnError )
         {
             if( throwOnError ) CheckAssemblyQualifiedNameValid( assemblyQualifiedName );
             try
@@ -119,9 +120,9 @@ namespace CK.Core
         static public bool WeakenAssemblyQualifiedName( string assemblyQualifiedName, out string weakTypeName )
         {
             weakTypeName = String.Empty;
-            string fullTypeName, assemblyFullName, assemblyName, versionCultureAndPublicKeyToken;
+            string fullTypeName, assemblyFullName, assemblyName;
             if( SplitAssemblyQualifiedName( assemblyQualifiedName, out fullTypeName, out assemblyFullName )
-                && SplitAssemblyFullName( assemblyFullName, out assemblyName, out versionCultureAndPublicKeyToken ) )
+                && SplitAssemblyFullName( assemblyFullName, out assemblyName, out _ ) )
             {
                 weakTypeName = fullTypeName + ", " + assemblyName;
                 return true;

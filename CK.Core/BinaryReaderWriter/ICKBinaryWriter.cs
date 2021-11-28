@@ -14,7 +14,7 @@ namespace CK.Core
         /// <summary>
         /// Gets the underlying stream.
         /// Note that calling <see cref="Flush"/> before any direct writes into this stream
-        /// should definitly be a good idea...
+        /// should definitely be a good idea...
         /// </summary>
         Stream BaseStream { get; }
 
@@ -55,6 +55,12 @@ namespace CK.Core
         /// or <see cref="WriteSharedString(string)"/> whenever null must be handled.
         /// </param>
         void Write( string value );
+
+        /// <summary>
+        /// Writes a two-byte floating-point value.
+        /// </summary>
+        /// <param name="value">The two-byte floating-point value to write.</param>
+        void Write( Half value );
 
         /// <summary>
         /// Writes a four-byte floating-point value to the current stream and advances the
@@ -131,6 +137,20 @@ namespace CK.Core
         void Write( byte[] buffer );
 
         /// <summary>
+        /// Writes a span of bytes to the current stream.
+        /// </summary>
+        /// <param name="buffer">The span of bytes to write.</param>
+        void Write( ReadOnlySpan<byte> buffer );
+
+        /// <summary>
+        /// Writes a span of characters to the current stream, and advances the current position
+        /// of the stream in accordance with the Encoding used and perhaps the specific characters
+        /// being written to the stream.
+        /// </summary>
+        /// <param name="chars">A span of chars to write.</param>
+        void Write( ReadOnlySpan<char> chars );
+
+        /// <summary>
         /// Writes an unsigned byte to the current stream and advances the stream position
         /// by one byte.
         /// </summary>
@@ -164,6 +184,7 @@ namespace CK.Core
 
         /// <summary>
         /// Gets the string pool used by <see cref="WriteSharedString"/> method.
+        /// It uses a <see cref="StringComparer.Ordinal"/> comparer.
         /// </summary>
         CKBinaryWriter.ObjectPool<string> StringPool { get; }
 
@@ -179,7 +200,7 @@ namespace CK.Core
         void WriteNonNegativeSmallInt32( int value );
 
         /// <summary>
-        /// Writes a 32-bit integer in compressed format, accomodating rooms for some negative values.
+        /// Writes a 32-bit integer in compressed format, accommodating rooms for some negative values.
         /// The <paramref name="minNegativeValue"/> simply offsets the written value.
         /// Use <see cref="CKBinaryReader.ReadSmallInt32(int)"/> with the 
         /// same <paramref name="minNegativeValue"/> to read it back.
@@ -203,13 +224,13 @@ namespace CK.Core
         /// has good chances to appear multiple times. 
         /// </summary>
         /// <param name="s">String to write.</param>
-        void WriteNullableString( string s );
+        void WriteNullableString( string? s );
 
         /// <summary>
         /// Writes a string, using the default <see cref="StringPool"/>.
         /// </summary>
         /// <param name="s">The string to write. Can be null.</param>
-        void WriteSharedString( string s );
+        void WriteSharedString( string? s );
 
         /// <summary>
         /// Writes a DateTime value.
@@ -230,7 +251,7 @@ namespace CK.Core
         void Write( DateTimeOffset ds );
 
         /// <summary>
-        /// Writes a DateTimeOffset value.
+        /// Writes a Guid value.
         /// </summary>
         /// <param name="g">The value to write.</param>
         void Write( Guid g );
@@ -322,11 +343,36 @@ namespace CK.Core
         void WriteNullableEnum<T>( T? v ) where T : struct, Enum;
 
         /// <summary>
-        /// Writes a nullable 2-byte unicode character (<see cref="Char"/>).
-        /// Null and values below <see cref="Char.MaxValue"/>-1 use 2 bytes.
-        /// <see cref="Char.MaxValue"/>-1 and <see cref="Char.MaxValue"/> use 3 bytes.
+        /// Writes a nullable unicode character (<see cref="Char"/>).
+        /// Actual byte length depends directly on the used string encoding.
+        /// Null and values above <see cref="Char.MinValue"/>+1 use one character (2 bytes below 0xff, 3 bytes below 0xffff, etc.).
+        /// <see cref="Char.MinValue"/>+1 and <see cref="Char.MinValue"/> use one character (2 bytes below 0xff, 3 bytes below 0xffff, etc.), plus one byte.
         /// </summary>
         /// <param name="v">The value to write.</param>
         void WriteNullableChar( char? v );
+
+        /// <summary>
+        /// Writes a nullable DateTime value.
+        /// </summary>
+        /// <param name="v">The value to write.</param>
+        void WriteNullableDateTime( DateTime? v );
+
+        /// <summary>
+        /// Writes a nullable TimeSpan value.
+        /// </summary>
+        /// <param name="t">The value to write.</param>
+        void WriteNullableTimeSpan( TimeSpan? t );
+
+        /// <summary>
+        /// Writes a nullable DateTimeOffset value.
+        /// </summary>
+        /// <param name="ds">The value to write.</param>
+        void WriteNullableDateTimeOffset( DateTimeOffset? ds );
+
+        /// <summary>
+        /// Writes a nullable Guid value.
+        /// </summary>
+        /// <param name="g">The value to write.</param>
+        void WriteNullableGuid( Guid? g );
     }
 }

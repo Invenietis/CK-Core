@@ -1,6 +1,8 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text;
 
@@ -19,7 +21,7 @@ namespace CK.Core
         /// <param name="items">Multiple items to add. Can not be null.</param>
         public static void AddRange<T>( this ICollection<T> @this, IEnumerable<T> items )
         {
-            if( items == null ) throw new ArgumentNullException( "items" );
+            if( items == null ) throw new ArgumentNullException( nameof( items ) );
             foreach( var i in items ) @this.Add( i );
         }
 
@@ -43,7 +45,7 @@ namespace CK.Core
         /// <typeparam name="T">The type of the elements in the list.</typeparam>
         /// <param name="this">This list.</param>
         /// <param name="removeCondition">Predicate that must return true for items that must be removed from this list.</param>
-        /// <returns>Removed items (can be added into another one).</returns>
+        /// <returns>Removed items (must be added into another one or counted for the remove to work).</returns>
         public static IEnumerable<T> RemoveWhereAndReturnsRemoved<T>( this IList<T> @this, Func<T, bool> removeCondition )
         {
             for( int i = 0; i < @this.Count; ++i )
@@ -57,20 +59,41 @@ namespace CK.Core
             }
         }
 
+
+        sealed class ReadOnlyCollectionWrapper<T> : IReadOnlyCollection<T>, IEquatable<IReadOnlyCollection<T>>
+        {
+            readonly ICollection<T> _values;
+
+            public ReadOnlyCollectionWrapper( ICollection<T> values ) => _values = values;
+
+            public ICollection<T> Values => _values;
+
+            public int Count => _values.Count;
+
+            public bool Equals( IReadOnlyCollection<T>? other ) => other == _values;
+
+            public override bool Equals( [NotNullWhen( true )] object? obj ) => obj == _values || (obj is ReadOnlyCollectionWrapper<T> w && w._values == _values);
+
+            public override int GetHashCode() => _values.GetHashCode();
+
+            public IEnumerator<T> GetEnumerator() => _values.GetEnumerator();
+
+            IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+        }
+
         /// <summary>
         /// Returns this collection if the implementation supports <see cref="IReadOnlyCollection{T}"/> 
-        /// or a <see cref="CKReadOnlyCollectionOnICollection{T}"/> adapter instance.
+        /// or a simple wrapper that adapts the interface.
         /// </summary>
         /// <typeparam name="T">The type of the collection items.</typeparam>
         /// <param name="this">This collection.</param>
-        /// <returns>This collection or an adapter.</returns>
-        public static IReadOnlyCollection<T> AsReadOnlyCollection<T>( this ICollection<T> @this )
+        /// <returns>This collection or a simple wrapper that adapts the interface.</returns>
+        public static IReadOnlyCollection<T> AsIReadOnlyCollection<T>( this ICollection<T> @this )
         {
-            IReadOnlyCollection<T> c = @this as IReadOnlyCollection<T>;
-            if( c == null )
+            if( @this is not IReadOnlyCollection<T> c )
             {
                 if( @this == null ) throw new NullReferenceException();
-                c = new CKReadOnlyCollectionOnICollection<T>( @this );
+                c = new ReadOnlyCollectionWrapper<T>( @this );
             }
             return c;
         }

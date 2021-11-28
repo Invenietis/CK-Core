@@ -1,4 +1,3 @@
-﻿using CK.Text;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -22,13 +21,11 @@ namespace CK.Core
         {
             time = DateTimeStamp.Unknown;
             int savedIndex = @this.StartIndex;
-            DateTime t;
-            if( !@this.MatchFileNameUniqueTimeUtcFormat( out t ) ) return @this.SetError();
+            if( !@this.MatchFileNameUniqueTimeUtcFormat( out DateTime t ) ) return @this.SetError();
             byte uniquifier = 0;
             if( @this.MatchChar( '(' ) )
             {
-                int unique;
-                if( !@this.MatchInt32( out unique, 0, 255 ) || !@this.TryMatchChar( ')' ) ) return @this.BackwardAddError( savedIndex );
+                if( !@this.MatchInt32( out int unique, 0, 255 ) || !@this.TryMatchChar( ')' ) ) return @this.BackwardAddError( savedIndex );
                 uniquifier = (byte)unique;
             }
             time = new DateTimeStamp( t, uniquifier );

@@ -21,7 +21,7 @@ namespace CK.Core
         /// </summary>
         public CKReadOnlyListOnIList()
         {
-            _values = Util.Array.Empty<T>();
+            _values = Array.Empty<T>();
         }
 
         /// <summary>
@@ -31,13 +31,13 @@ namespace CK.Core
         /// <param name="values">List to wrap.</param>
         public CKReadOnlyListOnIList( IList<T> values )
         {
-            Values = values;
+            _values = values ?? Array.Empty<T>();
         }
 
         /// <summary>
         /// Gets or sets the wrapped collection.
         /// </summary>
-        public IList<T> Values { get => _values; set => _values = value ?? Util.Array.Empty<T>(); }
+        public IList<T> Values { get => _values; set => _values = value ?? Array.Empty<T>(); }
 
         /// <summary>
         /// Gets the count of items.

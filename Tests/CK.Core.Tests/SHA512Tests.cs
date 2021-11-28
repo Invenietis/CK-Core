@@ -18,7 +18,7 @@ namespace CK.Core.Tests
         [Test]
         public void SHA512_ToString_and_Parse()
         {
-            var sha = SHA512Value.ComputeFileSHA512( ThisFile );
+            var sha = SHA512Value.ComputeFileHash( ThisFile );
             var s = sha.ToString();
             var shaBis = SHA512Value.Parse( s );
             shaBis.Should().Be( sha );
@@ -27,18 +27,17 @@ namespace CK.Core.Tests
         [Test]
         public void SHA512_ByteAmount()
         {
-            var sha = SHA512Value.ComputeFileSHA512( ThisFile );
-            sha.GetBytes().Count.Should().Be( 64 );
+            var sha = SHA512Value.ComputeFileHash( ThisFile );
+            sha.GetBytes().Length.Should().Be( 64 );
             sha.ToString().Length.Should().Be( 128 );
         }
 
         [Test]
         public void SHA512Empty_IsValid()
         {
-            SHA512Managed sha512 = new SHA512Managed();
-            byte[] computedValue = sha512.ComputeHash( new byte[0] );
-            IReadOnlyList<byte> storedValue = SHA512Value.EmptySHA512.GetBytes();
-            storedValue.SequenceEqual( computedValue );
+            byte[] computedValue = SHA512.HashData( ReadOnlySpan<byte>.Empty );
+            var storedValue = SHA512Value.Empty.GetBytes();
+            storedValue.Span.SequenceEqual( computedValue );
         }
 
         [TestCase( "00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
@@ -71,47 +70,48 @@ namespace CK.Core.Tests
             }
         }
 
-        [TestCase( 0, null, false )]
-        [TestCase( 1, "", false )]
-        [TestCase( 1, "X0123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456", false )]
-        [TestCase( 2, "XY01234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567", true )]
-        [TestCase( 2, "--f730a999523afe0a2be07bf4c731d3d1f72fb3dff730a999523afe0a2be07bf4c731d3d1f72fb3dff730a999523afe0a2be07bf4c731d3d1f72fb3df01234567-----", true )]
-        public void SHA512_invalid_parse( int offset, string s, bool success )
+        [TestCase( null, false )]
+        [TestCase( "", false )]
+        [TestCase( "0123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456", false )]
+        [TestCase( "01234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567", true )]
+        [TestCase( "f730a999523afe0a2be07bf4c731d3d1f72fb3dff730a999523afe0a2be07bf4c731d3d1f72fb3dff730a999523afe0a2be07bf4c731d3d1f72fb3df01234567-----", true )]
+        public void SHA512_invalid_parse( string s, bool success )
         {
-            SHA512Value v;
-            SHA512Value.TryParse( s, offset, out v ).Should().Be( success );
+            SHA512Value.TryParse( s.AsSpan(), out _ ).Should().Be( success );
         }
 
 
         [Test]
         public async Task SHA512_from_file_async()
         {
-            var sha = SHA512Value.ComputeFileSHA512( ThisFile );
-            var sha2 = await SHA512Value.ComputeFileSHA512Async( ThisFile );
+#pragma warning disable VSTHRD103 // Call async methods when in an async method
+            var sha = SHA512Value.ComputeFileHash( ThisFile );
+#pragma warning restore VSTHRD103 // Call async methods when in an async method
+            var sha2 = await SHA512Value.ComputeFileHashAsync( ThisFile );
             sha2.Should().Be( sha );
             using( var compressedPath = new TemporaryFile() )
             {
                 using( var input = new FileStream( ThisFile, FileMode.Open, FileAccess.Read, FileShare.Read, 4096, FileOptions.SequentialScan | FileOptions.Asynchronous ) )
                 using( var compressed = new FileStream( compressedPath.Path, FileMode.Truncate, FileAccess.Write, FileShare.None, 4096, FileOptions.SequentialScan | FileOptions.Asynchronous ) )
                 {
-                    var writer = GetCompressShellAsync( w => input.CopyToAsync( w ) );
+                    var writer = GetCompressShell( w => input.CopyToAsync( w ) );
                     await writer( compressed );
                 }
-                var shaCompressed = await SHA512Value.ComputeFileSHA512Async( compressedPath.Path );
+                var shaCompressed = await SHA512Value.ComputeFileHashAsync( compressedPath.Path );
                 shaCompressed.Should().NotBe( sha );
-                var localSha = await SHA512Value.ComputeFileSHA512Async( compressedPath.Path, r => new GZipStream( r, CompressionMode.Decompress, true ) );
+                var localSha = await SHA512Value.ComputeFileHashAsync( compressedPath.Path, r => new GZipStream( r, CompressionMode.Decompress, true ) );
                 localSha.Should().Be( sha );
             }
         }
 
-        static Func<Stream, Task> GetCompressShellAsync( Func<Stream, Task> writer )
+        static Func<Stream, Task> GetCompressShell( Func<Stream, Task> writer )
         {
             return async w =>
             {
                 using( var compressor = new GZipStream( w, CompressionLevel.Optimal, true ) )
                 {
                     await writer( compressor );
-                    compressor.Flush();
+                    await compressor.FlushAsync();
                 }
             };
         }

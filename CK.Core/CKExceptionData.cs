@@ -4,7 +4,8 @@ using System.Reflection;
 using System.Text;
 using System.IO;
 using System.Diagnostics;
-using CK.Text;
+using System.Diagnostics.CodeAnalysis;
+using Microsoft.Toolkit.Diagnostics;
 
 namespace CK.Core
 {
@@ -18,13 +19,13 @@ namespace CK.Core
         readonly string _message;
         readonly string _exceptionTypeName;
         readonly string _exceptionTypeAQName;
-        readonly string _stackTrace;
-        readonly CKExceptionData _innerException;
-        readonly string _fileName;
-        readonly string _detailedInfo;
-        readonly CKExceptionData[] _loaderExceptions;
-        readonly CKExceptionData[] _aggregatedExceptions;
-        string _toString;
+        readonly string? _stackTrace;
+        readonly CKExceptionData? _innerException;
+        readonly string? _fileName;
+        readonly string? _detailedInfo;
+        readonly CKExceptionData[]? _loaderExceptions;
+        readonly CKExceptionData[]? _aggregatedExceptions;
+        string? _toString;
 
         /// <summary>
         /// The current stream version.
@@ -44,20 +45,19 @@ namespace CK.Core
         /// <param name="detailedInfo">More detailed information if any.</param>
         /// <param name="loaderExceptions">Loader exceptions. <see cref="LoaderExceptions"/>.</param>
         /// <param name="aggregatedExceptions">Aggregated exceptions can be null. Otherwise, it must contain at least one exception.</param>
-        public CKExceptionData(
-            string message,
-            string exceptionTypeName,
-            string exceptionTypeAssemblyQualifiedName,
-            string stackTrace,
-            CKExceptionData innerException,
-            string fileName,
-            string detailedInfo,
-            CKExceptionData[] loaderExceptions,
-            CKExceptionData[] aggregatedExceptions )
+        public CKExceptionData( string message,
+                                string exceptionTypeName,
+                                string exceptionTypeAssemblyQualifiedName,
+                                string? stackTrace,
+                                CKExceptionData? innerException,
+                                string? fileName,
+                                string? detailedInfo,
+                                CKExceptionData[]? loaderExceptions,
+                                CKExceptionData[]? aggregatedExceptions )
         {
-            if( message == null ) throw new ArgumentNullException( nameof( message ) );
-            if( String.IsNullOrWhiteSpace( exceptionTypeName ) ) throw new ArgumentNullException( nameof( exceptionTypeName ) );
-            if( String.IsNullOrWhiteSpace( exceptionTypeAssemblyQualifiedName ) ) throw new ArgumentNullException( nameof( exceptionTypeAssemblyQualifiedName ) );
+            Guard.IsNotNull( message, nameof( message ) );
+            Guard.IsNotNullOrWhiteSpace( exceptionTypeName, nameof( exceptionTypeName ) );
+            Guard.IsNotNullOrWhiteSpace( exceptionTypeName, nameof( exceptionTypeName ) );
             if( aggregatedExceptions != null && aggregatedExceptions.Length == 0 ) throw new ArgumentException( Impl.CoreResources.AggregatedExceptionsMustContainAtLeastOne, nameof( aggregatedExceptions ) );
             if( innerException != null && aggregatedExceptions != null && aggregatedExceptions[0] != innerException ) throw new ArgumentException( Impl.CoreResources.InnerExceptionMustBeTheFirstAggregatedException );
             // No empty array for loaderExceptions: null or at least one inside.
@@ -94,7 +94,7 @@ namespace CK.Core
         /// <param name="version">Known version.</param>
         public CKExceptionData( CKBinaryReader r, bool streamIsCRLF, int version )
         {
-            if( r == null ) throw new ArgumentNullException( "r" );
+            Guard.IsNotNull( r, nameof( r ) );
             _message = r.ReadString( streamIsCRLF );
             _exceptionTypeName = r.ReadString();
             _exceptionTypeAQName = r.ReadString();
@@ -140,52 +140,49 @@ namespace CK.Core
         /// </summary>
         /// <param name="ex">Exception for which data must be created. Can be null: null is returned.</param>
         /// <returns>The data that describes the exception.</returns>
-        static public CKExceptionData CreateFrom( Exception ex )
+        [return: NotNullIfNotNull( "ex" )]
+        static public CKExceptionData? CreateFrom( Exception? ex )
         {
             if( ex == null ) return null;
             if( ex is CKException ckEx ) return ckEx.EnsureExceptionData();
             Type t = ex.GetType();
             string exceptionTypeName = t.Name;
-            string exceptionTypeAssemblyQualifiedName = t.AssemblyQualifiedName;
+            string exceptionTypeAssemblyQualifiedName = t.AssemblyQualifiedName!;
 
-            CKExceptionData innerException;
-            CKExceptionData[] aggregatedExceptions = null;
-            var aggEx = ex as AggregateException;
-            if( aggEx != null )
+            CKExceptionData? innerException;
+            CKExceptionData[]? aggregatedExceptions = null;
+            if( ex is AggregateException aggEx )
             {
                 CKExceptionData[] a = new CKExceptionData[aggEx.InnerExceptions.Count];
-                for( int i = 0; i < a.Length; ++i ) a[i] = CreateFrom( aggEx.InnerExceptions[i] );
+                for( int i = 0; i < a.Length; ++i ) a[i] = CreateFrom( aggEx.InnerExceptions[i] )!;
                 innerException = a[0];
                 aggregatedExceptions = a;
             }
             else innerException = CreateFrom( ex.InnerException );
 
-            string fileName = null;
-            string detailedInfo = null;
+            string? fileName = null;
+            string? detailedInfo = null;
 
-            CKExceptionData[] loaderExceptions = null;
-            var typeLoadEx = ex as ReflectionTypeLoadException;
-            if( typeLoadEx != null )
+            CKExceptionData[]? loaderExceptions = null;
+            if( ex is ReflectionTypeLoadException typeLoadEx && typeLoadEx.LoaderExceptions != null )
             {
                 CKExceptionData[] a = new CKExceptionData[typeLoadEx.LoaderExceptions.Length];
-                for( int i = 0; i < a.Length; ++i ) a[i] = CreateFrom( typeLoadEx.LoaderExceptions[i] );
+                for( int i = 0; i < a.Length; ++i ) a[i] = CreateFrom( typeLoadEx.LoaderExceptions[i] )!;
                 loaderExceptions = a;
             }
             else
             {
-                var fileNFEx = ex as System.IO.FileNotFoundException;
-                if( fileNFEx != null )
+                if( ex is FileNotFoundException fileNFEx )
                 {
                     fileName = fileNFEx.FileName;
-                    detailedInfo = fileNFEx.FusionLog.NormalizeEOL();
+                    detailedInfo = fileNFEx.FusionLog?.NormalizeEOL();
                 }
                 else
                 {
-                    var loadFileEx = ex as System.IO.FileLoadException;
-                    if( loadFileEx != null )
+                    if( ex is FileLoadException loadFileEx )
                     {
                         fileName = loadFileEx.FileName;
-                        detailedInfo = loadFileEx.FusionLog.NormalizeEOL();
+                        detailedInfo = loadFileEx.FusionLog?.NormalizeEOL();
                     }
                 }
             }
@@ -210,19 +207,19 @@ namespace CK.Core
         /// <summary>
         /// Gets the stack trace. Can be null.
         /// </summary>
-        public string StackTrace => _stackTrace;
+        public string? StackTrace => _stackTrace;
 
         /// <summary>
         /// Gets the inner exception if it exists.
-        /// If <see cref="AggregatedExceptions"/> is not null, it is the same as the first aggreated exceptions.
+        /// If <see cref="AggregatedExceptions"/> is not null, it is the same as the first aggregated exceptions.
         /// </summary>
-        public CKExceptionData InnerException => _innerException;
+        public CKExceptionData? InnerException => _innerException;
 
         /// <summary>
         /// Gets the file name if the exception is referring to a file. 
         /// Null otherwise.
         /// </summary>
-        public string FileName => _fileName;
+        public string? FileName => _fileName;
 
         /// <summary>
         /// Gets more information: this depends on the actual exception type.
@@ -230,20 +227,20 @@ namespace CK.Core
         /// while dynamically loading a type or an assembly and we are in DNX, this contains the log from Fusion assembly loading subsystem. 
         /// Null otherwise.
         /// </summary>
-        public string DetailedInfo => _detailedInfo;
+        public string? DetailedInfo => _detailedInfo;
 
         /// <summary>
-        /// Gets all the the exceptions that occurred while dynamically loading a type or an assembly if the exception is a <see cref="System.Reflection.ReflectionTypeLoadException"/>.
+        /// Gets all the exceptions that occurred while dynamically loading a type or an assembly if the exception is a <see cref="System.Reflection.ReflectionTypeLoadException"/>.
         /// Null otherwise.
         /// </summary>
-        public IReadOnlyList<CKExceptionData> LoaderExceptions => _loaderExceptions;
+        public IReadOnlyList<CKExceptionData>? LoaderExceptions => _loaderExceptions;
 
         /// <summary>
-        /// Gets all the the aggregated exceptions if the exception is a <see cref="System.AggregateException"/>.
+        /// Gets all the aggregated exceptions if the exception is a <see cref="System.AggregateException"/>.
         /// This corresponds to the <see cref="System.AggregateException.InnerExceptions"/> property.
         /// Null if this exception is not a an AggregatedException.
         /// </summary>
-        public IReadOnlyList<CKExceptionData> AggregatedExceptions => _aggregatedExceptions;
+        public IReadOnlyList<CKExceptionData>? AggregatedExceptions => _aggregatedExceptions;
 
 
         /// <summary>
@@ -259,7 +256,7 @@ namespace CK.Core
 
         void WriteWithoutVersion( CKBinaryWriter w )
         {
-            if( w == null ) throw new ArgumentNullException( "w" );
+            Guard.IsNotNull( w, nameof( w ) );
             w.Write( _message );
             w.Write( _exceptionTypeName );
             w.Write( _exceptionTypeAQName );
@@ -298,7 +295,7 @@ namespace CK.Core
         /// <param name="prefix">Prefix that will appear at the start of each line.</param>
         public void ToTextWriter( TextWriter w, string prefix )
         {
-            StringWriter sw = w as StringWriter;
+            StringWriter? sw = w as StringWriter;
             StringBuilder b = sw != null ? sw.GetStringBuilder() : new StringBuilder();
             ToStringBuilder( b, prefix );
             if( sw == null ) w.Write( b.ToString() );
@@ -325,7 +322,6 @@ namespace CK.Core
             b.Append( " ■──────────────────────────" );
             b.AppendLine();
             Debug.Assert( ("──────────────────────────■ Exception: " + " ■──────────────────────────").Length == 39 + 28 );
-            int lenHeader = _exceptionTypeName.Length + 39 + 28;
 
             string locPrefix = prefix + " | ";
 
@@ -400,7 +396,7 @@ namespace CK.Core
         {
             if( _toString == null )
             {
-                StringBuilder b = new StringBuilder();
+                StringBuilder b = new();
                 ToStringBuilder( b, string.Empty );
                 _toString = b.ToString();
             }

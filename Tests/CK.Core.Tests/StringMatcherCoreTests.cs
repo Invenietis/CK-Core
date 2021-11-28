@@ -1,4 +1,3 @@
-﻿using CK.Text;
 using FluentAssertions;
 using System;
 using NUnit.Framework;

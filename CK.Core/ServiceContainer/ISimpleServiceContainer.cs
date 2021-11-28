@@ -1,26 +1,3 @@
-#region LGPL License
-/*----------------------------------------------------------------------------
-* This file (CK.Core\ISimpleServiceContainer.cs) is part of CiviKey. 
-*  
-* CiviKey is free software: you can redistribute it and/or modify 
-* it under the terms of the GNU Lesser General Public License as published 
-* by the Free Software Foundation, either version 3 of the License, or 
-* (at your option) any later version. 
-*  
-* CiviKey is distributed in the hope that it will be useful, 
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
-* GNU Lesser General Public License for more details. 
-* You should have received a copy of the GNU Lesser General Public License 
-* along with CiviKey.  If not, see <http://www.gnu.org/licenses/>. 
-*  
-* Copyright © 2007-2015, 
-*     Invenietis <http://www.invenietis.com>,
-*     In’Tech INFO <http://www.intechinfo.fr>,
-* All rights reserved. 
-*-----------------------------------------------------------------------------*/
-#endregion
-
 using System;
 
 namespace CK.Core
@@ -38,9 +15,9 @@ namespace CK.Core
         /// <param name="serviceType">Service type to register. It must not already exist in this container otherwise an exception is thrown.</param>
         /// <param name="serviceInstance">Delegate to call when needed. Can not be null.</param>
         /// <param name="onRemove">Optional action that will be called whenever <see cref="Remove"/>, <see cref="Clear"/> or <see cref="IDisposable.Dispose"/>
-        /// is called and a service as been successfuly obtained.</param>
+        /// is called and a service as been successfully obtained.</param>
         /// <returns>This object to enable fluent syntax.</returns>
-        ISimpleServiceContainer Add( Type serviceType, Func<Object> serviceInstance, Action<Object> onRemove = null );
+        ISimpleServiceContainer Add( Type serviceType, Func<Object> serviceInstance, Action<Object>? onRemove = null );
 
         /// <summary>
         /// Registers a service with its implementation (and an optional callback that will be called when the service will be removed).
@@ -49,7 +26,7 @@ namespace CK.Core
         /// <param name="serviceInstance">Implementation of the service. Can not be null.</param>
         /// <param name="onRemove">Optional action that will be called whenever <see cref="Remove"/>, <see cref="Clear"/> or <see cref="IDisposable.Dispose"/>.</param>
         /// <returns>This object to enable fluent syntax.</returns>
-        ISimpleServiceContainer Add( Type serviceType, object serviceInstance, Action<Object> onRemove = null );
+        ISimpleServiceContainer Add( Type serviceType, object serviceInstance, Action<Object>? onRemove = null );
 
         /// <summary>
         /// Unregisters a service. Can be called even if the service does not exist.

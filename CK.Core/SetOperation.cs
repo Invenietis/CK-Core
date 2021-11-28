@@ -26,7 +26,7 @@ namespace CK.Core
         Except,
         
         /// <summary>
-        /// Symetric exclusion (keeps items that belong to first or second set but not to both) - The XOR operation.
+        /// Symmetric exclusion (keeps items that belong to first or second set but not to both) - The XOR operation.
         /// </summary>
         SymetricExcept,
 

@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using NUnit.Framework;
 using System.Threading;
+using System.Diagnostics;
 
 namespace CK.Core.Tests
 {
@@ -39,7 +40,7 @@ namespace CK.Core.Tests
         [Test]
         public void Tags_must_belong_to_the_same_context()
         {
-            Action a = () => CKTraitContext.Create( null );
+            Action a = () => CKTraitContext.Create( null! );
             a.Should().Throw<ArgumentException>();
 
             a = () => CKTraitContext.Create( "  " );
@@ -51,21 +52,21 @@ namespace CK.Core.Tests
             var t1 = c1.FindOrCreate( "T1" );
             var t2 = c2.FindOrCreate( "T2" );
             t1.Should().NotBeSameAs( t2 );
-            t1.Invoking( sut => sut.Union( t2 ) ).Should().Throw<InvalidOperationException>();
-            t1.Invoking( sut => sut.Intersect( t2 ) ).Should().Throw<InvalidOperationException>();
-            t1.Invoking( sut => sut.Except( t2 ) ).Should().Throw<InvalidOperationException>();
-            t1.Invoking( sut => sut.SymmetricExcept( t2 ) ).Should().Throw<InvalidOperationException>();
+            t1.Invoking( sut => sut.Union( t2 ) ).Should().Throw<ArgumentException>();
+            t1.Invoking( sut => sut.Intersect( t2 ) ).Should().Throw<ArgumentException>();
+            t1.Invoking( sut => sut.Except( t2 ) ).Should().Throw<ArgumentException>();
+            t1.Invoking( sut => sut.SymmetricExcept( t2 ) ).Should().Throw<ArgumentException>();
 
-            t1.Invoking( sut => sut.Overlaps( t2 ) ).Should().Throw<InvalidOperationException>();
-            t1.Invoking( sut => sut.IsSupersetOf( t2 ) ).Should().Throw<InvalidOperationException>();
+            t1.Invoking( sut => sut.Overlaps( t2 ) ).Should().Throw<ArgumentException>();
+            t1.Invoking( sut => sut.IsSupersetOf( t2 ) ).Should().Throw<ArgumentException>();
 
-            t1.Invoking( sut => sut.Union( null ) ).Should().Throw<ArgumentNullException>();
-            t1.Invoking( sut => sut.Intersect( null ) ).Should().Throw<ArgumentNullException>();
-            t1.Invoking( sut => sut.Except( null ) ).Should().Throw<ArgumentNullException>();
-            t1.Invoking( sut => sut.SymmetricExcept( null ) ).Should().Throw<ArgumentNullException>();
+            t1.Invoking( sut => sut.Union( null! ) ).Should().Throw<ArgumentNullException>();
+            t1.Invoking( sut => sut.Intersect( null! ) ).Should().Throw<ArgumentNullException>();
+            t1.Invoking( sut => sut.Except( null! ) ).Should().Throw<ArgumentNullException>();
+            t1.Invoking( sut => sut.SymmetricExcept( null! ) ).Should().Throw<ArgumentNullException>();
 
-            t1.Invoking( sut => sut.Overlaps( null ) ).Should().Throw<ArgumentNullException>();
-            t1.Invoking( sut => sut.IsSupersetOf( null ) ).Should().Throw<ArgumentNullException>();
+            t1.Invoking( sut => sut.Overlaps( null! ) ).Should().Throw<ArgumentNullException>();
+            t1.Invoking( sut => sut.IsSupersetOf( null! ) ).Should().Throw<ArgumentNullException>();
         }
 
         [Test]
@@ -77,7 +78,7 @@ namespace CK.Core.Tests
             m.IsAtomic.Should().BeTrue( "Empty tag is considered as atomic." );
             m.AtomicTraits.Should().BeEmpty( "Empty tag has no atomic tags inside." );
 
-            c.FindOrCreate( null ).Should().BeSameAs( m, "Null gives the empty tag." );
+            c.FindOrCreate( null! ).Should().BeSameAs( m, "Null gives the empty tag." );
             c.FindOrCreate( "" ).Should().BeSameAs( m, "Obtaining empty string gives the empty tag." );
             c.FindOrCreate( "+" ).Should().BeSameAs( m, "Obtaining '+' gives the empty tag." );
             c.Invoking( sut => sut.FindOrCreate( " \t \n  " ) ).Should().Throw<ArgumentException>( "No \n inside." );
@@ -86,7 +87,7 @@ namespace CK.Core.Tests
             c.FindOrCreate( "++++" ).Should().BeSameAs( m, "Multiple + are ignored" );
             c.FindOrCreate( "++  +++  + \t +" ).Should().BeSameAs( m, "Multiple empty strings leads to empty tag." );
 
-            c.FindOnlyExisting( null ).Should().BeNull();
+            c.FindOnlyExisting( null! ).Should().BeNull();
             c.FindOnlyExisting( "" ).Should().BeNull();
             c.FindOnlyExisting( " " ).Should().BeNull();
             c.FindOnlyExisting( " ++  + " ).Should().BeNull();
@@ -142,10 +143,10 @@ namespace CK.Core.Tests
             var notExists1 = Guid.NewGuid().ToString();
             var notExists2 = Guid.NewGuid().ToString();
             var notExists3 = Guid.NewGuid().ToString();
-            c.FindOnlyExisting( "Beta" ).ToString().Should().Be( "Beta" );
-            c.FindOnlyExisting( $"Beta+{notExists1}" ).ToString().Should().Be( "Beta" );
-            c.FindOnlyExisting( $"Beta+{notExists1}+{notExists2}+Alpha+{notExists3}" ).Should().BeSameAs( m );
-            c.FindOnlyExisting( $"Beta+  {notExists1} + {notExists2} +Alpha+{notExists3}+Tau+Pi" ).ToString().Should().Be( "Alpha+Beta+Pi+Tau" );
+            c.FindOnlyExisting( "Beta" )!.ToString().Should().Be( "Beta" );
+            c.FindOnlyExisting( $"Beta+{notExists1}" )!.ToString().Should().Be( "Beta" );
+            c.FindOnlyExisting( $"Beta+{notExists1}+{notExists2}+Alpha+{notExists3}" )!.Should().BeSameAs( m );
+            c.FindOnlyExisting( $"Beta+  {notExists1} + {notExists2} +Alpha+{notExists3}+Tau+Pi" )!.ToString().Should().Be( "Alpha+Beta+Pi+Tau" );
         }
 
         [Test]
@@ -160,13 +161,15 @@ namespace CK.Core.Tests
             var noExists2 = "B" + Guid.NewGuid().ToString();
             var noExists3 = "C" + Guid.NewGuid().ToString();
             var noExists4 = "D" + Guid.NewGuid().ToString();
-            c.FindOnlyExisting( $"Beta+{noExists1}+{noExists2}+Alpha+{noExists3}+Tau+Pi+{noExists4}", t => { collector.Add( t ); return true; } ).ToString()
-                .Should().Be( "Alpha+Beta+Pi+Tau" );
+            var f = c.FindOnlyExisting( $"Beta+{noExists1}+{noExists2}+Alpha+{noExists3}+Tau+Pi+{noExists4}", t => { collector.Add( t ); return true; } );
+            Debug.Assert( f != null );
+            f.ToString().Should().Be( "Alpha+Beta+Pi+Tau" );
             String.Join( ",", collector ).Should().Be( $"{noExists1},{noExists2},{noExists3},{noExists4}" );
 
             collector.Clear();
-            c.FindOnlyExisting( $"Beta+{noExists1}+{noExists2}+Alpha+{noExists3}+Tau+Pi", t => { collector.Add( t ); return t != noExists3; } ).ToString()
-                .Should().Be( "Alpha+Beta" );
+            f = c.FindOnlyExisting( $"Beta+{noExists1}+{noExists2}+Alpha+{noExists3}+Tau+Pi", t => { collector.Add( t ); return t != noExists3; } );
+            Debug.Assert( f != null );
+            f.ToString().Should().Be( "Alpha+Beta" );
             String.Join( ",", collector ).Should().Be( $"{noExists1},{noExists2},{noExists3}" );
         }
 

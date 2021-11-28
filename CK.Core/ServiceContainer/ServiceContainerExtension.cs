@@ -1,26 +1,3 @@
-#region LGPL License
-/*----------------------------------------------------------------------------
-* This file (CK.Core\Collection\CKComponentModelExtension.cs) is part of CiviKey. 
-*  
-* CiviKey is free software: you can redistribute it and/or modify 
-* it under the terms of the GNU Lesser General Public License as published 
-* by the Free Software Foundation, either version 3 of the License, or 
-* (at your option) any later version. 
-*  
-* CiviKey is distributed in the hope that it will be useful, 
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
-* GNU Lesser General Public License for more details. 
-* You should have received a copy of the GNU Lesser General Public License 
-* along with CiviKey.  If not, see <http://www.gnu.org/licenses/>. 
-*  
-* Copyright © 2007-2015, 
-*     Invenietis <http://www.invenietis.com>,
-*     In’Tech INFO <http://www.intechinfo.fr>,
-* All rights reserved. 
-*-----------------------------------------------------------------------------*/
-#endregion
-
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
@@ -36,15 +13,37 @@ namespace CK.Core
     {
         /// <summary>
         /// Strongly typed version of <see cref="IServiceProvider.GetService"/>.
+        /// Unfortunately there is no way (as of today) to condition the return nullability to the <paramref name="throwOnNull"/> value:
+        /// this declares that returned object is not null even if it can be null when throwOnNull is false.
         /// </summary>
         /// <param name="this">This service provider.</param>
         /// <param name="throwOnNull">True to throw an exception if the service can not be provided (otherwise null is returned).</param>
         /// <returns>A service object of the required type or null if not found and <paramref name="throwOnNull"/> is false.</returns>
         public static T GetService<T>( this IServiceProvider @this, bool throwOnNull )
         {
-            T s = (T)@this.GetService( typeof( T ) );
-            if( throwOnNull && s == null ) throw new Exception( String.Format( Impl.CoreResources.UnregisteredServiceInServiceProvider, typeof( T ).FullName ) );
-            return s;
+            T? s = (T?)@this.GetService( typeof( T ) );
+            if( throwOnNull && s == null ) ThrowUnregistered<T>();
+            return s!;
+        }
+
+        /// <summary>
+        /// Strongly typed version of <see cref="IServiceProvider.GetService"/>.
+        /// </summary>
+        /// <param name="this">This service provider.</param>
+        /// <param name="service">The service if it can be resolved.</param>
+        /// <param name="throwOnNull">True to throw an exception if the service can not be provided (otherwise null is returned).</param>
+        /// <returns>A service object of the required type or null if not found and <paramref name="throwOnNull"/> is false.</returns>
+        public static bool TryGetService<T>( this IServiceProvider @this, [NotNullWhen(true)]out T? service, bool throwOnNull )
+        {
+            service = (T?)@this.GetService( typeof( T ) );
+            if( throwOnNull && service == null ) ThrowUnregistered<T>();
+            return service != null;
+        }
+
+        [DoesNotReturn]
+        static void ThrowUnregistered<T>()
+        {
+            throw new Exception( String.Format( Impl.CoreResources.UnregisteredServiceInServiceProvider, typeof( T ).FullName ) );
         }
 
         /// <summary>
@@ -65,7 +64,14 @@ namespace CK.Core
         /// <returns>This object to enable fluent syntax.</returns>
         public static ISimpleServiceContainer Add<T>( this ISimpleServiceContainer @this, T serviceInstance )
         {
+            if( serviceInstance == null ) ThrowArgumentNull( nameof(serviceInstance) );
             return @this.Add( typeof( T ), serviceInstance, null );
+        }
+
+        [DoesNotReturn]
+        static void ThrowArgumentNull( string parameterName )
+        {
+            throw new ArgumentNullException( parameterName );
         }
 
         /// <summary>
@@ -78,7 +84,8 @@ namespace CK.Core
         /// <returns>This object to enable fluent syntax.</returns>
         public static ISimpleServiceContainer Add<T>( this ISimpleServiceContainer @this, T serviceInstance, Action<T> onRemove )
         {
-            if( onRemove == null ) throw new ArgumentNullException( nameof( onRemove ) );
+            if( onRemove == null ) ThrowArgumentNull( nameof( onRemove ) );
+            if( serviceInstance == null ) ThrowArgumentNull( nameof( serviceInstance ) );
             return @this.Add( typeof( T ), serviceInstance, o => onRemove( (T)o ) );
         }
 
@@ -106,7 +113,7 @@ namespace CK.Core
         /// <param name="this">This <see cref="ISimpleServiceContainer"/> object.</param>
         /// <param name="serviceInstance">Delegate to call when needed. Can not be null.</param>
         /// <param name="onRemove">Action that will be called whenever <see cref="ISimpleServiceContainer.Remove"/>, <see cref="ISimpleServiceContainer.Clear"/> or <see cref="IDisposable.Dispose"/>
-        /// is called and a service as been successfuly obtained.</param>
+        /// is called and a service as been successfully obtained.</param>
         /// <returns>This object to enable fluent syntax.</returns>
         public static ISimpleServiceContainer Add<T>( this ISimpleServiceContainer @this, Func<T> serviceInstance, Action<T> onRemove ) where T : class
         {
@@ -116,7 +123,7 @@ namespace CK.Core
             //
             // On the other hand, for the onRemove action we cannot do any miracle: we need to adapt the call.
             //
-            if( onRemove == null ) throw new ArgumentNullException( nameof( onRemove ) );
+            if( onRemove == null ) ThrowArgumentNull( nameof( onRemove ) );
             return @this.Add( typeof( T ), serviceInstance, o => onRemove( (T)o ) );
         }
 

@@ -1,7 +1,8 @@
-using CK.Text;
+using Microsoft.Toolkit.Diagnostics;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -21,7 +22,7 @@ namespace CK.Core
         /// <typeparam name="T">The type of the object.</typeparam>
         public class ObjectPool<T>
         {
-            readonly List<T> _objects;
+            readonly List<T?> _objects;
             readonly ICKBinaryReader _r;
 
             /// <summary>
@@ -30,8 +31,8 @@ namespace CK.Core
             /// <param name="r">The reader. Must not be null.</param>
             public ObjectPool( ICKBinaryReader r )
             {
-                if( r == null ) throw new ArgumentNullException( nameof( r ) );
-                _objects = new List<T>();
+                Guard.IsNotNull( r, nameof( r ) );
+                _objects = new List<T?>();
                 _r = r;
             }
 
@@ -40,11 +41,11 @@ namespace CK.Core
             /// When <see cref="Success"/> is false, <see cref="SetReadResult(T)"/> must be called
             /// as soon as the object has been read.
             /// </summary>
-            public struct ReadState
+            public readonly struct ReadState
             {
-                ObjectPool<T> _pool;
-                int _num;
-                byte _writeMarker;
+                readonly ObjectPool<T>? _pool;
+                readonly int _num;
+                readonly byte _writeMarker;
 
                 /// <summary>
                 /// Gets whether the object has been read.
@@ -70,7 +71,7 @@ namespace CK.Core
                 /// <returns>The read value.</returns>
                 public T SetReadResult( T read )
                 {
-                    if( Success ) throw new InvalidOperationException();
+                    if( _pool == null ) throw new InvalidOperationException();
                     _pool._objects[_num] = read;
                     return read;
                 }
@@ -80,7 +81,7 @@ namespace CK.Core
                     _pool = p;
                     _num = p._objects.Count;
                     _writeMarker = marker;
-                    p._objects.Add( default( T ) );
+                    p._objects.Add( default );
                 }
 
                 internal ReadState( byte marker )
@@ -99,29 +100,29 @@ namespace CK.Core
             /// The read state. When <see cref="ReadState.Success"/> is false, the object must be read
             /// and <see cref="ReadState.SetReadResult(T)"/> must be called.
             /// </returns>
-            public ReadState TryRead( out T already )
+            public ReadState TryRead( [MaybeNull]out T already )
             {
                 byte b = _r.ReadByte();
                 switch( b )
                 {
-                    case 0: already = default( T ); return new ReadState();
+                    case 0: already = default; return new ReadState();
                     case 1: already = _objects[_r.ReadNonNegativeSmallInt32()]; return new ReadState( 1 );
-                    default:already = default( T ); return new ReadState( this, b );
+                    default:already = default; return new ReadState( this, b );
                 }
             }
 
             /// <summary>
-            /// Reads a value either from this pool it it has already been read or, when not yet read,
+            /// Reads a value either from this pool if it has already been read or, when not yet read,
             /// thanks to an actual reader function.
             /// </summary>
             /// <param name="actualReader">Function that will be called if the value must actually be read.</param>
             /// <returns>The value.</returns>
-            public T Read( Func<ReadState,ICKBinaryReader,T> actualReader )
+            public T? Read( Func<ReadState,ICKBinaryReader,T> actualReader )
             {
                 byte b = _r.ReadByte();
                 switch( b )
                 {
-                    case 0: return default( T );
+                    case 0: return default;
                     case 1: return _objects[_r.ReadNonNegativeSmallInt32()];
                     default:
                         {
@@ -168,107 +169,66 @@ namespace CK.Core
             StringPool = new ObjectPool<string>( this );
         }
 
-        /// <summary>
-        /// Gets the string pool (see <see cref="CKBinaryWriter.StringPool"/>).
-        /// </summary>
+        /// <inheritdoc/>
         public ObjectPool<string> StringPool { get; }
 
-        /// <summary>
-        /// Reads in a 32-bit integer in compressed format.
-        /// </summary>
-        /// <returns>A 32-bit integer.</returns>
+        /// <inheritdoc/>
         public int ReadNonNegativeSmallInt32() => Read7BitEncodedInt();
 
-        /// <summary>
-        /// Reads in a 64-bit integer in compressed format written by <see cref="CKBinaryWriter.WriteSmallInt32(int, int)"/>.
-        /// </summary>
-        /// <param name="minNegativeValue">The same negative value used to write the integer.</param>
-        /// <returns>A 32-bit integer</returns>
+        /// <inheritdoc/>
         public int ReadSmallInt32( int minNegativeValue = -1 ) => Read7BitEncodedInt() + minNegativeValue;
 
-        /// <summary>
-        /// Reads and normalizes a string according to <see cref="Environment.NewLine"/>.
-        /// The fact that the data has actually be saved with LF or CRLF must be known.
-        /// </summary>
-        /// <param name="streamIsCRLF">True if the <see cref="BinaryReader.BaseStream"/> contains 
-        /// strings with CRLF end-of-line, false if the end-of-line is LF only.</param>
-        /// <returns>String with actual <see cref="Environment.NewLine"/> for end-of-line.</returns>
+        /// <inheritdoc/>
         public string ReadString( bool streamIsCRLF )
         {
             string text = ReadString();
             return streamIsCRLF == StringAndStringBuilderExtension.IsCRLF ? text : text.NormalizeEOL();
         }
 
-        /// <summary>
-        /// Reads a potentially null string.
-        /// </summary>
-        /// <param name="streamIsCRLF">True if the <see cref="BinaryReader.BaseStream"/> contains 
-        /// strings with CRLF end-of-line, false if the end-of-line is LF only.</param>
-        /// <returns>The string or null.</returns>
-        public string ReadNullableString( bool streamIsCRLF )
+        /// <inheritdoc/>
+        public string? ReadNullableString( bool streamIsCRLF )
         {
             return ReadBoolean() ? ReadString( streamIsCRLF ) : null;
         }
 
-        /// <summary>
-        /// Reads a potentially null string.
-        /// </summary>
-        /// <returns>The string or null.</returns>
-        public string ReadNullableString()
+        /// <inheritdoc/>
+        public string? ReadNullableString()
         {
             return ReadBoolean() ? ReadString() : null;
         }
 
-        /// <summary>
-        /// Reads a string, using the default <see cref="StringPool"/>.
-        /// </summary>
-        /// <returns>The string or null.</returns>
-        public string ReadSharedString()
+        /// <inheritdoc/>
+        public string? ReadSharedString()
         {
-            var r = StringPool.TryRead( out string s );
+            var r = StringPool.TryRead( out string? s );
             return r.Success ? s : r.SetReadResult( ReadString() );
         }
 
-        /// <summary>
-        /// Reads a DateTime value.
-        /// </summary>
-        /// <returns>The DateTime read.</returns>
+        /// <inheritdoc/>
         public DateTime ReadDateTime()
         {
             return DateTime.FromBinary( ReadInt64() );
         }
 
-        /// <summary>
-        /// Reads a TimeSpan value.
-        /// </summary>
-        /// <returns>The TimeSpan read.</returns>
+        /// <inheritdoc/>
         public TimeSpan ReadTimeSpan()
         {
             return TimeSpan.FromTicks( ReadInt64() );
         }
 
-        /// <summary>
-        /// Reads a DateTimeOffset value.
-        /// </summary>
-        /// <returns>The DateTimeOffset read.</returns>
+        /// <inheritdoc/>
         public DateTimeOffset ReadDateTimeOffset()
         {
             return new DateTimeOffset( ReadDateTime(), TimeSpan.FromMinutes( ReadInt16() ) );
         }
 
-        /// <summary>
-        /// Reads a Guid value.
-        /// </summary>
-        /// <returns>The Guid read.</returns>
+        /// <inheritdoc/>
         public Guid ReadGuid()
         {
             return new Guid( ReadBytes( 16 ) );
         }
 
-        /// <summary>
-        /// Reads a nullable byte value.
-        /// </summary>
-        /// <returns>The nullable byte read.</returns>
+        /// <inheritdoc/>
         public byte? ReadNullableByte()
         {
             var v = ReadByte();
@@ -277,25 +237,19 @@ namespace CK.Core
             return v;
         }
 
-        /// <summary>
-        /// Reads a nullable bool value.
-        /// </summary>
-        /// <returns>The nullable bool read.</returns>
+        /// <inheritdoc/>
         public bool? ReadNullableBool()
         {
-            switch( ReadByte() )
+            return ReadByte() switch
             {
-                case 1: return true;
-                case 2: return false;
-                case 3: return null;
-            }
-            throw new InvalidDataException();
+                1 => true,
+                2 => false,
+                3 => null,
+                _ => throw new InvalidDataException(),
+            };
         }
 
-        /// <summary>
-        /// Reads a nullable signed byte value.
-        /// </summary>
-        /// <returns>The nullable sbyte read.</returns>
+        /// <inheritdoc/>
         public sbyte? ReadNullableSByte()
         {
             var v = ReadSByte();
@@ -304,11 +258,7 @@ namespace CK.Core
             return v;
         }
 
-
-        /// <summary>
-        /// Reads a nullable ushort (<see cref="UInt16"/>) value.
-        /// </summary>
-        /// <returns>The nullable ushort read.</returns>
+        /// <inheritdoc/>
         public ushort? ReadNullableUInt16()
         {
             var v = ReadUInt16();
@@ -317,10 +267,7 @@ namespace CK.Core
             return v;
         }
 
-        /// <summary>
-        /// Reads a nullable short (<see cref="Int16"/>) value.
-        /// </summary>
-        /// <returns>The nullable short read.</returns>
+        /// <inheritdoc/>
         public short? ReadNullableInt16()
         {
             var v = ReadInt16();
@@ -329,10 +276,7 @@ namespace CK.Core
             return v;
         }
 
-        /// <summary>
-        /// Reads a nullable unsigned int (<see cref="UInt32"/>) value.
-        /// </summary>
-        /// <returns>The nullable uint read.</returns>
+        /// <inheritdoc/>
         public uint? ReadNullableUInt32()
         {
             var v = ReadUInt32();
@@ -341,10 +285,7 @@ namespace CK.Core
             return v;
         }
 
-        /// <summary>
-        /// Reads a nullable int (<see cref="Int32"/>) value.
-        /// </summary>
-        /// <returns>The nullable int read.</returns>
+        /// <inheritdoc/>
         public int? ReadNullableInt32()
         {
             var v = ReadInt32();
@@ -353,10 +294,7 @@ namespace CK.Core
             return v;
         }
 
-        /// <summary>
-        /// Reads a nullable unsigned long (<see cref="UInt64"/>) value.
-        /// </summary>
-        /// <returns>The nullable ulong read.</returns>
+        /// <inheritdoc/>
         public ulong? ReadNullableUInt64()
         {
             var v = ReadUInt64();
@@ -365,10 +303,7 @@ namespace CK.Core
             return v;
         }
 
-        /// <summary>
-        /// Reads a nullable long (<see cref="Int64"/>) value.
-        /// </summary>
-        /// <returns>The nullable int read.</returns>
+        /// <inheritdoc/>
         public long? ReadNullableInt64()
         {
             var v = ReadInt64();
@@ -378,11 +313,8 @@ namespace CK.Core
         }
 
 
-        /// <summary>
-        /// Reads a nullable char (<see cref="Char"/>) value.
-        /// </summary>
-        /// <returns>The nullable char read.</returns>
-        public ushort? ReadNullableChar()
+        /// <inheritdoc/>
+        public char? ReadNullableChar()
         {
             var v = ReadChar();
             if( v == (char)(Char.MinValue + 1) ) return null;
@@ -390,10 +322,7 @@ namespace CK.Core
             return v;
         }
 
-        /// <summary>
-        /// Reads an enum value previously written by <see cref="ICKBinaryWriter.WriteEnum{T}(T)"/>.
-        /// </summary>
-        /// <typeparam name="T">The enum type.</typeparam>
+        /// <inheritdoc/>
         public T ReadEnum<T>() where T : struct, Enum
         {
             var u = typeof( T ).GetEnumUnderlyingType();
@@ -408,10 +337,7 @@ namespace CK.Core
             throw new NotSupportedException( $"Unhandled base enum type: {u}" );
         }
 
-        /// <summary>
-        /// Reads an enum value previously written by <see cref="ICKBinaryWriter.WriteNullableEnum{T}(T?)"/>.
-        /// </summary>
-        /// <typeparam name="T">The enum type.</typeparam>
+        /// <inheritdoc/>
         public T? ReadNullableEnum<T>() where T : struct, Enum
         {
             var u = typeof( T ).GetEnumUnderlyingType();
@@ -424,6 +350,36 @@ namespace CK.Core
             if( u == typeof( ushort ) ) { var v = ReadNullableUInt16(); if( v.HasValue ) return (T)(object)v.Value; else return null; }
             if( u == typeof( ulong ) ) { var v = ReadNullableUInt64(); if( v.HasValue ) return (T)(object)v.Value; else return null; }
             throw new NotSupportedException( $"Unhandled base enum type: {u}" );
+        }
+
+        /// <inheritdoc />
+        public DateTime? ReadNullableDateTime()
+        {
+            long? t = ReadNullableInt64();
+            return t.HasValue ? DateTime.FromBinary( t.Value ) : null;
+
+        }
+
+        /// <inheritdoc />
+        public TimeSpan? ReadNullableTimeSpan()
+        {
+            long? t = ReadNullableInt64();
+            return t.HasValue ? new TimeSpan( t.Value ) : null;
+        }
+
+        /// <inheritdoc />
+        public DateTimeOffset? ReadNullableDateTimeOffset()
+        {
+            long? t = ReadNullableInt64();
+            return t.HasValue
+                    ? new DateTimeOffset( DateTime.FromBinary( t.Value ), TimeSpan.FromMinutes( ReadInt16() ) )
+                    : null;
+        }
+
+        /// <inheritdoc />
+        public Guid? ReadNullableGuid()
+        {
+            return ReadBoolean() ? ReadGuid() : null;
         }
     }
 

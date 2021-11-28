@@ -1,27 +1,5 @@
-#region LGPL License
-/*----------------------------------------------------------------------------
-* This file (CK.Core\File\TemporaryFile.cs) is part of CiviKey. 
-*  
-* CiviKey is free software: you can redistribute it and/or modify 
-* it under the terms of the GNU Lesser General Public License as published 
-* by the Free Software Foundation, either version 3 of the License, or 
-* (at your option) any later version. 
-*  
-* CiviKey is distributed in the hope that it will be useful, 
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
-* GNU Lesser General Public License for more details. 
-* You should have received a copy of the GNU Lesser General Public License 
-* along with CiviKey.  If not, see <http://www.gnu.org/licenses/>. 
-*  
-* Copyright © 2007-2015, 
-*     Invenietis <http://www.invenietis.com>,
-*     In’Tech INFO <http://www.intechinfo.fr>,
-* All rights reserved. 
-*-----------------------------------------------------------------------------*/
-#endregion
-
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 
 namespace CK.Core
@@ -35,7 +13,7 @@ namespace CK.Core
     /// </summary>
     public sealed class TemporaryFile : IDisposable
 	{
-		string _path;
+		string? _path;
 
         /// <summary>
         /// Initializes a new short lived <see cref="TemporaryFile"/>.
@@ -74,7 +52,7 @@ namespace CK.Core
         /// <remarks>
         /// When extension is ".", the final path will end with a ".".
         /// </remarks>
-        public TemporaryFile( bool shortLived, string extension )
+        public TemporaryFile( bool shortLived, string? extension )
         {
             _path = System.IO.Path.GetTempFileName();
             if( !String.IsNullOrWhiteSpace( extension ) )
@@ -104,11 +82,13 @@ namespace CK.Core
 		{
 			get 
             {
-                var p = _path;
-                if( p == null ) throw new ObjectDisposedException( "TemporaryFile" );
-                return p; 
+                if( _path == null ) ThrowObjectDisposedException();
+                return _path; 
             }
 		}
+
+        [DoesNotReturn]
+        static void ThrowObjectDisposedException() => throw new ObjectDisposedException( "TemporaryFile" );
 
         /// <summary>
         /// Gets whether the temporary file is detached (its <see cref="Path"/> is <see cref="String.Empty"/>).

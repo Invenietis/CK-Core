@@ -8,12 +8,8 @@ namespace CK.Core
     /// <summary>
     /// A date and time stamp encapsulates a <see cref="TimeUtc"/> (<see cref="DateTime"/> guaranteed to be in Utc) and a <see cref="Uniquifier"/>.
     /// </summary>
-    /// <remarks>
-    /// Simply use <see cref="ToString()"/> and <see cref="DateTimeStampExtension.MatchDateTimeStamp(Text.StringMatcher, out DateTimeStamp)">MatchDateTimeStamp</see>
-    /// to serialize it.
-    /// </remarks>
     [Serializable]
-    public struct DateTimeStamp : IComparable<DateTimeStamp>, IEquatable<DateTimeStamp>
+    public readonly struct DateTimeStamp : IComparable<DateTimeStamp>, IEquatable<DateTimeStamp>, ICKSimpleBinarySerializable, ISpanFormattable
     {
         /// <summary>
         /// Represents the smallest possible value for a DateTimeStamp object.         
@@ -50,6 +46,26 @@ namespace CK.Core
         {
             TimeUtc = new DateTime( DateTime.MinValue.Ticks, DateTimeKind.Local );
             Uniquifier = 0;
+        }
+
+        /// <summary>
+        /// Deserialization constructor.
+        /// </summary>
+        /// <param name="r">The reader.</param>
+        public DateTimeStamp( ICKBinaryReader r )
+        {
+            TimeUtc = r.ReadDateTime();
+            Uniquifier = r.ReadByte();
+        }
+
+        /// <summary>
+        /// Writes this DateTimeStamp.
+        /// </summary>
+        /// <param name="w">The writer.</param>
+        public void Write( ICKBinaryWriter w )
+        {
+            w.Write( TimeUtc );
+            w.Write( Uniquifier );
         }
 
         /// <summary>
@@ -164,8 +180,8 @@ namespace CK.Core
         public int CompareTo( object value )
         {
             if( value == null ) return 1;
-            if( !(value is DateTimeStamp) ) throw new ArgumentException();
-            return CompareTo( (DateTimeStamp)value );
+            if( value is not DateTimeStamp t ) throw new ArgumentException( null, nameof( value ) );
+            return CompareTo( t );
         }
 
         /// <summary>
@@ -173,19 +189,13 @@ namespace CK.Core
         /// </summary>
         /// <param name="other">Other object.</param>
         /// <returns>True when this is equal to other.</returns>
-        public override bool Equals( object other )
-        {
-            return (other is DateTimeStamp) && Equals( (DateTimeStamp)other );
-        }
+        public override bool Equals( object? other ) => other is DateTimeStamp o && Equals( o );
 
         /// <summary>
         /// Overridden to match <see cref="Equals(DateTimeStamp)"/>.
         /// </summary>
         /// <returns>The hash code.</returns>
-        public override int GetHashCode()
-        {
-            return TimeUtc.GetHashCode() ^ Uniquifier;
-        }
+        public override int GetHashCode() => TimeUtc.GetHashCode() ^ Uniquifier;
 
         /// <summary>
         /// @"{0:yyyy-MM-dd HH\hmm.ss.fffffff}({1})" is the format that will be used to format log time when the <see cref="Uniquifier"/> is not zero.
@@ -199,8 +209,51 @@ namespace CK.Core
         /// <returns>A string that can be successfully matched.</returns>
         public override string ToString()
         {
-            return Uniquifier != 0 ? String.Format( FormatWhenUniquifier, TimeUtc, Uniquifier ) : TimeUtc.ToString( FileUtil.FileNameUniqueTimeUtcFormat, CultureInfo.InvariantCulture );
+            return Uniquifier != 0
+                    ? String.Format( FormatWhenUniquifier, TimeUtc, Uniquifier )
+                    : TimeUtc.ToString( FileUtil.FileNameUniqueTimeUtcFormat, CultureInfo.InvariantCulture );
         }
+
+        /// <summary>
+        /// Tries to format this DatetimeStamp into the provided span of characters.
+        /// The destination must be at least between 27 and 32 long.
+        /// </summary>
+        /// <param name="destination">
+        /// When this method returns, this instance's value formatted as a span of characters.
+        /// </param>
+        /// <param name="charsWritten">When this method returns, the number of characters that were written in destination.</param>
+        /// <param name="format">Ignored: no custom format exists.</param>
+        /// <param name="provider">Ignored: the format is culture invariant.</param>
+        /// <returns>True if the formatting was successful; otherwise, False.</returns>
+        public bool TryFormat( Span<char> destination, out int charsWritten, ReadOnlySpan<char> format = default, IFormatProvider? provider = null )
+        {
+            Debug.Assert( FileUtil.FileNameUniqueTimeUtcFormat.Replace( "\\", "" ).Length == 27 );
+            if( Uniquifier != 0 )
+            {
+                int len = 30 + (Uniquifier >= 100 ? 2 : Uniquifier < 10 ? 0 : 1);
+                if( destination.Length < len )
+                {
+                    charsWritten = 0;
+                    return false;
+                }
+                TimeUtc.TryFormat( destination, out charsWritten, FileUtil.FileNameUniqueTimeUtcFormat.AsSpan(), null );
+                destination = destination.Slice( charsWritten );
+                destination[0] = '(';
+                destination = destination.Slice( 1 );
+                Uniquifier.TryFormat( destination, out charsWritten, ReadOnlySpan<char>.Empty, null );
+                destination[charsWritten] = ')';
+                charsWritten = len;
+                return true;
+            }
+            if( destination.Length < 27 )
+            {
+                charsWritten = 0;
+                return false;
+            }
+            return TimeUtc.TryFormat( destination, out charsWritten, FileUtil.FileNameUniqueTimeUtcFormat.AsSpan(), null );
+        }
+
+        string IFormattable.ToString( string? format, IFormatProvider? formatProvider ) => ToString();
 
         /// <summary>
         /// Checks equality.

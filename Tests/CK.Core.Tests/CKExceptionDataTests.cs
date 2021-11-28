@@ -6,8 +6,8 @@ using System.Runtime.Serialization.Formatters.Binary;
 using System.Text;
 using System.Threading.Tasks;
 using NUnit.Framework;
-using CK.Text;
 using FluentAssertions;
+using System.Diagnostics;
 
 namespace CK.Core.Tests
 {
@@ -24,8 +24,9 @@ namespace CK.Core.Tests
             CheckSimpleExceptionData( simpleData, s => s == "Test", false, true );
         }
 
-        private static void CheckSimpleExceptionData( CKExceptionData simpleData, Func<string, bool> message, bool? hasInner = null, bool hasStack = true )
+        static void CheckSimpleExceptionData( CKExceptionData? simpleData, Func<string, bool> message, bool? hasInner = null, bool hasStack = true )
         {
+            Debug.Assert( simpleData != null );
             message( simpleData.Message ).Should().BeTrue( "Invalid message." );
             simpleData.ExceptionTypeName.Should().Be( "Exception" );
             simpleData.ExceptionTypeAssemblyQualifiedName.Should().Be( typeof( Exception ).AssemblyQualifiedName );
@@ -64,6 +65,7 @@ namespace CK.Core.Tests
 
             d.ExceptionTypeAssemblyQualifiedName.Should().Be( typeof( AggregateException ).AssemblyQualifiedName );
             d.ExceptionTypeName.Should().Be( typeof( AggregateException ).Name );
+            Debug.Assert( d.AggregatedExceptions != null );
             d.AggregatedExceptions.Count.Should().BeGreaterOrEqualTo( 1 );
             d.InnerException.Should().BeSameAs( d.AggregatedExceptions[0] );
             for( int i = 0; i < d.AggregatedExceptions.Count; ++i )
@@ -72,6 +74,7 @@ namespace CK.Core.Tests
             }
         }
 
+#pragma warning disable SYSLIB0011 // Type or member is obsolete
         [Test]
         public void reading_and_writing_CKExceptionData_with_Standard_Serialization()
         {
@@ -102,6 +105,7 @@ namespace CK.Core.Tests
                 data4.ToString().Should().Be( dataE4.ToString() );
             }
         }
+#pragma warning restore SYSLIB0011 // Type or member is obsolete
 
         [Test]
         public void reading_and_writing_CKExceptionData_with_BinaryWriter_and_BinaryReader()
@@ -136,7 +140,7 @@ namespace CK.Core.Tests
 
         static AggregateException ThrowAggregatedException()
         {
-            AggregateException eAgg = null;
+            AggregateException? eAgg = null;
             try
             {
                 Parallel.For( 0, 50, i =>
@@ -150,7 +154,7 @@ namespace CK.Core.Tests
             {
                 eAgg = ex;
             }
-            return eAgg;
+            return eAgg!;
         }
 
         static Exception ThrowExceptionWithInner( bool loaderException = false )
@@ -179,10 +183,10 @@ namespace CK.Core.Tests
 
         static Exception ThrowLoaderException()
         {
-            Exception e = null;
+            Exception? e = null;
             try { Type.GetType( "A.Type, An.Unexisting.Assembly", true ); }
             catch( Exception ex ) { e = ex; }
-            return e;
+            return e!;
         }
 
     }

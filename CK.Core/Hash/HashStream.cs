@@ -11,49 +11,50 @@ using System.Threading.Tasks;
 namespace CK.Core
 {
     /// <summary>
-    /// Simple wrapper around a <see cref="SHA1Managed"/> instance to compute
-    /// SHA1 of a stream. Can be used in read or write mode and as a terminal stream
+    /// Simple wrapper around a <see cref="HashAlgorithm"/> instance to compute
+    /// the hash of a stream. Can be used in read or write mode and as a terminal stream
     /// or as a decorator.
     /// </summary>
-    public class SHA1Stream : Stream
+    public class HashStream : Stream
     {
-        SHA1Managed _sha1;
-        readonly Stream _reader;
-        readonly Stream _writer;
+        IncrementalHash _hash;
+        readonly Stream? _reader;
+        readonly Stream? _writer;
         readonly bool _leaveOpen;
 
         /// <summary>
-        /// Initializes a new instance of <see cref="SHA1Stream"/>.
+        /// Initializes a new instance of <see cref="HashStream"/>.
         /// This stream is a terminal one.
         /// </summary>
-        public SHA1Stream()
+        /// <param name="hashName">The <see cref="HashAlgorithmName"/>.</param>
+        public HashStream( HashAlgorithmName hashName )
         {
-            _sha1 = new SHA1Managed();
+            _hash = IncrementalHash.CreateHash( hashName );
         }
 
         /// <summary>
-        /// Initializes a new instance of <see cref="SHA1Stream"/> as a decorator on a read or write inner stream.
+        /// Initializes a new instance of <see cref="HashStream"/> as a decorator on a read or write inner stream.
         /// </summary>
+        /// <param name="hashName">The <see cref="HashAlgorithmName"/>.</param>
         /// <param name="inner">The inner (decorated) stream.</param>
         /// <param name="read">True to read from the inner stream through this one.</param>
         /// <param name="leaveOpen">True to leave the inner stream opened when disposing this one.</param>
-        public SHA1Stream( Stream inner, bool read, bool leaveOpen )
+        public HashStream( HashAlgorithmName hashName, Stream inner, bool read, bool leaveOpen )
         {
-            _sha1 = new SHA1Managed();
+            _hash = IncrementalHash.CreateHash( hashName );
             _leaveOpen = leaveOpen;
             if( read ) _reader = inner;
             else _writer = inner;
         }
 
         /// <summary>
-        /// Gets the final <see cref="SHA1Value"/>.
+        /// Gets the final hash value.
         /// Once this value has been read this stream should be disposed.
         /// </summary>
-        /// <returns>The final SHA1 value.</returns>
-        public SHA1Value GetFinalResult()
+        /// <returns>The final hash value.</returns>
+        public byte[] GetFinalResult()
         {
-            _sha1.TransformFinalBlock( Array.Empty<byte>(), 0, 0 );
-            return new SHA1Value( _sha1.Hash );
+            return _hash.GetHashAndReset();
         }
 
         /// <summary>
@@ -62,10 +63,10 @@ namespace CK.Core
         /// <param name="disposing">True on actual disposing, false when called by the GC.</param>
         protected override void Dispose( bool disposing )
         {
-            if( disposing && _sha1 != null )
+            if( disposing && _hash != null )
             {
-                _sha1.Dispose();
-                _sha1 = null;
+                _hash.Dispose();
+                _hash = null!;
                 if( !_leaveOpen )
                 {
                     _reader?.Dispose();
@@ -139,7 +140,7 @@ namespace CK.Core
         {
             if( _reader == null ) throw new InvalidOperationException();
             int r = _reader.Read( buffer, offset, count );
-            _sha1.TransformBlock( buffer, offset, r, null, 0 );
+            _hash.AppendData( buffer, offset, count );
             return r;
         }
 
@@ -153,74 +154,64 @@ namespace CK.Core
         /// </summary>
         public override void SetLength( long value ) => throw new NotSupportedException();
 
-        /// <summary>
-        /// Writes the given bytes into the inner (decorated) stream and handles them to update the SHA1
-        /// computation state.
-        /// This can be called only if this stream is a decorator initialized in write mode.
-        /// </summary>
-        /// <param name="buffer">
-        /// An array of bytes.This method copies count bytes from buffer to the current
-        /// stream.
-        /// </param>
-        /// <param name="offset">
-        /// The zero-based byte offset in buffer at which to begin copying bytes to the current
-        /// stream.
-        /// </param>
-        /// <param name="count">
-        /// The number of bytes to be written to the current stream.
-        /// </param>
+        /// <inheritdoc />
         public override void Write( byte[] buffer, int offset, int count )
         {
             if( _reader != null ) throw new InvalidOperationException();
-            _sha1.TransformBlock( buffer, offset, count, null, 0 );
+            _hash.AppendData( buffer, offset, count );
             _writer?.Write( buffer, offset, count );
         }
 
-        /// <summary>
-        /// Asynchronously writes the given bytes into the inner (decorated) stream and handles them to
-        /// update the SHA1 computation state.
-        /// This can be called only if this stream is a decorator initialized in write mode.
-        /// </summary>
-        /// <param name="buffer">The buffer to write data from.</param>
-        /// <param name="offset">
-        /// The zero-based byte offset in buffer from which to begin copying bytes to the
-        /// stream.
-        /// </param>
-        /// <param name="count">The maximum number of bytes to write.</param>
-        /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
-        /// <returns>The awaitable.</returns>
+        /// <inheritdoc />
         public override Task WriteAsync( byte[] buffer, int offset, int count, CancellationToken cancellationToken )
         {
             if( _reader != null ) return Task.FromException( new InvalidOperationException() );
-            _sha1.TransformBlock( buffer, offset, count, null, 0 );
-            return _writer != null ? _writer.WriteAsync( buffer, offset, count ) : Task.CompletedTask;
+            _hash.AppendData( buffer, offset, count );
+            return _writer != null ? _writer.WriteAsync( buffer, offset, count, cancellationToken ) : Task.CompletedTask;
         }
 
-        /// <summary>
-        /// Asynchronously reads the bytes from the inner (decorated) stream and handles them to update the SHA1
-        /// computation state.
-        /// This can be called only if this stream is a decorator initialized in read mode.
-        /// </summary>
-        /// <param name="buffer">The buffer to write the data into.</param>
-        /// <param name="offset">The byte offset in buffer at which to begin writing data from the stream.</param>
-        /// <param name="count">The maximum number of bytes to read.</param>
-        /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
-        /// <returns>
-        /// A task that represents the asynchronous read operation.The value of the TResult
-        /// parameter contains the total number of bytes read into the buffer. The result
-        /// value can be less than the number of bytes requested if the number of bytes currently
-        /// available is less than the requested number, or it can be 0 (zero) if the end
-        /// of the stream has been reached.
-        /// </returns>
+        /// <inheritdoc />
+        public override void Write( ReadOnlySpan<byte> buffer )
+        {
+            _hash.AppendData( buffer );
+            _writer?.Write( buffer );
+        }
+
+        /// <inheritdoc />
+        public override ValueTask WriteAsync( ReadOnlyMemory<byte> buffer, CancellationToken cancellationToken = default )
+        {
+            _hash.AppendData( buffer.Span );
+            return _writer != null ? _writer.WriteAsync( buffer, cancellationToken ) : default;
+        }
+
+        /// <inheritdoc />
         public override Task<int> ReadAsync( byte[] buffer, int offset, int count, CancellationToken cancellationToken )
         {
             if( _reader == null ) return Task.FromException<int>( new InvalidOperationException() );
             return _reader.ReadAsync( buffer, offset, count, cancellationToken )
                           .ContinueWith( x =>
                           {
-                              _sha1.TransformBlock( buffer, offset, x.Result, null, 0 );
+                              _hash.AppendData( buffer, offset, x.Result );
                               return x.Result;
-                          }, TaskContinuationOptions.OnlyOnRanToCompletion );
+                          }, cancellationToken, TaskContinuationOptions.OnlyOnRanToCompletion, TaskScheduler.Default );
+        }
+
+        /// <inheritdoc />
+        public override async ValueTask<int> ReadAsync( Memory<byte> buffer, CancellationToken cancellationToken = default )
+        {
+            if( _reader == null ) throw new InvalidOperationException();
+            int read = await _reader.ReadAsync( buffer, cancellationToken );
+            _hash.AppendData( buffer.Span.Slice( 0, read ) );
+            return read;
+        }
+
+        /// <inheritdoc />
+        public override int Read( Span<byte> buffer )
+        {
+            if( _reader == null ) throw new InvalidOperationException();
+            int read = _reader.Read( buffer );
+            _hash.AppendData( buffer.Slice( 0, read ) );
+            return read;
         }
     }
 }

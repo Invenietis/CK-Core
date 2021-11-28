@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text;
 
@@ -18,26 +19,10 @@ namespace CK.Core
         /// <param name="this">Keyed collection of elements.</param>
         /// <param name="key">The item key.</param>
         /// <returns>The item that matches the key, default(T) if the key can not be found.</returns>
+        [return: MaybeNull]
         static public T GetByKey<T, TKey>( this ICKReadOnlyUniqueKeyedCollection<T, TKey> @this, TKey key )
         {
-            bool exists;
-            return @this.GetByKey( key, out exists );
-        }
-
-        /// <summary>
-        /// Creates an array from a read only collection.
-        /// This is a much more efficient version than the IEnumerable ToArray extension method
-        /// since this implementation allocates one and only one array. 
-        /// </summary>
-        /// <typeparam name="T">Type of the array and lists elements.</typeparam>
-        /// <param name="this">Read only collection of elements.</param>
-        /// <returns>A new array that contains the same element as the collection.</returns>
-        static public T[] ToArray<T>( this IReadOnlyCollection<T> @this )
-        {
-            T[] r = new T[@this.Count];
-            int i = 0;
-            foreach( T item in @this ) r[i++] = item;
-            return r;
+            return @this.GetByKey( key, out _ );
         }
 
         /// <summary>
