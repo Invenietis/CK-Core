@@ -92,12 +92,19 @@ namespace CK.Core
         public override bool CanWrite => _reader == null;
 
         /// <summary>
-        /// Flushes the inner (decorated) stream if any. 
+        /// Flushes the inner (decorated) writer stream if any. 
         /// </summary>
         public override void Flush()
         {
-            _reader?.Flush();
             _writer?.Flush();
+        }
+
+        /// <summary>
+        /// Flushes the inner (decorated) writer stream if any. 
+        /// </summary>
+        public override Task FlushAsync( CancellationToken cancellationToken )
+        {
+            return _writer != null ? _writer.FlushAsync( cancellationToken ) : Task.CompletedTask;
         }
 
         /// <summary>
@@ -140,7 +147,7 @@ namespace CK.Core
         {
             if( _reader == null ) throw new InvalidOperationException();
             int r = _reader.Read( buffer, offset, count );
-            _hash.AppendData( buffer, offset, count );
+            _hash.AppendData( buffer, offset, r );
             return r;
         }
 
