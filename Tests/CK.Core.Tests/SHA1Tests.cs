@@ -22,6 +22,9 @@ namespace CK.Core.Tests
             var s = sha.ToString();
             var shaBis = SHA1Value.Parse( s );
             shaBis.Should().Be( sha );
+
+            var multi = new[] { sha, shaBis };
+            multi.GroupBy( x => x ).Should().HaveCount( 1 );
         }
 
         [Test]
