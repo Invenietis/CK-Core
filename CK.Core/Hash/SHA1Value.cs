@@ -176,25 +176,6 @@ namespace CK.Core
         }
 
         /// <summary>
-        /// Initializes a new <see cref="SHA1Value"/> from a read only 20 bytes value.
-        /// </summary>
-        /// <param name="twentyBytes">Binary values.</param>
-        public SHA1Value( ReadOnlyMemory<byte> twentyBytes )
-        {
-            if( twentyBytes.Length != 20 ) throw new ArgumentException( $"SHA1 is 20 bytes long, not {twentyBytes.Length}.", nameof( twentyBytes ) );
-            if( twentyBytes.Span.SequenceEqual( Zero._bytes.AsSpan() ) )
-            {
-                _bytes = Zero._bytes;
-                _string = Zero._string;
-            }
-            else
-            {
-                _bytes = twentyBytes.ToArray();
-                _string = BuildString( _bytes );
-            }
-        }
-
-        /// <summary>
         /// Initializes a new <see cref="SHA1Value"/> from a binary reader.
         /// </summary>
         /// <param name="reader">Binary reader.</param>

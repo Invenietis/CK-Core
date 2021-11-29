@@ -90,7 +90,7 @@ namespace CK.Core.Tests
         }
 
         [TestCase(100000, 12)]
-        public async Task completable_can_hook_the_task_result( int nb, int seed )
+        public async Task completable_can_hook_the_task_result_Async( int nb, int seed )
         {
             var random = new Random( seed );
 
@@ -219,7 +219,7 @@ namespace CK.Core.Tests
         }
 
         [TestCase( 100000, 877 )]
-        public async Task completable_with_result_can_hook_the_task_result( int nb, int seed )
+        public async Task completable_with_result_can_hook_the_task_result_Async( int nb, int seed )
         {
             var random = new Random( seed );
 

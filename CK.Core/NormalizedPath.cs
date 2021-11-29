@@ -204,7 +204,7 @@ namespace CK.Core
         /// Implicitly converts a string to a <see cref="NormalizedPath"/>.
         /// </summary>
         /// <param name="path">The path as a string.</param>
-        public static implicit operator NormalizedPath( string path ) => new NormalizedPath( path );
+        public static implicit operator NormalizedPath( string? path ) => new NormalizedPath( path );
 
         /// <summary>
         /// Gets whether this path is rooted.
