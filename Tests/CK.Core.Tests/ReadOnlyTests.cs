@@ -100,7 +100,7 @@ namespace CK.Core.Tests
 
         bool ICollection<T>.Contains( T item )
         {
-            return Contains( item );
+            return Contains( item! );
         }
 
         void ICollection<T>.CopyTo( T[] array, int arrayIndex )

@@ -82,7 +82,7 @@ namespace CK.Core.Tests
 
 
         [Test]
-        public async Task SHA512_from_file_async()
+        public async Task SHA512_from_file_Async()
         {
 #pragma warning disable VSTHRD103 // Call async methods when in an async method
             var sha = SHA512Value.ComputeFileHash( ThisFile );

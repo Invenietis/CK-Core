@@ -22,6 +22,9 @@ namespace CK.Core.Tests
             var s = sha.ToString();
             var shaBis = SHA1Value.Parse( s );
             shaBis.Should().Be( sha );
+
+            var multi = new[] { sha, shaBis };
+            multi.GroupBy( x => x ).Should().HaveCount( 1 );
         }
 
         [Test]
@@ -70,7 +73,7 @@ namespace CK.Core.Tests
 
 
         [Test]
-        public async Task SHA1_from_file_async()
+        public async Task SHA1_from_file_Async()
         {
 #pragma warning disable VSTHRD103 // Call async methods when in an async method
             var sha = SHA1Value.ComputeFileHash( ThisFile );

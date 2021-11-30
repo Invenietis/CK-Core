@@ -180,7 +180,7 @@ namespace CK.Core
         public SHA256Value( BinaryReader reader )
         {
             _bytes = reader.ReadBytes( 32 );
-            if( _bytes.Length < 32 ) throw new EndOfStreamException( $"Expected SHA256 (32 bytes). Got only {_bytes.Length} bytes." );
+            if( _bytes.Length < 32 ) throw new EndOfStreamException( $"Expected SHA1 (20 bytes). Got only {_bytes.Length} bytes." );
             if( _bytes.SequenceEqual( Zero._bytes ) )
             {
                 _bytes = Zero._bytes;
@@ -258,7 +258,7 @@ namespace CK.Core
         /// Gets the hash code of this SHA256.
         /// </summary>
         /// <returns>The hash code.</returns>
-        public override int GetHashCode() => HashCode.Combine( _bytes );
+        public override int GetHashCode() => _bytes == null ? 0 : (_bytes[0] << 24) | (_bytes[1] << 16) | (_bytes[2] << 8) | _bytes[3];
 
         /// <summary>
         /// Returns the 40 hexadecimal characters string.

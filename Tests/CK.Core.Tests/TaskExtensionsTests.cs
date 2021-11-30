@@ -13,7 +13,7 @@ namespace CK.Core.Tests
     public class TaskExtensionsTests
     {
         [Test]
-        public async Task WaitAsync_resolved_before_timeout_returns_true()
+        public async Task WaitAsync_resolved_before_timeout_returns_true_Async()
         {
             var t = Task.Delay( 100 );
             t.IsCompleted.Should().BeFalse();
@@ -23,7 +23,7 @@ namespace CK.Core.Tests
         }
 
         [Test]
-        public async Task WaitAsync_timeout_returns_false()
+        public async Task WaitAsync_timeout_returns_false_Async()
         {
             var t = Task.Delay( 200 );
             DateTime now = DateTime.UtcNow;
@@ -34,7 +34,7 @@ namespace CK.Core.Tests
         }
 
         [Test]
-        public async Task WaitAsync_on_completed_is_an_immediate_true()
+        public async Task WaitAsync_on_completed_is_an_immediate_true_Async()
         {
             var t = Task.CompletedTask;
             DateTime now = DateTime.UtcNow;
@@ -44,7 +44,7 @@ namespace CK.Core.Tests
         }
 
         [Test]
-        public async Task WaitAsync_on_cancelled_is_an_immediate_true()
+        public async Task WaitAsync_on_cancelled_is_an_immediate_true_Async()
         {
             CancellationTokenSource cts = new CancellationTokenSource();
             cts.Cancel();
@@ -57,7 +57,7 @@ namespace CK.Core.Tests
         }
 
         [Test]
-        public async Task WaitAsync_on_error_is_an_immediate_true()
+        public async Task WaitAsync_on_error_is_an_immediate_true_Async()
         {
             var tcs = new TaskCompletionSource<bool>();
             tcs.SetException( new Exception( "Just for fun." ) );
@@ -71,7 +71,7 @@ namespace CK.Core.Tests
         [TestCase( "Error" )]
         [TestCase( "Canceled" )]
         [TestCase( "Success" )]
-        public async Task WaitAsync_on_error_canceled_or_success_returns_true( string action )
+        public async Task WaitAsync_on_error_canceled_or_success_returns_true_Async( string action )
         {
             bool actionDone = false;
             var tcs = new TaskCompletionSource<string>();
@@ -103,7 +103,7 @@ namespace CK.Core.Tests
         }
 
         [Test]
-        public async Task WaitAsync_itself_can_be_canceled_via_the_CancellationToken_and_returns_false()
+        public async Task WaitAsync_itself_can_be_canceled_via_the_CancellationToken_and_returns_false_Async()
         {
             // The cancellationToken fires DURING the WaitAsync.
             {
