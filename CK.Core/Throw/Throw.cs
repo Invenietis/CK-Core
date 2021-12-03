@@ -9,6 +9,9 @@ using System.Threading.Tasks;
 
 namespace CK.Core
 {
+    /// <summary>
+    /// Contains basic throw helpers and simple guards that use C# 10 <see cref="System.Runtime.CompilerServices.CallerArgumentExpressionAttribute"/>. 
+    /// </summary>
     public partial class Throw
     {
         /// <summary>
