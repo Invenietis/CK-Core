@@ -6,7 +6,6 @@ using System.Linq;
 using System.Security.Cryptography;
 using System.Threading.Tasks;
 using System.Text;
-using Microsoft.Toolkit.Diagnostics;
 
 namespace CK.Core
 {
@@ -103,7 +102,7 @@ namespace CK.Core
         /// <returns>The value.</returns>
         public static SHA1Value Parse( ReadOnlySpan<char> text )
         {
-            if( !TryParse( text, out var result ) ) ThrowHelper.ThrowArgumentException( nameof( text ), "Invalid SHA1." );
+            if( !TryParse( text, out var result ) ) Throw.ArgumentException( nameof( text ), "Invalid SHA1." );
             return result;
         }
 
@@ -162,7 +161,7 @@ namespace CK.Core
         /// <param name="twentyBytes">Binary values.</param>
         public SHA1Value( ReadOnlySpan<byte> twentyBytes )
         {
-            if( twentyBytes.Length != 20 ) ThrowHelper.ThrowArgumentException( nameof( twentyBytes ), $"SHA1 is 20 bytes long, not {twentyBytes.Length}." );
+            Throw.CheckArgument( twentyBytes.Length == 20 );
             if( twentyBytes.SequenceEqual( Zero._bytes.AsSpan() ) )
             {
                 _bytes = Zero._bytes;
@@ -182,7 +181,7 @@ namespace CK.Core
         public SHA1Value( BinaryReader reader )
         {
             _bytes = reader.ReadBytes( 20 );
-            if( _bytes.Length < 20 ) throw new EndOfStreamException( $"Expected SHA1 (20 bytes). Got only {_bytes.Length} bytes." );
+            if( _bytes.Length < 20 ) Throw.EndOfStreamException( $"Expected SHA1 (20 bytes). Got only {_bytes.Length} bytes." );
             if( _bytes.SequenceEqual( Zero._bytes ) )
             {
                 _bytes = Zero._bytes;

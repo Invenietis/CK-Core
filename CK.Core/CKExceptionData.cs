@@ -5,7 +5,6 @@ using System.Text;
 using System.IO;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
-using Microsoft.Toolkit.Diagnostics;
 
 namespace CK.Core
 {
@@ -55,11 +54,16 @@ namespace CK.Core
                                 CKExceptionData[]? loaderExceptions,
                                 CKExceptionData[]? aggregatedExceptions )
         {
-            Guard.IsNotNull( message, nameof( message ) );
-            Guard.IsNotNullOrWhiteSpace( exceptionTypeName, nameof( exceptionTypeName ) );
-            Guard.IsNotNullOrWhiteSpace( exceptionTypeName, nameof( exceptionTypeName ) );
-            if( aggregatedExceptions != null && aggregatedExceptions.Length == 0 ) throw new ArgumentException( Impl.CoreResources.AggregatedExceptionsMustContainAtLeastOne, nameof( aggregatedExceptions ) );
-            if( innerException != null && aggregatedExceptions != null && aggregatedExceptions[0] != innerException ) throw new ArgumentException( Impl.CoreResources.InnerExceptionMustBeTheFirstAggregatedException );
+            Throw.OnNullArgument( message );
+            Throw.OnNullOrEmptyArgument( exceptionTypeName );
+            if( aggregatedExceptions != null && aggregatedExceptions.Length == 0 )
+            {
+                Throw.ArgumentException( nameof( aggregatedExceptions ), Impl.CoreResources.AggregatedExceptionsMustContainAtLeastOne );
+            }
+            if( innerException != null && aggregatedExceptions != null && aggregatedExceptions[0] != innerException )
+            {
+                Throw.ArgumentException( nameof( aggregatedExceptions ), Impl.CoreResources.InnerExceptionMustBeTheFirstAggregatedException );
+            }
             // No empty array for loaderExceptions: null or at least one inside.
             if( loaderExceptions != null && loaderExceptions.Length == 0 ) loaderExceptions = null;
             _message = message;
@@ -94,7 +98,7 @@ namespace CK.Core
         /// <param name="version">Known version.</param>
         public CKExceptionData( CKBinaryReader r, bool streamIsCRLF, int version )
         {
-            Guard.IsNotNull( r, nameof( r ) );
+            ArgumentNullException.ThrowIfNull( r, nameof( r ) );
             _message = r.ReadString( streamIsCRLF );
             _exceptionTypeName = r.ReadString();
             _exceptionTypeAQName = r.ReadString();
@@ -256,7 +260,7 @@ namespace CK.Core
 
         void WriteWithoutVersion( CKBinaryWriter w )
         {
-            Guard.IsNotNull( w, nameof( w ) );
+            ArgumentNullException.ThrowIfNull( w, nameof( w ) );
             w.Write( _message );
             w.Write( _exceptionTypeName );
             w.Write( _exceptionTypeAQName );

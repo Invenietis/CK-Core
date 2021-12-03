@@ -1,4 +1,3 @@
-using Microsoft.Toolkit.Diagnostics;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -33,7 +32,7 @@ namespace CK.Core
             /// <param name="comparer">The comparer to use.</param>
             public ObjectPool( ICKBinaryWriter w, IEqualityComparer<T>? comparer = null )
             {
-                Guard.IsNotNull( w, nameof( w ) );
+                ArgumentNullException.ThrowIfNull( w, nameof( w ) );
                 _pool = new Dictionary<T, int>( comparer );
                 _w = w ?? throw new ArgumentNullException( nameof( w ) );
             }

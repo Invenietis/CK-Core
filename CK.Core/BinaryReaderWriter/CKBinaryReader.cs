@@ -1,4 +1,3 @@
-using Microsoft.Toolkit.Diagnostics;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -31,7 +30,7 @@ namespace CK.Core
             /// <param name="r">The reader. Must not be null.</param>
             public ObjectPool( ICKBinaryReader r )
             {
-                Guard.IsNotNull( r, nameof( r ) );
+                ArgumentNullException.ThrowIfNull( r, nameof( r ) );
                 _objects = new List<T?>();
                 _r = r;
             }
