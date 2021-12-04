@@ -22,7 +22,7 @@ namespace CK.Core
         [DoesNotReturn]
         public static void Exception( string? message = null, Exception? inner = null )
         {
-            throw new Exception( message );
+            throw new Exception( message, inner );
         }
 
 

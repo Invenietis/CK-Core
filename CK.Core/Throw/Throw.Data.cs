@@ -33,6 +33,16 @@ namespace CK.Core
             throw new EndOfStreamException( message, innerException );
         }
 
+        /// <summary>
+        /// Throws a new <see cref="FormatException"/>.
+        /// </summary>
+        /// <param name="message">Optional message to include in the exception.</param>
+        /// <param name="innerException">Optional inner <see cref="Exception"/> to include.</param>
+        [DoesNotReturn]
+        public static void FormatException( string? message = null, Exception? innerException = null )
+        {
+            throw new FormatException( message, innerException );
+        }
 
     }
 }

@@ -27,12 +27,12 @@ namespace CK.Core
         }
 
         /// <summary>
-        /// Desrializes a <see cref="ICKSimpleBinarySerializable"/> from serialized bytes.
+        /// Deserializes a <see cref="ICKSimpleBinarySerializable"/> from serialized bytes.
         /// </summary>
         /// <typeparam name="T">The object's type.</typeparam>
         /// <param name="bytes">Serialized bytes.</param>
         /// <returns>The deserialized object.</returns>
-        public static T Deserialize<T>( byte[] bytes )
+        public static T Deserialize<T>( byte[] bytes ) where T : ICKSimpleBinarySerializable
         {
             using( var m = new MemoryStream( bytes ) )
             using( var w = new CKBinaryReader( m ) )
