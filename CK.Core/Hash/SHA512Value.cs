@@ -1,4 +1,3 @@
-using Microsoft.Toolkit.Diagnostics;
 using System;
 using System.Diagnostics;
 using System.IO;
@@ -101,7 +100,7 @@ namespace CK.Core
         /// <returns>The value.</returns>
         public static SHA512Value Parse( ReadOnlySpan<char> text )
         {
-            if( !TryParse( text, out var result ) ) ThrowHelper.ThrowArgumentException( nameof( text ), "Invalid SHA512." );
+            if( !TryParse( text, out var result ) ) Throw.ArgumentException( nameof( text ), "Invalid SHA512." );
             return result;
         }
 
@@ -160,7 +159,7 @@ namespace CK.Core
         /// <param name="sixtyFourBytes">Binary values.</param>
         public SHA512Value( ReadOnlySpan<byte> sixtyFourBytes )
         {
-            if( sixtyFourBytes.Length != 64 ) ThrowHelper.ThrowArgumentException( nameof( sixtyFourBytes ), $"SHA512 is 64 bytes long, not {sixtyFourBytes.Length}." );
+            if( sixtyFourBytes.Length != 64 ) Throw.ArgumentException( nameof( sixtyFourBytes ), $"SHA512 is 64 bytes long, not {sixtyFourBytes.Length}." );
             if( sixtyFourBytes.SequenceEqual( Zero._bytes.AsSpan() ) )
             {
                 _bytes = Zero._bytes;

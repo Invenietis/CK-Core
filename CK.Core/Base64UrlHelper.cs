@@ -1,4 +1,3 @@
-using Microsoft.Toolkit.Diagnostics;
 using System;
 using System.Buffers;
 using System.Buffers.Text;
@@ -71,7 +70,7 @@ namespace CK.Core
         /// <returns>The bytes.</returns>
         public static Memory<byte> FromBase64UrlString( string base64UrlString )
         {
-            Guard.IsNotNull( base64UrlString, nameof( base64UrlString ) );
+            ArgumentNullException.ThrowIfNull( base64UrlString, nameof( base64UrlString ) );
             var a = new byte[((base64UrlString.Length + 3) >> 2) << 2];
             int written = Encoding.ASCII.GetBytes( base64UrlString.AsSpan(), a );
             for( int i = 0; i < written; i++ )
@@ -83,7 +82,7 @@ namespace CK.Core
                     case (byte)'+':
                     case (byte)'/':
                     case (byte)'=':
-                        ThrowHelper.ThrowArgumentException( nameof( base64UrlString ), "Invalid Base64Url data." );
+                        Throw.ArgumentException( nameof( base64UrlString ), "Invalid Base64Url data." );
                         break;
                 }
             }
@@ -91,7 +90,7 @@ namespace CK.Core
 
             if( Base64.DecodeFromUtf8InPlace( a.AsSpan(), out int final ) != OperationStatus.Done )
             {
-                ThrowHelper.ThrowArgumentException( nameof( base64UrlString ), "Invalid Base64Url data." );
+                Throw.ArgumentException( nameof( base64UrlString ), "Invalid Base64Url data." );
             }
             return a.AsMemory( 0, final );
         }

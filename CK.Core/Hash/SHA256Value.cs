@@ -1,4 +1,3 @@
-using Microsoft.Toolkit.Diagnostics;
 using System;
 using System.Diagnostics;
 using System.IO;
@@ -101,7 +100,7 @@ namespace CK.Core
         /// <returns>The value.</returns>
         public static SHA256Value Parse( ReadOnlySpan<char> text )
         {
-            if( !TryParse( text, out var result ) ) ThrowHelper.ThrowArgumentException( nameof( text ), "Invalid SHA256." );
+            if( !TryParse( text, out var result ) ) Throw.ArgumentException( nameof( text ), "Invalid SHA256." );
             return result;
         }
 
@@ -160,7 +159,7 @@ namespace CK.Core
         /// <param name="thirtyTwoBytes">Binary values.</param>
         public SHA256Value( ReadOnlySpan<byte> thirtyTwoBytes )
         {
-            if( thirtyTwoBytes.Length != 32 ) ThrowHelper.ThrowArgumentException( nameof( thirtyTwoBytes ), $"SHA256 is 32 bytes long, not {thirtyTwoBytes.Length}." );
+            Throw.CheckArgument( thirtyTwoBytes.Length != 32 );
             if( thirtyTwoBytes.SequenceEqual( Zero._bytes.AsSpan() ) )
             {
                 _bytes = Zero._bytes;

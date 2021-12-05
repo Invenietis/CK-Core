@@ -1,4 +1,3 @@
-using Microsoft.Toolkit.Diagnostics;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -23,7 +22,7 @@ namespace CK.Core
         public static int BinarySearch<T, TComparable>( IReadOnlyList<T> sortedList, int startIndex, int length, TComparable comparable )
             where TComparable : IComparable<T>
         {
-            Guard.IsNotNull( sortedList, nameof( sortedList ) );
+            ArgumentNullException.ThrowIfNull( sortedList, nameof( sortedList ) );
             int low = startIndex;
             int high = (startIndex + length) - 1;
             while( low <= high )
@@ -156,7 +155,7 @@ namespace CK.Core
             /// <param name="comparison">The keyed comparison function.</param>
             public KeyedComparisonComparable( TKey key, Func<T, TKey, int> comparison )
             {
-                Guard.IsNotNull( comparison, nameof( comparison ) );
+                ArgumentNullException.ThrowIfNull( comparison, nameof( comparison ) );
                 _key = key;
                 _comparison = comparison;
             }

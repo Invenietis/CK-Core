@@ -5,7 +5,6 @@ using System.Linq;
 using CK.Core;
 using System.Threading;
 using System.ComponentModel;
-using Microsoft.Toolkit.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 
 #nullable enable
@@ -135,8 +134,8 @@ namespace CK.Core
         /// </remarks>
         public bool IsSupersetOf( CKTrait other )
         {
-            Guard.IsNotNull( other, nameof( other ) );
-            Guard.IsReferenceEqualTo( _context, other.Context, nameof( Context ) );
+            ArgumentNullException.ThrowIfNull( other, nameof( other ) );
+            if( _context != other.Context ) Throw.ArgumentException( nameof( other ), Impl.CoreResources.TagsMustBelongToTheSameContext );
             if( _tags.Count < other._tags.Count ) return false;
             bool foundAlien = false;
             Process( this, other,
@@ -158,8 +157,8 @@ namespace CK.Core
         /// </remarks>
         public bool Overlaps( CKTrait other )
         {
-            Guard.IsNotNull( other, nameof( other ) );
-            Guard.IsReferenceEqualTo( _context, other.Context, nameof( Context ) );
+            ArgumentNullException.ThrowIfNull( other, nameof( other ) );
+            if( _context != other.Context ) Throw.ArgumentException( nameof( other ), Impl.CoreResources.TagsMustBelongToTheSameContext );
             bool found = false;
             Process( this, other,
                 null,
@@ -188,8 +187,8 @@ namespace CK.Core
         public CKTrait Intersect( CKTrait other )
         {
             if( ReferenceEquals( other, this ) ) return this;
-            Guard.IsNotNull( other, nameof( other ) );
-            Guard.IsReferenceEqualTo( _context, other.Context, nameof( Context ) );
+            ArgumentNullException.ThrowIfNull( other, nameof( other ) );
+            if( _context != other.Context ) Throw.ArgumentException( nameof( other ), Impl.CoreResources.TagsMustBelongToTheSameContext );
             ListTag m = new ListTag();
             Process( this, other, null, null, m.TrueAdd );
             return _context.FindOrCreateFromAtomicSortedList( m );
@@ -207,8 +206,8 @@ namespace CK.Core
         public CKTrait Union( CKTrait other )
         {
             if( ReferenceEquals( other, this ) ) return this;
-            Guard.IsNotNull( other, nameof( other ) );
-            Guard.IsReferenceEqualTo( _context, other.Context, nameof( Context ) );
+            ArgumentNullException.ThrowIfNull( other, nameof( other ) );
+            if( _context != other.Context ) Throw.ArgumentException( nameof( other ), Impl.CoreResources.TagsMustBelongToTheSameContext );
             ListTag m = new ListTag();
             Func<CKTrait,bool> add = m.TrueAdd;
             Process( this, other, add, add, add );
@@ -226,8 +225,8 @@ namespace CK.Core
         public CKTrait Except( CKTrait other )
         {
             if( ReferenceEquals( other, this ) ) return _context.EmptyTrait;
-            Guard.IsNotNull( other, nameof( other ) );
-            Guard.IsReferenceEqualTo( _context, other.Context, nameof( Context ) );
+            ArgumentNullException.ThrowIfNull( other, nameof( other ) );
+            if( _context != other.Context ) Throw.ArgumentException( nameof( other ), Impl.CoreResources.TagsMustBelongToTheSameContext );
             ListTag m = new ListTag();
             Process( this, other, m.TrueAdd, null, null );
             return _context.FindOrCreateFromAtomicSortedList( m );
@@ -246,8 +245,8 @@ namespace CK.Core
         public CKTrait SymmetricExcept( CKTrait other )
         {
             if( ReferenceEquals( other, this ) ) return _context.EmptyTrait;
-            Guard.IsNotNull( other, nameof( other ) );
-            Guard.IsReferenceEqualTo( _context, other.Context, nameof( Context ) );
+            ArgumentNullException.ThrowIfNull( other, nameof( other ) );
+            if( _context != other.Context ) Throw.ArgumentException( nameof( other ), Impl.CoreResources.TagsMustBelongToTheSameContext );
             var m = new ListTag();
             Func<CKTrait,bool> add = m.TrueAdd;
             Process( this, other, add, add, null );

@@ -1,14 +1,9 @@
-using Microsoft.Toolkit.Diagnostics;
 using System;
-using System.Buffers;
-using System.Collections;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.IO;
 using System.IO.Compression;
-using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -357,9 +352,9 @@ namespace CK.Core
 
         static string FindUniqueTimedFileOrFolder( string pathPrefix, string fileSuffix, DateTime time, int maxTryBeforeGuid, Func<string, bool> tester )
         {
-            Guard.IsNotNull( pathPrefix, nameof( pathPrefix ) );
-            Guard.IsNotNull( fileSuffix, nameof( fileSuffix ) );
-            Guard.IsGreaterThanOrEqualTo( maxTryBeforeGuid, 0, nameof( maxTryBeforeGuid ) );
+            ArgumentNullException.ThrowIfNull( pathPrefix, nameof( pathPrefix ) );
+            ArgumentNullException.ThrowIfNull( fileSuffix, nameof( fileSuffix ) );
+            if( maxTryBeforeGuid < 0 ) Throw.ArgumentOutOfRangeException( nameof( maxTryBeforeGuid ) );
 
             DateTimeStamp timeStamp = new DateTimeStamp( time );
             int counter = 0;

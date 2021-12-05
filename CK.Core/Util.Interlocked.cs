@@ -1,4 +1,3 @@
-using Microsoft.Toolkit.Diagnostics;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -20,7 +19,7 @@ namespace CK.Core
         /// <returns>The object that has actually been set. Note that it may differ from the "current" target value if another thread already changed it.</returns>
         public static T? InterlockedNullableSet<T>( ref T? target, Func<T?, T?> transformer ) where T : class
         {
-            Guard.IsNotNull( transformer, nameof( transformer ) );
+            ArgumentNullException.ThrowIfNull( transformer, nameof( transformer ) );
             T? current = target;
             T? newOne = transformer( current );
             if( Interlocked.CompareExchange( ref target, newOne, current ) != current )
@@ -46,7 +45,7 @@ namespace CK.Core
         [MethodImpl( MethodImplOptions.AggressiveInlining )]
         public static T InterlockedSet<T>( ref T target, Func<T, T> transformer ) where T : class
         {
-            Guard.IsNotNull( target, nameof( target ) );
+            ArgumentNullException.ThrowIfNull( target, nameof( target ) );
 #pragma warning disable CS8603 // Possible null reference return.
 #pragma warning disable CS8601 // Possible null reference assignment.
 #pragma warning disable CS8620 // Argument cannot be used for parameter due to differences in the nullability of reference types.
@@ -69,7 +68,7 @@ namespace CK.Core
         /// <returns>The object that has actually been set. Note that it may differ from the "current" target value if another thread already changed it.</returns>
         public static T? InterlockedNullableSet<T, TArg>( ref T? target, TArg a, Func<T?, TArg, T?> transformer ) where T : class
         {
-            Guard.IsNotNull( transformer, nameof( transformer ) );
+            ArgumentNullException.ThrowIfNull( transformer, nameof( transformer ) );
             T? current = target;
             T? newOne = transformer( current, a );
             if( Interlocked.CompareExchange( ref target, newOne, current ) != current )
@@ -99,7 +98,7 @@ namespace CK.Core
         [MethodImpl( MethodImplOptions.AggressiveInlining )]
         public static T InterlockedSet<T, TArg>( ref T target, TArg a, Func<T, TArg, T> transformer ) where T : class
         {
-            Guard.IsNotNull( target, nameof( target ) );
+            ArgumentNullException.ThrowIfNull( target, nameof( target ) );
 #pragma warning disable CS8603 // Possible null reference return.
 #pragma warning disable CS8601 // Possible null reference assignment.
 #pragma warning disable CS8620 // Argument cannot be used for parameter due to differences in the nullability of reference types.
@@ -166,7 +165,7 @@ namespace CK.Core
         /// <returns>The cleaned array (may be the empty one). Note that it may differ from the "current" items content since another thread may have already changed it.</returns>
         public static T[] InterlockedRemoveAll<T>( ref T[] items, Func<T, bool> predicate )
         {
-            Guard.IsNotNull( predicate, nameof( predicate ) );
+            ArgumentNullException.ThrowIfNull( predicate, nameof( predicate ) );
             return InterlockedSet( ref items, predicate, ( current, p ) =>
             {
                 if( current.Length == 0 ) return current;
@@ -252,8 +251,8 @@ namespace CK.Core
         /// </remarks>
         public static T[] InterlockedAdd<T, TArg, TItem>( ref T[] items, TArg arg, Func<TItem, TArg, bool> tester, Func<TArg, TItem> factory, bool prepend = false ) where TItem : T
         {
-            Guard.IsNotNull( tester, nameof( tester ) );
-            Guard.IsNotNull( factory, nameof( factory ) );
+            ArgumentNullException.ThrowIfNull( tester, nameof( tester ) );
+            ArgumentNullException.ThrowIfNull( factory, nameof( factory ) );
             TItem newE = default!;
             bool needFactory = true;
             return InterlockedSet( ref items, arg, ( current, arg ) =>
@@ -296,8 +295,8 @@ namespace CK.Core
         /// </remarks>
         public static T[] InterlockedAdd<T, TItem>( ref T[] items, Func<TItem, bool> tester, Func<TItem> factory, bool prepend = false ) where TItem : T
         {
-            Guard.IsNotNull( tester, nameof( tester ) );
-            Guard.IsNotNull( factory, nameof( factory ) );
+            ArgumentNullException.ThrowIfNull( tester, nameof( tester ) );
+            ArgumentNullException.ThrowIfNull( factory, nameof( factory ) );
             TItem newE = default!;
             bool needFactory = true;
             return InterlockedSet( ref items, current =>

@@ -1,4 +1,3 @@
-using Microsoft.Toolkit.Diagnostics;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -129,7 +128,7 @@ namespace CK.Core
             [MethodImpl( MethodImplOptions.AggressiveInlining )]
             get
             {
-                Guard.IsInRange( index, 0, _count, nameof( index ) );
+                if( index < 0 || index >= _count ) Throw.ArgumentOutOfRangeException( nameof( index ) );
                 index += _first;
                 int rollIdx = index - _buffer.Length;
                 return _buffer[rollIdx >= 0 ? rollIdx : index]!;
@@ -142,7 +141,7 @@ namespace CK.Core
         /// <param name="index">Index must be positive and less than <see cref="Count"/>.</param>
         public void RemoveAt( int index )
         {
-            Guard.IsInRange( index, 0, _count, nameof( index ) );
+            if( index < 0 || index >= _count ) Throw.ArgumentOutOfRangeException( nameof( index ) );
             --_count;
             if( index == 0 )
             {
@@ -241,7 +240,7 @@ namespace CK.Core
         /// <returns>The first (oldest) item.</returns>
         public T Pop()
         {
-            if( _count == 0 ) ThrowHelper.ThrowInvalidOperationException( Impl.CoreResources.FIFOBufferEmpty );
+            if( _count == 0 ) Throw.InvalidOperationException( Impl.CoreResources.FIFOBufferEmpty );
             var item = _buffer[_first];
             Debug.Assert( item != null );
             _buffer[_first] = default;
@@ -257,7 +256,7 @@ namespace CK.Core
         /// <returns>The last (newest) item.</returns>
         public T PopLast()
         {
-            if( _count == 0 ) ThrowHelper.ThrowInvalidOperationException( Impl.CoreResources.FIFOBufferEmpty );
+            Throw.CheckState( _count != 0 );
             if( --_next < 0 ) _next = _first + _count - 1;
             var item = _buffer[_next];
             Debug.Assert( item != null );
@@ -273,7 +272,7 @@ namespace CK.Core
         /// <returns>The first (oldest) item.</returns>
         public T Peek()
         {
-            if( _count == 0 ) ThrowHelper.ThrowInvalidOperationException( Impl.CoreResources.FIFOBufferEmpty );
+            Throw.CheckState( _count != 0 );
             return _buffer[_first]!;
         }
 
@@ -284,7 +283,7 @@ namespace CK.Core
         /// <returns>The last (newest) item.</returns>
         public T PeekLast()
         {
-            if( _count == 0 ) ThrowHelper.ThrowInvalidOperationException( Impl.CoreResources.FIFOBufferEmpty );
+            Throw.CheckState( _count != 0 );
             int t = _next-1;
             if( t < 0 ) t = _first + _count - 1;
             return _buffer[t]!;
@@ -318,7 +317,7 @@ namespace CK.Core
         /// <returns>Number of items copied.</returns>
         public int CopyTo( T[] array, int arrayIndex )
         {
-            Guard.IsNotNull( array, nameof( array ) );
+            ArgumentNullException.ThrowIfNull( array, nameof( array ) );
             return CopyTo( array, arrayIndex, array.Length - arrayIndex );
         }
 
@@ -333,7 +332,7 @@ namespace CK.Core
         /// <returns>Number of items copied.</returns>
         public int CopyTo( T[] array, int arrayIndex, int count )
         {
-            Guard.IsNotNull( array, nameof( array ) );
+            ArgumentNullException.ThrowIfNull( array, nameof( array ) );
             return CopyTo( array.AsSpan( arrayIndex, count ) );
         }
 
