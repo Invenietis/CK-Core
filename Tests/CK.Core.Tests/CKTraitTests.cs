@@ -5,6 +5,7 @@ using System.Linq;
 using NUnit.Framework;
 using System.Threading;
 using System.Diagnostics;
+using System.IO;
 
 namespace CK.Core.Tests
 {
@@ -514,7 +515,7 @@ namespace CK.Core.Tests
 
             (ab ^ cd).Should().BeSameAs( abcd );
             (abc ^ cd).Should().BeSameAs( a | b | d );
-            ((a|b|d) ^ cd).Should().BeSameAs( abc );
+            ((a | b | d) ^ cd).Should().BeSameAs( abc );
             (abcd ^ cd).Should().BeSameAs( ab );
 
             CKTrait v = a;
@@ -543,5 +544,27 @@ namespace CK.Core.Tests
             v.IsEmpty.Should().BeTrue();
         }
 
+        [Test]
+        public void Binary_serialization_of_CKTraitCOntext()
+        {
+            var ctx = CKTraitContext.Create( "Independent", ',', shared: false );
+            ctx.FindOrCreate( "A" );
+            ctx.FindOrCreate( "B" );
+            ctx.FindOrCreate( "C" );
+            ctx.FindOrCreate( "D" );
+            ctx.FindOrCreate( "A,B" );
+
+            using( var m = new MemoryStream() )
+            using( var w = new CKBinaryWriter( m ) )
+            {
+                ctx.Write( w, writeAllTags: true );
+                m.Position = 0;
+                using( var r = new CKBinaryReader( m ) )
+                {
+                    var ctx2 = CKTraitContext.Read( r );
+                    ctx2.FindIfAllExist( "A,B,C,D" ).Should().NotBeNull();
+                }
+            }
+        }
     }
 }

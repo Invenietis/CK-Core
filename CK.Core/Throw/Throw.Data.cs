@@ -12,7 +12,7 @@ namespace CK.Core
     public partial class Throw
     {
         /// <summary>
-        /// Throws a new <see cref="InvalidDataException"/>.
+        /// Throws a new <see cref="System.IO.InvalidDataException"/>.
         /// </summary>
         /// <param name="message">Optional message to include in the exception.</param>
         /// <param name="innerException">Optional inner <see cref="Exception"/> to include.</param>
@@ -23,7 +23,7 @@ namespace CK.Core
         }
 
         /// <summary>
-        /// Throws a new <see cref="EndOfStreamException"/>.
+        /// Throws a new <see cref="System.IO.EndOfStreamException"/>.
         /// </summary>
         /// <param name="message">Optional message to include in the exception.</param>
         /// <param name="innerException">Optional inner <see cref="Exception"/> to include.</param>
@@ -34,7 +34,7 @@ namespace CK.Core
         }
 
         /// <summary>
-        /// Throws a new <see cref="FormatException"/>.
+        /// Throws a new <see cref="System.FormatException"/>.
         /// </summary>
         /// <param name="message">Optional message to include in the exception.</param>
         /// <param name="innerException">Optional inner <see cref="Exception"/> to include.</param>

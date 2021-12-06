@@ -15,6 +15,7 @@ namespace CK.Core
         /// Throws a new <see cref="InvalidOperationException"/> if <paramref name="valid"/> expression is false.
         /// </summary>
         /// <param name="valid">The expression to that must be true.</param>
+        /// <param name="exp">Roslyn's automatic capture of the expression's value.</param>
         [MethodImpl( MethodImplOptions.AggressiveInlining )]
         public static void CheckState( [DoesNotReturnIf( false )] bool valid, [CallerArgumentExpression( "valid" )] string? exp = null )
         {
@@ -27,8 +28,9 @@ namespace CK.Core
         /// <summary>
         /// Throws a new <see cref="InvalidOperationException"/> if <paramref name="valid"/> expression is false.
         /// </summary>
-        /// <param name="message">An explicit message.</param>
+        /// <param name="message">An explicit message that replaces the default "Invalid state: ... should be true.".</param>
         /// <param name="valid">The expression to that must be true.</param>
+        /// <param name="exp">Roslyn's automatic capture of the expression's value.</param>
         [MethodImpl( MethodImplOptions.AggressiveInlining )]
         public static void CheckState( string message, [DoesNotReturnIf( false )] bool valid, [CallerArgumentExpression( "valid" )] string? exp = null )
         {
@@ -52,7 +54,7 @@ namespace CK.Core
         }
 
         /// <summary>
-        /// Throws a new <see cref="InvalidOperationException"/>.
+        /// Throws a new <see cref="System.InvalidOperationException"/>.
         /// </summary>
         /// <param name="message">Optional message to include in the exception.</param>
         /// <param name="innerException">Optional inner <see cref="Exception"/> to include.</param>
