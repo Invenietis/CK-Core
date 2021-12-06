@@ -15,7 +15,8 @@ namespace CK.Core
         /// Throws a new <see cref="ArgumentNullException"/> if the value is null.
         /// </summary>
         /// <param name="value">The value to test.</param>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        /// <param name="exp">Automatic capture the expression's value.</param>
+        [MethodImpl( MethodImplOptions.AggressiveInlining )]
         public static void OnNullArgument( [NotNull] object? value, [CallerArgumentExpression( "value" )] string? exp = null )
         {
             if( value == null )
@@ -25,11 +26,27 @@ namespace CK.Core
         }
 
         /// <summary>
+        /// Throws a new <see cref="ArgumentNullException"/> if the value is null.
+        /// </summary>
+        /// <param name="message">Specific message.</param>
+        /// <param name="value">The value to test.</param>
+        /// <param name="exp">Automatic capture the expression's value.</param>
+        [MethodImpl( MethodImplOptions.AggressiveInlining )]
+        public static void OnNullArgument( string message, [NotNull] object? value, [CallerArgumentExpression( "value" )] string? exp = null )
+        {
+            if( value == null )
+            {
+                ArgumentNullException( exp!, message );
+            }
+        }
+
+        /// <summary>
         /// Throws a new <see cref="ArgumentException"/> if <paramref name="valid"/> expression is false.
         /// </summary>
         /// <param name="valid">The expression to that must be true.</param>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void CheckArgument( [DoesNotReturnIf(false)] bool valid, [CallerArgumentExpression( "valid" )] string? exp = null )
+        /// <param name="exp">Automatic capture the expression's value.</param>
+        [MethodImpl( MethodImplOptions.AggressiveInlining )]
+        public static void CheckArgument( [DoesNotReturnIf( false )] bool valid, [CallerArgumentExpression( "valid" )] string? exp = null )
         {
             if( !valid )
             {
@@ -37,10 +54,31 @@ namespace CK.Core
             }
         }
 
-        [DoesNotReturn]
-        static void CheckArgumentException( string exp )
+        /// <summary>
+        /// Throws a new <see cref="ArgumentException"/> if <paramref name="valid"/> expression is false.
+        /// </summary>
+        /// <param name="valid">The expression to that must be true.</param>
+        /// <param name="exp">Automatic capture the expression's value.</param>
+        [MethodImpl( MethodImplOptions.AggressiveInlining )]
+        public static void CheckArgument( string message, [DoesNotReturnIf( false )] bool valid, [CallerArgumentExpression( "valid" )] string? exp = null )
         {
-            ArgumentException( null!, $"Invalid argument: '{exp}' should be true." );
+            if( !valid )
+            {
+                CheckArgumentException( exp!, message );
+            }
+        }
+
+        [DoesNotReturn]
+        static void CheckArgumentException( string exp, string? message = null )
+        {
+            if( message == null )
+            {
+                ArgumentException( null!, $"Invalid argument: '{exp}' should be true." );
+            }
+            else
+            {
+                ArgumentException( exp, message );
+            }
         }
 
         /// <summary>
