@@ -12,10 +12,11 @@ namespace CK.Core
     public partial class Throw
     {
         /// <summary>
-        /// Throws a new <see cref="ArgumentNullException"/> if the value is null.
+        /// Throws a new <see cref="System.ArgumentNullException"/> if the value is null.
         /// </summary>
         /// <param name="value">The value to test.</param>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        /// <param name="exp">Roslyn's automatic capture of the expression's value.</param>
+        [MethodImpl( MethodImplOptions.AggressiveInlining )]
         public static void OnNullArgument( [NotNull] object? value, [CallerArgumentExpression( "value" )] string? exp = null )
         {
             if( value == null )
@@ -25,11 +26,27 @@ namespace CK.Core
         }
 
         /// <summary>
-        /// Throws a new <see cref="ArgumentException"/> if <paramref name="valid"/> expression is false.
+        /// Throws a new <see cref="System.ArgumentNullException"/> if the value is null.
+        /// </summary>
+        /// <param name="message">Specific message.</param>
+        /// <param name="value">The value to test.</param>
+        /// <param name="exp">Roslyn's automatic capture of the expression's value.</param>
+        [MethodImpl( MethodImplOptions.AggressiveInlining )]
+        public static void OnNullArgument( string message, [NotNull] object? value, [CallerArgumentExpression( "value" )] string? exp = null )
+        {
+            if( value == null )
+            {
+                ArgumentNullException( exp!, message );
+            }
+        }
+
+        /// <summary>
+        /// Throws a new <see cref="System.ArgumentException"/> if <paramref name="valid"/> expression is false.
         /// </summary>
         /// <param name="valid">The expression to that must be true.</param>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void CheckArgument( [DoesNotReturnIf(false)] bool valid, [CallerArgumentExpression( "valid" )] string? exp = null )
+        /// <param name="exp">Roslyn's automatic capture of the expression's value.</param>
+        [MethodImpl( MethodImplOptions.AggressiveInlining )]
+        public static void CheckArgument( [DoesNotReturnIf( false )] bool valid, [CallerArgumentExpression( "valid" )] string? exp = null )
         {
             if( !valid )
             {
@@ -37,16 +54,39 @@ namespace CK.Core
             }
         }
 
-        [DoesNotReturn]
-        static void CheckArgumentException( string exp )
+        /// <summary>
+        /// Throws a new <see cref="System.ArgumentException"/> if <paramref name="valid"/> expression is false.
+        /// </summary>
+        /// <param name="message">Explicit message.</param>
+        /// <param name="valid">The expression to that must be true.</param>
+        /// <param name="exp">Roslyn's automatic capture of the expression's value.</param>
+        [MethodImpl( MethodImplOptions.AggressiveInlining )]
+        public static void CheckArgument( string message, [DoesNotReturnIf( false )] bool valid, [CallerArgumentExpression( "valid" )] string? exp = null )
         {
-            ArgumentException( null!, $"Invalid argument: '{exp}' should be true." );
+            if( !valid )
+            {
+                CheckArgumentException( exp!, message );
+            }
+        }
+
+        [DoesNotReturn]
+        static void CheckArgumentException( string exp, string? message = null )
+        {
+            if( message == null )
+            {
+                ArgumentException( null!, $"Invalid argument: '{exp}' should be true." );
+            }
+            else
+            {
+                ArgumentException( exp, message );
+            }
         }
 
         /// <summary>
-        /// Throws a new <see cref="ArgumentException"/> if the string value is null or empty.
+        /// Throws a new <see cref="System.ArgumentException"/> if the string value is null or empty.
         /// </summary>
-        /// <param name="name">The value to test.</param>
+        /// <param name="value">The value to test.</param>
+        /// <param name="exp">Roslyn's automatic capture of the expression's value.</param>
         [MethodImpl( MethodImplOptions.AggressiveInlining )]
         public static void OnNullOrEmptyArgument( [NotNull] string? value, [CallerArgumentExpression( "value" )] string? exp = null )
         {
@@ -71,9 +111,10 @@ namespace CK.Core
 
 
         /// <summary>
-        /// Throws a new <see cref="ArgumentException"/> if the string value is null, empty or whitespace.
+        /// Throws a new <see cref="System.ArgumentException"/> if the string value is null, empty or whitespace.
         /// </summary>
-        /// <param name="name">The value to test.</param>
+        /// <param name="value">The value to test.</param>
+        /// <param name="exp">Roslyn's automatic capture of the expression's value.</param>
         [MethodImpl( MethodImplOptions.AggressiveInlining )]
         public static void OnNullOrWhiteSpaceArgument( [NotNull] string? value, [CallerArgumentExpression( "value" )] string? exp = null )
         {
@@ -97,7 +138,7 @@ namespace CK.Core
         }
 
         /// <summary>
-        /// Throws a new <see cref="ArgumentOutOfRangeException"/>.
+        /// Throws a new <see cref="System.ArgumentOutOfRangeException"/>.
         /// </summary>
         /// <param name="name">The argument name.</param>
         /// <param name="message">Optional message to include in the exception.</param>
@@ -108,7 +149,7 @@ namespace CK.Core
         }
 
         /// <summary>
-        /// Throws a new <see cref="ArgumenException"/>.
+        /// Throws a new <see cref="System.ArgumentException"/>.
         /// </summary>
         /// <param name="name">The argument name.</param>
         /// <param name="message">Optional message to include in the exception.</param>
@@ -119,7 +160,7 @@ namespace CK.Core
         }
 
         /// <summary>
-        /// Throws a new <see cref="ArgumenNullException"/>.
+        /// Throws a new <see cref="System.ArgumentNullException"/>.
         /// </summary>
         /// <param name="name">The argument name.</param>
         /// <param name="message">Optional message to include in the exception.</param>

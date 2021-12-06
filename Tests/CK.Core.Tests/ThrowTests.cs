@@ -51,6 +51,18 @@ namespace CK.Core.Tests
         }
 
         [Test]
+        public void CheckArgument_with_message_and_faulty_expression()
+        {
+            FluentActions.Invoking( () => f( null! ) ).Should().Throw<ArgumentException>()
+                                                      .WithMessage( "The object must be a non null string array. (Parameter 'o != null && o is string[] array')" );
+
+            static void f( object o )
+            {
+                Throw.CheckArgument( "The object must be a non null string array.", o != null && o is string[] array );
+            }
+        }
+
+        [Test]
         public void CheckState_throws_InvalidOperationException_with_the_faulty_expression()
         {
             bool _canRun = false;
@@ -61,6 +73,20 @@ namespace CK.Core.Tests
             void Run()
             {
                 Throw.CheckState( _canRun );
+            }
+        }
+
+        [Test]
+        public void CheckState_with_message_and_faulty_expression()
+        {
+            bool _canRun = false;
+
+            FluentActions.Invoking( () => Run() ).Should().Throw<InvalidOperationException>()
+                                                          .WithMessage( "This should be able to run. (Expression: '_canRun'.)" );
+
+            void Run()
+            {
+                Throw.CheckState( "This should be able to run.", _canRun );
             }
         }
 

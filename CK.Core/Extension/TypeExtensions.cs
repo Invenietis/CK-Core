@@ -39,7 +39,7 @@ namespace CK.Core
             { typeof( object ), "object" }
         };
 
-        public readonly struct KeyType : IEquatable<KeyType>
+        readonly struct KeyType : IEquatable<KeyType>
         {
             public readonly Type Type;
             public readonly int Flags;
@@ -53,6 +53,8 @@ namespace CK.Core
                 Type = t;
                 Flags = (n ? 1 : 0) | (d ? 8 : 0) | (v ? 256 : 0);
             }
+
+            public override bool Equals( object? obj ) => obj is KeyType k && Equals( k );
         }
 
         static readonly ConcurrentDictionary<KeyType, string> _names = new ConcurrentDictionary<KeyType, string>();

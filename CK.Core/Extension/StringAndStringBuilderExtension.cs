@@ -50,10 +50,7 @@ namespace CK.Core
         /// <param name="this">Set of strings.</param>
         /// <param name="separator">The separator string.</param>
         /// <returns>The joined string.</returns>
-        public static string Concatenate( this IEnumerable<string> @this, string separator = ", " )
-        {
-            return String.Join( separator, @this );
-        }
+        public static string Concatenate( this IEnumerable<string?> @this, string separator = ", " ) => String.Join( separator, @this );
 
         /// <summary>
         /// Appends a set of strings with an internal separator.
