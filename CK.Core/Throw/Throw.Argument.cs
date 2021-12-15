@@ -152,6 +152,24 @@ namespace CK.Core
             }
         }
 
+        /// <summary>
+        /// Throws a new <see cref="System.ArgumentException"/> if the collection is null or empty.
+        /// <para>
+        /// This is more efficient for <see cref="IReadOnlyCollection{T}"/> is supported than the IEnumerable overload:
+        /// the compiler does the job.
+        /// </para>
+        /// </summary>
+        /// <param name="value">The value to test.</param>
+        /// <param name="exp">Roslyn's automatic capture of the expression's value.</param>
+        [MethodImpl( MethodImplOptions.AggressiveInlining )]
+        public static void OnNullOrEmptyArgument<T>( [NotNull] IReadOnlyCollection<T>? value, [CallerArgumentExpression( "value" )] string? exp = null )
+        {
+            if( value == null || value.Count == 0 )
+            {
+                NullOrEmptyException( value, exp! );
+            }
+        }
+
         [DoesNotReturn]
         static void NullOrEmptyException( object? value, string exp )
         {

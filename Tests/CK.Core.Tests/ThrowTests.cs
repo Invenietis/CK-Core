@@ -36,6 +36,21 @@ namespace CK.Core.Tests
         }
 
         [Test]
+        public void OnNullOrEmptyArgument_throws_ArgumentNullException_or_ArgumentException_for_readonly_collections()
+        {
+            FluentActions.Invoking( () => f( null! ) ).Should().Throw<ArgumentNullException>().Where( ex => ex.ParamName == "anEmptyCollection" );
+            FluentActions.Invoking( () => f( Array.Empty<int>() ) ).Should().Throw<ArgumentException>().WithMessage( "Must not be null or empty. (Parameter 'anEmptyCollection')" )
+                                                                                       .Where( ex => ex.ParamName == "anEmptyCollection" );
+            static void f( IReadOnlyCollection<int> anEmptyCollection )
+            {
+                Throw.OnNullOrEmptyArgument( anEmptyCollection );
+            }
+
+            // The IReadOnlyCollection<T> overload is targeted.
+            FluentActions.Invoking( () => Throw.OnNullOrEmptyArgument( Array.Empty<int>() ) ).Should().Throw<ArgumentException>();
+        }
+
+        [Test]
         public void OnNullOrWhiteSpaceArgument_throws_ArgumentNullException_or_ArgumentException()
         {
             FluentActions.Invoking( () => f( null! ) ).Should().Throw<ArgumentNullException>().Where( ex => ex.ParamName == "anInvalidString" );
