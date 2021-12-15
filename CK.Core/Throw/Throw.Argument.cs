@@ -55,6 +55,20 @@ namespace CK.Core
         }
 
         /// <summary>
+        /// Throws a new <see cref="System.ArgumentOutOfRangeException"/> if <paramref name="valid"/> expression is false.
+        /// </summary>
+        /// <param name="valid">The expression to that must be true.</param>
+        /// <param name="exp">Roslyn's automatic capture of the expression's value.</param>
+        [MethodImpl( MethodImplOptions.AggressiveInlining )]
+        public static void CheckOutOfRangeArgument( [DoesNotReturnIf( false )] bool valid, [CallerArgumentExpression( "valid" )] string? exp = null )
+        {
+            if( !valid )
+            {
+                CheckOutOfRangeArgumentException( exp! );
+            }
+        }
+
+        /// <summary>
         /// Throws a new <see cref="System.ArgumentException"/> if <paramref name="valid"/> expression is false.
         /// </summary>
         /// <param name="message">Explicit message.</param>
@@ -69,6 +83,21 @@ namespace CK.Core
             }
         }
 
+        /// <summary>
+        /// Throws a new <see cref="System.ArgumentOutOfRangeException"/> if <paramref name="valid"/> expression is false.
+        /// </summary>
+        /// <param name="message">Explicit message.</param>
+        /// <param name="valid">The expression to that must be true.</param>
+        /// <param name="exp">Roslyn's automatic capture of the expression's value.</param>
+        [MethodImpl( MethodImplOptions.AggressiveInlining )]
+        public static void CheckOutOfRangeArgument( string message, [DoesNotReturnIf( false )] bool valid, [CallerArgumentExpression( "valid" )] string? exp = null )
+        {
+            if( !valid )
+            {
+                CheckOutOfRangeArgumentException( exp!, message );
+            }
+        }
+
         [DoesNotReturn]
         static void CheckArgumentException( string exp, string? message = null )
         {
@@ -79,6 +108,19 @@ namespace CK.Core
             else
             {
                 ArgumentException( exp, message );
+            }
+        }
+
+        [DoesNotReturn]
+        static void CheckOutOfRangeArgumentException( string exp, string? message = null )
+        {
+            if( message == null )
+            {
+                ArgumentOutOfRangeException( null!, $"Invalid argument: '{exp}' should be true." );
+            }
+            else
+            {
+                ArgumentOutOfRangeException( exp, message );
             }
         }
 
@@ -96,8 +138,22 @@ namespace CK.Core
             }
         }
 
+        /// <summary>
+        /// Throws a new <see cref="System.ArgumentException"/> if the enumerable is null or empty.
+        /// </summary>
+        /// <param name="value">The value to test.</param>
+        /// <param name="exp">Roslyn's automatic capture of the expression's value.</param>
+        [MethodImpl( MethodImplOptions.AggressiveInlining )]
+        public static void OnNullOrEmptyArgument<T>( [NotNull] IEnumerable<T>? value, [CallerArgumentExpression( "value" )] string? exp = null )
+        {
+            if( value == null || !value.Any() )
+            {
+                NullOrEmptyException( value, exp! );
+            }
+        }
+
         [DoesNotReturn]
-        static void NullOrEmptyException( string? value, string exp )
+        static void NullOrEmptyException( object? value, string exp )
         {
             if( value != null )
             {
