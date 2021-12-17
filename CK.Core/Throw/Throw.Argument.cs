@@ -27,6 +27,21 @@ namespace CK.Core
 
         /// <summary>
         /// Throws a new <see cref="System.ArgumentNullException"/> if the value is null.
+        /// (This overload avoids any boxing of the value type.)
+        /// </summary>
+        /// <param name="value">The value to test.</param>
+        /// <param name="exp">Roslyn's automatic capture of the expression's value.</param>
+        [MethodImpl( MethodImplOptions.AggressiveInlining )]
+        public static void CheckNotNullArgument<T>( [NotNull] T? value, [CallerArgumentExpression( "value" )] string? exp = null ) where T : struct
+        {
+            if( !value.HasValue )
+            {
+                ArgumentNullException( exp! );
+            }
+        }
+
+        /// <summary>
+        /// Throws a new <see cref="System.ArgumentNullException"/> if the value is null.
         /// </summary>
         /// <param name="message">Specific message.</param>
         /// <param name="value">The value to test.</param>

@@ -12,6 +12,28 @@ namespace CK.Core.Tests
     public partial class ThrowTests
     {
         [Test]
+        public void CheckNotNullArgument_throws_ArgumentNullException_or_ArgumentException_for_reference_type()
+        {
+            FluentActions.Invoking( () => f( null! ) ).Should().Throw<ArgumentNullException>().Where( ex => ex.ParamName == "nullRefType" );
+
+            static void f( object nullRefType )
+            {
+                Throw.CheckNotNullArgument( nullRefType );
+            }
+        }
+
+        [Test]
+        public void CheckNotNullArgument_throws_ArgumentNullException_or_ArgumentException_for_nullable_value_type()
+        {
+            FluentActions.Invoking( () => f( null! ) ).Should().Throw<ArgumentNullException>().Where( ex => ex.ParamName == "nullValueType" );
+
+            static void f( int? nullValueType )
+            {
+                Throw.CheckNotNullArgument( nullValueType );
+            }
+        }
+
+        [Test]
         public void CheckNotNullOrEmptyArgument_throws_ArgumentNullException_or_ArgumentException_for_strings()
         {
             FluentActions.Invoking( () => f( null! ) ).Should().Throw<ArgumentNullException>().Where( ex => ex.ParamName == "anInvalidString" );
@@ -134,11 +156,11 @@ namespace CK.Core.Tests
         public void CheckArgument_throws_ArgumentException_with_the_faulty_expression()
         {
             FluentActions.Invoking( () => f( null! ) ).Should().Throw<ArgumentException>()
-                                                      .WithMessage( "Invalid argument: 'o != null && o is string[] array' should be true." );
+                                                      .WithMessage( "Invalid argument: 'o is string[] array && array.Length > 3 && array[0] == \"First\"' should be true." );
 
             static void f( object o )
             {
-                Throw.CheckArgument( o != null && o is string[] array );
+                Throw.CheckArgument( o is string[] array && array.Length > 3 && array[0] == "First" );
             }
         }
 
