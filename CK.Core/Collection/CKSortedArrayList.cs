@@ -104,7 +104,7 @@ namespace CK.Core
         /// <returns>The result of the <see cref="Util.BinarySearch{T}(IReadOnlyList{T}, int, int, T, Comparison{T})"/> in the internal array.</returns>
         public virtual int IndexOf( T value )
         {
-            Throw.OnNullArgument( value );
+            Throw.CheckNotNullArgument( value );
             return Util.BinarySearch<T>( _tab, 0, _count, value, Comparator );
         }
 
@@ -120,7 +120,7 @@ namespace CK.Core
         /// <returns>Same as <see cref="Array.BinarySearch(Array,object)"/>: negative index if not found which is the bitwise complement of (the index of the next element plus 1).</returns>
         public int IndexOf<TKey>( TKey key, Func<T, TKey, int> comparison )
         {
-            Throw.OnNullArgument( comparison );
+            Throw.CheckNotNullArgument( comparison );
             return Util.BinarySearch( _tab, 0, _count, key, comparison );
         }
 

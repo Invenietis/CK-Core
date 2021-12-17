@@ -149,7 +149,7 @@ namespace CK.Core
         /// <returns>The index in array that, if found; otherwise, –1.</returns>
         public override int IndexOf( T value )
         {
-            Throw.OnNullArgument( value );
+            Throw.CheckNotNullArgument( value );
             return Array.IndexOf<T>( Store, value, 0, Count );
         }
 

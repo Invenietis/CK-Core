@@ -54,8 +54,8 @@ namespace CK.Core
                                 CKExceptionData[]? loaderExceptions,
                                 CKExceptionData[]? aggregatedExceptions )
         {
-            Throw.OnNullArgument( message );
-            Throw.OnNullOrEmptyArgument( exceptionTypeName );
+            Throw.CheckNotNullArgument( message );
+            Throw.CheckNotNullOrEmptyArgument( exceptionTypeName );
             if( aggregatedExceptions != null && aggregatedExceptions.Length == 0 )
             {
                 Throw.ArgumentException( nameof( aggregatedExceptions ), Impl.CoreResources.AggregatedExceptionsMustContainAtLeastOne );
