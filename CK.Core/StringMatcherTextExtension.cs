@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
 using System.Text;
@@ -31,53 +32,11 @@ namespace CK.Core
         /// <returns><c>true</c> when matched, <c>false</c> otherwise.</returns>
         public static bool TryMatchGuid( this StringMatcher @this, out Guid id )
         {
-            id = Guid.Empty;
-            if( @this.Length < 32 ) return false;
-            if( @this.Head == '{' )
+            var ro = @this.ROSpan;
+            if( ro.TryMatchGuid( out id ) )
             {
-                // Form "B" or "X".
-                if( @this.Length < 38 ) return false;
-                if( @this.Text[@this.StartIndex+37] == '}' )
-                {
-                    // The "B" form.
-                    if( Guid.TryParseExact( @this.Text.Substring( @this.StartIndex, 38 ), "B", out id ) )
-                    {
-                        return @this.UncheckedMove( 38 );
-                    }
-                    return false;
-                }
-                // The "X" form.
-                if( @this.Length >= 68  && Guid.TryParseExact( @this.Text.Substring( @this.StartIndex, 68 ), "X", out id ) )
-                {
-                    return @this.UncheckedMove( 68 );
-                }
-                return false;
-            }
-            if( @this.Head == '(' )
-            {
-                // Can only be the "P" form.
-                if( @this.Length >= 38 && Guid.TryParseExact( @this.Text.Substring( @this.StartIndex, 38 ), "P", out id ) )
-                {
-                    return @this.UncheckedMove( 38 );
-                }
-                return false;
-            }
-            if( @this.Head.HexDigitValue() >= 0 )
-            {
-                // The "N" or "D" form.
-                if( @this.Length >= 36 && @this.Text[@this.StartIndex + 8] == '-' )
-                {
-                    // The ""D" form.
-                    if( Guid.TryParseExact( @this.Text.Substring( @this.StartIndex, 36 ), "D", out id ) )
-                    {
-                        return @this.UncheckedMove( 36 );
-                    }
-                    return false;
-                }
-                if( Guid.TryParseExact( @this.Text.Substring( @this.StartIndex, 32 ), "N", out id ) )
-                {
-                    return @this.UncheckedMove( 32 );
-                }
+                @this.UncheckedMove( @this.ROSpan.Length - ro.Length );
+                return true;
             }
             return false;
         }
@@ -92,23 +51,12 @@ namespace CK.Core
         /// <returns><c>true</c> when matched, <c>false</c> otherwise.</returns>
         public static bool TryMatchHexNumber( this StringMatcher @this, out ulong value, int minDigit = 1, int maxDigit = 16 )
         {
-            if( minDigit <= 0 ) throw new ArgumentException( "Must be at least 1 digit.", nameof( minDigit ) );
-            if( maxDigit > 16 ) throw new ArgumentException( "Must be at most 16 digits.", nameof( maxDigit ) );
-            if( minDigit > maxDigit ) throw new ArgumentException( "Must be smaller than maxDigit.", nameof( minDigit ) );
-            value = 0;
-            if( @this.IsEnd ) return false;
-            int i = @this.StartIndex;
-            int len = @this.Length;
-            while( --maxDigit >= 0 && --len >= 0 )
+            var ro = @this.ROSpan;
+            if( ro.TryMatchHexNumber( out value, minDigit, maxDigit ) )
             {
-                int cN = @this.Head.HexDigitValue();
-                if( cN < 0 || cN > 15 ) break;
-                @this.UncheckedMove( 1 );
-                value <<= 4;
-                value |= (uint)cN;
+                @this.UncheckedMove( @this.ROSpan.Length - ro.Length );
+                return true;
             }
-            if( (@this.StartIndex - i) >= minDigit ) return true;
-            @this.UncheckedMove( i - @this.StartIndex );
             return false;
         }
 
@@ -124,41 +72,15 @@ namespace CK.Core
         /// <returns><c>true</c> when matched, <c>false</c> otherwise.</returns>
         public static bool MatchInt32( this StringMatcher @this, out int i, int minValue = int.MinValue, int maxValue = int.MaxValue )
         {
-            i = 0;
-            int savedIndex = @this.StartIndex;
-            int value = 0;
-            bool signed;
-            if( @this.IsEnd ) return @this.SetError();
-            if( (signed = @this.TryMatchChar( '-' )) && @this.IsEnd ) return @this.BackwardAddError( savedIndex );
-
-            char c;
-            if( @this.TryMatchChar( '0' ) )
+            var m = new ROSpanCharMatcher( @this.ROSpan );
+            if( m.TryMatchInt32( out i, false, minValue, maxValue ) )
             {
-                if( !@this.IsEnd && (c = @this.Head) >= '0' && c <= '9' ) return @this.BackwardAddError( savedIndex, "0...9" );
-                return @this.ClearError();
+                @this.UncheckedMove( @this.ROSpan.Length - m.Head.Length );
+                return true;
             }
-            unchecked
-            {
-                long iMax = Int32.MaxValue;
-                if( signed ) iMax++;
-                while( !@this.IsEnd && (c = @this.Head) >= '0' && c <= '9' )
-                {
-                    value = value * 10 + (c - '0');
-                    if( value > iMax ) break;
-                    @this.UncheckedMove( 1 );
-                }
-            }
-            if( @this.StartIndex > savedIndex )
-            {
-                if( signed ) value = -value;
-                if( value < minValue || value > maxValue )
-                {
-                    return @this.BackwardAddError( savedIndex, String.Format( CultureInfo.InvariantCulture, "value between {0} and {1}", minValue, maxValue ) );
-                }
-                i = (int)value;
-                return @this.ClearError();
-            }
-            return @this.SetError();
+            Debug.Assert( m.HasError );
+            @this.SetError( m.GetErrors().Single().Expectation );
+            return false;
         }
 
 
@@ -179,9 +101,13 @@ namespace CK.Core
         /// <returns><c>true</c> when matched, <c>false</c> otherwise.</returns>
         public static bool TryMatchDoubleValue( this StringMatcher @this )
         {
-            Match m = RegexDouble.Match( @this.Text, @this.StartIndex, @this.Length );
-            if( !m.Success ) return false;
-            return @this.UncheckedMove( m.Length );
+            var ro = @this.ROSpan;
+            if( ro.TrySkipDouble() )
+            {
+                @this.UncheckedMove( @this.ROSpan.Length - ro.Length );
+                return true;
+            }
+            return false;
         }
 
         /// <summary>
@@ -193,14 +119,13 @@ namespace CK.Core
         /// <returns><c>true</c> when matched, <c>false</c> otherwise.</returns>
         public static bool TryMatchDoubleValue( this StringMatcher @this, out double value )
         {
-            Match m = RegexDouble.Match( @this.Text, @this.StartIndex, @this.Length );
-            if( !m.Success )
+            var ro = @this.ROSpan;
+            if( ro.TryMatchDouble( out value ) )
             {
-                value = 0;
-                return false;
+                @this.UncheckedMove( @this.ROSpan.Length - ro.Length );
+                return true;
             }
-            if( !double.TryParse( @this.Text.AsSpan( @this.StartIndex, m.Length ), NumberStyles.Float, CultureInfo.InvariantCulture, out value ) ) return false;
-            return @this.UncheckedMove( m.Length );
+            return false;
         }
     }
 }

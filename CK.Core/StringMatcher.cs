@@ -102,6 +102,11 @@ namespace CK.Core
         public char Head => _text[_startIndex];
 
         /// <summary>
+        /// Temporary to migrate to ROSpan.
+        /// </summary>
+        public ReadOnlySpan<char> ROSpan => _text.AsSpan().Slice( _startIndex ); 
+
+        /// <summary>
         /// Gets the current length available.
         /// </summary>
         /// <value>The length.</value>
@@ -266,11 +271,18 @@ namespace CK.Core
         public bool TryMatchText( string text, StringComparison comparisonType = StringComparison.OrdinalIgnoreCase )
         {
             if( string.IsNullOrEmpty( text ) ) throw new ArgumentException( null, nameof( text ) );
-            int len = text.Length;
-            return !IsEnd
-                    && len <= _length
-                    && string.Compare( _text, _startIndex, text, 0, len, comparisonType ) == 0
-                    && UncheckedMove( len );
+            var ro = ROSpan;
+            if( ro.TryMatch( text, comparisonType ) )
+            {
+                UncheckedMove( ROSpan.Length - ro.Length );
+                return true;
+            }
+            return false;
+            //int len = text.Length;
+            //return !IsEnd
+            //        && len <= _length
+            //        && string.Compare( _text, _startIndex, text, 0, len, comparisonType ) == 0
+            //        && UncheckedMove( len );
         }
 
         /// <summary>
@@ -289,17 +301,25 @@ namespace CK.Core
         /// <returns>True on success, false if the match failed (if <see cref="IsEnd"/> is reached before <paramref name="minCount"/>).</returns>
         public bool MatchWhiteSpaces( int minCount = 1 )
         {
-            int i = _startIndex;
-            int len = _length;
-            while( len != 0 && char.IsWhiteSpace( _text, i ) ) { ++i; --len; }
-            if( i - _startIndex >= minCount )
+            var ro = ROSpan;
+            if( ro.TrySkipWhiteSpaces(minCount))
             {
-                _startIndex = i;
-                _length = len;
-                _errorDescription = null;
+                UncheckedMove( ROSpan.Length - ro.Length );
                 return true;
             }
-            return SetError( minCount + " whitespace(s)" );
+            return false;
+
+            //int i = _startIndex;
+            //int len = _length;
+            //while( len != 0 && char.IsWhiteSpace( _text, i ) ) { ++i; --len; }
+            //if( i - _startIndex >= minCount )
+            //{
+            //    _startIndex = i;
+            //    _length = len;
+            //    _errorDescription = null;
+            //    return true;
+            //}
+            //return SetError( minCount + " whitespace(s)" );
         }
 
         /// <summary>
