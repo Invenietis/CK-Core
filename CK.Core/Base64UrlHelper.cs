@@ -70,7 +70,7 @@ namespace CK.Core
         /// <returns>The bytes.</returns>
         public static Memory<byte> FromBase64UrlString( string base64UrlString )
         {
-            ArgumentNullException.ThrowIfNull( base64UrlString, nameof( base64UrlString ) );
+            Throw.CheckNotNullArgument( base64UrlString );
             var a = new byte[((base64UrlString.Length + 3) >> 2) << 2];
             int written = Encoding.ASCII.GetBytes( base64UrlString.AsSpan(), a );
             for( int i = 0; i < written; i++ )

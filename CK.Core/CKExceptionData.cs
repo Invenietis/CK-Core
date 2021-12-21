@@ -98,7 +98,7 @@ namespace CK.Core
         /// <param name="version">Known version.</param>
         public CKExceptionData( CKBinaryReader r, bool streamIsCRLF, int version )
         {
-            ArgumentNullException.ThrowIfNull( r, nameof( r ) );
+            Throw.CheckNotNullArgument( r );
             _message = r.ReadString( streamIsCRLF );
             _exceptionTypeName = r.ReadString();
             _exceptionTypeAQName = r.ReadString();
@@ -260,7 +260,7 @@ namespace CK.Core
 
         void WriteWithoutVersion( CKBinaryWriter w )
         {
-            ArgumentNullException.ThrowIfNull( w, nameof( w ) );
+            Throw.CheckNotNullArgument( w );
             w.Write( _message );
             w.Write( _exceptionTypeName );
             w.Write( _exceptionTypeAQName );

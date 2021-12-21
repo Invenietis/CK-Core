@@ -75,7 +75,7 @@ namespace CK.Core
         /// <param name="uniquifier">Optional non zero uniquifier.</param>
         public DateTimeStamp( DateTime timeUtc, Byte uniquifier = 0 )
         {
-            if( timeUtc.Kind != DateTimeKind.Utc ) throw new ArgumentException( Impl.CoreResources.DateTimeMustBeUtc, nameof( timeUtc ) );
+            Throw.CheckArgument( timeUtc.Kind == DateTimeKind.Utc );
             TimeUtc = timeUtc;
             Uniquifier = uniquifier;
         }
@@ -89,7 +89,7 @@ namespace CK.Core
         /// <param name="ensureGreaterThanLastOne">False to only check for time equality collision instead of guarantying ascending log time.</param>
         public DateTimeStamp( DateTimeStamp lastOne, DateTime time, bool ensureGreaterThanLastOne = true )
         {
-            if( time.Kind != DateTimeKind.Utc ) throw new ArgumentException( Impl.CoreResources.DateTimeMustBeUtc, nameof( time ) );
+            Throw.CheckArgument( time.Kind == DateTimeKind.Utc );
             if( ensureGreaterThanLastOne ? time <= lastOne.TimeUtc : time != lastOne.TimeUtc )
             {
                 if( lastOne.Uniquifier == Byte.MaxValue )

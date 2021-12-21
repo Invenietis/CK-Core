@@ -2,6 +2,7 @@ using System;
 using System.Globalization;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using System.Text;
 
 namespace CK.Core
 {
@@ -199,7 +200,7 @@ namespace CK.Core
         }
 
         /// <summary>
-        /// Tries to parse an hexadecimal values: between 1 and 16 0-9, A-F or a-f digits.
+        /// Tries to parse an hexadecimal values of 1 to 16 '0'-'9', 'A'-'F' or 'a'-'f' digits.
         /// </summary>
         /// <param name="head">This head.</param>
         /// <param name="value">Resulting value on success.</param>
@@ -219,7 +220,7 @@ namespace CK.Core
                 while( --maxDigit >= 0 && --len >= 0 )
                 {
                     int cN = head[idx].HexDigitValue();
-                    if( cN < 0 || cN > 15 ) break;
+                    if( cN < 0 ) break;
                     ++idx;
                     value <<= 4;
                     value |= (uint)cN;
@@ -243,11 +244,11 @@ namespace CK.Core
         /// </summary>
         /// <param name="head">This head.</param>
         /// <param name="i">The result integer. 0 on failure.</param>
-        /// <param name="allowLeadingZeros">False to forbid leading zeros.</param>
         /// <param name="minValue">Optional minimal value.</param>
         /// <param name="maxValue">Optional maximal value.</param>
+        /// <param name="allowLeadingZeros">True to allow leading zeros.</param>
         /// <returns>True on success, false otherwise.</returns>
-        public static bool TryMatchInt32( this ref ReadOnlySpan<char> head, out int i, bool allowLeadingZeros = true, int minValue = int.MinValue, int maxValue = int.MaxValue )
+        public static bool TryMatchInt32( this ref ReadOnlySpan<char> head, out int i, int minValue = int.MinValue, int maxValue = int.MaxValue, bool allowLeadingZeros = false )
         {
             i = 0;
             long value = 0;
@@ -301,7 +302,7 @@ namespace CK.Core
         }
 
         /// <summary>
-        /// Tries to skip a double value, using the regular expression "-?[0-9]+(\.[0-9]+)?((e|E)(\+|-)?[0-9]+)?".
+        /// Tries to skip a double value. This skips a pattern like the regular expression "^-?[0-9]+(\.[0-9]+)?((e|E)(\+|-)?[0-9]+)?".
         /// </summary>
         /// <param name="head">This head.</param>
         /// <returns>True on success, false otherwise.</returns>
@@ -316,9 +317,9 @@ namespace CK.Core
                 h = h.Slice( 1 );
                 if( !h.TrySkipDigits( 1 ) ) return false;
             }
-            if( h[0] == 'e' || h[0] == 'E' )
+            if( h.Length != 0 && (h[0] == 'e' || h[0] == 'E') )
             {
-                h = h.Slice( h[1] == '-' || h[1] == '+' ? 2 : 1 );
+                h = h.Slice( h.Length > 1 && (h[1] == '-' || h[1] == '+') ? 2 : 1 );
                 if( !h.TrySkipDigits( 1 ) ) return false;
             }
             head = head.Slice( head.Length - h.Length );
@@ -333,7 +334,7 @@ namespace CK.Core
         /// </summary>
         /// <param name="head">This head.</param>
         /// <param name="value">The result double. 0.0 on failure.</param>
-        /// <returns></returns>
+        /// <returns>True on success, false otherwise.</returns>
         public static bool TryMatchDouble( this ref ReadOnlySpan<char> head, out double value )
         {
             value = 0;
@@ -347,5 +348,87 @@ namespace CK.Core
             head = head.Slice( len );
             return true;
         }
+
+        /// <summary>
+        /// Tries to skip a quoted string. This handles escaped \" and \\ but not other
+        /// escaped characters: the string may be invalid regarding JSON string grammar.
+        /// See the string definition https://www.json.org/json-en.html.
+        /// </summary>
+        /// <param name="head">This head.</param>
+        /// <param name="allowNull">True to allow 'null' token.</param>
+        /// <returns>True on success, false otherwise.</returns>
+        public static bool TrySkipJSONQuotedString( this ref ReadOnlySpan<char> head, bool allowNull = false )
+        {
+            if( head.Length == 0 ) return false;
+            if( head[0] != '"' )
+            {
+                return allowNull && TryMatch( ref head, "null" );
+            }
+            var h = head.Slice( 1 );
+            for( ; ; )
+            {
+                int idx = h.IndexOf( '"' );
+                if( idx < 0 ) return false;
+                int rIdx = idx - 1;
+                while( rIdx > 0 && h[idx - 1] == '\\' ) rIdx--;
+                if( ((idx - rIdx) & 1) == 0 ) break;
+                h = h.Slice( idx + 1 );
+            }
+            head = h.Slice( 1 );
+            return true;
+        }
+
+        /// <summary>
+        /// Tries to skip a JSON terminal value: a "string", null, a number (double value), true or false.
+        /// </summary>
+        /// <param name="head">This head.</param>
+        /// <returns>True on success, false otherwise.</returns>
+        public static bool TrySkipJSONTerminalValue( this ref ReadOnlySpan<char> head )
+        {
+            return head.TrySkipJSONQuotedString( true )
+                    || head.TrySkipDouble()
+                    || head.TryMatch( "true" )
+                    || head.TryMatch( "false" );
+        }
+
+        /// <summary>
+        /// Tries to skip a //.... or /* ... */ comment.
+        /// Proper termination of comment (by a new line or the closing */) is not required: 
+        /// a ending /*... is considered valid.
+        /// </summary>
+        /// <param name="head">This head.</param>
+        /// <returns>True on success, false otherwise.</returns>
+        public static bool TrySkipJSComment( this ref ReadOnlySpan<char> head )
+        {
+            if( head.Length < 2 || head[0] != '/' ) return false;
+            if( head[1] == '/' )
+            {
+                int idx = head.IndexOf( '\n' ) + 1;
+                if( idx == 0 ) idx = head.Length;
+                head = head.Slice( idx );
+                return true;
+            }
+            else if( head[1] == '*' )
+            {
+                int idx = head.IndexOf( "*/" ) + 2;
+                if( idx == 1 ) idx = head.Length;
+                head = head.Slice( idx );
+                return true;
+            }
+            return false;
+        }
+
+        /// <summary>
+        /// Skips any white spaces or JS comments (//... or /* ... */) and always returns true.
+        /// </summary>
+        /// <param name="head">This head.</param>
+        /// <returns>Always true to ease composition.</returns>
+        public static bool SkipWhiteSpacesAndJSComments( this ref ReadOnlySpan<char> head )
+        {
+            TrySkipWhiteSpaces( ref head, 0 );
+            while( TrySkipJSComment( ref head ) ) TrySkipWhiteSpaces( ref head, 0 );
+            return true;
+        }
+
     }
 }

@@ -61,7 +61,7 @@ namespace CK.Core
                 SimpleServiceContainer? v = value as SimpleServiceContainer;
                 while( v != null )
                 {
-                    if( v == this ) throw new Exception( "BaseProvider circle detected" );
+                    if( v == this ) Throw.Exception( "BaseProvider circle detected" );
                     v = v.BaseProvider as SimpleServiceContainer;
                 }
                 _baseProvider = value; 
@@ -80,9 +80,9 @@ namespace CK.Core
         /// <returns>This object to enable fluent syntax.</returns>
         public ISimpleServiceContainer Add( Type serviceType, Func<Object> serviceInstance, Action<Object>? onRemove = null )
         {
-            if( serviceType is null ) throw new ArgumentNullException( nameof( serviceType ) );
-            if( serviceInstance == null ) throw new ArgumentNullException( nameof( serviceInstance ) );
-            if( GetDirectService( serviceType ) != null ) throw new Exception( String.Format( CoreResources.ServiceAlreadyDirectlySupported, serviceType.FullName ) );
+            Throw.CheckNotNullArgument( serviceType );
+            Throw.CheckNotNullArgument( serviceInstance );
+            if( GetDirectService( serviceType ) != null ) Throw.Exception( String.Format( CoreResources.ServiceAlreadyDirectlySupported, serviceType.FullName ) );
             DoAdd( serviceType, new ServiceEntry() { Instance = null, Creator = serviceInstance, OnRemove = onRemove } );
             return this;
         }
@@ -96,9 +96,9 @@ namespace CK.Core
         /// <returns>This object to enable fluent syntax.</returns>
         public ISimpleServiceContainer Add( Type serviceType, object serviceInstance, Action<Object>? onRemove = null )
         {
-            if( serviceType is null ) throw new ArgumentNullException( nameof( serviceType ) );
-            if( serviceInstance == null ) throw new ArgumentNullException( nameof( serviceInstance ) );
-            if( GetDirectService( serviceType ) != null ) throw new Exception( String.Format( CoreResources.ServiceAlreadyDirectlySupported, serviceType.FullName ) );
+            Throw.CheckNotNullArgument( serviceType );
+            Throw.CheckNotNullArgument( serviceInstance );
+            if( GetDirectService( serviceType ) != null ) Throw.Exception( String.Format( CoreResources.ServiceAlreadyDirectlySupported, serviceType.FullName ) );
             if( !serviceType.IsAssignableFrom( serviceInstance.GetType() ) ) throw new Exception( String.Format( CoreResources.ServiceImplTypeMismatch, serviceType.FullName, serviceInstance.GetType().FullName ) );
             DoAdd( serviceType, new ServiceEntry() { Instance = serviceInstance, Creator = null, OnRemove = onRemove } );
             return this;
@@ -119,8 +119,8 @@ namespace CK.Core
         /// <returns>This object to enable fluent syntax.</returns>
         public ISimpleServiceContainer AddDisabled( Type serviceType )
         {
-            if( serviceType is null ) throw new ArgumentNullException( nameof( serviceType ) );
-            if( GetDirectService( serviceType ) != null ) throw new Exception( String.Format( CoreResources.DirectServicesCanNotBeDisabled, serviceType.FullName ) );
+            Throw.CheckNotNullArgument( serviceType );
+            if( GetDirectService( serviceType ) != null ) Throw.Exception( String.Format( CoreResources.DirectServicesCanNotBeDisabled, serviceType.FullName ) );
             DoAdd( serviceType, new ServiceEntry() );
             return this;
         }
@@ -175,7 +175,7 @@ namespace CK.Core
         /// <returns>Built-in service, registered service, service from <see cref="BaseProvider"/> or null.</returns>
         public object? GetService( Type serviceType )
         {
-            if( serviceType is null ) throw new ArgumentNullException( nameof( serviceType ) );
+            Throw.CheckNotNullArgument( serviceType );
             object? result = GetDirectService( serviceType );
             if( result == null )
             {
@@ -260,7 +260,7 @@ namespace CK.Core
             catch( ArgumentException ex )
             {
                 if( _services.ContainsKey( s ) )
-                    throw new Exception( String.Format( CoreResources.ServiceAlreadyRegistered, s.FullName ), ex );
+                    Throw.Exception( String.Format( CoreResources.ServiceAlreadyRegistered, s.FullName ), ex );
                 throw;
             }
         }

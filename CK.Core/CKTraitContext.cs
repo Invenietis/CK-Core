@@ -34,7 +34,7 @@ namespace CK.Core
 
         CKTraitContext( string name, char separator, bool shared, ICKBinaryReader? r )
         {
-            if( String.IsNullOrWhiteSpace( name ) ) throw new ArgumentException( Core.Impl.CoreResources.ArgumentMustNotBeNullOrWhiteSpace, nameof( name ) );
+            Throw.CheckNotNullOrWhiteSpaceArgument( name );
             Name = name.Normalize();
             Separator = separator;
             if( !shared ) Monitor.Enter( _basicLock );
@@ -139,7 +139,7 @@ namespace CK.Core
         /// <param name="r">The binary reader to use.</param>
         public static CKTraitContext Read( ICKBinaryReader r )
         {
-            ArgumentNullException.ThrowIfNull( r, nameof( r ) );
+            Throw.CheckNotNullArgument( r );
             byte vS = r.ReadByte();
             bool shared = (vS & 128) != 0;
             bool withTags = (vS & 64) != 0;
@@ -311,7 +311,7 @@ namespace CK.Core
         {
             if( tags == null || tags.Length == 0 ) return EmptyTrait;
             tags = tags.Normalize();
-            if( tags.IndexOfAny( new[] { '\n', '\r' } ) >= 0 ) throw new ArgumentException( Core.Impl.CoreResources.TagsMustNotBeMultiLineString );
+            if( tags.IndexOfAny( new[] { '\n', '\r' } ) >= 0 ) Throw.ArgumentException( Impl.CoreResources.TagsMustNotBeMultiLineString );
             if( !_tags.TryGetValue( tags, out CKTrait? m ) )
             {
                 string[] splitTags = SplitMultiTag( tags, out int tagCount );

@@ -22,7 +22,7 @@ namespace CK.Core
         public static int BinarySearch<T, TComparable>( IReadOnlyList<T> sortedList, int startIndex, int length, TComparable comparable )
             where TComparable : IComparable<T>
         {
-            ArgumentNullException.ThrowIfNull( sortedList, nameof( sortedList ) );
+            Throw.CheckNotNullArgument( sortedList );
             int low = startIndex;
             int high = (startIndex + length) - 1;
             while( low <= high )
@@ -155,7 +155,7 @@ namespace CK.Core
             /// <param name="comparison">The keyed comparison function.</param>
             public KeyedComparisonComparable( TKey key, Func<T, TKey, int> comparison )
             {
-                ArgumentNullException.ThrowIfNull( comparison, nameof( comparison ) );
+                Throw.CheckNotNullArgument( comparison );
                 _key = key;
                 _comparison = comparison;
             }
