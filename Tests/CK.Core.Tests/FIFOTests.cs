@@ -87,40 +87,36 @@ namespace CK.Core.Tests
             FIFOBuffer<int> f = new FIFOBuffer<int>( 5 );
             f.ToArray().Length.Should().Be( 0 );
 
-            f.Invoking( sut => sut.CopyTo( null! ) ).Should().Throw<ArgumentNullException>();
-            f.Invoking( sut => sut.CopyTo( null!, 0 ) ).Should().Throw<ArgumentNullException>();
-            f.Invoking( sut => sut.CopyTo( null!, 0, 0 ) ).Should().Throw<ArgumentNullException>();
-
             TestWithInternalOffsets( f, b =>
                 {
                     var array = (int[])initialArray.Clone();
                     b.Push( 1 );
-                    b.CopyTo( array, 3, 2 );
+                    b.CopyTo( array.AsSpan( 3, 2 ) );
                     array.SequenceEqual( new int[] { -1, 0, 0, 1, 0, 0, -1 } ).Should().BeTrue();
                     array[3] = 0;
                     b.Push( 2 );
-                    b.CopyTo( array, 3, 2 );
+                    b.CopyTo( array.AsSpan( 3, 2 ) );
                     array.SequenceEqual( new int[] { -1, 0, 0, 1, 2, 0, -1 } ).Should().BeTrue();
 
                     array[3] = 0; array[4] = 0;
                     b.Push( 3 );
-                    b.CopyTo( array, 3, 3 );
+                    b.CopyTo( array.AsSpan( 3, 3 ) );
                     array.SequenceEqual( new int[] { -1, 0, 0, 1, 2, 3, -1 } ).Should().BeTrue();
 
                     array[3] = 0; array[4] = 0; array[5] = 0;
                     b.Push( 4 );
-                    b.CopyTo( array, 3, 3 );
+                    b.CopyTo( array.AsSpan( 3, 3 ) );
                     array.SequenceEqual( new int[] { -1, 0, 0, 2, 3, 4, -1 } ).Should().BeTrue();
 
                     array[3] = 0; array[4] = 0; array[5] = 0;
-                    b.CopyTo( array, 2, 4 );
+                    b.CopyTo( array.AsSpan( 2, 4 ) );
                     array.SequenceEqual( new int[] { -1, 0, 1, 2, 3, 4, -1 } ).Should().BeTrue();
 
                     array[3] = 0; array[4] = 0; array[5] = 0;
-                    b.CopyTo( array, 2, 5 ).Should().Be( 4 );
+                    b.CopyTo( array.AsSpan( 2, 5 ) ).Should().Be( 4 );
                     array.SequenceEqual( new int[] { -1, 0, 1, 2, 3, 4, -1 } ).Should().BeTrue( "Sentinel is not changed: there is only 4 items to copy." );
 
-                    b.Invoking( sut => sut.CopyTo( array, 2, 6 ) ).Should().Throw<ArgumentOutOfRangeException>( "Even if the items fit, there must be an exception." );
+                    b.Invoking( sut => sut.CopyTo( array.AsSpan( 2, 6 ) ) ).Should().Throw<ArgumentOutOfRangeException>( "Even if the items fit, there must be an exception." );
 
                     b.Truncate( 1 );
                     b.Peek().Should().Be( 4 );
@@ -129,21 +125,21 @@ namespace CK.Core.Tests
                     b.Push( 62 );
                     b.Push( 63 );
                     b.Push( 7 ); // oldest
-                   b.Push( 8 );
+                    b.Push( 8 );
                     b.Push( 9 );
                     b.Push( 10 );
                     b.Push( 11 );
                     b[0].Should().Be( 7 );
 
                     array[3] = 0; array[4] = 0; array[5] = 0;
-                    b.CopyTo( array, 1 ).Should().Be( 5 );
+                    b.CopyTo( array.AsSpan( 1 ) ).Should().Be( 5 );
                     array.SequenceEqual( new int[] { -1, 7, 8, 9, 10, 11, -1 } ).Should().BeTrue( "Sentinel is not changed: there is only 5 items to copy." );
 
                     array[5] = 0;
-                    b.CopyTo( array, 0 ).Should().Be( 5 );
+                    b.CopyTo( array.AsSpan() ).Should().Be( 5 );
                     array.SequenceEqual( new int[] { 7, 8, 9, 10, 11, 0, -1 } ).Should().BeTrue();
 
-                    b.CopyTo( array, 5 ).Should().Be( 2 );
+                    b.CopyTo( array.AsSpan( 5 ) ).Should().Be( 2 );
                     array.SequenceEqual( new int[] { 7, 8, 9, 10, 11, 10, 11 } ).Should().BeTrue();
                 } );
         }
@@ -228,7 +224,6 @@ namespace CK.Core.Tests
             //ExceptionTest
             f.Invoking( sut => sut.Capacity = -1 ).Should().Throw<ArgumentException>();
             f.Invoking( sut => new FIFOBuffer<int>( -1 ) ).Should().Throw<ArgumentException>();
-            f.Invoking( sut => sut.CopyTo( new int[2], 0, -1 ) ).Should().Throw<ArgumentOutOfRangeException>();
         }
 
         [Test]

@@ -74,7 +74,7 @@ namespace CK.Core.Tests
         [TestCase( "", false )]
         [TestCase( "012345678901234567890123456789012345678901234567890123456789012", false )]
         [TestCase( "0123456789012345678901234567890123456789012345678901234567890123", true )]
-        [TestCase( "f730a999523afe0a2be07bf4c731d3d1f72fb3dff730a999523afe0a2be07bf4-----", true )]
+        [TestCase( "f730a999523afe0a2be07bf4c731d3d1f72fb3dff730a999523afe0a2be07bf4-----", false )]
         public void SHA256_invalid_parse( string s, bool success )
         {
             SHA256Value.TryParse( s.AsSpan(), out _ ).Should().Be( success );

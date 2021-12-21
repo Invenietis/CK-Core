@@ -30,7 +30,7 @@ namespace CK.Core
             /// <param name="r">The reader. Must not be null.</param>
             public ObjectPool( ICKBinaryReader r )
             {
-                ArgumentNullException.ThrowIfNull( r, nameof( r ) );
+                Throw.CheckNotNullArgument( r );
                 _objects = new List<T?>();
                 _r = r;
             }

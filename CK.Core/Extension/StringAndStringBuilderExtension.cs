@@ -53,6 +53,14 @@ namespace CK.Core
         public static string Concatenate( this IEnumerable<string?> @this, string separator = ", " ) => String.Join( separator, @this );
 
         /// <summary>
+        /// Concatenates multiple strings with an internal character separator.
+        /// </summary>
+        /// <param name="this">Set of strings.</param>
+        /// <param name="separator">The separator character.</param>
+        /// <returns>The joined string.</returns>
+        public static string Concatenate( this IEnumerable<string?> @this, char separator ) => String.Join( separator, @this );
+
+        /// <summary>
         /// Appends a set of strings with an internal separator.
         /// (This should be named 'Append' but appropriate overload is not always detected by the compiler.)
         /// </summary>

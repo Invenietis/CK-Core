@@ -6,6 +6,7 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
+using System.Xml;
 
 namespace CK.Core
 {
@@ -31,6 +32,17 @@ namespace CK.Core
         public static void EndOfStreamException( string? message = null, Exception? innerException = null )
         {
             throw new EndOfStreamException( message, innerException );
+        }
+
+        /// <summary>
+        /// Throws a new <see cref="System.IO.XmlException"/>.
+        /// </summary>
+        /// <param name="message">Optional message to include in the exception.</param>
+        /// <param name="innerException">Optional inner <see cref="Exception"/> to include.</param>
+        [DoesNotReturn]
+        public static void XmlException( string? message = null, Exception? innerException = null )
+        {
+            throw new XmlException( message, innerException );
         }
 
         /// <summary>

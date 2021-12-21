@@ -17,9 +17,24 @@ namespace CK.Core
         /// <param name="value">The value to test.</param>
         /// <param name="exp">Roslyn's automatic capture of the expression's value.</param>
         [MethodImpl( MethodImplOptions.AggressiveInlining )]
-        public static void OnNullArgument( [NotNull] object? value, [CallerArgumentExpression( "value" )] string? exp = null )
+        public static void CheckNotNullArgument( [NotNull] object? value, [CallerArgumentExpression( "value" )] string? exp = null )
         {
             if( value == null )
+            {
+                ArgumentNullException( exp! );
+            }
+        }
+
+        /// <summary>
+        /// Throws a new <see cref="System.ArgumentNullException"/> if the value is null.
+        /// (This overload avoids any boxing of the value type.)
+        /// </summary>
+        /// <param name="value">The value to test.</param>
+        /// <param name="exp">Roslyn's automatic capture of the expression's value.</param>
+        [MethodImpl( MethodImplOptions.AggressiveInlining )]
+        public static void CheckNotNullArgument<T>( [NotNull] T? value, [CallerArgumentExpression( "value" )] string? exp = null ) where T : struct
+        {
+            if( !value.HasValue )
             {
                 ArgumentNullException( exp! );
             }
@@ -32,7 +47,7 @@ namespace CK.Core
         /// <param name="value">The value to test.</param>
         /// <param name="exp">Roslyn's automatic capture of the expression's value.</param>
         [MethodImpl( MethodImplOptions.AggressiveInlining )]
-        public static void OnNullArgument( string message, [NotNull] object? value, [CallerArgumentExpression( "value" )] string? exp = null )
+        public static void CheckNotNullArgument( string message, [NotNull] object? value, [CallerArgumentExpression( "value" )] string? exp = null )
         {
             if( value == null )
             {
@@ -55,6 +70,20 @@ namespace CK.Core
         }
 
         /// <summary>
+        /// Throws a new <see cref="System.ArgumentOutOfRangeException"/> if <paramref name="valid"/> expression is false.
+        /// </summary>
+        /// <param name="valid">The expression to that must be true.</param>
+        /// <param name="exp">Roslyn's automatic capture of the expression's value.</param>
+        [MethodImpl( MethodImplOptions.AggressiveInlining )]
+        public static void CheckOutOfRangeArgument( [DoesNotReturnIf( false )] bool valid, [CallerArgumentExpression( "valid" )] string? exp = null )
+        {
+            if( !valid )
+            {
+                CheckOutOfRangeArgumentException( exp! );
+            }
+        }
+
+        /// <summary>
         /// Throws a new <see cref="System.ArgumentException"/> if <paramref name="valid"/> expression is false.
         /// </summary>
         /// <param name="message">Explicit message.</param>
@@ -66,6 +95,21 @@ namespace CK.Core
             if( !valid )
             {
                 CheckArgumentException( exp!, message );
+            }
+        }
+
+        /// <summary>
+        /// Throws a new <see cref="System.ArgumentOutOfRangeException"/> if <paramref name="valid"/> expression is false.
+        /// </summary>
+        /// <param name="message">Explicit message.</param>
+        /// <param name="valid">The expression to that must be true.</param>
+        /// <param name="exp">Roslyn's automatic capture of the expression's value.</param>
+        [MethodImpl( MethodImplOptions.AggressiveInlining )]
+        public static void CheckOutOfRangeArgument( string message, [DoesNotReturnIf( false )] bool valid, [CallerArgumentExpression( "valid" )] string? exp = null )
+        {
+            if( !valid )
+            {
+                CheckOutOfRangeArgumentException( exp!, message );
             }
         }
 
@@ -82,13 +126,26 @@ namespace CK.Core
             }
         }
 
+        [DoesNotReturn]
+        static void CheckOutOfRangeArgumentException( string exp, string? message = null )
+        {
+            if( message == null )
+            {
+                ArgumentOutOfRangeException( null!, $"Invalid argument: '{exp}' should be true." );
+            }
+            else
+            {
+                ArgumentOutOfRangeException( exp, message );
+            }
+        }
+
         /// <summary>
         /// Throws a new <see cref="System.ArgumentException"/> if the string value is null or empty.
         /// </summary>
         /// <param name="value">The value to test.</param>
         /// <param name="exp">Roslyn's automatic capture of the expression's value.</param>
         [MethodImpl( MethodImplOptions.AggressiveInlining )]
-        public static void OnNullOrEmptyArgument( [NotNull] string? value, [CallerArgumentExpression( "value" )] string? exp = null )
+        public static void CheckNotNullOrEmptyArgument( [NotNull] string? value, [CallerArgumentExpression( "value" )] string? exp = null )
         {
             if( String.IsNullOrEmpty( value ) )
             {
@@ -96,19 +153,138 @@ namespace CK.Core
             }
         }
 
-        [DoesNotReturn]
-        static void NullOrEmptyException( string? value, string exp )
+        /// <summary>
+        /// Throws a new <see cref="System.ArgumentException"/> if the enumerable is null or empty.
+        /// </summary>
+        /// <param name="value">The value to test.</param>
+        /// <param name="exp">Roslyn's automatic capture of the expression's value.</param>
+        [MethodImpl( MethodImplOptions.AggressiveInlining )]
+        public static void CheckNotNullOrEmptyArgument<T>( [NotNull] IEnumerable<T>? value, [CallerArgumentExpression( "value" )] string? exp = null )
         {
-            if( value != null )
+            if( value == null || !value.Any() )
             {
-                ArgumentException( exp, "Must not be null or empty." );
-            }
-            else
-            {
-                ArgumentNullException( exp );
+                NullOrEmptyException( value, exp! );
             }
         }
 
+        /// <summary>
+        /// Throws a new <see cref="System.ArgumentException"/> if the non generic enumerable is null or empty.
+        /// This is not aggressively inlined since using non generic enumerable is considered obsolete. This is
+        /// here to ensure a full coverage of the IEnumerable stuff.
+        /// </summary>
+        /// <param name="value">The value to test.</param>
+        /// <param name="exp">Roslyn's automatic capture of the expression's value.</param>
+        public static void CheckNotNullOrEmptyArgument( [NotNull] System.Collections.IEnumerable? value, [CallerArgumentExpression( "value" )] string? exp = null )
+        {
+            if( value == null )
+            {
+                ArgumentNullException( exp! );
+            }
+            else
+            {
+                // .NetFramework v1 non generic enumerator was not IDisposable, but now
+                // it may be...
+                System.Collections.IEnumerator e = value.GetEnumerator();
+                try
+                {
+                    if( !e.MoveNext() )
+                    {
+                        ArgumentException( exp!, "Must not be null or empty." );
+                    }
+                }
+                finally
+                {
+                    if( e is IDisposable d ) d.Dispose();
+                }
+            }
+        }
+
+        /// <summary>
+        /// Throws a new <see cref="System.ArgumentException"/> if the collection is null or empty.
+        /// <para>
+        /// This is more efficient for <see cref="IReadOnlyCollection{T}"/> is supported than the IEnumerable overload:
+        /// the compiler does the job.
+        /// </para>
+        /// </summary>
+        /// <param name="value">The value to test.</param>
+        /// <param name="exp">Roslyn's automatic capture of the expression's value.</param>
+        [MethodImpl( MethodImplOptions.AggressiveInlining )]
+        public static void CheckNotNullOrEmptyArgument<T>( [NotNull] IReadOnlyCollection<T>? value, [CallerArgumentExpression( "value" )] string? exp = null )
+        {
+            if( value == null || value.Count == 0 )
+            {
+                NullOrEmptyException( value, exp! );
+            }
+        }
+
+        [DoesNotReturn]
+        static void NullOrEmptyException<T>( T? value, string exp )
+        {
+            if( value is null )
+            {
+                ArgumentNullException( exp );
+            }
+            else
+            {
+                ArgumentException( exp, "Must not be null or empty." );
+            }
+        }
+
+        /// <summary>
+        /// Throws a new <see cref="System.ArgumentException"/> if the span is empty.
+        /// </summary>
+        /// <param name="value">The value to test.</param>
+        /// <param name="exp">Roslyn's automatic capture of the expression's value.</param>
+        [MethodImpl( MethodImplOptions.AggressiveInlining )]
+        public static void CheckNotNullOrEmptyArgument<T>( Span<T> value, [CallerArgumentExpression( "value" )] string? exp = null )
+        {
+            if( value.IsEmpty )
+            {
+                ArgumentException( exp!, "Must not be empty." );
+            }
+        }
+
+        /// <summary>
+        /// Throws a new <see cref="System.ArgumentException"/> if the memory is empty.
+        /// </summary>
+        /// <param name="value">The value to test.</param>
+        /// <param name="exp">Roslyn's automatic capture of the expression's value.</param>
+        [MethodImpl( MethodImplOptions.AggressiveInlining )]
+        public static void CheckNotNullOrEmptyArgument<T>( Memory<T> value, [CallerArgumentExpression( "value" )] string? exp = null )
+        {
+            if( value.IsEmpty )
+            {
+                ArgumentException( exp!, "Must not be empty." );
+            }
+        }
+
+        /// <summary>
+        /// Throws a new <see cref="System.ArgumentException"/> if the read only span is empty.
+        /// </summary>
+        /// <param name="value">The value to test.</param>
+        /// <param name="exp">Roslyn's automatic capture of the expression's value.</param>
+        [MethodImpl( MethodImplOptions.AggressiveInlining )]
+        public static void CheckNotNullOrEmptyArgument<T>( ReadOnlySpan<T> value, [CallerArgumentExpression( "value" )] string? exp = null )
+        {
+            if( value.IsEmpty )
+            {
+                ArgumentException( exp!, "Must not be empty." );
+            }
+        }
+
+        /// <summary>
+        /// Throws a new <see cref="System.ArgumentException"/> if the read only memory is empty.
+        /// </summary>
+        /// <param name="value">The value to test.</param>
+        /// <param name="exp">Roslyn's automatic capture of the expression's value.</param>
+        [MethodImpl( MethodImplOptions.AggressiveInlining )]
+        public static void CheckNotNullOrEmptyArgument<T>( ReadOnlyMemory<T> value, [CallerArgumentExpression( "value" )] string? exp = null )
+        {
+            if( value.IsEmpty )
+            {
+                ArgumentException( exp!, "Must not be empty." );
+            }
+        }
 
         /// <summary>
         /// Throws a new <see cref="System.ArgumentException"/> if the string value is null, empty or whitespace.
@@ -116,7 +292,7 @@ namespace CK.Core
         /// <param name="value">The value to test.</param>
         /// <param name="exp">Roslyn's automatic capture of the expression's value.</param>
         [MethodImpl( MethodImplOptions.AggressiveInlining )]
-        public static void OnNullOrWhiteSpaceArgument( [NotNull] string? value, [CallerArgumentExpression( "value" )] string? exp = null )
+        public static void CheckNotNullOrWhiteSpaceArgument( [NotNull] string? value, [CallerArgumentExpression( "value" )] string? exp = null )
         {
             if( String.IsNullOrWhiteSpace( value ) )
             {

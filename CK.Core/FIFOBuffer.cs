@@ -42,10 +42,7 @@ namespace CK.Core
             set
             {
                 if( value == _buffer.Length ) return;
-
-                if( value < 0 )
-                    throw new ArgumentException( Impl.CoreResources.CapacityMustBeGreaterThanOrEqualToZero, nameof( value ) );
-
+                Throw.CheckOutOfRangeArgument( nameof( Capacity ), value >= 0 );
                 var dst = new T[value];
                 if( _count > 0 ) CopyTo( dst );
                 _first = 0;
@@ -240,7 +237,7 @@ namespace CK.Core
         /// <returns>The first (oldest) item.</returns>
         public T Pop()
         {
-            if( _count == 0 ) Throw.InvalidOperationException( Impl.CoreResources.FIFOBufferEmpty );
+            Throw.CheckState( _count != 0 );
             var item = _buffer[_first];
             Debug.Assert( item != null );
             _buffer[_first] = default;
@@ -295,46 +292,46 @@ namespace CK.Core
             return true;
         }
 
-        /// <summary>
-        /// Copies as much possible items into the given array. Order is from oldest to newest.
-        /// If the target array is too small to contain <see cref="Count"/> items, the newest ones
-        /// are copied (the oldest, the ones that will <see cref="Pop"/> first, are skipped).
-        /// </summary>
-        /// <param name="array">Array that will contain the items.</param>
-        /// <returns>Number of items copied.</returns>
-        public int CopyTo( T[] array )
-        {
-            return CopyTo( array, 0  );
-        }
+        ///// <summary>
+        ///// Copies as much possible items into the given array. Order is from oldest to newest.
+        ///// If the target array is too small to contain <see cref="Count"/> items, the newest ones
+        ///// are copied (the oldest, the ones that will <see cref="Pop"/> first, are skipped).
+        ///// </summary>
+        ///// <param name="array">Array that will contain the items.</param>
+        ///// <returns>Number of items copied.</returns>
+        //public int CopyTo( T[] array )
+        //{
+        //    Throw.CheckNotNullArgument( array );
+        //    return CopyTo( array, 0  );
+        //}
 
-        /// <summary>
-        /// Copies as much possible items into the given array. Order is from oldest to newest. 
-        /// If the target array is too small to contain <see cref="Count"/> items, the newest ones
-        /// are copied (the oldest, the ones that will <see cref="Pop"/> first, are skipped).
-        /// </summary>
-        /// <param name="array">Array that will contain the items.</param>
-        /// <param name="arrayIndex">Index in <paramref name="array"/> where copy must start.</param>
-        /// <returns>Number of items copied.</returns>
-        public int CopyTo( T[] array, int arrayIndex )
-        {
-            ArgumentNullException.ThrowIfNull( array, nameof( array ) );
-            return CopyTo( array, arrayIndex, array.Length - arrayIndex );
-        }
+        ///// <summary>
+        ///// Copies as much possible items into the given array. Order is from oldest to newest. 
+        ///// If the target array is too small to contain <see cref="Count"/> items, the newest ones
+        ///// are copied (the oldest, the ones that will <see cref="Pop"/> first, are skipped).
+        ///// </summary>
+        ///// <param name="array">Array that will contain the items.</param>
+        ///// <param name="arrayIndex">Index in <paramref name="array"/> where copy must start.</param>
+        ///// <returns>Number of items copied.</returns>
+        //public int CopyTo( T[] array, int arrayIndex )
+        //{
+        //    Throw.CheckNotNullArgument( array );
+        //    return CopyTo( array, arrayIndex, array.Length - arrayIndex );
+        //}
 
-        /// <summary>
-        /// Copies as much possible items into the given array. Order is from oldest to newest.
-        /// If <paramref name="count"/> is less than <see cref="Count"/>, the newest ones
-        /// are copied (the oldest, the ones that will <see cref="Pop"/> first, are skipped).
-        /// </summary>
-        /// <param name="array">Array that will contain the items.</param>
-        /// <param name="arrayIndex">Index in <paramref name="array"/> where copy must start.</param>
-        /// <param name="count">Number of items to copy.</param>
-        /// <returns>Number of items copied.</returns>
-        public int CopyTo( T[] array, int arrayIndex, int count )
-        {
-            ArgumentNullException.ThrowIfNull( array, nameof( array ) );
-            return CopyTo( array.AsSpan( arrayIndex, count ) );
-        }
+        ///// <summary>
+        ///// Copies as much possible items into the given array. Order is from oldest to newest.
+        ///// If <paramref name="count"/> is less than <see cref="Count"/>, the newest ones
+        ///// are copied (the oldest, the ones that will <see cref="Pop"/> first, are skipped).
+        ///// </summary>
+        ///// <param name="array">Array that will contain the items.</param>
+        ///// <param name="arrayIndex">Index in <paramref name="array"/> where copy must start.</param>
+        ///// <param name="count">Number of items to copy.</param>
+        ///// <returns>Number of items copied.</returns>
+        //public int CopyTo( T[] array, int arrayIndex, int count )
+        //{
+        //    return CopyTo( array.AsSpan( arrayIndex, count ) );
+        //}
 
         /// <summary>
         /// Copies as much possible items into the given span. Order is from oldest to newest.
@@ -425,7 +422,7 @@ namespace CK.Core
         {
             if( _count == 0 ) return Array.Empty<T>();
             var t = new T[_count];
-            CopyTo( t, 0, _count );
+            CopyTo( t.AsSpan() );
             return t;
         }
 

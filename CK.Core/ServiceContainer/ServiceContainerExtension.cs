@@ -43,7 +43,7 @@ namespace CK.Core
         [DoesNotReturn]
         static void ThrowUnregistered<T>()
         {
-            throw new Exception( String.Format( Impl.CoreResources.UnregisteredServiceInServiceProvider, typeof( T ).FullName ) );
+            Throw.Exception( String.Format( Impl.CoreResources.UnregisteredServiceInServiceProvider, typeof( T ).FullName ) );
         }
 
         /// <summary>

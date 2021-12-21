@@ -96,7 +96,41 @@ namespace CK.Core
         public static bool IsValid( ReadOnlySpan<byte> sha1 ) => sha1.Length == 20;
 
         /// <summary>
-        /// Parses a 40 length hexadecimal string to a SHA1 value or throws a <see cref="FormatException"/>.
+        /// Tries to match a 40 length hexadecimal string to a SHA1 value.
+        /// </summary>
+        /// <param name="head">The text to parse.</param>
+        /// <param name="value">The value on success, <see cref="Zero"/> on error.</param>
+        /// <returns>True on success, false on error.</returns>
+        public static bool TryMatch( ref ReadOnlySpan<char> head, out SHA1Value value )
+        {
+            value = Zero;
+            if( head.Length < 40 ) return false;
+            try
+            {
+                var h = head.Slice( 0, 40 );
+                // This is awful on failure path (using exception) but I don't want to
+                // rewrite/copy yet another HexString converter here...
+                var bytes = Convert.FromHexString( h );
+                value = bytes.SequenceEqual( Zero._bytes ) ? Zero : new SHA1Value( bytes, new string( h ) );
+                head = head.Slice( 40 );
+                return true;
+            }
+            catch( FormatException )
+            {
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// Tries to parse a 40 length hexadecimal string to a SHA1 value.
+        /// </summary>
+        /// <param name="text">The text to parse.</param>
+        /// <param name="value">The value on success, <see cref="Zero"/> on error.</param>
+        /// <returns>True on success, false on error.</returns>
+        public static bool TryParse( ReadOnlySpan<char> text, out SHA1Value value ) => TryMatch( ref text, out value ) && text.IsEmpty;
+
+        /// <summary>
+        /// Parses a 40 length hexadecimal string to a SHA1 value or throws a <see cref="ArgumentException"/>.
         /// </summary>
         /// <param name="text">The string to parse.</param>
         /// <returns>The value.</returns>
@@ -104,29 +138,6 @@ namespace CK.Core
         {
             if( !TryParse( text, out var result ) ) Throw.ArgumentException( nameof( text ), "Invalid SHA1." );
             return result;
-        }
-
-        /// <summary>
-        /// Tries to parse a 40 length hexadecimal string to a SHA1 value.
-        /// The string can be longer, suffix is ignored.
-        /// </summary>
-        /// <param name="text">The text to parse.</param>
-        /// <param name="value">The value on success, <see cref="Zero"/> on error.</param>
-        /// <returns>True on success, false on error.</returns>
-        public static bool TryParse( ReadOnlySpan<char> text, out SHA1Value value )
-        {
-            value = Zero;
-            if( text.Length < 40 ) return false;
-            try
-            {
-                var bytes = Convert.FromHexString( text.Slice( 0, 40 ) );
-                value = new SHA1Value( bytes );
-                return true;
-            }
-            catch( FormatException )
-            {
-                return false;
-            }
         }
 
         /// <summary>

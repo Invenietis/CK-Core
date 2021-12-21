@@ -86,44 +86,52 @@ namespace CK.Core
         public static readonly DateTime MissingFileLastWriteTimeUtc = new DateTime( 1601, 1, 1, 0, 0, 0, DateTimeKind.Utc );
 
         /// <summary>
-        /// Matches a DateTime in the <see cref="FileNameUniqueTimeUtcFormat"/> format.
+        /// Tries to match a DateTime in the <see cref="FileNameUniqueTimeUtcFormat"/> format.
         /// </summary>
-        /// <param name="this">This <see cref="StringMatcher"/>.</param>
+        /// <param name="head">This head.</param>
         /// <param name="time">Result time on success; otherwise <see cref="Util.UtcMinValue"/>.</param>
-        /// <returns>True if the time has been matched.</returns>
-        public static bool MatchFileNameUniqueTimeUtcFormat( this StringMatcher @this, out DateTime time )
+        /// <returns>True on success, false otherwise.</returns>
+        public static bool TryMatchFileNameUniqueTimeUtcFormat( this ref ReadOnlySpan<char> head, out DateTime time )
         {
             time = Util.UtcMinValue;
             Debug.Assert( FileNameUniqueTimeUtcFormat.Replace( "\\", "" ).Length == 27 );
-            return @this.Length >= 27
-                    && DateTime.TryParseExact( @this.Text.Substring( @this.StartIndex, 27 ), FileUtil.FileNameUniqueTimeUtcFormat, CultureInfo.InvariantCulture, DateTimeStyles.AdjustToUniversal | DateTimeStyles.AssumeUniversal, out time )
-                ? @this.Forward( 27 )
-                : @this.SetError();
+            if( head.Length >= 27
+                && DateTime.TryParseExact( head.Slice( 0, 27 ), FileNameUniqueTimeUtcFormat, CultureInfo.InvariantCulture, DateTimeStyles.AdjustToUniversal | DateTimeStyles.AssumeUniversal, out time ) )
+            {
+                head = head.Slice( 27 );
+                return true;
+            }
+            return false;
         }
 
         /// <summary>
+        /// Tries to match a DateTime in the <see cref="FileNameUniqueTimeUtcFormat"/> format.
+        /// </summary>
+        /// <param name="m">This matcher.</param>
+        /// <param name="time">Result time on success; otherwise <see cref="Util.UtcMinValue"/>.</param>
+        /// <returns>True on success, false otherwise.</returns>
+        public static bool TryMatchFileNameUniqueTimeUtcFormat( this ref ROSpanCharMatcher m, out DateTime time )
+            => m.Head.TryMatchFileNameUniqueTimeUtcFormat( out time )
+                ? m.ClearExpectations()
+                : m.AddExpectation( "UTC time" );
+        
+        /// <summary>
         /// Tries to parse a string formatted with the <see cref="FileNameUniqueTimeUtcFormat"/>.
-        /// The string must contain only the time unless <paramref name="allowSuffix"/> is true.
         /// </summary>
         /// <param name="s">The string to parse.</param>
         /// <param name="time">Result time on success.</param>
-        /// <param name="allowSuffix">True to accept a string that starts with the time and contains more text.</param>
-        /// <returns>True if the string has been successfully parsed.</returns>
-        public static bool TryParseFileNameUniqueTimeUtcFormat( string s, out DateTime time, bool allowSuffix = false )
-        {
-            var m = new StringMatcher( s );
-            return m.MatchFileNameUniqueTimeUtcFormat( out time ) && (allowSuffix || m.IsEnd);
-        }
-
+        /// <returns>True on success, false otherwise.</returns>
+        public static bool TryParseFileNameUniqueTimeUtcFormat( ReadOnlySpan<char> s, out DateTime time )
+            => TryMatchFileNameUniqueTimeUtcFormat( ref s, out time ) && s.IsEmpty;
 
         /// <summary>
         /// Finds the first character index of any characters that are invalid in a path.
         /// This method (and <see cref="IndexOfInvalidFileNameChars"/>) avoid the allocation of 
         /// the array each time <see cref="Path.GetInvalidPathChars"/> is called.
         /// </summary>
-        /// <param name="path">Path to check. Can not be null.</param>
+        /// <param name="path">Path to check.</param>
         /// <returns>A negative value if not found.</returns>
-        public static int IndexOfInvalidPathChars( string path )
+        public static int IndexOfInvalidPathChars( ReadOnlySpan<char> path )
         {
             return path.IndexOfAny( _invalidPathChars );
         }
@@ -133,9 +141,9 @@ namespace CK.Core
         /// This method (and <see cref="IndexOfInvalidPathChars"/>) avoid the allocation of 
         /// the array each time <see cref="Path.GetInvalidFileNameChars"/> is called.
         /// </summary>
-        /// <param name="path">Path to check. Can not be null.</param>
+        /// <param name="path">Path to check.</param>
         /// <returns>A negative value if not found.</returns>
-        public static int IndexOfInvalidFileNameChars( string path )
+        public static int IndexOfInvalidFileNameChars( ReadOnlySpan<char> path )
         {
             return path.IndexOfAny( _invalidFileNameChars );
         }
@@ -190,8 +198,7 @@ namespace CK.Core
         /// <returns>An opened <see cref="FileStream"/>.</returns>
         public static FileStream CreateAndOpenUniqueTimedFile( string pathPrefix, string fileSuffix, DateTime time, FileAccess access, FileShare share, int bufferSize, FileOptions options, int maxTryBeforeGuid = 512 )
         {
-            //Guard.IsNotEqualTo( access, FileAccess.Read );
-            if( access == FileAccess.Read ) throw new ArgumentException( Impl.CoreResources.FileUtilNoReadOnlyWhenCreateFile, nameof( access ) );
+            Throw.CheckArgument( access != FileAccess.Read );
             FileStream? f = null;
             FindUniqueTimedFileOrFolder( pathPrefix, fileSuffix, time, maxTryBeforeGuid, p => TryCreateNew( p, access, share, bufferSize, options, out f ) );
             return f!;
@@ -227,7 +234,7 @@ namespace CK.Core
         /// <returns>An opened <see cref="FileStream"/>.</returns>
         public static string MoveToUniqueTimedFile( string sourceFilePath, string pathPrefix, string fileSuffix, DateTime time, int maxTryBeforeGuid = 512 )
         {
-            if( sourceFilePath == null ) throw new ArgumentNullException( nameof( sourceFilePath ) );
+            Throw.CheckNotNullArgument( sourceFilePath );
             if( !File.Exists( sourceFilePath ) ) throw new FileNotFoundException( Impl.CoreResources.FileMustExist, sourceFilePath );
             return FindUniqueTimedFileOrFolder( pathPrefix, fileSuffix, time, maxTryBeforeGuid, p => TryMoveTo( sourceFilePath, p ) );
         }
@@ -352,8 +359,8 @@ namespace CK.Core
 
         static string FindUniqueTimedFileOrFolder( string pathPrefix, string fileSuffix, DateTime time, int maxTryBeforeGuid, Func<string, bool> tester )
         {
-            ArgumentNullException.ThrowIfNull( pathPrefix, nameof( pathPrefix ) );
-            ArgumentNullException.ThrowIfNull( fileSuffix, nameof( fileSuffix ) );
+            Throw.CheckNotNullArgument( pathPrefix );
+            Throw.CheckNotNullArgument( fileSuffix );
             if( maxTryBeforeGuid < 0 ) Throw.ArgumentOutOfRangeException( nameof( maxTryBeforeGuid ) );
 
             DateTimeStamp timeStamp = new DateTimeStamp( time );
@@ -369,7 +376,7 @@ namespace CK.Core
                 }
                 else
                 {
-                    if( counter == maxTryBeforeGuid + 1 ) throw new Exception( Impl.CoreResources.FileUtilUnableToCreateUniqueTimedFileOrFolder );
+                    if( counter == maxTryBeforeGuid + 1 ) throw new CKException( Impl.CoreResources.FileUtilUnableToCreateUniqueTimedFileOrFolder );
                     if( counter == maxTryBeforeGuid )
                     {
                         result = pathPrefix + FormatTimedUniqueFilePart( time ) + fileSuffix;

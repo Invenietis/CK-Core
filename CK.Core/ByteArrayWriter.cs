@@ -39,7 +39,7 @@ namespace CK.Core
         /// </exception>
         public ByteArrayWriter( int initialCapacity )
         {
-            if( initialCapacity <= 0 ) ThrowArgumentException( nameof( initialCapacity ) );
+            if( initialCapacity <= 0 ) Throw.ArgumentException( nameof( initialCapacity ) );
             _buffer = new byte[initialCapacity];
             _index = 0;
         }
@@ -67,7 +67,7 @@ namespace CK.Core
             get => _index;
             set
             {
-                if( value < 0 ) ThrowArgumentException( nameof( Position ) );
+                if( value < 0 ) Throw.ArgumentException( nameof( Position ) );
                 int delta = value - _buffer.Length;
                 if( delta > 0 ) EnsureFreeCapacity( delta - _index );
                 _index = value;
@@ -108,8 +108,8 @@ namespace CK.Core
         /// </remarks>
         public void Advance( int count )
         {
-            if( count < 0 ) ThrowArgumentException( nameof( count ) );
-            if( _index > _buffer.Length - count ) ThrowAdvancedTooFar( _buffer.Length );
+            if( count < 0 ) Throw.ArgumentException( nameof( count ) );
+            if( _index > _buffer.Length - count ) Throw.InvalidOperationException( $"Cannot advance past the end of the buffer, which has a size of {Capacity}." );
             _index += count;
         }
 
@@ -165,7 +165,7 @@ namespace CK.Core
         /// <param name="sizeHint">Number of bytes to ensure.</param>
         public void EnsureFreeCapacity( int sizeHint )
         {
-            if( sizeHint < 0 ) ThrowArgumentException( nameof( sizeHint ) );
+            if( sizeHint < 0 ) Throw.ArgumentException( nameof( sizeHint ) );
 
             if( sizeHint == 0 )
             {
@@ -204,16 +204,6 @@ namespace CK.Core
             }
 
             Debug.Assert( FreeCapacity > 0 && FreeCapacity >= sizeHint );
-        }
-
-        static void ThrowArgumentException( string argName )
-        {
-            throw new ArgumentException( null, argName );
-        }
-
-        static void ThrowAdvancedTooFar( int capacity )
-        {
-            throw new InvalidOperationException( $"Cannot advance past the end of the buffer, which has a size of {capacity}." );
         }
 
         static void ThrowOutOfMemoryException( uint capacity )

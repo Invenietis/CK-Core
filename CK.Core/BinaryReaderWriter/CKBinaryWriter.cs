@@ -32,7 +32,7 @@ namespace CK.Core
             /// <param name="comparer">The comparer to use.</param>
             public ObjectPool( ICKBinaryWriter w, IEqualityComparer<T>? comparer = null )
             {
-                ArgumentNullException.ThrowIfNull( w, nameof( w ) );
+                Throw.CheckNotNullArgument( w );
                 _pool = new Dictionary<T, int>( comparer );
                 _w = w ?? throw new ArgumentNullException( nameof( w ) );
             }
