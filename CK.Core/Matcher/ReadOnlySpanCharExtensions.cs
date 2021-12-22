@@ -66,7 +66,7 @@ namespace CK.Core
 
         /// <summary>
         /// Tries to skip a sequence of white spaces.
-        /// Use <paramref name="minCount"/> = 0 to skip any number of white spaces.
+        /// Using <paramref name="minCount"/> = 0 is the same as calling <see cref="SkipWhiteSpaces(ref ReadOnlySpan{char})"/>.
         /// </summary>
         /// <param name="head">The head.</param>
         /// <param name="minCount">Minimal number of white spaces to skip.</param>
@@ -85,12 +85,29 @@ namespace CK.Core
         }
 
         /// <summary>
+        /// Skips any number of white spaces.
+        /// </summary>
+        /// <param name="head">The head.</param>
+        /// <returns>Always true.</returns>
+        public static bool SkipWhiteSpaces( this ref ReadOnlySpan<char> head )
+        {
+            int i = 0;
+            int len = head.Length;
+            while( len != 0 && char.IsWhiteSpace( head[i] ) ) { ++i; --len; }
+            head = head.Slice( i );
+            return true;
+        }
+
+        /// <summary>
         /// Tries to skip a sequence of decimal digits (0-9).
         /// Use <paramref name="minCount"/> = 0 to skip any number of decimal digits.
         /// </summary>
         /// <param name="head">The head.</param>
         /// <param name="minCount">Minimal number of decimal digits to skip.</param>
-        /// <returns>True on success, false if <paramref name="minCount"/> decimal digits cannot be skipped before the end of the head.</returns>
+        /// <returns>
+        /// True on success, false if <paramref name="minCount"/> decimal digits cannot be skipped before
+        /// another character or the end of the head.
+        /// </returns>
         public static bool TrySkipDigits( this ref ReadOnlySpan<char> head, int minCount = 1 )
         {
             int i = 0;
@@ -102,6 +119,28 @@ namespace CK.Core
                 head = head.Slice( i );
                 return true;
             }
+            return false;
+        }
+
+        /// <summary>
+        /// Tries to match a sequence of decimal digits (0-9).
+        /// </summary>
+        /// <param name="head">The head.</param>
+        /// <param name="minCount">Minimal number of decimal digits to match.</param>
+        /// <param name="digits">Resulting span of digits.</param>
+        /// <returns>
+        /// True on success, false if <paramref name="minCount"/> decimal digits cannot be matched before
+        /// another character or the end of the head.
+        /// </returns>
+        public static bool TryMatchDigits( this ref ReadOnlySpan<char> head, out ReadOnlySpan<char> digits, int minCount = 1 )
+        {
+            var h = head;
+            if( head.TrySkipDigits( minCount ) )
+            {
+                digits = h.Slice(0, h.Length - head.Length );
+                return true;
+            }
+            digits = default;
             return false;
         }
 
@@ -425,8 +464,8 @@ namespace CK.Core
         /// <returns>Always true to ease composition.</returns>
         public static bool SkipWhiteSpacesAndJSComments( this ref ReadOnlySpan<char> head )
         {
-            TrySkipWhiteSpaces( ref head, 0 );
-            while( TrySkipJSComment( ref head ) ) TrySkipWhiteSpaces( ref head, 0 );
+            SkipWhiteSpaces( ref head );
+            while( TrySkipJSComment( ref head ) ) SkipWhiteSpaces( ref head );
             return true;
         }
 
