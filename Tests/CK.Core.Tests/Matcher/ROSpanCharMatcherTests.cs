@@ -110,6 +110,20 @@ namespace CK.Core.Tests
             m.TryMatch( 'Y' ).Should().BeTrue();
         }
 
+        [Test]
+        public void matching_digits()
+        {
+            var m = "X  012345678901234567890123456789  Y".AsSpan();
+            m.TryMatch( 'X' ).Should().BeTrue();
+            m.SkipWhiteSpaces().Should().BeTrue();
+
+            m.TryMatchDigits( out var digits ).Should().BeTrue();
+            digits.ToString().Should().Be( "012345678901234567890123456789" );
+
+            m.SkipWhiteSpaces().Should().BeTrue();
+            m.TryMatch( 'Y' ).Should().BeTrue();
+        }
+
         [TestCase( "00003712 -000435 056", "AllowLeadingZeros" )]
         [TestCase( "3712 -435 56", "" )]
         public void matching_integers_with_min_max_values( string s, string withZeros )

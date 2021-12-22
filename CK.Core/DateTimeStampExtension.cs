@@ -14,7 +14,7 @@ namespace CK.Core
         /// <summary>
         /// Tries to match a <see cref="DateTimeStamp"/>.
         /// </summary>
-        /// <param name="this">This <see cref="StringMatcher"/>.</param>
+        /// <param name="m">This matcher.</param>
         /// <param name="time">Resulting time stamp on successful match; <see cref="DateTimeStamp.Unknown"/> otherwise.</param>
         /// <returns>True on success, false otherwise.</returns>
         static public bool TryMatchDateTimeStamp( this ref ROSpanCharMatcher m, out DateTimeStamp time )
