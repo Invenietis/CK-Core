@@ -83,13 +83,19 @@ namespace CK.Core.Tests
 
         [TestCase( "{", "@0-Any JSON token or object|@1--JSON object properties" )]
         [TestCase( "[", "@0-Any JSON token or object|@1--JSON array values" )]
-        [TestCase( "[null,,]", "@0-Any JSON token or object|@1--JSON array values|@6---Any JSON token or object|@6----JSON string or null|@6----Floating number|@6----String 'true'|@6----String 'false'" )]
+        [TestCase( "[null,,]", "@0-Any JSON token or object|@1--JSON array values|@6---Any JSON token or object|@6----String 'true'|@6----String 'false'|@6----JSON string or null|@6----Floating number" )]
         public void TryMatchAnyJSON_has_detailed_errors( string s, string errors )
         {
             var m = new ROSpanCharMatcher( s );
             m.TryMatchAnyJSON( out _ ).Should().BeFalse();
             m.HasError.Should().BeTrue();
             m.GetErrors().Select( e => $"@{e.Pos}{new string('-',e.Depth+1)}{e.Expectation}" ).Concatenate( '|' ).Should().Be( errors );
+
+            m.ClearExpectations();
+            m.SingleExpectationMode = true;
+            m.TryMatchAnyJSON( out _ ).Should().BeFalse();
+            m.HasError.Should().BeTrue();
+            m.GetErrors().Single().Expectation.Should().Be( errors.Split( '|' )[0].Remove( 0, 3 ) );
         }
     }
 }

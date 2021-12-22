@@ -9,6 +9,10 @@ using System.Text;
 
 namespace CK.Core
 {
+    /// <summary>
+    /// Low level implementation of the "Match and Forward" pattern with a ref struct that exposes a mutable ReadOnly&lt;char&gt; <see cref="Head"/>
+    /// and handles "expectations" that are potential errors as a tree-like structure.
+    /// </summary>
     public ref struct ROSpanCharMatcher
     {
         /// <summary>
@@ -23,9 +27,12 @@ namespace CK.Core
 
         interface ITracker
         {
+            bool HasError { get; }
             bool AddExpectation( int pos, string expect, string caller );
             bool ClearExpectations();
+            bool SingleExpectationMode { get; set; }
             IDisposable OpenSubTracker( int pos, string? scopedExpectation, string callerName );
+            IEnumerable<(int Pos, int Depth, string Expectation, string CallerName)> GetErrors( int allTextLength );
         }
 
         sealed class ErrorTracker : ITracker
@@ -34,75 +41,87 @@ namespace CK.Core
             (int P, int D, string? E, string C)[]? _errors;
             Sub? _firstFree;
             int _errorCount;
+            bool _singleExpectation;
 
             sealed class Sub : ITracker, IDisposable
             {
-                readonly ErrorTracker _root;
+                readonly ErrorTracker _tracker;
                 int _depth;
-                int _startError;
-                int _pos;
+                int _idxHeader;
                 ITracker _prev;
-                string _header;
-                string _callerName;
                 internal Sub? _parentOrNextFree;
-                bool _hasPendingHeader;
+                bool _singleExpectation;
                 bool _clearCalled;
+                bool _parentSingleExpectation;
 
 #pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
-                public Sub( ErrorTracker root )
+                public Sub( ErrorTracker t )
                 {
-                    _root = root;
+                    _tracker = t;
                 }
 #pragma warning restore CS8618 
 
-                internal Sub Initialize( int pos, int depth, string? header, string callerName, Sub? parent )
+                internal Sub Initialize( int pos, int depth, bool singleExpectation, string? header, string callerName, Sub? parent )
                 {
-                    _prev = _root._current;
-                    _root._current = this;
+                    _tracker.AddExpectation( pos, depth++, header ?? callerName, callerName );
+                    _idxHeader = _tracker._errorCount;
                     _depth = depth;
-                    _pos = pos;
-                    _startError = _root._errorCount;
+                    _prev = _tracker._current;
+                    _tracker._current = this;
+                    _singleExpectation = _parentSingleExpectation = singleExpectation;
                     _parentOrNextFree = parent;
-                    _hasPendingHeader = header != null || (parent != null && parent._hasPendingHeader);
-                    _header = header ?? callerName;
-                    _callerName = callerName;
+                    _clearCalled = false;
                     return this;
                 }
+
+                public bool HasError => _tracker._errorCount > _idxHeader;
 
                 public bool AddExpectation( int pos, string expect, string caller )
                 {
                     _clearCalled = false;
-                    if( _hasPendingHeader ) SetHeaders();
-                    return _root.AddExpectation( pos, _depth, expect, caller );
-                }
-
-                void SetHeaders()
-                {
-                    Debug.Assert( _hasPendingHeader );
-                    if( _parentOrNextFree != null && _parentOrNextFree._hasPendingHeader ) _parentOrNextFree.SetHeaders();
-                    if( _header != null ) _root.AddExpectation( _pos, _depth - 1, _header, _callerName );
-                    _hasPendingHeader = false;
+                    return _singleExpectation
+                            ? _tracker.SetSingleExpectation( _idxHeader, pos, _depth, expect, caller )
+                            : _tracker.AddExpectation( pos, _depth, expect, caller );
                 }
 
                 public bool ClearExpectations()
                 {
                     _clearCalled = true;
-                    return _root.ClearExpectations( _startError );
+                    return _tracker.ClearExpectations( _idxHeader );
+                }
+
+                public bool SingleExpectationMode
+                {
+                    get => _singleExpectation;
+                    set
+                    {
+                        if( _singleExpectation != value && (_singleExpectation = value) ) _tracker.LiftLastError( _idxHeader );
+                    }
                 }
 
                 public IDisposable OpenSubTracker( int pos, string? scopedExpectation, string callerName )
                 {
-                    return _root.AcquireSub().Initialize( pos, _depth + 1, scopedExpectation, callerName, this );
+                    return _tracker.AcquireSub().Initialize( pos, _depth, _singleExpectation, scopedExpectation, callerName, this );
                 }
 
                 public void Dispose()
                 {
-                    if( !_clearCalled && _hasPendingHeader )
+                    if( _tracker._current != this ) Throw.InvalidOperationException( "OpenExpectations dispose mismatch." );
+                    if( _clearCalled ) _tracker.ClearExpectations( _idxHeader - 1 );
+                    else if( HasError && _parentSingleExpectation )
                     {
-                        SetHeaders();
+                        _tracker.ClearExpectations( _idxHeader );
+                        _tracker.LiftLastError( _parentOrNextFree?._idxHeader ?? 0 );
                     }
-                    _root._current = _prev;
-                    _root.ReleaseSub( this );
+                    _tracker._current = _prev;
+                    _tracker.ReleaseSub( this );
+                }
+
+                public IEnumerable<(int Pos, int Depth, string Expectation, string CallerName)> GetErrors( int allTextLength )
+                {
+                    if( !HasError ) return Enumerable.Empty<(int, int, string, string)>();
+                    Debug.Assert( _tracker._errors != null );
+                    return _tracker._errors.Skip( _idxHeader ).Take( _tracker._errorCount - _idxHeader ).Select( e => (allTextLength - e.P, e.D, e.E!, e.C) );
                 }
             }
 
@@ -125,9 +144,15 @@ namespace CK.Core
                 _current = this;
             }
 
+            public bool HasError => _current.HasError;
+
+            bool ITracker.HasError => _errorCount != 0;
+
             public bool AddExpectation( int pos, string expect, string caller ) => _current.AddExpectation( pos, expect, caller );
 
-            bool ITracker.AddExpectation( int pos, string expect, string caller ) => AddExpectation( pos, 0, expect, caller );
+            bool ITracker.AddExpectation( int pos, string expect, string caller ) => _singleExpectation
+                                                                                        ? SetSingleExpectation( 0, pos, 0, expect, caller )
+                                                                                        : AddExpectation( pos, 0, expect, caller );
 
             bool AddExpectation( int pos, int depth, string expect, string caller )
             {
@@ -140,6 +165,18 @@ namespace CK.Core
                 return false;
             }
 
+            bool SetSingleExpectation( int startPos, int pos, int depth, string expect, string caller )
+            {
+                Debug.Assert( startPos == _errorCount - 1 || startPos == _errorCount );
+                if( startPos != _errorCount )
+                {
+                    Debug.Assert( _errors != null );
+                    _errors[startPos] = (pos, depth, expect, caller);
+                    return false;
+                }
+                return AddExpectation( pos, depth, expect, caller );
+            }
+
             public bool ClearExpectations() => _current.ClearExpectations();
 
             bool ITracker.ClearExpectations() => ClearExpectations( 0 );
@@ -150,16 +187,45 @@ namespace CK.Core
                 return true;
             }
 
+            public bool SingleExpectationMode
+            {
+                get => _current.SingleExpectationMode;
+                set => _current.SingleExpectationMode = value;
+            }
+
+            bool ITracker.SingleExpectationMode
+            {
+                get => _singleExpectation;
+                set
+                {
+                    if( _singleExpectation != value && (_singleExpectation = value) )
+                    {
+                        LiftLastError( 0 );
+                    }
+                }
+            }
+
+            public void LiftLastError( int idxError )
+            {
+                int c = idxError + 1;
+                if( _errorCount > c )
+                {
+                    Debug.Assert( _errors != null );
+                    _errors[idxError] = _errors[_errorCount - 1];
+                    _errorCount = c;
+                }
+            }
+
             public IDisposable OpenSubTracker( int pos, string? scopedExpectation, string callerName ) => _current.OpenSubTracker( pos, scopedExpectation, callerName );
 
             IDisposable ITracker.OpenSubTracker( int pos, string? scopedExpectation, string callerName )
             {
-                return AcquireSub().Initialize( pos, 1, scopedExpectation, callerName, null );
+                return AcquireSub().Initialize( pos, 0, _singleExpectation, scopedExpectation, callerName, null );
             }
 
-            public bool HasError => _errorCount != 0;
+            public IEnumerable<(int Pos, int Depth, string Expectation, string CallerName)> GetErrors( int allTextLength ) => _current.GetErrors( allTextLength );
 
-            public IEnumerable<(int Pos, int Depth, string Expectation, string CallerName)> GetErrors(int allTextLength )
+            IEnumerable<(int Pos, int Depth, string Expectation, string CallerName)> ITracker.GetErrors( int allTextLength )
             {
                 if( _errorCount == 0 ) return Enumerable.Empty<(int, int, string, string)>();
                 Debug.Assert( _errors != null );
@@ -185,9 +251,15 @@ namespace CK.Core
         /// </summary>
         public bool HasError => _tracker.HasError;
 
+        public bool SingleExpectationMode
+        {
+            get => _tracker.SingleExpectationMode;
+            set => _tracker.SingleExpectationMode = value;
+        }
+
         /// <summary>
         /// Adds an expectation. <paramref name="expect"/>> must be written without "expect" word, only with the
-        /// description of what was expected: "Json string", "Date", "Numbered item" without trailing dot.
+        /// description of what was expected: "Json string", "Date", "Numbered item (starting at 2)" without trailing dot.
         /// </summary>
         /// <param name="expect">The expected pattern description without trailing dot.</param>
         /// <param name="callerName">Method name of the caller (automatically set by the compiler).</param>
@@ -202,7 +274,7 @@ namespace CK.Core
 
         /// <summary>
         /// Adds an expectation. <paramref name="expect"/>> must be written without "expect" word, only with the
-        /// description of what was expected: "Json string", "Date", "Numbered item" without trailing dot.
+        /// description of what was expected: "Json string", "Date", "Numbered item (starting at 2)" without trailing dot.
         /// </summary>
         /// <param name="offset">Offset of the expectation relative to the <see cref="Head"/>.</param>
         /// <param name="expect">The expected pattern description without trailing dot.</param>
@@ -225,6 +297,24 @@ namespace CK.Core
 
         /// <summary>
         /// Opens a group of subordinated expectations that must be disposed.
+        /// <para>
+        /// Because of ref struct limitation this is not possible for this disposable to capture the current head and automatically
+        /// restores it if <see cref="ClearExpectations"/> has not been called. This must be done explicitly. A typical pattern is:
+        /// <code>
+        /// var savedHead = matcher.Head;
+        /// using( OpenExpectations( "Thing" ) )
+        /// {
+        ///   if( !matcher.TryMatchXXX( ... ) ) goto error:
+        ///   if( !matcher.TryMatchXXX( ... ) ) goto error:
+        ///
+        ///   return matcher.ClearExpectations();
+        ///
+        ///   error:
+        ///   matcher.Head = savedHead;
+        ///   return false;
+        /// }
+        /// </code>
+        /// </para>
         /// </summary>
         /// <param name="expectHeader">Optional header for the subordinated expectations.</param>
         /// <param name="callerName">Method name of the caller (automatically set by the compiler).</param>
@@ -266,7 +356,9 @@ namespace CK.Core
         /// <returns>True on success</returns>
         [MethodImpl( MethodImplOptions.AggressiveInlining )]
         public bool TryMatch( char value, StringComparison comparison = StringComparison.Ordinal )
-            => Head.TryMatch( value, comparison ) ? ClearExpectations() : AddExpectation( $"Character '{value}'" );
+            => Head.TryMatch( value, comparison )
+                ? ClearExpectations()
+                : AddExpectation( $"Character '{value}'" );
 
         /// <summary>
         /// Tries to parse a Guid.
@@ -284,17 +376,27 @@ namespace CK.Core
         /// <param name="id">The result Guid. <see cref="Guid.Empty"/> on failure.</param>
         /// <returns>True on success, false otherwise.</returns>
         public bool TryMatchGuid( out Guid id )
-            => Head.TryMatchGuid( out id ) ? ClearExpectations() : AddExpectation( "Guid" );
+            => Head.TryMatchGuid( out id )
+                ? ClearExpectations()
+                : AddExpectation( "Guid" );
 
         /// <summary>
         /// Tries to skip a sequence of white spaces.
-        /// Use <paramref name="minCount"/> = 0 to skip any number of white spaces.
+        /// Use <paramref name="minCount"/> = 0 to skip any number of white spaces and always return true.
         /// </summary>
         /// <param name="h">The head.</param>
         /// <param name="minCount">Minimal number of white spaces to skip.</param>
         /// <returns>True on success, false if <paramref name="minCount"/> white spaces cannot be skipped before the end of the head).</returns>
         public bool TrySkipWhiteSpaces( int minCount = 1 )
-            => Head.TrySkipWhiteSpaces( minCount ) ? ClearExpectations() : AddExpectation( minCount == 1 ? "At least one white space" : $"At least {minCount} white space(s)" );
+            => Head.TrySkipWhiteSpaces( minCount )
+                ? ClearExpectations()
+                : AddExpectation( minCount == 1 ? "At least one white space" : $"At least {minCount} white space(s)" );
+
+        /// <summary>
+        /// Skips any number of white spaces.
+        /// </summary>
+        /// <returns>Always true.</returns>
+        public bool SkipWhiteSpaces() => Head.SkipWhiteSpaces();
 
         /// <summary>
         /// Tries to match an Int32 value. A signed integer starts with a '-' and must not be followed by white spaces.
@@ -334,7 +436,9 @@ namespace CK.Core
         /// </summary>
         /// <returns>True on success, false otherwise.</returns>
         public bool TrySkipDouble()
-            => Head.TrySkipDouble() ? ClearExpectations() : AddExpectation( $"Floating number" );
+            => Head.TrySkipDouble()
+                ? ClearExpectations()
+                : AddExpectation( $"Floating number" );
 
         /// <summary>
         /// Tries to match a double value. See <see cref="ReadOnlySpanCharExtensions.TryMatchDouble(ref ReadOnlySpan{char}, out double)"/>.
@@ -342,7 +446,9 @@ namespace CK.Core
         /// <param name="value">The result double. 0.0 on failure.</param>
         /// <returns></returns>
         public bool TryMatchDouble( out double value )
-            => Head.TryMatchDouble( out value ) ? ClearExpectations() : AddExpectation( "Floating number" );
+            => Head.TryMatchDouble( out value )
+                ? ClearExpectations()
+                : AddExpectation( "Floating number" );
 
         /// <summary>
         /// Tries to parse an hexadecimal values of 1 to 16 '0'-'9', 'A'-'F' or 'a'-'f' digits.
@@ -381,7 +487,10 @@ namespace CK.Core
             bool isEmpty = Head.Length == 0;
             if( isEmpty || Head[0] != '"' )
             {
-                if( !isEmpty && allowNull && Head.TryMatch( "null" ) ) return ClearExpectations();
+                if( !isEmpty && allowNull && Head.TryMatch( "null" ) )
+                {
+                    return ClearExpectations();
+                }
                 return AddExpectation( allowNull ? "JSON string or null" : "JSON string" );
             }
             int i = 1;
@@ -451,28 +560,28 @@ namespace CK.Core
         /// <returns>True if a JSON value has been matched, false otherwise.</returns>
         public bool TryMatchJSONTerminalValue( out object? value )
         {
-            if( TryMatchJSONQuotedString( out string? s, true ) )
-            {
-                value = s;
-                return true;
-            }
-            if( TryMatchDouble( out double d ) )
-            {
-                value = d;
-                return true;
-            }
             if( TryMatch( "true" ) )
             {
                 value = true;
-                return true;
             }
-            if( TryMatch( "false" ) )
+            else if( TryMatch( "false" ) )
             {
                 value = false;
-                return true;
             }
-            value = null;
-            return false;
+            else if( TryMatchJSONQuotedString( out string? s, true ) )
+            {
+                value = s;
+            }
+            else if( TryMatchDouble( out double d ) )
+            {
+                value = d;
+            }
+            else
+            {
+                value = null;
+                return false;
+            }
+            return ClearExpectations();
         }
 
         /// <summary>
@@ -496,23 +605,18 @@ namespace CK.Core
                     }
                     if( !TryMatchJSONQuotedString( out string? propName ) )
                     {
-                        o = null;
-                        Head = savedHead;
-                        return AddExpectation( "Quoted JSON Property Name" );
+                        AddExpectation( "Quoted JSON Property Name" );
+                        goto error;
                     }
                     Debug.Assert( propName != null );
                     Head.SkipWhiteSpacesAndJSComments();
-                    if( !TryMatch( ':' ) || !TryMatchAnyJSON( out object? value ) )
-                    {
-                        o = null;
-                        Head = savedHead;
-                        return false;
-                    }
+                    if( !TryMatch( ':' ) || !TryMatchAnyJSON( out object? value ) ) goto error;
                     o.Add( (propName, value) );
                     Head.SkipWhiteSpacesAndJSComments();
                     // This accepts a trailing comma at the end of a property list: ..."a":0,} is not an error.
                     Head.TryMatch( ',' );
                 }
+                error:
                 o = null;
                 Head = savedHead;
                 return false;
@@ -539,17 +643,13 @@ namespace CK.Core
                     {
                         return ClearExpectations();
                     }
-                    if( !TryMatchAnyJSON( out object? cell ) )
-                    {
-                        value = null;
-                        Head = savedHead;
-                        return false;
-                    }
+                    if( !TryMatchAnyJSON( out object? cell ) ) goto error;
                     value.Add( cell );
                     Head.SkipWhiteSpacesAndJSComments();
                     // Allow trailing comma: ,] is valid.
                     Head.TryMatch( ',' );
                 }
+                error:
                 value = null;
                 Head = savedHead;
                 return false;
@@ -576,14 +676,14 @@ namespace CK.Core
                 Head.SkipWhiteSpacesAndJSComments();
                 if( Head.TryMatch( '{' ) )
                 {
-                    if( !TryMatchJSONObjectContent( out var c ) ) return false;
+                    if( !TryMatchJSONObjectContent( out var c ) ) goto error;
                     value = c;
                     Debug.Assert( !HasError );
                     return true;
                 }
                 if( Head.TryMatch( '[' ) )
                 {
-                    if( !TryMatchJSONArrayContent( out var t ) ) return false;
+                    if( !TryMatchJSONArrayContent( out var t ) ) goto error;
                     value = t;
                     Debug.Assert( !HasError );
                     return true;
@@ -593,12 +693,12 @@ namespace CK.Core
                     Debug.Assert( !HasError );
                     return true;
                 }
+                error:
                 value = null;
                 Head = savedHead;
                 return false;
             }
         }
-
 
     }
 }
