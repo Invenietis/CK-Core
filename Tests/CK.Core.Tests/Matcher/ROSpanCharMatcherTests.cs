@@ -26,11 +26,11 @@ namespace CK.Core.Tests
 
             m.TryMatch( 'D' ).Should().BeTrue();
             m.HasError.Should().BeFalse();
-            m.GetErrors().Should().BeEmpty();
+            m.GetRawErrors().Should().BeEmpty();
 
             m.TryMatch( 'D' ).Should().BeFalse();
             m.HasError.Should().BeTrue();
-            m.GetErrors().Single().Expectation.Should().Be( "Character 'D'" );
+            m.GetRawErrors().Single().Expectation.Should().Be( "Character 'D'" );
         }
 
         [TestCase( "abcdef", 0xABCDEFUL )]
@@ -66,8 +66,8 @@ namespace CK.Core.Tests
             var m = new ROSpanCharMatcher( s );
             m.TryMatchHexNumber( out ulong value, 5, 5 ).Should().BeFalse();
             m.Head.Length.Should().Be( s.Length );
-            m.GetErrors().Single().Expectation.Should().Be( "5 digits hexadecimal number" );
-            m.GetErrors().Single().CallerName.Should().Be( "TryMatchHexNumber" );
+            m.GetRawErrors().Single().Expectation.Should().Be( "5 digits hexadecimal number" );
+            m.GetRawErrors().Single().CallerName.Should().Be( "TryMatchHexNumber" );
         }
 
         [Test]
@@ -83,15 +83,15 @@ namespace CK.Core.Tests
 
             m.TrySkipWhiteSpaces( 6 ).Should().BeFalse();
             m.HasError.Should().BeTrue();
-            m.GetErrors().Single().Expectation.Should().Be( "At least 6 white space(s)" );
+            m.GetRawErrors().Single().Expectation.Should().Be( "At least 6 white space(s)" );
 
             m.TrySkipWhiteSpaces( 5 ).Should().BeTrue();
             m.HasError.Should().BeFalse();
-            m.GetErrors().Should().BeEmpty();
+            m.GetRawErrors().Should().BeEmpty();
 
             m.TrySkipWhiteSpaces().Should().BeFalse();
             m.HasError.Should().BeTrue();
-            m.GetErrors().Single().Expectation.Should().Be( "At least one white space" );
+            m.GetRawErrors().Single().Expectation.Should().Be( "At least one white space" );
 
             m.TryMatch( "c", StringComparison.OrdinalIgnoreCase ).Should().BeTrue();
             m.Head.IsEmpty.Should().BeTrue();
@@ -172,8 +172,8 @@ namespace CK.Core.Tests
             fail( m ).Should().BeFalse();
             m.HasError.Should().BeTrue();
             m.Head.Length.Should().Be( len );
-            m.GetErrors().Should().HaveCount( 1 );
-            m.GetErrors().Single().Expectation.Should().Be( message );
+            m.GetRawErrors().Should().HaveCount( 1 );
+            m.GetRawErrors().Single().Expectation.Should().Be( message );
             m.ClearExpectations();
         }
 
@@ -322,11 +322,11 @@ namespace CK.Core.Tests
                 m.HasError.Should().BeFalse();
             }
             m.HasError.Should().BeTrue( "ClearExpectations has NOT been called in group: the error is the caller name since there's no explicit expect string." );
-            m.GetErrors().Single().Expectation.Should().Be( defaultGroupName );
+            m.GetRawErrors().Single().Expectation.Should().Be( defaultGroupName );
 
             m.ClearExpectations();
             m.HasError.Should().BeFalse();
-            m.GetErrors().Should().BeEmpty();
+            m.GetRawErrors().Should().BeEmpty();
 
             using( m.OpenExpectations() )
             {
@@ -335,10 +335,10 @@ namespace CK.Core.Tests
                 m.ClearExpectations();
 
                 m.HasError.Should().BeFalse();
-                m.GetErrors().Should().BeEmpty();
+                m.GetRawErrors().Should().BeEmpty();
             }
             m.HasError.Should().BeFalse();
-            m.GetErrors().Should().BeEmpty();
+            m.GetRawErrors().Should().BeEmpty();
 
             using( m.OpenExpectations() )
             {
@@ -350,10 +350,10 @@ namespace CK.Core.Tests
                     m.HasError.Should().BeFalse( "No error in this group." );
                 }
                 m.HasError.Should().BeTrue();
-                m.GetErrors().Select( e => e.Expectation ).Should().BeEquivalentTo( new[] { "1", "sub" } );
+                m.GetRawErrors().Select( e => e.Expectation ).Should().BeEquivalentTo( new[] { "1", "sub" } );
             }
             m.HasError.Should().BeTrue();
-            m.GetErrors().Select( e => e.Expectation ).Should().BeEquivalentTo( new[] { defaultGroupName, "1", "sub" } );
+            m.GetRawErrors().Select( e => e.Expectation ).Should().BeEquivalentTo( new[] { defaultGroupName, "1", "sub" } );
 
             using( m.OpenExpectations( "G2" ) )
             {
@@ -366,10 +366,10 @@ namespace CK.Core.Tests
                     m.AddExpectation( "E" );
                 }
                 m.HasError.Should().BeTrue();
-                m.GetErrors().Select( e => e.Expectation ).Should().BeEquivalentTo( new[] { "2", "sub2", "E" } );
+                m.GetRawErrors().Select( e => e.Expectation ).Should().BeEquivalentTo( new[] { "2", "sub2", "E" } );
             }
             m.HasError.Should().BeTrue();
-            m.GetErrors().Select( e => e.Expectation ).Should().BeEquivalentTo( new[] { defaultGroupName, "1", "sub", "G2", "2", "sub2", "E" } );
+            m.GetRawErrors().Select( e => e.Expectation ).Should().BeEquivalentTo( new[] { defaultGroupName, "1", "sub", "G2", "2", "sub2", "E" } );
         }
 
         [Test]
@@ -384,7 +384,7 @@ namespace CK.Core.Tests
             m.AddExpectation( "C" );
 
             m.HasError.Should().BeTrue();
-            m.GetErrors().Single().Expectation.Should().Be( "C" );
+            m.GetRawErrors().Single().Expectation.Should().Be( "C" );
 
             m.SingleExpectationMode = false;
 
@@ -392,12 +392,12 @@ namespace CK.Core.Tests
             m.AddExpectation( "B" );
 
             m.HasError.Should().BeTrue();
-            m.GetErrors().Select( e => e.Expectation ).Should().BeEquivalentTo( new[] { "C", "A", "B" } );
+            m.GetRawErrors().Select( e => e.Expectation ).Should().BeEquivalentTo( new[] { "C", "A", "B" } );
 
             m.SingleExpectationMode = true;
 
             m.HasError.Should().BeTrue();
-            m.GetErrors().Single().Expectation.Should().Be( "B" );
+            m.GetRawErrors().Single().Expectation.Should().Be( "B" );
 
         }
 
@@ -415,20 +415,20 @@ namespace CK.Core.Tests
                 m.AddExpectation( "B" );
                 m.AddExpectation( "C" );
                 m.HasError.Should().BeTrue();
-                m.GetErrors().Single().Expectation.Should().Be( "C" );
+                m.GetRawErrors().Single().Expectation.Should().Be( "C" );
             }
             m.HasError.Should().BeTrue();
-            m.GetErrors().Single().Expectation.Should().Be( "Thing" );
+            m.GetRawErrors().Single().Expectation.Should().Be( "Thing" );
 
             m.AddExpectation( "A" );
             m.AddExpectation( "B" );
             m.AddExpectation( "C" );
 
             m.HasError.Should().BeTrue();
-            m.GetErrors().Single().Expectation.Should().Be( "C" );
+            m.GetRawErrors().Single().Expectation.Should().Be( "C" );
 
             m.ClearExpectations();
-            m.GetErrors().Should().BeEmpty();
+            m.GetRawErrors().Should().BeEmpty();
 
             using( m.OpenExpectations( "Thing1" ) )
             {
@@ -438,7 +438,7 @@ namespace CK.Core.Tests
                 m.AddExpectation( "B1" );
                 m.AddExpectation( "C1" );
                 m.HasError.Should().BeTrue();
-                m.GetErrors().Single().Expectation.Should().Be( "C1" );
+                m.GetRawErrors().Single().Expectation.Should().Be( "C1" );
                 using( m.OpenExpectations( "Thing2" ) )
                 {
                     m.HasError.Should().BeFalse();
@@ -447,13 +447,13 @@ namespace CK.Core.Tests
                     m.AddExpectation( "B2" );
                     m.AddExpectation( "C2" );
                     m.HasError.Should().BeTrue();
-                    m.GetErrors().Single().Expectation.Should().Be( "C2" );
+                    m.GetRawErrors().Single().Expectation.Should().Be( "C2" );
                 }
                 m.HasError.Should().BeTrue();
-                m.GetErrors().Single().Expectation.Should().Be( "Thing2" );
+                m.GetRawErrors().Single().Expectation.Should().Be( "Thing2" );
             }
             m.HasError.Should().BeTrue();
-            m.GetErrors().Single().Expectation.Should().Be( "Thing1" );
+            m.GetRawErrors().Single().Expectation.Should().Be( "Thing1" );
         }
 
         [Test]
@@ -471,10 +471,10 @@ namespace CK.Core.Tests
                 m.AddExpectation( "B" );
                 m.AddExpectation( "C" );
                 m.HasError.Should().BeTrue();
-                m.GetErrors().Select( e => e.Expectation ).Should().BeEquivalentTo( "A", "B", "C" );
+                m.GetRawErrors().Select( e => e.Expectation ).Should().BeEquivalentTo( "A", "B", "C" );
             }
             m.HasError.Should().BeTrue();
-            m.GetErrors().Single().Expectation.Should().Be( "Thing" );
+            m.GetRawErrors().Single().Expectation.Should().Be( "Thing" );
 
             m.SingleExpectationMode = false;
             using( m.OpenExpectations( "Thing2" ) )
@@ -484,14 +484,14 @@ namespace CK.Core.Tests
                 m.AddExpectation( "B" );
                 m.AddExpectation( "C" );
                 m.HasError.Should().BeTrue();
-                m.GetErrors().Select( e => e.Expectation ).Should().BeEquivalentTo( "A", "B", "C" );
+                m.GetRawErrors().Select( e => e.Expectation ).Should().BeEquivalentTo( "A", "B", "C" );
 
                 m.SingleExpectationMode = true;
-                m.GetErrors().Single().Expectation.Should().Be( "C" );
+                m.GetRawErrors().Single().Expectation.Should().Be( "C" );
             }
 
             m.HasError.Should().BeTrue();
-            m.GetErrors().Select( e => e.Expectation ).Should().BeEquivalentTo( "Thing", "Thing2", "C" );
+            m.GetRawErrors().Select( e => e.Expectation ).Should().BeEquivalentTo( "Thing", "Thing2", "C" );
         }
 
     }

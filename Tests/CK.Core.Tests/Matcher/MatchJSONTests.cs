@@ -89,13 +89,13 @@ namespace CK.Core.Tests
             var m = new ROSpanCharMatcher( s );
             m.TryMatchAnyJSON( out _ ).Should().BeFalse();
             m.HasError.Should().BeTrue();
-            m.GetErrors().Select( e => $"@{e.Pos}{new string('-',e.Depth+1)}{e.Expectation}" ).Concatenate( '|' ).Should().Be( errors );
+            m.GetRawErrors().Select( e => $"@{e.Pos}{new string('-',e.Depth+1)}{e.Expectation}" ).Concatenate( '|' ).Should().Be( errors );
 
             m.ClearExpectations();
             m.SingleExpectationMode = true;
             m.TryMatchAnyJSON( out _ ).Should().BeFalse();
             m.HasError.Should().BeTrue();
-            m.GetErrors().Single().Expectation.Should().Be( errors.Split( '|' )[0].Remove( 0, 3 ) );
+            m.GetRawErrors().Single().Expectation.Should().Be( errors.Split( '|' )[0].Remove( 0, 3 ) );
         }
     }
 }

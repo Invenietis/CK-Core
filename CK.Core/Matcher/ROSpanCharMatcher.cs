@@ -27,7 +27,7 @@ namespace CK.Core
 
         interface ITracker
         {
-            bool HasError { get; }
+            int ErrorCount { get; }
             bool AddExpectation( int pos, string expect, string caller );
             bool ClearExpectations();
             bool SingleExpectationMode { get; set; }
@@ -74,7 +74,7 @@ namespace CK.Core
                     return this;
                 }
 
-                public bool HasError => _tracker._errorCount > _idxHeader;
+                public int ErrorCount => _tracker._errorCount - _idxHeader;
 
                 public bool AddExpectation( int pos, string expect, string caller )
                 {
@@ -107,11 +107,17 @@ namespace CK.Core
                 public void Dispose()
                 {
                     if( _tracker._current != this ) Throw.InvalidOperationException( "OpenExpectations dispose mismatch." );
-                    if( _clearCalled ) _tracker.ClearExpectations( _idxHeader - 1 );
-                    else if( HasError && _parentSingleExpectation )
+                    if( ErrorCount > 0 )
                     {
-                        _tracker.ClearExpectations( _idxHeader );
-                        _tracker.LiftLastError( _parentOrNextFree?._idxHeader ?? 0 );
+                        if( _parentSingleExpectation )
+                        {
+                            _tracker.ClearExpectations( _idxHeader );
+                            _tracker.LiftLastError( _parentOrNextFree?._idxHeader ?? 0 );
+                        }
+                    }
+                    else
+                    {
+                        if( _clearCalled ) _tracker.ClearExpectations( _idxHeader - 1 );
                     }
                     _tracker._current = _prev;
                     _tracker.ReleaseSub( this );
@@ -119,7 +125,7 @@ namespace CK.Core
 
                 public IEnumerable<(int Pos, int Depth, string Expectation, string CallerName)> GetErrors( int allTextLength )
                 {
-                    if( !HasError ) return Enumerable.Empty<(int, int, string, string)>();
+                    if( ErrorCount == 0 ) return Enumerable.Empty<(int, int, string, string)>();
                     Debug.Assert( _tracker._errors != null );
                     return _tracker._errors.Skip( _idxHeader ).Take( _tracker._errorCount - _idxHeader ).Select( e => (allTextLength - e.P, e.D, e.E!, e.C) );
                 }
@@ -144,9 +150,9 @@ namespace CK.Core
                 _current = this;
             }
 
-            public bool HasError => _current.HasError;
+            public int ErrorCount => _current.ErrorCount;
 
-            bool ITracker.HasError => _errorCount != 0;
+            int ITracker.ErrorCount => _errorCount;
 
             public bool AddExpectation( int pos, string expect, string caller ) => _current.AddExpectation( pos, expect, caller );
 
@@ -249,7 +255,7 @@ namespace CK.Core
         /// <summary>
         /// Gets whether this matcher has unsatisfied expectations.
         /// </summary>
-        public bool HasError => _tracker.HasError;
+        public bool HasError => _tracker.ErrorCount > 0;
 
         public bool SingleExpectationMode
         {
@@ -326,7 +332,112 @@ namespace CK.Core
         /// method that failed, and its depth in the parsing.
         /// </summary>
         /// <returns>The set of expectations.</returns>
-        public IEnumerable<(int Pos, int Depth, string Expectation, string CallerName)> GetErrors() => _tracker.GetErrors( AllText.Length );
+        public IEnumerable<(int Pos, int Depth, string Expectation, string CallerName)> GetRawErrors() => _tracker.GetErrors( AllText.Length );
+
+        ref struct LineColumnFinder
+        {
+            readonly ReadOnlySpan<char> AllText;
+            SpanLineEnumerator _lines;
+            int _linePos;
+            int _nextLinePos;
+            int _currentPos;
+            int _currentLine;
+            int _currentCol;
+
+            public LineColumnFinder( ReadOnlySpan<char> text )
+            {
+                AllText = text;
+                _lines = text.EnumerateLines();
+                _linePos = 0;
+                _nextLinePos = 0;
+                _currentPos = 0;
+                _currentLine = 0;
+                _currentCol = 1;
+                NextLine();
+            }
+
+            void NextLine()
+            {
+                bool f = _lines.MoveNext();
+                Debug.Assert( f, "Never called on the last line." );
+                _currentLine++;
+                _linePos = _nextLinePos;
+                _nextLinePos += _lines.Current.Length + 1;
+                if( _nextLinePos < AllText.Length && AllText[_nextLinePos] == '\n' ) ++_nextLinePos;
+            }
+
+            public (int, int) Get( int nextPos )
+            {
+                Debug.Assert( nextPos <= AllText.Length );
+                if( nextPos < _currentPos )
+                {
+                    _lines = AllText.EnumerateLines();
+                    _linePos = 0;
+                    _nextLinePos = 0;
+                    _currentPos = 0;
+                    _currentLine = 0;
+                    _currentCol = 1;
+                    NextLine();
+                }
+                if( nextPos == _currentPos ) return (_currentLine, _currentCol);
+                while( nextPos >= _nextLinePos ) NextLine();
+                _currentPos = nextPos;
+                _currentCol = nextPos - _linePos + 1;
+                return (_currentLine, _currentCol);
+            }
+
+        }
+
+        /// <summary>
+        /// Gets the errors with each line and column.
+        /// </summary>
+        /// <param name="maxDepth">Optional depth restriction.</param>
+        /// <returns>The set of errors.</returns>
+        public Memory<(int Pos, int Line, int Col, int Depth, string Expectation, string CallerName)> GetErrors( int maxDepth = 0 )
+        {
+            int count = _tracker.ErrorCount;
+            if( count == 0 ) return Memory<(int, int, int, int, string, string)>.Empty;
+
+            var all = new (int Pos, int Line, int Col, int Depth, string Expectation, string CallerName)[count];
+            var lc = new LineColumnFinder( AllText );
+            int i = 0;
+            foreach( var e in GetRawErrors() )
+            {
+                if( maxDepth == 0 || e.Depth <= maxDepth )
+                {
+                    var (l, c) = lc.Get( e.Pos );
+                    all[i++] = (e.Pos, l, c, e.Depth, e.Expectation, e.CallerName);
+                }
+            }
+            return all.AsMemory( 0, i );
+        }
+
+        /// <summary>
+        /// Gets the errors as a multi line string with line and columns.
+        /// </summary>
+        /// <param name="withMethodName">False to not display the name of the caller method.</param>
+        /// <param name="maxDepth">Optional depth restriction.</param>
+        /// <returns></returns>
+        public string GetErrorMessage( bool withMethodName = true, int maxDepth = 0 )
+        {
+            var b = new StringBuilder();
+            bool atLeastOne = false;
+            foreach( var e in GetErrors( maxDepth ).Span )
+            {
+                if( atLeastOne ) b.AppendLine();
+                atLeastOne = true;
+                b.Append( ' ', e.Depth ).Append( '@' ).Append( e.Line ).Append( ',').Append( e.Col ).Append( " - " ).Append( e.Expectation );
+                if( withMethodName && !ReferenceEquals( e.Expectation, e.CallerName ) )
+                {
+                    b.Append( " (" ).Append( e.CallerName ).Append( ')' );
+                }
+            }
+            return b.ToString();
+        }
+
+
+
+
 
         /// <summary>
         /// Forwards <see cref="Head"/> by <paramref name="length"/> even if actual head's length is shorter and
