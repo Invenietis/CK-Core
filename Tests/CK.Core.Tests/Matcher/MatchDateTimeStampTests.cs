@@ -67,7 +67,7 @@ namespace CK.Core.Tests
             var m = new ROSpanCharMatcher( s );
             m.TryMatchDateTimeStamp( out _ ).Should().BeFalse();
             m.HasError.Should().BeTrue();
-            m.GetErrors().Select( e => $"@{e.Pos}{new string( '-', e.Depth + 1 )}{e.Expectation}" ).Concatenate( '|' ).Should().Be( errors );
+            m.GetRawErrors().Select( e => $"@{e.Pos}{new string( '-', e.Depth + 1 )}{e.Expectation}" ).Concatenate( '|' ).Should().Be( errors );
             m.Head.Length.Should().Be( m.AllText.Length );
         }
 

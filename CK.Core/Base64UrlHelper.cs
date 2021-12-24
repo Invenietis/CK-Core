@@ -38,7 +38,7 @@ namespace CK.Core
             {
                 throw new InvalidOperationException( s.ToString() );
             }
-            Base64ToUrlBase64NoPadding( buffer, ref bytesWritten );
+            UncheckedBase64ToUrlBase64NoPadding( buffer, ref bytesWritten );
         }
 
         /// <summary>
@@ -48,17 +48,22 @@ namespace CK.Core
         /// <returns></returns>
         public static string ToBase64UrlString( ReadOnlySpan<byte> bytes )
         {
+            const int MaxStackSize = 256;
+
             int size = Base64.GetMaxEncodedToUtf8Length( bytes.Length );
-            var buffer = ArrayPool<byte>.Shared.Rent( size );
+            byte[]? fromPool = null;
+            Span<byte> buffer = size > MaxStackSize
+                                ? (fromPool = ArrayPool<byte>.Shared.Rent( size )).AsSpan( 0, size )
+                                : stackalloc byte[size];
             try
             {
                 Base64.EncodeToUtf8( bytes, buffer, out int _, out int bytesWritten );
-                Base64ToUrlBase64NoPadding( buffer, ref bytesWritten );
-                return Encoding.ASCII.GetString( buffer.AsSpan( 0, bytesWritten ) );
+                UncheckedBase64ToUrlBase64NoPadding( buffer, ref bytesWritten );
+                return Encoding.ASCII.GetString( buffer.Slice( 0, bytesWritten ) );
             }
             finally
             {
-                ArrayPool<byte>.Shared.Return( buffer );
+                if( fromPool != null ) ArrayPool<byte>.Shared.Return( fromPool );
             }
         }
 
@@ -95,7 +100,13 @@ namespace CK.Core
             return a.AsMemory( 0, final );
         }
 
-        static void Base64ToUrlBase64NoPadding( Span<byte> buffer, ref int bytesWritten )
+        /// <summary>
+        /// Process the buffer by mapping '+' to '-' and '/' to '_' up to the end or to
+        /// the first '=' (padding). When padding is met, <paramref name="bytesWritten"/> is updated.
+        /// </summary>
+        /// <param name="buffer">The buffer that must be in Base64. No checks are done.</param>
+        /// <param name="bytesWritten">Updated buffer length: padding is skipped.</param>
+        public static void UncheckedBase64ToUrlBase64NoPadding( Span<byte> buffer, ref int bytesWritten )
         {
             for( int i = 0; i < bytesWritten; ++i )
             {
