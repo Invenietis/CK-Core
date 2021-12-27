@@ -351,15 +351,18 @@ namespace CK.Core
             var h = head;
             if( h[0] == '-' ) h = h.Slice( 1 );
             if( !h.TrySkipDigits( 1 ) ) return false;
-            if( h[0] == '.' )
+            if( h.Length > 0 )
             {
-                h = h.Slice( 1 );
-                if( !h.TrySkipDigits( 1 ) ) return false;
-            }
-            if( h.Length != 0 && (h[0] == 'e' || h[0] == 'E') )
-            {
-                h = h.Slice( h.Length > 1 && (h[1] == '-' || h[1] == '+') ? 2 : 1 );
-                if( !h.TrySkipDigits( 1 ) ) return false;
+                if( h[0] == '.' )
+                {
+                    h = h.Slice( 1 );
+                    if( !h.TrySkipDigits( 1 ) ) return false;
+                }
+                if( h.Length != 0 && (h[0] == 'e' || h[0] == 'E') )
+                {
+                    h = h.Slice( h.Length > 1 && (h[1] == '-' || h[1] == '+') ? 2 : 1 );
+                    if( !h.TrySkipDigits( 1 ) ) return false;
+                }
             }
             head = head.Slice( head.Length - h.Length );
             return true;
