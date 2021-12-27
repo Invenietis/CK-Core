@@ -179,6 +179,7 @@ namespace CK.Core.Tests
 
         [TestCase( "0", 0 )]
         [TestCase( "2.3", 2.3 )]
+        [TestCase( "255", 255 )]
         [TestCase( "9876978", 9876978 )]
         [TestCase( "-9876978", -9876978 )]
         [TestCase( "0.0", 0 )]
@@ -193,17 +194,29 @@ namespace CK.Core.Tests
         [TestCase( "-80.34E+98", -80.34E98 )]
         public void matching_double_values( string s, double d )
         {
-            var m = new ROSpanCharMatcher( "P" + s + "S" );
-            m.TryMatch( 'P' ).Should().BeTrue();
-            m.TrySkipDouble().Should().BeTrue();
-            m.TryMatch( 'S' ).Should().BeTrue();
-            m.Head.IsEmpty.Should().BeTrue();
+            {
+                var m = new ROSpanCharMatcher( "P" + s + "S" );
+                m.TryMatch( 'P' ).Should().BeTrue();
+                m.TrySkipDouble().Should().BeTrue();
+                m.TryMatch( 'S' ).Should().BeTrue();
+                m.Head.IsEmpty.Should().BeTrue();
 
-            m.Head = m.AllText.Slice( 1 );
-            m.TryMatchDouble( out var parsed ).Should().BeTrue();
-            parsed.Should().BeApproximately( d, 1f );
-            m.TryMatch( 'S' ).Should().BeTrue();
-            m.Head.IsEmpty.Should().BeTrue();
+                m.Head = m.AllText.Slice( 1 );
+                m.TryMatchDouble( out var parsed ).Should().BeTrue();
+                parsed.Should().BeApproximately( d, 1f );
+                m.TryMatch( 'S' ).Should().BeTrue();
+                m.Head.IsEmpty.Should().BeTrue();
+            }
+            {
+                var m = new ROSpanCharMatcher( s );
+                m.TrySkipDouble().Should().BeTrue();
+                m.Head.IsEmpty.Should().BeTrue();
+
+                m.Head = m.AllText;
+                m.TryMatchDouble( out var parsed ).Should().BeTrue();
+                parsed.Should().BeApproximately( d, 1f );
+                m.Head.IsEmpty.Should().BeTrue();
+            }
         }
 
         [TestCase( "N" )]

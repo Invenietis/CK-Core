@@ -13,7 +13,7 @@ namespace CK.Core
     /// Low level implementation of the "Match and Forward" pattern with a ref struct that exposes a mutable ReadOnly&lt;char&gt; <see cref="Head"/>
     /// and handles "expectations" that are potential errors as a tree-like structure.
     /// </summary>
-    public ref struct ROSpanCharMatcher
+    public ref partial struct ROSpanCharMatcher
     {
         /// <summary>
         /// The mutable current head.
@@ -28,16 +28,19 @@ namespace CK.Core
         interface ITracker
         {
             int ErrorCount { get; }
-            bool AddExpectation( int pos, string expect, string caller );
+            bool AddExpOrErr( bool isError, int pos, string expect, string caller );
             bool ClearExpectations();
             bool SingleExpectationMode { get; set; }
             IDisposable OpenSubTracker( int pos, string? scopedExpectation, string callerName );
-            IEnumerable<(int Pos, int Depth, string Expectation, string CallerName)> GetErrors( int allTextLength );
+            IEnumerable<(int Pos, int Depth, bool IsError, string Expectation, string CallerName)> GetErrors( int allTextLength );
         }
 
         sealed class ErrorTracker : ITracker
         {
             ITracker _current;
+            // Depth starts at 1 when stored. We use a positive Depth for expectations
+            // and a negative one for errors. This avoids yet another (boolean) field to
+            // discriminate between errors and expectations.
             (int P, int D, string? E, string C)[]? _errors;
             Sub? _firstFree;
             int _errorCount;
@@ -63,7 +66,7 @@ namespace CK.Core
 
                 internal Sub Initialize( int pos, int depth, bool singleExpectation, string? header, string callerName, Sub? parent )
                 {
-                    _tracker.AddExpectation( pos, depth++, header ?? callerName, callerName );
+                    _tracker.AddExpectation( pos, depth++, false, header ?? callerName, callerName );
                     _idxHeader = _tracker._errorCount;
                     _depth = depth;
                     _prev = _tracker._current;
@@ -76,12 +79,12 @@ namespace CK.Core
 
                 public int ErrorCount => _tracker._errorCount - _idxHeader;
 
-                public bool AddExpectation( int pos, string expect, string caller )
+                public bool AddExpOrErr( bool isError, int pos, string expect, string caller )
                 {
                     _clearCalled = false;
                     return _singleExpectation
-                            ? _tracker.SetSingleExpectation( _idxHeader, pos, _depth, expect, caller )
-                            : _tracker.AddExpectation( pos, _depth, expect, caller );
+                            ? _tracker.SetSingleExpectation( _idxHeader, pos, _depth, isError, expect, caller )
+                            : _tracker.AddExpectation( pos, _depth, isError, expect, caller );
                 }
 
                 public bool ClearExpectations()
@@ -123,11 +126,11 @@ namespace CK.Core
                     _tracker.ReleaseSub( this );
                 }
 
-                public IEnumerable<(int Pos, int Depth, string Expectation, string CallerName)> GetErrors( int allTextLength )
+                public IEnumerable<(int Pos, int Depth, bool IsError, string Expectation, string CallerName)> GetErrors( int allTextLength )
                 {
-                    if( ErrorCount == 0 ) return Enumerable.Empty<(int, int, string, string)>();
+                    if( ErrorCount == 0 ) return Enumerable.Empty<(int, int, bool, string, string)>();
                     Debug.Assert( _tracker._errors != null );
-                    return _tracker._errors.Skip( _idxHeader ).Take( _tracker._errorCount - _idxHeader ).Select( e => (allTextLength - e.P, e.D, e.E!, e.C) );
+                    return _tracker._errors.Skip( _idxHeader ).Take( _tracker._errorCount - _idxHeader ).Select( e => (allTextLength - e.P, (e.D < 0 ? ~e.D : e.D)-1, e.D < 0, e.E!, e.C) );
                 }
             }
 
@@ -154,33 +157,35 @@ namespace CK.Core
 
             int ITracker.ErrorCount => _errorCount;
 
-            public bool AddExpectation( int pos, string expect, string caller ) => _current.AddExpectation( pos, expect, caller );
+            public bool AddExpOrErr( bool isError, int pos, string expect, string caller ) => _current.AddExpOrErr( isError, pos, expect, caller );
 
-            bool ITracker.AddExpectation( int pos, string expect, string caller ) => _singleExpectation
-                                                                                        ? SetSingleExpectation( 0, pos, 0, expect, caller )
-                                                                                        : AddExpectation( pos, 0, expect, caller );
+            bool ITracker.AddExpOrErr( bool isError, int pos, string expect, string caller ) => _singleExpectation
+                                                                                        ? SetSingleExpectation( 0, pos, 0, isError, expect, caller )
+                                                                                        : AddExpectation( pos, 0, isError, expect, caller );
 
-            bool AddExpectation( int pos, int depth, string expect, string caller )
+            bool AddExpectation( int pos, int depth, bool isError, string expect, string caller )
             {
                 if( _errors == null ) _errors = new (int, int, string?, string)[16];
                 else if( _errorCount == _errors.Length )
                 {
                     Array.Resize( ref _errors, _errorCount * 2 );
                 }
-                _errors[_errorCount++] = (pos, depth, expect, caller);
+                ++depth;
+                _errors[_errorCount++] = (pos, isError ? ~depth : depth, expect, caller);
                 return false;
             }
 
-            bool SetSingleExpectation( int startPos, int pos, int depth, string expect, string caller )
+            bool SetSingleExpectation( int startPos, int pos, int depth, bool isError, string expect, string caller )
             {
                 Debug.Assert( startPos == _errorCount - 1 || startPos == _errorCount );
                 if( startPos != _errorCount )
                 {
                     Debug.Assert( _errors != null );
-                    _errors[startPos] = (pos, depth, expect, caller);
+                    ++depth;
+                    _errors[startPos] = (pos, isError ? ~depth : depth, expect, caller);
                     return false;
                 }
-                return AddExpectation( pos, depth, expect, caller );
+                return AddExpectation( pos, depth, isError, expect, caller );
             }
 
             public bool ClearExpectations() => _current.ClearExpectations();
@@ -229,13 +234,13 @@ namespace CK.Core
                 return AcquireSub().Initialize( pos, 0, _singleExpectation, scopedExpectation, callerName, null );
             }
 
-            public IEnumerable<(int Pos, int Depth, string Expectation, string CallerName)> GetErrors( int allTextLength ) => _current.GetErrors( allTextLength );
+            public IEnumerable<(int Pos, int Depth, bool IsError, string Expectation, string CallerName)> GetErrors( int allTextLength ) => _current.GetErrors( allTextLength );
 
-            IEnumerable<(int Pos, int Depth, string Expectation, string CallerName)> ITracker.GetErrors( int allTextLength )
+            IEnumerable<(int Pos, int Depth, bool IsError, string Expectation, string CallerName)> ITracker.GetErrors( int allTextLength )
             {
-                if( _errorCount == 0 ) return Enumerable.Empty<(int, int, string, string)>();
+                if( _errorCount == 0 ) return Enumerable.Empty<(int, int, bool, string, string)>();
                 Debug.Assert( _errors != null );
-                return _errors.Take( _errorCount ).Select( e => (allTextLength - e.P, e.D, e.E!, e.C ) );
+                return _errors.Take( _errorCount ).Select( e => (allTextLength - e.P, (e.D < 0 ? ~e.D : e.D) - 1, e.D < 0, e.E!, e.C ) );
             }
         }
 
@@ -276,7 +281,21 @@ namespace CK.Core
         /// has few chances to used here).
         /// </remarks>
         [MethodImpl( MethodImplOptions.AggressiveInlining )]
-        public bool AddExpectation( string expect, [CallerMemberName] string? callerName = null ) => _tracker.AddExpectation( Head.Length, expect, callerName! );
+        public bool AddExpectation( string expect, [CallerMemberName] string? callerName = null ) => _tracker.AddExpOrErr( false, Head.Length, expect, callerName! );
+
+        /// <summary>
+        /// Adds an error. <paramref name="error"/>> must be written with trailing dot (just like usual error or log messages).
+        /// </summary>
+        /// <param name="error">The error message.</param>
+        /// <param name="callerName">Method name of the caller (automatically set by the compiler).</param>
+        /// <returns>Always false so it can be directly returned by the TryMatch function.</returns>
+        /// <remarks>
+        /// We use the CallerName here because it cannot be the awful mangled name of a code generated lambda since ReadOnlySpan
+        /// as a ref struct cannot be used in a lambda (except in a <see cref="System.Buffers.ReadOnlySpanAction{T, TArg}"/> that
+        /// has few chances to used here).
+        /// </remarks>
+        [MethodImpl( MethodImplOptions.AggressiveInlining )]
+        public bool AddError( string error, [CallerMemberName] string? callerName = null ) => _tracker.AddExpOrErr( true, Head.Length, error, callerName! );
 
         /// <summary>
         /// Adds an expectation. <paramref name="expect"/>> must be written without "expect" word, only with the
@@ -292,7 +311,22 @@ namespace CK.Core
         /// or other explicit delegate signatures that has few chances to used here).
         /// </remarks>
         [MethodImpl( MethodImplOptions.AggressiveInlining )]
-        public bool AddExpectation( int offset, string expect, [CallerMemberName] string? callerName = null ) => _tracker.AddExpectation( Head.Length - offset, expect, callerName! );
+        public bool AddExpectation( int offset, string expect, [CallerMemberName] string? callerName = null ) => _tracker.AddExpOrErr( false, Head.Length - offset, expect, callerName! );
+
+        /// <summary>
+        /// Adds an error. <paramref name="error"/>> must be written with trailing dot (just like usual error or log messages).
+        /// </summary>
+        /// <param name="offset">Offset of the error relative to the <see cref="Head"/>.</param>
+        /// <param name="error">The error message.</param>
+        /// <param name="callerName">Method name of the caller (automatically set by the compiler).</param>
+        /// <returns>Always false so it can be directly returned by the TryMatch function.</returns>
+        /// <remarks>
+        /// We use the CallerName here because it cannot be the awful mangled name of a code generated lambda since ReadOnlySpan
+        /// as a ref struct cannot be used in a lambda (except in a <see cref="System.Buffers.ReadOnlySpanAction{T, TArg}"/> that
+        /// has few chances to used here).
+        /// </remarks>
+        [MethodImpl( MethodImplOptions.AggressiveInlining )]
+        public bool AddError( int offset, string error, [CallerMemberName] string? callerName = null ) => _tracker.AddExpOrErr( true, Head.Length - offset, error, callerName! );
 
         /// <summary>
         /// Clears any recorded expectations and returns true.
@@ -332,7 +366,7 @@ namespace CK.Core
         /// method that failed, and its depth in the parsing.
         /// </summary>
         /// <returns>The set of expectations.</returns>
-        public IEnumerable<(int Pos, int Depth, string Expectation, string CallerName)> GetRawErrors() => _tracker.GetErrors( AllText.Length );
+        public IEnumerable<(int Pos, int Depth, bool IsError, string Expectation, string CallerName)> GetRawErrors() => _tracker.GetErrors( AllText.Length );
 
         ref struct LineColumnFinder
         {
@@ -393,51 +427,24 @@ namespace CK.Core
         /// </summary>
         /// <param name="maxDepth">Optional depth restriction.</param>
         /// <returns>The set of errors.</returns>
-        public Memory<(int Pos, int Line, int Col, int Depth, string Expectation, string CallerName)> GetErrors( int maxDepth = 0 )
+        public Memory<(int Pos, int Line, int Col, int Depth, bool IsError, string Expectation, string CallerName)> GetErrors( int maxDepth = 0 )
         {
             int count = _tracker.ErrorCount;
-            if( count == 0 ) return Memory<(int, int, int, int, string, string)>.Empty;
+            if( count == 0 ) return Memory<(int, int, int, int, bool, string, string)>.Empty;
 
-            var all = new (int Pos, int Line, int Col, int Depth, string Expectation, string CallerName)[count];
+            var all = new (int Pos, int Line, int Col, int Depth, bool IsError, string Expectation, string CallerName)[count];
             var lc = new LineColumnFinder( AllText );
             int i = 0;
-            foreach( var e in GetRawErrors() )
+            foreach( var (pos, depth, isError, expectation, callerName) in GetRawErrors() )
             {
-                if( maxDepth == 0 || e.Depth <= maxDepth )
+                if( maxDepth == 0 || depth <= maxDepth )
                 {
-                    var (l, c) = lc.Get( e.Pos );
-                    all[i++] = (e.Pos, l, c, e.Depth, e.Expectation, e.CallerName);
+                    var (l, c) = lc.Get( pos );
+                    all[i++] = (pos, l, c, depth, isError, expectation, callerName);
                 }
             }
             return all.AsMemory( 0, i );
         }
-
-        /// <summary>
-        /// Gets the errors as a multi line string with line and columns.
-        /// </summary>
-        /// <param name="withMethodName">False to not display the name of the caller method.</param>
-        /// <param name="maxDepth">Optional depth restriction.</param>
-        /// <returns></returns>
-        public string GetErrorMessage( bool withMethodName = true, int maxDepth = 0 )
-        {
-            var b = new StringBuilder();
-            bool atLeastOne = false;
-            foreach( var e in GetErrors( maxDepth ).Span )
-            {
-                if( atLeastOne ) b.AppendLine();
-                atLeastOne = true;
-                b.Append( ' ', e.Depth ).Append( '@' ).Append( e.Line ).Append( ',').Append( e.Col ).Append( " - " ).Append( e.Expectation );
-                if( withMethodName && !ReferenceEquals( e.Expectation, e.CallerName ) )
-                {
-                    b.Append( " (" ).Append( e.CallerName ).Append( ')' );
-                }
-            }
-            return b.ToString();
-        }
-
-
-
-
 
         /// <summary>
         /// Forwards <see cref="Head"/> by <paramref name="length"/> even if actual head's length is shorter and
