@@ -79,11 +79,11 @@ namespace CK.Core
             {
                 if( isOr ) 
                 {
-                    _builder.AppendLine().Append( ' ', sub - 4 ).Append( "Or: " ).Append( ' ', deltaDepth );
+                    _builder.AppendLine().Append( ' ', sub - 4 ).Append( "Or: " ).Append( ' ', deltaDepth*2 );
                 }
                 else
                 {
-                    _builder.AppendLine().Append( ' ', deltaDepth + sub );
+                    _builder.AppendLine().Append( ' ', deltaDepth*2 + sub );
                 }
                 AppendMessage(e, callerName);
             }
@@ -91,7 +91,7 @@ namespace CK.Core
             (int,int) DoNew( int depth, bool isError, int line, int col, string e, string callerName )
             {
                 int sub = AppenNewLine();
-                _builder.Append( ' ', depth ).Append( '@' ).Append( line ).Append( ',' ).Append( col );
+                _builder.Append( ' ', depth*2 ).Append( '@' ).Append( line ).Append( ',' ).Append( col );
                 int subLC = _builder.Length - sub;
                 if( isError )
                 {
@@ -139,6 +139,7 @@ namespace CK.Core
         /// <returns>The error message. The empty string if <see cref="HasError"/> is false.</returns>
         public string GetErrorMessage( bool withMethodName = true, int maxDepth = 0 )
         {
+            if( !HasError ) return String.Empty;
             var d = new Dumper( ref this, maxDepth, withMethodName );
             d.Dump();
             return d.ToString();

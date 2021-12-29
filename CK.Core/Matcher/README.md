@@ -202,13 +202,14 @@ The `ROSpanCharMatcher` exposes:
    - `AddExpectations` describes the expected input and always returns false.
    - `AddError` signals an error and always returns false.
    - `OpenExpectation` returns a IDisposable and enables to give a name to a complex subordinated pattern and 
-   - structure the expectations/errors in a tree-like structure (more on this later).
-   - `SetSuccess` that always returns true must be called to clear any pending errors/expectations 
-   - (at the current `OpenExpectation` level). 
+   structures the expectations/errors in a tree-like structure (more on this below).
+   - `SetSuccess` that always returns true and must be called to clear any pending errors/expectations 
+   (at the current `OpenExpectation` level). 
 
-Just like `TryParse` standard implementations, this new `TryMatch` can rely on the basic one so we can keep both versions without overhead.
+Just like `TryParse` standard implementations, this new `TryMatch` can rely on the basic `ReadOnlySpan<char>` one so we can
+keep both versions without overhead.
 Keeping the 2 versions makes sense for small, terminal, matchers but quickly, when the patterns become more complex, only
-the `ROSpanCharMatcher` with its error management must be supported. The final implementations become:
+the `ROSpanCharMatcher` with its error management should be supported. The final implementations become:
 
 ```csharp
 public static bool TryMatch( ref ReadOnlySpan<char> h, out LEDColor color )
@@ -285,7 +286,7 @@ static bool TryMatchFirstAndLast( ref ROSpanCharMatcher m )
 This works.
 
 Now, just for fun: what if we want to allow white spaces before and after the comma? This is rather easy
-because `` always returns true:
+because `SkipWhiteSpaces` always returns true:
 
 ```csharp
 static bool TryMatchFirstAndLast( ref ROSpanCharMatcher m )
@@ -302,8 +303,8 @@ static bool TryMatchFirstAndLast( ref ROSpanCharMatcher m )
 }
 ``` 
 
-To conclude, we now also allow C or JavaScript-like comments to appear around the comma. This is where regular expressions
-show their limits.
+To conclude, we now also allow C or JavaScript-like comments to appear around the comma (it can be /* ... */
+or // ... to the end of line). This is where regular expressions show their limits.
 
 ```csharp
 static bool TryMatchFirstAndLast( ref ROSpanCharMatcher m )
@@ -342,7 +343,7 @@ Using the `TryMatchFirstAndLast` above on invalid inputs give these errors:
 @1,6 - Expected: Character ',' (TryMatch)
 </pre>
 </td></tr>
-<tr><td>"Fisrt,"</td>
+<tr><td>"First,"</td>
 <td>
 <pre>
 @1,7 - Expected: String 'Last' (TryMatch)
@@ -362,6 +363,65 @@ Using the `TryMatchFirstAndLast` above on invalid inputs give these errors:
 </td></tr>
 </table>
 
+The line, column of the errors are displayed and the expectation is followed by the name of the method in parentheses.
+
 ### `OpenExpectations` samples
 
-TODO.
+Using `OpenExpectations` creates "a depth" in the matching and structure the error message:
+
+```csharp 
+static bool TryMatchFirstAndLastWithExpectation( ref ROSpanCharMatcher m )
+{
+    var savedHead = m.Head;
+    using( m.OpenExpectations( "First,Last (in English, French, Spanish or German)" ) )
+    {
+        if( (m.TryMatch( "First" ) || m.TryMatch( "Premier" ) || m.TryMatch( "Primero" ) || m.TryMatch( "Erste" ))
+        && m.SkipWhiteSpacesAndJSComments() && m.TryMatch( ',' ) && m.SkipWhiteSpacesAndJSComments()
+        && (m.TryMatch( "Last" ) || m.TryMatch( "Dernier" ) || m.TryMatch( "Última" ) || m.TryMatch( "Letzter" )) )
+        {
+            return m.SetSuccess();
+        }
+    }
+    m.Head = savedHead;
+    return false;
+}
+``` 
+The error for the `"First,"` input becomes:
+```
+@1,1 - Expected: First,Last (in English, French, Spanish or German) (TryMatchFirstAndLastWithExpectation)
+  @1,7 - Expected: String 'Last' (TryMatch)
+               Or: String 'Dernier' (TryMatch)
+               Or: String 'Última' (TryMatch)
+               Or: String 'Letzter' (TryMatch)
+```
+
+The `ROSpanCharMatcher` offers a basic support for parsing JSON:
+
+```csharp
+/// <summary>
+/// Tries to match a { "JSON" : "object" }, a ["JSON", "array"] or a terminal value (string, null, double, true or false) 
+/// and any combination of them.
+/// White spaces and JS comments (//... or /* ... */) are skipped.
+/// </summary>
+/// <param name="this">This <see cref="StringMatcher"/>.</param>
+/// <param name="value">
+/// A list of nullable objects (for array), a list of tuples (string,object?) for object or
+/// a double, string, boolean or null (for null).
+/// </param>
+/// <returns>True on success, false on error.</returns>
+public bool TryMatchAnyJSON( out object? value )
+```
+
+Matching the invalid input "[null,,]" gives the following error:
+
+```
+@1,1 - Expected: Any JSON token or object (TryMatchAnyJSON)
+  @1,2 - Expected: JSON array values (TryMatchJSONArrayContent)
+    @1,7 - Expected: Any JSON token or object (TryMatchAnyJSON)
+                       String 'true' (TryMatch)
+                 Or:   String 'false' (TryMatch)
+                 Or:   JSON string or null (TryMatchJSONQuotedString)
+                 Or:   Floating number (TryMatchDouble)
+```
+
+TODO: more complex JSON sample with an error inside.

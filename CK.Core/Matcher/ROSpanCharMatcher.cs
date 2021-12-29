@@ -353,7 +353,7 @@ namespace CK.Core
         ///   if( !matcher.TryMatchXXX( ... ) ) goto error:
         ///   if( !matcher.TryMatchXXX( ... ) ) goto error:
         ///
-        ///   return matcher.ClearExpectations();
+        ///   return matcher.SetSuccess();
         ///
         ///   error:
         ///   matcher.Head = savedHead;
