@@ -10,7 +10,7 @@ namespace CK.Core
         {
             readonly Span<(int Pos, int Line, int Col, int Depth, bool IsError, string Expectation, string CallerName)> _errors;
             readonly StringBuilder _builder;
-            bool _withMethodName;
+            readonly bool _withMethodName;
 
             public Dumper( ref ROSpanCharMatcher m, int maxDepth, bool withMethodName )
             {
@@ -136,7 +136,7 @@ namespace CK.Core
         /// </summary>
         /// <param name="withMethodName">False to not display the name of the caller method.</param>
         /// <param name="maxDepth">Optional depth restriction.</param>
-        /// <returns></returns>
+        /// <returns>The error message. The empty string if <see cref="HasError"/> is false.</returns>
         public string GetErrorMessage( bool withMethodName = true, int maxDepth = 0 )
         {
             var d = new Dumper( ref this, maxDepth, withMethodName );

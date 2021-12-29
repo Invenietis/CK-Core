@@ -91,7 +91,7 @@ namespace CK.Core.Tests
             m.HasError.Should().BeTrue();
             m.GetRawErrors().Select( e => $"@{e.Pos}{new string('-',e.Depth+1)}{e.Expectation}" ).Concatenate( '|' ).Should().Be( errors );
 
-            m.ClearExpectations();
+            m.SetSuccess();
             m.SingleExpectationMode = true;
             m.TryMatchAnyJSON( out _ ).Should().BeFalse();
             m.HasError.Should().BeTrue();

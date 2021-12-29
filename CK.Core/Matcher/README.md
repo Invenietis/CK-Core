@@ -1,6 +1,6 @@
 # ROSpanMatcher: the "Match and Forward" pattern
 
-## Macth and Forward
+## Match and Forward
 This handy little parsing pattern allows you to combine parsing functions much more easily and efficiently
 than the standard TryParse methods. A few explanations below.
 
@@ -134,6 +134,33 @@ public static bool TryMatch( ref ReadOnlySpan<char> h, [NotNullWhen(true)]out Li
 }
 ```
 
+## Extension methods at will
+
+For well known general purpose types, you may want to expose the `TryMatch` methods as extension methods of the "head".
+Some of them are already defined (see [ReadOnlySpanCharExtensions.cs](ReadOnlySpanCharExtensions.cs)) like this one for instance:
+
+```csharp
+/// <summary>
+/// Tries to parse a boolean "true" or "false" (case insensitive).
+/// </summary>
+/// <param name="head">This head.</param>
+/// <param name="b">The result boolean. False on failure.</param>
+/// <returns>True on success, false otherwise.</returns>
+public static bool TryMatchBool( this ref ReadOnlySpan<char> head, out bool b )
+{
+    b = false;
+    if( head.Length >= 4 )
+    {
+        if( head.TryMatch( "false", StringComparison.OrdinalIgnoreCase )
+            || (b = head.TryMatch( "true", StringComparison.OrdinalIgnoreCase )) )
+        {
+            return true;
+        }
+    }
+    return false;
+}
+```
+
 ## More complex grammars: exposing detailed syntax errors
 
 Previous examples are simple. However when combining them, even an error in one Color character may be hard to spot in a complex
@@ -141,7 +168,8 @@ grammar. Feedback to the user is crucial in any complex system. Without error ma
 the combinations of these small TryMatch functions become unusable in practice (a user cannot be satisfied with a terse "Invalid Syntax",
 he must be told where and what is invalid).
 
-Below is an example of the simple color match that explicit its error:
+To support errors and expectations, the [ROSpanCharMatcher](ROSpanCharMatcher.cs) replaces the mere `ReadOnlySpan<char>`.
+Below is an example of the same simple color match that explicit its error:
 
 ```csharp
 public static bool TryMatch( ref ROSpanCharMatcher m, out LEDColor color )
@@ -161,10 +189,179 @@ public static bool TryMatch( ref ROSpanCharMatcher m, out LEDColor color )
             default: goto error; 
         };
         m.Head = m.Head.Slice( 1 );
-        return m.ClearExpectations();
+        return m.SetSuccess();
     }
     error:
-    return m.AddExpectation( "Color char expected: W, R, G, B, Y, M, C." );
+    return m.AddExpectation( "Color char: W, R, G, B, Y, M or C." );
 }
 ```
 
+The `ROSpanCharMatcher` exposes:
+ - its mutable head directly, so it can be moved freely (and without overhead).
+ - a set of methods that manage errors and expectations:
+   - `AddExpectations` describes the expected input and always returns false.
+   - `AddError` signals an error and always returns false.
+   - `OpenExpectation` returns a IDisposable and enables to give a name to a complex subordinated pattern and 
+   - structure the expectations/errors in a tree-like structure (more on this later).
+   - `SetSuccess` that always returns true must be called to clear any pending errors/expectations 
+   - (at the current `OpenExpectation` level). 
+
+Just like `TryParse` standard implementations, this new `TryMatch` can rely on the basic one so we can keep both versions without overhead.
+Keeping the 2 versions makes sense for small, terminal, matchers but quickly, when the patterns become more complex, only
+the `ROSpanCharMatcher` with its error management must be supported. The final implementations become:
+
+```csharp
+public static bool TryMatch( ref ReadOnlySpan<char> h, out LEDColor color )
+{
+    color = default;
+    if( h.Length == 0 ) return false;
+    switch( h[0] )
+    {
+        case 'W': color = LEDColor.White; break;
+        case 'R': color = LEDColor.Red; break;
+        case 'G': color = LEDColor.Green; break;
+        case 'B': color = LEDColor.Blue; break;
+        case 'Y': color = LEDColor.Yellow; break;
+        case 'M': color = LEDColor.Magenta; break;
+        case 'C': color = LEDColor.Cyan; break;
+        default: return false;
+    };
+    h = h.Slice( 1 );
+    return true;
+}
+
+public static bool TryMatch( ref ROSpanCharMatcher m, out LEDColor color )
+    => TryMatch( ref m.Head, out color )
+        ? m.SetSuccess()
+        : m.AddExpectation( "Color char: W, R, G, B, Y, M or C" );
+```
+
+This may seem easy but it is not! When not matched, the head MUST be left where it was when the `TryMatch` method enters.
+Expectations and errors MUST be cleared by calling `SetSuccess()` on calling. When patterns become complex this quickly
+requires rigor... and tests!
+
+### Simple sample and dangerous traps
+
+This sample tries to match any comma separated combination of "First,Last" in 4 languages. It corresponds to the
+regular expressions: `(First|Premier|Primero|Erste),(Last|Dernier|Última|Letzter)`
+
+The following method has 2 issues. Can you spot them?
+
+```csharp
+static bool TryMatchFirstAndLast( ROSpanCharMatcher m )
+{
+    if( (m.TryMatch( "First" ) || m.TryMatch( "Premier" ) || m.TryMatch( "Primero" ) || m.TryMatch( "Erste" ))
+        && m.TryMatch( ',' )
+        && (m.TryMatch( "Last" ) || m.TryMatch( "Dernier" ) || m.TryMatch( "Última" ) || m.TryMatch( "Letzter" )) )
+    {
+        return m.SetSuccess();
+    }
+    return false;
+}
+``` 
+
+First, `ref` has been forgotten: the caller will see the errors and expectations but the head of its matcher will NOT be forwarded
+on success. Let's fix this:
+```csharp
+static bool TryMatchFirstAndLast( ref ROSpanCharMatcher m )
+``` 
+Now, on success, the head will be forwarded after the pattern BUT on error, the head will be where the match fails. To fix this we
+need to "save the head" and restore it on failure:
+
+```csharp
+static bool TryMatchFirstAndLast( ref ROSpanCharMatcher m )
+{
+    var savedHead = m.Head;
+    if( (m.TryMatch( "First" ) || m.TryMatch( "Premier" ) || m.TryMatch( "Primero" ) || m.TryMatch( "Erste" ))
+        && m.TryMatch( ',' )
+        && (m.TryMatch( "Last" ) || m.TryMatch( "Dernier" ) || m.TryMatch( "Última" ) || m.TryMatch( "Letzter" )) )
+    {
+        return m.SetSuccess();
+    }
+    m.Head = savedHead;
+    return false;
+}
+``` 
+This works.
+
+Now, just for fun: what if we want to allow white spaces before and after the comma? This is rather easy
+because `` always returns true:
+
+```csharp
+static bool TryMatchFirstAndLast( ref ROSpanCharMatcher m )
+{
+    var savedHead = m.Head;
+    if( (m.TryMatch( "First" ) || m.TryMatch( "Premier" ) || m.TryMatch( "Primero" ) || m.TryMatch( "Erste" ))
+        && m.SkipWhiteSpaces() && m.TryMatch( ',' ) && m.SkipWhiteSpaces()
+        && (m.TryMatch( "Last" ) || m.TryMatch( "Dernier" ) || m.TryMatch( "Última" ) || m.TryMatch( "Letzter" )) )
+    {
+        return m.SetSuccess();
+    }
+    m.Head = savedHead;
+    return false;
+}
+``` 
+
+To conclude, we now also allow C or JavaScript-like comments to appear around the comma. This is where regular expressions
+show their limits.
+
+```csharp
+static bool TryMatchFirstAndLast( ref ROSpanCharMatcher m )
+{
+    var savedHead = m.Head;
+    if( (m.TryMatch( "First" ) || m.TryMatch( "Premier" ) || m.TryMatch( "Primero" ) || m.TryMatch( "Erste" ))
+        && m.SkipWhiteSpacesAndJSComments() && m.TryMatch( ',' ) && m.SkipWhiteSpacesAndJSComments()
+        && (m.TryMatch( "Last" ) || m.TryMatch( "Dernier" ) || m.TryMatch( "Última" ) || m.TryMatch( "Letzter" )) )
+    {
+        return m.SetSuccess();
+    }
+    m.Head = savedHead;
+    return false;
+}
+``` 
+
+### `GetErrorMessage`: detailed errors and positions
+
+The `ROSpanCharMatcher` has a `string GetErrorMessage()` method that formats the errors and expectations.
+Using the `TryMatchFirstAndLast` above on invalid inputs give these errors:
+
+<table>
+<tr><td>Input</td><td>Error message</td></tr>
+<tr><td>"" (empty string)</td>
+<td>
+<pre>
+@1,1 - Expected: String 'First' (TryMatch)
+             Or: String 'Premier' (TryMatch)
+             Or: String 'Primero' (TryMatch)
+             Or: String 'Erste' (TryMatch)
+</pre>
+</td></tr>
+<tr><td>"Erste"</td>
+<td>
+<pre>
+@1,6 - Expected: Character ',' (TryMatch)
+</pre>
+</td></tr>
+<tr><td>"Fisrt,"</td>
+<td>
+<pre>
+@1,7 - Expected: String 'Last' (TryMatch)
+             Or: String 'Dernier' (TryMatch)
+             Or: String 'Última' (TryMatch)
+             Or: String 'Letzter' (TryMatch)
+</pre>
+</td></tr>
+<tr><td>"Primero /*a comment*/ , "</td>
+<td>
+<pre>
+@1,25 - Expected: String 'Last' (TryMatch)
+              Or: String 'Dernier' (TryMatch)
+              Or: String 'Última' (TryMatch)
+              Or: String 'Letzter' (TryMatch)
+</pre>
+</td></tr>
+</table>
+
+### `OpenExpectations` samples
+
+TODO.

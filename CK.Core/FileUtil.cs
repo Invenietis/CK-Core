@@ -112,7 +112,7 @@ namespace CK.Core
         /// <returns>True on success, false otherwise.</returns>
         public static bool TryMatchFileNameUniqueTimeUtcFormat( this ref ROSpanCharMatcher m, out DateTime time )
             => m.Head.TryMatchFileNameUniqueTimeUtcFormat( out time )
-                ? m.ClearExpectations()
+                ? m.SetSuccess()
                 : m.AddExpectation( "UTC time" );
         
         /// <summary>

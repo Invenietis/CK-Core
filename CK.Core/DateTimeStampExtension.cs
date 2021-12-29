@@ -30,7 +30,7 @@ namespace CK.Core
                     uniquifier = (byte)u;
                 }
                 time = new DateTimeStamp( t, uniquifier );
-                return m.ClearExpectations();
+                return m.SetSuccess();
 
                 error:
                 time = DateTimeStamp.Unknown;

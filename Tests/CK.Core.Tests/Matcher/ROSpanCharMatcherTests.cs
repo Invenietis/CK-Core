@@ -174,7 +174,7 @@ namespace CK.Core.Tests
             m.Head.Length.Should().Be( len );
             m.GetRawErrors().Should().HaveCount( 1 );
             m.GetRawErrors().Single().Expectation.Should().Be( message );
-            m.ClearExpectations();
+            m.SetSuccess();
         }
 
         [TestCase( "0", 0 )]
@@ -327,7 +327,7 @@ namespace CK.Core.Tests
             using( m.OpenExpectations() )
             {
                 m.HasError.Should().BeFalse( "Newly opened group has no error." );
-                m.ClearExpectations();
+                m.SetSuccess();
             }
             m.HasError.Should().BeFalse( "ClearExpectations has been called in group." );
             using( m.OpenExpectations() )
@@ -337,7 +337,7 @@ namespace CK.Core.Tests
             m.HasError.Should().BeTrue( "ClearExpectations has NOT been called in group: the error is the caller name since there's no explicit expect string." );
             m.GetRawErrors().Single().Expectation.Should().Be( defaultGroupName );
 
-            m.ClearExpectations();
+            m.SetSuccess();
             m.HasError.Should().BeFalse();
             m.GetRawErrors().Should().BeEmpty();
 
@@ -345,7 +345,7 @@ namespace CK.Core.Tests
             {
                 m.HasError.Should().BeFalse();
                 m.AddExpectation( "1" );
-                m.ClearExpectations();
+                m.SetSuccess();
 
                 m.HasError.Should().BeFalse();
                 m.GetRawErrors().Should().BeEmpty();
@@ -440,7 +440,7 @@ namespace CK.Core.Tests
             m.HasError.Should().BeTrue();
             m.GetRawErrors().Single().Expectation.Should().Be( "C" );
 
-            m.ClearExpectations();
+            m.SetSuccess();
             m.GetRawErrors().Should().BeEmpty();
 
             using( m.OpenExpectations( "Thing1" ) )

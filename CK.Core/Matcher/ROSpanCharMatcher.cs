@@ -38,9 +38,9 @@ namespace CK.Core
         sealed class ErrorTracker : ITracker
         {
             ITracker _current;
-            // Depth starts at 1 when stored. We use a positive Depth for expectations
-            // and a negative one for errors. This avoids yet another (boolean) field to
-            // discriminate between errors and expectations.
+            // O or positive Depth is an expectation.
+            // Negative Depth is for errors and are unary complement of the actual Depth.
+            // This avoids yet another (boolean) field to discriminate between errors and expectations.
             (int P, int D, string? E, string C)[]? _errors;
             Sub? _firstFree;
             int _errorCount;
@@ -130,7 +130,7 @@ namespace CK.Core
                 {
                     if( ErrorCount == 0 ) return Enumerable.Empty<(int, int, bool, string, string)>();
                     Debug.Assert( _tracker._errors != null );
-                    return _tracker._errors.Skip( _idxHeader ).Take( _tracker._errorCount - _idxHeader ).Select( e => (allTextLength - e.P, (e.D < 0 ? ~e.D : e.D)-1, e.D < 0, e.E!, e.C) );
+                    return _tracker._errors.Skip( _idxHeader ).Take( _tracker._errorCount - _idxHeader ).Select( e => (allTextLength - e.P, e.D < 0 ? ~e.D : e.D, e.D < 0, e.E!, e.C) );
                 }
             }
 
@@ -170,7 +170,6 @@ namespace CK.Core
                 {
                     Array.Resize( ref _errors, _errorCount * 2 );
                 }
-                ++depth;
                 _errors[_errorCount++] = (pos, isError ? ~depth : depth, expect, caller);
                 return false;
             }
@@ -181,7 +180,6 @@ namespace CK.Core
                 if( startPos != _errorCount )
                 {
                     Debug.Assert( _errors != null );
-                    ++depth;
                     _errors[startPos] = (pos, isError ? ~depth : depth, expect, caller);
                     return false;
                 }
@@ -240,7 +238,7 @@ namespace CK.Core
             {
                 if( _errorCount == 0 ) return Enumerable.Empty<(int, int, bool, string, string)>();
                 Debug.Assert( _errors != null );
-                return _errors.Take( _errorCount ).Select( e => (allTextLength - e.P, (e.D < 0 ? ~e.D : e.D) - 1, e.D < 0, e.E!, e.C ) );
+                return _errors.Take( _errorCount ).Select( e => (allTextLength - e.P, e.D < 0 ? ~e.D : e.D, e.D < 0, e.E!, e.C ) );
             }
         }
 
@@ -329,9 +327,17 @@ namespace CK.Core
         public bool AddError( int offset, string error, [CallerMemberName] string? callerName = null ) => _tracker.AddExpOrErr( true, Head.Length - offset, error, callerName! );
 
         /// <summary>
+        /// Clears any recorded expectations and always returns true.
+        /// </summary>
+        /// <returns>Always true so it can be directly returned by the TryMatch function.</returns>
+        [MethodImpl( MethodImplOptions.AggressiveInlining )]
+        public bool SetSuccess() => _tracker.ClearExpectations();
+
+        /// <summary>
         /// Clears any recorded expectations and returns true.
         /// </summary>
         /// <returns>Always true so it can be directly returned by the TryMatch function.</returns>
+        [Obsolete("Use SetSuccess() method instead.", true)]
         [MethodImpl( MethodImplOptions.AggressiveInlining )]
         public bool ClearExpectations() => _tracker.ClearExpectations();
 
@@ -339,7 +345,7 @@ namespace CK.Core
         /// Opens a group of subordinated expectations that must be disposed.
         /// <para>
         /// Because of ref struct limitation this is not possible for this disposable to capture the current head and automatically
-        /// restores it if <see cref="ClearExpectations"/> has not been called. This must be done explicitly. A typical pattern is:
+        /// restores it if <see cref="SetSuccess"/> has not been called. This must be done explicitly. A typical pattern is:
         /// <code>
         /// var savedHead = matcher.Head;
         /// using( OpenExpectations( "Thing" ) )
@@ -463,7 +469,7 @@ namespace CK.Core
         /// <returns>True on success, false otherwise.</returns>
         [MethodImpl( MethodImplOptions.AggressiveInlining )]
         public bool TryMatch( ReadOnlySpan<char> value, StringComparison comparison = StringComparison.Ordinal )
-            => Head.TryMatch( value, comparison ) ? ClearExpectations() : AddExpectation( $"String '{value}'" );
+            => Head.TryMatch( value, comparison ) ? SetSuccess() : AddExpectation( $"String '{value}'" );
 
         /// <summary>
         /// Tries to match a character.
@@ -475,7 +481,7 @@ namespace CK.Core
         [MethodImpl( MethodImplOptions.AggressiveInlining )]
         public bool TryMatch( char value, StringComparison comparison = StringComparison.Ordinal )
             => Head.TryMatch( value, comparison )
-                ? ClearExpectations()
+                ? SetSuccess()
                 : AddExpectation( $"Character '{value}'" );
 
         /// <summary>
@@ -495,7 +501,7 @@ namespace CK.Core
         /// <returns>True on success, false otherwise.</returns>
         public bool TryMatchGuid( out Guid id )
             => Head.TryMatchGuid( out id )
-                ? ClearExpectations()
+                ? SetSuccess()
                 : AddExpectation( "Guid" );
 
         /// <summary>
@@ -507,11 +513,11 @@ namespace CK.Core
         /// <returns>True on success, false if <paramref name="minCount"/> white spaces cannot be skipped before the end of the head).</returns>
         public bool TrySkipWhiteSpaces( int minCount = 1 )
             => Head.TrySkipWhiteSpaces( minCount )
-                ? ClearExpectations()
+                ? SetSuccess()
                 : AddExpectation( minCount == 1 ? "At least one white space" : $"At least {minCount} white space(s)" );
 
         /// <summary>
-        /// Skips any number of white spaces.
+        /// Skips any number of white spaces and always returns true.
         /// </summary>
         /// <returns>Always true.</returns>
         public bool SkipWhiteSpaces() => Head.SkipWhiteSpaces();
@@ -534,7 +540,7 @@ namespace CK.Core
         {
             if( Head.TryMatchInt32( out i, minValue, maxValue, allowLeadingZeros ) )
             {
-                return ClearExpectations();
+                return SetSuccess();
             }
             string s;
             if( minValue >= 0 )
@@ -555,7 +561,7 @@ namespace CK.Core
         /// <returns>True on success, false otherwise.</returns>
         public bool TrySkipDouble()
             => Head.TrySkipDouble()
-                ? ClearExpectations()
+                ? SetSuccess()
                 : AddExpectation( $"Floating number" );
 
         /// <summary>
@@ -565,7 +571,7 @@ namespace CK.Core
         /// <returns></returns>
         public bool TryMatchDouble( out double value )
             => Head.TryMatchDouble( out value )
-                ? ClearExpectations()
+                ? SetSuccess()
                 : AddExpectation( "Floating number" );
 
         /// <summary>
@@ -577,8 +583,14 @@ namespace CK.Core
         /// <returns>True on success, false otherwise.</returns>
         public bool TryMatchHexNumber( out ulong value, int minDigit = 1, int maxDigit = 16 )
             => Head.TryMatchHexNumber( out value, minDigit, maxDigit )
-                ? ClearExpectations()
+                ? SetSuccess()
                 : AddExpectation( minDigit == maxDigit ? $"{minDigit} digits hexadecimal number" : $"Hexadecimal number ({minDigit} to {maxDigit} digits)" );
+
+        /// <summary>
+        /// Skips any white spaces or JS comments (//... or /* ... */) and always returns true.
+        /// </summary>
+        /// <returns>Always true to ease composition.</returns>
+        public bool SkipWhiteSpacesAndJSComments() => Head.SkipWhiteSpacesAndJSComments();
 
         /// <summary>
         /// Tries to skip a quoted string. This handles escaped \" and \\ but not other
@@ -589,7 +601,7 @@ namespace CK.Core
         /// <returns>True on success, false otherwise.</returns>
         public bool TrySkipJSONQuotedString( bool allowNull = false )
             => Head.TrySkipJSONQuotedString( allowNull )
-                ? ClearExpectations()
+                ? SetSuccess()
                 : AddExpectation( allowNull ? "JSON string or null" : "JSON string" );
 
         /// <summary>
@@ -607,7 +619,7 @@ namespace CK.Core
             {
                 if( !isEmpty && allowNull && Head.TryMatch( "null" ) )
                 {
-                    return ClearExpectations();
+                    return SetSuccess();
                 }
                 return AddExpectation( allowNull ? "JSON string or null" : "JSON string" );
             }
@@ -661,7 +673,7 @@ namespace CK.Core
             if( b != null ) content = b.ToString();
             else content = new string( Head.Slice( 1, i - 2 ) );
             Head = Head.Slice( i );
-            return ClearExpectations();
+            return SetSuccess();
         }
 
         /// <summary>
@@ -669,7 +681,9 @@ namespace CK.Core
         /// </summary>
         /// <returns>True on success, false otherwise.</returns>
         public bool TrySkipJSONTerminalValue()
-            => Head.TrySkipJSONTerminalValue() ? ClearExpectations() : AddExpectation("null, true, false, a floating number or a \"string\"" );
+            => Head.TrySkipJSONTerminalValue()
+                ? SetSuccess()
+                : AddExpectation( "null, true, false, a floating number or a \"string\"" );
 
         /// <summary>
         /// Tries to match a JSON terminal value: a "string", null, a number (double value), true or false.
@@ -699,7 +713,7 @@ namespace CK.Core
                 value = null;
                 return false;
             }
-            return ClearExpectations();
+            return SetSuccess();
         }
 
         /// <summary>
@@ -719,7 +733,7 @@ namespace CK.Core
                     Head.SkipWhiteSpacesAndJSComments();
                     if( Head.TryMatch( '}' ) )
                     {
-                        return ClearExpectations();
+                        return SetSuccess();
                     }
                     if( !TryMatchJSONQuotedString( out string? propName ) )
                     {
@@ -759,7 +773,7 @@ namespace CK.Core
                     Head.SkipWhiteSpacesAndJSComments();
                     if( Head.TryMatch( ']' ) )
                     {
-                        return ClearExpectations();
+                        return SetSuccess();
                     }
                     if( !TryMatchAnyJSON( out object? cell ) ) goto error;
                     value.Add( cell );

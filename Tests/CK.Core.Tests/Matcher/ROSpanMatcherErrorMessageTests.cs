@@ -2,6 +2,7 @@ using FluentAssertions;
 using NUnit.Framework;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -89,33 +90,42 @@ D  NOTX", @"
              Or: String 'Última' (TryMatch)
              Or: String 'Letzter' (TryMatch)
 " )]
-        public void with_Or_Expected( string text, string message )
+        [TestCase( "Primero /*a comment*/ , ", @"
+@1,25 - Expected: String 'Last' (TryMatch)
+              Or: String 'Dernier' (TryMatch)
+              Or: String 'Última' (TryMatch)
+              Or: String 'Letzter' (TryMatch)
+" )]
+        [TestCase( "Erste,Última", null )]
+        public void with_Or_Expected( string text, string? message )
         {
             var m = new ROSpanCharMatcher( text );
             m.SkipWhiteSpaces();
-            if( !TryMatchFirstLast( m ) )
+            if( !TryMatchFirstAndLast( ref m ) )
             {
+                Debug.Assert( message != null );
+                m.Head.Length.Should().Be( m.AllText.Length );
                 m.HasError.Should().BeTrue();
                 m.GetErrorMessage().Should().Be( message.NormalizeEOL().Trim() );
             }
             else
             {
+                Debug.Assert( message == null );
                 m.HasError.Should().BeFalse();
+                m.Head.IsEmpty.Should().BeTrue();
             }
         }
 
-        private static bool TryMatchFirstLast( ROSpanCharMatcher m )
+        static bool TryMatchFirstAndLast( ref ROSpanCharMatcher m )
         {
-            if( m.TryMatch( "First" ) || m.TryMatch( "Premier" ) || m.TryMatch( "Primero" ) || m.TryMatch( "Erste" ) )
+            var savedHead = m.Head;
+            if( (m.TryMatch( "First" ) || m.TryMatch( "Premier" ) || m.TryMatch( "Primero" ) || m.TryMatch( "Erste" ))
+                && m.SkipWhiteSpacesAndJSComments() && m.TryMatch( ',' ) && m.SkipWhiteSpacesAndJSComments()
+                && (m.TryMatch( "Last" ) || m.TryMatch( "Dernier" ) || m.TryMatch( "Última" ) || m.TryMatch( "Letzter" )) )
             {
-                if( m.TryMatch( ',' ) )
-                {
-                    if( m.TryMatch( "Last" ) || m.TryMatch( "Dernier" ) || m.TryMatch( "Última" ) || m.TryMatch( "Letzter" ) )
-                    {
-                        return m.ClearExpectations();
-                    }
-                }
+                return m.SetSuccess();
             }
+            m.Head = savedHead;
             return false;
         }
     }
