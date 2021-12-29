@@ -139,7 +139,7 @@ namespace CK.Core.Tests
             }
         }
 
-        public void CheckNotNullOrEmptyArgument_throws_ArgumentException_for_ReadOnlyMemory()
+        public static void CheckNotNullOrEmptyArgument_throws_ArgumentException_for_ReadOnlyMemory()
         {
             FluentActions.Invoking( () => f( null! ) ).Should().Throw<ArgumentException>().WithMessage( "Must not be empty. (Parameter 'emptyROMemory')" )
                                                                                        .Where( ex => ex.ParamName == "emptyROMemory" );

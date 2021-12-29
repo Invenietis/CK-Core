@@ -70,7 +70,7 @@ namespace CK.Core
                 /// <returns>The read value.</returns>
                 public T SetReadResult( T read )
                 {
-                    if( _pool == null ) throw new InvalidOperationException();
+                    Throw.CheckState( _pool != null );
                     _pool._objects[_num] = read;
                     return read;
                 }

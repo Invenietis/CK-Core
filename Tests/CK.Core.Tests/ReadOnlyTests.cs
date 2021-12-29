@@ -24,7 +24,7 @@ namespace CK.Core.Tests
         public bool Contains( object item )
         {
             if( ContainsCalled != null ) ContainsCalled( this, EventArgs.Empty );
-            return item is T ? Content.Contains( (T)item ) : false;
+            return item is T && Content.Contains( (T)item );
         }
 
         public int Count

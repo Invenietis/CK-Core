@@ -85,7 +85,7 @@ namespace CK.Core
         }
 
         /// <summary>
-        /// Skips any number of white spaces.
+        /// Skips any number of white spaces and always returns true.
         /// </summary>
         /// <param name="head">The head.</param>
         /// <returns>Always true.</returns>
@@ -319,7 +319,7 @@ namespace CK.Core
             unchecked
             {
                 long iMax = Int32.MaxValue;
-                if( signed ) iMax = iMax + 1;
+                if( signed ) iMax++;
                 for( ; idx < h.Length; idx++ )
                 {
                     if( (c = h[idx]) < '0' || c > '9' ) break;
@@ -462,6 +462,8 @@ namespace CK.Core
 
         /// <summary>
         /// Skips any white spaces or JS comments (//... or /* ... */) and always returns true.
+        /// Proper termination of comment (by a new line or the closing */) is not required: 
+        /// a ending /*... is considered valid.
         /// </summary>
         /// <param name="head">This head.</param>
         /// <returns>Always true to ease composition.</returns>

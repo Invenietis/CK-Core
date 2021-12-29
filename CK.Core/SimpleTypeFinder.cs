@@ -57,10 +57,9 @@ namespace CK.Core
         public static Type? WeakResolver( string assemblyQualifiedName, bool throwOnError )
         {
             Type? done = StandardResolver( assemblyQualifiedName, false );
-            if( ReferenceEquals( done, null ) )
+            if( done == null )
             {
-                string weakTypeName;
-                if( !WeakenAssemblyQualifiedName( assemblyQualifiedName, out weakTypeName ) && throwOnError )
+                if( !WeakenAssemblyQualifiedName( assemblyQualifiedName, out string weakTypeName ) && throwOnError )
                 {
                     Throw.ArgumentException( nameof( assemblyQualifiedName ), $"Invalid Assembly Qualified Name '{assemblyQualifiedName}." );
                 }
@@ -117,9 +116,8 @@ namespace CK.Core
         static public bool WeakenAssemblyQualifiedName( string assemblyQualifiedName, out string weakTypeName )
         {
             weakTypeName = String.Empty;
-            string fullTypeName, assemblyFullName, assemblyName;
-            if( SplitAssemblyQualifiedName( assemblyQualifiedName, out fullTypeName, out assemblyFullName )
-                && SplitAssemblyFullName( assemblyFullName, out assemblyName, out _ ) )
+            if( SplitAssemblyQualifiedName( assemblyQualifiedName, out string fullTypeName, out string assemblyFullName )
+                && SplitAssemblyFullName( assemblyFullName, out string assemblyName, out _ ) )
             {
                 weakTypeName = fullTypeName + ", " + assemblyName;
                 return true;

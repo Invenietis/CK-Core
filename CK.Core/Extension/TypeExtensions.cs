@@ -97,7 +97,7 @@ namespace CK.Core
             if( t.IsArray )
             {
                 return b.Append( ToCSharpName( t.GetElementType()!, withNamespace, typeDeclaration, useValueTupleParentheses ) )
-                        .Append( "[" ).Append( new string( ',', t.GetArrayRank() - 1 ) ).Append( "]" );
+                        .Append( '[' ).Append( ',', t.GetArrayRank() - 1 ).Append( ']' );
             }
             if( t.IsByRef )
             {
@@ -131,7 +131,7 @@ namespace CK.Core
                 else
                 {
                     n = theT.Name;
-                    b.Append( "." );
+                    b.Append( '.' );
                 }
                 int idxTick = n.IndexOf( '`', StringComparison.Ordinal ) + 1;
                 if( idxTick > 0 )
@@ -146,18 +146,18 @@ namespace CK.Core
                     bool isNullableValue = !isValueTuple && tName == "System.Nullable" && !subType.IsGenericTypeParameter;
                     if( isValueTuple && useValueTupleParentheses )
                     {
-                        b.Append( "(" );
+                        b.Append( '(' );
                     }
                     else if( !isNullableValue )
                     {
                         b.Append( tName );
-                        b.Append( "<" );
+                        b.Append( '<' );
                     }
                     --nbParams;
                     int iGen = 0;
                     for(; ; )
                     {
-                        if( iGen > 0 ) b.Append( "," );
+                        if( iGen > 0 ) b.Append( ',' );
                         b.Append( ToCSharpName( subType, withNamespace, typeDeclaration, useValueTupleParentheses ) );
                         if( iGen++ == nbParams ) break;
                         subType = allGenArgs.Dequeue();
@@ -172,10 +172,10 @@ namespace CK.Core
                             nbParams = rest.Length - 1;
                             for( int i = 1; i < rest.Length; ++i ) allGenArgs.Enqueue( rest[i] );
                             iGen = 0;
-                            b.Append( "," );
+                            b.Append( ',' );
                         }
                     }
-                    b.Append( isNullableValue ? "?" : (isValueTuple && useValueTupleParentheses ? ")" : ">") );
+                    b.Append( isNullableValue ? '?' : (isValueTuple && useValueTupleParentheses ? ')' : '>') );
                 }
                 else b.Append( n );
             }

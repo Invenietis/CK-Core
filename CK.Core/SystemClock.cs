@@ -17,7 +17,7 @@ namespace CK.Core
         /// <summary>
         /// Gets a default clock directly bound to <see cref="DateTime.UtcNow"/>.
         /// </summary>
-        public static ISystemClock Default = new NoSystemClock(); 
+        public static readonly ISystemClock Default = new NoSystemClock(); 
 
         /// <summary>
         /// Gets or sets the offset to apply to <see cref="DateTime.UtcNow"/>.

@@ -21,7 +21,7 @@ namespace CK.Core.Tests
             s.TryMatch( 'Y' ).Should().BeTrue();
 
             s = t.ToString( FileUtil.FileNameUniqueTimeUtcFormat ).Insert( 2, "X" ).AsSpan();
-            s.TryMatchFileNameUniqueTimeUtcFormat( out parsed ).Should().BeFalse();
+            s.TryMatchFileNameUniqueTimeUtcFormat( out _ ).Should().BeFalse();
             s.TryMatchInt32( out int i ).Should().BeTrue();
             i.Should().Be( 20 );
         }

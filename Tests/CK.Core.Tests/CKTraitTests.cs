@@ -15,7 +15,7 @@ namespace CK.Core.Tests
     /// </summary>
     public class CKTraitTests
     {
-        CKTraitContext ContextWithPlusSeparator() => CKTraitContext.Create( "Test", '+' );
+        static CKTraitContext ContextWithPlusSeparator() => CKTraitContext.Create( "Test", '+' );
 
         [Test]
         public void Comparing_tags()
