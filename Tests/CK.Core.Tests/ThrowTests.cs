@@ -2,7 +2,9 @@ using FluentAssertions;
 using NUnit.Framework;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -220,11 +222,38 @@ namespace CK.Core.Tests
             bool _canRun = false;
 
             FluentActions.Invoking( () => Run() ).Should().Throw<InvalidOperationException>()
-                                                          .WithMessage( "This should be able to run. (Expression: '_canRun'.)" );
+                                                          .WithMessage( "This should be able to run. (Expression: '_canRun')" );
 
             void Run()
             {
                 Throw.CheckState( "This should be able to run.", _canRun );
+            }
+        }
+
+        string ThisFile( [CallerFilePath] string? s = null ) => s;
+
+        [Test]
+        public void CheckData_throws_InvalidDataException_with_the_faulty_expression()
+        {
+            FluentActions.Invoking( () => FillFile() ).Should().Throw<InvalidDataException>()
+                                                          .WithMessage( "Invalid data: 'File.ReadAllText( ThisFile() ).Length == 0' should be true." );
+
+            void FillFile()
+            {
+                Throw.CheckData( File.ReadAllText( ThisFile() ).Length == 0 );
+            }
+        }
+
+
+        [Test]
+        public void CheckData_with_message_and_faulty_expression()
+        {
+            FluentActions.Invoking( () => FillFile() ).Should().Throw<InvalidDataException>()
+                                                          .WithMessage( "This file must be empty. (Expression: 'File.ReadAllText( ThisFile() ).Length == 0')" );
+
+            void FillFile()
+            {
+                Throw.CheckData( "This file must be empty.", File.ReadAllText( ThisFile() ).Length == 0 );
             }
         }
 
