@@ -76,9 +76,9 @@ __Raises `OutOfRangeArgumentException`__: `Come on! (Parameter 'index is >= 0 an
   - For strings, `Throw.CheckNotNullOrEmptyArgument` and `Throw.CheckNotNullOrWhiteSpaceArgument` raise an `ArgumentNullException`
   (if the value is null) and an `ArgumentException` otherwise.
 
-  - `Throw.CheckNotNullOrEmptyArgument` is also available for "collections": all IEnumerables but also Span<T>, Memory<T> and 
-  their ReadOnly versions (technically, Span and Memory are structs - Value type - and cannot be "null", but I found it more
-  convenient to use the same overload than a specific "CheckNotEmpty").
+  - `Throw.CheckNotNullOrEmptyArgument` is also available for "collections": all `IEnumerable`, `IEnumerable<T>` but also `Span<T>`, 
+  `Memory<T>` and their ReadOnly versions (technically, Span and Memory are structs - Value type - 
+  and cannot be "null", but I found it more convenient to use the same overload than a specific "CheckNotEmpty").
 
 Arguments are not the only things that can go wrong. Your code has a *State* that can be invalid regarding the requested operation:
 this is the `InvalidOperationException`:
