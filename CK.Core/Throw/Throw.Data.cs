@@ -13,6 +13,49 @@ namespace CK.Core
     public partial class Throw
     {
         /// <summary>
+        /// Throws a new <see cref="InvalidDataException"/> if <paramref name="valid"/> expression is false.
+        /// </summary>
+        /// <param name="valid">The expression to that must be true.</param>
+        /// <param name="exp">Roslyn's automatic capture of the expression's value.</param>
+        [MethodImpl( MethodImplOptions.AggressiveInlining )]
+        public static void CheckData( [DoesNotReturnIf( false )] bool valid, [CallerArgumentExpression( "valid" )] string? exp = null )
+        {
+            if( !valid )
+            {
+                CheckDataException( exp! );
+            }
+        }
+
+        /// <summary>
+        /// Throws a new <see cref="InvalidDataException"/> if <paramref name="valid"/> expression is false.
+        /// </summary>
+        /// <param name="message">An explicit message that replaces the default "Invalid data: ... should be true.".</param>
+        /// <param name="valid">The expression to that must be true.</param>
+        /// <param name="exp">Roslyn's automatic capture of the expression's value.</param>
+        [MethodImpl( MethodImplOptions.AggressiveInlining )]
+        public static void CheckData( string message, [DoesNotReturnIf( false )] bool valid, [CallerArgumentExpression( "valid" )] string? exp = null )
+        {
+            if( !valid )
+            {
+                CheckDataException( exp!, message );
+            }
+        }
+
+        [DoesNotReturn]
+        static void CheckDataException( string exp, string? message = null )
+        {
+            if( message == null )
+            {
+                InvalidDataException( $"Invalid data: '{exp}' should be true." );
+            }
+            else
+            {
+                InvalidDataException( $"{message} (Expression: '{exp}')" );
+            }
+        }
+
+
+        /// <summary>
         /// Throws a new <see cref="System.IO.InvalidDataException"/>.
         /// </summary>
         /// <param name="message">Optional message to include in the exception.</param>

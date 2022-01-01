@@ -49,7 +49,7 @@ namespace CK.Core
             }
             else
             {
-                InvalidOperationException( $"{message} (Expression: '{exp}'.)" );
+                InvalidOperationException( $"{message} (Expression: '{exp}')" );
             }
         }
 
