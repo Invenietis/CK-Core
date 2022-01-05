@@ -38,13 +38,14 @@ of usages).
 
 ## NormalizedPath
 
-Immutable encapsulation of a path string ('\' are mapped to '/') and its parts as an array of strings.
-This implements a path closer to Unix than Windows ('/' and case sensitivity) but works perfectly well
+Immutable encapsulation of a `Path` string ('\\' are mapped to '/') and its `Parts` as an array of strings.
+This implements a path closer to Unix than Windows (forward slashes '/' and case sensitivity) but works perfectly well
 on Windows.
-A NormalizedPath can be relative (supports '..' or '.' parts) or be rooted: multiple kind of
-roots are supported:
+A NormalizedPath can be relative (supports '..' or '.' parts) or be rooted: 5 kind of
+[roots](CK.Core/NormalizedPathRootKind.cs) are supported:
+  - None (relative path)
   - '/' (RootedBySeparator), 
-  - 'X:' or ':' (RootedByFirstPart), 
+  - 'X:' or ':' or '~' (RootedByFirstPart), 
   - '//' (RootedByDoubleSeparator), 
   - or 'xx://' (RootedByURIScheme).
 

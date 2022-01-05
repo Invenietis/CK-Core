@@ -140,11 +140,11 @@ namespace CK.Core
                             }
                             if( hasDoubleSlash && _option == NormalizedPathRootKind.RootedByFirstPart )
                             {
-                                throw new ArgumentException( $"Invalid root path: '{first}' may be followed by one {DirectorySeparatorChar} but not two." );
+                                Throw.ArgumentException( nameof( path ), $"Invalid root path: '{first}' may be followed by one {DirectorySeparatorChar} but not two." );
                             }
                             if( !hasDoubleSlash && _option == NormalizedPathRootKind.RootedByURIScheme )
                             {
-                                throw new ArgumentException( $"Invalid root path: '{first}', as a URI scheme, may be followed by two {DirectorySeparatorChar} but not by only one." );
+                                Throw.ArgumentException( nameof( path ), $"Invalid root path: '{first}', as a URI scheme, may be followed by two {DirectorySeparatorChar} but not by only one." );
                             }
                         }
                     }
@@ -243,10 +243,7 @@ namespace CK.Core
         public NormalizedPath With( NormalizedPathRootKind kind )
         {
             if( kind == _option ) return this;
-            if( kind == NormalizedPathRootKind.RootedByURIScheme )
-            {
-                throw new ArgumentException( $"Cannot change any existing path to be RootedByURIScheme.", nameof( kind ) );
-            }
+            Throw.CheckArgument( "Cannot change any existing path to be RootedByURIScheme.", kind != NormalizedPathRootKind.RootedByURIScheme );
             if( _parts == null )
             {
                 switch( kind )
@@ -258,7 +255,8 @@ namespace CK.Core
                         }
                     case NormalizedPathRootKind.RootedByFirstPart:
                         {
-                            throw new ArgumentException( "Invalid RootedByFirstPart on path without any parts." );
+                            Throw.ArgumentException( "Invalid RootedByFirstPart on path without any parts." );
+                            break;
                         }
                     case NormalizedPathRootKind.RootedBySeparator:
                         {
@@ -268,7 +266,7 @@ namespace CK.Core
                         {
                             return new NormalizedPath( kind );
                         }
-                    default: throw new NotSupportedException();
+                    default: Throw.NotSupportedException(); break;
                 }
             }
             Debug.Assert( _path != null );
@@ -313,7 +311,7 @@ namespace CK.Core
         /// </returns>
         public IEnumerable<NormalizedPath> PathsToFirstPart( IEnumerable<NormalizedPath> subPaths, IEnumerable<string> lastParts )
         {
-            if( lastParts == null ) throw new ArgumentNullException( nameof( lastParts ) );
+            Throw.CheckArgument( lastParts != null );
             var p = this;
             if( subPaths != null && subPaths.Any() )
             {
@@ -362,7 +360,7 @@ namespace CK.Core
         public NormalizedPath ResolveDots( int rootPartsCount = 0, bool throwOnAboveRoot = true )
         {
             int len = _parts != null ? _parts.Length : 0;
-            if( rootPartsCount > len ) throw new ArgumentOutOfRangeException( nameof( rootPartsCount ) );
+            if( rootPartsCount > len ) Throw.ArgumentOutOfRangeException( nameof( rootPartsCount ) );
             if( rootPartsCount == 0 && (_option == NormalizedPathRootKind.RootedByFirstPart || _option == NormalizedPathRootKind.RootedByURIScheme) )
             {
                 rootPartsCount = 1;
@@ -414,7 +412,7 @@ namespace CK.Core
         static void ThrowAboveRootException( string[] parts, int rootPartsCount, int iCulprit )
         {
             var msg = $"Path '{String.Join( DirectorySeparatorString, parts.Skip( iCulprit ) )}' must not resolve above root '{String.Join( DirectorySeparatorString, parts.Take( rootPartsCount ) )}'.";
-            throw new InvalidOperationException( msg );
+            Throw.InvalidOperationException( msg );
         }
 
         /// <summary>
@@ -473,7 +471,7 @@ namespace CK.Core
                                     : DoubleDirectorySeparatorString + part;
                 return new NormalizedPath( p );
             }
-            if( part.IndexOfAny( _separators ) >= 0 ) throw new ArgumentException( $"Illegal separators in '{part}'.", nameof( part ) );
+            if( part.IndexOfAny( _separators ) >= 0 ) Throw.ArgumentException( nameof( part ), $"Illegal separators in '{part}'." );
             var parts = new string[_parts.Length + 1];
             Array.Copy( _parts, parts, _parts.Length );
             parts[_parts.Length] = part;
@@ -491,13 +489,13 @@ namespace CK.Core
             if( count <= 0 )
             {
                 if( count == 0 ) return this;
-                throw new ArgumentOutOfRangeException( nameof( count ) );
+                Throw.ArgumentOutOfRangeException( nameof( count ) );
             }
-            if( _parts == null ) throw new ArgumentOutOfRangeException( nameof( count ) );
+            if( _parts == null ) Throw.ArgumentOutOfRangeException( nameof( count ) );
             if( count >= _parts.Length )
             {
                 if( count == _parts.Length ) return new NormalizedPath( _option );
-                throw new ArgumentOutOfRangeException( nameof( count ) );
+                Throw.ArgumentOutOfRangeException( nameof( count ) );
             }
             Debug.Assert( _parts != null && _path != null );
             var parts = new string[_parts.Length - count];
@@ -519,17 +517,17 @@ namespace CK.Core
             if( count <= 0 )
             {
                 if( count == 0 ) return this;
-                throw new ArgumentOutOfRangeException( nameof( count ) );
+                Throw.ArgumentOutOfRangeException( nameof( count ) );
             }
             if( _parts == null )
             {
                 if( count == 0 ) return this;
-                throw new ArgumentOutOfRangeException( nameof( count ) );
+                Throw.ArgumentOutOfRangeException( nameof( count ) );
             }
             if( count >= _parts.Length )
             {
                 if( count == _parts.Length ) return new NormalizedPath( _option );
-                throw new ArgumentOutOfRangeException( nameof( count ) );
+                Throw.ArgumentOutOfRangeException( nameof( count ) );
             }
             var parts = new string[_parts.Length - count];
             Array.Copy( _parts, count, parts, 0, parts.Length );
@@ -578,7 +576,7 @@ namespace CK.Core
         public NormalizedPath RemoveParts( int startIndex, int count )
         {
             int to = startIndex + count;
-            if( _parts == null || startIndex < 0 || startIndex >= _parts.Length || to > _parts.Length ) throw new ArgumentOutOfRangeException( nameof( startIndex ) );
+            Throw.CheckOutOfRangeArgument( $"{nameof(startIndex)} and {nameof(count)}", _parts != null && startIndex >= 0 && startIndex < _parts.Length && to <= _parts.Length );
             if( count == 0 ) return this;
             if( startIndex == 0 ) return RemoveFirstPart( count );
             int nb = _parts.Length - count;
@@ -670,7 +668,8 @@ namespace CK.Core
         /// <returns>A new path.</returns>
         public NormalizedPath RemovePrefix( NormalizedPath prefix )
         {
-            if( !StartsWith( prefix, false ) ) throw new ArgumentException( $"'{prefix}' is not a prefix of '{_path}'." );
+            Throw.CheckArgument( StartsWith( prefix, false ) );
+            if( prefix._parts == null ) return this;
             Debug.Assert( _parts != null && _path != null && prefix._parts != null && prefix._path != null );
             int nb = _parts.Length - prefix._parts.Length;
             if( nb == 0 ) return new NormalizedPath();
@@ -765,7 +764,6 @@ namespace CK.Core
         /// <param name="p2">Second path.</param>
         /// <returns>True if p1 is less than or equal to p2.</returns>
         public static bool operator <=( NormalizedPath p1, NormalizedPath p2 ) => p1.CompareTo( p2 ) <= 0;
-
 
         /// <summary>
         /// Gets whether the <paramref name="obj"/> is a <see cref="NormalizedPath"/> that is equal to

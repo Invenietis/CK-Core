@@ -161,9 +161,16 @@ namespace CK.Core.Tests
         [TestCase( "a/b/c/", "a\\bc", false )]
         public void StartsWith_Path_is_strict_by_default( string start, string with, bool resultPath )
         {
-            new NormalizedPath( start ).StartsWith( new NormalizedPath( with ) )
+            var path = new NormalizedPath( start );
+            var prefix = new NormalizedPath( with );
+            path.StartsWith( prefix )
                 .Should().Be( resultPath, resultPath ? "Path should Start." : "Path should NOT Start." );
-
+            if( resultPath )
+            {
+                var suffix = path.RemovePrefix( with );
+                var back = prefix.Combine( suffix );
+                back.Should().Be( path );
+            }
         }
 
         [TestCase( "", "", true )]
@@ -185,7 +192,8 @@ namespace CK.Core.Tests
         [TestCase( "a/b/c/", "a\\bc", false )]
         public void StartsWith_String_is_NOT_strict_by_default( string start, string with, bool resultString )
         {
-            new NormalizedPath( start ).StartsWith( with )
+            var path = new NormalizedPath( start );
+            path.StartsWith( with )
                 .Should().Be( resultString, resultString ? "String should Start." : "String should NOT Start." );
         }
 
@@ -202,7 +210,8 @@ namespace CK.Core.Tests
         [TestCase( "a/b/c/", "a\\bc", false )]
         public void StartsWith_Path_NOT_strict_at_work( string start, string with, bool resultPath )
         {
-            new NormalizedPath( start ).StartsWith( new NormalizedPath( with ), strict: false )
+            var path = new NormalizedPath( start );
+            path.StartsWith( new NormalizedPath( with ), strict: false )
                 .Should().Be( resultPath, resultPath ? "Path should Start." : "Path should NOT Start." );
         }
 

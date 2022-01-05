@@ -15,7 +15,7 @@ namespace CK.Core
     public partial class Throw
     {
         /// <summary>
-        /// Throws a new <see cref="Exception"/>.
+        /// Throws a new <see cref="System.Exception"/>.
         /// </summary>
         /// <param name="message">Optional message to include in the exception.</param>
         /// <param name="inner">Optional inner exception to include.</param>
@@ -23,6 +23,17 @@ namespace CK.Core
         public static void Exception( string? message = null, Exception? inner = null )
         {
             throw new Exception( message, inner );
+        }
+
+        /// <summary>
+        /// Throws a new <see cref="System.NotSupportedException"/>.
+        /// </summary>
+        /// <param name="message">Optional message to include in the exception.</param>
+        /// <param name="inner">Optional inner exception to include.</param>
+        [DoesNotReturn]
+        public static void NotSupportedException( string? message = null, Exception? inner = null )
+        {
+            throw new NotSupportedException( message, inner );
         }
 
 
