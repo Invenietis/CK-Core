@@ -78,7 +78,7 @@ namespace CK.Core
         }
 
         /// <summary>
-        /// Throws a new <see cref="System.IO.XmlException"/>.
+        /// Throws a new <see cref="System.Xml.XmlException"/>.
         /// </summary>
         /// <param name="message">Optional message to include in the exception.</param>
         /// <param name="innerException">Optional inner <see cref="Exception"/> to include.</param>

@@ -230,7 +230,7 @@ namespace CK.Core.Tests
             }
         }
 
-        string ThisFile( [CallerFilePath] string? s = null ) => s;
+        static string ThisFile( [CallerFilePath] string? s = null ) => s!;
 
         [Test]
         public void CheckData_throws_InvalidDataException_with_the_faulty_expression()
@@ -238,7 +238,7 @@ namespace CK.Core.Tests
             FluentActions.Invoking( () => FillFile() ).Should().Throw<InvalidDataException>()
                                                           .WithMessage( "Invalid data: 'File.ReadAllText( ThisFile() ).Length == 0' should be true." );
 
-            void FillFile()
+            static void FillFile()
             {
                 Throw.CheckData( File.ReadAllText( ThisFile() ).Length == 0 );
             }
@@ -251,7 +251,7 @@ namespace CK.Core.Tests
             FluentActions.Invoking( () => FillFile() ).Should().Throw<InvalidDataException>()
                                                           .WithMessage( "This file must be empty. (Expression: 'File.ReadAllText( ThisFile() ).Length == 0')" );
 
-            void FillFile()
+            static void FillFile()
             {
                 Throw.CheckData( "This file must be empty.", File.ReadAllText( ThisFile() ).Length == 0 );
             }

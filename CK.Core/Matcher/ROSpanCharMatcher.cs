@@ -260,6 +260,9 @@ namespace CK.Core
         /// </summary>
         public bool HasError => _tracker.ErrorCount > 0;
 
+        /// <summary>
+        /// Gets or sets whether only one expectation or error must be kept.
+        /// </summary>
         public bool SingleExpectationMode
         {
             get => _tracker.SingleExpectationMode;
@@ -376,7 +379,7 @@ namespace CK.Core
 
         ref struct LineColumnFinder
         {
-            readonly ReadOnlySpan<char> AllText;
+            readonly ReadOnlySpan<char> _allText;
             SpanLineEnumerator _lines;
             int _linePos;
             int _nextLinePos;
@@ -386,7 +389,7 @@ namespace CK.Core
 
             public LineColumnFinder( ReadOnlySpan<char> text )
             {
-                AllText = text;
+                _allText = text;
                 _lines = text.EnumerateLines();
                 _linePos = 0;
                 _nextLinePos = 0;
@@ -403,15 +406,15 @@ namespace CK.Core
                 _currentLine++;
                 _linePos = _nextLinePos;
                 _nextLinePos += _lines.Current.Length + 1;
-                if( _nextLinePos < AllText.Length && AllText[_nextLinePos] == '\n' ) ++_nextLinePos;
+                if( _nextLinePos < _allText.Length && _allText[_nextLinePos] == '\n' ) ++_nextLinePos;
             }
 
             public (int, int) Get( int nextPos )
             {
-                Debug.Assert( nextPos <= AllText.Length );
+                Debug.Assert( nextPos <= _allText.Length );
                 if( nextPos < _currentPos )
                 {
-                    _lines = AllText.EnumerateLines();
+                    _lines = _allText.EnumerateLines();
                     _linePos = 0;
                     _nextLinePos = 0;
                     _currentPos = 0;
@@ -474,7 +477,6 @@ namespace CK.Core
         /// <summary>
         /// Tries to match a character.
         /// </summary>
-        /// <param name="h">The head.</param>
         /// <param name="value">The character to match.</param>
         /// <param name="comparison">How to compare.</param>
         /// <returns>True on success</returns>
@@ -508,7 +510,6 @@ namespace CK.Core
         /// Tries to skip a sequence of white spaces.
         /// Use <paramref name="minCount"/> = 0 to skip any number of white spaces and always return true.
         /// </summary>
-        /// <param name="h">The head.</param>
         /// <param name="minCount">Minimal number of white spaces to skip.</param>
         /// <returns>True on success, false if <paramref name="minCount"/> white spaces cannot be skipped before the end of the head).</returns>
         public bool TrySkipWhiteSpaces( int minCount = 1 )
@@ -530,7 +531,6 @@ namespace CK.Core
         /// and '-0' is valid but '-0d' (where d is any digit) is not.
         /// </para>
         /// </summary>
-        /// <param name="head">This head.</param>
         /// <param name="i">The result integer. 0 on failure.</param>
         /// <param name="minValue">Optional minimal value.</param>
         /// <param name="maxValue">Optional maximal value.</param>
@@ -759,7 +759,6 @@ namespace CK.Core
         /// Matches a JSON array content: the match ends with the first ].
         /// White spaces and JS comments (//... or /* ... */) are skipped.
         /// </summary>
-        /// <param name="this">This <see cref="StringMatcher"/>.</param>
         /// <param name="value">The list of objects on success.</param>
         /// <returns>True on success, false otherwise.</returns>
         public bool TryMatchJSONArrayContent( [NotNullWhen(true)]out List<object?>? value )
@@ -793,7 +792,6 @@ namespace CK.Core
         /// and any combination of them.
         /// White spaces and JS comments (//... or /* ... */) are skipped.
         /// </summary>
-        /// <param name="this">This <see cref="StringMatcher"/>.</param>
         /// <param name="value">
         /// A list of nullable objects (for array), a list of tuples (string,object?) for object or
         /// a double, string, boolean or null (for null).
