@@ -80,8 +80,9 @@ namespace CK.Core
         /// </summary>
         public void SetResult()
         {
-            if( _state == 0 ) _state = 1;
             _tcs.SetResult();
+            _state = 1;
+            _holder.OnCompleted();
         }
 
         /// <summary>
@@ -96,6 +97,7 @@ namespace CK.Core
             _state |= 1;
             if( _tcs.TrySetResult() )
             {
+                _holder.OnCompleted();
                 return true;
             }
             _state &= ~1;
@@ -192,6 +194,7 @@ namespace CK.Core
             {
                 _tcs.SetResult();
             }
+            _holder.OnCompleted();
         }
 
         /// <inheritdoc />
@@ -230,6 +233,7 @@ namespace CK.Core
                     return false;
                 }
             }
+            _holder.OnCompleted();
             return true;
         }
 
@@ -300,6 +304,7 @@ namespace CK.Core
             {
                 _tcs.SetCanceled();
             }
+            _holder.OnCompleted();
         }
 
         /// <inheritdoc />
@@ -326,6 +331,7 @@ namespace CK.Core
                     return false;
                 }
             }
+            _holder.OnCompleted();
             return true;
         }
 

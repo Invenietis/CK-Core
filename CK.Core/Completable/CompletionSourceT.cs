@@ -102,8 +102,9 @@ namespace CK.Core
         /// <param name="result">The command result.</param>
         public void SetResult( TResult result )
         {
-            if( _state == 0 ) _state = 1;
             _tcs.SetResult( result );
+            _state = 1;
+            _holder.OnCompleted();
         }
 
         /// <summary>
@@ -119,6 +120,7 @@ namespace CK.Core
             _state |= 1;
             if( _tcs.TrySetResult( result ) )
             {
+                _holder.OnCompleted();
                 return true;
             }
             _state &= ~1;
@@ -213,6 +215,7 @@ namespace CK.Core
             {
                 _tcs.SetResult( o.Result );
             }
+            _holder.OnCompleted();
         }
 
         /// <inheritdoc />
@@ -251,6 +254,7 @@ namespace CK.Core
                     return false;
                 }
             }
+            _holder.OnCompleted();
             return true;
         }
 
@@ -320,6 +324,7 @@ namespace CK.Core
             {
                 _tcs.SetResult( o.Result );
             }
+            _holder.OnCompleted();
         }
 
         /// <inheritdoc />
@@ -346,6 +351,7 @@ namespace CK.Core
                     return false;
                 }
             }
+            _holder.OnCompleted();
             return true;
         }
 
