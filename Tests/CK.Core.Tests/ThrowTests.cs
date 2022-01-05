@@ -230,17 +230,17 @@ namespace CK.Core.Tests
             }
         }
 
-        static string ThisFile( [CallerFilePath] string? s = null ) => s!;
+        static string ExternalData = "";
 
         [Test]
         public void CheckData_throws_InvalidDataException_with_the_faulty_expression()
         {
-            FluentActions.Invoking( () => FillFile() ).Should().Throw<InvalidDataException>()
-                                                          .WithMessage( "Invalid data: 'File.ReadAllText( ThisFile() ).Length == 0' should be true." );
+            FluentActions.Invoking( () => ProcessData() ).Should().Throw<InvalidDataException>()
+                                                          .WithMessage( "Invalid data: 'ExternalData.Length > 0' should be true." );
 
-            static void FillFile()
+            static void ProcessData()
             {
-                Throw.CheckData( File.ReadAllText( ThisFile() ).Length == 0 );
+                Throw.CheckData( ExternalData.Length > 0 );
             }
         }
 
@@ -248,12 +248,12 @@ namespace CK.Core.Tests
         [Test]
         public void CheckData_with_message_and_faulty_expression()
         {
-            FluentActions.Invoking( () => FillFile() ).Should().Throw<InvalidDataException>()
-                                                          .WithMessage( "This file must be empty. (Expression: 'File.ReadAllText( ThisFile() ).Length == 0')" );
+            FluentActions.Invoking( () => ProcessData() ).Should().Throw<InvalidDataException>()
+                                                          .WithMessage( "The data must not be empty. (Expression: 'ExternalData.Length > 0')" );
 
-            static void FillFile()
+            static void ProcessData()
             {
-                Throw.CheckData( "This file must be empty.", File.ReadAllText( ThisFile() ).Length == 0 );
+                Throw.CheckData( "The data must not be empty.", ExternalData.Length > 0 );
             }
         }
 
