@@ -37,7 +37,7 @@ namespace CK.Core
         {
             _tcs = new TaskCompletionSource( TaskCreationOptions.RunContinuationsAsynchronously );
             _holder = holder ?? throw new ArgumentNullException( nameof(holder) );
-            // Continuation that handles the error (if any): this prevent the UnobservedTaskException to
+            // Continuation that handles the error (if any): this prevents the UnobservedTaskException to
             // be raised during GC (Task's finalization).
             _ = _tcs.Task.ContinueWith( r => r.Exception!.Handle( e => true ),
                                         default,
