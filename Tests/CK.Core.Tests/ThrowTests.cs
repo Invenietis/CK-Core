@@ -230,7 +230,7 @@ namespace CK.Core.Tests
             }
         }
 
-        static string ExternalData = "";
+        static readonly string _externalData = "";
 
         [Test]
         public void CheckData_throws_InvalidDataException_with_the_faulty_expression()
@@ -240,7 +240,7 @@ namespace CK.Core.Tests
 
             static void ProcessData()
             {
-                Throw.CheckData( ExternalData.Length > 0 );
+                Throw.CheckData( _externalData.Length > 0 );
             }
         }
 
@@ -253,7 +253,7 @@ namespace CK.Core.Tests
 
             static void ProcessData()
             {
-                Throw.CheckData( "The data must not be empty.", ExternalData.Length > 0 );
+                Throw.CheckData( "The data must not be empty.", _externalData.Length > 0 );
             }
         }
 
