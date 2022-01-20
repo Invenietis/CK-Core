@@ -29,11 +29,15 @@ namespace CK.Core
         {
             // Fast path.
             if( task.IsCompleted ) return true;
+            Throw.CheckOutOfRangeArgument( millisecondsTimeout >= 0 );
+
             if( millisecondsTimeout == Timeout.Infinite && !cancellation.CanBeCanceled )
             {
                 await task.ConfigureAwait( false );
                 return true;
             }
+            if( millisecondsTimeout == 0 ) return false;
+
             var tcsCancel = new TaskCompletionSource();
 
             static void DoCancel( object? c ) => ((TaskCompletionSource)c!).TrySetCanceled( default );
