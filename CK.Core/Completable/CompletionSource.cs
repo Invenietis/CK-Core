@@ -175,8 +175,13 @@ namespace CK.Core
         {
             // Fast path if already resolved: the framework exception will be raised.
             // This protects the current state.
-            // Only on concurrent SetException will the state be inconsistent.
             if( _state != 0 ) _tcs.SetException( exception );
+            // On concurrent (first) SetException the risk to end
+            // with an inconsistent state is if the OnError hook takes 2
+            // different decisions!
+            // But since the loser of the race will always trigger an exception
+            // (when calling SetException/Cancel/Result) anyway,
+            // this issue is highly mitigated (we can live with it).
             var o = new OnError( this );
             _holder.OnError( exception, ref o );
             if( !o.Called ) ThrowOnErrorCalledRequired();
