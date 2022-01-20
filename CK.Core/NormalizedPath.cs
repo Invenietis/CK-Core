@@ -300,7 +300,7 @@ namespace CK.Core
         /// Each result ends with one of the <paramref name="lastParts"/>: if <paramref name="lastParts"/> is empty,
         /// this enumeration is empty.
         /// </summary>
-        /// <param name="subPaths">The sub paths that will be combined in order. Can be null empty.</param>
+        /// <param name="subPaths">The sub paths that will be combined in order. Can be null or empty.</param>
         /// <param name="lastParts">
         /// The last parts that will be appended in order.
         /// Can not be null and should not be empty otherwise there will be no result at all.
@@ -309,7 +309,7 @@ namespace CK.Core
         /// All <see cref="Parents"/> with each <paramref name="subPaths"/> combined and
         /// each <paramref name="lastParts"/> appended.
         /// </returns>
-        public IEnumerable<NormalizedPath> PathsToFirstPart( IEnumerable<NormalizedPath> subPaths, IEnumerable<string> lastParts )
+        public IEnumerable<NormalizedPath> PathsToFirstPart( IEnumerable<NormalizedPath>? subPaths, IEnumerable<string> lastParts )
         {
             Throw.CheckArgument( lastParts != null );
             var p = this;
