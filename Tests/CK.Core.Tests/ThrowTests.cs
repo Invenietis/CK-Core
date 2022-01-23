@@ -230,17 +230,17 @@ namespace CK.Core.Tests
             }
         }
 
-        static readonly string _externalData = "";
+        static readonly string _someData = "";
 
         [Test]
         public void CheckData_throws_InvalidDataException_with_the_faulty_expression()
         {
             FluentActions.Invoking( () => ProcessData() ).Should().Throw<InvalidDataException>()
-                                                          .WithMessage( "Invalid data: '_externalData.Length > 0' should be true." );
+                                                          .WithMessage( "Invalid data: '_someData.Length > 0' should be true." );
 
             static void ProcessData()
             {
-                Throw.CheckData( _externalData.Length > 0 );
+                Throw.CheckData( _someData.Length > 0 );
             }
         }
 
@@ -249,11 +249,11 @@ namespace CK.Core.Tests
         public void CheckData_with_message_and_faulty_expression()
         {
             FluentActions.Invoking( () => ProcessData() ).Should().Throw<InvalidDataException>()
-                                                          .WithMessage( "The data must not be empty. (Expression: '_externalData.Length > 0')" );
+                                                          .WithMessage( "The data must not be empty. (Expression: '_someData.Length > 0')" );
 
             static void ProcessData()
             {
-                Throw.CheckData( "The data must not be empty.", _externalData.Length > 0 );
+                Throw.CheckData( "The data must not be empty.", _someData.Length > 0 );
             }
         }
 
