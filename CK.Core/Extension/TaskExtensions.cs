@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -22,14 +23,15 @@ namespace CK.Core
         /// </para>
         /// </summary>
         /// <param name="task">This task.</param>
-        /// <param name="millisecondsTimeout">The timeout in milliseconds to wait before returning false.</param>
+        /// <param name="millisecondsTimeout">The timeout in milliseconds to wait before returning false. Use <see cref="Timeout.Infinite"/> to skip timeout.</param>
         /// <param name="cancellation">Optional cancellation token.</param>
         /// <returns>True if <see cref="Task.IsCompleted"/> is true, false if the timeout occurred before.</returns>
         public static async Task<bool> WaitAsync( this Task task, int millisecondsTimeout, CancellationToken cancellation = default )
         {
             // Fast path.
             if( task.IsCompleted ) return true;
-            Throw.CheckOutOfRangeArgument( millisecondsTimeout >= 0 );
+            Debug.Assert( Timeout.Infinite == -1 );
+            Throw.CheckOutOfRangeArgument( millisecondsTimeout >= -1 );
 
             if( millisecondsTimeout == Timeout.Infinite && !cancellation.CanBeCanceled )
             {

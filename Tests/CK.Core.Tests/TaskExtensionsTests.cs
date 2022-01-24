@@ -68,6 +68,19 @@ namespace CK.Core.Tests
             (DateTime.UtcNow - now).Should().BeCloseTo( TimeSpan.Zero, precision: TimeSpan.FromMilliseconds( 1 ) );
         }
 
+        [Test]
+        public async Task WaitAsync_allows_negative_Timeout_Infinite_Async()
+        {
+            var tcs = new TaskCompletionSource();
+            _ = Task.Run( async () =>
+            {
+                await Task.Delay( 100 );
+                tcs.SetResult();
+            } );
+            bool gotIt = await tcs.Task.WaitAsync( Timeout.Infinite );
+            gotIt.Should().BeTrue();
+        }
+
         [TestCase( "Error" )]
         [TestCase( "Canceled" )]
         [TestCase( "Success" )]
