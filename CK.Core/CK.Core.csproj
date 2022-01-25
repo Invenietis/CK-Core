@@ -7,7 +7,7 @@
     <Description>CK.Core contains types and helpers that are used across different projects. Main types are: CKTrait, DateTimeStamp, SimpleServiceContainer, CriticalErrorCollector, FIFOBuffer, TemporaryFile, BestKeeper, SHA1/SHA512Stream and SHA1/SHA512Value.</Description>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="CK.Text" Version="9.0.2" />
+    <PackageReference Include="CK.Text" Version="9.0.3" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="TunnelVisionLabs.ReferenceAssemblyAnnotator" Version="1.0.0-alpha.160" PrivateAssets="all" />
