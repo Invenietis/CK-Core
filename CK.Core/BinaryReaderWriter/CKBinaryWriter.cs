@@ -34,15 +34,19 @@ namespace CK.Core
             {
                 Throw.CheckNotNullArgument( w );
                 _pool = new Dictionary<T, int>( comparer );
-                _w = w ?? throw new ArgumentNullException( nameof( w ) );
+                _w = w;
             }
 
             /// <summary>
-            /// Registers the object if it has not been seen before and returns true: the
-            /// actual object must be written.
-            /// If the object has already been registered its index is written and false
-            /// is returned.
+            /// Registers the object that CAN be a null reference if it has not been seen before
+            /// and returns true: the actual object must be written.
+            /// If the object has already been registered its index is written and false is returned.
             /// </summary>
+            /// <remarks>
+            /// There's a [AllowNull] attribute on <paramref name="o"/> to allow this pool to seamlessly handle value or
+            /// reference types: null references or <see cref="Nullable{T}"/> that have no value are written as a 0 byte
+            /// (and false is returned).
+            /// </remarks>
             /// <param name="o">The object to write.</param>
             /// <param name="mustWriteMarker">
             /// Be default, '2' is written in the stream whenever the object is registered for the first
