@@ -64,29 +64,6 @@ namespace CK.Core
         }
 
         /// <summary>
-        /// Gets the value associated with the specified key if it exists otherwise calls the <paramref name="defaultValue"/> function.
-        /// </summary>
-        /// <remarks>
-        /// This version uses a <typeparamref name="TResult"/> type with the trick that <typeparamref name="TValue"/> is constrained to
-        /// be a TResult: this correctly propagates null constraints at the cost of requiring an explicit type cast when the <paramref name="defaultValue"/>
-        /// function returns the null literal.
-        /// </remarks>
-        /// <param name="this">This generic IDictionary.</param>
-        /// <param name="key">The key whose value to get.</param>
-        /// <param name="defaultValue">A delegate that will be called if the key does not exist.</param>
-        /// <returns>
-        /// The value associated with the specified key, if the key is found; otherwise, the result 
-        /// of the <paramref name="defaultValue"/> delegate.
-        /// </returns>
-        public static TResult GetValueWithDefaultFunc<TKey, TValue, TResult>( this IDictionary<TKey, TValue> @this, TKey key, Func<TKey, TResult> defaultValue )
-            where TKey : notnull
-            where TValue : TResult
-        {
-            if( !@this.TryGetValue( key, out var result ) ) return defaultValue( key );
-            return result;
-        }
-
-        /// <summary>
         /// Gets the value associated with the specified key if it exists otherwise calls the <paramref name="createValue"/> function
         /// and adds the newly obtained value into the dictionary.
         /// <para>
