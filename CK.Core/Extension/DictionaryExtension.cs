@@ -92,6 +92,16 @@ namespace CK.Core
             return result;
         }
 
+        /// <inheritdoc cref="System.Collections.Generic.CollectionExtensions.GetValueOrDefault{TKey, TValue}(IReadOnlyDictionary{TKey, TValue}, TKey)"/>
+        public static TValue? GetValueOrDefault<TKey, TValue>( this IDictionary<TKey, TValue> @this, TKey key ) => @this.TryGetValue( key, out var value ) ? value : default;
+
+        /// <inheritdoc cref="System.Collections.Generic.CollectionExtensions.GetValueOrDefault{TKey, TValue}(IReadOnlyDictionary{TKey, TValue}, TKey, TValue)"/>
+        public static TValue GetValueOrDefault<TKey, TValue>( this IDictionary<TKey, TValue> @this, TKey key, TValue defaultValue )
+        {
+            TValue? value;
+            return @this.TryGetValue( key, out value ) ? value : defaultValue;
+        }
+
         /// <summary>
         /// Adds the content of a dictionary to this <see cref="IDictionary{TKey,TValue}"/>.
         /// </summary>
