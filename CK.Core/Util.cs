@@ -33,7 +33,7 @@ namespace CK.Core
         /// <param name="obj">The disposable object to dispose (can be null).</param>
         public static void ActionDispose( IDisposable obj ) => obj?.Dispose();
 
-        class DisposableAction : IDisposable
+        sealed class DisposableAction : IDisposable
         {
             public Action? A;
             public void Dispose()
@@ -50,9 +50,9 @@ namespace CK.Core
         /// See <see cref="ActionDispose"/> to adapt an IDisposable interface to an <see cref="Action"/>.
         /// </summary>
         /// <param name="a">The action to call when <see cref="IDisposable.Dispose"/> is called.</param>
-        public static IDisposable CreateDisposableAction( Action a ) => new DisposableAction() { A = a };
+        public static IDisposable CreateDisposableAction( Action? a ) => new DisposableAction() { A = a };
 
-        class VoidDisposable : IDisposable { public void Dispose() { } }
+        sealed class VoidDisposable : IDisposable { public void Dispose() { } }
 
         /// <summary>
         /// A void, immutable, <see cref="IDisposable"/> that does absolutely nothing.
