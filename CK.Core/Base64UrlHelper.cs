@@ -41,6 +41,8 @@ namespace CK.Core
             UncheckedBase64ToUrlBase64NoPadding( buffer, ref bytesWritten );
         }
 
+        const int MaxStackSize = 256;
+
         /// <summary>
         /// Creates a string in Base64Url from bytes.
         /// </summary>
@@ -48,7 +50,6 @@ namespace CK.Core
         /// <returns></returns>
         public static string ToBase64UrlString( ReadOnlySpan<byte> bytes )
         {
-            const int MaxStackSize = 256;
 
             int size = Base64.GetMaxEncodedToUtf8Length( bytes.Length );
             byte[]? fromPool = null;

@@ -14,6 +14,7 @@ using System.Collections.Concurrent;
 namespace CK.Core.Tests
 {
 
+    [TestFixture]
     public class FileUtilTests
     {
         static string ToPlatform( string s ) => s.Replace( Path.AltDirectorySeparatorChar, Path.DirectorySeparatorChar );
