@@ -1,5 +1,8 @@
 using System;
+using System.Buffers;
+using System.Buffers.Text;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Runtime.CompilerServices;
@@ -73,6 +76,39 @@ namespace CK.Core
         /// The 0.0.0.0 Version.
         /// </summary>
         public static readonly Version EmptyVersion = new Version( 0, 0, 0, 0 );
+
+        /// <summary>
+        /// Creates a base64 url string using <see cref="System.Security.Cryptography.RandomNumberGenerator.Fill(Span{byte})"/>.
+        /// </summary>
+        /// <param name="len">Length of the random string.</param>
+        /// <returns>A random string.</returns>
+        public static string GetRandomBase64UrlString( int len )
+        {
+            const int MaxStackSize = 128;
+
+            Throw.CheckArgument( len >= 0 );
+            if( len == 0 ) return string.Empty;
+
+            var requiredEntropy = 3 * len / 4 + 1;
+            var safeSize = Base64.GetMaxEncodedToUtf8Length( requiredEntropy );
+
+            byte[]? fromPool = null;
+            Span<byte> buffer = safeSize > MaxStackSize
+                                ? (fromPool = ArrayPool<byte>.Shared.Rent( safeSize )).AsSpan( 0, safeSize )
+                                : stackalloc byte[safeSize];
+            try
+            {
+                System.Security.Cryptography.RandomNumberGenerator.Fill( buffer.Slice( 0, requiredEntropy ) );
+                Base64.EncodeToUtf8InPlace( buffer, requiredEntropy, out int bytesWritten );
+                Base64UrlHelper.UncheckedBase64ToUrlBase64NoPadding( buffer, ref bytesWritten );
+                Debug.Assert( bytesWritten > len );
+                return Encoding.ASCII.GetString( buffer.Slice( 0, len ) );
+            }
+            finally
+            {
+                if( fromPool != null ) ArrayPool<byte>.Shared.Return( fromPool );
+            }
+        }
 
         /// <summary>
         /// Centralized void action call for any type. 

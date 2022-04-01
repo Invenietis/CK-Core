@@ -72,6 +72,18 @@ namespace CK.Core
             if( BitConverter.IsLittleEndian ) sx.Reverse();
             return Base64UrlHelper.ToBase64UrlString( sx );
         }
+
+        /// <summary>
+        /// Creates a base64 url string of 11 characters using <see cref="System.Security.Cryptography.RandomNumberGenerator.Fill(Span{byte})"/>.
+        /// </summary>
+        /// <returns>A random string.</returns>
+        public static string GetRandomString()
+        {
+            Span<byte> buffer = stackalloc byte[8];
+            System.Security.Cryptography.RandomNumberGenerator.Fill( buffer );
+            return Base64UrlHelper.ToBase64UrlString( buffer );
+        }
+
     }
 
 }
