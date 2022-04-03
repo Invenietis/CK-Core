@@ -181,7 +181,7 @@ namespace CK.Core
         public string ReadString( bool streamIsCRLF )
         {
             string text = ReadString();
-            return streamIsCRLF == StringAndStringBuilderExtension.IsCRLF ? text : text.NormalizeEOL();
+            return streamIsCRLF == StringAndStringBuilderExtension.IsCRLF ? text : text.ReplaceLineEndings();
         }
 
         /// <inheritdoc/>

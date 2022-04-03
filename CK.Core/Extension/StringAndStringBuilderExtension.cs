@@ -14,35 +14,7 @@ namespace CK.Core
     /// </summary>
     public static class StringAndStringBuilderExtension
     {
-        static class EOLNormalizer
-        {
-            public static readonly bool IsCRLF;
-            static readonly Regex _rLFOnly;
-
-            static EOLNormalizer()
-            {
-                IsCRLF = Environment.NewLine == "\r\n";
-                _rLFOnly = new Regex( @"(?<!\r)\n", RegexOptions.CultureInvariant | RegexOptions.ExplicitCapture | RegexOptions.Compiled );
-            }
-
-            [return: NotNullIfNotNull( "s" )]
-            static public string ToEnvironment( string s )
-            {
-                return IsCRLF ? ToCRLF( s ) : ToLF( s );
-            }
-
-            [return: NotNullIfNotNull( "s" )]
-            static public string? ToCRLF( string? s )
-            {
-                return s != null ? _rLFOnly.Replace( s, "\r\n" ) : null;
-            }
-
-            [return: NotNullIfNotNull( "s" )]
-            static public string? ToLF( string? s )
-            {
-                return s != null ? s.Replace( "\r\n", "\n" ) : null;
-            }
-        }
+        static readonly bool _isCRLF = Environment.NewLine == "\r\n";
 
         /// <summary>
         /// Concatenates multiple strings with an internal separator.
@@ -101,41 +73,10 @@ namespace CK.Core
         }
 
         /// <summary>
-        /// Returns a string where \r\n or \n alone are normalized to <see cref="Environment.NewLine"/>.
-        /// </summary>
-        /// <param name="this">This string.</param>
-        /// <returns>Normalized string.</returns>
-        public static string NormalizeEOL( this string @this )
-        {
-            return EOLNormalizer.ToEnvironment( @this );
-        }
-
-        /// <summary>
-        /// Returns a string where \r\n are normalized to \n.
-        /// </summary>
-        /// <param name="this">This string.</param>
-        /// <returns>Normalized string.</returns>
-        public static string NormalizeEOLToLF( this string @this )
-        {
-            return EOLNormalizer.ToLF( @this );
-        }
-
-        /// <summary>
-        /// Returns a string where \n alone are normalized to \r\n.
-        /// </summary>
-        /// <param name="this">This string.</param>
-        /// <returns>Normalized string.</returns>
-        public static string NormalizeEOLToCRLF( this string @this )
-        {
-            return EOLNormalizer.ToCRLF( @this );
-        }
-
-        /// <summary>
         /// Gets whether the <see cref="Environment.NewLine"/> is \r\n.
         /// Otherwise it is \n.
         /// </summary>
-        public static bool IsCRLF => EOLNormalizer.IsCRLF;
-
+        public static bool IsCRLF => _isCRLF;
 
         /// <summary>
         /// Gets the value (0...15) for this character ('0'...'9', 'a'...'f' or 'A.'..'F'),

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Diagnostics;
 using System.Text.RegularExpressions;
 
@@ -95,12 +95,12 @@ namespace CK.Core
             }
 
             /// <summary>
-            /// Gets or sets the eventual <see cref="ICoreApplicationIdentity.ContextIdentifier"/>.
+            /// Gets or sets the eventual <see cref="CoreApplicationIdentity.ContextIdentifier"/>.
             /// </summary>
             public string? ContextIdentifier { get; set; }
 
             /// <summary>
-            /// Gets the <see cref="ICoreApplicationIdentity.InstanceId"/>.
+            /// Gets the <see cref="CoreApplicationIdentity.InstanceId"/>.
             /// </summary>
             public string InstanceId { get; }
 

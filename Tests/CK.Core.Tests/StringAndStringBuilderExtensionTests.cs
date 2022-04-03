@@ -156,7 +156,7 @@ Last line.";
 |    Indented.
 |
 |    Also indented.
-|Last line.".NormalizeEOL() );
+|Last line.".ReplaceLineEndings() );
             }
 
             {
@@ -173,7 +173,7 @@ Last line.";
 |    Indented.
 |
 |    Also indented.
-|Last line.".NormalizeEOL() );
+|Last line.".ReplaceLineEndings() );
             }
 
         }
@@ -192,7 +192,7 @@ Second line.
                 t.Should().Be( @"|First line.
 |Second line.
 |
-|".NormalizeEOL() );
+|".ReplaceLineEndings() );
             }
 
             {
@@ -202,7 +202,7 @@ Second line.
 |Second line.
 |
 |
-|".NormalizeEOL() );
+|".ReplaceLineEndings() );
             }
         }
 

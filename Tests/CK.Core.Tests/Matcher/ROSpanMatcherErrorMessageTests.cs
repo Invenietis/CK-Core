@@ -75,7 +75,7 @@ D  NOTX", @"
                 }
             }
             m.HasError.Should().BeTrue();
-            m.GetErrorMessage().Should().Be( message.NormalizeEOL().Trim() );
+            m.GetErrorMessage().Should().Be( message.ReplaceLineEndings().Trim() );
         }
 
         [TestCase( "", @"
@@ -110,7 +110,7 @@ D  NOTX", @"
                 Debug.Assert( message != null );
                 m.Head.Length.Should().Be( m.AllText.Length );
                 m.HasError.Should().BeTrue();
-                m.GetErrorMessage().Should().Be( message.NormalizeEOL().Trim() );
+                m.GetErrorMessage().Should().Be( message.ReplaceLineEndings().Trim() );
             }
             else
             {
@@ -171,7 +171,7 @@ D  NOTX", @"
                 Debug.Assert( message != null );
                 m.Head.Length.Should().Be( m.AllText.Length );
                 m.HasError.Should().BeTrue();
-                m.GetErrorMessage().Should().Be( message.NormalizeEOL().Trim() );
+                m.GetErrorMessage().Should().Be( message.ReplaceLineEndings().Trim() );
             }
             else
             {
@@ -217,7 +217,7 @@ D  NOTX", @"
             var m = new ROSpanCharMatcher( s );
             m.TryMatchAnyJSON( out _ ).Should().BeFalse();
             m.HasError.Should().BeTrue();
-            m.GetErrorMessage().Should().Be( message.NormalizeEOL().Trim() );
+            m.GetErrorMessage().Should().Be( message.ReplaceLineEndings().Trim() );
         }
 
     }

@@ -115,18 +115,16 @@ namespace CK.Core
         /// To avoid ambiguities with the .Net CollectionExtensions.GetValueOrDefault(IReadOnlyDictionary) extension method, CK.Core defines
         /// this same extension for both IDictionary and the Dictionary class.
         /// </remarks>
-        public static TValue? GetValueOrDefault<TKey, TValue>( this Dictionary<TKey, TValue> @this, TKey key ) => @this.TryGetValue( key, out var value ) ? value : default;
+        public static TValue? GetValueOrDefault<TKey, TValue>( this Dictionary<TKey, TValue> @this, TKey key ) where TKey : notnull
+            => @this.TryGetValue( key, out var value ) ? value : default;
 
         /// <inheritdoc cref="System.Collections.Generic.CollectionExtensions.GetValueOrDefault{TKey, TValue}(IReadOnlyDictionary{TKey, TValue}, TKey, TValue)"/>
         /// <remarks>
         /// To avoid ambiguities with the .Net CollectionExtensions.GetValueOrDefault(IReadOnlyDictionary) extension method, CK.Core defines
         /// this same extension for both IDictionary and the Dictionary class.
         /// </remarks>
-        public static TValue GetValueOrDefault<TKey, TValue>( this Dictionary<TKey, TValue> @this, TKey key, TValue defaultValue )
-        {
-            TValue? value;
-            return @this.TryGetValue( key, out value ) ? value : defaultValue;
-        }
+        public static TValue GetValueOrDefault<TKey, TValue>( this Dictionary<TKey, TValue> @this, TKey key, TValue defaultValue ) where TKey : notnull
+            => @this.TryGetValue( key, out var value ) ? value : defaultValue;
 
         /// <summary>
         /// Adds the content of a dictionary to this <see cref="IDictionary{TKey,TValue}"/>.

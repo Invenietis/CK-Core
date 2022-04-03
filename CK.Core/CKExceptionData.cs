@@ -179,14 +179,14 @@ namespace CK.Core
                 if( ex is FileNotFoundException fileNFEx )
                 {
                     fileName = fileNFEx.FileName;
-                    detailedInfo = fileNFEx.FusionLog?.NormalizeEOL();
+                    detailedInfo = fileNFEx.FusionLog?.ReplaceLineEndings();
                 }
                 else
                 {
                     if( ex is FileLoadException loadFileEx )
                     {
                         fileName = loadFileEx.FileName;
-                        detailedInfo = loadFileEx.FusionLog?.NormalizeEOL();
+                        detailedInfo = loadFileEx.FusionLog?.ReplaceLineEndings();
                     }
                 }
             }
