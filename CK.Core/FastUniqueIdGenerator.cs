@@ -65,9 +65,14 @@ namespace CK.Core
         /// Creates a base64 url string of 11 characters.
         /// </summary>
         /// <returns>A unique string.</returns>
-        public string GetNextString()
+        public string GetNextString() => CreateString( Interlocked.Increment( ref _next ) );
+
+        /// <summary>
+        /// Creates a base64 url string of 11 characters from a long.
+        /// </summary>
+        /// <returns>The base64 url string.</returns>
+        public static string CreateString( long x )
         {
-            var x = Interlocked.Increment( ref _next );
             var sx = MemoryMarshal.AsBytes( MemoryMarshal.CreateSpan( ref x, 1 ) );
             if( BitConverter.IsLittleEndian ) sx.Reverse();
             return Base64UrlHelper.ToBase64UrlString( sx );

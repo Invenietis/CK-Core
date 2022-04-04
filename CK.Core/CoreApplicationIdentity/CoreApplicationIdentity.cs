@@ -11,7 +11,7 @@ namespace CK.Core
     /// <summary>
     /// Exposes the identity of the current application (technically the Application Domain) as an immutable
     /// singleton <see cref="Instance"/>.
-    /// <see cref="Configure(Action{Builder})"/> or <see cref="TryConfigure(Action{Builder})"/> methods can be called
+    /// <see cref="Configure(Action{Builder},bool)"/> or <see cref="TryConfigure(Action{Builder})"/> methods can be called
     /// until the instance is used. <see cref="OnInitialized(Action)"/> enables deferring actions to wait for the application
     /// identity to be ready.
     /// <para>
@@ -73,7 +73,10 @@ namespace CK.Core
         /// Gets a string that identifies the context into which this
         /// application is running.
         /// <para>
-        /// There is no constraint on this string but shorter is better.
+        /// There is no constraint on this string (but shorter is better) except that
+        /// the characters 0 to 8 (NUl, SOH, STX, ETX, EOT, ENQ, ACK, BEL, BSP) are
+        /// mapped to their respective angle bracket enclosed string representation
+        /// (0x0 is mapped to &lt;NUL&gt;, 0x1 to &lt;SOH&gt;, etc.).
         /// </para>
         /// <para>
         /// Defaults to the empty string.
@@ -83,8 +86,12 @@ namespace CK.Core
 
         /// <summary>
         /// Gets an opaque random string that identifies this running instance.
+        /// This is currently a 21 characters Base64Url encoded (15 bytes of entropy).
+        /// <para>
+        /// This is a static property: it's available as soon as the process starts.
+        /// </para>
         /// </summary>
-        public string InstanceId { get; }
+        public static string InstanceId { get; } = Util.GetRandomBase64UrlString( 21 );
 
         CoreApplicationIdentity( Builder b )
         {
@@ -92,12 +99,27 @@ namespace CK.Core
             EnvironmentName = b.EnvironmentName;
             PartyName = b.PartyName ?? "Undefined";
             ContextIdentifier = b.ContextIdentifier ?? "";
-            InstanceId = b.InstanceId;
         }
 
         static Builder? _builder;
-        static readonly CancellationTokenSource _token;
         static CoreApplicationIdentity? _instance;
+
+#if DEBUG
+        // Method that exists in DEBUG only. Used by tests: the
+        // CancellationTokenSource can be reset.
+        static CancellationTokenSource _token;
+
+        static void Reset()
+        {
+            _instance = null;
+            _builder = new Builder();
+            _token = new CancellationTokenSource();
+        }
+#else
+        // Real (release) CancellationTokenSource cannot be reset.
+        // Tests are disabled.
+        static readonly CancellationTokenSource _token;
+#endif
 
         static CoreApplicationIdentity()
         {
@@ -109,12 +131,14 @@ namespace CK.Core
         /// Configure the application identity if it's not yet initialized or throws an <see cref="InvalidOperationException"/> otherwise.
         /// </summary>
         /// <param name="configurator">The configuration action.</param>
-        public static void Configure( Action<Builder> configurator )
+        /// <param name="initialize">Whether <see cref="Initialize()"/> should be called to lock the identity.</param>
+        public static void Configure( Action<Builder> configurator, bool initialize = false )
         {
             lock( _token )
             {
                 if( _builder == null ) Throw.InvalidOperationException( "CoreApplicationIdentity is already initialized." );
                 else configurator( _builder );
+                if( initialize ) Initialize();
             }
         }
 
@@ -125,15 +149,18 @@ namespace CK.Core
         /// <returns>True if the <paramref name="configurator"/> has been called, false if the <see cref="Instance"/> is already available.</returns>
         public static bool TryConfigure( Action<Builder> configurator )
         {
-            lock( _token )
+            if( _builder != null )
             {
-                if( _builder != null )
+                lock( _token )
                 {
-                    configurator( _builder );
-                    return true;
+                    if( _builder != null )
+                    {
+                        configurator( _builder );
+                        return true;
+                    }
                 }
-                return false;
             }
+            return false;
         }
 
         /// <summary>
@@ -157,30 +184,33 @@ namespace CK.Core
         /// The first call to this property triggers the initialization of the identity
         /// and the calls to registered <see cref="OnInitialized(Action)"/> callbacks.
         /// </summary>
-        public static CoreApplicationIdentity Instance
-        {
-            get
-            {
-                if( _instance == null )
-                {
-                    bool callInit = false;
-                    // Simple double check locking.
-                    lock( _token )
-                    {
-                        if( _instance == null )
-                        {
-                            Debug.Assert( _builder != null );
-                            _instance = _builder.Build();
-                            _builder = null;
-                            callInit = true;
-                        }
-                    }
-                    // Calls the callbacks outside the lock.
-                    if( callInit ) _token.Cancel( throwOnFirstException: true );
-                }
-                return _instance;
-            }
-        }
+        public static CoreApplicationIdentity Instance => Initialize();
 
+        /// <summary>
+        /// Ensures that the available identity is initialized.
+        /// This locks the <see cref="Instance"/> and calls the registered <see cref="OnInitialized(Action)"/>
+        /// callbacks.
+        /// </summary>
+        public static CoreApplicationIdentity Initialize()
+        {
+            if( _instance == null )
+            {
+                bool callInit = false;
+                // Simple double check locking.
+                lock( _token )
+                {
+                    if( _instance == null )
+                    {
+                        Debug.Assert( _builder != null );
+                        _instance = _builder.Build();
+                        _builder = null;
+                        callInit = true;
+                    }
+                }
+                // Calls the callbacks outside the lock.
+                if( callInit ) _token.Cancel( throwOnFirstException: true );
+            }
+            return _instance;
+        }
     }
 }

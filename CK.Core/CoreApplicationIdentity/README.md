@@ -23,7 +23,7 @@ for a short period of time, two instances of the "same" application co-exist.
 This small class will never solve this issue but it aims to capture and expose the necessary and sufficient information to reason
 (or help reasoning) about it:
 
-- The "running instance" itself is necessarily unique because of the `InstanceId` that is a unique random string.
+- The "running instance" itself is necessarily unique because of the static `InstanceId` that is a always available unique random string.
 - Other "identity" can be captured by the `ContextIdentifier` that can use process arguments, working directory
 or any other contextual information that helps identify a process.
 
@@ -78,3 +78,4 @@ and/or the `OnInitialized` method that handles callbacks.
   }
 ```
 
+Once `Instance` or `Initialize` is called the information is definitely locked.
