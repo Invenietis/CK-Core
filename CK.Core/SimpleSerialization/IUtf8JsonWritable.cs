@@ -5,7 +5,7 @@ namespace CK.Core
     /// <summary>
     /// Simple explicit contract for a <see cref="Write(Utf8JsonWriter)"/> method.
     /// </summary>
-    public interface IUtf8Writable
+    public interface IUtf8JsonWritable
     {
         /// <summary>
         /// Must write the content of this object to the writer.

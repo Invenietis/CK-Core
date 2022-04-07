@@ -19,7 +19,7 @@ namespace CK.Core
         /// There should be a version written first (typically a byte): the deserialization
         /// constructor must read this version first.
         /// </summary>
-        /// <param name="w"></param>
+        /// <param name="w">The writer to use.</param>
         void Write( ICKBinaryWriter w );
     }
 }

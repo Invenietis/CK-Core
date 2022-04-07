@@ -74,66 +74,34 @@ namespace CK.Core.Tests
             }
         }
 
-#pragma warning disable SYSLIB0011 // Type or member is obsolete
         [Test]
-        public void reading_and_writing_CKExceptionData_with_Standard_Serialization()
+        public void CKExceptionData_is_both_Simple_and_Versioned_serializable()
         {
             var dataE0 = CKExceptionData.CreateFrom( ThrowAggregatedException() );
             var dataE1 = CKExceptionData.CreateFrom( ThrowSimpleException( "Test Message" ) );
             var dataE2 = CKExceptionData.CreateFrom( ThrowLoaderException() );
             var dataE3 = CKExceptionData.CreateFrom( ThrowExceptionWithInner() );
             var dataE4 = CKExceptionData.CreateFrom( ThrowTwoInnerExceptions() );
-
-            BinaryFormatter f = new BinaryFormatter();
-            using( var mem = new MemoryStream() )
-            {
-                f.Serialize( mem, dataE0 );
-                f.Serialize( mem, dataE1 );
-                f.Serialize( mem, dataE2 );
-                f.Serialize( mem, dataE3 );
-                f.Serialize( mem, dataE4 );
-                mem.Position = 0;
-                var data0 = (CKExceptionData)f.Deserialize( mem );
-                data0.ToString().Should().Be( dataE0.ToString() );
-                var data1 = (CKExceptionData)f.Deserialize( mem );
-                data1.ToString().Should().Be( dataE1.ToString() );
-                var data2 = (CKExceptionData)f.Deserialize( mem );
-                data2.ToString().Should().Be( dataE2.ToString() );
-                var data3 = (CKExceptionData)f.Deserialize( mem );
-                data3.ToString().Should().Be( dataE3.ToString() );
-                var data4 = (CKExceptionData)f.Deserialize( mem );
-                data4.ToString().Should().Be( dataE4.ToString() );
-            }
-        }
-#pragma warning restore SYSLIB0011 // Type or member is obsolete
-
-        [Test]
-        public void reading_and_writing_CKExceptionData_with_BinaryWriter_and_BinaryReader()
-        {
-            var dataE0 = CKExceptionData.CreateFrom( ThrowAggregatedException() );
-            var dataE1 = CKExceptionData.CreateFrom( ThrowSimpleException( "Test Message" ) );
-            var dataE2 = CKExceptionData.CreateFrom( ThrowLoaderException() );
-            var dataE3 = CKExceptionData.CreateFrom( ThrowExceptionWithInner() );
-            var dataE4 = CKExceptionData.CreateFrom( ThrowTwoInnerExceptions() );
+            SerializationVersionAttribute.GetRequiredVersion( typeof( CKExceptionData ) ).Should().Be( 1 );
             using( var mem = new MemoryStream() )
             {
                 CKBinaryWriter w = new CKBinaryWriter( mem );
                 dataE0.Write( w );
-                dataE1.Write( w );
+                dataE1.WriteData( w );
                 dataE2.Write( w );
-                dataE3.Write( w );
+                dataE3.WriteData( w );
                 dataE4.Write( w );
                 mem.Position = 0;
                 var r = new CKBinaryReader( mem );
-                var data0 = new CKExceptionData( r, StringAndStringBuilderExtension.IsCRLF );
+                var data0 = new CKExceptionData( r );
                 data0.ToString().Should().Be( dataE0.ToString() );
-                var data1 = new CKExceptionData( r, StringAndStringBuilderExtension.IsCRLF );
+                var data1 = new CKExceptionData( r, 1 );
                 data1.ToString().Should().Be( dataE1.ToString() );
-                var data2 = new CKExceptionData( r, StringAndStringBuilderExtension.IsCRLF );
+                var data2 = new CKExceptionData( r );
                 data2.ToString().Should().Be( dataE2.ToString() );
-                var data3 = new CKExceptionData( r, StringAndStringBuilderExtension.IsCRLF );
+                var data3 = new CKExceptionData( r, 1 );
                 data3.ToString().Should().Be( dataE3.ToString() );
-                var data4 = new CKExceptionData( r, StringAndStringBuilderExtension.IsCRLF );
+                var data4 = new CKExceptionData( r );
                 data4.ToString().Should().Be( dataE4.ToString() );
             }
         }

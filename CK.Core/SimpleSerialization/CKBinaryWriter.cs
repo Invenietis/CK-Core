@@ -49,11 +49,11 @@ namespace CK.Core
             /// </remarks>
             /// <param name="o">The object to write.</param>
             /// <param name="mustWriteMarker">
-            /// Be default, '2' is written in the stream whenever the object is registered for the first
+            /// Be default, a 0x2 byte is written in the stream whenever the object is registered for the first
             /// time in this pool. Advanced scenarii can use this marker with any byte value greater or
             /// equal to 2.
-            /// '1' followed by the object number is written whenever the object has already been handled.
-            /// '0' is written for the default value of <typeparamref name="T"/>.
+            /// 0x1 followed by the object number is written whenever the object has already been handled.
+            /// 0x0 is written for the default value of <typeparamref name="T"/> this uses <see cref="EqualityComparer{T}.Default"/>).
             /// </param>
             /// <returns>
             /// True if the object must be written, false if it has already been and

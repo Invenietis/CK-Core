@@ -5,13 +5,19 @@ they (or their equivalent) should be in the .Net core framework.
 
 
 ## Throw and Guard
-See [CK.Core/Throw](CK.Core/Throw).
+See [CK.Core/Throw](CK.Core/Throw/).
 
 ## Completable & Completion
-See [CK.Core/Completable](CK.Core/Completable).
+See [CK.Core/Completable](CK.Core/Completable/).
 
 ## "Match and Forward" pattern
-See [CK.Core/Matcher](CK.Core/Matcher).
+See [CK.Core/Matcher](CK.Core/Matcher/).
+
+## CKBinaryReader/Writer, Simple/VersionedSerializable and IUtf8JsonWritable
+See [CK.Core/BinaryReaderWriter/](CK.Core/SimpleSerialization/).
+
+## CoreApplicationIdentity
+See [CK.Core/CoreApplicationIdentity/](CK.Core/CoreApplicationIdentity/).
 
 ## CKTrait
 
@@ -53,7 +59,6 @@ A NormalizedPath can be relative (supports '..' or '.' parts) or be rooted: 5 ki
 
 Very basic and simple `IServiceProvider` implementation.
 
-
 # Hash
 
 `SHA1Value`, `SHA256Value` and `SHA512Value` encapsulate in a readonly struct
@@ -66,9 +71,4 @@ or as a decorator.
 ## ISystemClock
 
 Yet another system clock. See https://github.com/dotnet/extensions/issues/151.
-
-## CKBinaryReader/Writer
-
-Extend `IBinaryReader`/`Writer` with nullable support, more read/write of standard types and
-optional pools to share values.
 
