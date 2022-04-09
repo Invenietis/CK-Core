@@ -78,7 +78,7 @@ namespace CK.Core
         /// </summary>
         /// <param name="r">The reader to read from.</param>
         public CKExceptionData( CKBinaryReader r )
-            : this( r, r.ReadByte() )
+            : this( r, r.ReadInt32() )
         {
         }
 
@@ -92,6 +92,7 @@ namespace CK.Core
         public CKExceptionData( ICKBinaryReader r, int version )
         {
             Throw.CheckNotNullArgument( r );
+            Throw.CheckOutOfRangeArgument( version >= 0 && version <= 1 );
             _message = r.ReadString();
             _exceptionTypeName = r.ReadString();
             _exceptionTypeAQName = r.ReadString();
@@ -248,7 +249,7 @@ namespace CK.Core
         public void Write( ICKBinaryWriter w )
         {
             Debug.Assert( SerializationVersionAttribute.GetRequiredVersion( GetType() ) == 1 );
-            w.Write( (byte)1 );
+            w.Write( 1 );
             WriteData( w );
         }
 
