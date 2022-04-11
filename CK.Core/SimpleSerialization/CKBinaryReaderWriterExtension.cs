@@ -114,7 +114,7 @@ namespace CK.Core
         /// </summary>
         /// <param name="this">This writer.</param>
         /// <param name="t">The text.</param>
-        public static void Write( this CKBinaryWriter @this, JsonEncodedText t )
+        public static void Write( this ICKBinaryWriter @this, JsonEncodedText t )
         {
             @this.WriteNonNegativeSmallInt32( t.EncodedUtf8Bytes.Length );
             @this.Write( t.EncodedUtf8Bytes );
@@ -125,7 +125,7 @@ namespace CK.Core
         /// </summary>
         /// <param name="this">This reader.</param>
         /// <returns>The read text.</returns>
-        public static JsonEncodedText ReadJsonEncodedText( this CKBinaryReader @this )
+        public static JsonEncodedText ReadJsonEncodedText( this ICKBinaryReader @this )
         {
             int len = @this.ReadNonNegativeSmallInt32();
             return JsonEncodedText.Encode( @this.ReadBytes( len ) );
