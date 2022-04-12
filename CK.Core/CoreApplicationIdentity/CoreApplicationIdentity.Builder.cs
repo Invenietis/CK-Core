@@ -96,7 +96,7 @@ namespace CK.Core
             }
 
             /// <summary>
-            /// Gets or sets the eventual <see cref="CoreApplicationIdentity.ContextIdentifier"/>.
+            /// Gets or sets the eventual <see cref="CoreApplicationIdentity.FullContextIdentifier"/>.
             /// <para>
             /// There is no constraint on this string (but shorter is better) except that
             /// the characters 0 to 8 (NUl, SOH, STX, ETX, EOT, ENQ, ACK, BEL, BSP) are

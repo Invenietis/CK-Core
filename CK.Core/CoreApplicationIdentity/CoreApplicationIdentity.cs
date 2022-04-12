@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -25,7 +26,7 @@ namespace CK.Core
     /// At least, the "running instance" itself is necessarily unique because of the <see cref="InstanceId"/>.
     /// </para>
     /// <para>
-    /// Other "identity" can be captured by the <see cref="ContextIdentifier"/>: this can use process arguments, working directory
+    /// Other "identity" can be captured by the <see cref="FullContextIdentifier"/>: this can use process arguments, working directory
     /// or any other contextual information that helps identify a process. Whether this uniquely identifies the process
     /// is not (and cannot) be handled by this model.
     /// </para>
@@ -82,11 +83,18 @@ namespace CK.Core
         /// Defaults to the empty string.
         /// </para>
         /// </summary>
-        public string ContextIdentifier { get; }
+        public string FullContextIdentifier { get; }
 
         /// <summary>
-        /// Gets an opaque random string that identifies this running instance.
-        /// This is currently a 21 characters Base64Url encoded (15 bytes of entropy).
+        /// Gets a Base64Url encoded opaque random string that is the SHA1
+        /// of the <see cref="DomainName"/>/<see cref="EnvironmentName"/>/<see cref="PartyName"/>/<see cref="FullContextIdentifier"/>.
+        /// This identifies this application and its running context (but not this running instance).
+        /// </summary>
+        public string ContextualId { get; }
+
+        /// <summary>
+        /// Gets a Base64Url encoded opaque random string that identifies this running instance.
+        /// This is currently a 21 characters (15 bytes of entropy).
         /// <para>
         /// This is a static property: it's available as soon as the process starts.
         /// </para>
@@ -98,7 +106,8 @@ namespace CK.Core
             DomainName = b.DomainName;
             EnvironmentName = b.EnvironmentName;
             PartyName = b.PartyName ?? "Undefined";
-            ContextIdentifier = b.ContextIdentifier ?? "";
+            FullContextIdentifier = b.ContextIdentifier ?? "";
+            ContextualId = Base64UrlHelper.ToBase64UrlString( SHA1.HashData( Encoding.UTF8.GetBytes( $"{DomainName}/{EnvironmentName}/{PartyName}/{FullContextIdentifier}" ) ) );
         }
 
         static Builder? _builder;
