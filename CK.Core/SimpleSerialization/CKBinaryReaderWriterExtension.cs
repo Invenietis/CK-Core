@@ -109,28 +109,6 @@ namespace CK.Core
             }
         }
 
-        /// <summary>
-        /// Writes a <see cref="JsonEncodedText"/>.
-        /// </summary>
-        /// <param name="this">This writer.</param>
-        /// <param name="t">The text.</param>
-        public static void Write( this ICKBinaryWriter @this, JsonEncodedText t )
-        {
-            @this.WriteNonNegativeSmallInt32( t.EncodedUtf8Bytes.Length );
-            @this.Write( t.EncodedUtf8Bytes );
-        }
-
-        /// <summary>
-        /// Reads a <see cref="JsonEncodedText"/>.
-        /// </summary>
-        /// <param name="this">This reader.</param>
-        /// <returns>The read text.</returns>
-        public static JsonEncodedText ReadJsonEncodedText( this ICKBinaryReader @this )
-        {
-            int len = @this.ReadNonNegativeSmallInt32();
-            return JsonEncodedText.Encode( @this.ReadBytes( len ) );
-        }
-
     }
 }
 
