@@ -123,6 +123,7 @@ namespace CK.Core
             _instance = null;
             _builder = new Builder();
             _token = new CancellationTokenSource();
+            IsInitialized = false;
         }
 #else
         // Real (release) CancellationTokenSource cannot be reset.
@@ -175,8 +176,9 @@ namespace CK.Core
         /// <summary>
         /// Gets whether the <see cref="Instance"/> has been initialized or
         /// can still be configured.
+        /// <para>This is set to true after the callbacks of <see cref="OnInitialized(Action)"/> have been called.</para>
         /// </summary>
-        public static bool IsInitialized => _token.IsCancellationRequested;
+        public static bool IsInitialized { get; private set; }
 
         /// <summary>
         /// Registers a callback that will be called when the <see cref="Instance"/> will be available
@@ -217,7 +219,11 @@ namespace CK.Core
                     }
                 }
                 // Calls the callbacks outside the lock.
-                if( callInit ) _token.Cancel( throwOnFirstException: true );
+                if( callInit )
+                {
+                    _token.Cancel( throwOnFirstException: true );
+                    IsInitialized = true;
+                }
             }
             return _instance;
         }
