@@ -17,7 +17,7 @@ namespace CK.Core
             string _domainName;
             private string _environmentName;
             private string? _partyName;
-            private string? _contextIdentifier;
+            private string? _contextDescriptor;
 
             internal Builder()
             {
@@ -96,7 +96,7 @@ namespace CK.Core
             }
 
             /// <summary>
-            /// Gets or sets the eventual <see cref="CoreApplicationIdentity.FullContextIdentifier"/>.
+            /// Gets or sets the eventual <see cref="CoreApplicationIdentity.ContextDescriptor"/>.
             /// <para>
             /// There is no constraint on this string (but shorter is better) except that
             /// the characters 0 to 8 (NUl, SOH, STX, ETX, EOT, ENQ, ACK, BEL, BSP) are
@@ -104,9 +104,9 @@ namespace CK.Core
             /// (0x0 is mapped to &lt;NUL&gt;, 0x1 to &lt;SOH&gt;, etc.).
             /// </para>
             /// </summary>
-            public string? ContextIdentifier
+            public string? ContextDescriptor
             {
-                get => _contextIdentifier;
+                get => _contextDescriptor;
                 set
                 {
                     if( value != null )
@@ -122,7 +122,7 @@ namespace CK.Core
                                      .Replace( "\u0007", "<BEL>" )
                                      .Replace( "\u0008", "<BSP>" );
                     }
-                    _contextIdentifier = value;
+                    _contextDescriptor = value;
                 }
             }
 

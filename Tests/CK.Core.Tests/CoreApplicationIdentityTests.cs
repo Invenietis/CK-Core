@@ -34,8 +34,10 @@ namespace CK.Core.Tests
             d.PartyName.Should().NotBeNullOrWhiteSpace();
             d.PartyName.Should().NotContainAny( "\\", "//", ":" );
             d.PartyName.Should().NotStartWith( "_" );
-            d.FullContextIdentifier.Should().Be( "" );
+            d.ContextDescriptor.Should().Be( "" );
             d.ContextualId.Should().NotBeNullOrWhiteSpace();
+            d.PartyContextualName.Should().Be( d.PartyName + '-' + d.ContextualId );
+            d.PartyInstanceName.Should().Be( d.PartyName + '-' + CoreApplicationIdentity.InstanceId );
         }
 
         [Test]

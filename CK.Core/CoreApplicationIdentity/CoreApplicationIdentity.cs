@@ -26,7 +26,7 @@ namespace CK.Core
     /// At least, the "running instance" itself is necessarily unique because of the <see cref="InstanceId"/>.
     /// </para>
     /// <para>
-    /// Other "identity" can be captured by the <see cref="FullContextIdentifier"/>: this can use process arguments, working directory
+    /// Other "identity" can be captured by the <see cref="ContextDescriptor"/>: this can use process arguments, working directory
     /// or any other contextual information that helps identify a process. Whether this uniquely identifies the process
     /// is not (and cannot) be handled by this model.
     /// </para>
@@ -35,11 +35,11 @@ namespace CK.Core
     {
         /// <summary>
         /// Gets the name of the domain to which this application belongs.
-        /// It cannot be null or empty and defaults to "Undefined". This reserved name
+        /// It cannot empty and defaults to "Undefined". This reserved name
         /// must prevent any logs to be sent to any collector that is not on the machine
         /// that runs this application (this is typically used on developer's machine).
         /// <para>
-        /// It must be a case sensitive identifier that should use PascalCase convention:
+        /// It must be a case sensitive identifier that should use PascalCase convention if possible:
         /// it must only contain 'A'-'Z', 'a'-'z', '0'-'9' and '_' characters and must not
         /// start with a digit nor a '_'.
         /// </para>
@@ -49,7 +49,7 @@ namespace CK.Core
         /// <summary>
         /// Gets the name of the environment. Defaults to the empty string.
         /// <para>
-        /// When not empty, it must be a case sensitive identifier that should use PascalCase convention:
+        /// When not empty, it must be a case sensitive identifier that should use PascalCase convention if possible:
         /// it must only contain 'A'-'Z', 'a'-'z', '0'-'9' and '_' characters and must not
         /// start with a digit nor a '_'.
         /// </para>
@@ -57,7 +57,7 @@ namespace CK.Core
         public string EnvironmentName { get; }
 
         /// <summary>
-        /// Gets this party name.
+        /// Gets this party name. Cannot be empty.
         /// <para>
         /// It must be a case sensitive identifier that should use PascalCase convention:
         /// it must only contain 'A'-'Z', 'a'-'z', '0'-'9' and '_' characters and must not
@@ -72,25 +72,32 @@ namespace CK.Core
 
         /// <summary>
         /// Gets a string that identifies the context into which this
-        /// application is running.
+        /// application is running. Defaults to the empty string.
         /// <para>
         /// There is no constraint on this string (but shorter is better) except that
         /// the characters 0 to 8 (NUl, SOH, STX, ETX, EOT, ENQ, ACK, BEL, BSP) are
         /// mapped to their respective angle bracket enclosed string representation
         /// (0x0 is mapped to &lt;NUL&gt;, 0x1 to &lt;SOH&gt;, etc.).
         /// </para>
-        /// <para>
-        /// Defaults to the empty string.
-        /// </para>
         /// </summary>
-        public string FullContextIdentifier { get; }
+        public string ContextDescriptor { get; }
 
         /// <summary>
         /// Gets a Base64Url encoded opaque random string that is the SHA1
-        /// of the <see cref="DomainName"/>/<see cref="EnvironmentName"/>/<see cref="PartyName"/>/<see cref="FullContextIdentifier"/>.
+        /// of the <see cref="DomainName"/>/<see cref="EnvironmentName"/>/<see cref="PartyName"/>/<see cref="ContextDescriptor"/>.
         /// This identifies this application and its running context (but not this running instance).
         /// </summary>
         public string ContextualId { get; }
+
+        /// <summary>
+        /// Gets this <see cref="PartyName"/>-<see cref="ContextualId"/>.
+        /// </summary>
+        public string PartyContextualName { get; }
+
+        /// <summary>
+        /// Gets this <see cref="PartyName"/>-<see cref="InstanceId"/>.
+        /// </summary>
+        public string PartyInstanceName { get; }
 
         /// <summary>
         /// Gets a Base64Url encoded opaque random string that identifies this running instance.
@@ -106,8 +113,10 @@ namespace CK.Core
             DomainName = b.DomainName;
             EnvironmentName = b.EnvironmentName;
             PartyName = b.PartyName ?? "Undefined";
-            FullContextIdentifier = b.ContextIdentifier ?? "";
-            ContextualId = Base64UrlHelper.ToBase64UrlString( SHA1.HashData( Encoding.UTF8.GetBytes( $"{DomainName}/{EnvironmentName}/{PartyName}/{FullContextIdentifier}" ) ) );
+            ContextDescriptor = b.ContextDescriptor ?? "";
+            ContextualId = Base64UrlHelper.ToBase64UrlString( SHA1.HashData( Encoding.UTF8.GetBytes( $"{DomainName}/{EnvironmentName}/{PartyName}/{ContextDescriptor}" ) ) );
+            PartyContextualName = PartyName + '-' + ContextualId;
+            PartyInstanceName = PartyName + '-' + InstanceId;
         }
 
         static Builder? _builder;
@@ -183,6 +192,10 @@ namespace CK.Core
         /// <summary>
         /// Registers a callback that will be called when the <see cref="Instance"/> will be available
         /// or immediately if the instance has already been configured.
+        /// <para>
+        /// Current implementation calls the stored delegates in LIFO order. If this becomes an issue, this will
+        /// be changed.
+        /// </para>
         /// </summary>
         /// <param name="action">Any action that requires the application's identity to be available.</param>
         public static void OnInitialized( Action action )
