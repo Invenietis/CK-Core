@@ -19,6 +19,10 @@ See [CK.Core/BinaryReaderWriter/](CK.Core/SimpleSerialization/).
 ## CoreApplicationIdentity
 See [CK.Core/CoreApplicationIdentity/](CK.Core/CoreApplicationIdentity/).
 
+## Automatic Dependency Injection "duck typed" basic contracts
+See [CK.Core/AutomaticDI/](CK.Core/AutomaticDI/).
+
+
 ## CKTrait
 
 CKTrait handle the combination of different tags (strings) in a deterministic an thread safe manner. 

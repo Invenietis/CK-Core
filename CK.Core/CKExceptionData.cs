@@ -74,7 +74,7 @@ namespace CK.Core
 
         /// <summary>
         /// Initializes a new <see cref="CKExceptionData"/> from a <see cref="ICKBinaryReader"/>. 
-        /// See <see cref="Write(CKBinaryWriter,bool)"/>.
+        /// See <see cref="Write(ICKBinaryWriter)"/>.
         /// </summary>
         /// <param name="r">The reader to read from.</param>
         public CKExceptionData( CKBinaryReader r )
@@ -85,7 +85,7 @@ namespace CK.Core
         /// <summary>
         /// Initializes a new <see cref="CKExceptionData"/> from a <see cref="ICKBinaryReader"/>
         /// with a known version. 
-        /// See <see cref="Write(CKBinaryWriter,bool)"/>.
+        /// See <see cref="WriteData(ICKBinaryWriter)"/>.
         /// </summary>
         /// <param name="r">The reader to read from.</param>
         /// <param name="version">Known version.</param>
