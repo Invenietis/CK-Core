@@ -166,6 +166,7 @@ namespace CK.Core.Tests
                 backO.Should().BeEquivalentTo( o );
 
                 SimpleSerializable.DeepCloneSimple( o ).Should().BeEquivalentTo( o );
+                o.DeepClone().Should().BeEquivalentTo( o );
             }
         }
 

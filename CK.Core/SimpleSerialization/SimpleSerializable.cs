@@ -76,8 +76,19 @@ namespace CK.Core
 
         /// <summary>
         /// Deep clones a <see cref="ICKSimpleBinarySerializable"/> by serializing/deserializing it.
-        /// The <typeparamref name="T"/> must be the runtime type of <paramref name="o"/>
-        /// otherwise an <see cref="ArgumentException"/> is thrown.
+        /// </summary>
+        /// <typeparam name="T">The object's type.</typeparam>
+        /// <param name="this">This object .</param>
+        /// <returns>A cloned instance.</returns>
+        public static T DeepClone<T>( this T @this ) where T : ICKSimpleBinarySerializable
+        {
+            Throw.CheckNotNullArgument( @this );
+            return DeepCloneSimple<T>( @this );
+        }
+
+
+        /// <summary>
+        /// Deep clones a <see cref="ICKSimpleBinarySerializable"/> by serializing/deserializing it.
         /// </summary>
         /// <typeparam name="T">The object's type.</typeparam>
         /// <param name="o">The object to clone.</param>
@@ -86,7 +97,6 @@ namespace CK.Core
         public static T? DeepCloneSimple<T>( T? o ) where T : ICKSimpleBinarySerializable
         {
             if( o is null ) return default;
-            if( typeof( T ) != o.GetType() ) Throw.ArgumentException( $"Type parameter '{typeof( T )}' must be the same as the runtime type '{o.GetType()}'." );
             using( var s = new MemoryStream() )
             using( var w = new CKBinaryWriter( s, Encoding.UTF8, true ) )
             {
@@ -95,7 +105,7 @@ namespace CK.Core
                 s.Position = 0;
                 using( var r = new CKBinaryReader( s, Encoding.UTF8, true ) )
                 {
-                    return (T)Activator.CreateInstance( typeof( T ), r )!;
+                    return (T)Activator.CreateInstance( o.GetType(), r )!;
                 }
             }
         }

@@ -4,7 +4,7 @@ CK.Core defines 2 interfaces that supports "simple" binary serialization based o
 the [ICKBinaryReader](ICKBinaryReader.cs) and [ICKBinaryWriter](ICKBinaryWriter.cs).
 
 For more complex support (support of object references, type mutations and other features), the
-CK.BinarySerialization package with its `BinarySerializer and `BinarySerializer` must be used.
+CK.BinarySerialization package with its `BinarySerializer` and `BinarySerializer` must be used.
 
 ## The ICKBinaryReader/Writer
 
@@ -35,8 +35,8 @@ public interface ICKSimpleBinarySerializable
 {
     /// <summary>
     /// Serializes this object into the writer.
-    /// There should be a version written first (typically a byte): the deserialization
-    /// constructor must read this version first.
+    /// There should be a version written first (<see cref="ICKBinaryWriter.WriteSmallInt32"/>): the
+    /// deserialization constructor must read this version first.
     /// </summary>
     /// <param name="w">The writer to use.</param>
     void Write( ICKBinaryWriter w );
@@ -46,7 +46,8 @@ public interface ICKSimpleBinarySerializable
 Such "simple serializable" objects are automatically handled by the CK.BinarySerialization package.
 
 The version has to be manually handled (typically by a first byte - at least until the version 254: versions 255
-up to 64534 should use 2 bytes, etc.).
+up to 64534 should use 2 bytes, etc.) or, easier, use the `Read/WriteSmallInt32` methods that basically does
+this job for you.
 
 ```c#
 readonly struct Sample : ICKSimpleBinarySerializable
@@ -65,7 +66,7 @@ readonly struct Sample : ICKSimpleBinarySerializable
 
     public Sample( ICKBinaryReader r )
     {
-        r.ReadByte(); // Version
+        r.ReadSmallInt32(); // Version
         Power = r.ReadInt32();
         Name = r.ReadString();
         Age = r.ReadNullableInt16();
@@ -73,7 +74,7 @@ readonly struct Sample : ICKSimpleBinarySerializable
 
     public void Write( ICKBinaryWriter w )
     {
-        w.Write( (byte)0 ); // Version
+        w.WriteSmallInt32( 0 ); // Version
         w.Write( Power );
         w.Write( Name );
         w.WriteNullableInt16( Age );
@@ -174,7 +175,7 @@ struct ThingStruct : ICKVersionedBinarySerializable
 }
 ```
 
-This can only be applied to value types or sealed classes. Unless a Code Analyzer is written one day to check this,
+This can **only be applied to value types or sealed classes**. Unless a Code Analyzer is written one day to check this,
 absolutely no check is done in CK.Core. But this check is implemented in CK.BinarySerialization package: an `InvalidOperationException` will
 be raised  if non sealed class appears in a serialization or deserialization session.
 
@@ -183,7 +184,8 @@ brings to the table.
 
 ## Implementing both Simple & Versioned (struct & sealed classes only)
 
-Implementing both interfaces is possible. The following pattern should be used:
+Implementing both interfaces is possible. The following pattern should be used (`Read/WriteSmallInt32` must be used for the version):
+
 ```c#
 /// <summary>
 /// Supporting both interfaces enables simple scenario to use the embedded version
@@ -234,7 +236,7 @@ sealed class CanSupportBothSimpleSerialization : ICKSimpleBinarySerializable, IC
 CK.BinarySerialization always uses the Versioned interface (since it automatically handles the type information
 and the version is a part of this information).
 
-## SimpleSerializable helper class
+## SimpleSerializable helper class: DeepClone for free
 This static class exposes 4 basic helpers that can de/serialize simple and versioned objects from/to a byte array.
 
 Two deep clone static methods are also available:
@@ -265,6 +267,8 @@ public static T? DeepCloneSimple<T>( T? o ) where T : ICKSimpleBinarySerializabl
 
 /// <summary>
 /// Deep clones a <see cref="ICKVersionedBinarySerializable"/> by serializing/deserializing it.
+/// The <typeparamref name="T"/> must be the runtime type of <paramref name="o"/>
+/// otherwise an <see cref="ArgumentException"/> is thrown.
 /// </summary>
 /// <typeparam name="T">The object's type.</typeparam>
 /// <param name="o">The object to clone.</param>
@@ -273,6 +277,7 @@ public static T? DeepCloneSimple<T>( T? o ) where T : ICKSimpleBinarySerializabl
 public static T? DeepCloneVersioned<T>( T? o ) where T : ICKVersionedBinarySerializable
 {
     if( o is null ) return default;
+    if( typeof( T ) != o.GetType() ) Throw.ArgumentException( $"Type parameter '{typeof( T )}' must be the same as the runtime type '{o.GetType()}'." );
     using( var s = new MemoryStream() )
     using( var w = new CKBinaryWriter( s, Encoding.UTF8, true ) )
     {
@@ -285,6 +290,25 @@ public static T? DeepCloneVersioned<T>( T? o ) where T : ICKVersionedBinarySeria
         }
     }
 }
-
-
 ```
+
+The `ICKSimpleBinarySerializable` deep clone can handle specializations (with virtual & overridden `Write` methods) whereas the
+`ICKVersionedBinarySerializable` requires the runtime type to be the same as the formal type (recall that simple versioned serializable
+must be used only for struct and sealed classes).
+
+In addition, a `DeepClone()` extension method is available on any `ICKSimpleBinarySerializable` object:
+
+```c#
+/// <summary>
+/// Deep clones a <see cref="ICKSimpleBinarySerializable"/> by serializing/deserializing it.
+/// </summary>
+/// <typeparam name="T">The object's type.</typeparam>
+/// <param name="this">This object .</param>
+/// <returns>A cloned instance.</returns>
+public static T DeepClone<T>( this T @this ) where T : ICKSimpleBinarySerializable
+{
+    Throw.CheckNotNullArgument( @this );
+    return DeepCloneSimple<T>( @this );
+}
+```
+
