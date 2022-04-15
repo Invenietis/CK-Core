@@ -159,3 +159,8 @@ of the actual CK type this acts as a "grand father".
 
 This attribute can be created anywhere: as long as the name is "CKTypeSuperDefinerAttribute" (regardless of the namespace), it will be honored.
 
+## ExcludeCKTypeAttribute
+Attribute that excludes a type from Automatic DI discovery process. 
+
+This attribute can be created anywhere: as long as the name is "ExcludeCKTypeAttribute" (regardless of the namespace), it will be honored.
+
