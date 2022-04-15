@@ -9,11 +9,13 @@ namespace CK.Core
     /// Immutable encapsulation of a path that normalizes <see cref="AltDirectorySeparatorChar"/> ('\')
     /// to <see cref="DirectorySeparatorChar"/> ('/') and provides useful path manipulation methods.
     /// This is the opposite of the Windows OS, but Windows handles the '/' transparently at more and more levels, 
-    /// and it's better to have a unified way to work with paths, regardless of the 
+    /// and it's better to have a unified way to work with paths, regardless of the OS.
+    /// <para>
     /// All comparisons uses <see cref="StringComparer.Ordinal"/>: this is fully compatible with case sensitive
     /// file systems (typically the case of Unix-based OS). Windows' volumes are normally case insensitive but
     /// using file names that differ only by case is not a good practice and this helper assumes this.
     /// This struct is implicitly convertible to and from string.
+    /// </para>
     /// </summary>
     public readonly struct NormalizedPath : IEquatable<NormalizedPath>, IComparable<NormalizedPath>
     {

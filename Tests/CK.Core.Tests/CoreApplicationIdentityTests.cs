@@ -36,8 +36,8 @@ namespace CK.Core.Tests
             d.PartyName.Should().NotStartWith( "_" );
             d.ContextDescriptor.Should().Be( "" );
             d.ContextualId.Should().NotBeNullOrWhiteSpace();
-            d.PartyContextualName.Should().Be( d.PartyName + '-' + d.ContextualId );
-            d.PartyInstanceName.Should().Be( d.PartyName + '-' + CoreApplicationIdentity.InstanceId );
+            d.PartyContextualName.Should().Be( d.PartyName + "-C" + d.ContextualId );
+            d.PartyInstanceName.Should().Be( d.PartyName + "-I" + CoreApplicationIdentity.InstanceId );
         }
 
         [Test]
