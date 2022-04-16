@@ -12,8 +12,6 @@ namespace CK.Core
         /// </summary>
         public sealed class Builder
         {
-            // Do not cache nor compile the regular expression here.
-            readonly Regex _rId;
             string _domainName;
             private string _environmentName;
             private string? _partyName;
@@ -23,9 +21,6 @@ namespace CK.Core
             {
                 _domainName = "Undefined";
                 _environmentName = "";
-                // 8 bytes of entropy should be enough. (Same as the monitor identifiers.)
-                InstanceId = Util.GetRandomBase64UrlString( 11 );
-                _rId = new Regex( "[A-Za-z][0-9A-Za-z_]*", RegexOptions.CultureInvariant );
             }
 
             internal CoreApplicationIdentity Build()
@@ -54,10 +49,24 @@ namespace CK.Core
                 return null;
             }
 
-            bool IsValidIdentifier( string id ) => id != null && _rId.Match( id ).Success;
+            /// <summary>
+            /// Checks whether the string is a valid <see cref="CoreApplicationIdentity.DomainName"/> or <see cref="CoreApplicationIdentity.PartyName"/>.
+            /// Note that <see cref="CoreApplicationIdentity.EnvironmentName"/> can be empty.
+            /// <para>
+            /// This uses the "^[A-Za-z][0-9A-Za-z_]*$" regular expression.
+            /// </para>
+            /// </summary>
+            /// <remarks>
+            /// Since this should be used during the start of the application, the regular expression is not kept in memory.
+            /// We use the static <see cref="Regex.Match(string, string, RegexOptions)"/>. 
+            /// </remarks>
+            /// <param name="candidateId">The identifier.</param>
+            /// <returns>True for a valid identifier.</returns>
+            public static bool IsValidIdentifier( string candidateId ) => candidateId != null && Regex.Match( candidateId, "^[A-Za-z][0-9A-Za-z_]*$", RegexOptions.CultureInvariant ).Success;
 
             /// <summary>
             /// Gets or sets the eventual <see cref="CoreApplicationIdentity.DomainName"/>.
+            /// <see cref="IsValidIdentifier(string)"/> must be true otherwise an <see cref="ArgumentException"/> is thrown.
             /// </summary>
             public string DomainName
             {
@@ -71,6 +80,7 @@ namespace CK.Core
 
             /// <summary>
             /// Gets or sets the eventual <see cref="CoreApplicationIdentity.EnvironmentName"/>.
+            /// This must be empty or <see cref="IsValidIdentifier(string)"/> must be true otherwise an <see cref="ArgumentException"/> is thrown.
             /// </summary>
             public string EnvironmentName
             {
@@ -84,6 +94,7 @@ namespace CK.Core
 
             /// <summary>
             /// Gets or sets the eventual <see cref="CoreApplicationIdentity.PartyName"/>.
+            /// <see cref="IsValidIdentifier(string)"/> must be true otherwise an <see cref="ArgumentException"/> is thrown.
             /// </summary>
             public string? PartyName
             {
@@ -125,11 +136,6 @@ namespace CK.Core
                     _contextDescriptor = value;
                 }
             }
-
-            /// <summary>
-            /// Gets the <see cref="CoreApplicationIdentity.InstanceId"/>.
-            /// </summary>
-            public string InstanceId { get; }
 
         }
 

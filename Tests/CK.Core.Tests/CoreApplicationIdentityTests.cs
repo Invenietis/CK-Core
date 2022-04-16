@@ -26,6 +26,18 @@ namespace CK.Core.Tests
         }
 
         [Test]
+        public void Builder_IsValidIdentifier_check()
+        {
+            CoreApplicationIdentity.Builder.IsValidIdentifier( " " ).Should().BeFalse();
+            CoreApplicationIdentity.Builder.IsValidIdentifier( "_" ).Should().BeFalse();
+            CoreApplicationIdentity.Builder.IsValidIdentifier( "_A" ).Should().BeFalse();
+            CoreApplicationIdentity.Builder.IsValidIdentifier( "A-" ).Should().BeFalse();
+
+            CoreApplicationIdentity.Builder.IsValidIdentifier( "A" ).Should().BeTrue();
+            CoreApplicationIdentity.Builder.IsValidIdentifier( "A_" ).Should().BeTrue();
+        }
+
+        [Test]
         public void default_CoreApplicationIdentity_is_valid()
         {
             var d = CoreApplicationIdentity.Instance;
