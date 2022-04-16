@@ -120,5 +120,17 @@ namespace CK.Core
             }
         }
 
+        /// <summary>
+        /// Gets the allowed characters in base64Url. 
+        /// </summary>
+        public static readonly string Base64UrlCharacters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_-";
+
+        /// <summary>
+        /// Gets whether the string is composed only of <see cref="Base64UrlCharacters"/>.
+        /// </summary>
+        /// <param name="s">The string to test.</param>
+        /// <returns>True if the string is composed only of <see cref="Base64UrlCharacters"/>.</returns>
+        public static bool IsBase64Url( ReadOnlySpan<char> s ) => s.IndexOfAny( Base64UrlCharacters.AsSpan() ) < 0;
+
     }
 }

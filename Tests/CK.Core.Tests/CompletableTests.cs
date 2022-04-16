@@ -205,7 +205,7 @@ namespace CK.Core.Tests
                 else result.SetCanceled();
             }
 
-            public bool OnCompletedCalled { get; private set; }
+            public volatile bool OnCompletedCalled;
 
             public void OnError( Exception ex, ref CompletionSource<int>.OnError result )
             {

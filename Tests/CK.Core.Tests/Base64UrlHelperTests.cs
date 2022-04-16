@@ -28,6 +28,12 @@ namespace CK.Core.Tests
             back.ToArray().Should().BeEquivalentTo( bytes );
         }
 
+        [Test]
+        public void check_Base64UrlCharacters()
+        {
+            Base64UrlHelper.Base64UrlCharacters.Length.Should().Be( 64 );
+        }
+
         [TestCase( "°" )]
         [TestCase( "+" )]
         [TestCase( "/" )]
