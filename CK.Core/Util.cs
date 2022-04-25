@@ -1,3 +1,4 @@
+using Microsoft.IO;
 using System;
 using System.Buffers;
 using System.Buffers.Text;
@@ -63,14 +64,75 @@ namespace CK.Core
         public static readonly IDisposable EmptyDisposable = new VoidDisposable();
 
         /// <summary>
-        /// Unix Epoch (1st of January 1970).
+        /// Sql Server Epoch (1st of January 1900): this is the 0 legacy date time, the default value, even if
+        /// datetime2 is like the .Net DateTime (0001-01-01 through 9999-12-31, 100ns step).
+        /// Its <see cref="DateTimeKind.Unspecified"/> since this is what the Sql client returns.
         /// </summary>
-        public static readonly DateTime UnixEpoch  = new DateTime(1970,1,1);
+        public static readonly DateTime SqlServerEpoch  = new DateTime( 599266080000000000, DateTimeKind.Unspecified );
 
         /// <summary>
-        /// Sql Server Epoch (1st of January 1900): this is the 0 legacy date time.
+        /// The <see cref="StreamManager"/> is using 128 KiB blocks (small pool).
         /// </summary>
-        public static readonly DateTime SqlServerEpoch  = new DateTime(1900,1,1);
+        public const int RecyclableMemoryStreamBlockSize = 128 * 1024;
+
+        /// <summary>
+        /// The <see cref="StreamManager"/> large pool starts with 256 KiB buffers doubling up to 8 MiB (<see cref="RecyclableMemoryStreamMaximumBufferSize"/>):
+        /// there will be 6 large buffers of 256 KiB, 512 KiB, 1 MiB, 2 MiB, 4 MiB, and 8 MiB.
+        /// </summary>
+        public const int RecyclableMemoryStreamLargeBufferMultiple = 256 * 1024;
+
+        /// <summary>
+        /// The <see cref="StreamManager"/> will not keep buffers bigger than 8 MiB (large pool).
+        /// </summary>
+        public const int RecyclableMemoryStreamMaximumBufferSize = 8 * 1024 * 1024;
+
+        /// <summary>
+        /// The <see cref="StreamManager"/> doubles the size of its buffers (large pool).
+        /// </summary>
+        public const bool RecyclableMemoryStreamUseExponentialLargeBuffer = true;
+
+        /// <summary>
+        /// Gets a default instance of <see cref="RecyclableMemoryStreamManager"/>. This manager is configured
+        /// with at most 256 blocks of 128 KiB for the small pool and at most 32 MiB for its large pool.
+        /// <para>
+        /// This configuration should be fine as long as not too many big streams are required. However,
+        /// there's no "one size fits all" here: the allocation and pool usage should be monitored when possible.
+        /// </para>
+        /// <para>
+        /// The <see cref="RecyclableMemoryStreamMaximumSmallPoolFreeBytes"/> and <see cref="RecyclableMemoryStreamMaximumLargePoolFreeBytes"/>
+        /// can be changed at any time to adjust the pool size. All other settings are immutable.
+        /// </para>
+        /// <para>
+        /// Calling <see cref="RecyclableMemoryStream.ToArray()"/> is allowed (<see cref="RecyclableMemoryStreamManager.ThrowExceptionOnToArray"/> is let to false
+        /// and should not be set tot true): small serializations into small buffers must often result in final byte array.
+        /// ToArray should NOT be called on large payload...
+        /// </para>
+        /// </summary>
+        public static RecyclableMemoryStreamManager StreamManager = new RecyclableMemoryStreamManager( blockSize: RecyclableMemoryStreamBlockSize,
+                                                                                                       largeBufferMultiple: RecyclableMemoryStreamLargeBufferMultiple,
+                                                                                                       maximumBufferSize: RecyclableMemoryStreamMaximumBufferSize,
+                                                                                                       useExponentialLargeBuffer: RecyclableMemoryStreamUseExponentialLargeBuffer,
+                                                                                                       maximumSmallPoolFreeBytes: 256 * RecyclableMemoryStreamBlockSize,
+                                                                                                       maximumLargePoolFreeBytes: 32 * 1024 * 1024 );
+        /// <summary>
+        /// Gets or sets <see cref="RecyclableMemoryStreamManager.MaximumFreeSmallPoolBytes"/> of the default <see cref="StreamManager"/>.
+        /// Defaults to 256 * <see cref="RecyclableMemoryStreamBlockSize"/> (256 * 128 KiB).
+        /// </summary>
+        public static long RecyclableMemoryStreamMaximumSmallPoolFreeBytes
+        {
+            get => StreamManager.MaximumFreeSmallPoolBytes;
+            set => StreamManager.MaximumFreeSmallPoolBytes = value;
+        }
+
+        /// <summary>
+        /// Gets or sets <see cref="RecyclableMemoryStreamManager.MaximumFreeLargePoolBytes"/> of the default <see cref="StreamManager"/>.
+        /// Defaults to 32 MiB.
+        /// </summary>
+        public static long RecyclableMemoryStreamMaximumLargePoolFreeBytes
+        {
+            get => StreamManager.MaximumFreeLargePoolBytes;
+            set => StreamManager.MaximumFreeLargePoolBytes = value;
+        }
 
         /// <summary>
         /// The 0.0.0.0 Version.

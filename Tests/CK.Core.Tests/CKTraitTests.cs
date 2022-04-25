@@ -554,7 +554,7 @@ namespace CK.Core.Tests
             ctx.FindOrCreate( "D" );
             ctx.FindOrCreate( "A,B" );
 
-            using( var m = new MemoryStream() )
+            using( var m = Util.StreamManager.GetStream() )
             using( var w = new CKBinaryWriter( m ) )
             {
                 ctx.Write( w, writeAllTags: true );

@@ -34,5 +34,13 @@ namespace CK.Core.Tests
         {
             Util.GetRandomBase64UrlString( len ).Length.Should().Be( len );
         }
+
+        [Test]
+        public void compute_sqlserver_epoch_ticks()
+        {
+            var t = Util.SqlServerEpoch;
+            t.Ticks.Should().Be( new DateTime(1900,1,1).Ticks );
+            t.Kind.Should().Be( DateTimeKind.Unspecified );
+        }
     }
 }

@@ -35,7 +35,7 @@ namespace CK.Core.Tests
         [Test]
         public void basic_types_writing_and_reading()
         {
-            using( var mem = new MemoryStream() )
+            using( var mem = Util.StreamManager.GetStream() )
             {
                 var sShared = Guid.NewGuid().ToString();
                 using( var w = new CKBinaryWriter( mem, Encoding.UTF8, true ) )
@@ -465,7 +465,7 @@ namespace CK.Core.Tests
         [Test]
         public void object_pool_work()
         {
-            using( var mem = new MemoryStream() )
+            using( var mem = Util.StreamManager.GetStream() )
             {
                 var sA = new String( 'A', 100 );
                 var sB = new String( 'B', 100 );
@@ -518,7 +518,7 @@ namespace CK.Core.Tests
         [Test]
         public void object_pool_with_write_marker()
         {
-            using( var mem = new MemoryStream() )
+            using( var mem = Util.StreamManager.GetStream() )
             {
                 // Same string but in two different instances: the PureObjectRefEqualityComparer
                 // does its job.
@@ -556,7 +556,7 @@ namespace CK.Core.Tests
 
         static int ReadWrite( Action<ICKBinaryWriter> writer, Action<ICKBinaryReader>? reader = null )
         {
-            using( var mem = new MemoryStream() )
+            using( var mem = Util.StreamManager.GetStream() )
             {
                 using( var w = new CKBinaryWriter( mem, Encoding.UTF8, true ) )
                 {

@@ -1,3 +1,4 @@
+using CommunityToolkit.HighPerformance;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
@@ -18,7 +19,7 @@ namespace CK.Core
         /// <returns>The serialized object.</returns>
         public static byte[] SerializeSimple( this ICKSimpleBinarySerializable o )
         {
-            using( var s = new MemoryStream( 4096 ) )
+            using( var s = Util.StreamManager.GetStream() )
             using( var w = new CKBinaryWriter( s, Encoding.UTF8, true ) )
             {
                 o.Write( w );
@@ -34,7 +35,7 @@ namespace CK.Core
         /// <returns>The serialized object.</returns>
         public static byte[] SerializeVersioned( this ICKVersionedBinarySerializable o )
         {
-            using( var s = new MemoryStream( 4096 ) )
+            using( var s = Util.StreamManager.GetStream() )
             using( var w = new CKBinaryWriter( s, Encoding.UTF8, true ) )
             {
                 w.WriteNonNegativeSmallInt32( SerializationVersionAttribute.GetRequiredVersion( o.GetType() ) );
@@ -52,8 +53,30 @@ namespace CK.Core
         /// <returns>The deserialized object.</returns>
         public static T DeserializeSimple<T>( byte[] bytes ) where T : ICKSimpleBinarySerializable
         {
-            using( var m = new MemoryStream( bytes ) )
-            using( var r = new CKBinaryReader( m, Encoding.UTF8, true ) )
+            using var m = new MemoryStream( bytes );
+            return DeserializeSimple<T>( m );
+        }
+
+        /// <summary>
+        /// Deserializes a <see cref="ICKSimpleBinarySerializable"/> from serialized bytes.
+        /// </summary>
+        /// <typeparam name="T">The object's type.</typeparam>
+        /// <param name="bytes">Serialized bytes.</param>
+        /// <returns>The deserialized object.</returns>
+        public static T DeserializeSimple<T>( ReadOnlyMemory<byte> bytes ) where T : ICKSimpleBinarySerializable
+        {
+            return DeserializeSimple<T>( bytes.AsStream() );
+        }
+
+        /// <summary>
+        /// Deserializes a <see cref="ICKSimpleBinarySerializable"/> from serialized bytes.
+        /// </summary>
+        /// <typeparam name="T">The object's type.</typeparam>
+        /// <param name="bytes">The stream.</param>
+        /// <returns>The deserialized object.</returns>
+        public static T DeserializeSimple<T>( Stream bytes ) where T : ICKSimpleBinarySerializable
+        {
+            using( var r = new CKBinaryReader( bytes, Encoding.UTF8, true ) )
             {
                 return (T)Activator.CreateInstance( typeof( T ), r )!;
             }
@@ -65,10 +88,32 @@ namespace CK.Core
         /// <typeparam name="T">The object's type.</typeparam>
         /// <param name="bytes">Serialized bytes.</param>
         /// <returns>The deserialized object.</returns>
+        public static T DeserializeVersioned<T>( ReadOnlyMemory<byte> bytes ) where T : ICKVersionedBinarySerializable
+        {
+            return DeserializeVersioned<T>( bytes.AsStream() );
+        }
+
+        /// <summary>
+        /// Deserializes a <see cref="ICKVersionedBinarySerializable"/> from serialized bytes.
+        /// </summary>
+        /// <typeparam name="T">The object's type.</typeparam>
+        /// <param name="bytes">Serialized bytes.</param>
+        /// <returns>The deserialized object.</returns>
         public static T DeserializeVersioned<T>( byte[] bytes ) where T : ICKVersionedBinarySerializable
         {
-            using( var m = new MemoryStream( bytes ) )
-            using( var r = new CKBinaryReader( m, Encoding.UTF8, true ) )
+            using var m = new MemoryStream( bytes );
+            return DeserializeVersioned<T>( m );
+        }
+
+        /// <summary>
+        /// Deserializes a <see cref="ICKVersionedBinarySerializable"/> from serialized bytes.
+        /// </summary>
+        /// <typeparam name="T">The object's type.</typeparam>
+        /// <param name="bytes">Serialized bytes.</param>
+        /// <returns>The deserialized object.</returns>
+        public static T DeserializeVersioned<T>( Stream bytes ) where T : ICKVersionedBinarySerializable
+        {
+            using( var r = new CKBinaryReader( bytes, Encoding.UTF8, true ) )
             {
                 return (T)Activator.CreateInstance( typeof( T ), r, r.ReadNonNegativeSmallInt32() )!;
             }
@@ -97,7 +142,7 @@ namespace CK.Core
         public static T? DeepCloneSimple<T>( T? o ) where T : ICKSimpleBinarySerializable
         {
             if( o is null ) return default;
-            using( var s = new MemoryStream() )
+            using( var s = Util.StreamManager.GetStream() )
             using( var w = new CKBinaryWriter( s, Encoding.UTF8, true ) )
             {
                 o.Write( w );
@@ -123,7 +168,7 @@ namespace CK.Core
         {
             if( o is null ) return default;
             if( typeof( T ) != o.GetType() ) Throw.ArgumentException( $"Type parameter '{typeof( T )}' must be the same as the runtime type '{o.GetType()}'." );
-            using( var s = new MemoryStream() )
+            using( var s = Util.StreamManager.GetStream() )
             using( var w = new CKBinaryWriter( s, Encoding.UTF8, true ) )
             {
                 o.WriteData( w );
