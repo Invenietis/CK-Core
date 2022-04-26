@@ -10,6 +10,7 @@ The "context" management is not currently finalized (endpoint context should be 
 tied to a endpoint context - currently the "front context" notion is ubiquitous). Once these evolutions will be done, the corresponding
 duck types will be available here.
 
+Similar attributes related to CKSetup process are also defined here in CK.Core. See [CKSetup](CKSetup) directory.
 
 ## IRealObject
 
