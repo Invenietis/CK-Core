@@ -76,6 +76,21 @@ namespace CK.Core
         /// <returns>The bytes.</returns>
         public static Memory<byte> FromBase64UrlString( string base64UrlString )
         {
+            if( !TryFromBase64UrlString(base64UrlString, out Memory<byte> result ) )
+            {
+                Throw.ArgumentException( nameof( base64UrlString ), "Invalid Base64Url data." );
+            }
+            return result;
+        }
+
+        /// <summary>
+        /// Tries to convert a base64Url string to its bytes value.
+        /// </summary>
+        /// <param name="base64UrlString">The string.</param>
+        /// <param name="value">The value on success, empty otherwise.</param>
+        /// <returns>Whether the decoding succeeded.</returns>
+        public static bool TryFromBase64UrlString( string base64UrlString, out Memory<byte> value )
+        {
             Throw.CheckNotNullArgument( base64UrlString );
             var a = new byte[((base64UrlString.Length + 3) >> 2) << 2];
             int written = Encoding.ASCII.GetBytes( base64UrlString.AsSpan(), a );
@@ -88,17 +103,19 @@ namespace CK.Core
                     case (byte)'+':
                     case (byte)'/':
                     case (byte)'=':
-                        Throw.ArgumentException( nameof( base64UrlString ), "Invalid Base64Url data." );
-                        break;
+                        value = Memory<byte>.Empty;
+                        return false;
                 }
             }
             while( written < a.Length ) a[written++] = (byte)'=';
 
             if( Base64.DecodeFromUtf8InPlace( a.AsSpan(), out int final ) != OperationStatus.Done )
             {
-                Throw.ArgumentException( nameof( base64UrlString ), "Invalid Base64Url data." );
+                value = Memory<byte>.Empty;
+                return false;
             }
-            return a.AsMemory( 0, final );
+            value = a.AsMemory( 0, final );
+            return true;
         }
 
         /// <summary>
@@ -127,10 +144,15 @@ namespace CK.Core
 
         /// <summary>
         /// Gets whether the string is composed only of <see cref="Base64UrlCharacters"/>.
+        /// This doesn't check that the string is a valid base 64 url encoding: this just check the set of characters
+        /// (for instance "A" is not a valid string even if it contains valid characters).
+        /// <para>
+        /// Use <see cref="TryFromBase64UrlString"/> to check a valid base 64 url value.
+        /// </para>
         /// </summary>
         /// <param name="s">The string to test.</param>
         /// <returns>True if the string is composed only of <see cref="Base64UrlCharacters"/>.</returns>
-        public static bool IsBase64Url( ReadOnlySpan<char> s ) => s.IndexOfAny( Base64UrlCharacters.AsSpan() ) < 0;
+        public static bool IsBase64UrlCharacters( ReadOnlySpan<char> s ) => s.TrimStart( Base64UrlCharacters.AsSpan() ).IsEmpty;
 
     }
 }
