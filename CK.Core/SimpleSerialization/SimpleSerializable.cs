@@ -19,7 +19,7 @@ namespace CK.Core
         /// <returns>The serialized object.</returns>
         public static byte[] SerializeSimple( this ICKSimpleBinarySerializable o )
         {
-            using( var s = Util.StreamManager.GetStream() )
+            using( var s = Util.RecyclableStreamManager.GetStream() )
             using( var w = new CKBinaryWriter( s, Encoding.UTF8, true ) )
             {
                 o.Write( w );
@@ -35,7 +35,7 @@ namespace CK.Core
         /// <returns>The serialized object.</returns>
         public static byte[] SerializeVersioned( this ICKVersionedBinarySerializable o )
         {
-            using( var s = Util.StreamManager.GetStream() )
+            using( var s = Util.RecyclableStreamManager.GetStream() )
             using( var w = new CKBinaryWriter( s, Encoding.UTF8, true ) )
             {
                 w.WriteNonNegativeSmallInt32( SerializationVersionAttribute.GetRequiredVersion( o.GetType() ) );
@@ -142,7 +142,7 @@ namespace CK.Core
         public static T? DeepCloneSimple<T>( T? o ) where T : ICKSimpleBinarySerializable
         {
             if( o is null ) return default;
-            using( var s = Util.StreamManager.GetStream() )
+            using( var s = Util.RecyclableStreamManager.GetStream() )
             using( var w = new CKBinaryWriter( s, Encoding.UTF8, true ) )
             {
                 o.Write( w );
@@ -168,7 +168,7 @@ namespace CK.Core
         {
             if( o is null ) return default;
             if( typeof( T ) != o.GetType() ) Throw.ArgumentException( $"Type parameter '{typeof( T )}' must be the same as the runtime type '{o.GetType()}'." );
-            using( var s = Util.StreamManager.GetStream() )
+            using( var s = Util.RecyclableStreamManager.GetStream() )
             using( var w = new CKBinaryWriter( s, Encoding.UTF8, true ) )
             {
                 o.WriteData( w );

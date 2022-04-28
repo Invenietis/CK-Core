@@ -83,7 +83,7 @@ namespace CK.Core.Tests
             var dataE3 = CKExceptionData.CreateFrom( ThrowExceptionWithInner() );
             var dataE4 = CKExceptionData.CreateFrom( ThrowTwoInnerExceptions() );
             SerializationVersionAttribute.GetRequiredVersion( typeof( CKExceptionData ) ).Should().Be( 1 );
-            using( var mem = Util.StreamManager.GetStream() )
+            using( var mem = Util.RecyclableStreamManager.GetStream() )
             {
                 CKBinaryWriter w = new CKBinaryWriter( mem );
                 dataE0.Write( w );
