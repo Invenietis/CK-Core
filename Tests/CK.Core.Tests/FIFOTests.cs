@@ -465,5 +465,41 @@ namespace CK.Core.Tests
             iType.Should().Be( iBoxed );
         }
 
+        [Test]
+        public void FIFO_can_be_dynamic_up_to_()
+        {
+            FIFOBuffer<int> f = new FIFOBuffer<int>( 0 );
+            AssertEmpty( f );
+            f.Push( 1 );
+            AssertEmpty( f );
+            f.MaxDynamicCapacity = 1;
+            f.Push( 1 );
+            AssertContains( f, 1 );
+            f.Capacity.Should().Be( 1, "Buffer has grown to its maximal capacity (and no more)." );    
+            f.Push( 2 );
+            AssertContains( f, 2 );
+
+            f.MaxDynamicCapacity = 5;
+            f.Push( 3 );
+            f.Capacity.Should().Be( 2, "Buffer size has been doubled." );
+            AssertContains( f, 2, 3 );
+
+            f.Push( 4 );
+            f.Capacity.Should().Be( 4, "Buffer size has been doubled." );
+            AssertContains( f, 2, 3, 4 );
+
+            f.Push( 5 );
+            f.Capacity.Should().Be( 4, "Buffer has not been resized." );
+            AssertContains( f, 2, 3, 4, 5 );
+
+            f.Push( 6 );
+            f.Capacity.Should().Be( 5, "Buffer has grown to its maximal capacity (and no more)." );
+            AssertContains( f, 2, 3, 4, 5, 6 );
+
+            f.MaxDynamicCapacity = 2;
+            f.Capacity.Should().Be( 2, "Buffer has been shrink." );
+            AssertContains( f, 5, 6 );
+        }
+
     }
 }
