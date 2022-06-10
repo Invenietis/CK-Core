@@ -64,5 +64,41 @@ namespace CK.Core
             throw new InvalidOperationException( message, innerException );
         }
 
+        /// <summary>
+        /// Throws a new <see cref="System.ObjectDisposedException"/>.
+        /// </summary>
+        /// <param name="message">Optional message to include in the exception.</param>
+        /// <param name="innerException">Optional inner <see cref="Exception"/> to include.</param>
+        [DoesNotReturn]
+        public static void ObjectDisposedException( string? message, Exception? innerException )
+        {
+            throw new ObjectDisposedException( message, innerException );
+        }
+
+        /// <summary>
+        /// Throws a new <see cref="System.ObjectDisposedException"/>.
+        /// </summary>
+        /// <param name="objectName">Optional message to include in the exception.</param>
+        /// <param name="message">Optional object name to include in the exception.</param>
+        [DoesNotReturn]
+        public static void ObjectDisposedException( string? objectName = null, string? message = null )
+        {
+            throw new ObjectDisposedException( objectName, message );
+        }
+
+        /// <summary>
+        /// Throws a new <see cref="System.ObjectDisposedException"/> if <paramref name="isDisposed"/> expression is <see langword="true"/>.
+        /// </summary>
+        /// <param name="message">An explicit message that replaces the default "Invalid state: ... should be true.".</param>
+        /// <param name="isDisposed">The expression to that must be true.</param>
+        /// <param name="exp">Roslyn's automatic capture of the expression's value.</param>
+        [MethodImpl( MethodImplOptions.AggressiveInlining )]
+        public static void CheckDisposed( [DoesNotReturnIf( true )] bool isDisposed, string? message = null, [CallerArgumentExpression( "isDisposed" )] string? exp = null )
+        {
+            if( isDisposed )
+            {
+                ObjectDisposedException( message: message ?? exp );
+            }
+        }
     }
 }
