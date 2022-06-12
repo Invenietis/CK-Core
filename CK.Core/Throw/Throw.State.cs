@@ -67,7 +67,7 @@ namespace CK.Core
         /// <summary>
         /// Throws a new <see cref="System.ObjectDisposedException"/>.
         /// </summary>
-        /// <param name="message">Optional message to include in the exception.</param>
+        /// <param name="message">The error message that explains the reason for the exception.</param>
         /// <param name="innerException">Optional inner <see cref="Exception"/> to include.</param>
         [DoesNotReturn]
         public static void ObjectDisposedException( string? message, Exception? innerException )
@@ -78,12 +78,24 @@ namespace CK.Core
         /// <summary>
         /// Throws a new <see cref="System.ObjectDisposedException"/>.
         /// </summary>
-        /// <param name="objectName">Optional message to include in the exception.</param>
-        /// <param name="message">Optional object name to include in the exception.</param>
+        /// <param name="objectName">The name of the disposed object.</param>
+        /// <param name="message">The error message that explains the reason for the exception.</param>
         [DoesNotReturn]
         public static void ObjectDisposedException( string? objectName = null, string? message = null )
         {
+            if( message == null ) throw new ObjectDisposedException( objectName );
             throw new ObjectDisposedException( objectName, message );
+        }
+
+        /// <summary>
+        /// Throws a new <see cref="System.TimeoutException"/>.
+        /// </summary>
+        /// <param name="message">Optional message to include in the exception.</param>
+        /// <param name="innerException">Optional inner <see cref="Exception"/> to include.</param>
+        [DoesNotReturn]
+        public static void TimeoutException( string? message, Exception? innerException )
+        {
+            throw new TimeoutException( message, innerException );
         }
 
     }
