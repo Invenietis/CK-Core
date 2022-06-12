@@ -86,19 +86,5 @@ namespace CK.Core
             throw new ObjectDisposedException( objectName, message );
         }
 
-        /// <summary>
-        /// Throws a new <see cref="System.ObjectDisposedException"/> if <paramref name="isDisposed"/> expression is <see langword="true"/>.
-        /// </summary>
-        /// <param name="message">An explicit message that replaces the default "Invalid state: ... should be true.".</param>
-        /// <param name="isDisposed">The expression to that must be true.</param>
-        /// <param name="exp">Roslyn's automatic capture of the expression's value.</param>
-        [MethodImpl( MethodImplOptions.AggressiveInlining )]
-        public static void CheckDisposed( [DoesNotReturnIf( true )] bool isDisposed, string? message = null, [CallerArgumentExpression( "isDisposed" )] string? exp = null )
-        {
-            if( isDisposed )
-            {
-                ObjectDisposedException( message: message ?? exp );
-            }
-        }
     }
 }
