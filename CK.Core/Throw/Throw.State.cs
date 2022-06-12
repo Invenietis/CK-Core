@@ -64,5 +64,27 @@ namespace CK.Core
             throw new InvalidOperationException( message, innerException );
         }
 
+        /// <summary>
+        /// Throws a new <see cref="System.ObjectDisposedException"/>.
+        /// </summary>
+        /// <param name="message">Optional message to include in the exception.</param>
+        /// <param name="innerException">Optional inner <see cref="Exception"/> to include.</param>
+        [DoesNotReturn]
+        public static void ObjectDisposedException( string? message, Exception? innerException )
+        {
+            throw new ObjectDisposedException( message, innerException );
+        }
+
+        /// <summary>
+        /// Throws a new <see cref="System.ObjectDisposedException"/>.
+        /// </summary>
+        /// <param name="objectName">Optional message to include in the exception.</param>
+        /// <param name="message">Optional object name to include in the exception.</param>
+        [DoesNotReturn]
+        public static void ObjectDisposedException( string? objectName = null, string? message = null )
+        {
+            throw new ObjectDisposedException( objectName, message );
+        }
+
     }
 }
