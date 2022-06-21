@@ -5,6 +5,7 @@ using System.Linq;
 using CK.Core;
 using System.Threading;
 using System.ComponentModel;
+using System.Diagnostics.CodeAnalysis;
 
 #nullable enable
 
@@ -26,7 +27,7 @@ namespace CK.Core
     /// A CKTrait is easily serializable as its <see cref="ToString"/> representation and restored with <see cref="CKTraitContext.FindOrCreate(string)"/>
     /// on the appropriate context.
     /// </remarks>
-    public sealed class CKTrait : IComparable<CKTrait>, IEquatable<CKTrait>
+    public sealed class CKTrait : IComparable<CKTrait>
     {
         readonly CKTraitContext _context;
         readonly string _tag;
@@ -61,7 +62,7 @@ namespace CK.Core
         {
             Debug.Assert( combinedTag.IndexOf( ctx.Separator ) > 0 && tags.Count > 1, "There is more than one tag in a Combined Tag." );
             Debug.Assert( tags.All( m => m.IsAtomic ), "Provided tags are all atomic." );
-            Debug.Assert( tags.GroupBy( m => m ).Where( g => g.Count() != 1 ).Count() == 0, "No duplicate in atomic in tags." );
+            Debug.Assert( !tags.GroupBy( m => m ).Any( g => g.Count() != 1 ), "No duplicate in atomic in tags." );
             _context = ctx;
             _tag = combinedTag;
             _tags = tags;
@@ -123,13 +124,6 @@ namespace CK.Core
         }
 
         /// <summary>
-        /// Checks equality of this tag with another one.
-        /// </summary>
-        /// <param name="other">The tag to compare to.</param>
-        /// <returns>True on equality.</returns>
-        public bool Equals( CKTrait? other ) => ReferenceEquals( this, other );
-
-        /// <summary>
         /// Checks if each and every atomic tags of <paramref name="other" /> exists in this tag.
         /// </summary>
         /// <param name="other">The tag(s) to find.</param>
@@ -140,8 +134,8 @@ namespace CK.Core
         /// </remarks>
         public bool IsSupersetOf( CKTrait other )
         {
-            if( other == null ) throw new ArgumentNullException( "other" );
-            if( other.Context != _context ) throw new InvalidOperationException( Impl.CoreResources.TagsMustBelongToTheSameContext );
+            Throw.CheckNotNullArgument( other );
+            if( _context != other.Context ) Throw.ArgumentException( nameof( other ), Impl.CoreResources.TagsMustBelongToTheSameContext );
             if( _tags.Count < other._tags.Count ) return false;
             bool foundAlien = false;
             Process( this, other,
@@ -163,8 +157,8 @@ namespace CK.Core
         /// </remarks>
         public bool Overlaps( CKTrait other )
         {
-            if( other == null ) throw new ArgumentNullException( "other" );
-            if( other.Context != _context ) throw new InvalidOperationException( Impl.CoreResources.TagsMustBelongToTheSameContext );
+            Throw.CheckNotNullArgument( other );
+            if( _context != other.Context ) Throw.ArgumentException( nameof( other ), Impl.CoreResources.TagsMustBelongToTheSameContext );
             bool found = false;
             Process( this, other,
                 null,
@@ -184,14 +178,17 @@ namespace CK.Core
 
         /// <summary>
         /// Obtains a <see cref="CKTrait"/> that contains the atomic tags from both this tag and <paramref name="other"/>.
+        /// <para>
+        /// Binary operator &amp; can be used as well as the &amp;= assignment operator.
+        /// </para>
         /// </summary>
         /// <param name="other">Tag that must be kept.</param>
         /// <returns>The resulting tag.</returns>
         public CKTrait Intersect( CKTrait other )
         {
             if( ReferenceEquals( other, this ) ) return this;
-            if( other == null ) throw new ArgumentNullException( "other" );
-            if( other.Context != _context ) throw new InvalidOperationException( Impl.CoreResources.TagsMustBelongToTheSameContext );
+            Throw.CheckNotNullArgument( other );
+            if( _context != other.Context ) Throw.ArgumentException( nameof( other ), Impl.CoreResources.TagsMustBelongToTheSameContext );
             ListTag m = new ListTag();
             Process( this, other, null, null, m.TrueAdd );
             return _context.FindOrCreateFromAtomicSortedList( m );
@@ -199,15 +196,18 @@ namespace CK.Core
 
         /// <summary>
         /// Obtains a <see cref="CKTrait"/> that combines this one and 
-        /// the tzg(s) specified by the parameter. 
+        /// the tag(s) specified by the parameter. 
+        /// <para>
+        /// Binary operator <see cref="operator +(CKTrait?, CKTrait?)"/> or <see cref="operator |(CKTrait?, CKTrait?)"/> can be used as well as the += or |= assignment operator.
+        /// </para>
         /// </summary>
         /// <param name="other">Tag to add.</param>
         /// <returns>The resulting tag.</returns>
         public CKTrait Union( CKTrait other )
         {
             if( ReferenceEquals( other, this ) ) return this;
-            if( other == null ) throw new ArgumentNullException( nameof( other ) );
-            if( other.Context != _context ) throw new InvalidOperationException( Impl.CoreResources.TagsMustBelongToTheSameContext );
+            Throw.CheckNotNullArgument( other );
+            if( _context != other.Context ) Throw.ArgumentException( nameof( other ), Impl.CoreResources.TagsMustBelongToTheSameContext );
             ListTag m = new ListTag();
             Func<CKTrait,bool> add = m.TrueAdd;
             Process( this, other, add, add, add );
@@ -216,14 +216,17 @@ namespace CK.Core
 
         /// <summary>
         /// Obtains a <see cref="CKTrait"/> from which tag(s) specified by the parameter are removed.
+        /// <para>
+        /// Binary operator <see cref="operator -(CKTrait?, CKTrait?)"/> can be used as well as the -= assignment operator.
+        /// </para>
         /// </summary>
         /// <param name="other">Tag to remove.</param>
         /// <returns>The resulting tag.</returns>
         public CKTrait Except( CKTrait other )
         {
             if( ReferenceEquals( other, this ) ) return _context.EmptyTrait;
-            if( other == null ) throw new ArgumentNullException( nameof( other ) );
-            if( other.Context != _context ) throw new InvalidOperationException( Impl.CoreResources.TagsMustBelongToTheSameContext );
+            Throw.CheckNotNullArgument( other );
+            if( _context != other.Context ) Throw.ArgumentException( nameof( other ), Impl.CoreResources.TagsMustBelongToTheSameContext );
             ListTag m = new ListTag();
             Process( this, other, m.TrueAdd, null, null );
             return _context.FindOrCreateFromAtomicSortedList( m );
@@ -233,15 +236,18 @@ namespace CK.Core
         /// Obtains a <see cref="CKTrait"/> where the atomic tags of <paramref name="other" /> are removed (resp. added) depending 
         /// on whether they exist (resp. do not exist) in this tag. This is like an Exclusive Or (XOR), this implements a "toggle"
         /// operation.
+        /// <para>
+        /// Binary operator <see cref="operator ^(CKTrait?, CKTrait?)"/> can be used as well as the ^= assignment operator.
+        /// </para>
         /// </summary>
         /// <param name="other">Tag to toggle.</param>
         /// <returns>The resulting tag.</returns>
         public CKTrait SymmetricExcept( CKTrait other )
         {
             if( ReferenceEquals( other, this ) ) return _context.EmptyTrait;
-            if( other == null ) throw new ArgumentNullException( nameof( other ) );
-            if( other.Context != _context ) throw new InvalidOperationException( Impl.CoreResources.TagsMustBelongToTheSameContext );
-            ListTag m = new ListTag();
+            Throw.CheckNotNullArgument( other );
+            if( _context != other.Context ) Throw.ArgumentException( nameof( other ), Impl.CoreResources.TagsMustBelongToTheSameContext );
+            var m = new ListTag();
             Func<CKTrait,bool> add = m.TrueAdd;
             Process( this, other, add, add, null );
             return _context.FindOrCreateFromAtomicSortedList( m );
@@ -255,7 +261,6 @@ namespace CK.Core
         /// <returns>Resulting tag.</returns>
         public CKTrait Apply( CKTrait other, SetOperation operation )
         {
-            if( other == null ) throw new ArgumentNullException( nameof( other ) );
             switch( operation )
             {
                 case SetOperation.Union: return Union( other );
@@ -313,6 +318,8 @@ namespace CK.Core
         /// <param name="t1">The first tag to combine.</param>
         /// <param name="t2">The second tag to combine.</param>
         /// <returns>The combined trait.</returns>
+        [return: NotNullIfNotNull( "t1" )]
+        [return: NotNullIfNotNull( "t2" )]
         public static CKTrait? operator +( CKTrait? t1, CKTrait? t2 ) => t1 == null ? t2 : (t2 == null ? t1 : t1.Union( t2 ));
 
         /// <summary>
@@ -322,6 +329,8 @@ namespace CK.Core
         /// <param name="t1">The first tag to combine.</param>
         /// <param name="t2">The second tag to combine.</param>
         /// <returns>The combined trait.</returns>
+        [return: NotNullIfNotNull( "t1" )]
+        [return: NotNullIfNotNull( "t2" )]
         public static CKTrait? operator |( CKTrait? t1, CKTrait? t2 ) => t1 == null ? t2 : (t2 == null ? t1 : t1.Union( t2 ));
 
         /// <summary>
@@ -330,6 +339,8 @@ namespace CK.Core
         /// <param name="t1">The first tag to combine.</param>
         /// <param name="t2">The second tag to combine.</param>
         /// <returns>The combined trait.</returns>
+        [return: NotNullIfNotNull( "t1" )]
+        [return: NotNullIfNotNull( "t2" )]
         public static CKTrait? operator -( CKTrait? t1, CKTrait? t2 ) => t1 == null ? t2 : (t2 == null ? t1 : t1.Except( t2 ));
 
         /// <summary>
@@ -338,6 +349,8 @@ namespace CK.Core
         /// <param name="t1">The first tag to combine.</param>
         /// <param name="t2">The second tag to combine.</param>
         /// <returns>The combined trait.</returns>
+        [return: NotNullIfNotNull( "t1" )]
+        [return: NotNullIfNotNull( "t2" )]
         public static CKTrait? operator &( CKTrait? t1, CKTrait? t2 ) => t1 == null ? t2 : (t2 == null ? t1 : t1.Intersect( t2 ));
 
         /// <summary>
@@ -346,6 +359,8 @@ namespace CK.Core
         /// <param name="t1">The first tag to combine.</param>
         /// <param name="t2">The second tag to combine.</param>
         /// <returns>The combined trait.</returns>
+        [return: NotNullIfNotNull( "t1" )]
+        [return: NotNullIfNotNull( "t2" )]
         public static CKTrait? operator ^( CKTrait? t1, CKTrait? t2 ) => t1 == null ? t2 : (t2 == null ? t1 : t1.SymmetricExcept( t2 ));
 
         /// <summary>
@@ -366,7 +381,7 @@ namespace CK.Core
         /// Toggle      1, 1, 0 = Toggle (SymmetricExcept) (keep mine, theirs, but reject commons) => /Intersect
         /// Union       1, 1, 1 = Add
         /// 
-        /// This shows that our 4 methods Intersect, Remove, Toggle and Add cover the interesting cases - others are either symetric or useless.
+        /// This shows that our 4 methods Intersect, Remove, Toggle and Add cover the interesting cases - others are either symmetric or useless.
         /// </remarks>
         static void Process( CKTrait left, CKTrait right, Func<CKTrait,bool>? onLeft, Func<CKTrait,bool>? onRight, Func<CKTrait,bool>? onBoth )
         {

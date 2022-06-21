@@ -24,13 +24,17 @@ namespace CK.Core
 
         readonly Regex _canonize2;
         readonly ConcurrentDictionary<string, CKTrait> _tags;
+        // We don't want to expose the concurrent dictionary content at any time with
+        // a CKTrait that will not be the final, unique, one. As msdn states: "AddOrUpdate is not atomic with regards to
+        // all other operations on the ConcurrentDictionary<TKey,TValue> class.": this could lead to duplicates to appear
+        // in the wild. We use a stronger lock (with double check) when adding new CKtrait.
         readonly object _creationLock;
         readonly string _separatorString;
         readonly int _independentIndex;
 
         CKTraitContext( string name, char separator, bool shared, ICKBinaryReader? r )
         {
-            if( String.IsNullOrWhiteSpace( name ) ) throw new ArgumentException( Core.Impl.CoreResources.ArgumentMustNotBeNullOrWhiteSpace, "uniqueName" );
+            Throw.CheckNotNullOrWhiteSpaceArgument( name );
             Name = name.Normalize();
             Separator = separator;
             if( !shared ) Monitor.Enter( _basicLock );
@@ -69,7 +73,7 @@ namespace CK.Core
                 _tags[String.Empty] = EmptyTrait;
             }
             EnumWithEmpty = new CKTrait[] { EmptyTrait };
-            _creationLock = new Object();
+            _creationLock = new object();
             _independentIndex = shared ? 0 : Interlocked.Increment( ref _nextIndependentIndex );
         }
 
@@ -103,14 +107,16 @@ namespace CK.Core
 
         static CKTraitContext Bind( string name, char separator, ICKBinaryReader? tagReader )
         {
-            CKTraitContext c, exists;
+            CKTraitContext? c, exists;
             lock( _basicLock )
             {
                 c = exists = _allContexts.FirstOrDefault( x => x.Name == name );
                 if( exists == null ) _allContexts.Add( c = new CKTraitContext( name, separator, true, tagReader ) );
+                Debug.Assert( c != null );
             }
             if( exists != null )
             {
+                Debug.Assert( c != null );
                 if( exists.Separator != separator )
                 {
                     throw new InvalidOperationException( $"CKTraitContext named '{name}' is already defined with the separator '{exists.Separator}', it cannot be redefined with the separator '{separator}'." );
@@ -133,6 +139,7 @@ namespace CK.Core
         /// <param name="r">The binary reader to use.</param>
         public static CKTraitContext Read( ICKBinaryReader r )
         {
+            Throw.CheckNotNullArgument( r );
             byte vS = r.ReadByte();
             bool shared = (vS & 128) != 0;
             bool withTags = (vS & 64) != 0;
@@ -304,7 +311,7 @@ namespace CK.Core
         {
             if( tags == null || tags.Length == 0 ) return EmptyTrait;
             tags = tags.Normalize();
-            if( tags.IndexOfAny( new[] { '\n', '\r' } ) >= 0 ) throw new ArgumentException( Core.Impl.CoreResources.TagsMustNotBeMultiLineString );
+            if( tags.IndexOfAny( new[] { '\n', '\r' } ) >= 0 ) Throw.ArgumentException( Impl.CoreResources.TagsMustNotBeMultiLineString );
             if( !_tags.TryGetValue( tags, out CKTrait? m ) )
             {
                 string[] splitTags = SplitMultiTag( tags, out int tagCount );

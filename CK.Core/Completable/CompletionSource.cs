@@ -24,8 +24,7 @@ namespace CK.Core
     /// </summary>
     public class CompletionSource : ICompletion, ICompletionSource
     {
-        /// Adapter waiting for .Net 5 TaskCompletionSource.
-        readonly TaskCompletionSource<object?> _tcs;
+        readonly TaskCompletionSource _tcs;
         readonly ICompletable _holder;
         volatile Exception? _exception;
         volatile int _state;
@@ -36,9 +35,9 @@ namespace CK.Core
         /// <param name="holder">The completion's holder.</param>
         public CompletionSource( ICompletable holder )
         {
-            _tcs = new TaskCompletionSource<object?>( TaskCreationOptions.RunContinuationsAsynchronously );
+            _tcs = new TaskCompletionSource( TaskCreationOptions.RunContinuationsAsynchronously );
             _holder = holder ?? throw new ArgumentNullException( nameof(holder) );
-            // Continuation that handles the error (if any): this prevent the UnobservedTaskException to
+            // Continuation that handles the error (if any): this prevents the UnobservedTaskException to
             // be raised during GC (Task's finalization).
             _ = _tcs.Task.ContinueWith( r => r.Exception!.Handle( e => true ),
                                         default,
@@ -81,8 +80,9 @@ namespace CK.Core
         /// </summary>
         public void SetResult()
         {
-            if( _state == 0 ) _state = 1;
-            _tcs.SetResult( null );
+            _tcs.SetResult();
+            _state = 1;
+            _holder.OnCompleted();
         }
 
         /// <summary>
@@ -95,8 +95,9 @@ namespace CK.Core
         {
             if( _state != 0 ) return false;
             _state |= 1;
-            if( _tcs.TrySetResult( null ) )
+            if( _tcs.TrySetResult() )
             {
+                _holder.OnCompleted();
                 return true;
             }
             _state &= ~1;
@@ -174,8 +175,13 @@ namespace CK.Core
         {
             // Fast path if already resolved: the framework exception will be raised.
             // This protects the current state.
-            // Only on concurrent SetException will the state be inconsistent.
             if( _state != 0 ) _tcs.SetException( exception );
+            // On concurrent (first) SetException the risk to end
+            // with an inconsistent state is if the OnError hook takes 2
+            // different decisions!
+            // But since the loser of the race will always trigger an exception
+            // (when calling SetException/Cancel/Result) anyway,
+            // this issue is highly mitigated (we can live with it).
             var o = new OnError( this );
             _holder.OnError( exception, ref o );
             if( !o.Called ) ThrowOnErrorCalledRequired();
@@ -191,8 +197,9 @@ namespace CK.Core
             }
             else
             {
-                _tcs.SetResult( null );
+                _tcs.SetResult();
             }
+            _holder.OnCompleted();
         }
 
         /// <inheritdoc />
@@ -224,13 +231,14 @@ namespace CK.Core
             }
             else
             {
-                if( !_tcs.TrySetResult( null ) )
+                if( !_tcs.TrySetResult() )
                 {
                     _state &= ~2;
                     _exception = null;
                     return false;
                 }
             }
+            _holder.OnCompleted();
             return true;
         }
 
@@ -295,12 +303,13 @@ namespace CK.Core
             _state |= 4;
             if( o.ResultSuccess )
             {
-                _tcs.SetResult( null );
+                _tcs.SetResult();
             }
             else
             {
                 _tcs.SetCanceled();
             }
+            _holder.OnCompleted();
         }
 
         /// <inheritdoc />
@@ -313,7 +322,7 @@ namespace CK.Core
             _state |= 4;
            if( o.ResultSuccess )
             {
-                if( !_tcs.TrySetResult( null ) )
+                if( !_tcs.TrySetResult() )
                 {
                     _state &= ~4;
                     return false;
@@ -327,6 +336,7 @@ namespace CK.Core
                     return false;
                 }
             }
+            _holder.OnCompleted();
             return true;
         }
 

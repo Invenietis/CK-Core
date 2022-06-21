@@ -1,17 +1,23 @@
 <Project Sdk="Microsoft.NET.Sdk">
-  <Import Project="..\Common\Shared.props" />
   <PropertyGroup>
-    <TargetFrameworks>netstandard2.1;netstandard2.0</TargetFrameworks>
+    <TargetFrameworks>net6.0</TargetFrameworks>
     <Nullable>enable</Nullable>
-    <LangVersion>9.0</LangVersion>
-    <Description>CK.Core contains types and helpers that are used across different projects. Main types are: CKTrait, DateTimeStamp, SimpleServiceContainer, CriticalErrorCollector, FIFOBuffer, TemporaryFile, BestKeeper, SHA1/SHA512Stream and SHA1/SHA512Value.</Description>
+    <Description>
+      CK.Core contains types and helpers that are used across different projects.
+      Main types are:
+      - NormalizedPath: Normalizes / and \ separators to /, exposes Parts and handle multiple kind of roots: / (RootedBySeparator), 'X:' or ':' (RootedByFirstPart), '//' (RootedByDoubleSeparator), or 'xx://' (RootedByURIScheme).
+      - CKTrait: Thread safe set of (immutable) string tags that support all set operations.
+      - DateTimeStamp: Simple DateTime with byte uniquifier.
+      - SimpleServiceContainer: Basic IServiceProvider implementation.
+      - HashStream and SHA1Value, SHA256Value and SHA512Value.
+      - ISystemClock and SystemClock default implementation.
+      - Completable &amp; Completion: Are "futures" or "yet another promises" (based on Task/TaskCompletionSource). Offer Covariance of the completion result and optional extension points to map errors (exceptions or cancellation) to regular results.
+      - CKBinaryReader/Writer: extend IBinaryReader/Writer with nullable support, more read/write of standard types and optional value sharing.
+    </Description>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="CK.Text" Version="9.0.2" />
-  </ItemGroup>
-  <ItemGroup>
-    <PackageReference Include="TunnelVisionLabs.ReferenceAssemblyAnnotator" Version="1.0.0-alpha.160" PrivateAssets="all" />
-    <PackageDownload Include="Microsoft.NETCore.App.Ref" Version="[3.1.0]" />
+    <PackageReference Include="CommunityToolkit.HighPerformance" Version="7.1.2" />
+    <PackageReference Include="Microsoft.IO.RecyclableMemoryStream" Version="2.2.0" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Properties\" />

@@ -10,7 +10,7 @@ namespace CK.Core.Tests
         [Test]
         public void InterlockedAdd_atomically_adds_an_item_to_an_array()
         {
-            int[] a = null;
+            int[] a = Array.Empty<int>();
             Util.InterlockedAdd(ref a, 1);
             a.Should().NotBeNull();
             a.Should().BeEquivalentTo(new[] { 1 }, o => o.WithStrictOrdering());
@@ -23,7 +23,7 @@ namespace CK.Core.Tests
         [Test]
         public void InterlockedAdd_can_add_an_item_in_front_of_an_array()
         {
-            int[] a = null;
+            int[] a = Array.Empty<int>();
             Util.InterlockedAdd(ref a, 1, true);
             a.Should().NotBeNull();
             a.Should().BeEquivalentTo(new[] { 1 }, o => o.WithStrictOrdering());
@@ -38,7 +38,7 @@ namespace CK.Core.Tests
         {
             {
                 // Prepend
-                int[] a = null;
+                int[] a = Array.Empty<int>();
                 Util.InterlockedAddUnique(ref a, 1, true);
                 a.Should().BeEquivalentTo(new[] { 1 }, o => o.WithStrictOrdering());
                 var theA = a;
@@ -52,7 +52,7 @@ namespace CK.Core.Tests
             }
             {
                 // Append
-                int[] a = null;
+                int[] a = Array.Empty<int>();
                 Util.InterlockedAddUnique(ref a, 1);
                 a.Should().BeEquivalentTo(new[] { 1 }, o => o.WithStrictOrdering());
                 var theA = a;
@@ -95,11 +95,6 @@ namespace CK.Core.Tests
 
             Util.InterlockedRemove(ref a, 3712);
             a.Should().BeSameAs(aEmpty);
-
-            a = null;
-            Util.InterlockedRemove(ref a, 3712);
-            a.Should().BeNull();
-
         }
 
         [Test]
@@ -111,9 +106,8 @@ namespace CK.Core.Tests
             Util.InterlockedRemoveAll(ref a, i => i % 2 != 0);
             a.Should().BeEmpty();
 
-            a = null;
             Util.InterlockedRemoveAll(ref a, i => i % 2 != 0);
-            a.Should().BeNull();
+            a.Should().BeEmpty();
         }
 
         [Test]
@@ -143,7 +137,7 @@ namespace CK.Core.Tests
             Action call = () => Util.InterlockedAdd(ref a, i => i == 11, () => 10);
             call.Should().Throw<InvalidOperationException>();
 
-            a = null;
+            a = Array.Empty<int>();
             Util.InterlockedAdd(ref a, i => i == 3, () => 3);
             a.Should().BeEquivalentTo(new[] { 3 }, o => o.WithStrictOrdering());
             Util.InterlockedAdd(ref a, i => i == 4, () => 4);

@@ -5,6 +5,19 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text;
 using NUnit.Framework;
+using CK.Core;
+
+// This is outside the CK.Core namespace to avoid extension method ambiguity resolution by the closest namespace.
+public class CollectionAmbiguityExtensionTests
+{
+    public void Dictionary_GetValueOrDefault_is_not_ambiguous_because_it_is_defined_on_IDictionary_and_Dictionary()
+    {
+        var e = new Dictionary<string, int>();
+        var x = e.GetValueOrDefault( "a" );
+        var y = ((IDictionary<string, int>)e).GetValueOrDefault( "a" );
+        var z = ((IReadOnlyDictionary<string, int>)e).GetValueOrDefault( "a" );
+    }
+}
 
 namespace CK.Core.Tests
 {
@@ -43,6 +56,16 @@ namespace CK.Core.Tests
             e.MoveNext().Should().BeFalse();
             a = () => Console.WriteLine(e.Current);
             a.Should().Throw<InvalidOperationException>();
+        }
+
+
+        [Test]
+        public void Dictionary_GetValueOrDefault_is_not_ambiguous()
+        {
+            var e = new Dictionary<string,int>();
+            var x = e.GetValueOrDefault( "a" );
+            var y = ((IDictionary<string, int>)e).GetValueOrDefault( "a" );
+            var z = ((IReadOnlyDictionary<string, int>)e).GetValueOrDefault( "a" );
         }
     }
 }

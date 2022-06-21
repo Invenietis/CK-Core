@@ -1,7 +1,6 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 
 namespace CK.Core
@@ -26,7 +25,6 @@ namespace CK.Core
     /// to the whole state of this object.
     /// </para>
     /// </remarks>
-    [DebuggerTypeProxy( typeof( Debugging.ReadOnlyCollectionDebuggerView<> ) ), DebuggerDisplay( "Count = {Count}" )]
     public class CKSortedArrayList<T> : IList<T>, IReadOnlyList<T>, ICKWritableCollection<T>
     {
         const int _defaultCapacity = 4;
@@ -103,10 +101,10 @@ namespace CK.Core
         /// Locates an element (one of the occurrences when duplicates are allowed) in this list (logarithmic). 
         /// </summary>
         /// <param name="value">The element.</param>
-        /// <returns>The result of the <see cref="Util.BinarySearch{T}"/> in the internal array.</returns>
+        /// <returns>The result of the <see cref="Util.BinarySearch{T}(IReadOnlyList{T}, int, int, T, Comparison{T})"/> in the internal array.</returns>
         public virtual int IndexOf( T value )
         {
-            if( value == null ) throw new ArgumentNullException();
+            Throw.CheckNotNullArgument( value );
             return Util.BinarySearch<T>( _tab, 0, _count, value, Comparator );
         }
 
@@ -122,7 +120,7 @@ namespace CK.Core
         /// <returns>Same as <see cref="Array.BinarySearch(Array,object)"/>: negative index if not found which is the bitwise complement of (the index of the next element plus 1).</returns>
         public int IndexOf<TKey>( TKey key, Func<T, TKey, int> comparison )
         {
-            if( comparison == null ) throw new ArgumentNullException();
+            Throw.CheckNotNullArgument( comparison );
             return Util.BinarySearch( _tab, 0, _count, key, comparison );
         }
 
@@ -269,7 +267,7 @@ namespace CK.Core
         /// <returns>True if the item has actually been added; otherwise false.</returns>
         public virtual bool Add( T value )
         {
-            if( value == null ) throw new ArgumentNullException();
+            if( value == null ) throw new ArgumentNullException( nameof( value ) );
             int index = Util.BinarySearch<T>( _tab, 0, _count, value, Comparator );
             if( index >= 0 )
             {
@@ -396,7 +394,7 @@ namespace CK.Core
         protected virtual T DoSet( int index, T newValue )
         {
             if( index >= _count ) throw new IndexOutOfRangeException();
-            if( newValue == null ) throw new ArgumentNullException();
+            if( newValue == null ) throw new ArgumentNullException( nameof( newValue ) );
             T oldValue = _tab[index];
             _tab[index] = newValue;
             _version += 2;
@@ -410,7 +408,7 @@ namespace CK.Core
         /// <param name="value">Item to insert.</param>
         protected virtual void DoInsert( int index, T value )
         {
-            if( value == null ) throw new ArgumentNullException();
+            if( value == null ) throw new ArgumentNullException( nameof( value ) );
             if( index < 0 || index > _count ) throw new IndexOutOfRangeException();
             if( _count == _tab.Length )
             {
@@ -446,14 +444,10 @@ namespace CK.Core
             if( index < 0 || nbToCopy < 0 ) throw new IndexOutOfRangeException();
             if( nbToCopy > 0 ) Array.Copy( _tab, index + 1, _tab, index, nbToCopy );
             _count = newCount;
-#if NETSTANDARD2_1
             if( System.Runtime.CompilerServices.RuntimeHelpers.IsReferenceOrContainsReferences<T>() )
             {
                 _tab[newCount] = default!;
             }
-#else
-            _tab[newCount] = default!;
-#endif
             _version += 2;
         }
 
@@ -503,6 +497,7 @@ namespace CK.Core
             return new Enumerator( this );
         }
 
+#pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
         public struct Enumerator : IEnumerator<T>, IEnumerator
         {
             private readonly CKSortedArrayList<T> _list;
@@ -576,6 +571,7 @@ namespace CK.Core
                 _current = default;
             }
         }
+#pragma warning restore CS1591 // Missing XML comment for publicly visible type or member
     }
     #endregion
 }

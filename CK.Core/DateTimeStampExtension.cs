@@ -1,4 +1,3 @@
-﻿using CK.Text;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -13,26 +12,31 @@ namespace CK.Core
     public static class DateTimeStampExtension
     {
         /// <summary>
-        /// Matches a <see cref="DateTimeStamp"/>.
+        /// Tries to match a <see cref="DateTimeStamp"/>.
         /// </summary>
-        /// <param name="this">This <see cref="StringMatcher"/>.</param>
+        /// <param name="m">This matcher.</param>
         /// <param name="time">Resulting time stamp on successful match; <see cref="DateTimeStamp.Unknown"/> otherwise.</param>
-        /// <returns>True if the time stamp has been matched.</returns>
-        static public bool MatchDateTimeStamp( this StringMatcher @this, out DateTimeStamp time )
+        /// <returns>True on success, false otherwise.</returns>
+        static public bool TryMatchDateTimeStamp( this ref ROSpanCharMatcher m, out DateTimeStamp time )
         {
-            time = DateTimeStamp.Unknown;
-            int savedIndex = @this.StartIndex;
-            DateTime t;
-            if( !@this.MatchFileNameUniqueTimeUtcFormat( out t ) ) return @this.SetError();
-            byte uniquifier = 0;
-            if( @this.MatchChar( '(' ) )
+            var savedHead = m.Head;
+            using( m.OpenExpectations( "DateTimeStamp" ) )
             {
-                int unique;
-                if( !@this.MatchInt32( out unique, 0, 255 ) || !@this.TryMatchChar( ')' ) ) return @this.BackwardAddError( savedIndex );
-                uniquifier = (byte)unique;
+                if( !m.TryMatchFileNameUniqueTimeUtcFormat( out var t ) ) goto error;
+                byte uniquifier = 0;
+                if( m.Head.TryMatch( '(' ) )
+                {
+                    if( !m.TryMatchInt32( out int u, 0, 255 ) || !m.TryMatch( ')' ) ) goto error;
+                    uniquifier = (byte)u;
+                }
+                time = new DateTimeStamp( t, uniquifier );
+                return m.SetSuccess();
+
+                error:
+                time = DateTimeStamp.Unknown;
+                m.Head = savedHead;
+                return false;
             }
-            time = new DateTimeStamp( t, uniquifier );
-            return @this.Forward( 0 );
         }
 
     }

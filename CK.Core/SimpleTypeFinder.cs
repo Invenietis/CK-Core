@@ -57,12 +57,11 @@ namespace CK.Core
         public static Type? WeakResolver( string assemblyQualifiedName, bool throwOnError )
         {
             Type? done = StandardResolver( assemblyQualifiedName, false );
-            if( ReferenceEquals( done, null ) )
+            if( done == null )
             {
-                string weakTypeName;
-                if( !WeakenAssemblyQualifiedName( assemblyQualifiedName, out weakTypeName ) && throwOnError )
+                if( !WeakenAssemblyQualifiedName( assemblyQualifiedName, out string weakTypeName ) && throwOnError )
                 {
-                    throw new ArgumentException( String.Format( Impl.CoreResources.InvalidAssemblyQualifiedName, assemblyQualifiedName ), nameof( assemblyQualifiedName ) );
+                    Throw.ArgumentException( nameof( assemblyQualifiedName ), $"Invalid Assembly Qualified Name '{assemblyQualifiedName}." );
                 }
                 done = StandardResolver( weakTypeName, throwOnError );
             }
@@ -96,17 +95,14 @@ namespace CK.Core
             {
                 if( !throwOnError ) return null;
                 if( ex is TypeLoadException ) throw;
-                throw new TypeLoadException( String.Format( Impl.CoreResources.ExceptionWhileResolvingType, assemblyQualifiedName ), ex );
+                throw new TypeLoadException( $"An exception occurred while resolving type: {assemblyQualifiedName}.", ex );
             }
         }
 
-        private static void CheckAssemblyQualifiedNameValid( string assemblyQualifiedName )
+        static void CheckAssemblyQualifiedNameValid( string assemblyQualifiedName )
         {
-            if( assemblyQualifiedName == null ) throw new ArgumentNullException( nameof( assemblyQualifiedName ) );
-            if( assemblyQualifiedName.Length == 0 || !assemblyQualifiedName.Contains( "," ) )
-            {
-                throw new ArgumentException( String.Format( Impl.CoreResources.InvalidAssemblyQualifiedName, assemblyQualifiedName ), nameof( assemblyQualifiedName ) );
-            }
+            Throw.CheckNotNullOrEmptyArgument( assemblyQualifiedName );
+            Throw.CheckArgument( assemblyQualifiedName.Contains( ',' ) );
         }
 
         /// <summary>
@@ -120,9 +116,8 @@ namespace CK.Core
         static public bool WeakenAssemblyQualifiedName( string assemblyQualifiedName, out string weakTypeName )
         {
             weakTypeName = String.Empty;
-            string fullTypeName, assemblyFullName, assemblyName;
-            if( SplitAssemblyQualifiedName( assemblyQualifiedName, out fullTypeName, out assemblyFullName )
-                && SplitAssemblyFullName( assemblyFullName, out assemblyName, out _ ) )
+            if( SplitAssemblyQualifiedName( assemblyQualifiedName, out string fullTypeName, out string assemblyFullName )
+                && SplitAssemblyFullName( assemblyFullName, out string assemblyName, out _ ) )
             {
                 weakTypeName = fullTypeName + ", " + assemblyName;
                 return true;

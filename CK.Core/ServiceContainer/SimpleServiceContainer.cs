@@ -1,26 +1,3 @@
-#region LGPL License
-/*----------------------------------------------------------------------------
-* This file (CK.Core\SimpleServiceContainer.cs) is part of CiviKey. 
-*  
-* CiviKey is free software: you can redistribute it and/or modify 
-* it under the terms of the GNU Lesser General Public License as published 
-* by the Free Software Foundation, either version 3 of the License, or 
-* (at your option) any later version. 
-*  
-* CiviKey is distributed in the hope that it will be useful, 
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
-* GNU Lesser General Public License for more details. 
-* You should have received a copy of the GNU Lesser General Public License 
-* along with CiviKey.  If not, see <http://www.gnu.org/licenses/>. 
-*  
-* Copyright © 2007-2015, 
-*     Invenietis <http://www.invenietis.com>,
-*     In’Tech INFO <http://www.intechinfo.fr>,
-* All rights reserved. 
-*-----------------------------------------------------------------------------*/
-#endregion
-
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -84,7 +61,7 @@ namespace CK.Core
                 SimpleServiceContainer? v = value as SimpleServiceContainer;
                 while( v != null )
                 {
-                    if( v == this ) throw new Exception( "BaseProvider circle detected" );
+                    if( v == this ) Throw.Exception( "BaseProvider circle detected" );
                     v = v.BaseProvider as SimpleServiceContainer;
                 }
                 _baseProvider = value; 
@@ -103,9 +80,9 @@ namespace CK.Core
         /// <returns>This object to enable fluent syntax.</returns>
         public ISimpleServiceContainer Add( Type serviceType, Func<Object> serviceInstance, Action<Object>? onRemove = null )
         {
-            if( ReferenceEquals( serviceType, null ) ) throw new ArgumentNullException( nameof( serviceType ) );
-            if( serviceInstance == null ) throw new ArgumentNullException( nameof( serviceInstance ) );
-            if( GetDirectService( serviceType ) != null ) throw new Exception( String.Format( CoreResources.ServiceAlreadyDirectlySupported, serviceType.FullName ) );
+            Throw.CheckNotNullArgument( serviceType );
+            Throw.CheckNotNullArgument( serviceInstance );
+            if( GetDirectService( serviceType ) != null ) Throw.Exception( String.Format( CoreResources.ServiceAlreadyDirectlySupported, serviceType.FullName ) );
             DoAdd( serviceType, new ServiceEntry() { Instance = null, Creator = serviceInstance, OnRemove = onRemove } );
             return this;
         }
@@ -119,9 +96,9 @@ namespace CK.Core
         /// <returns>This object to enable fluent syntax.</returns>
         public ISimpleServiceContainer Add( Type serviceType, object serviceInstance, Action<Object>? onRemove = null )
         {
-            if( ReferenceEquals( serviceType, null ) ) throw new ArgumentNullException( nameof( serviceType ) );
-            if( serviceInstance == null ) throw new ArgumentNullException( nameof( serviceInstance ) );
-            if( GetDirectService( serviceType ) != null ) throw new Exception( String.Format( CoreResources.ServiceAlreadyDirectlySupported, serviceType.FullName ) );
+            Throw.CheckNotNullArgument( serviceType );
+            Throw.CheckNotNullArgument( serviceInstance );
+            if( GetDirectService( serviceType ) != null ) Throw.Exception( String.Format( CoreResources.ServiceAlreadyDirectlySupported, serviceType.FullName ) );
             if( !serviceType.IsAssignableFrom( serviceInstance.GetType() ) ) throw new Exception( String.Format( CoreResources.ServiceImplTypeMismatch, serviceType.FullName, serviceInstance.GetType().FullName ) );
             DoAdd( serviceType, new ServiceEntry() { Instance = serviceInstance, Creator = null, OnRemove = onRemove } );
             return this;
@@ -142,8 +119,8 @@ namespace CK.Core
         /// <returns>This object to enable fluent syntax.</returns>
         public ISimpleServiceContainer AddDisabled( Type serviceType )
         {
-            if( ReferenceEquals( serviceType, null ) ) throw new ArgumentNullException( "serviceType" );
-            if( GetDirectService( serviceType ) != null ) throw new Exception( String.Format( CoreResources.DirectServicesCanNotBeDisabled, serviceType.FullName ) );
+            Throw.CheckNotNullArgument( serviceType );
+            if( GetDirectService( serviceType ) != null ) Throw.Exception( String.Format( CoreResources.DirectServicesCanNotBeDisabled, serviceType.FullName ) );
             DoAdd( serviceType, new ServiceEntry() );
             return this;
         }
@@ -161,14 +138,13 @@ namespace CK.Core
         /// <returns>This object to enable fluent syntax.</returns>
         public ISimpleServiceContainer Remove( Type serviceType, bool autoCallDispose = true )
         {
-            ServiceEntry e;
-            if( _services.TryGetValue( serviceType, out e ) )
+            if( _services.TryGetValue( serviceType, out ServiceEntry e ) )
             {
                 _services.Remove( serviceType );
                 if( e.Instance != null )
                 {
                     e.OnRemove?.Invoke( e.Instance );
-                    if( e.Instance is IDisposable d ) d.Dispose(); 
+                    if( e.Instance is IDisposable d ) d.Dispose();
                 }
             }
             return this;
@@ -184,7 +160,7 @@ namespace CK.Core
             Type[] entries = new Type[ _services.Count ];
             _services.Keys.CopyTo( entries, 0 );
 
-            for (int i = 0 ; i < entries.Count() ; i++)
+            for (int i = 0 ; i < entries.Length ; i++)
             {
                 Remove( entries[i] );
             }
@@ -199,19 +175,18 @@ namespace CK.Core
         /// <returns>Built-in service, registered service, service from <see cref="BaseProvider"/> or null.</returns>
         public object? GetService( Type serviceType )
         {
-            if( ReferenceEquals( serviceType, null ) ) throw new ArgumentNullException( "serviceType" );
+            Throw.CheckNotNullArgument( serviceType );
             object? result = GetDirectService( serviceType );
             if( result == null )
             {
-                ServiceEntry e;
-                if( _services.TryGetValue( serviceType, out e ) )
+                if( _services.TryGetValue( serviceType, out ServiceEntry e ) )
                 {
                     result = e.Instance;
                     if( result == null )
                     {
                         // Disabled service: returns null immediately.
                         if( e.Creator == null ) return null;
-                        
+
                         result = e.Creator();
                         if( result != null )
                         {
@@ -277,7 +252,7 @@ namespace CK.Core
         /// </summary>
         void DoAdd( Type s, ServiceEntry e )
         {
-            Debug.Assert( !ReferenceEquals( s, null ) );
+            Debug.Assert( s is not null );
             try
             {
                 _services.Add( s, e );
@@ -285,7 +260,7 @@ namespace CK.Core
             catch( ArgumentException ex )
             {
                 if( _services.ContainsKey( s ) )
-                    throw new Exception( String.Format( CoreResources.ServiceAlreadyRegistered, s.FullName ), ex );
+                    Throw.Exception( String.Format( CoreResources.ServiceAlreadyRegistered, s.FullName ), ex );
                 throw;
             }
         }

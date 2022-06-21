@@ -1,4 +1,4 @@
-using Cake.Common.Build;
+
 using Cake.Common.Diagnostics;
 using Cake.Common.IO;
 using Cake.Common.Solution;
@@ -13,7 +13,7 @@ using Cake.Common.Tools.NUnit;
 using Cake.Core;
 using Cake.Core.Diagnostics;
 using Cake.Core.IO;
-using CK.Text;
+
 using SimpleGitVersion;
 using System;
 using System.Collections.Generic;
@@ -25,7 +25,7 @@ namespace CodeCake
     /// <summary>
     /// Standard build "script".
     /// </summary>
-    [AddPath( "%UserProfile%/.nuget/packages/**/tools*" )]
+    
     public partial class Build : CodeCakeHost
     {
         public Build()
@@ -47,7 +47,7 @@ namespace CodeCake
                 .Does( () =>
                  {
                      globalInfo.GetDotnetSolution().Clean();
-                     Cake.CleanDirectories( globalInfo.ReleasesFolder );
+                     Cake.CleanDirectories( globalInfo.ReleasesFolder.ToString() );
                      Cake.DeleteFiles( "Tests/**/TestResult*.xml" );
                  } );
 
@@ -79,9 +79,9 @@ namespace CodeCake
             Task( "Push-Artifacts" )
                 .IsDependentOn( "Create-NuGet-Packages" )
                 .WithCriteria( () => globalInfo.IsValid )
-                .Does( () =>
+                .Does( async () =>
                 {
-                    globalInfo.PushArtifacts();
+                    await globalInfo.PushArtifactsAsync();
                 } );
 
             // The Default task for this script can be set here.

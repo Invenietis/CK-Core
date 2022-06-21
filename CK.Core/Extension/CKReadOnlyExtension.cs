@@ -26,22 +26,6 @@ namespace CK.Core
         }
 
         /// <summary>
-        /// Creates an array from a read only collection.
-        /// This is a much more efficient version than the IEnumerable ToArray extension method
-        /// since this implementation allocates one and only one array. 
-        /// </summary>
-        /// <typeparam name="T">Type of the array and lists elements.</typeparam>
-        /// <param name="this">Read only collection of elements.</param>
-        /// <returns>A new array that contains the same element as the collection.</returns>
-        static public T[] ToArray<T>( this IReadOnlyCollection<T> @this )
-        {
-            T[] r = new T[@this.Count];
-            int i = 0;
-            foreach( T item in @this ) r[i++] = item;
-            return r;
-        }
-
-        /// <summary>
         /// Finds the index of a first item in a <see cref="IReadOnlyList{T}"/>.
         /// </summary>
         /// <typeparam name="T">Type of item.</typeparam>

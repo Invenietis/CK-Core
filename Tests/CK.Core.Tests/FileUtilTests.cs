@@ -14,6 +14,7 @@ using System.Collections.Concurrent;
 namespace CK.Core.Tests
 {
 
+    [TestFixture]
     public class FileUtilTests
     {
         static string ToPlatform( string s ) => s.Replace( Path.AltDirectorySeparatorChar, Path.DirectorySeparatorChar );
@@ -21,9 +22,9 @@ namespace CK.Core.Tests
         [Test]
         public void NormalizePathSeparator_uses_current_environment()
         {
-            Action a = () => FileUtil.NormalizePathSeparator( null, true );
+            Action a = () => FileUtil.NormalizePathSeparator( null!, true );
             a.Should().Throw<ArgumentNullException>();
-            a = () => FileUtil.NormalizePathSeparator( null, false );
+            a = () => FileUtil.NormalizePathSeparator( null!, false );
             a.Should().Throw<ArgumentNullException>();
 
             FileUtil.NormalizePathSeparator( "", true ).Should().Be( "" );
@@ -48,11 +49,11 @@ namespace CK.Core.Tests
             File.ReadAllText( f1 ).Should().Be( "Hello..." );
             File.ReadAllText( f2 ).Should().Be( "...World!" );
 
-            Action a = () => FileUtil.WriteUniqueTimedFile( prefix, String.Empty, DateTime.UtcNow, null, true, -1 );
+            Action a = () => FileUtil.WriteUniqueTimedFile( prefix, String.Empty, DateTime.UtcNow, null!, true, -1 );
             a.Should().Throw<ArgumentOutOfRangeException>();
-            a = () => FileUtil.WriteUniqueTimedFile( prefix, null, DateTime.UtcNow, null, true );
+            a = () => FileUtil.WriteUniqueTimedFile( prefix, null!, DateTime.UtcNow, null!, true );
             a.Should().Throw<ArgumentNullException>();
-            a = () => FileUtil.WriteUniqueTimedFile( null, String.Empty, DateTime.UtcNow, null, true );
+            a = () => FileUtil.WriteUniqueTimedFile( null!, String.Empty, DateTime.UtcNow, null!, true );
             a.Should().Throw<ArgumentNullException>();
         }
 
@@ -106,7 +107,7 @@ namespace CK.Core.Tests
             var files = new string[100];
             Parallel.ForEach( Enumerable.Range( 0, 100 ), i =>
             {
-                files[i] = FileUtil.WriteUniqueTimedFile( prefix, String.Empty, now, null, false, 0 );
+                files[i] = FileUtil.WriteUniqueTimedFile( prefix, String.Empty, now, null!, false, 0 );
             } );
             files.Should().NotContainNulls();
             files.Should().OnlyContain( f => f.StartsWith( prefix ) );
@@ -252,9 +253,9 @@ namespace CK.Core.Tests
             Directory.Exists( Path.Combine( copyDir.FullName, recursiveDir.Name ) ).Should().BeFalse();
 
             // Exception Test
-            a = () => FileUtil.CopyDirectory( null, testDir );
+            a = () => FileUtil.CopyDirectory( null!, testDir );
             a.Should().Throw<ArgumentNullException>();
-            a = () => FileUtil.CopyDirectory( testDir, null );
+            a = () => FileUtil.CopyDirectory( testDir, null! );
             a.Should().Throw<ArgumentNullException>();
 
             Thread.Sleep( 100 );
@@ -278,13 +279,13 @@ namespace CK.Core.Tests
         [Test]
         public void CheckForWriteAccess_is_immediately_true_when_file_does_not_exist_or_is_writeable()
         {
-            Action a = () => FileUtil.CheckForWriteAccess( null, 0 );
+            Action a = () => FileUtil.CheckForWriteAccess( null!, 0 );
             a.Should().Throw<ArgumentNullException>();
             TestHelper.CleanupTestFolder();
             string path = Path.Combine( TestHelper.TestFolder, "Locked.txt" );
-            FileUtil.CheckForWriteAccess( path, 0 ).Should().BeTrue( "If the file does not exist, it is writeable." );
+            FileUtil.CheckForWriteAccess( path, 0 ).Should().BeTrue( "If the file does not exist, it is writable." );
             File.WriteAllText( path, "Locked" );
-            FileUtil.CheckForWriteAccess( path, 0 ).Should().BeTrue( "The is writeable: no need to wait." );
+            FileUtil.CheckForWriteAccess( path, 0 ).Should().BeTrue( "The is writable: no need to wait." );
         }
 
 
@@ -295,7 +296,7 @@ namespace CK.Core.Tests
             TestHelper.CleanupTestFolder();
             string path = Path.Combine( TestHelper.TestFolder, "Locked.txt" );
             object startLock = new object();
-            Task.Factory.StartNew( () =>
+            _ = Task.Run( () =>
             {
                 using( FileStream fs = File.OpenWrite( path ) )
                 {

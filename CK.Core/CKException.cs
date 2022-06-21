@@ -9,7 +9,6 @@ namespace CK.Core
     /// Basic <see cref="Exception"/> that eases message formatting thanks to its constructors
     /// and provides an Exception wrapper around <see cref="CKExceptionData"/>.
     /// </summary>
-    [Serializable]
     public class CKException : Exception
     {
         CKExceptionData? _exceptionData;

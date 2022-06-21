@@ -1,7 +1,12 @@
+using Microsoft.IO;
 using System;
+using System.Buffers;
+using System.Buffers.Text;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -24,32 +29,15 @@ namespace CK.Core
         /// </summary>
         static public readonly DateTime UtcMaxValue = new DateTime( 0x2bca2875f4373fffL, DateTimeKind.Utc );
 
-        [Obsolete("Use the standard Array.Empty<T>()",true)]
-        public static class Array
-        {
-            /// <summary>
-            /// Gets an empty array for a type.
-            /// </summary>
-            /// <typeparam name="T">Type of the array items.</typeparam>
-            /// <returns>An empty array.</returns>
-            public static T[] Empty<T>()
-            {
-                return System.Array.Empty<T>();
-            }
-        }
-
         /// <summary>
         /// Centralized <see cref="IDisposable.Dispose"/> action call: it adapts an <see cref="IDisposable"/> interface to an <see cref="Action"/>.
         /// Can be safely called if <paramref name="obj"/> is null. 
         /// See <see cref="CreateDisposableAction"/> to wrap an action in a <see cref="IDisposable"/> interface.
         /// </summary>
         /// <param name="obj">The disposable object to dispose (can be null).</param>
-        public static void ActionDispose( IDisposable obj )
-        {
-            if( obj != null ) obj.Dispose();
-        }
+        public static void ActionDispose( IDisposable obj ) => obj?.Dispose();
 
-        class DisposableAction : IDisposable
+        sealed class DisposableAction : IDisposable
         {
             public Action? A;
             public void Dispose()
@@ -66,12 +54,9 @@ namespace CK.Core
         /// See <see cref="ActionDispose"/> to adapt an IDisposable interface to an <see cref="Action"/>.
         /// </summary>
         /// <param name="a">The action to call when <see cref="IDisposable.Dispose"/> is called.</param>
-        public static IDisposable CreateDisposableAction( Action a )
-        {
-            return new DisposableAction() { A = a };
-        }
+        public static IDisposable CreateDisposableAction( Action? a ) => new DisposableAction() { A = a };
 
-        class VoidDisposable : IDisposable { public void Dispose() { } }
+        sealed class VoidDisposable : IDisposable { public void Dispose() { } }
 
         /// <summary>
         /// A void, immutable, <see cref="IDisposable"/> that does absolutely nothing.
@@ -79,19 +64,113 @@ namespace CK.Core
         public static readonly IDisposable EmptyDisposable = new VoidDisposable();
 
         /// <summary>
-        /// Unix Epoch (1st of January 1970).
+        /// Sql Server Epoch (1st of January 1900): this is the 0 legacy date time, the default value, even if
+        /// datetime2 is like the .Net DateTime (0001-01-01 through 9999-12-31, 100ns step).
+        /// Its <see cref="DateTimeKind.Unspecified"/> since this is what the Sql client returns.
         /// </summary>
-        public static DateTime UnixEpoch  = new DateTime(1970,1,1);
+        public static readonly DateTime SqlServerEpoch  = new DateTime( 599266080000000000, DateTimeKind.Unspecified );
 
         /// <summary>
-        /// Sql Server Epoch (1st of January 1900): this is the 0 legacy datetime.
+        /// The <see cref="RecyclableStreamManager"/> is using 128 KiB blocks (small pool).
         /// </summary>
-        public static DateTime SqlServerEpoch  = new DateTime(1900,1,1);
+        public const int RecyclableStreamBlockSize = 128 * 1024;
+
+        /// <summary>
+        /// The <see cref="RecyclableStreamManager"/> large pool starts with 256 KiB buffers doubling up to 8 MiB (<see cref="RecyclableStreamMaximumBufferSize"/>):
+        /// there will be 6 large buffers of 256 KiB, 512 KiB, 1 MiB, 2 MiB, 4 MiB, and 8 MiB.
+        /// </summary>
+        public const int RecyclableStreamLargeBufferMultiple = 256 * 1024;
+
+        /// <summary>
+        /// The <see cref="RecyclableStreamManager"/> will not keep buffers bigger than 8 MiB (large pool).
+        /// </summary>
+        public const int RecyclableStreamMaximumBufferSize = 8 * 1024 * 1024;
+
+        /// <summary>
+        /// The <see cref="RecyclableStreamManager"/> doubles the size of its buffers (large pool).
+        /// </summary>
+        public const bool RecyclableStreamUseExponentialLargeBuffer = true;
+
+        /// <summary>
+        /// Gets a default instance of <see cref="RecyclableMemoryStreamManager"/>. This manager is configured
+        /// with at most 256 blocks of 128 KiB for the small pool and at most 32 MiB for its large pool.
+        /// <para>
+        /// This configuration should be fine as long as not too many big streams are required. However,
+        /// there's no "one size fits all" here: the allocation and pool usage should be monitored when possible.
+        /// </para>
+        /// <para>
+        /// The <see cref="RecyclableStreamMaximumSmallPoolFreeBytes"/> and <see cref="RecyclableStreamMaximumLargePoolFreeBytes"/>
+        /// can be changed at any time to adjust the pool size. All other settings are immutable.
+        /// </para>
+        /// <para>
+        /// Calling <see cref="RecyclableMemoryStream.ToArray()"/> is allowed (<see cref="RecyclableMemoryStreamManager.ThrowExceptionOnToArray"/> is let to false
+        /// and should not be set tot true): small serializations into small buffers must often result in final byte array.
+        /// ToArray should NOT be called on large payload...
+        /// </para>
+        /// </summary>
+        public static RecyclableMemoryStreamManager RecyclableStreamManager = new RecyclableMemoryStreamManager( blockSize: RecyclableStreamBlockSize,
+                                                                                                                 largeBufferMultiple: RecyclableStreamLargeBufferMultiple,
+                                                                                                                 maximumBufferSize: RecyclableStreamMaximumBufferSize,
+                                                                                                                 useExponentialLargeBuffer: RecyclableStreamUseExponentialLargeBuffer,
+                                                                                                                 maximumSmallPoolFreeBytes: 256 * RecyclableStreamBlockSize,
+                                                                                                                 maximumLargePoolFreeBytes: 32 * 1024 * 1024 );
+        /// <summary>
+        /// Gets or sets <see cref="RecyclableMemoryStreamManager.MaximumFreeSmallPoolBytes"/> of the default <see cref="RecyclableStreamManager"/>.
+        /// Defaults to 256 * <see cref="RecyclableStreamBlockSize"/> (256 * 128 KiB).
+        /// </summary>
+        public static long RecyclableStreamMaximumSmallPoolFreeBytes
+        {
+            get => RecyclableStreamManager.MaximumFreeSmallPoolBytes;
+            set => RecyclableStreamManager.MaximumFreeSmallPoolBytes = value;
+        }
+
+        /// <summary>
+        /// Gets or sets <see cref="RecyclableMemoryStreamManager.MaximumFreeLargePoolBytes"/> of the default <see cref="RecyclableStreamManager"/>.
+        /// Defaults to 32 MiB.
+        /// </summary>
+        public static long RecyclableStreamMaximumLargePoolFreeBytes
+        {
+            get => RecyclableStreamManager.MaximumFreeLargePoolBytes;
+            set => RecyclableStreamManager.MaximumFreeLargePoolBytes = value;
+        }
 
         /// <summary>
         /// The 0.0.0.0 Version.
         /// </summary>
-        public static Version EmptyVersion = new Version( 0, 0, 0, 0 );
+        public static readonly Version EmptyVersion = new Version( 0, 0, 0, 0 );
+
+        /// <summary>
+        /// Creates a base64 url string using <see cref="System.Security.Cryptography.RandomNumberGenerator.Fill(Span{byte})"/>.
+        /// </summary>
+        /// <param name="len">Length of the random string.</param>
+        /// <returns>A random string.</returns>
+        public static string GetRandomBase64UrlString( int len )
+        {
+            const int MaxStackSize = 128;
+
+            Throw.CheckArgument( len >= 0 );
+            if( len == 0 ) return string.Empty;
+
+            var requiredEntropy = 3 * len / 4 + 1;
+            var safeSize = Base64.GetMaxEncodedToUtf8Length( requiredEntropy );
+
+            byte[]? fromPool = null;
+            Span<byte> buffer = safeSize > MaxStackSize
+                                ? (fromPool = ArrayPool<byte>.Shared.Rent( safeSize )).AsSpan( 0, safeSize )
+                                : stackalloc byte[safeSize];
+            try
+            {
+                System.Security.Cryptography.RandomNumberGenerator.Fill( buffer.Slice( 0, requiredEntropy ) );
+                Base64.EncodeToUtf8InPlace( buffer, requiredEntropy, out int bytesWritten );
+                Base64UrlHelper.UncheckedBase64ToUrlBase64NoPadding( buffer, ref bytesWritten );
+                Debug.Assert( bytesWritten > len );
+                return Encoding.ASCII.GetString( buffer.Slice( 0, len ) );
+            }
+            finally
+            {
+                if( fromPool != null ) ArrayPool<byte>.Shared.Return( fromPool );
+            }
+        }
 
         /// <summary>
         /// Centralized void action call for any type. 
@@ -135,328 +214,7 @@ namespace CK.Core
         /// <typeparam name="T">Type of the function parameter and return value.</typeparam>
         /// <param name="value">Any value returned unchanged.</param>
         /// <returns>The <paramref name="value"/> provided is returned as-is.</returns>
-        public static T FuncIdentity<T>( T value )
-        {
-            return value;
-        }
-
-        /// <summary>
-        /// Binary search implementation that relies on a <see cref="Comparison{T}"/>.
-        /// </summary>
-        /// <typeparam name="T">Type of the elements.</typeparam>
-        /// <param name="sortedList">Read only list of elements.</param>
-        /// <param name="startIndex">The starting index in the list.</param>
-        /// <param name="length">The number of elements to consider in the list.</param>
-        /// <param name="value">The value to locate.</param>
-        /// <param name="comparison">The comparison function.</param>
-        /// <returns>Same as <see cref="System.Array.BinarySearch(System.Array, object)"/>: negative index if not found which is the bitwise complement of (the index of the next element plus 1).</returns>
-        public static int BinarySearch<T>( IReadOnlyList<T> sortedList, int startIndex, int length, T value, Comparison<T> comparison )
-        {
-            int low = startIndex;
-            int high = (startIndex + length) - 1;
-            while( low <= high )
-            {
-                int mid = low + ((high - low) >> 1);
-                int cmp = comparison( sortedList[mid], value );
-                if( cmp == 0 ) return mid;
-                if( cmp < 0 ) low = mid + 1;
-                else high = mid - 1;
-            }
-            return ~low;
-        }
-
-        /// <summary>
-        /// Binary search implementation that relies on an extended comparer: a function that knows how to 
-        /// compare the elements of the list to a key of another type.
-        /// </summary>
-        /// <typeparam name="T">Type of the elements.</typeparam>
-        /// <typeparam name="TKey">Type of the key.</typeparam>
-        /// <param name="sortedList">Read only list of elements.</param>
-        /// <param name="startIndex">The starting index in the list.</param>
-        /// <param name="length">The number of elements to consider in the list.</param>
-        /// <param name="key">The value of the key.</param>
-        /// <param name="comparison">The comparison function.</param>
-        /// <returns>Same as <see cref="System.Array.BinarySearch(System.Array, object)"/>: negative index if not found which is the bitwise complement of (the index of the next element plus 1).</returns>
-        public static int BinarySearch<T, TKey>( IReadOnlyList<T> sortedList, int startIndex, int length, TKey key, Func<T, TKey, int> comparison )
-        {
-            int low = startIndex;
-            int high = (startIndex + length) - 1;
-            while( low <= high )
-            {
-                int mid = low + ((high - low) >> 1);
-                int cmp = comparison( sortedList[mid], key );
-                if( cmp == 0 ) return mid;
-                if( cmp < 0 ) low = mid + 1;
-                else high = mid - 1;
-            }
-            return ~low;
-        }
-
-        /// <summary>
-        /// Binary search implementation that relies on <see cref="IComparable{TValue}"/> implemented by the <typeparamref name="T"/>.
-        /// </summary>
-        /// <typeparam name="T">Type of the elements. It must implement <see cref="IComparable{TValue}"/>.</typeparam>
-        /// <typeparam name="TValue">Type of the value.</typeparam>
-        /// <param name="sortedList">Read only list of elements.</param>
-        /// <param name="startIndex">The starting index in the list.</param>
-        /// <param name="length">The number of elements to consider in the list.</param>
-        /// <param name="value">The value to locate.</param>
-        /// <returns>Same as <see cref="System.Array.BinarySearch(System.Array, object)"/>: negative index if not found which is the bitwise complement of (the index of the next element plus 1).</returns>
-        public static int BinarySearch<T, TValue>( IReadOnlyList<T> sortedList, int startIndex, int length, TValue value ) where T : IComparable<TValue>
-        {
-            int low = startIndex;
-            int high = (startIndex + length) - 1;
-            while( low <= high )
-            {
-                int mid = low + ((high - low) >> 1);
-                int cmp = sortedList[mid].CompareTo( value );
-                if( cmp == 0 ) return mid;
-                if( cmp < 0 ) low = mid + 1;
-                else high = mid - 1;
-            }
-            return ~low;
-        }
-
-        /// <summary>
-        /// Binary search implementation that relies on <see cref="IComparable{TValue}"/> implemented by the <typeparamref name="T"/>.
-        /// </summary>
-        /// <typeparam name="T">Type of the elements. It must implement <see cref="IComparable{TValue}"/>.</typeparam>
-        /// <typeparam name="TValue">Type of the value.</typeparam>
-        /// <param name="sortedList">Read only list of elements.</param>
-        /// <param name="value">The value to locate.</param>
-        /// <returns>Same as <see cref="System.Array.BinarySearch(System.Array, object)"/>: negative index if not found which is the bitwise complement of (the index of the next element plus 1).</returns>
-        public static int BinarySearch<T, TValue>( IReadOnlyList<T> sortedList, TValue value ) where T : IComparable<TValue>
-        {
-            return BinarySearch( sortedList, 0, sortedList.Count, value );
-        }
-
-        #region Interlocked helpers.
-
-        /// <summary>
-        /// Thread-safe way to set any reference type. Uses <see cref="Interlocked.CompareExchange{T}"/> and <see cref="SpinWait"/>.
-        /// </summary>
-        /// <typeparam name="T">Any reference type.</typeparam>
-        /// <param name="target">Reference (address) to set.</param>
-        /// <param name="transformer">Function that knows how to obtain the desired object from the current one. This function may be called more than once.</param>
-        /// <returns>The object that has actually been set. Note that it may differ from the "current" target value if another thread already changed it.</returns>
-        public static T? InterlockedSet<T>( ref T? target, Func<T?, T> transformer ) where T : class
-        {
-            T? current = target;
-            T newOne = transformer( current );
-            if( Interlocked.CompareExchange( ref target, newOne, current ) != current )
-            {
-                // After a lot of readings of msdn and internet, I use the SpinWait struct...
-                // This is the recommended way, so...
-                var sw = new SpinWait();
-                do
-                {
-                    sw.SpinOnce();
-                    current = target;
-                }
-                while( Interlocked.CompareExchange( ref target, (newOne = transformer( current )), current ) != current );
-            }
-            return newOne;
-        }
-
-        /// <summary>
-        /// Thread-safe way to set any reference type. Uses <see cref="Interlocked.CompareExchange{T}"/> and <see cref="SpinWait"/>.
-        /// </summary>
-        /// <typeparam name="T">Any reference type.</typeparam>
-        /// <typeparam name="TArg">Type of the first parameter.</typeparam>
-        /// <param name="target">Reference (address) to set.</param>
-        /// <param name="a">Argument of the transformer.</param>
-        /// <param name="transformer">
-        /// Function that knows how to obtain the desired object from the current one. This function may be called more than once.
-        /// </param>
-        /// <returns>The object that has actually been set. Note that it may differ from the "current" target value if another thread already changed it.</returns>
-        public static T? InterlockedSet<T, TArg>( ref T? target, TArg a, Func<T?, TArg, T?> transformer ) where T : class
-        {
-            T? current = target;
-            T? newOne = transformer( current, a );
-            if( Interlocked.CompareExchange( ref target, newOne, current ) != current )
-            {
-                SpinWait sw = new SpinWait();
-                do
-                {
-                    sw.SpinOnce();
-                    current = target;
-                }
-                while( Interlocked.CompareExchange( ref target, (newOne = transformer( current, a )), current ) != current );
-            }
-            return newOne;
-        }
-
-        /// <summary>
-        /// Atomically removes an item in an array.
-        /// </summary>
-        /// <typeparam name="T">Type of the item array.</typeparam>
-        /// <param name="items">Reference (address) of the array. Can be null.</param>
-        /// <param name="o">Item to remove.</param>
-        /// <returns>The array without the item. Note that it may differ from the "current" items content since another thread may have already changed it.</returns>
-        public static T[]? InterlockedRemove<T>( ref T[]? items, T o )
-        {
-            return InterlockedSet( ref items, o, ( current, item ) =>
-            {
-                if( current == null || current.Length == 0 ) return current;
-                int idx = System.Array.IndexOf( current, item );
-                if( idx < 0 ) return current;
-                if( current.Length == 1 ) return System.Array.Empty<T>();
-                var newArray = new T[current.Length - 1];
-                System.Array.Copy( current, 0, newArray, 0, idx );
-                System.Array.Copy( current, idx + 1, newArray, idx, newArray.Length - idx );
-                return newArray;
-            } );
-        }
-
-        /// <summary>
-        /// Atomically removes the first item from an array that matches a predicate.
-        /// </summary>
-        /// <typeparam name="T">Type of the item array.</typeparam>
-        /// <param name="items">Reference (address) of the array. Can be null.</param>
-        /// <param name="predicate">Predicate that identifies the item to remove.</param>
-        /// <returns>The array containing the new item. Note that it may differ from the "current" items content since another thread may have already changed it.</returns>
-        public static T[]? InterlockedRemove<T>( ref T[]? items, Func<T, bool> predicate )
-        {
-            if( predicate == null ) throw new ArgumentNullException( "predicate" );
-            return InterlockedSet( ref items, predicate, ( current, p ) =>
-            {
-                if( current == null || current.Length == 0 ) return current;
-                int idx = current.IndexOf( p );
-                if( idx < 0 ) return current;
-                if( current.Length == 1 ) return System.Array.Empty<T>();
-                var newArray = new T[current.Length - 1];
-                System.Array.Copy( current, 0, newArray, 0, idx );
-                System.Array.Copy( current, idx + 1, newArray, idx, newArray.Length - idx );
-                return newArray;
-            } );
-        }
-
-        /// <summary>
-        /// Atomically removes one or more items from an array that match a predicate.
-        /// </summary>
-        /// <typeparam name="T">Type of the item array.</typeparam>
-        /// <param name="items">Reference (address) of the array. Can be null.</param>
-        /// <param name="predicate">Predicate that identifies items to remove.</param>
-        /// <returns>The cleaned array (may be the empty one). Note that it may differ from the "current" items content since another thread may have already changed it.</returns>
-        public static T[]? InterlockedRemoveAll<T>( ref T[]? items, Func<T, bool> predicate )
-        {
-            if( predicate == null ) throw new ArgumentNullException( "predicate" );
-            return InterlockedSet( ref items, predicate, ( current, p ) =>
-            {
-                int len;
-                if( current == null || (len = current.Length) == 0 ) return current;
-                for( int i = 0; i < len; ++i )
-                {
-                    if( !p( current[i] ) )
-                    {
-                        List<T> collector = new List<T>
-                        {
-                            current[i]
-                        };
-                        while( ++i < len )
-                        {
-                            if( !p( current[i] ) ) collector.Add( current[i] );
-                        }
-                        return collector.ToArray();
-                    }
-                }
-                return System.Array.Empty<T>();
-            } );
-        }
-
-        /// <summary>
-        /// Atomically adds an item to an array (that can be null) if it does not already exist in the array.
-        /// </summary>
-        /// <typeparam name="T">Type of the item array.</typeparam>
-        /// <param name="items">Reference (address) of the array. Can be null.</param>
-        /// <param name="o">The item to insert at position 0 (if <paramref name="prepend"/> is true) or at the end only if it does not already appear in the array.</param>
-        /// <param name="prepend">True to insert the item at the head of the array (index 0) instead of at its end.</param>
-        /// <returns>The array containing the new item. Note that it may differ from the "current" items content since another thread may have already changed it.</returns>
-        public static T[] InterlockedAddUnique<T>( [NotNull] ref T[]? items, T o, bool prepend = false )
-        {
-#pragma warning disable CS8777 // Parameter must have a non-null value when exiting.
-            return InterlockedSet( ref items, o, ( oldItems, item ) =>
-            {
-                if( oldItems == null || oldItems.Length == 0 ) return new T[] { item };
-                if( System.Array.IndexOf( oldItems, item ) >= 0 ) return oldItems;
-                T[] newArray = new T[oldItems.Length + 1];
-                System.Array.Copy( oldItems, 0, newArray, prepend ? 1 : 0, oldItems.Length );
-                newArray[prepend ? 0 : oldItems.Length] = item;
-                return newArray;
-            } )!;
-#pragma warning restore CS8777 // Parameter must have a non-null value when exiting.
-        }
-
-        /// <summary>
-        /// Atomically adds an item to an array (that can be null).
-        /// </summary>
-        /// <typeparam name="T">Type of the item array.</typeparam>
-        /// <param name="items">Reference (address) of the array. Can be null.</param>
-        /// <param name="o">The item to insert at position 0 (if <paramref name="prepend"/> is true) or at the end.</param>
-        /// <param name="prepend">True to insert the item at the head of the array (index 0) instead of at its end.</param>
-        /// <returns>The array containing the new item. Note that it may differ from the "current" items content since another thread may have already changed it.</returns>
-        public static T[] InterlockedAdd<T>( [NotNull] ref T[]? items, T o, bool prepend = false )
-        {
-#pragma warning disable CS8777 // Parameter must have a non-null value when exiting.
-            return InterlockedSet( ref items, o, ( oldItems, item ) =>
-            {
-                if( oldItems == null || oldItems.Length == 0 ) return new T[] { item };
-                T[] newArray = new T[oldItems.Length + 1];
-                System.Array.Copy( oldItems, 0, newArray, prepend ? 1 : 0, oldItems.Length );
-                newArray[prepend ? 0 : oldItems.Length] = item;
-                return newArray;
-            } )!;
-#pragma warning restore CS8777 // Parameter must have a non-null value when exiting.
-        }
-
-        /// <summary>
-        /// Atomically adds an item to an existing array (that can be null) if no existing item satisfies a condition.
-        /// </summary>
-        /// <typeparam name="T">Type of the item array.</typeparam>
-        /// <typeparam name="TItem">Type of the item to add: can be any specialization of T.</typeparam>
-        /// <param name="items">Reference (address) of the array. Can be null.</param>
-        /// <param name="tester">Predicate that must be satisfied for at least one existing item.</param>
-        /// <param name="factory">Factory that will be called if no existing item satisfies <paramref name="tester"/>. It will be called only once if needed.</param>
-        /// <param name="prepend">True to insert the item at the head of the array (index 0) instead of at its end.</param>
-        /// <returns>
-        /// The array containing the an item that satisfies the tester function. 
-        /// Note that it may differ from the "current" items content since another thread may have already changed it.
-        /// </returns>
-        /// <remarks>
-        /// The factory function MUST return an item that satisfies the tester function otherwise a <see cref="InvalidOperationException"/> is thrown.
-        /// </remarks>
-        public static T[] InterlockedAdd<T, TItem>( [NotNull]ref T[]? items, Func<TItem, bool> tester, Func<TItem> factory, bool prepend = false ) where TItem : T
-        {
-            if( tester == null ) throw new ArgumentNullException( "tester" );
-            if( factory == null ) throw new ArgumentNullException( "factory" );
-            TItem newE = default!;
-            bool needFactory = true;
-#pragma warning disable CS8777 // Parameter must have a non-null value when exiting.
-            return InterlockedSet( ref items, oldItems =>
-            {
-                T[] newArray;
-                if( oldItems != null )
-                    foreach( var e in oldItems )
-                        if( e is TItem item && tester( item ) ) return oldItems;
-                if( needFactory )
-                {
-                    needFactory = false;
-                    newE = factory();
-                    if( !tester( newE ) ) throw new InvalidOperationException( Impl.CoreResources.FactoryTesterMismatch );
-                }
-                if( oldItems == null || oldItems.Length == 0 ) newArray = new T[] { newE };
-                else
-                {
-                    newArray = new T[oldItems.Length + 1];
-                    System.Array.Copy( oldItems, 0, newArray, prepend ? 1 : 0, oldItems.Length );
-                    newArray[prepend ? 0 : oldItems.Length] = newE;
-                }
-                return newArray;
-            } )!;
-#pragma warning restore CS8777 // Parameter must have a non-null value when exiting.
-        }
-
-        #endregion
+        public static T FuncIdentity<T>( T value ) => value;
 
     }
 }

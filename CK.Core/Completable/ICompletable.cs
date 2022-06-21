@@ -32,5 +32,10 @@ namespace CK.Core
         /// <param name="result">Captures the result: one of the 2 available methods must be called.</param>
         void OnCanceled( ref CompletionSource.OnCanceled result );
 
+        /// <summary>
+        /// Called once the <see cref="Completion"/> is resolved.
+        /// </summary>
+        void OnCompleted();
+
     }
 }

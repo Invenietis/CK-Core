@@ -6,7 +6,6 @@ using System.Runtime.Serialization.Formatters.Binary;
 using System.Text;
 using System.Threading.Tasks;
 using NUnit.Framework;
-using CK.Text;
 using FluentAssertions;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
@@ -45,6 +44,8 @@ namespace CK.Core.Tests
                 UseTrySet = r.Next( 2 ) == 0;
             }
 
+            public bool OnCompletedCalled { get; private set; }
+
             public readonly CompletionSource CompletionSource;
 
             public CommandAction RunAction { get; set; }
@@ -77,9 +78,15 @@ namespace CK.Core.Tests
                     default: throw new NotSupportedException();
                 }
             }
+
+            void ICompletable.OnCompleted()
+            {
+                OnCompletedCalled.Should().BeFalse();
+                OnCompletedCalled = true;
+            }
         }
 
-        static async Task CommandExecute( Command c )
+        static async Task CommandExecuteAsync( Command c )
         {
             await Task.Delay( c.ExecutionTime ).ConfigureAwait( false );
             switch( c.RunAction )
@@ -91,14 +98,14 @@ namespace CK.Core.Tests
         }
 
         [TestCase(100000, 12)]
-        public async Task completable_can_hook_the_task_result( int nb, int seed )
+        public async Task completable_can_hook_the_task_result_Async( int nb, int seed )
         {
             var random = new Random( seed );
 
             var commands = Enumerable.Range( 0, nb ).Select( _ => new Command( random ) ).ToArray();
             foreach( var c in commands )
             {
-                _ = CommandExecute( c );
+                _ = CommandExecuteAsync( c );
             }
             foreach( var c in commands )
             {
@@ -106,6 +113,7 @@ namespace CK.Core.Tests
                 {
                     await c.Completion;
                     c.Completion.IsCompleted.Should().BeTrue();
+                    c.OnCompletedCalled.Should().BeTrue();
                 }
                 catch( OperationCanceledException )
                 {
@@ -123,6 +131,7 @@ namespace CK.Core.Tests
                     c.OverriddenExceptionOnError.Should().NotBeNull();
                 }
                 c.Completion.IsCompleted.Should().BeTrue();
+                c.OnCompletedCalled.Should().BeTrue();
 
                 switch( c.RunAction )
                 {
@@ -196,6 +205,8 @@ namespace CK.Core.Tests
                 else result.SetCanceled();
             }
 
+            public volatile bool OnCompletedCalled;
+
             public void OnError( Exception ex, ref CompletionSource<int>.OnError result )
             {
                 switch( OnErrorHook )
@@ -206,9 +217,15 @@ namespace CK.Core.Tests
                     default: throw new NotSupportedException();
                 }
             }
+
+            public void OnCompleted()
+            {
+                OnCompletedCalled.Should().BeFalse();
+                OnCompletedCalled = true;
+            }
         }
 
-        static async Task CommandExecute( CommandWithResult c )
+        static async Task CommandExecuteAsync( CommandWithResult c )
         {
             await Task.Delay( c.ExecutionTime ).ConfigureAwait( false );
             switch( c.RunAction )
@@ -220,14 +237,14 @@ namespace CK.Core.Tests
         }
 
         [TestCase( 100000, 877 )]
-        public async Task completable_with_result_can_hook_the_task_result( int nb, int seed )
+        public async Task completable_with_result_can_hook_the_task_result_Async( int nb, int seed )
         {
             var random = new Random( seed );
 
             var commands = Enumerable.Range( 0, nb ).Select( _ => new CommandWithResult( random ) ).ToArray();
             foreach( var c in commands )
             {
-                _ = CommandExecute( c );
+                _ = CommandExecuteAsync( c );
             }
             foreach( var c in commands )
             {
@@ -235,6 +252,7 @@ namespace CK.Core.Tests
                 {
                     await c.Completion;
                     c.Completion.IsCompleted.Should().BeTrue();
+                    c.OnCompletedCalled.Should().BeTrue();
                 }
                 catch( OperationCanceledException )
                 {
@@ -255,6 +273,7 @@ namespace CK.Core.Tests
                     c.Completion.Task.Status.Should().Be( TaskStatus.Faulted );
                 }
                 c.Completion.IsCompleted.Should().BeTrue();
+                c.OnCompletedCalled.Should().BeTrue();
 
                 switch( c.RunAction )
                 {
@@ -299,6 +318,8 @@ namespace CK.Core.Tests
                 CompletionSource = new CompletionSource<int>( this );
             }
 
+            public bool OnCompletedCalled { get; private set; }
+
             public readonly CompletionSource<int> CompletionSource;
 
             public ICompletion<int> Completion => CompletionSource;
@@ -311,6 +332,12 @@ namespace CK.Core.Tests
                 // if( ex is OperationCanceledException ) result.SetCanceled(); else
                 result.SetException( ex );
             }
+
+            void ICompletable<int>.OnCompleted()
+            {
+                OnCompletedCalled.Should().BeFalse();
+                OnCompletedCalled = true;
+            }
         }
 
         class SimpleCommandNoResult : ICompletable
@@ -319,6 +346,8 @@ namespace CK.Core.Tests
             {
                 CompletionSource = new CompletionSource( this );
             }
+
+            public bool OnCompletedCalled { get; private set; }
 
             public readonly CompletionSource CompletionSource;
 
@@ -332,6 +361,13 @@ namespace CK.Core.Tests
                 // if( ex is OperationCanceledException ) result.SetCanceled(); else
                 result.SetException( ex );
             }
+
+            void ICompletable.OnCompleted()
+            {
+                OnCompletedCalled.Should().BeFalse();
+                OnCompletedCalled = true;
+            }
+
         }
 
         [TestCase( "NoResult", "OperationCanceledException" )]
@@ -362,6 +398,7 @@ namespace CK.Core.Tests
                 if( error == "Cancel" ) cmd.CompletionSource.SetCanceled();
                 else if( error == "OperationCanceledException" ) cmd.CompletionSource.SetException( new OperationCanceledException() );
                 else cmd.CompletionSource.SetException( new Exception( "Pouf" ) );
+                cmd.OnCompletedCalled.Should().BeTrue();    
             }
             else
             {
@@ -369,6 +406,7 @@ namespace CK.Core.Tests
                 if( error == "Cancel" ) cmd.CompletionSource.SetCanceled();
                 else if( error == "OperationCanceledException" ) cmd.CompletionSource.SetException( new OperationCanceledException() );
                 else cmd.CompletionSource.SetException( new Exception( "Pouf" ) );
+                cmd.OnCompletedCalled.Should().BeTrue();    
             }
         }
 

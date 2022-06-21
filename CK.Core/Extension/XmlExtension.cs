@@ -18,7 +18,7 @@ namespace CK.Core
         #region IXmlLineInfo support.
 
         /// <summary>
-        /// Public class that is is used as an annotation on any <see cref="XObject"/> to
+        /// Public class that is used as an annotation on any <see cref="XObject"/> to
         /// associate its line information.
         /// <para>
         /// A similar class is internally defined and used to implement <see cref="System.Xml.IXmlLineInfo"/> on
@@ -77,7 +77,7 @@ namespace CK.Core
         /// </summary>
         /// <typeparam name="T">This element type.</typeparam>
         /// <param name="this">This XObject.</param>
-        /// <param name="info">The exisitng line info.</param>
+        /// <param name="info">The existing line info.</param>
         /// <returns>This object (fluent syntax).</returns>
         public static T SetLineColumnInfo<T>( this T @this, System.Xml.IXmlLineInfo info ) where T : XObject
         {
@@ -96,7 +96,7 @@ namespace CK.Core
         /// <returns>This object (fluent syntax).</returns>
         public static T SetLineColumnInfo<T>( this T @this, int line, int column ) where T : XObject
         {
-            @this.RemoveAnnotations<System.Xml.IXmlLineInfo>();
+            @this.RemoveAnnotations<IXmlLineInfo>();
             @this.AddAnnotation( new LineInfoAnnotation( line, column ) );
             return @this;
         }
@@ -109,7 +109,7 @@ namespace CK.Core
         /// <returns>This object (fluent syntax).</returns>
         public static T SetNoLineColumnInfo<T>( this T @this ) where T : XObject
         {
-            @this.RemoveAnnotations<System.Xml.IXmlLineInfo>();
+            @this.RemoveAnnotations<IXmlLineInfo>();
             @this.AddAnnotation( LineInfoAnnotation.None );
             return @this;
         }
@@ -163,12 +163,11 @@ namespace CK.Core
         /// <param name="name">Name of the attribute.</param>
         static public XAttribute AttributeRequired( this XElement @this, XName name )
         {
-            XAttribute a = @this.Attribute( name );
-            if( a == null ) throw new XmlException( String.Format( Impl.CoreResources.ExpectedXmlAttribute, name ) + @this.GetLineColumnString() );
+            XAttribute? a = @this.Attribute( name );
+            if( a == null ) Throw.XmlException( $"Expected attribute '{name}'.{@this.GetLineColumnString()}" );
             return a;
         }
 
-#if NETSTANDARD2_1
         /// <summary>
         /// Gets an enumeration value.
         /// </summary>
@@ -180,7 +179,7 @@ namespace CK.Core
         /// <returns>The parsed value or the default value.</returns>
         static public T AttributeEnum<T>( this XElement @this, XName name, bool ignoreCase, T defaultValue ) where T : Enum
         {
-            XAttribute a = @this.Attribute( name );
+            XAttribute? a = @this.Attribute( name );
             if( a == null || !Enum.TryParse( typeof( T ), a.Value, ignoreCase, out var sResult ) ) return defaultValue;
             return (T)sResult!;
         }
@@ -194,26 +193,6 @@ namespace CK.Core
         /// <param name="defaultValue">Default value if the attribute does not exist or can not be parsed.</param>
         /// <returns>The parsed value or the default value.</returns>
         static public T AttributeEnum<T>( this XElement @this, XName name, T defaultValue ) where T : Enum => AttributeEnum( @this, name, true, defaultValue );
-#endif
-
-#if NETSTANDARD2_0
-
-        /// <summary>
-        /// Gets an enum value.
-        /// </summary>
-        /// <typeparam name="T">Type of the enum. There is no way (in c#) to constraint the type to Enum - nor to Delegate, this is why 
-        /// the constraint restricts only the type to be a value type.</typeparam>
-        /// <param name="this">This <see cref="XElement"/>.</param>
-        /// <param name="name">Name of the attribute.</param>
-        /// <param name="defaultValue">Default value if the attribute does not exist or can not be parsed.</param>
-        /// <returns>The parsed value or the default value.</returns>
-        static public T AttributeEnum<T>( this XElement @this, XName name, T defaultValue ) where T : struct
-        {
-            XAttribute a = @this.Attribute( name );
-            if( a == null || !Enum.TryParse( a.Value, out T result ) ) result = defaultValue;
-            return result;
-        }
-#endif
 
     }
 

@@ -53,7 +53,9 @@ namespace CK.Core
 
             public bool IsCompleted => _awaiter.IsCompleted;
 
+#pragma warning disable VSTHRD002 // Avoid problematic synchronous waits
             public TResult GetResult() => _awaiter.GetResult();
+#pragma warning restore VSTHRD002 // Avoid problematic synchronous waits
 
             public void OnCompleted( Action continuation ) => _awaiter.OnCompleted( continuation );
 
@@ -74,7 +76,9 @@ namespace CK.Core
         public Task<TResult> Task => _tcs.Task;
 
         /// <inheritdoc />
+#pragma warning disable VSTHRD002 // Avoid problematic synchronous waits
         public TResult Result => _tcs.Task.Result;
+#pragma warning restore VSTHRD002 // Avoid problematic synchronous waits
 
         Task ICompletion.Task => _tcs.Task;
 
@@ -98,8 +102,9 @@ namespace CK.Core
         /// <param name="result">The command result.</param>
         public void SetResult( TResult result )
         {
-            if( _state == 0 ) _state = 1;
             _tcs.SetResult( result );
+            _state = 1;
+            _holder.OnCompleted();
         }
 
         /// <summary>
@@ -115,6 +120,7 @@ namespace CK.Core
             _state |= 1;
             if( _tcs.TrySetResult( result ) )
             {
+                _holder.OnCompleted();
                 return true;
             }
             _state &= ~1;
@@ -190,8 +196,13 @@ namespace CK.Core
         {
             // Fast path if already resolved: the framework exception will be raised.
             // This protects the current state.
-            // Only on concurrent SetException will the state be inconsistent.
             if( _state != 0 ) _tcs.SetException( exception );
+            // On concurrent (first) SetException the risk to end
+            // with an inconsistent state is if the OnError hook takes 2
+            // different decisions!
+            // But since the loser of the race will always trigger an exception
+            // (when calling SetException/Cancel/Result) anyway,
+            // this issue is highly mitigated (we can live with it).
             var o = new OnError( this );
             _holder.OnError( exception, ref o );
             if( !o.Called ) CompletionSource.ThrowOnErrorCalledRequired();
@@ -209,6 +220,7 @@ namespace CK.Core
             {
                 _tcs.SetResult( o.Result );
             }
+            _holder.OnCompleted();
         }
 
         /// <inheritdoc />
@@ -247,6 +259,7 @@ namespace CK.Core
                     return false;
                 }
             }
+            _holder.OnCompleted();
             return true;
         }
 
@@ -316,6 +329,7 @@ namespace CK.Core
             {
                 _tcs.SetResult( o.Result );
             }
+            _holder.OnCompleted();
         }
 
         /// <inheritdoc />
@@ -342,6 +356,7 @@ namespace CK.Core
                     return false;
                 }
             }
+            _holder.OnCompleted();
             return true;
         }
 

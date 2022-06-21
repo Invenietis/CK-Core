@@ -1,3 +1,4 @@
+using FluentAssertions;
 using NUnit.Framework;
 using System;
 using System.Collections.Generic;
@@ -51,20 +52,39 @@ namespace CK.Core.Tests
             Console.WriteLine( $"Ticks = {w.ElapsedTicks}." );
         }
 
-
-        [Explicit]
-        [TestCase(1_000_000)]
-        public void date_time_perf( int max )
+        [Test]
+        public void DateTimeStamp_ToString_and_TryFormat()
         {
-            Stopwatch w = new Stopwatch();
-            w.Start();
-            DateTime c;
-            for( int i = 0; i < max; ++i )
-            {
-                c = DateTime.UtcNow;
-            }
-            w.Stop();
-            Console.WriteLine( $"Ticks = {w.ElapsedTicks}." );
+            DateTimeStamp d1 = DateTimeStamp.UtcNow;
+            d1.Uniquifier.Should().Be( 0 );
+            var b = new char[32];
+
+            d1.TryFormat( b.AsSpan(), out var cb, ReadOnlySpan<char>.Empty, null );
+            cb.Should().Be( 27 );
+            d1.ToString().AsSpan().SequenceEqual( b.AsSpan() );
+            d1.TryFormat( b.AsSpan(0,26), out cb, ReadOnlySpan<char>.Empty, null ).Should().BeFalse();
+            cb.Should().Be( 0 );
+
+            d1 = new DateTimeStamp( d1.TimeUtc, 5 );
+            d1.TryFormat( b.AsSpan(), out cb, ReadOnlySpan<char>.Empty, null );
+            cb.Should().Be( 30 );
+            d1.ToString().AsSpan().SequenceEqual( b.AsSpan() );
+            d1.TryFormat( b.AsSpan( 0, 29 ), out cb, ReadOnlySpan<char>.Empty, null ).Should().BeFalse();
+            cb.Should().Be( 0 );
+
+            d1 = new DateTimeStamp( d1.TimeUtc, 99 );
+            d1.TryFormat( b.AsSpan(), out cb, ReadOnlySpan<char>.Empty, null );
+            cb.Should().Be( 31 );
+            d1.ToString().AsSpan().SequenceEqual( b.AsSpan() );
+            d1.TryFormat( b.AsSpan( 0, 30 ), out cb, ReadOnlySpan<char>.Empty, null ).Should().BeFalse();
+            cb.Should().Be( 0 );
+
+            d1 = new DateTimeStamp( d1.TimeUtc, 255 );
+            d1.TryFormat( b.AsSpan(), out cb, ReadOnlySpan<char>.Empty, null );
+            cb.Should().Be( 32 );
+            d1.ToString().AsSpan().SequenceEqual( b.AsSpan() );
+            d1.TryFormat( b.AsSpan( 0, 31 ), out cb, ReadOnlySpan<char>.Empty, null ).Should().BeFalse();
+            cb.Should().Be( 0 );
         }
     }
 }
