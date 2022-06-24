@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace CK.Core
@@ -15,7 +16,10 @@ namespace CK.Core
         readonly TaskCompletionSource<TResult> _tcs;
         readonly ICompletable<TResult> _holder;
         volatile Exception? _exception;
-        volatile int _state;
+        int _state;
+        const int StateSucces = 0;
+        const int StateCancel = 1;
+        const int StateFailed = 2;
 
         /// <summary>
         /// Creates a <see cref="CompletionSource{TResult}"/>.
@@ -42,7 +46,7 @@ namespace CK.Core
         /// <summary>
         /// This is required to expose a covariant TResult.
         /// </summary>
-        class Awaitable : IAwaitable<TResult>
+        sealed class Awaitable : IAwaitable<TResult>
         {
             readonly TaskAwaiter<TResult> _awaiter;
 
@@ -70,9 +74,6 @@ namespace CK.Core
         TaskAwaiter ICompletion.GetAwaiter() => ((Task)_tcs.Task).GetAwaiter();
 
         /// <inheritdoc />
-        public Exception? OriginalException => _exception;
-
-        /// <inheritdoc />
         public Task<TResult> Task => _tcs.Task;
 
         /// <inheritdoc />
@@ -83,16 +84,19 @@ namespace CK.Core
         Task ICompletion.Task => _tcs.Task;
 
         /// <inheritdoc />
-        public bool IsCompleted => _state != 0;
+        public Exception? OriginalException => _tcs.Task.IsCompleted ? _exception : null;
 
         /// <inheritdoc />
-        public bool HasSucceed => (_state & 1) != 0;
+        public bool IsCompleted => _tcs.Task.IsCompleted;
 
         /// <inheritdoc />
-        public bool HasFailed => (_state & 2) != 0;
+        public bool HasSucceed => _tcs.Task.IsCompleted && Volatile.Read( ref _state ) == StateSucces;
 
         /// <inheritdoc />
-        public bool HasBeenCanceled => (_state & 4) != 0;
+        public bool HasFailed => _tcs.Task.IsCompleted && Volatile.Read( ref _state ) == StateFailed;
+
+        /// <inheritdoc />
+        public bool HasBeenCanceled => _tcs.Task.IsCompleted && Volatile.Read( ref _state ) == StateCancel;
 
         /// <summary>
         /// Transitions the <see cref="Task"/> into the <see cref="TaskStatus.RanToCompletion"/> state.
@@ -102,8 +106,9 @@ namespace CK.Core
         /// <param name="result">The command result.</param>
         public void SetResult( TResult result )
         {
+            // Changes the status only if it's 0 and use the InvalidOperationException.
+            Interlocked.CompareExchange( ref _state, StateSucces, 0 );
             _tcs.SetResult( result );
-            _state = 1;
             _holder.OnCompleted();
         }
 
@@ -116,15 +121,10 @@ namespace CK.Core
         /// </returns>
         public bool TrySetResult( TResult result )
         {
-            if( _state != 0 ) return false;
-            _state |= 1;
-            if( _tcs.TrySetResult( result ) )
-            {
-                _holder.OnCompleted();
-                return true;
-            }
-            _state &= ~1;
-            return false;
+            if( Interlocked.CompareExchange( ref _state, StateSucces, 0 ) != 0 ) return false;
+            _tcs.SetResult( result );
+            _holder.OnCompleted();
+            return true;
         }
 
         /// <summary>
@@ -147,21 +147,19 @@ namespace CK.Core
             }
 
             /// <summary>
-            /// Sets (or tries to set if <see cref="CompletionSource.TrySetException(Exception)"/> has been called)
-            /// the exception.
-            /// The default <see cref="ICompletable{TResult}"/> OnError method calls this method.
+            /// Sets the original exception (or another one).
             /// </summary>
             /// <param name="ex">The exception to set.</param>
             public void SetException( Exception ex )
             {
+                Throw.CheckNotNullArgument( ex );
                 if( Called ) CompletionSource.OnError.ThrowMustBeCalledOnlyOnce();
                 Called = true;
                 ResultError = ex;
             }
 
             /// <summary>
-            /// Sets (or tries to set if <see cref="CompletionSource{TResult}.TrySetException(Exception)"/> has been called)
-            /// a successful completion instead of an error.
+            /// Sets a successful completion instead of an error.
             /// <para>
             /// Note that the <see cref="CompletionSource{TResult}.HasFailed"/> will be true: the fact that the command
             /// did not properly complete is available.
@@ -175,8 +173,7 @@ namespace CK.Core
             }
 
             /// <summary>
-            /// Sets (or tries to set if <see cref="CompletionSource{TResult}.TrySetException(Exception)"/> has been called)
-            /// a cancellation completion instead of an error.
+            /// Sets a cancellation completion instead of an error.
             /// <para>
             /// Note that the <see cref="CompletionSource{TResult}.HasFailed"/> will be true: the fact that the command
             /// did not properly complete is available.
@@ -194,20 +191,26 @@ namespace CK.Core
         /// <inheritdoc />
         public void SetException( Exception exception )
         {
-            // Fast path if already resolved: the framework exception will be raised.
-            // This protects the current state.
-            if( _state != 0 ) _tcs.SetException( exception );
-            // On concurrent (first) SetException the risk to end
-            // with an inconsistent state is if the OnError hook takes 2
-            // different decisions!
-            // But since the loser of the race will always trigger an exception
-            // (when calling SetException/Cancel/Result) anyway,
-            // this issue is highly mitigated (we can live with it).
-            var o = new OnError( this );
-            _holder.OnError( exception, ref o );
-            if( !o.Called ) CompletionSource.ThrowOnErrorCalledRequired();
-            _state |= 2;
+            // If a completion occurred, use the InvalidOperarionException raised by SetException.
+            if( Interlocked.CompareExchange( ref _state, StateFailed, 0 ) != 0 ) _tcs.SetException( exception );
+
+            // The original exception may be observed before the completion.
+            // This doesn't really hurt and the OriginalException getter is protected by a check
+            // of the Task.IsCompleted anyway.
             _exception = exception;
+
+            var o = new OnError( this );
+            try
+            {
+                _holder.OnError( exception, ref o );
+            }
+            catch( Exception ex )
+            {
+                _tcs.SetException( ex );
+                throw;
+            }
+            if( !o.Called ) CompletionSource.ThrowOnErrorCalledRequired( _tcs.SetException );
+
             if( o.ResultError != null )
             {
                 _tcs.SetException( o.ResultError );
@@ -226,38 +229,35 @@ namespace CK.Core
         /// <inheritdoc />
         public bool TrySetException( Exception exception )
         {
-            if( _state != 0 ) return false;
-            var o = new OnError( this );
-            _holder.OnError( exception, ref o );
-            if( !o.Called ) CompletionSource.ThrowOnErrorCalledRequired();
-            _state |= 2;
+            if( Interlocked.CompareExchange( ref _state, StateFailed, 0 ) != 0 ) return false;
+
+            // The original exception may be observed before the completion.
+            // This doesn't really hurt and the OriginalException getter is protected by a check
+            // of the Task.IsCompleted anyway.
             _exception = exception;
+
+            var o = new OnError( this );
+            try
+            {
+                _holder.OnError( exception, ref o );
+            }
+            catch( Exception ex )
+            {
+                _tcs.SetException( ex );
+                throw;
+            }
+            if( !o.Called ) CompletionSource.ThrowOnErrorCalledRequired( _tcs.SetException );
             if( o.ResultError != null )
             {
-                if( !_tcs.TrySetException( o.ResultError ) )
-                {
-                    _state &= ~2;
-                    _exception = null;
-                    return false;
-                }
+                _tcs.SetException( o.ResultError );
             }
             else if( o.ResultCancel )
             {
-                if( !_tcs.TrySetCanceled() )
-                {
-                    _state &= ~2;
-                    _exception = null;
-                    return false;
-                }
+                _tcs.SetCanceled();
             }
             else
             {
-                if( !_tcs.TrySetResult( o.Result ) )
-                {
-                    _state &= ~2;
-                    _exception = null;
-                    return false;
-                }
+                _tcs.SetResult( o.Result );
             }
             _holder.OnCompleted();
             return true;
@@ -282,10 +282,9 @@ namespace CK.Core
 
 
             /// <summary>
-            /// Sets (or tries to set if <see cref="CompletionSource{TResult}.TrySetCanceled()"/> has been called)
-            /// a successful instead of a cancellation completion.
+            /// Sets a successful instead of a cancellation completion.
             /// <para>
-            /// Note that the <see cref="CompletionSource{TResult}.HasBeenCanceled"/> will be true: the fact that the command
+            /// Note that the <see cref="HasBeenCanceled"/> will be true: the fact that the command
             /// has been canceled is available.
             /// </para>
             /// </summary>
@@ -297,11 +296,9 @@ namespace CK.Core
             }
 
             /// <summary>
-            /// Sets (or tries to set if <see cref="CompletionSource{TResult}.TrySetCanceled()"/> has been called)
-            /// the cancellation completion.
-            /// The default <see cref="ICompletable{TResult}"/> OnCanceled method calls this method.
+            /// Sets the cancellation completion.
             /// <para>
-            /// Note that the <see cref="CompletionSource{TResult}.HasBeenCanceled"/> will be true: the fact that the command
+            /// Note that the <see cref="HasBeenCanceled"/> will be true: the fact that the command
             /// has been canceled is available.
             /// </para>
             /// </summary>
@@ -316,11 +313,19 @@ namespace CK.Core
         /// <inheritdoc />
         public void SetCanceled()
         {
-            if( _state != 0 ) _tcs.SetCanceled();
+            if( Interlocked.CompareExchange( ref _state, StateCancel, 0 ) != 0 ) _tcs.SetCanceled();
+
             var o = new OnCanceled( this );
-            _holder.OnCanceled( ref o );
-            if( !o.Called ) CompletionSource.ThrowOnCancelCalledRequired();
-            _state |= 4;
+            try
+            {
+                _holder.OnCanceled( ref o );
+            }
+            catch( Exception ex )
+            {
+                _tcs.SetException( ex );
+                throw;
+            }
+            if( !o.Called ) CompletionSource.ThrowOnCancelCalledRequired( _tcs.SetException );
             if( o.ResultCanceled )
             {
                 _tcs.SetCanceled();
@@ -335,26 +340,26 @@ namespace CK.Core
         /// <inheritdoc />
         public bool TrySetCanceled()
         {
-            if( _state != 0 ) return false;
+            if( Interlocked.CompareExchange( ref _state, StateCancel, 0 ) != 0 ) return false;
+
             var o = new OnCanceled( this );
-            _holder.OnCanceled( ref o );
-            if( !o.Called ) CompletionSource.ThrowOnCancelCalledRequired();
-            _state |= 4;
+            try
+            {
+                _holder.OnCanceled( ref o );
+            }
+            catch( Exception ex )
+            {
+                _tcs.SetException( ex );
+                throw;
+            }
+            if( !o.Called ) CompletionSource.ThrowOnCancelCalledRequired( _tcs.SetException );
             if( o.ResultCanceled )
             {
-                if( !_tcs.TrySetCanceled() )
-                {
-                    _state &= ~4;
-                    return false;
-                }
+                _tcs.SetCanceled();
             }
             else
             {
-                if( !_tcs.TrySetResult( o.Result ) )
-                {
-                    _state &= ~4;
-                    return false;
-                }
+                _tcs.SetResult( o.Result );
             }
             _holder.OnCompleted();
             return true;

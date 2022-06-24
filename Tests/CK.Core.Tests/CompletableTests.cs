@@ -40,7 +40,8 @@ namespace CK.Core.Tests
                 SuccessOnCancel = r.Next( 2 ) == 0;
                 OnErrorHook = (CommandAction)r.Next( 3 );
                 if( r.Next( 2 ) == 0 ) OverriddenExceptionOnError = OverriddenException;
-                ExecutionTime = r.Next( 300 );
+                var execTime = r.Next( 300 ) - 150;
+                ExecutionTime = execTime < 0 ? 0 : execTime;
                 UseTrySet = r.Next( 2 ) == 0;
             }
 
@@ -88,7 +89,7 @@ namespace CK.Core.Tests
 
         static async Task CommandExecuteAsync( Command c )
         {
-            await Task.Delay( c.ExecutionTime ).ConfigureAwait( false );
+            if( c.ExecutionTime > 0 ) await Task.Delay( c.ExecutionTime ).ConfigureAwait( false );
             switch( c.RunAction )
             {
                 case CommandAction.Success: if( c.UseTrySet ) c.CompletionSource.TrySetResult(); else c.CompletionSource.SetResult(); break;
@@ -179,7 +180,8 @@ namespace CK.Core.Tests
                 SuccessOnCancel = r.Next( 2 ) == 0;
                 OnErrorHook = (CommandAction)r.Next( 3 );
                 if( r.Next( 2 ) == 0 ) OverriddenExceptionOnError = OverriddenException;
-                ExecutionTime = r.Next( 300 );
+                var execTime = r.Next( 300 ) - 150;
+                ExecutionTime = execTime < 0 ? 0 : execTime;
                 UseTrySet = r.Next( 2 ) == 0;
             }
 
@@ -227,7 +229,7 @@ namespace CK.Core.Tests
 
         static async Task CommandExecuteAsync( CommandWithResult c )
         {
-            await Task.Delay( c.ExecutionTime ).ConfigureAwait( false );
+            if( c.ExecutionTime > 0 ) await Task.Delay( c.ExecutionTime ).ConfigureAwait( false );
             switch( c.RunAction )
             {
                 case CommandAction.Success: if( c.UseTrySet ) c.CompletionSource.TrySetResult( 3712 ); else c.CompletionSource.SetResult( 3712 ); break;
