@@ -29,9 +29,9 @@ namespace CK.Core
         readonly ICompletable _holder;
         volatile Exception? _exception;
         int _state;
-        const int StateSucces = 0;
-        const int StateCancel = 1;
-        const int StateFailed = 2;
+        const int StateSucces = 1;
+        const int StateCancel = 2;
+        const int StateFailed = 3;
 
         /// <summary>
         /// Creates a <see cref="CompletionSource"/>.

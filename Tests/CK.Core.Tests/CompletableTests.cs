@@ -96,6 +96,10 @@ namespace CK.Core.Tests
                 case CommandAction.Canceled: if( c.UseTrySet ) c.CompletionSource.TrySetCanceled(); else c.CompletionSource.SetCanceled(); break;
                 case CommandAction.Error: if( c.UseTrySet ) c.CompletionSource.TrySetException( RunException ); else c.CompletionSource.SetException( RunException ); break;
             }
+            // Just to be sure :)
+            c.CompletionSource.TrySetException( RunException ).Should().BeFalse();
+            c.CompletionSource.TrySetCanceled().Should().BeFalse();
+            c.CompletionSource.TrySetResult().Should().BeFalse();
         }
 
         [TestCase(100000, 12)]
@@ -236,6 +240,10 @@ namespace CK.Core.Tests
                 case CommandAction.Canceled: if( c.UseTrySet ) c.CompletionSource.TrySetCanceled(); else c.CompletionSource.SetCanceled(); break;
                 case CommandAction.Error: if( c.UseTrySet ) c.CompletionSource.TrySetException( RunException ); else c.CompletionSource.SetException( RunException ); break;
             }
+            // Just to be sure :)
+            c.CompletionSource.TrySetException( RunException ).Should().BeFalse();
+            c.CompletionSource.TrySetCanceled().Should().BeFalse();
+            c.CompletionSource.TrySetResult( 1 ).Should().BeFalse();
         }
 
         [TestCase( 100000, 877 )]
@@ -392,7 +400,7 @@ namespace CK.Core.Tests
         }
 
         [MethodImpl( MethodImplOptions.NoInlining )]
-        private static void CreateCompleteAndForgetCommand( string commandType, string error )
+        static void CreateCompleteAndForgetCommand( string commandType, string error )
         {
             if( commandType == "WithResult" )
             {
