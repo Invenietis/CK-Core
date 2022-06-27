@@ -13,8 +13,6 @@ namespace CK.Core.Impl
 
         public static readonly string FactoryTesterMismatch = "The 'factory' function must create an item that satisfies the 'tester' function.";
 
-        public static readonly string FileMustExist = "File must exist.";
-
         public static readonly string FileUtilUnableToCreateUniqueTimedFileOrFolder = "Unable to create a unique timed file or folder.";
 
         public static readonly string InnerExceptionMustBeTheFirstAggregatedException = "The InnerException must be the first AggregatedExceptions.";
