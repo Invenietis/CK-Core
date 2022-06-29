@@ -33,6 +33,17 @@ namespace CK.Core.Tests
         }
 
         [Test]
+        public void SHA512_CreateRandom()
+        {
+            var sha = SHA512Value.CreateRandom();
+            // Ok... This MAY fail :).
+            sha.Should().NotBe( SHA512Value.Zero );
+            sha.Should().NotBe( SHA512Value.Empty );
+            sha.GetBytes().Length.Should().Be( 64 );
+            sha.ToString().Length.Should().Be( 128 );
+        }
+
+        [Test]
         public void SHA512Empty_IsValid()
         {
             byte[] computedValue = SHA512.HashData( ReadOnlySpan<byte>.Empty );

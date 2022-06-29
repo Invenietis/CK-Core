@@ -140,6 +140,15 @@ namespace CK.Core
         }
 
         /// <summary>
+        /// Creates a random SHA512 using <see cref="RandomNumberGenerator"/>.
+        /// </summary>
+        /// <returns>A random SHA256.</returns>
+        public static SHA512Value CreateRandom()
+        {
+            return new SHA512Value( RandomNumberGenerator.GetBytes( 64 ) );
+        }
+
+        /// <summary>
         /// Defines equality operator.
         /// </summary>
         /// <param name="x">First SHA512.</param>

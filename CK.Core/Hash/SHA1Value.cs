@@ -141,6 +141,15 @@ namespace CK.Core
         }
 
         /// <summary>
+        /// Creates a random SHA1 using <see cref="RandomNumberGenerator"/>.
+        /// </summary>
+        /// <returns>A random SHA1.</returns>
+        public static SHA1Value CreateRandom()
+        {
+            return new SHA1Value( RandomNumberGenerator.GetBytes( 20 ) );
+        }
+
+        /// <summary>
         /// Defines equality operator.
         /// </summary>
         /// <param name="x">First sha1.</param>
