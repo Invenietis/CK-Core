@@ -48,9 +48,9 @@ namespace CK.Core
 
         /// <summary>
         /// When a path starts with "XX:" (at least 3 characters long, including the ending colon), it is considered
-        /// to be a "URI scheme" ("X:" is <see cref="RootedByFirstPart"/>).
+        /// to be a "URI scheme" ( 2 characters like "X:" is <see cref="RootedByFirstPart"/>).
         /// <para>
-        /// With this kind of root, <see cref="NormalizedPath.FirstPart"/> ends with ":/" (this is the only case where a part
+        /// With this kind of root, the <see cref="NormalizedPath.FirstPart"/> ends with ":/" (this is the only case where a part
         /// contains the <see cref="NormalizedPath.DirectorySeparatorChar"/>).
         /// </para>
         /// </summary>

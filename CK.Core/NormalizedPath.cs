@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 
 namespace CK.Core
@@ -116,7 +117,7 @@ namespace CK.Core
                 {
                     var first = _parts[0];
                     Debug.Assert( first.Length > 0 );
-                    if( first[^1] == ':' )
+                    if( first[first.Length-1] == ':' )
                     {
                         // To avoid errors and to not be too lax:
                         //  - Length = 1 or 2: "://" or "C://" are invalid (but ":/" or "C:/" are fine).
@@ -508,6 +509,59 @@ namespace CK.Core
         }
 
         /// <summary>
+        /// Replaces the last part. <see cref="HasParts"/> must be true otherwise an <see cref="InvalidOperationException"/>
+        /// is thrown.
+        /// </summary>
+        /// <param name="part">The new last part.</param>
+        /// <returns>A new path.</returns>
+        public NormalizedPath ReplaceLastPart( string? part )
+        {
+            Throw.CheckState( HasParts );
+            if( string.IsNullOrEmpty( part ) ) return RemoveLastPart();
+            return Replace( _parts.Length - 1, part );
+        }
+
+        /// <summary>
+        /// Replace the <see cref="FirstPart"/> with a new one.
+        /// The same rules as <see cref="Prepend(string?)"/> apply: if the new first part
+        /// is not rooted the current <see cref="RootKind"/> is preserved otherwise the new kind of root is considered.
+        /// </summary>
+        /// <param name="part">The new first part.</param>
+        /// <returns>A new path.</returns>
+        public NormalizedPath ReplaceFirstPart( string? part )
+        {
+            if( string.IsNullOrEmpty( part ) ) return RemoveFirstPart();
+        }
+
+        /// <summary>
+        /// Replaces the first part. If the part is not rooted the current <see cref="RootKind"/> is
+        /// preserved otherwise the new kind of root is considered.
+        /// </summary>
+        /// <param name="part">The part to prepend.</param>
+        /// <returns>A new path.</returns>
+        public NormalizedPath Prepend( string? part )
+        {
+            if( string.IsNullOrEmpty( part ) ) return this;
+        }
+
+        /// <summary>
+        /// Replaces a part in this path. When <paramref name="idx"/> is 0, see <see cref="ReplaceFirstPart(string)"/>.
+        /// </summary>
+        /// <param name="idx">The part index. When null or empty, the path is removed.</param>
+        /// <param name="part">The new part.</param>
+        /// <returns>A new path.</returns>
+        public NormalizedPath Replace( int idx, string? part )
+        {
+            if( string.IsNullOrEmpty( part ) ) return RemovePart( idx );
+            if( idx == 0 ) return ReplaceFirstPart( part );
+            Throw.CheckState( HasParts );
+            Throw.CheckOutOfRangeArgument( idx > 0 && idx < _parts.Length );
+            var parts = (string[])_parts.Clone();
+            parts[idx] = part;
+            return BuildNonEmptyPath( parts, _option );
+        }
+
+        /// <summary>
         /// Returns a new <see cref="NormalizedPath"/> with <see cref="FirstPart"/> removed (or more)
         /// and <see cref="RootKind"/> sets to <see cref="NormalizedPathRootKind.None"/>.
         /// Can be safely called when <see cref="IsEmptyPath"/> is true.
@@ -535,6 +589,11 @@ namespace CK.Core
             Array.Copy( _parts, count, parts, 0, parts.Length );
             int len = _parts[0].Length + count;
             while( count > 1 ) len += _parts[--count].Length;
+            return ApplyOptionToPath( parts, len );
+        }
+
+        NormalizedPath ApplyOptionToPath( string[] parts, int len )
+        {
             Debug.Assert( _path != null );
             var o = _option;
             string p;
@@ -578,7 +637,8 @@ namespace CK.Core
         public NormalizedPath RemoveParts( int startIndex, int count )
         {
             int to = startIndex + count;
-            Throw.CheckOutOfRangeArgument( $"{nameof(startIndex)} and {nameof(count)}", _parts != null && startIndex >= 0 && startIndex < _parts.Length && to <= _parts.Length );
+            Throw.CheckState( HasParts );
+            Throw.CheckOutOfRangeArgument( startIndex >= 0 && startIndex < _parts.Length && to <= _parts.Length );
             if( count == 0 ) return this;
             if( startIndex == 0 ) return RemoveFirstPart( count );
             int nb = _parts.Length - count;
@@ -692,6 +752,7 @@ namespace CK.Core
         /// <summary>
         /// Gets whether this <see cref="NormalizedPath"/> has at least one <see cref="Parts"/>.
         /// </summary>
+        [MemberNotNullWhen(true, nameof(_parts))]
         public bool HasParts => _parts != null;
 
         /// <summary>
