@@ -139,6 +139,15 @@ namespace CK.Core
         }
 
         /// <summary>
+        /// Creates a random SHA256 using <see cref="RandomNumberGenerator"/>.
+        /// </summary>
+        /// <returns>A random SHA256.</returns>
+        public static SHA256Value CreateRandom()
+        {
+            return new SHA256Value( RandomNumberGenerator.GetBytes( 32 ) );
+        }
+
+        /// <summary>
         /// Defines equality operator.
         /// </summary>
         /// <param name="x">First SHA256.</param>

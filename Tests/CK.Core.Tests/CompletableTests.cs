@@ -40,7 +40,8 @@ namespace CK.Core.Tests
                 SuccessOnCancel = r.Next( 2 ) == 0;
                 OnErrorHook = (CommandAction)r.Next( 3 );
                 if( r.Next( 2 ) == 0 ) OverriddenExceptionOnError = OverriddenException;
-                ExecutionTime = r.Next( 300 );
+                var execTime = r.Next( 300 ) - 150;
+                ExecutionTime = execTime < 0 ? 0 : execTime;
                 UseTrySet = r.Next( 2 ) == 0;
             }
 
@@ -88,13 +89,17 @@ namespace CK.Core.Tests
 
         static async Task CommandExecuteAsync( Command c )
         {
-            await Task.Delay( c.ExecutionTime ).ConfigureAwait( false );
+            if( c.ExecutionTime > 0 ) await Task.Delay( c.ExecutionTime ).ConfigureAwait( false );
             switch( c.RunAction )
             {
                 case CommandAction.Success: if( c.UseTrySet ) c.CompletionSource.TrySetResult(); else c.CompletionSource.SetResult(); break;
                 case CommandAction.Canceled: if( c.UseTrySet ) c.CompletionSource.TrySetCanceled(); else c.CompletionSource.SetCanceled(); break;
                 case CommandAction.Error: if( c.UseTrySet ) c.CompletionSource.TrySetException( RunException ); else c.CompletionSource.SetException( RunException ); break;
             }
+            // Just to be sure :)
+            c.CompletionSource.TrySetException( RunException ).Should().BeFalse();
+            c.CompletionSource.TrySetCanceled().Should().BeFalse();
+            c.CompletionSource.TrySetResult().Should().BeFalse();
         }
 
         [TestCase(100000, 12)]
@@ -179,7 +184,8 @@ namespace CK.Core.Tests
                 SuccessOnCancel = r.Next( 2 ) == 0;
                 OnErrorHook = (CommandAction)r.Next( 3 );
                 if( r.Next( 2 ) == 0 ) OverriddenExceptionOnError = OverriddenException;
-                ExecutionTime = r.Next( 300 );
+                var execTime = r.Next( 300 ) - 150;
+                ExecutionTime = execTime < 0 ? 0 : execTime;
                 UseTrySet = r.Next( 2 ) == 0;
             }
 
@@ -227,13 +233,17 @@ namespace CK.Core.Tests
 
         static async Task CommandExecuteAsync( CommandWithResult c )
         {
-            await Task.Delay( c.ExecutionTime ).ConfigureAwait( false );
+            if( c.ExecutionTime > 0 ) await Task.Delay( c.ExecutionTime ).ConfigureAwait( false );
             switch( c.RunAction )
             {
                 case CommandAction.Success: if( c.UseTrySet ) c.CompletionSource.TrySetResult( 3712 ); else c.CompletionSource.SetResult( 3712 ); break;
                 case CommandAction.Canceled: if( c.UseTrySet ) c.CompletionSource.TrySetCanceled(); else c.CompletionSource.SetCanceled(); break;
                 case CommandAction.Error: if( c.UseTrySet ) c.CompletionSource.TrySetException( RunException ); else c.CompletionSource.SetException( RunException ); break;
             }
+            // Just to be sure :)
+            c.CompletionSource.TrySetException( RunException ).Should().BeFalse();
+            c.CompletionSource.TrySetCanceled().Should().BeFalse();
+            c.CompletionSource.TrySetResult( 1 ).Should().BeFalse();
         }
 
         [TestCase( 100000, 877 )]
@@ -390,7 +400,7 @@ namespace CK.Core.Tests
         }
 
         [MethodImpl( MethodImplOptions.NoInlining )]
-        private static void CreateCompleteAndForgetCommand( string commandType, string error )
+        static void CreateCompleteAndForgetCommand( string commandType, string error )
         {
             if( commandType == "WithResult" )
             {

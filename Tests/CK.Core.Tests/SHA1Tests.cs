@@ -36,6 +36,17 @@ namespace CK.Core.Tests
         }
 
         [Test]
+        public void SHA1_CreateRandom()
+        {
+            var sha = SHA1Value.CreateRandom();
+            // Ok... This MAY fail :).
+            sha.Should().NotBe( SHA1Value.Zero );
+            sha.Should().NotBe( SHA1Value.Empty );
+            sha.GetBytes().Length.Should().Be( 20 );
+            sha.ToString().Length.Should().Be( 40 );
+        }
+
+        [Test]
         public void SHA1Empty_IsValid()
         {
             byte[] computedValue = SHA1.HashData( ReadOnlySpan<byte>.Empty );

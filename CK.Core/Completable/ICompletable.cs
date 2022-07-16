@@ -19,7 +19,8 @@ namespace CK.Core
 
         /// <summary>
         /// Called by the <see cref="Completion"/> when a error is set.
-        /// The default implementation should call <see cref="CompletionSource.OnError.SetException(Exception)"/>.
+        /// The default implementation should call <see cref="CompletionSource.OnError.SetException(Exception)"/> but
+        /// specific implementations can call <see cref="CompletionSource.OnError.SetCanceled"/> or even <see cref="CompletionSource.OnError.SetResult"/>.
         /// </summary>
         /// <param name="ex">The error.</param>
         /// <param name="result">Captures the result: one of the 3 available methods must be called.</param>
@@ -27,7 +28,8 @@ namespace CK.Core
 
         /// <summary>
         /// Called by the <see cref="Completion"/> when a cancellation occurred.
-        /// The default implementation should call <see cref="CompletionSource.OnCanceled.SetCanceled()"/>.
+        /// The default implementation should call <see cref="CompletionSource.OnCanceled.SetCanceled"/> but
+        /// specific implementations can call <see cref="CompletionSource.OnCanceled.SetResult"/>.
         /// </summary>
         /// <param name="result">Captures the result: one of the 2 available methods must be called.</param>
         void OnCanceled( ref CompletionSource.OnCanceled result );

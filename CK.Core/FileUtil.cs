@@ -235,7 +235,7 @@ namespace CK.Core
         public static string MoveToUniqueTimedFile( string sourceFilePath, string pathPrefix, string fileSuffix, DateTime time, int maxTryBeforeGuid = 512 )
         {
             Throw.CheckNotNullArgument( sourceFilePath );
-            if( !File.Exists( sourceFilePath ) ) throw new FileNotFoundException( Impl.CoreResources.FileMustExist, sourceFilePath );
+            Throw.CheckArgument( File.Exists( sourceFilePath ) );
             return FindUniqueTimedFileOrFolder( pathPrefix, fileSuffix, time, maxTryBeforeGuid, p => TryMoveTo( sourceFilePath, p ) );
         }
 
@@ -275,16 +275,15 @@ namespace CK.Core
         /// The folder name is based on a <see cref="DateTime"/>, with an eventual uniquifier if a folder already exists with the same name.
         /// </summary>
         /// <param name="pathPrefix">The path prefix. Must not be null. Must be a valid path and may ends with a prefix for the file name itself.</param>
-        /// <param name="folderSuffix">Suffix for the folder name. Can be null or empty.</param>
+        /// <param name="folderSuffix">Suffix for the folder name.</param>
         /// <param name="time">The time that will be used to create the file name. It must be an UTC time.</param>
         /// <param name="maxTryBeforeGuid">
         /// Maximum value for short hexadecimal uniquifier before using a base 64 guid suffix. Must be greater than 0.
         /// </param>
         /// <returns>The path to a necessarily unique folder.</returns>
-        public static string CreateUniqueTimedFolder( string pathPrefix, string folderSuffix, DateTime time, int maxTryBeforeGuid = 512 )
+        public static string CreateUniqueTimedFolder( string pathPrefix, string? folderSuffix, DateTime time, int maxTryBeforeGuid = 512 )
         {
-            if( folderSuffix == null ) folderSuffix = String.Empty;
-            return FindUniqueTimedFileOrFolder( pathPrefix, folderSuffix, time, maxTryBeforeGuid, TryCreateFolder );
+            return FindUniqueTimedFileOrFolder( pathPrefix, folderSuffix ?? String.Empty, time, maxTryBeforeGuid, TryCreateFolder );
         }
 
         static bool TryCreateFolder( string path )

@@ -33,6 +33,18 @@ namespace CK.Core.Tests
         }
 
         [Test]
+        public void SHA256_CreateRandom()
+        {
+            var sha = SHA256Value.CreateRandom();
+            // Ok... This MAY fail :).
+            sha.Should().NotBe( SHA256Value.Zero );
+            sha.Should().NotBe( SHA256Value.Empty );
+            sha.GetBytes().Length.Should().Be( 32 );
+            sha.ToString().Length.Should().Be( 64 );
+        }
+
+
+        [Test]
         public void SHA256Empty_IsValid()
         {
             byte[] computedValue = SHA256.HashData( ReadOnlySpan<byte>.Empty );
