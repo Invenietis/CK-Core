@@ -326,12 +326,14 @@ namespace CK.Core
         /// Reads an enum value previously written by <see cref="ICKBinaryWriter.WriteEnum{T}(T)"/>.
         /// </summary>
         /// <typeparam name="T">The enum type.</typeparam>
+        [Obsolete( "Simply read and cast the enum's integral type: e = (int)r.ReadInt32(); instead.", true )]
         T ReadEnum<T>() where T : struct, Enum;
 
         /// <summary>
         /// Reads an enum value previously written by <see cref="ICKBinaryWriter.WriteNullableEnum{T}(T?)"/>.
         /// </summary>
         /// <typeparam name="T">The enum type.</typeparam>
+        [Obsolete( "Simply read and cast the enum's integral type: e = (int?)r.ReadNullableInt32(); instead.", true )]
         T? ReadNullableEnum<T>() where T : struct, Enum;
 
         /// <summary>

@@ -236,79 +236,46 @@ sealed class CanSupportBothSimpleSerialization : ICKSimpleBinarySerializable, IC
 CK.BinarySerialization always uses the Versioned interface (since it automatically handles the type information
 and the version is a part of this information).
 
-## SimpleSerializable helper class: DeepClone for free
-This static class exposes 4 basic helpers that can de/serialize simple and versioned objects from/to a byte array.
-
-Two deep clone static methods are also available:
+## SimpleSerializable static helper class: DeepClone for free
+This static class exposes 2 extension methods that can serialize simple and versioned objects to a byte array:
 
 ```c#
-/// <summary>
-/// Deep clones a <see cref="ICKSimpleBinarySerializable"/> by serializing/deserializing it.
-/// </summary>
-/// <typeparam name="T">The object's type.</typeparam>
-/// <param name="o">The object to clone.</param>
-/// <returns>The clone or null if the object to clone is null.</returns>
-[return: NotNullIfNotNull( "o" )]
-public static T? DeepCloneSimple<T>( T? o ) where T : ICKSimpleBinarySerializable
-{
-    if( o is null ) return default;
-    using( var s = new MemoryStream() )
-    using( var w = new CKBinaryWriter( s, Encoding.UTF8, true ) )
-    {
-        o.Write( w );
-        w.Flush();
-        s.Position = 0;
-        using( var r = new CKBinaryReader( s, Encoding.UTF8, true ) )
-        {
-            return (T)Activator.CreateInstance( typeof( T ), r )!;
-        }
-    }
-}
-
-/// <summary>
-/// Deep clones a <see cref="ICKVersionedBinarySerializable"/> by serializing/deserializing it.
-/// The <typeparamref name="T"/> must be the runtime type of <paramref name="o"/>
-/// otherwise an <see cref="ArgumentException"/> is thrown.
-/// </summary>
-/// <typeparam name="T">The object's type.</typeparam>
-/// <param name="o">The object to clone.</param>
-/// <returns>The clone or null if the object to clone is null.</returns>
-[return: NotNullIfNotNull( "o" )]
-public static T? DeepCloneVersioned<T>( T? o ) where T : ICKVersionedBinarySerializable
-{
-    if( o is null ) return default;
-    if( typeof( T ) != o.GetType() ) Throw.ArgumentException( $"Type parameter '{typeof( T )}' must be the same as the runtime type '{o.GetType()}'." );
-    using( var s = new MemoryStream() )
-    using( var w = new CKBinaryWriter( s, Encoding.UTF8, true ) )
-    {
-        o.WriteData( w );
-        w.Flush();
-        s.Position = 0;
-        using( var r = new CKBinaryReader( s, Encoding.UTF8, true ) )
-        {
-            return (T)Activator.CreateInstance( typeof( T ), r, SerializationVersionAttribute.GetRequiredVersion( o.GetType() ) )!;
-        }
-    }
-}
+public static byte[] SerializeSimple( this ICKSimpleBinarySerializable @this )
+public static byte[] SerializeVersioned( this ICKVersionedBinarySerializable @this )
 ```
 
-The `ICKSimpleBinarySerializable` deep clone can handle specializations (with virtual & overridden `Write` methods) whereas the
+And 6 helpers that can deserialize simple and versioned objects from/to a byte array,
+`ReadOnlyMemory<byte>` or `Stream`.
+
+```c#
+public static T DeserializeSimple<T>( byte[] bytes ) where T : ICKSimpleBinarySerializable
+public static T DeserializeSimple<T>( ReadOnlyMemory<byte> bytes ) where T : ICKSimpleBinarySerializable
+public static T DeserializeSimple<T>( Stream bytes ) where T : ICKSimpleBinarySerializable
+
+public static T DeserializeVersioned<T>( ReadOnlyMemory<byte> bytes ) where T : ICKVersionedBinarySerializable
+public static T DeserializeVersioned<T>( byte[] bytes ) where T : ICKVersionedBinarySerializable
+public static T DeserializeVersioned<T>( Stream bytes ) where T : ICKVersionedBinarySerializable
+
+```
+
+Two deep clone static methods (that can handle null) are also available:
+
+```c#
+[return: NotNullIfNotNull( "o" )]
+public static T? DeepCloneSimple<T>( T? o ) where T : ICKSimpleBinarySerializable
+
+[return: NotNullIfNotNull( "o" )]
+public static T? DeepCloneVersioned<T>( T? o ) where T : ICKVersionedBinarySerializable
+```
+
+The `ICKSimpleBinarySerializable` deep clone can handle specializations (with virtual and overridden `Write` methods) whereas the
 `ICKVersionedBinarySerializable` requires the runtime type to be the same as the formal type (recall that simple versioned serializable
 must be used only for struct and sealed classes).
 
 In addition, a `DeepClone()` extension method is available on any `ICKSimpleBinarySerializable` object:
 
 ```c#
-/// <summary>
-/// Deep clones a <see cref="ICKSimpleBinarySerializable"/> by serializing/deserializing it.
-/// </summary>
-/// <typeparam name="T">The object's type.</typeparam>
-/// <param name="this">This object .</param>
-/// <returns>A cloned instance.</returns>
-public static T DeepClone<T>( this T @this ) where T : ICKSimpleBinarySerializable
-{
-    Throw.CheckNotNullArgument( @this );
-    return DeepCloneSimple<T>( @this );
-}
+[return: NotNullIfNotNull( "this" )]
+public static T? DeepClone<T>( this T? @this ) where T : ICKSimpleBinarySerializable => DeepCloneSimple( @this );
 ```
 

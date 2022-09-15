@@ -322,6 +322,7 @@ namespace CK.Core
         }
 
         /// <inheritdoc/>
+        [Obsolete( "Simply read and cast the enum's integral type: e = (int)r.ReadInt32(); instead.", true )]
         public T ReadEnum<T>() where T : struct, Enum
         {
             var u = typeof( T ).GetEnumUnderlyingType();
@@ -337,6 +338,7 @@ namespace CK.Core
         }
 
         /// <inheritdoc/>
+        [Obsolete( "Simply read and cast the enum's integral type: e = (int?)r.ReadNullableInt32(); instead.", true )]
         public T? ReadNullableEnum<T>() where T : struct, Enum
         {
             var u = typeof( T ).GetEnumUnderlyingType();

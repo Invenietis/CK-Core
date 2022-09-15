@@ -323,6 +323,7 @@ namespace CK.Core
         }
 
         /// <inheritdoc />
+        [Obsolete( "Simply write the cast to the enum's integral type like: w.Write( (uint)e ); instead.", true )]
         public void WriteEnum<T>( T v ) where T : struct, Enum
         {
             var u = typeof( T ).GetEnumUnderlyingType();
@@ -338,6 +339,7 @@ namespace CK.Core
         }
 
         /// <inheritdoc />
+        [Obsolete( "Simply write the cast to the enum's integral type like: w.WriteNullableUInt32( (uint?)e ); instead.", true )]
         public void WriteNullableEnum<T>( T? v ) where T : struct, Enum
         {
             // This is ABSOLUTELY ugly... but it does the job.

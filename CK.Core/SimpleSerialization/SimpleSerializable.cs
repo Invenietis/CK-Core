@@ -15,14 +15,15 @@ namespace CK.Core
         /// <summary>
         /// Serializes a <see cref="ICKSimpleBinarySerializable"/> as a byte array.
         /// </summary>
-        /// <param name="o">This object.</param>
+        /// <param name="this">This object.</param>
         /// <returns>The serialized object.</returns>
-        public static byte[] SerializeSimple( this ICKSimpleBinarySerializable o )
+        public static byte[] SerializeSimple( this ICKSimpleBinarySerializable @this )
         {
+            Throw.CheckNotNullArgument( @this );
             using( var s = Util.RecyclableStreamManager.GetStream() )
             using( var w = new CKBinaryWriter( s, Encoding.UTF8, true ) )
             {
-                o.Write( w );
+                @this.Write( w );
                 w.Flush();
                 return s.ToArray();
             }
@@ -31,15 +32,16 @@ namespace CK.Core
         /// <summary>
         /// Serializes a <see cref="ICKVersionedBinarySerializable"/> as a byte array.
         /// </summary>
-        /// <param name="o">This object.</param>
+        /// <param name="this">This object.</param>
         /// <returns>The serialized object.</returns>
-        public static byte[] SerializeVersioned( this ICKVersionedBinarySerializable o )
+        public static byte[] SerializeVersioned( this ICKVersionedBinarySerializable @this )
         {
+            Throw.CheckNotNullArgument( @this );
             using( var s = Util.RecyclableStreamManager.GetStream() )
             using( var w = new CKBinaryWriter( s, Encoding.UTF8, true ) )
             {
-                w.WriteNonNegativeSmallInt32( SerializationVersionAttribute.GetRequiredVersion( o.GetType() ) );
-                o.WriteData( w );
+                w.WriteNonNegativeSmallInt32( SerializationVersionAttribute.GetRequiredVersion( @this.GetType() ) );
+                @this.WriteData( w );
                 w.Flush();
                 return s.ToArray();
             }
@@ -121,16 +123,13 @@ namespace CK.Core
 
         /// <summary>
         /// Deep clones a <see cref="ICKSimpleBinarySerializable"/> by serializing/deserializing it.
+        /// When this instance is null, null is returned.
         /// </summary>
         /// <typeparam name="T">The object's type.</typeparam>
         /// <param name="this">This object .</param>
         /// <returns>A cloned instance.</returns>
-        public static T DeepClone<T>( this T @this ) where T : ICKSimpleBinarySerializable
-        {
-            Throw.CheckNotNullArgument( @this );
-            return DeepCloneSimple<T>( @this );
-        }
-
+        [return: NotNullIfNotNull( "this" )]
+        public static T? DeepClone<T>( this T? @this ) where T : ICKSimpleBinarySerializable => DeepCloneSimple( @this );
 
         /// <summary>
         /// Deep clones a <see cref="ICKSimpleBinarySerializable"/> by serializing/deserializing it.

@@ -56,6 +56,16 @@ namespace CK.Core.Tests
             SimpleSerializable.DeepCloneSimple( o ).Should().BeEquivalentTo( o );
         }
 
+        [Test]
+        public void DeepClone_allows_null_this()
+        {
+            var o = new Sample( 87, "Hop", null );
+            var notNull = o.DeepClone();
+            notNull.Should().BeEquivalentTo( o );
+            o = null;
+            var mayBeNull = o.DeepClone();
+            mayBeNull.Should().BeNull();
+        }
 
         [SerializationVersion( 42 )]
         sealed class Thing : ICKVersionedBinarySerializable
