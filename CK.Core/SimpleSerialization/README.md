@@ -22,7 +22,7 @@ dictionaries must be manually handled.
 It may seem cumbersome... It is. However it's rather easy to implement and, when the versioning pattern is 
 properly applied, a type can freely mute from version to version.
 
-```c#
+```csharp
 /// <summary>
 /// Basic interface for simple binary serialization support.
 /// A deserialization constructor must be implemented (that accepts a <see cref="ICKBinaryReader"/>).
@@ -49,7 +49,7 @@ The version has to be manually handled (typically by a first byte - at least unt
 up to 64534 should use 2 bytes, etc.) or, easier, use the `Read/WriteSmallInt32` methods that basically does
 this job for you.
 
-```c#
+```csharp
 readonly struct Sample : ICKSimpleBinarySerializable
 {
     public readonly int Power;
@@ -106,7 +106,7 @@ either:
 This `ICKVersionedBinarySerializable` works like the simple one, except that the
 version is kindly handled once for all at the type level (the version is written only once per type even if thousands of
 objects are serialized) and the current version is specified by the `[SerializationVersion( 42 )]` [attribute](SerializationVersionAttribute.cs):
-```c#
+```csharp
 /// <summary>
 /// Interface for versioned binary serialization that uses an externally 
 /// stored or known version number. This should be used only on sealed classes or value types 
@@ -142,7 +142,7 @@ public interface ICKVersionedBinarySerializable
 
 Just like "simple serializable", "versioned serializable" objects are automatically handled by the CK.BinarySerialization package.
 
-```c#
+```csharp
 [SerializationVersion( 42 )]
 struct ThingStruct : ICKVersionedBinarySerializable
 {
@@ -186,7 +186,7 @@ brings to the table.
 
 Implementing both interfaces is possible. The following pattern should be used (`Read/WriteSmallInt32` must be used for the version):
 
-```c#
+```csharp
 /// <summary>
 /// Supporting both interfaces enables simple scenario to use the embedded version
 /// (to be used when not too many instances must be serialized) or use the shared version
@@ -239,7 +239,7 @@ and the version is a part of this information).
 ## SimpleSerializable static helper class: DeepClone for free
 This static class exposes 2 extension methods that can serialize simple and versioned objects to a byte array:
 
-```c#
+```csharp
 public static byte[] SerializeSimple( this ICKSimpleBinarySerializable @this )
 public static byte[] SerializeVersioned( this ICKVersionedBinarySerializable @this )
 ```
@@ -247,7 +247,7 @@ public static byte[] SerializeVersioned( this ICKVersionedBinarySerializable @th
 And 6 helpers that can deserialize simple and versioned objects from/to a byte array,
 `ReadOnlyMemory<byte>` or `Stream`.
 
-```c#
+```csharp
 public static T DeserializeSimple<T>( byte[] bytes ) where T : ICKSimpleBinarySerializable
 public static T DeserializeSimple<T>( ReadOnlyMemory<byte> bytes ) where T : ICKSimpleBinarySerializable
 public static T DeserializeSimple<T>( Stream bytes ) where T : ICKSimpleBinarySerializable
@@ -260,7 +260,7 @@ public static T DeserializeVersioned<T>( Stream bytes ) where T : ICKVersionedBi
 
 Two deep clone static methods (that can handle null) are also available:
 
-```c#
+```csharp
 [return: NotNullIfNotNull( "o" )]
 public static T? DeepCloneSimple<T>( T? o ) where T : ICKSimpleBinarySerializable
 
@@ -274,7 +274,7 @@ must be used only for struct and sealed classes).
 
 In addition, a `DeepClone()` extension method is available on any `ICKSimpleBinarySerializable` object:
 
-```c#
+```csharp
 [return: NotNullIfNotNull( "this" )]
 public static T? DeepClone<T>( this T? @this ) where T : ICKSimpleBinarySerializable => DeepCloneSimple( @this );
 ```

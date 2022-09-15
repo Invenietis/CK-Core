@@ -44,7 +44,7 @@ namespace CK.Core
             _holder = holder;
             // Continuation that handles the error (if any): this prevents the UnobservedTaskException to
             // be raised during GC (Task's finalization).
-            _ = _tcs.Task.ContinueWith( r => r.Exception!.Handle( e => true ),
+            _ = _tcs.Task.ContinueWith( static r => r.Exception!.Handle( e => true ),
                                         default,
                                         TaskContinuationOptions.OnlyOnFaulted | TaskContinuationOptions.ExecuteSynchronously,
                                         TaskScheduler.Default );
