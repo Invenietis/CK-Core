@@ -3,6 +3,62 @@
 This single assembly contains basic helpers and useful tools that should ideally not exist:
 they (or their equivalent) should be in the .Net core framework.
 
+```c#
+// c#
+
+/// <summary>
+/// Converts a base64Url string (that must be valid base64Url otherwise an <see cref="ArgumentException"/> is thrown)
+/// to bytes.
+/// </summary>
+/// <param name="base64UrlString">The string.</param>
+/// <returns>The bytes.</returns>
+public static Memory<byte> FromBase64UrlString( string base64UrlString )
+{
+    if( !TryFromBase64UrlString(base64UrlString, out Memory<byte> result ) )
+    {
+        Throw.ArgumentException( nameof( base64UrlString ), "Invalid Base64Url data." );
+    }
+    return result;
+}
+```
+
+```cs
+// cs
+
+/// <summary>
+/// Converts a base64Url string (that must be valid base64Url otherwise an <see cref="ArgumentException"/> is thrown)
+/// to bytes.
+/// </summary>
+/// <param name="base64UrlString">The string.</param>
+/// <returns>The bytes.</returns>
+public static Memory<byte> FromBase64UrlString( string base64UrlString )
+{
+    if( !TryFromBase64UrlString(base64UrlString, out Memory<byte> result ) )
+    {
+        Throw.ArgumentException( nameof( base64UrlString ), "Invalid Base64Url data." );
+    }
+    return result;
+}
+```
+
+```csharp
+// csharp
+
+/// <summary>
+/// Converts a base64Url string (that must be valid base64Url otherwise an <see cref="ArgumentException"/> is thrown)
+/// to bytes.
+/// </summary>
+/// <param name="base64UrlString">The string.</param>
+/// <returns>The bytes.</returns>
+public static Memory<byte> FromBase64UrlString( string base64UrlString )
+{
+    if( !TryFromBase64UrlString(base64UrlString, out Memory<byte> result ) )
+    {
+        Throw.ArgumentException( nameof( base64UrlString ), "Invalid Base64Url data." );
+    }
+    return result;
+}
+```
 
 ## Throw and Guard
 See [CK.Core/Throw](CK.Core/Throw/).
