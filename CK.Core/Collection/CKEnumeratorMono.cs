@@ -31,8 +31,10 @@ namespace CK.Core
 		{
             get
             {
-                if( _pos == 0 ) return _val;
-                throw new InvalidOperationException();
+                // See https://stackoverflow.com/a/19492114/190380
+                // We choose to throw the InvalidOperationException here (and rely on JIT inlining).
+                Throw.CheckState( _pos == 0 );
+                return _val;
             }
 		}
 
@@ -51,18 +53,12 @@ namespace CK.Core
         /// Move to the next element.
         /// </summary>
         /// <returns>True the first time, false otherwise</returns>
-		public bool MoveNext()
-		{
-			return ++_pos == 0;
-		}
+		public bool MoveNext() => ++_pos == 0;
 
         /// <summary>
         /// Resets the enumerator.
         /// </summary>
-		public void Reset()
-		{
-            _pos = -1;
-		}
+		public void Reset() => _pos = -1;
 	}
 
 }

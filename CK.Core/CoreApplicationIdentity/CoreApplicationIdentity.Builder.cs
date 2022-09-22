@@ -57,7 +57,7 @@ namespace CK.Core
             /// </para>
             /// </summary>
             /// <remarks>
-            /// Since this should be used during the start of the application, the regular expression is not kept in memory.
+            /// Since this should be used during the start of the application, the regular expression is dynamic and not kept in memory.
             /// We use the static <see cref="Regex.Match(string, string, RegexOptions)"/>. 
             /// </remarks>
             /// <param name="candidateId">The identifier.</param>

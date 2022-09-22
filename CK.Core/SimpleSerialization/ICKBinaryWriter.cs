@@ -332,6 +332,7 @@ namespace CK.Core
         /// </summary>
         /// <typeparam name="T">The enum type.</typeparam>
         /// <param name="v">The enum value.</param>
+        [Obsolete( "Simply write the cast to the enum's integral type like: w.Write( (uint)e ); instead.", true )]
         void WriteEnum<T>( T v ) where T : struct, Enum;
 
         /// <summary>
@@ -340,6 +341,7 @@ namespace CK.Core
         /// </summary>
         /// <typeparam name="T">The enum type.</typeparam>
         /// <param name="v">The enum value.</param>
+        [Obsolete( "Simply write the cast to the enum's integral type like: w.WriteNullableUInt32( (uint?)e ); instead.", true )]
         void WriteNullableEnum<T>( T? v ) where T : struct, Enum;
 
         /// <summary>

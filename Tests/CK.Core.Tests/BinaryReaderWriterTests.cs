@@ -105,6 +105,11 @@ namespace CK.Core.Tests
         enum EUInt64 : ulong { V0 = 5032465040, V1 = 83545700087 };
         enum EInt64 : long { V0 = -545648760, V1 = -7216555778 };
 
+        // ICKBinaryReader.ReadEnum<T>() and ICKBinaryWriter.WriteEnum<T>( T e ) have been removed
+        // since it was NOT a good idea at all: it has to use reflection, was ugly and didn't
+        // handle change of the integral type without any warnings: reading a changed type
+        // would simply fail at runtime.
+        // Casting to/from the integral type is simpler, faster and safer.
         [Test]
         public void writing_and_reading_enums_and_nullable_enums()
         {
@@ -127,41 +132,41 @@ namespace CK.Core.Tests
 
             ReadWrite( w =>
             {
-                w.WriteNullableEnum( vNI32 );
-                w.WriteNullableEnum( vNU8 );
-                w.WriteNullableEnum( vNI8 );
-                w.WriteNullableEnum( vNI16 );
-                w.WriteNullableEnum( vNU16 );
-                w.WriteNullableEnum( vNUI32 );
-                w.WriteNullableEnum( vNI64 );
-                w.WriteNullableEnum( vNUI64 );
-                w.WriteEnum( vU8 );
-                w.WriteEnum( vI8 );
-                w.WriteEnum( vI16 );
-                w.WriteEnum( vU16 );
-                w.WriteEnum( vI32 );
-                w.WriteEnum( vUI32 );
-                w.WriteEnum( vI64 );
-                w.WriteEnum( vUI64 );
+                w.WriteNullableUInt32( (uint?)vNI32 );
+                w.WriteNullableByte( (byte?)vNU8 );
+                w.WriteNullableSByte( (sbyte?)vNI8 );
+                w.WriteNullableInt16( (short?)vNI16 );
+                w.WriteNullableUInt16( (ushort?)vNU16 );
+                w.WriteNullableUInt32( (uint?)vNUI32 );
+                w.WriteNullableInt64( (long?)vNI64 );
+                w.WriteNullableUInt64( (ulong?)vNUI64 );
+                w.Write( (byte)vU8 );
+                w.Write( (sbyte)vI8 );
+                w.Write( (short)vI16 );
+                w.Write( (ushort)vU16 );
+                w.Write( (int)vI32 );
+                w.Write( (uint)vUI32 );
+                w.Write( (long)vI64 );
+                w.Write( (ulong)vUI64 );
             },
             r =>
             {
-                r.ReadNullableEnum<EInt32>().Should().Be( vNI32 );
-                r.ReadNullableEnum<EByte>().Should().Be( vNU8 );
-                r.ReadNullableEnum<ESByte>().Should().Be( vNI8 );
-                r.ReadNullableEnum<EInt16>().Should().Be( vNI16 );
-                r.ReadNullableEnum<EUInt16>().Should().Be( vNU16 );
-                r.ReadNullableEnum<EUInt32>().Should().Be( vNUI32 );
-                r.ReadNullableEnum<EInt64>().Should().Be( vNI64 );
-                r.ReadNullableEnum<EUInt64>().Should().Be( vNUI64 );
-                r.ReadEnum<EByte>().Should().Be( vU8 );
-                r.ReadEnum<ESByte>().Should().Be( vI8 );
-                r.ReadEnum<EInt16>().Should().Be( vI16 );
-                r.ReadEnum<EUInt16>().Should().Be( vU16 );
-                r.ReadEnum<EInt32>().Should().Be( vI32 );
-                r.ReadEnum<EUInt32>().Should().Be( vUI32 );
-                r.ReadEnum<EInt64>().Should().Be( vI64 );
-                r.ReadEnum<EUInt64>().Should().Be( vUI64 );
+                ((EInt32?)r.ReadNullableInt32()).Should().Be( vNI32 );
+                ((EByte?)r.ReadNullableByte()).Should().Be( vNU8 );
+                ((ESByte?)r.ReadNullableSByte()).Should().Be( vNI8 );
+                ((EInt16?)r.ReadNullableInt16()).Should().Be( vNI16 );
+                ((EUInt16?)r.ReadNullableUInt16()).Should().Be( vNU16 );
+                ((EUInt32?)r.ReadNullableUInt32()).Should().Be( vNUI32 );
+                ((EInt64?)r.ReadNullableInt64()).Should().Be( vNI64 );
+                ((EUInt64?)r.ReadNullableUInt64()).Should().Be( vNUI64 );
+                ((EByte)r.ReadByte()).Should().Be( vU8 );
+                ((ESByte)r.ReadSByte()).Should().Be( vI8 );
+                ((EInt16)r.ReadInt16()).Should().Be( vI16 );
+                ((EUInt16)r.ReadUInt16()).Should().Be( vU16 );
+                ((EInt32)r.ReadInt32()).Should().Be( vI32 );
+                ((EUInt32)r.ReadUInt32()).Should().Be( vUI32 );
+                ((EInt64)r.ReadInt64()).Should().Be( vI64 );
+                ((EUInt64)r.ReadUInt64()).Should().Be( vUI64 );
             } );
         }
 

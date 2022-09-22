@@ -38,7 +38,7 @@ namespace CK.Core.Tests
 
 
         [Test]
-        public void CKEnumeratorMono_works()
+        public void CKEnumeratorMono_works_and_throws_InvalidOperationException()
         {
             var e = new CKEnumeratorMono<int>(9);
             Action a = () => Console.WriteLine(e.Current);
