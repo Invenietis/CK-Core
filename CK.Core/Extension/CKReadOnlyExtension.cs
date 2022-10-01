@@ -34,7 +34,7 @@ namespace CK.Core
         /// <returns>Index of the matching item or -1.</returns>
         static public int IndexOf<T>( this IReadOnlyList<T> @this, Func<T,bool> predicate )
         {
-            if( predicate == null ) throw new ArgumentNullException( nameof( predicate ) );
+            Throw.CheckNotNullArgument( predicate );
             int i = 0;
             foreach( var x in @this )
             {

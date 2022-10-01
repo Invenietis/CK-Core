@@ -119,7 +119,7 @@ namespace CK.Core
                 Debug.Assert( c != null );
                 if( exists.Separator != separator )
                 {
-                    throw new InvalidOperationException( $"CKTraitContext named '{name}' is already defined with the separator '{exists.Separator}', it cannot be redefined with the separator '{separator}'." );
+                    Throw.InvalidOperationException( $"CKTraitContext named '{name}' is already defined with the separator '{exists.Separator}', it cannot be redefined with the separator '{separator}'." );
                 }
                 if( tagReader != null )
                 {

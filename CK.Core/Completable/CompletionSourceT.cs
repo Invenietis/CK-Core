@@ -27,7 +27,8 @@ namespace CK.Core
         /// <param name="holder">The completion's holder.</param>
         public CompletionSource( ICompletable<TResult> holder )
         {
-            _holder = holder ?? throw new ArgumentNullException( nameof( holder ) );
+            Throw.CheckNotNullArgument( holder );
+            _holder = holder;
             _tcs = new TaskCompletionSource<TResult>( TaskCreationOptions.RunContinuationsAsynchronously );
             // Continuation that handles the error (if any): this prevent the UnobservedTaskException to
             // be raised during GC (Task's finalization).

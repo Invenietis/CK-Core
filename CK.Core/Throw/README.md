@@ -108,5 +108,31 @@ Of course, this `static class Throw`, as its name indicates, is also a "ThrowHel
 (This will be extended as needed.)
 
 
+## In switch expressions or where a value is mandatory
+
+All the `Throw` helpers have a generic overload that formally returns a value. They can be used
+in switch expressions:
+
+```csharp
+public bool? ReadNullableBool()
+{
+    return ReadByte() switch
+    {
+        1 => true,
+        2 => false,
+        3 => null,
+        _ => Throw.InvalidDataException<bool>()
+    };
+}
+```
+
+Or for properties:
+
+```csharp
+public override long Length => Throw.NotSupportedException<long>();
+```
+
+
+
 
 

@@ -27,7 +27,7 @@ namespace CK.Core
         /// </summary>
         /// <param name="message">Simple message.</param>
         /// <param name="innerException">Exception that caused this one.</param>
-        public CKException( string message, Exception innerException )
+        public CKException( string message, Exception? innerException )
             : base( message, innerException )
         {
         }

@@ -279,7 +279,7 @@ namespace CK.Core
                     NormalizedPathRootKind.None or NormalizedPathRootKind.RootedByFirstPart => new NormalizedPath( _parts, _path, kind ),
                     NormalizedPathRootKind.RootedBySeparator => new NormalizedPath( _parts, DirectorySeparatorChar + _path, kind ),
                     NormalizedPathRootKind.RootedByDoubleSeparator => new NormalizedPath( _parts, DoubleDirectorySeparatorString + _path, kind ),
-                    _ => throw new NotSupportedException(),
+                    _ => Throw.NotSupportedException<NormalizedPath>(),
                 };
             }
             if( _option == NormalizedPathRootKind.RootedBySeparator || _option == NormalizedPathRootKind.RootedByDoubleSeparator )
@@ -289,7 +289,7 @@ namespace CK.Core
                     NormalizedPathRootKind.None or NormalizedPathRootKind.RootedByFirstPart => new NormalizedPath( _parts, _path.Substring( _option == NormalizedPathRootKind.RootedBySeparator ? 1 : 2 ), kind ),
                     NormalizedPathRootKind.RootedBySeparator => new NormalizedPath( _parts, _path.Substring( 1 ), kind ),
                     NormalizedPathRootKind.RootedByDoubleSeparator => new NormalizedPath( _parts, DirectorySeparatorChar + _path, kind ),
-                    _ => throw new NotSupportedException(),
+                    _ => Throw.NotSupportedException<NormalizedPath>(),
                 };
             }
             Debug.Assert( _option == NormalizedPathRootKind.RootedByURIScheme );
@@ -554,7 +554,9 @@ namespace CK.Core
                     p = _path.Substring( len );
                     o = NormalizedPathRootKind.None;
                     break;
-                default: throw new NotSupportedException();
+                default:
+                    p = Throw.NotSupportedException<string>();
+                    break;
             }
             return new NormalizedPath( parts, p, o );
         }

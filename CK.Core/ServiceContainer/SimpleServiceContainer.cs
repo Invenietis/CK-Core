@@ -99,7 +99,7 @@ namespace CK.Core
             Throw.CheckNotNullArgument( serviceType );
             Throw.CheckNotNullArgument( serviceInstance );
             if( GetDirectService( serviceType ) != null ) Throw.Exception( String.Format( CoreResources.ServiceAlreadyDirectlySupported, serviceType.FullName ) );
-            if( !serviceType.IsAssignableFrom( serviceInstance.GetType() ) ) throw new Exception( String.Format( CoreResources.ServiceImplTypeMismatch, serviceType.FullName, serviceInstance.GetType().FullName ) );
+            if( !serviceType.IsAssignableFrom( serviceInstance.GetType() ) ) Throw.Exception( String.Format( CoreResources.ServiceImplTypeMismatch, serviceType.FullName, serviceInstance.GetType().FullName ) );
             DoAdd( serviceType, new ServiceEntry() { Instance = serviceInstance, Creator = null, OnRemove = onRemove } );
             return this;
         }
@@ -190,7 +190,7 @@ namespace CK.Core
                         result = e.Creator();
                         if( result != null )
                         {
-                            if( !serviceType.IsAssignableFrom( result.GetType() ) ) throw new Exception( string.Format( CoreResources.ServiceImplCallbackTypeMismatch, serviceType.FullName, result.GetType().FullName ) );
+                            if( !serviceType.IsAssignableFrom( result.GetType() ) ) Throw.Exception( string.Format( CoreResources.ServiceImplCallbackTypeMismatch, serviceType.FullName, result.GetType().FullName ) );
                             // Release Creator reference to minimize (subtle) leaks.
                             e.Creator = null;
                             e.Instance = result;

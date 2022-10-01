@@ -43,7 +43,7 @@ namespace CK.Core
         /// </returns>
         static public string NormalizePathSeparator( string path, bool ensureTrailingBackslash )
         {
-            if( path == null ) throw new ArgumentNullException( nameof( path ) );
+            Throw.CheckNotNullArgument( path );
             path = path.Trim();
             if( path.Length == 0 ) return path;
             if( Path.DirectorySeparatorChar != '/' && Path.AltDirectorySeparatorChar != '/' )
@@ -375,7 +375,7 @@ namespace CK.Core
                 }
                 else
                 {
-                    if( counter == maxTryBeforeGuid + 1 ) throw new CKException( Impl.CoreResources.FileUtilUnableToCreateUniqueTimedFileOrFolder );
+                    if( counter == maxTryBeforeGuid + 1 ) Throw.Exception( Impl.CoreResources.FileUtilUnableToCreateUniqueTimedFileOrFolder );
                     if( counter == maxTryBeforeGuid )
                     {
                         result = pathPrefix + FormatTimedUniqueFilePart( time ) + fileSuffix;
@@ -397,8 +397,7 @@ namespace CK.Core
         {
             Debug.Assert( Convert.ToBase64String( Guid.NewGuid().ToByteArray() ).Length == 24 );
             Debug.Assert( Convert.ToBase64String( Guid.NewGuid().ToByteArray() ).EndsWith( "==" ) );
-            // Use http://en.wikipedia.org/wiki/Base64#URL_applications encoding.
-            string dedup = Convert.ToBase64String( Guid.NewGuid().ToByteArray() ).Remove( 22 ).Replace( '+', '-' ).Replace( '/', '_' );
+            string dedup = Base64UrlHelper.ToBase64UrlString( Guid.NewGuid().ToByteArray() );
             return time.ToString( FileNameUniqueTimeUtcFormat, CultureInfo.InvariantCulture ) + "-" + dedup;
         }
 
@@ -414,8 +413,8 @@ namespace CK.Core
         /// <param name="dirFilter">Optional predicate for files.</param>
         public static void CopyDirectory( DirectoryInfo src, DirectoryInfo target, bool withHiddenFiles = true, bool withHiddenFolders = true, Func<FileInfo, bool>? fileFilter = null, Func<DirectoryInfo, bool>? dirFilter = null )
         {
-            if( src == null ) throw new ArgumentNullException( nameof( src ) );
-            if( target == null ) throw new ArgumentNullException( nameof( target ) );
+            Throw.CheckNotNullArgument( src );
+            Throw.CheckNotNullArgument( target );
             if( !target.Exists ) target.Create();
             DirectoryInfo[] dirs = src.GetDirectories();
             foreach( DirectoryInfo d in dirs )
@@ -449,7 +448,7 @@ namespace CK.Core
         /// <returns>True if the file has been correctly opened (and closed) in write mode.</returns>
         static public bool CheckForWriteAccess( string path, int nbMaxMilliSecond = 0 )
         {
-            if( path == null ) throw new ArgumentNullException( nameof( path ) );
+            Throw.CheckNotNullArgument( path );
             DateTime start = DateTime.UtcNow;
             if( !File.Exists( path ) ) return true;
             try

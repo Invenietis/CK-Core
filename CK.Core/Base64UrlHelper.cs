@@ -34,10 +34,7 @@ namespace CK.Core
         public static void Base64UrlEncodeToUtf8InPlaceNoPadding( Span<byte> buffer, int dataLength, out int bytesWritten )
         {
             var s = Base64.EncodeToUtf8InPlace( buffer, dataLength, out bytesWritten );
-            if( s != OperationStatus.Done )
-            {
-                throw new InvalidOperationException( s.ToString() );
-            }
+            Throw.CheckState( s == OperationStatus.Done );
             UncheckedBase64ToUrlBase64NoPadding( buffer, ref bytesWritten );
         }
 

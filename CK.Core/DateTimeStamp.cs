@@ -180,8 +180,7 @@ namespace CK.Core
         public int CompareTo( object value )
         {
             if( value == null ) return 1;
-            if( value is not DateTimeStamp t ) throw new ArgumentException( null, nameof( value ) );
-            return CompareTo( t );
+            return CompareTo( (DateTimeStamp)value );
         }
 
         /// <summary>

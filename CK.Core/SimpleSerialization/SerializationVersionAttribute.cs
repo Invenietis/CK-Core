@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Text;
 
@@ -16,7 +16,7 @@ namespace CK.Core
         /// <param name="version">The version. Must be positive or zero.</param>
         public SerializationVersionAttribute( int version )
         {
-            if( version < 0 ) throw new ArgumentException( "Must be 0 or positive.", nameof( version ) );
+            Throw.CheckArgument( version >= 0 );
             Version = version;
         }
 
@@ -34,7 +34,7 @@ namespace CK.Core
         public static int GetRequiredVersion( Type t )
         {
             var a = (SerializationVersionAttribute?)GetCustomAttribute( t, typeof( SerializationVersionAttribute ) );
-            if( a == null ) throw new InvalidOperationException( $"Type '{t}' must be decorated with a [SerializationVersion()] attribute." );
+            if( a == null ) Throw.InvalidOperationException( $"Type '{t}' must be decorated with a [SerializationVersion()] attribute." );
             return a.Version;
         }
 

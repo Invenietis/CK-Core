@@ -24,7 +24,8 @@ namespace CK.Core
 
             public ReadOnlyDictionaryWrapper( IDictionary<TKey, TValue> dictionary )
             {
-                _dictionary = dictionary ?? throw new ArgumentNullException( nameof( dictionary ) );
+                Throw.CheckNotNullArgument( dictionary );
+                _dictionary = dictionary;
             }
             public bool ContainsKey( TKey key ) => _dictionary.ContainsKey( key );
 

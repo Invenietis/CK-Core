@@ -204,7 +204,7 @@ namespace CK.Core
                 if( value > 0 && value < _defaultCapacity ) value = _defaultCapacity;
                 if( _tab.Length != value )
                 {
-                    if( value < _count ) throw new ArgumentException( "Capacity less than Count." );
+                    Throw.CheckArgument( value >= _count );
                     if( value == 0 ) _tab = Array.Empty<T>();
                     else 
                     {
@@ -225,7 +225,7 @@ namespace CK.Core
         {
             get
             {
-                if( index >= _count ) throw new IndexOutOfRangeException();
+                Throw.CheckIndexOutOfRange( index < _count );
                 return _tab[index];
             }
         }
@@ -267,7 +267,7 @@ namespace CK.Core
         /// <returns>True if the item has actually been added; otherwise false.</returns>
         public virtual bool Add( T value )
         {
-            if( value == null ) throw new ArgumentNullException( nameof( value ) );
+            Throw.CheckNotNullArgument( value );
             int index = Util.BinarySearch<T>( _tab, 0, _count, value, Comparator );
             if( index >= 0 )
             {
@@ -314,7 +314,7 @@ namespace CK.Core
         /// </returns>
         public int CheckPosition( int index )
         {
-            if( index >= _count ) throw new IndexOutOfRangeException();
+            Throw.CheckIndexOutOfRange( index < _count );
             int other = index - 1;
             int cmp;
             if( other >= 0 && (cmp = Comparator( _tab[other], _tab[index] )) >= 0 )
@@ -393,8 +393,8 @@ namespace CK.Core
         /// <returns>The previous item at the position.</returns>
         protected virtual T DoSet( int index, T newValue )
         {
-            if( index >= _count ) throw new IndexOutOfRangeException();
-            if( newValue == null ) throw new ArgumentNullException( nameof( newValue ) );
+            Throw.CheckIndexOutOfRange( index < _count );
+            Throw.CheckNotNullArgument( newValue );
             T oldValue = _tab[index];
             _tab[index] = newValue;
             _version += 2;
@@ -408,8 +408,8 @@ namespace CK.Core
         /// <param name="value">Item to insert.</param>
         protected virtual void DoInsert( int index, T value )
         {
-            if( value == null ) throw new ArgumentNullException( nameof( value ) );
-            if( index < 0 || index > _count ) throw new IndexOutOfRangeException();
+            Throw.CheckNotNullArgument( value );
+            Throw.CheckIndexOutOfRange( index >= 0 && index <= _count );
             if( _count == _tab.Length )
             {
                 Capacity = _count == 0 ? _defaultCapacity : _tab.Length * 2;
@@ -441,7 +441,7 @@ namespace CK.Core
         {
             int newCount = _count - 1;
             int nbToCopy = newCount - index;
-            if( index < 0 || nbToCopy < 0 ) throw new IndexOutOfRangeException();
+            Throw.CheckIndexOutOfRange( index >= 0 && nbToCopy >= 0 );
             if( nbToCopy > 0 ) Array.Copy( _tab, index + 1, _tab, index, nbToCopy );
             _count = newCount;
             if( System.Runtime.CompilerServices.RuntimeHelpers.IsReferenceOrContainsReferences<T>() )
@@ -459,8 +459,8 @@ namespace CK.Core
         /// <returns>The new index of the element.</returns>
         protected virtual int DoMove( int from, int newIndex )
         {
-            if( from < 0 || from >= _count ) throw new IndexOutOfRangeException();
-            if( newIndex < 0 || newIndex > _count ) throw new IndexOutOfRangeException();
+            Throw.CheckOutOfRangeArgument( from >= 0 && from < _count );
+            Throw.CheckOutOfRangeArgument( newIndex >= 0 && newIndex <= _count );
             int lenToMove = newIndex - from;
             if( lenToMove != 0 )
             {
@@ -534,7 +534,7 @@ namespace CK.Core
             {
                 if( _version != _list._version )
                 {
-                    throw new InvalidOperationException( "Collection was modified; enumeration operation may not execute." );
+                    Throw.InvalidOperationException( "Collection was modified; enumeration operation may not execute." );
                 }
                 _index = _list._count + 1;
                 _current = default;
@@ -558,14 +558,14 @@ namespace CK.Core
             [DoesNotReturn]
             static void ThrowEnumNotpossible()
             {
-                throw new InvalidOperationException( "Enumeration has either not started or has already finished." );
+                Throw.InvalidOperationException( "Enumeration has either not started or has already finished." );
             }
 
             void IEnumerator.Reset()
             {
                 if( _version != _list._version )
                 {
-                    throw new InvalidOperationException( "Collection was modified; enumeration operation may not execute." );
+                    Throw.InvalidOperationException( "Collection was modified; enumeration operation may not execute." );
                 }
                 _index = 0;
                 _current = default;
