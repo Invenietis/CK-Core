@@ -16,7 +16,7 @@ namespace CK.Core
     public static class DictionaryExtension
     {
 
-        class ReadOnlyDictionaryWrapper<TKey, TValue, TReadOnlyValue> : IReadOnlyDictionary<TKey, TReadOnlyValue>
+        sealed class ReadOnlyDictionaryWrapper<TKey, TValue, TReadOnlyValue> : IReadOnlyDictionary<TKey, TReadOnlyValue>
                     where TValue : TReadOnlyValue
                     where TKey : notnull
         {
@@ -34,7 +34,7 @@ namespace CK.Core
             public bool TryGetValue( TKey key, [MaybeNullWhen( false )] out TReadOnlyValue value )
             {
                 var r = _dictionary.TryGetValue( key, out var v );
-                value = v!;
+                value = v;
                 return r;
             }
 
