@@ -143,6 +143,7 @@ namespace CK.Core
         }
 
         [DoesNotReturn]
+        [MethodImpl( MethodImplOptions.NoInlining )]
         static void CheckArgumentException( string exp, string? message = null )
         {
             if( message == null )
@@ -156,6 +157,7 @@ namespace CK.Core
         }
 
         [DoesNotReturn]
+        [MethodImpl( MethodImplOptions.NoInlining )]
         static void CheckOutOfRangeArgumentException( string exp, string? message = null, bool index = false )
         {
             if( message == null )
@@ -249,6 +251,7 @@ namespace CK.Core
         }
 
         [DoesNotReturn]
+        [MethodImpl( MethodImplOptions.NoInlining )]
         static void NullOrEmptyException<T>( T? value, string exp )
         {
             if( value is null )
@@ -332,6 +335,7 @@ namespace CK.Core
         }
 
         [DoesNotReturn]
+        [MethodImpl( MethodImplOptions.NoInlining )]
         static void NullOrWhiteSpaceException( string? value, string exp )
         {
             if( value != null )
@@ -363,6 +367,7 @@ namespace CK.Core
         /// <param name="name">The argument name.</param>
         /// <param name="message">Optional message to include in the exception.</param>
         [DoesNotReturn]
+        [MethodImpl( MethodImplOptions.NoInlining )]
         public static T ArgumentOutOfRangeException<T>( string name, string? message = null )
         {
             throw new ArgumentOutOfRangeException( name, message );
@@ -388,6 +393,7 @@ namespace CK.Core
         /// <param name="message">Optional message to include in the exception.</param>
         /// <param name="message">Optional inner exception.</param>
         [DoesNotReturn]
+        [MethodImpl( MethodImplOptions.NoInlining )]
         public static T IndexOutOfRangeException<T>( string? message = null, Exception? inner = null )
         {
             throw new IndexOutOfRangeException( message, inner );
@@ -412,6 +418,7 @@ namespace CK.Core
         /// <param name="name">The argument name.</param>
         /// <param name="message">Optional message to include in the exception.</param>
         [DoesNotReturn]
+        [MethodImpl( MethodImplOptions.NoInlining )]
         public static T ArgumentException<T>( string name, string? message = null )
         {
             throw new ArgumentException( message, name );
@@ -436,6 +443,7 @@ namespace CK.Core
         /// <param name="name">The argument name.</param>
         /// <param name="message">Optional message to include in the exception.</param>
         [DoesNotReturn]
+        [MethodImpl( MethodImplOptions.NoInlining )]
         public static T ArgumentNullException<T>( string name, string? message = null )
         {
             throw new ArgumentNullException( name, message );

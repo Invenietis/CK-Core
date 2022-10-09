@@ -42,6 +42,7 @@ namespace CK.Core
         }
 
         [DoesNotReturn]
+        [MethodImpl( MethodImplOptions.NoInlining )]
         static void CheckDataException( string exp, string? message = null )
         {
             if( message == null )
@@ -74,6 +75,7 @@ namespace CK.Core
         /// <param name="message">Optional message to include in the exception.</param>
         /// <param name="innerException">Optional inner <see cref="Exception"/> to include.</param>
         [DoesNotReturn]
+        [MethodImpl( MethodImplOptions.NoInlining )]
         public static T InvalidDataException<T>( string? message = null, Exception? innerException = null )
         {
             throw new InvalidDataException( message, innerException );
@@ -98,6 +100,7 @@ namespace CK.Core
         /// <param name="message">Optional message to include in the exception.</param>
         /// <param name="innerException">Optional inner <see cref="Exception"/> to include.</param>
         [DoesNotReturn]
+        [MethodImpl( MethodImplOptions.NoInlining )]
         public static T EndOfStreamException<T>( string? message = null, Exception? innerException = null )
         {
             throw new EndOfStreamException( message, innerException );
@@ -122,6 +125,7 @@ namespace CK.Core
         /// <param name="message">Optional message to include in the exception.</param>
         /// <param name="innerException">Optional inner <see cref="Exception"/> to include.</param>
         [DoesNotReturn]
+        [MethodImpl( MethodImplOptions.NoInlining )]
         public static T XmlException<T>( string? message = null, Exception? innerException = null )
         {
             throw new XmlException( message, innerException );
@@ -146,6 +150,7 @@ namespace CK.Core
         /// <param name="message">Optional message to include in the exception.</param>
         /// <param name="innerException">Optional inner <see cref="Exception"/> to include.</param>
         [DoesNotReturn]
+        [MethodImpl( MethodImplOptions.NoInlining )]
         public static T FormatException<T>( string? message = null, Exception? innerException = null )
         {
             throw new FormatException( message, innerException );

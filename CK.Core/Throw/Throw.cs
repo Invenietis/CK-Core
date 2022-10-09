@@ -33,6 +33,7 @@ namespace CK.Core
         /// <param name="message">Optional message to include in the exception.</param>
         /// <param name="inner">Optional inner exception to include.</param>
         [DoesNotReturn]
+        [MethodImpl( MethodImplOptions.NoInlining )]
         public static T Exception<T>( string? message = null, Exception? inner = null )
         {
             throw new Exception( message, inner );
@@ -57,6 +58,7 @@ namespace CK.Core
         /// <param name="message">Optional message to include in the exception.</param>
         /// <param name="inner">Optional inner exception to include.</param>
         [DoesNotReturn]
+        [MethodImpl( MethodImplOptions.NoInlining )]
         public static T NotSupportedException<T>( string? message = null, Exception? inner = null )
         {
             throw new NotSupportedException( message, inner );
@@ -81,6 +83,7 @@ namespace CK.Core
         /// <param name="message">Exception message.</param>
         /// <param name="inner">Optional inner exception to include.</param>
         [DoesNotReturn]
+        [MethodImpl( MethodImplOptions.NoInlining )]
         public static T CKException<T>( string message, Exception? inner = null )
         {
             throw new CKException( message, inner );
