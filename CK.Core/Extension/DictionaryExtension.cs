@@ -16,13 +16,46 @@ namespace CK.Core
     public static class DictionaryExtension
     {
 
-        sealed class ReadOnlyDictionaryWrapper<TKey, TValue, TReadOnlyValue> : IReadOnlyDictionary<TKey, TReadOnlyValue>
+        sealed class ReadOnlyIDictionaryWrapper<TKey, TValue, TReadOnlyValue> : IReadOnlyDictionary<TKey, TReadOnlyValue>
                     where TValue : TReadOnlyValue
                     where TKey : notnull
         {
             readonly IDictionary<TKey, TValue> _dictionary;
 
-            public ReadOnlyDictionaryWrapper( IDictionary<TKey, TValue> dictionary )
+            public ReadOnlyIDictionaryWrapper( IDictionary<TKey, TValue> dictionary )
+            {
+                Throw.CheckNotNullArgument( dictionary );
+                _dictionary = dictionary;
+            }
+            public bool ContainsKey( TKey key ) => _dictionary.ContainsKey( key );
+
+            public IEnumerable<TKey> Keys => _dictionary.Keys;
+
+            public bool TryGetValue( TKey key, [MaybeNullWhen( false )] out TReadOnlyValue value )
+            {
+                var r = _dictionary.TryGetValue( key, out var v );
+                value = v;
+                return r;
+            }
+
+            public IEnumerable<TReadOnlyValue> Values => _dictionary.Values.Cast<TReadOnlyValue>();
+
+            public TReadOnlyValue this[TKey key] => _dictionary[key];
+
+            public int Count => _dictionary.Count;
+
+            public IEnumerator<KeyValuePair<TKey, TReadOnlyValue>> GetEnumerator() => _dictionary.Select( x => new KeyValuePair<TKey, TReadOnlyValue>( x.Key, x.Value ) ).GetEnumerator();
+
+            IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+        }
+
+        sealed class ReadOnlyIReadOnlyDictionaryWrapper<TKey, TValue, TReadOnlyValue> : IReadOnlyDictionary<TKey, TReadOnlyValue>
+                    where TValue : TReadOnlyValue
+                    where TKey : notnull
+        {
+            readonly IReadOnlyDictionary<TKey, TValue> _dictionary;
+
+            public ReadOnlyIReadOnlyDictionaryWrapper( IReadOnlyDictionary<TKey, TValue> dictionary )
             {
                 Throw.CheckNotNullArgument( dictionary );
                 _dictionary = dictionary;
@@ -50,7 +83,7 @@ namespace CK.Core
         }
 
         /// <summary>
-        /// Creates a wrapper (a read only facade) on a dictionary that adapts the type of the values.
+        /// Creates a wrapper (a read only facade) on a IDictionary that adapts the type of the values.
         /// </summary>
         /// <typeparam name="TKey">The dictionary key.</typeparam>
         /// <typeparam name="TValue">The dictionary value.</typeparam>
@@ -61,7 +94,37 @@ namespace CK.Core
             where TValue : TReadOnlyValue
             where TKey : notnull
         {
-            return new ReadOnlyDictionaryWrapper<TKey, TValue, TReadOnlyValue>( @this );
+            return new ReadOnlyIDictionaryWrapper<TKey, TValue, TReadOnlyValue>( @this );
+        }
+
+        /// <summary>
+        /// Creates a wrapper (a read only facade) on a dictionary that adapts the type of the values.
+        /// </summary>
+        /// <typeparam name="TKey">The dictionary key.</typeparam>
+        /// <typeparam name="TValue">The dictionary value.</typeparam>
+        /// <typeparam name="TReadOnlyValue">The base type of the <typeparamref name="TValue"/>.</typeparam>
+        /// <param name="this">This dictionary.</param>
+        /// <returns>A dictionary where values are a base type of this dictionary.</returns>
+        public static IReadOnlyDictionary<TKey, TReadOnlyValue> AsIReadOnlyDictionary<TKey, TValue, TReadOnlyValue>( this Dictionary<TKey, TValue> @this )
+            where TValue : TReadOnlyValue
+            where TKey : notnull
+        {
+            return new ReadOnlyIDictionaryWrapper<TKey, TValue, TReadOnlyValue>( @this );
+        }
+
+        /// <summary>
+        /// Creates a wrapper (a read only facade) on an already existing IReadOnlyDictionary but that adapts the type of the values.
+        /// </summary>
+        /// <typeparam name="TKey">The dictionary key.</typeparam>
+        /// <typeparam name="TValue">The dictionary value.</typeparam>
+        /// <typeparam name="TReadOnlyValue">The base type of the <typeparamref name="TValue"/>.</typeparam>
+        /// <param name="this">This dictionary.</param>
+        /// <returns>A dictionary where values are a base type of this dictionary.</returns>
+        public static IReadOnlyDictionary<TKey, TReadOnlyValue> AsIReadOnlyDictionary<TKey, TValue, TReadOnlyValue>( this IReadOnlyDictionary<TKey, TValue> @this )
+            where TValue : TReadOnlyValue
+            where TKey : notnull
+        {
+            return new ReadOnlyIReadOnlyDictionaryWrapper<TKey, TValue, TReadOnlyValue>( @this );
         }
 
         /// <summary>

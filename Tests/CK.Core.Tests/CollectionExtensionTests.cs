@@ -6,8 +6,10 @@ using System.Linq;
 using System.Text;
 using NUnit.Framework;
 using CK.Core;
+using CK.Core.Tests;
 
 // This is outside the CK.Core namespace to avoid extension method ambiguity resolution by the closest namespace.
+[TestFixture]
 public class CollectionAmbiguityExtensionTests
 {
     public void Dictionary_GetValueOrDefault_is_not_ambiguous_because_it_is_defined_on_IDictionary_and_Dictionary()
@@ -16,6 +18,24 @@ public class CollectionAmbiguityExtensionTests
         var x = e.GetValueOrDefault( "a" );
         var y = ((IDictionary<string, int>)e).GetValueOrDefault( "a" );
         var z = ((IReadOnlyDictionary<string, int>)e).GetValueOrDefault( "a" );
+    }
+
+    [Test]
+    public void AsIReadOnlyDictionary_is_not_ambiguous_because_it_is_defined_on_IDictionary_and_Dictionary()
+    {
+        var puce = new Canidae( "Puce" );
+        var e = new Dictionary<string, Canidae>() { { "TooCute", puce } };
+        var x = e.AsIReadOnlyDictionary<string, Canidae, Animal>();
+        var y = ((IDictionary<string, Canidae>)e).AsIReadOnlyDictionary<string, Canidae, Animal>();
+        var z = ((IReadOnlyDictionary<string, Canidae>)e).AsIReadOnlyDictionary<string, Canidae, Animal>();
+
+        e.GetEnumerator().Should().BeOfType<Dictionary<string, Canidae>.Enumerator>();
+        x["TooCute"].Should().BeSameAs( puce );
+        y["TooCute"].Should().BeSameAs( puce );
+        z["TooCute"].Should().BeSameAs( puce );
+        x.GetEnumerator().Should().NotBeOfType<Dictionary<string, Canidae>.Enumerator>();
+        y.GetEnumerator().Should().NotBeOfType<Dictionary<string, Canidae>.Enumerator>();
+        z.GetEnumerator().Should().NotBeOfType<Dictionary<string, Canidae>.Enumerator>();
     }
 }
 
