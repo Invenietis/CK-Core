@@ -108,32 +108,28 @@ namespace CK.Core.Tests
             type.ToCSharpName().Should().Be( expected );
         }
 
-        // Cannot use TestCase parameters with tuple strings: parentheses trigger an error that prevents the test to run.
+        class Nested<T> { }
+
+        [TestCase( true, typeof( (int?, string) ), true, "(int?,string)" )]
+        [TestCase( true, typeof( (int?, string) ), false, "System.ValueTuple<int?,string>" )]
+        [TestCase( true, typeof( (int, (string, float?)) ), true, "(int,(string,float?))" )]
+        [TestCase( true, typeof( (int, (string, float?)) ), false, "System.ValueTuple<int,System.ValueTuple<string,float?>>" )]
+        // 8 Slots: the rest must be handled.
+        // Note the trailing ValueTuple<T> (singleton) that is chained.
+        [TestCase( true, typeof( (int, string, float, int, string, float, int, float?) ), true, "(int,string,float,int,string,float,int,float?)" )]
+        [TestCase( true, typeof( (int, string, float, int, string, float, int, float?) ), false, "System.ValueTuple<int,string,float,int,string,float,int,System.ValueTuple<float?>>" )]
+        // And more...
+        [TestCase( true, typeof( (int, string, float, int, string, float, int?, string?, double?, float?) ),
+                   true, "(int,string,float,int,string,float,int?,string,double?,float?)" )]
+        [TestCase( true, typeof( (int, string, float, int, string, float, int?, string?, double?, float?) ),
+                   false, "System.ValueTuple<int,string,float,int,string,float,int?,System.ValueTuple<string,double?,float?>>" )]
         //
-        // An exception occurred while invoking executor 'executor://nunit3testexecutor/': Incorrect format for TestCaseFilter Error:
-        // Missing '('. Specify the correct format and try again. Note that the incorrect format can lead to no test getting executed.
-        //
-        [TestCase( true )]
-        [TestCase( false )]
-        public void ToCSharpName_for_value_tuples( bool useValueTupleParentheses )
+        [TestCase( false, typeof( Nested<Dictionary<int, (string, int)>> ), true, "TypeExtensionTests.Nested<Dictionary<int,(string,int)>>" )]
+        [TestCase( false, typeof( Nested<Dictionary<int, (string, int)>> ), false, "TypeExtensionTests.Nested<Dictionary<int,ValueTuple<string,int>>>" )]
+        public void ToCSharpName_for_value_tuples( bool withNamespace, Type t, bool useValueTupleParentheses, string expected )
         {
-            typeof( (int, string) ).ToCSharpName( useValueTupleParentheses: useValueTupleParentheses )
-                .Should().Be( useValueTupleParentheses ? "(int,string)" : "System.ValueTuple<int,string>" );
-
-            typeof( (int, (string, float)) ).ToCSharpName( useValueTupleParentheses: useValueTupleParentheses )
-                .Should().Be( useValueTupleParentheses ? "(int,(string,float))" : "System.ValueTuple<int,System.ValueTuple<string,float>>" );
-
-            // 8 Slots: the rest must be handled.
-            // Note the trailing ValueTuple<T> (singleton) that is chained.
-            typeof( (int, string, float, int, string, float, int, float) ).ToCSharpName( useValueTupleParentheses: useValueTupleParentheses )
-                .Should().Be( useValueTupleParentheses
-                                ? "(int,string,float,int,string,float,int,float)"
-                                : "System.ValueTuple<int,string,float,int,string,float,int,System.ValueTuple<float>>" );
-            // And more...
-            typeof( (int, string, float, int, string, float, int, string, double, float) ).ToCSharpName( useValueTupleParentheses: useValueTupleParentheses )
-                .Should().Be( useValueTupleParentheses
-                                ? "(int,string,float,int,string,float,int,string,double,float)"
-                                : "System.ValueTuple<int,string,float,int,string,float,int,System.ValueTuple<string,double,float>>" );
+            t.ToCSharpName( withNamespace, useValueTupleParentheses: useValueTupleParentheses )
+                .Should().Be( expected );
         }
     }
 }
