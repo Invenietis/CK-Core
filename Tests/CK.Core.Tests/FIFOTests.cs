@@ -21,7 +21,7 @@ namespace CK.Core.Tests
             for( int iTry = 0; iTry <= f.Capacity; ++iTry )
             {
                 f.Clear();
-                for( int i = 0; i < iTry; ++i ) f.Push( default );
+                for( int i = 0; i < iTry; ++i ) f.Push( default! );
                 foreach( var i in saved ) f.Push( i );
                 while( f.Count > saved.Length ) f.Pop();
                 f.SequenceEqual( saved ).Should().BeTrue();
