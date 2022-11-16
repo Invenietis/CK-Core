@@ -1,12 +1,17 @@
 using CommunityToolkit.HighPerformance;
+using Microsoft.IO;
 using System;
+using System.Buffers;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
+using System.Runtime.CompilerServices;
 using System.Text;
 
 namespace CK.Core
 {
+
     /// <summary>
     /// Simple <see cref="SerializeSimple(ICKSimpleBinarySerializable)"/> and <see cref="DeserializeSimple{T}(byte[])"/>.
     /// </summary>
@@ -121,13 +126,7 @@ namespace CK.Core
             }
         }
 
-        /// <summary>
-        /// Deep clones a <see cref="ICKSimpleBinarySerializable"/> by serializing/deserializing it.
-        /// When this instance is null, null is returned.
-        /// </summary>
-        /// <typeparam name="T">The object's type.</typeparam>
-        /// <param name="this">This object .</param>
-        /// <returns>A cloned instance.</returns>
+        /// <inheritdoc cref="DeepCloneSimple{T}(T?)"/>
         [return: NotNullIfNotNull( "this" )]
         public static T? DeepClone<T>( this T? @this ) where T : ICKSimpleBinarySerializable => DeepCloneSimple( @this );
 
@@ -176,6 +175,65 @@ namespace CK.Core
                 using( var r = new CKBinaryReader( s, Encoding.UTF8, true ) )
                 {
                     return (T)Activator.CreateInstance( typeof( T ), r, SerializationVersionAttribute.GetRequiredVersion( o.GetType() ) )!;
+                }
+            }
+        }
+
+        /// <inheritdoc cref="DeepEqualsSimple{T}(T?, T?)"/>
+        public static bool DeepEquals<T>( this T? @this, T? other ) where T : ICKSimpleBinarySerializable => DeepEqualsSimple( @this, other );
+
+        /// <summary>
+        /// Tests whether a <see cref="ICKSimpleBinarySerializable"/> contains the same data as another one by
+        /// serializing both of them and checking the resulting binary content.
+        /// Two null instances are equals.
+        /// </summary>
+        /// <typeparam name="T">The object's type.</typeparam>
+        /// <param name="this">This object.</param>
+        /// <param name="other">The other object.</param>
+        /// <returns>True if this object is the same as the other, false otherwise.</returns>
+        public static bool DeepEqualsSimple<T>( T? o1, T? o2 ) where T : ICKSimpleBinarySerializable
+        {
+            if( o1 == null ) return o2 == null;
+            if( o2 == null ) return false;
+            using( var s = (RecyclableMemoryStream)Util.RecyclableStreamManager.GetStream() )
+            using( var w = new CKBinaryWriter( s, Encoding.UTF8, true ) )
+            {
+                o1.Write( w );
+                w.Flush();
+                using( var checker = Util.CreateCheckedWriteStream( s ) )
+                using( var wChecker = new CKBinaryWriter( checker, Encoding.UTF8, true ) )
+                {
+                    o2.Write( wChecker );
+                    return checker.GetResult() == CheckedWriteStream.Result.None;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Tests whether a <see cref="ICKVersionedBinarySerializable"/> contains the same data as another one by
+        /// serializing both of them and checking the resulting binary content.
+        /// Two null instances are equals.
+        /// </summary>
+        /// <typeparam name="T">The object's type.</typeparam>
+        /// <param name="this">This object.</param>
+        /// <param name="other">The other object.</param>
+        /// <returns>True if this object is the same as the other, false otherwise.</returns>
+        public static bool DeepEqualsVersioned<T>( T? o1, T? o2 ) where T : ICKVersionedBinarySerializable
+        {
+            if( o1 == null ) return o2 == null;
+            if( o2 == null ) return false;
+            if( typeof( T ) != o1.GetType() ) Throw.ArgumentException( $"Type parameter '{typeof( T )}' must be the same as the runtime type '{o1.GetType()}'." );
+            if( typeof( T ) != o2.GetType() ) Throw.ArgumentException( $"Type parameter '{typeof( T )}' must be the same as the runtime type '{o2.GetType()}'." );
+            using( var s = (RecyclableMemoryStream)Util.RecyclableStreamManager.GetStream() )
+            using( var w = new CKBinaryWriter( s, Encoding.UTF8, true ) )
+            {
+                o1.WriteData( w );
+                w.Flush();
+                using( var checker = Util.CreateCheckedWriteStream( s ) )
+                using( var wChecker = new CKBinaryWriter( checker, Encoding.UTF8, true ) )
+                {
+                    o2.WriteData( wChecker );
+                    return checker.GetResult() == CheckedWriteStream.Result.None;
                 }
             }
         }

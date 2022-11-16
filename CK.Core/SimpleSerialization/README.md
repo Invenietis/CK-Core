@@ -279,3 +279,20 @@ In addition, a `DeepClone()` extension method is available on any `ICKSimpleBina
 public static T? DeepClone<T>( this T? @this ) where T : ICKSimpleBinarySerializable => DeepCloneSimple( @this );
 ```
 
+## SimpleSerializable static helper class: DeepEquals for free
+This static class also exposes 2 methods that uses serialization to check for deep equality
+of the same object:
+
+```csharp
+public static bool DeepEqualsSimple<T>( T? o1, T? o2 ) where T : ICKSimpleBinarySerializable
+public static bool DeepEqualsVersioned<T>( T? o1, T? o2 ) where T : ICKVersionedBinarySerializable
+```
+In addition, a `DeepEquals()` extension method is available on any `ICKSimpleBinarySerializable` object:
+```csharp
+public static bool DeepEquals<T>( this T? @this, T? other ) where T : ICKSimpleBinarySerializable => DeepEqualsSimple( @this, other );```
+```
+
+These methods uses the static `Util.CreateCheckedWriteStream( RecyclableMemoryStream s )` that creates
+a [`CheckedWriteStream`](../CheckedWriteStream.cs). This helper can be used to implement other equality checks
+base on binary content.
+
