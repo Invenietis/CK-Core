@@ -376,9 +376,8 @@ namespace CK.Core
         /// <summary>
         /// Throws a new <see cref="System.IndexOutOfRangeException"/>.
         /// </summary>
-        /// <param name="name">The argument name.</param>
         /// <param name="message">Optional message to include in the exception.</param>
-        /// <param name="message">Optional inner exception.</param>
+        /// <param name="inner">Optional inner exception.</param>
         [DoesNotReturn]
         [MethodImpl( MethodImplOptions.AggressiveInlining )]
         public static void IndexOutOfRangeException( string? message = null, Exception? inner = null )
@@ -391,7 +390,7 @@ namespace CK.Core
         /// Can be used in switch expressions or as a returned value.
         /// </summary>
         /// <param name="message">Optional message to include in the exception.</param>
-        /// <param name="message">Optional inner exception.</param>
+        /// <param name="inner">Optional inner exception.</param>
         [DoesNotReturn]
         [MethodImpl( MethodImplOptions.NoInlining )]
         public static T IndexOutOfRangeException<T>( string? message = null, Exception? inner = null )

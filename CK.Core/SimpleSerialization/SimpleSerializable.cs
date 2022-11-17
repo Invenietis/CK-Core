@@ -126,7 +126,7 @@ namespace CK.Core
             }
         }
 
-        /// <inheritdoc cref="DeepCloneSimple{T}(T?)"/>
+        /// <inheritdoc cref="DeepCloneSimple{T}(T)"/>
         [return: NotNullIfNotNull( "this" )]
         public static T? DeepClone<T>( this T? @this ) where T : ICKSimpleBinarySerializable => DeepCloneSimple( @this );
 
@@ -179,7 +179,7 @@ namespace CK.Core
             }
         }
 
-        /// <inheritdoc cref="DeepEqualsSimple{T}(T?, T?)"/>
+        /// <inheritdoc cref="DeepEqualsSimple{T}(T, T)"/>
         public static bool DeepEquals<T>( this T? @this, T? other ) where T : ICKSimpleBinarySerializable => DeepEqualsSimple( @this, other );
 
         /// <summary>
@@ -188,8 +188,8 @@ namespace CK.Core
         /// Two null instances are equals.
         /// </summary>
         /// <typeparam name="T">The object's type.</typeparam>
-        /// <param name="this">This object.</param>
-        /// <param name="other">The other object.</param>
+        /// <param name="o1">The first object to compare.</param>
+        /// <param name="o2">The second object to compare.</param>
         /// <returns>True if this object is the same as the other, false otherwise.</returns>
         public static bool DeepEqualsSimple<T>( T? o1, T? o2 ) where T : ICKSimpleBinarySerializable
         {
@@ -215,8 +215,8 @@ namespace CK.Core
         /// Two null instances are equals.
         /// </summary>
         /// <typeparam name="T">The object's type.</typeparam>
-        /// <param name="this">This object.</param>
-        /// <param name="other">The other object.</param>
+        /// <param name="o1">The first object to compare.</param>
+        /// <param name="o2">The second object to compare.</param>
         /// <returns>True if this object is the same as the other, false otherwise.</returns>
         public static bool DeepEqualsVersioned<T>( T? o1, T? o2 ) where T : ICKVersionedBinarySerializable
         {

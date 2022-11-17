@@ -77,7 +77,7 @@ namespace CK.Core
         }
 
         /// <summary>
-        /// Throws a new <see cref="System.CKException"/> but formally returns a <typeparamref name="T"/> value.
+        /// Throws a new <see cref="CKException"/> but formally returns a <typeparamref name="T"/> value.
         /// Can be used in switch expressions or as a returned value.
         /// </summary>
         /// <param name="message">Exception message.</param>

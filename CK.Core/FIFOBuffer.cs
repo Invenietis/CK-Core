@@ -486,6 +486,7 @@ namespace CK.Core
         /// <summary>
         /// Specialized enumerator.
         /// </summary>
+#pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
         public struct Enumerator : IEnumerator<T>, IEnumerator
         {
             readonly FIFOBuffer<T> _b;
@@ -546,6 +547,7 @@ namespace CK.Core
                 _currentElement = default;
             }
         }
+#pragma warning restore CS1591 // Missing XML comment for publicly visible type or member
 
         /// <summary>
         /// Gets the enumerator (from oldest to newest item).
