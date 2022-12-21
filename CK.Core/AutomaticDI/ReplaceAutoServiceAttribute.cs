@@ -30,7 +30,8 @@ namespace CK.Core
         /// <param name="replaced">The type of the service that this service replaces. Must not be null.</param>
         public ReplaceAutoServiceAttribute( Type replaced )
         {
-            ReplacedType = replaced ?? throw new ArgumentNullException( nameof( replaced ) );
+            Throw.CheckNotNullArgument( replaced );
+            ReplacedType = replaced;
         }
 
         /// <summary>
@@ -40,7 +41,7 @@ namespace CK.Core
         /// <param name="replacedAssemblyQualifiedName">The type of the service that this service replaces. Must not be null or white space.</param>
         public ReplaceAutoServiceAttribute( string replacedAssemblyQualifiedName )
         {
-            if( String.IsNullOrWhiteSpace( replacedAssemblyQualifiedName ) ) throw new ArgumentNullException( nameof( replacedAssemblyQualifiedName ) );
+            Throw.CheckNotNullOrWhiteSpaceArgument( replacedAssemblyQualifiedName );
             ReplacedAssemblyQualifiedName = replacedAssemblyQualifiedName;
         }
 

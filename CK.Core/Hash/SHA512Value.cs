@@ -200,7 +200,7 @@ namespace CK.Core
         public SHA512Value( BinaryReader reader )
         {
             _bytes = reader.ReadBytes( 64 );
-            if( _bytes.Length < 64 ) throw new EndOfStreamException( $"Expected SHA512 (64 bytes). Got only {_bytes.Length} bytes." );
+            if( _bytes.Length < 64 ) Throw.EndOfStreamException( $"Expected SHA512 (64 bytes). Got only {_bytes.Length} bytes." );
             if( _bytes.SequenceEqual( Zero._bytes ) )
             {
                 _bytes = Zero._bytes;

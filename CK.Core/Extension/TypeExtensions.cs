@@ -141,9 +141,9 @@ namespace CK.Core
                     int nbParams = int.Parse( n.AsSpan( idxTick, endNbParam - idxTick ), NumberStyles.Integer, NumberFormatInfo.InvariantInfo );
                     Debug.Assert( nbParams > 0 );
                     var tName = n.Substring( 0, idxTick - 1 );
-                    bool isValueTuple = tName == "System.ValueTuple";
+                    bool isValueTuple = tName == (iType == 0 && withNamespace ? "System.ValueTuple" : "ValueTuple");
                     Type subType = allGenArgs.Dequeue();
-                    bool isNullableValue = !isValueTuple && tName == "System.Nullable" && !subType.IsGenericTypeParameter;
+                    bool isNullableValue = !isValueTuple && tName == (iType == 0 && withNamespace ? "System.Nullable" : "Nullable") && !subType.IsGenericTypeParameter;
                     if( isValueTuple && useValueTupleParentheses )
                     {
                         b.Append( '(' );

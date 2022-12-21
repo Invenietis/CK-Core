@@ -4,12 +4,12 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
 namespace CK.Core.Tests
 {
+
     [TestFixture]
     public class SimpleSerializationTests
     {
@@ -180,8 +180,42 @@ namespace CK.Core.Tests
             }
         }
 
+        [Test]
+        public void DeepEqualsSimple_tests()
+        {
+            var o1 = new Sample( 1, "Hop!", 45 );
+            var o2 = new Sample( 1, "Hop!", 45 );
+            o1.DeepEquals( o2 ).Should().BeTrue();
 
+            var o3 = new Sample( 2, "Hop!", 45 );
+            var o4 = new Sample( 2, "Hop!!", 45 );
+            var o5 = new Sample( 2, "Hop!!", 46 );
 
+            o1.DeepEquals( o3 ).Should().BeFalse();
+            o1.DeepEquals( o4 ).Should().BeFalse();
+            o1.DeepEquals( o5 ).Should().BeFalse();
+
+            o2.DeepEquals( o3 ).Should().BeFalse();
+            o2.DeepEquals( o4 ).Should().BeFalse();
+            o2.DeepEquals( o5 ).Should().BeFalse();
+        }
+
+        [Test]
+        public void DeepEqualsVersioned_tests()
+        {
+            var o1 = new Thing( "Hop!" );
+            var o2 = new Thing( "Hop!" );
+            SimpleSerializable.DeepEqualsVersioned( o1, o2 ).Should().BeTrue();
+
+            var o3 = new Thing( "Hop!!" );
+            var o4 = new Thing( "---" );
+
+            SimpleSerializable.DeepEqualsVersioned( o1, o3 ).Should().BeFalse();
+            SimpleSerializable.DeepEqualsVersioned( o1, o4 ).Should().BeFalse();
+
+            SimpleSerializable.DeepEqualsVersioned( o2, o3 ).Should().BeFalse();
+            SimpleSerializable.DeepEqualsVersioned( o2, o4 ).Should().BeFalse();
+        }
 
     }
 }

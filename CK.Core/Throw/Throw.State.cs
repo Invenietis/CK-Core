@@ -41,6 +41,7 @@ namespace CK.Core
         }
 
         [DoesNotReturn]
+        [MethodImpl( MethodImplOptions.NoInlining )]
         static void CheckStateException( string exp, string? message = null )
         {
             if( message == null )
@@ -59,7 +60,21 @@ namespace CK.Core
         /// <param name="message">Optional message to include in the exception.</param>
         /// <param name="innerException">Optional inner <see cref="Exception"/> to include.</param>
         [DoesNotReturn]
+        [MethodImpl( MethodImplOptions.AggressiveInlining )]
         public static void InvalidOperationException( string? message = null, Exception? innerException = null )
+        {
+            InvalidOperationException<object>( message, innerException );
+        }
+
+        /// <summary>
+        /// Throws a new <see cref="System.InvalidOperationException"/> but formally returns a <typeparamref name="T"/> value.
+        /// Can be used in switch expressions or as a returned value.
+        /// </summary>
+        /// <param name="message">Optional message to include in the exception.</param>
+        /// <param name="innerException">Optional inner <see cref="Exception"/> to include.</param>
+        [DoesNotReturn]
+        [MethodImpl( MethodImplOptions.NoInlining )]
+        public static T InvalidOperationException<T>( string? message = null, Exception? innerException = null )
         {
             throw new InvalidOperationException( message, innerException );
         }
@@ -70,7 +85,21 @@ namespace CK.Core
         /// <param name="message">The error message that explains the reason for the exception.</param>
         /// <param name="innerException">Optional inner <see cref="Exception"/> to include.</param>
         [DoesNotReturn]
+        [MethodImpl( MethodImplOptions.AggressiveInlining )]
         public static void ObjectDisposedException( string? message, Exception? innerException )
+        {
+            ObjectDisposedException<object>( message, innerException );
+        }
+
+        /// <summary>
+        /// Throws a new <see cref="System.ObjectDisposedException"/> but formally returns a <typeparamref name="T"/> value.
+        /// Can be used in switch expressions or as a returned value.
+        /// </summary>
+        /// <param name="message">The error message that explains the reason for the exception.</param>
+        /// <param name="innerException">Optional inner <see cref="Exception"/> to include.</param>
+        [DoesNotReturn]
+        [MethodImpl( MethodImplOptions.NoInlining )]
+        public static T ObjectDisposedException<T>( string? message, Exception? innerException )
         {
             throw new ObjectDisposedException( message, innerException );
         }
@@ -81,7 +110,21 @@ namespace CK.Core
         /// <param name="objectName">The name of the disposed object.</param>
         /// <param name="message">The error message that explains the reason for the exception.</param>
         [DoesNotReturn]
+        [MethodImpl( MethodImplOptions.AggressiveInlining )]
         public static void ObjectDisposedException( string? objectName = null, string? message = null )
+        {
+            ObjectDisposedException<object>( objectName, message );
+        }
+
+        /// <summary>
+        /// Throws a new <see cref="System.ObjectDisposedException"/> but formally returns a <typeparamref name="T"/> value.
+        /// Can be used in switch expressions or as a returned value.
+        /// </summary>
+        /// <param name="objectName">The name of the disposed object.</param>
+        /// <param name="message">The error message that explains the reason for the exception.</param>
+        [DoesNotReturn]
+        [MethodImpl( MethodImplOptions.NoInlining )]
+        public static T ObjectDisposedException<T>( string? objectName = null, string? message = null )
         {
             if( message == null ) throw new ObjectDisposedException( objectName );
             throw new ObjectDisposedException( objectName, message );
@@ -93,7 +136,21 @@ namespace CK.Core
         /// <param name="message">Optional message to include in the exception.</param>
         /// <param name="innerException">Optional inner <see cref="Exception"/> to include.</param>
         [DoesNotReturn]
+        [MethodImpl( MethodImplOptions.AggressiveInlining )]
         public static void TimeoutException( string? message, Exception? innerException )
+        {
+            TimeoutException<object>( message, innerException );
+        }
+
+        /// <summary>
+        /// Throws a new <see cref="System.TimeoutException"/> but formally returns a <typeparamref name="T"/> value.
+        /// Can be used in switch expressions or as a returned value.
+        /// </summary>
+        /// <param name="message">Optional message to include in the exception.</param>
+        /// <param name="innerException">Optional inner <see cref="Exception"/> to include.</param>
+        [DoesNotReturn]
+        [MethodImpl( MethodImplOptions.NoInlining )]
+        public static T TimeoutException<T>( string? message, Exception? innerException )
         {
             throw new TimeoutException( message, innerException );
         }

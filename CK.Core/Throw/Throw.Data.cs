@@ -42,6 +42,7 @@ namespace CK.Core
         }
 
         [DoesNotReturn]
+        [MethodImpl( MethodImplOptions.NoInlining )]
         static void CheckDataException( string exp, string? message = null )
         {
             if( message == null )
@@ -61,7 +62,21 @@ namespace CK.Core
         /// <param name="message">Optional message to include in the exception.</param>
         /// <param name="innerException">Optional inner <see cref="Exception"/> to include.</param>
         [DoesNotReturn]
+        [MethodImpl( MethodImplOptions.AggressiveInlining )]
         public static void InvalidDataException( string? message = null, Exception? innerException = null )
+        {
+            InvalidDataException<object>( message, innerException );
+        }
+
+        /// <summary>
+        /// Throws a new <see cref="System.IO.InvalidDataException"/> but formally returns a <typeparamref name="T"/> value.
+        /// Can be used in switch expressions or as a returned value.
+        /// </summary>
+        /// <param name="message">Optional message to include in the exception.</param>
+        /// <param name="innerException">Optional inner <see cref="Exception"/> to include.</param>
+        [DoesNotReturn]
+        [MethodImpl( MethodImplOptions.NoInlining )]
+        public static T InvalidDataException<T>( string? message = null, Exception? innerException = null )
         {
             throw new InvalidDataException( message, innerException );
         }
@@ -72,7 +87,21 @@ namespace CK.Core
         /// <param name="message">Optional message to include in the exception.</param>
         /// <param name="innerException">Optional inner <see cref="Exception"/> to include.</param>
         [DoesNotReturn]
+        [MethodImpl( MethodImplOptions.AggressiveInlining )]
         public static void EndOfStreamException( string? message = null, Exception? innerException = null )
+        {
+            EndOfStreamException<object>( message, innerException );
+        }
+
+        /// <summary>
+        /// Throws a new <see cref="System.IO.EndOfStreamException"/> but formally returns a <typeparamref name="T"/> value.
+        /// Can be used in switch expressions or as a returned value.
+        /// </summary>
+        /// <param name="message">Optional message to include in the exception.</param>
+        /// <param name="innerException">Optional inner <see cref="Exception"/> to include.</param>
+        [DoesNotReturn]
+        [MethodImpl( MethodImplOptions.NoInlining )]
+        public static T EndOfStreamException<T>( string? message = null, Exception? innerException = null )
         {
             throw new EndOfStreamException( message, innerException );
         }
@@ -83,7 +112,21 @@ namespace CK.Core
         /// <param name="message">Optional message to include in the exception.</param>
         /// <param name="innerException">Optional inner <see cref="Exception"/> to include.</param>
         [DoesNotReturn]
+        [MethodImpl( MethodImplOptions.AggressiveInlining )]
         public static void XmlException( string? message = null, Exception? innerException = null )
+        {
+            XmlException<object>( message, innerException );
+        }
+
+        /// <summary>
+        /// Throws a new <see cref="System.Xml.XmlException"/> but formally returns a <typeparamref name="T"/> value.
+        /// Can be used in switch expressions or as a returned value.
+        /// </summary>
+        /// <param name="message">Optional message to include in the exception.</param>
+        /// <param name="innerException">Optional inner <see cref="Exception"/> to include.</param>
+        [DoesNotReturn]
+        [MethodImpl( MethodImplOptions.NoInlining )]
+        public static T XmlException<T>( string? message = null, Exception? innerException = null )
         {
             throw new XmlException( message, innerException );
         }
@@ -94,7 +137,21 @@ namespace CK.Core
         /// <param name="message">Optional message to include in the exception.</param>
         /// <param name="innerException">Optional inner <see cref="Exception"/> to include.</param>
         [DoesNotReturn]
+        [MethodImpl( MethodImplOptions.AggressiveInlining )]
         public static void FormatException( string? message = null, Exception? innerException = null )
+        {
+            FormatException<object>( message, innerException );
+        }
+
+        /// <summary>
+        /// Throws a new <see cref="System.FormatException"/> but formally returns a <typeparamref name="T"/> value.
+        /// Can be used in switch expressions or as a returned value.
+        /// </summary>
+        /// <param name="message">Optional message to include in the exception.</param>
+        /// <param name="innerException">Optional inner <see cref="Exception"/> to include.</param>
+        [DoesNotReturn]
+        [MethodImpl( MethodImplOptions.NoInlining )]
+        public static T FormatException<T>( string? message = null, Exception? innerException = null )
         {
             throw new FormatException( message, innerException );
         }

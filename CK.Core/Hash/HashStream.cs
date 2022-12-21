@@ -110,15 +110,15 @@ namespace CK.Core
         /// <summary>
         /// This operation is not supported.
         /// </summary>
-        public override long Length => throw new NotSupportedException();
+        public override long Length => Throw.NotSupportedException<long>();
 
         /// <summary>
         /// This property is not supported.
         /// </summary>
         public override long Position
         {
-            get { throw new NotSupportedException(); }
-            set { throw new NotSupportedException(); }
+            get => Throw.NotSupportedException<long>();
+            set => Throw.NotSupportedException();
         }
 
         /// <summary>
@@ -145,7 +145,7 @@ namespace CK.Core
         /// </returns>
         public override int Read( byte[] buffer, int offset, int count )
         {
-            if( _reader == null ) throw new InvalidOperationException();
+            Throw.CheckState( _reader != null );
             int r = _reader.Read( buffer, offset, count );
             _hash.AppendData( buffer, offset, r );
             return r;
@@ -154,17 +154,17 @@ namespace CK.Core
         /// <summary>
         /// This operation is not supported.
         /// </summary>
-        public override long Seek( long offset, SeekOrigin origin ) => throw new NotSupportedException();
+        public override long Seek( long offset, SeekOrigin origin ) => Throw.NotSupportedException<long>();
 
         /// <summary>
         /// This operation is not supported.
         /// </summary>
-        public override void SetLength( long value ) => throw new NotSupportedException();
+        public override void SetLength( long value ) => Throw.NotSupportedException();
 
         /// <inheritdoc />
         public override void Write( byte[] buffer, int offset, int count )
         {
-            if( _reader != null ) throw new InvalidOperationException();
+            Throw.CheckState( _reader == null );
             _hash.AppendData( buffer, offset, count );
             _writer?.Write( buffer, offset, count );
         }
@@ -206,7 +206,7 @@ namespace CK.Core
         /// <inheritdoc />
         public override async ValueTask<int> ReadAsync( Memory<byte> buffer, CancellationToken cancellationToken = default )
         {
-            if( _reader == null ) throw new InvalidOperationException();
+            Throw.CheckState( _reader != null );
             int read = await _reader.ReadAsync( buffer, cancellationToken );
             _hash.AppendData( buffer.Span.Slice( 0, read ) );
             return read;
@@ -215,7 +215,7 @@ namespace CK.Core
         /// <inheritdoc />
         public override int Read( Span<byte> buffer )
         {
-            if( _reader == null ) throw new InvalidOperationException();
+            Throw.CheckState( _reader != null );
             int read = _reader.Read( buffer );
             _hash.AppendData( buffer.Slice( 0, read ) );
             return read;

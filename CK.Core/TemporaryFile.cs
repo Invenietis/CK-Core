@@ -82,21 +82,16 @@ namespace CK.Core
 		{
 			get 
             {
-                if( _path == null ) ThrowObjectDisposedException();
-                return _path; 
+                var p = _path;
+                if( p == null ) Throw.ObjectDisposedException();
+                return p; 
             }
 		}
-
-        [DoesNotReturn]
-        static void ThrowObjectDisposedException() => throw new ObjectDisposedException( "TemporaryFile" );
 
         /// <summary>
         /// Gets whether the temporary file is detached (its <see cref="Path"/> is <see cref="String.Empty"/>).
         /// </summary>
-        public bool IsDetached
-        {
-            get { return Path.Length == 0; }
-        }
+        public bool IsDetached => Path.Length == 0;
 
         /// <summary>
         /// Detaches the temporary file: it will no more be automatically destroyed.
@@ -106,7 +101,7 @@ namespace CK.Core
 		public void Detach()
 		{
             var p = _path;
-            if( p == null ) throw new ObjectDisposedException( "TemporaryFile" );
+            if( p == null ) Throw.ObjectDisposedException();
             _path = String.Empty;
 		}
 

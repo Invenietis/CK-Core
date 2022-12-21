@@ -21,7 +21,7 @@ namespace CK.Core
         /// <param name="items">Multiple items to add. Can not be null.</param>
         public static void AddRange<T>( this ICollection<T> @this, IEnumerable<T> items )
         {
-            if( items == null ) throw new ArgumentNullException( nameof( items ) );
+            Throw.CheckNotNullArgument( items );
             foreach( var i in items ) @this.Add( i );
         }
 
@@ -92,10 +92,15 @@ namespace CK.Core
         {
             if( @this is not IReadOnlyCollection<T> c )
             {
-                if( @this == null ) throw new NullReferenceException();
-                c = new ReadOnlyCollectionWrapper<T>( @this );
+                c = CrateWrapper( @this );
             }
             return c;
+
+            static IReadOnlyCollection<T> CrateWrapper( ICollection<T> @this )
+            {
+                if( @this == null ) throw new NullReferenceException();
+                return new ReadOnlyCollectionWrapper<T>( @this );
+            }
         }
     }
 }

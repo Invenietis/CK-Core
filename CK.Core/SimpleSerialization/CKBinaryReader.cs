@@ -244,7 +244,7 @@ namespace CK.Core
                 1 => true,
                 2 => false,
                 3 => null,
-                _ => throw new InvalidDataException(),
+                _ => Throw.InvalidDataException<bool>()
             };
         }
 

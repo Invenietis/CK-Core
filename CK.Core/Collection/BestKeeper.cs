@@ -44,7 +44,7 @@ namespace CK.Core
         /// <param name="comparer">The optional comparer.</param>
         public BestKeeper( int capacity, IComparer<T>? comparer = null )
         {
-            if( capacity <= 0 ) throw new ArgumentException( "The max count must be greater than 0.", nameof( capacity ) );
+            Throw.CheckOutOfRangeArgument( capacity > 0 );
             Comparer = comparer ?? Comparer<T>.Default;
             _items = new T[capacity];
         }

@@ -84,6 +84,20 @@ namespace CK.Core
         }
 
         /// <summary>
+        /// Throws a new <see cref="System.IndexOutOfRangeException"/> if <paramref name="valid"/> expression is false.
+        /// </summary>
+        /// <param name="valid">The expression to that must be true.</param>
+        /// <param name="exp">Roslyn's automatic capture of the expression's value.</param>
+        [MethodImpl( MethodImplOptions.AggressiveInlining )]
+        public static void CheckIndexOutOfRange( [DoesNotReturnIf( false )] bool valid, [CallerArgumentExpression( "valid" )] string? exp = null )
+        {
+            if( !valid )
+            {
+                CheckOutOfRangeArgumentException( exp!, index: true );
+            }
+        }
+
+        /// <summary>
         /// Throws a new <see cref="System.ArgumentException"/> if <paramref name="valid"/> expression is false.
         /// </summary>
         /// <param name="message">Explicit message.</param>
@@ -113,7 +127,23 @@ namespace CK.Core
             }
         }
 
+        /// <summary>
+        /// Throws a new <see cref="System.IndexOutOfRangeException"/> if <paramref name="valid"/> expression is false.
+        /// </summary>
+        /// <param name="message">Explicit message.</param>
+        /// <param name="valid">The expression to that must be true.</param>
+        /// <param name="exp">Roslyn's automatic capture of the expression's value.</param>
+        [MethodImpl( MethodImplOptions.AggressiveInlining )]
+        public static void CheckIndexOutOfRange( string message, [DoesNotReturnIf( false )] bool valid, [CallerArgumentExpression( "valid" )] string? exp = null )
+        {
+            if( !valid )
+            {
+                CheckOutOfRangeArgumentException( exp!, message, true );
+            }
+        }
+
         [DoesNotReturn]
+        [MethodImpl( MethodImplOptions.NoInlining )]
         static void CheckArgumentException( string exp, string? message = null )
         {
             if( message == null )
@@ -127,14 +157,17 @@ namespace CK.Core
         }
 
         [DoesNotReturn]
-        static void CheckOutOfRangeArgumentException( string exp, string? message = null )
+        [MethodImpl( MethodImplOptions.NoInlining )]
+        static void CheckOutOfRangeArgumentException( string exp, string? message = null, bool index = false )
         {
             if( message == null )
             {
+                if( index ) IndexOutOfRangeException( $"'{exp}' should be true." );
                 ArgumentOutOfRangeException( null!, $"Invalid argument: '{exp}' should be true." );
             }
             else
             {
+                if( index ) IndexOutOfRangeException( $"{message} ('{exp}' should be true)." );
                 ArgumentOutOfRangeException( exp, message );
             }
         }
@@ -218,6 +251,7 @@ namespace CK.Core
         }
 
         [DoesNotReturn]
+        [MethodImpl( MethodImplOptions.NoInlining )]
         static void NullOrEmptyException<T>( T? value, string exp )
         {
             if( value is null )
@@ -301,6 +335,7 @@ namespace CK.Core
         }
 
         [DoesNotReturn]
+        [MethodImpl( MethodImplOptions.NoInlining )]
         static void NullOrWhiteSpaceException( string? value, string exp )
         {
             if( value != null )
@@ -319,9 +354,48 @@ namespace CK.Core
         /// <param name="name">The argument name.</param>
         /// <param name="message">Optional message to include in the exception.</param>
         [DoesNotReturn]
+        [MethodImpl( MethodImplOptions.AggressiveInlining )]
         public static void ArgumentOutOfRangeException( string name, string? message = null )
         {
+            ArgumentOutOfRangeException<object>( name, message );
+        }
+
+        /// <summary>
+        /// Throws a new <see cref="System.ArgumentOutOfRangeException"/> but formally returns a <typeparamref name="T"/> value.
+        /// Can be used in switch expressions or as a returned value.
+        /// </summary>
+        /// <param name="name">The argument name.</param>
+        /// <param name="message">Optional message to include in the exception.</param>
+        [DoesNotReturn]
+        [MethodImpl( MethodImplOptions.NoInlining )]
+        public static T ArgumentOutOfRangeException<T>( string name, string? message = null )
+        {
             throw new ArgumentOutOfRangeException( name, message );
+        }
+
+        /// <summary>
+        /// Throws a new <see cref="System.IndexOutOfRangeException"/>.
+        /// </summary>
+        /// <param name="message">Optional message to include in the exception.</param>
+        /// <param name="inner">Optional inner exception.</param>
+        [DoesNotReturn]
+        [MethodImpl( MethodImplOptions.AggressiveInlining )]
+        public static void IndexOutOfRangeException( string? message = null, Exception? inner = null )
+        {
+            IndexOutOfRangeException<object>( message );
+        }
+
+        /// <summary>
+        /// Throws a new <see cref="System.IndexOutOfRangeException"/> but formally returns a <typeparamref name="T"/> value.
+        /// Can be used in switch expressions or as a returned value.
+        /// </summary>
+        /// <param name="message">Optional message to include in the exception.</param>
+        /// <param name="inner">Optional inner exception.</param>
+        [DoesNotReturn]
+        [MethodImpl( MethodImplOptions.NoInlining )]
+        public static T IndexOutOfRangeException<T>( string? message = null, Exception? inner = null )
+        {
+            throw new IndexOutOfRangeException( message, inner );
         }
 
         /// <summary>
@@ -330,7 +404,21 @@ namespace CK.Core
         /// <param name="name">The argument name.</param>
         /// <param name="message">Optional message to include in the exception.</param>
         [DoesNotReturn]
+        [MethodImpl( MethodImplOptions.AggressiveInlining )]
         public static void ArgumentException( string name, string? message = null )
+        {
+            ArgumentException<object>( name, message );
+        }
+
+        /// <summary>
+        /// Throws a new <see cref="System.ArgumentException"/> but formally returns a <typeparamref name="T"/> value.
+        /// Can be used in switch expressions or as a returned value.
+        /// </summary>
+        /// <param name="name">The argument name.</param>
+        /// <param name="message">Optional message to include in the exception.</param>
+        [DoesNotReturn]
+        [MethodImpl( MethodImplOptions.NoInlining )]
+        public static T ArgumentException<T>( string name, string? message = null )
         {
             throw new ArgumentException( message, name );
         }
@@ -341,7 +429,21 @@ namespace CK.Core
         /// <param name="name">The argument name.</param>
         /// <param name="message">Optional message to include in the exception.</param>
         [DoesNotReturn]
+        [MethodImpl( MethodImplOptions.AggressiveInlining )]
         public static void ArgumentNullException( string name, string? message = null )
+        {
+            ArgumentNullException<object>( name, message );
+        }
+
+        /// <summary>
+        /// Throws a new <see cref="System.ArgumentNullException"/> but formally returns a <typeparamref name="T"/> value.
+        /// Can be used in switch expressions or as a returned value.
+        /// </summary>
+        /// <param name="name">The argument name.</param>
+        /// <param name="message">Optional message to include in the exception.</param>
+        [DoesNotReturn]
+        [MethodImpl( MethodImplOptions.NoInlining )]
+        public static T ArgumentNullException<T>( string name, string? message = null )
         {
             throw new ArgumentNullException( name, message );
         }

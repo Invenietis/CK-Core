@@ -41,8 +41,7 @@ namespace CK.Core
         /// <returns>True if the enumerable is empty or is in strict ascending order.</returns>
         public static bool IsSortedStrict<T>( this IEnumerable<T> @this, Comparison<T> comparison )
         {
-            if( comparison == null )
-                throw new ArgumentNullException( "comparison" );
+            Throw.CheckNotNullArgument( comparison );
             using( IEnumerator<T> e = @this.GetEnumerator() )
             {
                 if( !e.MoveNext() ) return true;
@@ -66,7 +65,7 @@ namespace CK.Core
         /// <returns>True if the enumerable is empty or is in large ascending order.</returns>
         public static bool IsSortedLarge<T>( this IEnumerable<T> @this, Comparison<T> comparison )
         {
-            if( comparison == null ) throw new ArgumentNullException( "comparison" );
+            Throw.CheckNotNullArgument( comparison );
             using( IEnumerator<T> e = @this.GetEnumerator() )
             {
                 if( !e.MoveNext() ) return true;
@@ -101,13 +100,13 @@ namespace CK.Core
         /// <exception cref="InvalidOperationException"><paramref name="this"/> is empty</exception>       
         public static TSource MaxBy<TSource, TKey>( this IEnumerable<TSource> @this, Func<TSource, TKey> selector, Comparison<TKey>? comparison = null )
         {
-            if( selector == null ) throw new ArgumentNullException( "selector" );
+            Throw.CheckNotNullArgument( selector );
             if( comparison == null ) comparison = Comparer<TKey>.Default.Compare;
             using( IEnumerator<TSource> sourceIterator = @this.GetEnumerator() )
             {
                 if( !sourceIterator.MoveNext() )
                 {
-                    throw new InvalidOperationException( "Sequence was empty" );
+                    Throw.InvalidOperationException( "Sequence was empty" );
                 }
                 TSource max = sourceIterator.Current;
                 TKey maxKey = selector( max );
@@ -135,7 +134,7 @@ namespace CK.Core
         /// <returns>Index where predicate is true. -1 if not found.</returns>
         public static int IndexOf<TSource>( this IEnumerable<TSource> @this, Func<TSource, bool> predicate )
         {
-            if( predicate == null ) throw new ArgumentNullException( "predicate" );
+            Throw.CheckNotNullArgument( predicate );
             int i = 0;
             using( var e = @this.GetEnumerator() )
             {
@@ -158,7 +157,7 @@ namespace CK.Core
         /// <returns>Index where predicate is true, or -1 if not found.</returns>
         public static int IndexOf<TSource>( this IEnumerable<TSource> @this, Func<TSource, int, bool> predicate )
         {
-            if( predicate == null ) throw new ArgumentNullException( "predicate" );
+            Throw.CheckNotNullArgument( predicate );
             int i = 0;
             using( var e = @this.GetEnumerator() )
             {
