@@ -180,7 +180,7 @@ namespace CK.Core
         /// this same extension for both IDictionary and the Dictionary class.
         /// </remarks>
         public static TValue? GetValueOrDefault<TKey, TValue>( this Dictionary<TKey, TValue> @this, TKey key ) where TKey : notnull
-            => @this.TryGetValue( key, out var value ) ? value : default;
+            => @this.TryGetValue( key, out var value ) ? value : default!;
 
         /// <inheritdoc cref="System.Collections.Generic.CollectionExtensions.GetValueOrDefault{TKey, TValue}(IReadOnlyDictionary{TKey, TValue}, TKey, TValue)"/>
         /// <remarks>
