@@ -17,6 +17,7 @@ namespace CK.Core
     /// This struct is implicitly convertible to and from string.
     /// </para>
     /// </summary>
+    [DebuggerDisplay( "{Path}" )]
     public readonly struct NormalizedPath : IEquatable<NormalizedPath>, IComparable<NormalizedPath>
     {
         static readonly char[] _separators = new[] { AltDirectorySeparatorChar, DirectorySeparatorChar };
