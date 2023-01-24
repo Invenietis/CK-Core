@@ -108,55 +108,58 @@ namespace CK.Core
                     }
                     else _option = NormalizedPathRootKind.None;
                 }
-                else if( c == '~' )
-                {
-                    _option = NormalizedPathRootKind.RootedByFirstPart;
-                    _path = _parts.Concatenate( DirectorySeparatorString );
-                }
                 else
                 {
                     var first = _parts[0];
                     Debug.Assert( first.Length > 0 );
-                    if( first[^1] == ':' )
+                    if( c == '~' && first.Length == 1 )
                     {
-                        // To avoid errors and to not be too lax:
-                        //  - Length = 1 or 2: "://" or "C://" are invalid (but ":/" or "C:/" are fine).
-                        //  - Length > 2: "ni:/" is invalid (but "ni://" is fine).
-                        if( first.Length <= 2 )
-                        {
-                            _option = NormalizedPathRootKind.RootedByFirstPart;
-                        }
-                        else
-                        {
-                            _option = NormalizedPathRootKind.RootedByURIScheme;
-                            _parts[0] = first + DirectorySeparatorChar;
-                        }
-                        if( path.Length > first.Length )
-                        {
-                            bool hasDoubleSlash = false;
-                            int doubleSlashPosLast = first.Length + 1;
-                            if( path.Length > doubleSlashPosLast )
-                            {
-                                Debug.Assert( path[doubleSlashPosLast - 1] == DirectorySeparatorChar || path[doubleSlashPosLast - 1] == AltDirectorySeparatorChar );
-                                var cS = path[doubleSlashPosLast];
-                                hasDoubleSlash = cS == DirectorySeparatorChar || cS == AltDirectorySeparatorChar;
-                            }
-                            if( hasDoubleSlash && _option == NormalizedPathRootKind.RootedByFirstPart )
-                            {
-                                Throw.ArgumentException( nameof( path ), $"Invalid root path: '{first}' may be followed by one {DirectorySeparatorChar} but not two." );
-                            }
-                            if( !hasDoubleSlash && _option == NormalizedPathRootKind.RootedByURIScheme )
-                            {
-                                Throw.ArgumentException( nameof( path ), $"Invalid root path: '{first}', as a URI scheme, may be followed by two {DirectorySeparatorChar} but not by only one." );
-                            }
-                        }
+                        _option = NormalizedPathRootKind.RootedByFirstPart;
+                        _path = _parts.Concatenate( DirectorySeparatorString );
                     }
                     else
                     {
-                        _option = NormalizedPathRootKind.None;
+                        if( first[^1] == ':' )
+                        {
+                            // To avoid errors and to not be too lax:
+                            //  - Length = 1 or 2: "://" or "C://" are invalid (but ":/" or "C:/" are fine).
+                            //  - Length > 2: "ni:/" is invalid (but "ni://" is fine).
+                            if( first.Length <= 2 )
+                            {
+                                _option = NormalizedPathRootKind.RootedByFirstPart;
+                            }
+                            else
+                            {
+                                _option = NormalizedPathRootKind.RootedByURIScheme;
+                                _parts[0] = first + DirectorySeparatorChar;
+                            }
+                            if( path.Length > first.Length )
+                            {
+                                bool hasDoubleSlash = false;
+                                int doubleSlashPosLast = first.Length + 1;
+                                if( path.Length > doubleSlashPosLast )
+                                {
+                                    Debug.Assert( path[doubleSlashPosLast - 1] == DirectorySeparatorChar || path[doubleSlashPosLast - 1] == AltDirectorySeparatorChar );
+                                    var cS = path[doubleSlashPosLast];
+                                    hasDoubleSlash = cS == DirectorySeparatorChar || cS == AltDirectorySeparatorChar;
+                                }
+                                if( hasDoubleSlash && _option == NormalizedPathRootKind.RootedByFirstPart )
+                                {
+                                    Throw.ArgumentException( nameof( path ), $"Invalid root path: '{first}' may be followed by one {DirectorySeparatorChar} but not two." );
+                                }
+                                if( !hasDoubleSlash && _option == NormalizedPathRootKind.RootedByURIScheme )
+                                {
+                                    Throw.ArgumentException( nameof( path ), $"Invalid root path: '{first}', as a URI scheme, may be followed by two {DirectorySeparatorChar} but not by only one." );
+                                }
+                            }
+                        }
+                        else
+                        {
+                            _option = NormalizedPathRootKind.None;
+                        }
+                        _path = _parts.Concatenate( DirectorySeparatorString );
+                        if( _option == NormalizedPathRootKind.RootedByURIScheme && _parts.Length == 1 ) _path += DirectorySeparatorChar;
                     }
-                    _path = _parts.Concatenate( DirectorySeparatorString );
-                    if( _option == NormalizedPathRootKind.RootedByURIScheme && _parts.Length == 1 ) _path += DirectorySeparatorChar;
                 }
             }
             Debug.Assert( _parts != null || _option != NormalizedPathRootKind.RootedByFirstPart, "parts == null ==> option != RootedByFirstPart" );
