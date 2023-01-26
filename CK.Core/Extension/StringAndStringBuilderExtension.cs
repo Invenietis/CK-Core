@@ -33,6 +33,29 @@ namespace CK.Core
         public static string Concatenate( this IEnumerable<string?> @this, char separator ) => String.Join( separator, @this );
 
         /// <summary>
+        /// Concatenates multiple chars with an internal separator.
+        /// </summary>
+        /// <param name="this">Set of chars.</param>
+        /// <param name="separator">The separator string.</param>
+        /// <returns>The joined string.</returns>
+        public static string Concatenate( this IEnumerable<char> @this, string separator ) => String.Join( separator, @this );
+
+        /// <summary>
+        /// Concatenates multiple chars without any internal separator.
+        /// </summary>
+        /// <param name="this">Set of chars.</param>
+        /// <returns>The joined string.</returns>
+        public static string Concatenate( this IEnumerable<char> @this ) => @this.Concatenate( string.Empty );
+
+        /// <summary>
+        /// Concatenates multiple chars with an internal character separator.
+        /// </summary>
+        /// <param name="this">Set of chars.</param>
+        /// <param name="separator">The separator character.</param>
+        /// <returns>The joined string.</returns>
+        public static string Concatenate( this IEnumerable<char> @this, char separator ) => String.Join( separator, @this );
+
+        /// <summary>
         /// Appends a set of strings with an internal separator.
         /// (This should be named 'Append' but appropriate overload is not always detected by the compiler.)
         /// </summary>
@@ -94,9 +117,9 @@ namespace CK.Core
 
         /// <summary>
         /// Appends a block of text to this StringBuilder with a prefix on each line.
-        /// <c>b.AppendMultiLine( prefix, text, false, true )</c> is the same as the naive approach, 
+        /// <c>b.AppendMultiLine( prefix, text, false, true )</c> is the same as the naive approach,
         /// that is to add <c>text.Replace( Environment.NewLine, Environment.NewLine + prefix )</c>.
-        /// This method is faster (in release build), normalizes EOL (\n, \r and \r\n) 
+        /// This method is faster (in release build), normalizes EOL (\n, \r and \r\n)
         /// to <see cref="Environment.NewLine"/> and offer a better and easier control with its
         /// parameters <paramref name="prefixOnFirstLine"/> and <paramref name="prefixLastEmptyLine"/>.
         /// </summary>

@@ -17,6 +17,30 @@ namespace CK.Core.Tests
         }
 
         [Test]
+        public void concat_method_uses_String_Join_inside_char_overload()
+        {
+            var chars = new[] { 'A', 'H', 'B', 'W', ' ', 'E' };
+            var s = chars.Concatenate( "|+|" );
+            s.Should().Be( "A|+|H|+|B|+|W|+| |+|E" );
+        }
+
+        [Test]
+        public void concat_method_uses_String_Join_inside_char_overload_no_separator()
+        {
+            var chars = new[] { 'A', 'H', 'B', 'W', ' ', 'E' };
+            var s = chars.Concatenate();
+            s.Should().Be( "AHBW E" );
+        }
+
+        [Test]
+        public void concat_method_uses_String_Join_inside_char_overload_char_separator()
+        {
+            var chars = new[] { 'A', 'H', 'B', 'W', ' ', 'E' };
+            var s = chars.Concatenate(',');
+            s.Should().Be( "A,H,B,W, ,E" );
+        }
+
+        [Test]
         public void StringBuilder_AppendStrings_method_does_not_skip_null_entries()
         {
             var strings = new string[] { "A", "Hello", "B", "World", null!, "End" };
@@ -147,8 +171,8 @@ Second line.
 
     Also indented.
 Last line.";
-                // Here, normalizing the source embedded string is to support 
-                // git clone with LF in files instead of CRLF. 
+                // Here, normalizing the source embedded string is to support
+                // git clone with LF in files instead of CRLF.
                 // Our AppendMultiLine normalizes the end of lines to Environment.NewLine.
                 string t = b.AppendMultiLine( "|", text, true ).ToString();
                 t.Should().Be( @"|First line.
