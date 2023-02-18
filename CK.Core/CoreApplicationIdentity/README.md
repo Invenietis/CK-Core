@@ -5,7 +5,7 @@
 The goal of this small static class is to capture once for all the notion of a process identity. And this is not a simple
 issue.
 
-The idea here is to as simple as possible:
+The idea here is to express this as simply as possible:
 
 - A process is rooted in a "domain", that is a family of applications that typically work together. A domain 
 is like a "realm" in security frameworks, a "tenant" or an "organization" in a cloud infrastructure. 
@@ -24,7 +24,7 @@ This small class will never solve this issue but it aims to capture and expose t
 (or help reasoning) about it:
 
 - The "running instance" itself is necessarily unique because of the static `InstanceId` that is a always available unique random string.
-- Other "identity" can be captured by the `ContextIdentifier` that can use process arguments, working directory
+- Other "identity" can be captured by the `ContextDescriptor` that can use process arguments, working directory
 or any other contextual information that helps identify a process.
 
 ## Initialization and usage
