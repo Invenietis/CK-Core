@@ -1,10 +1,12 @@
 using System;
 using System.Diagnostics;
 using System.Globalization;
+using System.Reflection.Metadata;
 using System.Runtime.Serialization;
 
 namespace CK.Core
 {
+
     /// <summary>
     /// A date and time stamp encapsulates a <see cref="TimeUtc"/> (<see cref="DateTime"/> guaranteed to be in Utc) and a <see cref="Uniquifier"/>.
     /// </summary>
@@ -40,7 +42,7 @@ namespace CK.Core
         /// <summary>
         /// Uniquifier: non zero when <see cref="TimeUtc"/> collides.
         /// </summary>
-        public readonly Byte Uniquifier;
+        public readonly byte Uniquifier;
 
         DateTimeStamp( int justForInvalidOne )
         {
@@ -73,7 +75,7 @@ namespace CK.Core
         /// </summary>
         /// <param name="timeUtc">The log time. <see cref="DateTime.Kind"/> must be <see cref="DateTimeKind.Utc"/>.</param>
         /// <param name="uniquifier">Optional non zero uniquifier.</param>
-        public DateTimeStamp( DateTime timeUtc, Byte uniquifier = 0 )
+        public DateTimeStamp( DateTime timeUtc, byte uniquifier = 0 )
         {
             Throw.CheckArgument( timeUtc.Kind == DateTimeKind.Utc );
             TimeUtc = timeUtc;
@@ -86,7 +88,7 @@ namespace CK.Core
         /// </summary>
         /// <param name="lastOne">Last time stamp.</param>
         /// <param name="time">Time (generally current <see cref="DateTime.UtcNow"/>).</param>
-        /// <param name="ensureGreaterThanLastOne">False to only check for time equality collision instead of guarantying ascending log time.</param>
+        /// <param name="ensureGreaterThanLastOne">False to only check for time equality collision instead of guarantying ascending time.</param>
         public DateTimeStamp( DateTimeStamp lastOne, DateTime time, bool ensureGreaterThanLastOne = true )
         {
             Throw.CheckArgument( time.Kind == DateTimeKind.Utc );
