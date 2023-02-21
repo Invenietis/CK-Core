@@ -7,7 +7,9 @@ using System.Threading.Tasks;
 
 namespace CK.Core
 {
-    // To remove when https://github.com/dotnet/runtime/issues/30580 is implemented.
+    /// <summary>
+    /// To be removed when https://github.com/dotnet/runtime/issues/30580 is implemented.
+    /// </summary>
     public static class SequenceReaderExtensions
     {
         /// <inheritdoc cref="System.Buffers.SequenceReaderExtensions.TryReadBigEndian(ref SequenceReader{byte}, out short)"/>

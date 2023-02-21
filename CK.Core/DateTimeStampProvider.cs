@@ -4,7 +4,9 @@ namespace CK.Core
 {
     /// <summary>
     /// Thread safe <see cref="DateTimeStamp"/> provider: the ever increasing
-    /// <see cref="Value"/> is protected by an internal lock.
+    /// <see cref="Value"/> is protected by an internal lock: there should be very few contentions
+    /// here (the update operation is very fast), so we keep it simple (lock is efficient when there
+    /// is no contention).
     /// </summary>
     public sealed class DateTimeStampProvider
     {
