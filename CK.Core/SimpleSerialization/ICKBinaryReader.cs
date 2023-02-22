@@ -311,16 +311,28 @@ namespace CK.Core
         int? ReadNullableInt32();
 
         /// <summary>
-        /// Reads a nullable unsigned long (<see cref="UInt64"/>) value.
+        /// Reads a nullable UInt64 (<see cref="ulong"/>) value.
         /// </summary>
         /// <returns>The nullable ulong read.</returns>
         ulong? ReadNullableUInt64();
 
         /// <summary>
-        /// Reads a nullable long (<see cref="Int64"/>) value.
+        /// Reads a nullable Int64 (<see cref="long"/>) value.
         /// </summary>
         /// <returns>The nullable int read.</returns>
         long? ReadNullableInt64();
+
+        /// <summary>
+        /// Reads a nullable Single (<see cref="float"/>) value.
+        /// </summary>
+        /// <returns>The nullable float read.</returns>
+        float? ReadNullableSingle();
+
+        /// <summary>
+        /// Reads a nullable Double (<see cref="double"/>) value.
+        /// </summary>
+        /// <returns>The nullable double read.</returns>
+        double? ReadNullableDouble();
 
         /// <summary>
         /// Reads an enum value previously written by <see cref="ICKBinaryWriter.WriteEnum{T}(T)"/>.

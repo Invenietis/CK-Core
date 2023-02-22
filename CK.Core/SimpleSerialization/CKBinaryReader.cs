@@ -382,6 +382,18 @@ namespace CK.Core
         {
             return ReadBoolean() ? ReadGuid() : null;
         }
+
+        /// <inheritdoc />
+        public float? ReadNullableSingle()
+        {
+            return ReadBoolean() ? ReadSingle() : null;
+        }
+
+        /// <inheritdoc />
+        public double? ReadNullableDouble()
+        {
+            return ReadBoolean() ? ReadDouble() : null;
+        }
     }
 
 }

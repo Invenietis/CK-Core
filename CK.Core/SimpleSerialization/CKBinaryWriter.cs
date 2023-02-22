@@ -209,6 +209,28 @@ namespace CK.Core
         }
 
         /// <inheritdoc />
+        public void WriteNullableSingle( float? f )
+        {
+            if( f.HasValue )
+            {
+                Write( (byte)1 );
+                Write( f.Value );
+            }
+            else Write( (byte)0x0 );
+        }
+
+        /// <inheritdoc />
+        public void WriteNullableDouble( double? d )
+        {
+            if( d.HasValue )
+            {
+                Write( (byte)1 );
+                Write( d.Value );
+            }
+            else Write( (byte)0x0 );
+        }
+
+        /// <inheritdoc />
         public void WriteNullableSByte( sbyte? b )
         {
             if( !b.HasValue ) Write( (byte)0x7F );
