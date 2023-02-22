@@ -296,8 +296,9 @@ namespace CK.Core
         /// Writes the exception data as a readable block of text into a <see cref="TextWriter"/>.
         /// </summary>
         /// <param name="w">The TextWriter to write to.</param>
+        /// <param name="skipMessage">True to not display the exception message (only the trace, details and inner exceptions).</param>
         /// <param name="prefix">Prefix that will appear at the start of each line.</param>
-        public void ToTextWriter( TextWriter w, string prefix )
+        public void ToTextWriter( TextWriter w, string prefix, bool skipMessage = false )
         {
             StringWriter? sw = w as StringWriter;
             StringBuilder b = sw != null ? sw.GetStringBuilder() : new StringBuilder();
@@ -310,8 +311,9 @@ namespace CK.Core
         /// </summary>
         /// <param name="b">The StringBuilder to write to.</param>
         /// <param name="prefix">Prefix that will appear at the start of each line.</param>
+        /// <param name="skipMessage">True to not display the exception message (only the trace, details and inner exceptions).</param>
         /// <param name="endWithNewLine">Whether a new line is appended to the end of the text or not.</param>
-        public void ToStringBuilder( StringBuilder b, string prefix, bool endWithNewLine = true )
+        public void ToStringBuilder( StringBuilder b, string prefix, bool skipMessage = false, bool endWithNewLine = true )
         {
             if( prefix == null ) prefix = string.Empty;
             if( prefix.Length == 0 && _toString != null )
@@ -329,7 +331,7 @@ namespace CK.Core
 
             string locPrefix = prefix + " | ";
 
-            AppendField( b, locPrefix, "Message", _message );
+            if( !skipMessage ) AppendField( b, locPrefix, "Message", _message );
 
             if( _stackTrace != null ) AppendField( b, locPrefix, "Stack", _stackTrace );
             
