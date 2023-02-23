@@ -18,7 +18,7 @@ namespace CK.Core
 
         /// <summary>
         /// Marks a path that is rooted because of its <see cref="NormalizedPath.FirstPart"/>.
-        /// A path that starts with a tilde (~) is rooted as well as a path whose first ends with a colon (:).
+        /// A path that starts with a tilde (~/) is rooted as well as a path whose first ends with a colon (:).
         /// <para>
         /// When the first part ends with a colon, there's 2 cases:
         /// <list type="bullet">

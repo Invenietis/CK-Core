@@ -376,5 +376,33 @@ namespace CK.Core
         /// </summary>
         /// <param name="g">The value to write.</param>
         void WriteNullableGuid( Guid? g );
+
+        /// <summary>
+        /// Writes a nullable Single (<see cref="float"/>) value.
+        /// Simple pattern here: a 0 byte marker for null
+        /// and a 1 byte marker followed by the float for non null.
+        /// </summary>
+        /// <param name="f">The value to write.</param>
+        /// <remarks>
+        /// We could have played with the 2 NaN: 0x7FFFFFFF  and 0xFFFFFFFF 
+        /// (the sign bit differs) but we prefer to stay on the safe side here since
+        /// it would mean to "normalize" one of the NaN to be the actual NaN (the other being
+        /// the null).
+        /// </remarks>
+        void WriteNullableSingle( float? f );
+
+        /// <summary>
+        /// Writes a nullable double value.
+        /// Simple pattern here: a 0 byte marker for null
+        /// and a 1 byte marker followed by the double for non null.
+        /// </summary>
+        /// <param name="d">The value to write.</param>
+        /// <remarks>
+        /// We could have played with the 2 NaN: 0x7FFFFFFFFFFFFFFF and 0xFFFFFFFFFFFFFFFF
+        /// (the sign bit differs) but we prefer to stay on the safe side here since
+        /// it would mean to "normalize" one of the NaN to be the actual NaN (the other being
+        /// the null).
+        /// </remarks>
+        void WriteNullableDouble( double? d );
     }
 }

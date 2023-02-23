@@ -83,7 +83,7 @@ namespace CK.Core
         public string ContextDescriptor { get; }
 
         /// <summary>
-        /// Gets a Base64Url encoded opaque random string that is the SHA1
+        /// Gets a Base64Url encoded opaque string that is the SHA1
         /// of the <see cref="DomainName"/>/<see cref="EnvironmentName"/>/<see cref="PartyName"/>/<see cref="ContextDescriptor"/>.
         /// This identifies this application and its running context (but not this running instance).
         /// </summary>

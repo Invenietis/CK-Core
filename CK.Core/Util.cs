@@ -316,7 +316,7 @@ namespace CK.Core
         public static CheckedWriteStream CreateCheckedWriteStream( ReadOnlySequence<byte> refBytes ) => new CheckedWriteStreamOnROSBytes( refBytes );
 
         /// <summary>
-        /// Creates <see cref="CheckedWriteStream"/> with its reference bytes as a <see cref="ReadOnlySequence{T}"/>.
+        /// Creates <see cref="CheckedWriteStream"/> with its reference bytes from a <see cref="RecyclableMemoryStream"/>.
         /// </summary>
         /// <param name="s">The reference stream.</param>
         /// <returns>A checked write stream.</returns>

@@ -1,31 +1,13 @@
-
-using Cake.Common.Diagnostics;
 using Cake.Common.IO;
-using Cake.Common.Solution;
-using Cake.Common.Tools.DotNetCore;
-using Cake.Common.Tools.DotNetCore.Build;
-using Cake.Common.Tools.DotNetCore.Pack;
-using Cake.Common.Tools.DotNetCore.Restore;
-using Cake.Common.Tools.DotNetCore.Test;
-using Cake.Common.Tools.NuGet;
-using Cake.Common.Tools.NuGet.Push;
-using Cake.Common.Tools.NUnit;
 using Cake.Core;
 using Cake.Core.Diagnostics;
-using Cake.Core.IO;
-
-using SimpleGitVersion;
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
 
 namespace CodeCake
 {
     /// <summary>
     /// Standard build "script".
     /// </summary>
-    
+
     public partial class Build : CodeCakeHost
     {
         public Build()

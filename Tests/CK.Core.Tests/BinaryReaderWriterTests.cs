@@ -521,6 +521,54 @@ namespace CK.Core.Tests
         }
 
         [Test]
+        public void nullable_double()
+        {
+            var nan1 = BitConverter.Int64BitsToDouble( -1 );
+            var nan2 = BitConverter.Int64BitsToDouble( long.MaxValue );
+            double.IsNaN( nan1 ).Should().BeTrue();
+            double.IsNaN( nan2 ).Should().BeTrue();
+            ReadWrite( w =>
+            {
+                w.WriteNullableDouble( nan2 );
+                w.WriteNullableDouble( nan1 );
+                w.WriteNullableDouble( null );
+                w.WriteNullableDouble( Math.PI );
+            },
+            r =>
+            {
+                r.ReadNullableDouble().Should().Be( nan2 );
+                r.ReadNullableDouble().Should().Be( nan1 );
+                r.ReadNullableDouble().Should().Be( null );
+                r.ReadNullableDouble().Should().Be( Math.PI );
+            } )
+            .Should().Be( 1 + 3 * (1+8) );
+        }
+
+        [Test]
+        public void nullable_float()
+        {
+            var nan1 = BitConverter.Int32BitsToSingle( -1 );
+            var nan2 = BitConverter.Int32BitsToSingle( int.MaxValue );
+            float.IsNaN( nan1 ).Should().BeTrue();
+            float.IsNaN( nan2 ).Should().BeTrue();
+            ReadWrite( w =>
+            {
+                w.WriteNullableSingle( nan2 );
+                w.WriteNullableSingle( nan1 );
+                w.WriteNullableSingle( null );
+                w.WriteNullableSingle( (float)Math.PI );
+            },
+            r =>
+            {
+                r.ReadNullableSingle().Should().Be( nan2 );
+                r.ReadNullableSingle().Should().Be( nan1 );
+                r.ReadNullableSingle().Should().Be( null );
+                r.ReadNullableSingle().Should().Be( (float)Math.PI );
+            } )
+            .Should().Be( 1 + 3 * (1+4) );
+        }
+
+        [Test]
         public void object_pool_with_write_marker()
         {
             using( var mem = Util.RecyclableStreamManager.GetStream() )

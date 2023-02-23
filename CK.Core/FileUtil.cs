@@ -440,7 +440,7 @@ namespace CK.Core
         /// Waits for a file to be writable or does not exist (if it does not exist, it can be created!).
         /// The file is opened and close.
         /// Waits the number of <paramref name="nbMaxMilliSecond"/> before leaving and returning false: when 0 (the default),
-        /// there is no wai. A nbMaxMilliSecond below 20 ~ 30 milliseconds is not accurate: even with nbMaxMilliSecond = 1
+        /// there is no wait. A nbMaxMilliSecond below 20 ~ 30 milliseconds is not accurate: even with nbMaxMilliSecond = 1
         /// this method will return true if the file becomes writable during the next 10 or 20 milliseconds.
         /// </summary>
         /// <param name="path">The path of the file to write to.</param>
