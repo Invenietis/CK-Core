@@ -36,22 +36,17 @@ namespace CK.Core
         /// <summary>
         /// Gets the name of the domain to which this application belongs.
         /// It cannot empty and defaults to "Undefined". This reserved name
-        /// must prevent any logs to be sent to any collector that is not on the machine
-        /// that runs this application (this is typically used on developer's machine).
+        /// should be treated as "external to the System".
         /// <para>
-        /// It must be a case sensitive identifier that should use PascalCase convention if possible:
-        /// it must only contain 'A'-'Z', 'a'-'z', '0'-'9' and '_' characters and must not
-        /// start with a digit nor a '_'.
+        /// See <see cref="IsValidDomainName(ReadOnlySpan{char})"/> for its syntax.
         /// </para>
         /// </summary>
         public string DomainName { get; }
 
         /// <summary>
-        /// Gets the name of the environment. Defaults to the empty string.
+        /// Gets the name of the environment. Defaults to "Development".
         /// <para>
-        /// When not empty, it must be a case sensitive identifier that should use PascalCase convention if possible:
-        /// it must only contain 'A'-'Z', 'a'-'z', '0'-'9' and '_' characters and must not
-        /// start with a digit nor a '_'.
+        /// See <see cref="IsValidIdentifier(ReadOnlySpan{char})"/> for its syntax.
         /// </para>
         /// </summary>
         public string EnvironmentName { get; }
@@ -59,9 +54,7 @@ namespace CK.Core
         /// <summary>
         /// Gets this party name. Cannot be empty.
         /// <para>
-        /// It must be a case sensitive identifier that should use PascalCase convention:
-        /// it must only contain 'A'-'Z', 'a'-'z', '0'-'9' and '_' characters and must not
-        /// start with a digit nor a '_'.
+        /// See <see cref="IsValidIdentifier(ReadOnlySpan{char})"/> for its syntax.
         /// </para>
         /// <para>
         /// Defaults to a string derived from the <see cref="Environment.ProcessPath"/>.
@@ -74,7 +67,7 @@ namespace CK.Core
         /// Gets a string that identifies the context into which this
         /// application is running. Defaults to the empty string.
         /// <para>
-        /// There is no constraint on this string (but shorter is better) except that
+        /// There is no constraint on this string (but shorter is better). Note that
         /// the characters 0 to 8 (NUl, SOH, STX, ETX, EOT, ENQ, ACK, BEL, BSP) are
         /// mapped to their respective angle bracket enclosed string representation
         /// (0x0 is mapped to &lt;NUL&gt;, 0x1 to &lt;SOH&gt;, etc.).
@@ -90,16 +83,31 @@ namespace CK.Core
         public string ContextualId { get; }
 
         /// <summary>
-        /// Gets this <see cref="PartyName"/>-C<see cref="ContextualId"/>.
-        /// Since PartyName cannot contain '-', the "-C" acts as an easy separator that can be used.
+        /// Gets this <see cref="PartyName"/>.C<see cref="ContextualId"/>.
+        /// Since PartyName cannot contain '.', the "-C" acts as an easy separator that can be used.
         /// </summary>
         public string PartyContextualName { get; }
 
         /// <summary>
-        /// Gets this <see cref="PartyName"/>-I<see cref="InstanceId"/>.
-        /// Since PartyName cannot contain '-', the "-I" acts as an easy separator that can be used.
+        /// Gets this <see cref="PartyName"/>.I<see cref="InstanceId"/>.
+        /// Since PartyName cannot contain '.', the "-I" acts as an easy separator that can be used.
         /// </summary>
         public string PartyInstanceName { get; }
+
+        /// <summary>
+        /// Gets this identity logical full name:
+        /// <list type="bullet">
+        /// <item>
+        /// It is <see cref="DomainName"/>/<see cref="EnvironmentName"/>/<see cref="PartyName"/> when domain name is a simple
+        /// identifier.
+        /// </item>
+        /// <item>
+        /// When DomainName is a path (like "A/B/C"), this is "A/<see cref="EnvironmentName"/>/B/C/<see cref="PartyName"/>".
+        /// </item>
+        /// </list>
+        /// The Environment is always the second part of the full name.
+        /// </summary>
+        public NormalizedPath FullName { get; }
 
         /// <summary>
         /// Gets a Base64Url encoded opaque random string that identifies this running instance.
@@ -116,9 +124,18 @@ namespace CK.Core
             EnvironmentName = b.EnvironmentName;
             PartyName = b.PartyName ?? "Undefined";
             ContextDescriptor = b.ContextDescriptor ?? "";
-            ContextualId = Base64UrlHelper.ToBase64UrlString( SHA1.HashData( Encoding.UTF8.GetBytes( $"{DomainName}/{EnvironmentName}/{PartyName}/{ContextDescriptor}" ) ) );
-            PartyContextualName = PartyName + "-C" + ContextualId;
-            PartyInstanceName = PartyName + "-I" + InstanceId;
+            int idxFirst = DomainName.IndexOf( "/" );
+            if( idxFirst > 0 )
+            {
+                FullName = $"{DomainName.Substring( 0, idxFirst )}/{EnvironmentName}{DomainName.Substring(idxFirst)}/{PartyName}";
+            }
+            else
+            {
+                FullName = $"{DomainName}/{EnvironmentName}/{PartyName}";
+            }
+            ContextualId = Base64UrlHelper.ToBase64UrlString( SHA1.HashData( Encoding.UTF8.GetBytes( $"{FullName}/{ContextDescriptor}" ) ) );
+            PartyContextualName = PartyName + ".C" + ContextualId;
+            PartyInstanceName = PartyName + ".I" + InstanceId;
         }
 
         static Builder? _builder;
@@ -242,5 +259,73 @@ namespace CK.Core
             }
             return _instance;
         }
+
+        /// <summary>
+        /// Checks whether the value is a valid <see cref="CoreApplicationIdentity.DomainName"/>.
+        /// <para>
+        /// It must be a case sensitive identifier or path of identifiers:
+        /// <list type="bullet">
+        /// <item>
+        /// Identifier should use PascalCase convention if possible and must only
+        /// contain 'A'-'Z', 'a'-'z', '0'-'9', '-' and '_' characters and must not
+        /// start with a digit, and not start or end with '_' or '-'.
+        /// </item>
+        /// <item>
+        /// A path must be a '/' separated identifiers as described above. No leading or trailing '/' and no double '//' are allowed.
+        /// </item>
+        /// </list>
+        /// </para>
+        /// </summary>
+        /// <param name="value">The candidate domain name.</param>
+        /// <returns>True for a valid domain name.</returns>
+        public static bool IsValidDomainName( ReadOnlySpan<char> value )
+        {
+            if( value.Length == 0 ) return false;
+            int idx = value.IndexOf( '/' );
+            if( idx >= 0 )
+            {
+                do
+                {
+                    if( idx == 0 ) return false;
+                    if( idx == value.Length - 1 ) return false;
+                    if( !IsValidIdentifier( value.Slice( 0, idx ) ) ) return false;
+                    value = value.Slice( idx + 1 );
+                    idx = value.IndexOf( '/' );
+                }
+                while( idx >= 0 );
+                return true;
+            }
+            return IsValidIdentifier( value );
+        }
+
+        /// <summary>
+        /// Checks whether the value is a valid <see cref="CoreApplicationIdentity.PartyName"/> or <see cref="CoreApplicationIdentity.EnvironmentName"/>.
+        /// <para>
+        /// It should use PascalCase convention if possible and must only
+        /// contain 'A'-'Z', 'a'-'z', '0'-'9', '-' and '_' characters and must not
+        /// start with a digit, and not start or end with '_' or '-'.
+        /// </para>
+        /// </summary>
+        /// <param name="value">The candidate.</param>
+        /// <returns>True for a valid identifier.</returns>
+        public static bool IsValidIdentifier( ReadOnlySpan<char> value )
+        {
+            if( value.Length == 0 ) return false;
+            char first = value[0];
+            if( Char.IsDigit( first ) || first == '-' || first == '_' ) return false;
+            char last = value[value.Length - 1];
+            if( last == '-' || last == '_' ) return false;
+            foreach( var c in value )
+            {
+                if( !IsValidNameChar( c ) ) return false;
+            }
+            return true;
+
+            static bool IsValidNameChar( char c )
+            {
+                return (c is >= 'a' and <= 'z') || (c is >= 'A' and <= 'Z') || (c is >= '0' and <= '9') || c == '-' || c == '_';
+            }
+        }
+
     }
 }

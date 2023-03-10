@@ -12,7 +12,7 @@ is like a "realm" in security frameworks, a "tenant" or an "organization" in a c
 - Then comes an optional "environment" that aims to identify a deployment context like "Production" or "Staging".
 - Finally the `PartyName` identifies the "application" itself, both the code base and its role in the architecture.
 
-The first usage of this `DomainName/PartyName` or `DomainName/EnvironmentName/PartyName` simple path is to group/route logs
+The first usage of this `DomainName/EnvironmentName/PartyName` simple path is to group/route logs
 emitted by processes.
 
 This doesn't imply any form of uniqueness, "process uniqueness" is a complex matter. A process can only be truly unique (at
@@ -27,9 +27,36 @@ This small class will never solve this issue but it aims to capture and expose t
 - Other "identity" can be captured by the `ContextDescriptor` that can use process arguments, working directory
 or any other contextual information that helps identify a process.
 
+## Naming constraints and defaults
+
+All names are case sensitive, PascalCase convention should be use.
+
+- DomainName defaults to `"Undefined"` and cannot be empty. It may a a path (contains '/').
+- EnvironmentName defaults to `"Development"` and cannot be empty.
+- PartyName has no defaults. It cannot be empty and has to be set (ultimately it can be set to "Unknown" but this should barely happen).
+
+EnvironmentName and PartyName are "identifiers": the can only contain 'A'-'Z', 'a'-'z', '0'-'9', '-' and '\_'
+characters and must not start with a digit, and not start or end with '_' or '-'.
+
+DomainName is an identifier as described above or a path ('/' separated identifiers). No leading or trailing '/'
+and no double '//' are allowed.
+
+A FullName property is available:
+- It is `DomainName/EnvironmentName/PartyName` when domain name is a simple identifier.
+- When DomainName is a path (like "A/B/C"), this is `A/EnvironmentName/B/C/PartyName`.
+
+> The EnvironmentName is always the second part of the full name.
+
+Example:
+- DomainName: "Signature/SaaS/Internal"
+- EnvironmentName: "Production"
+- PartyName: "BugTracker"
+
+The full name is: `Signature/Production/SaaS/Internal/BugTracker`.
+
 ## Initialization and usage
 
-The usage can hardly be simpler: `CoreApplicationIdentity.Instance` is a singleton withe the 5 basic informations.
+The usage can hardly be simpler: `CoreApplicationIdentity.Instance` is a singleton with the 6 basic informations.
 
 Initializations is a little bit trickier since this must be an immutable information: one shouldn't be able to use it before
 it is built and one shouldn't modify it once built.

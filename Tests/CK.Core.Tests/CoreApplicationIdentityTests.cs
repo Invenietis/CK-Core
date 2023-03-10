@@ -26,15 +26,48 @@ namespace CK.Core.Tests
         }
 
         [Test]
-        public void Builder_IsValidIdentifier_check()
+        public void IsValidIdentifier_check()
         {
-            CoreApplicationIdentity.Builder.IsValidIdentifier( " " ).Should().BeFalse();
-            CoreApplicationIdentity.Builder.IsValidIdentifier( "_" ).Should().BeFalse();
-            CoreApplicationIdentity.Builder.IsValidIdentifier( "_A" ).Should().BeFalse();
-            CoreApplicationIdentity.Builder.IsValidIdentifier( "A-" ).Should().BeFalse();
+            CoreApplicationIdentity.IsValidIdentifier( "" ).Should().BeFalse();
+            CoreApplicationIdentity.IsValidIdentifier( " " ).Should().BeFalse();
+            CoreApplicationIdentity.IsValidIdentifier( "_" ).Should().BeFalse();
+            CoreApplicationIdentity.IsValidIdentifier( "_A" ).Should().BeFalse();
+            CoreApplicationIdentity.IsValidIdentifier( "A_" ).Should().BeFalse();
+            CoreApplicationIdentity.IsValidIdentifier( "-A" ).Should().BeFalse();
+            CoreApplicationIdentity.IsValidIdentifier( "A-" ).Should().BeFalse();
 
-            CoreApplicationIdentity.Builder.IsValidIdentifier( "A" ).Should().BeTrue();
-            CoreApplicationIdentity.Builder.IsValidIdentifier( "A_" ).Should().BeTrue();
+            CoreApplicationIdentity.IsValidIdentifier( "A" ).Should().BeTrue();
+            CoreApplicationIdentity.IsValidIdentifier( "A_B" ).Should().BeTrue();
+            CoreApplicationIdentity.IsValidIdentifier( "A__B" ).Should().BeTrue();
+            CoreApplicationIdentity.IsValidIdentifier( "A__B_C" ).Should().BeTrue();
+            CoreApplicationIdentity.IsValidIdentifier( "A-B" ).Should().BeTrue();
+            CoreApplicationIdentity.IsValidIdentifier( "A--B" ).Should().BeTrue();
+            CoreApplicationIdentity.IsValidIdentifier( "A--B-C" ).Should().BeTrue();
+        }
+
+        [Test]
+        public void IsValidDomainName_check()
+        {
+            CoreApplicationIdentity.IsValidDomainName( "" ).Should().BeFalse();
+            CoreApplicationIdentity.IsValidDomainName( "/" ).Should().BeFalse();
+            CoreApplicationIdentity.IsValidDomainName( "/A" ).Should().BeFalse();
+            CoreApplicationIdentity.IsValidDomainName( "A/" ).Should().BeFalse();
+            CoreApplicationIdentity.IsValidDomainName( "A//B" ).Should().BeFalse();
+            CoreApplicationIdentity.IsValidDomainName( "A/B/C/" ).Should().BeFalse();
+            CoreApplicationIdentity.IsValidDomainName( "A/B//C" ).Should().BeFalse();
+
+            CoreApplicationIdentity.IsValidDomainName( "A" ).Should().BeTrue();
+            CoreApplicationIdentity.IsValidDomainName( "A/B" ).Should().BeTrue();
+            CoreApplicationIdentity.IsValidDomainName( "A/B/C" ).Should().BeTrue();
+        }
+
+        [Test]
+        public void PartyName_from_ProcessPath_ultimately_resolves_to_Unknown()
+        {
+            var valid = CoreApplicationIdentity.Builder.PartyNameFromProcessPath( Environment.ProcessPath );
+            CoreApplicationIdentity.IsValidIdentifier( valid ).Should().BeTrue();
+
+            CoreApplicationIdentity.Builder.PartyNameFromProcessPath( "" ).Should().Be( "Unknown" );
         }
 
         [Test]
@@ -42,14 +75,14 @@ namespace CK.Core.Tests
         {
             var d = CoreApplicationIdentity.Instance;
             d.DomainName.Should().Be( "Undefined" );
-            d.EnvironmentName.Should().Be( "" );
+            d.EnvironmentName.Should().Be( "Development" );
             d.PartyName.Should().NotBeNullOrWhiteSpace();
             d.PartyName.Should().NotContainAny( "\\", "//", ":" );
-            d.PartyName.Should().NotStartWith( "_" );
+            d.PartyName.Should().NotStartWith( "_" ).And.NotStartWith( "-" );
             d.ContextDescriptor.Should().Be( "" );
             d.ContextualId.Should().NotBeNullOrWhiteSpace();
-            d.PartyContextualName.Should().Be( d.PartyName + "-C" + d.ContextualId );
-            d.PartyInstanceName.Should().Be( d.PartyName + "-I" + CoreApplicationIdentity.InstanceId );
+            d.PartyContextualName.Should().Be( d.PartyName + ".C" + d.ContextualId );
+            d.PartyInstanceName.Should().Be( d.PartyName + ".I" + CoreApplicationIdentity.InstanceId );
         }
 
         [Test]
