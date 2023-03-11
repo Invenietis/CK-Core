@@ -127,13 +127,13 @@ namespace CK.Core
             int idxFirst = DomainName.IndexOf( "/" );
             if( idxFirst > 0 )
             {
-                FullName = $"{DomainName.Substring( 0, idxFirst )}/{EnvironmentName}{DomainName.Substring(idxFirst)}/{PartyName}";
+                FullName = $"{DomainName.AsSpan( 0, idxFirst )}/{EnvironmentName}{DomainName.AsSpan(idxFirst)}/{PartyName}";
             }
             else
             {
                 FullName = $"{DomainName}/{EnvironmentName}/{PartyName}";
             }
-            ContextualId = Base64UrlHelper.ToBase64UrlString( SHA1.HashData( Encoding.UTF8.GetBytes( $"{FullName}/{ContextDescriptor}" ) ) );
+            ContextualId = Base64UrlHelper.ToBase64UrlString( SHA1.HashData( Encoding.UTF8.GetBytes( $"{FullName.Path}/{ContextDescriptor}" ) ) );
             PartyContextualName = PartyName + ".C" + ContextualId;
             PartyInstanceName = PartyName + ".I" + InstanceId;
         }
