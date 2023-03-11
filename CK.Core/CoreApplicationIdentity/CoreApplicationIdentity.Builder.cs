@@ -20,8 +20,8 @@ namespace CK.Core
 
             internal Builder()
             {
-                _domainName = "Undefined";
-                _environmentName = "Development";
+                _domainName = DefaultDomainName;
+                _environmentName = DefaultEnvironmentName;
             }
 
             internal CoreApplicationIdentity Build()
@@ -35,7 +35,7 @@ namespace CK.Core
 
             /// <summary>
             /// Tries to compute a <see cref="IsValidIdentifier(ReadOnlySpan{char})"/> from any string.
-            /// Ultimately returns "Unknown".
+            /// Ultimately returns <see cref="DefaultPartyName"/>.
             /// </summary>
             /// <param name="processPath">Called with <see cref="Environment.ProcessPath"/>.</param>
             /// <returns>A party name to use.</returns>
@@ -52,7 +52,7 @@ namespace CK.Core
                     int len = skipEnd - skipHead;
                     if( len > 0 ) return p.Substring( skipHead, len );
                 }
-                return "Unknown";
+                return DefaultPartyName;
             }
 
             /// <summary>

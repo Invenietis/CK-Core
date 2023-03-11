@@ -34,8 +34,23 @@ namespace CK.Core
     public sealed partial class CoreApplicationIdentity
     {
         /// <summary>
+        /// The "Undefined" domain name denotes an external party of the System.
+        /// </summary>
+        public const string DefaultDomainName = "Undefined";
+
+        /// <summary>
+        /// This is "Development".
+        /// </summary>
+        public const string DefaultEnvironmentName = "Development";
+
+        /// <summary>
+        /// The default party name is "Unknown".
+        /// </summary>
+        public const string DefaultPartyName = "Unknown";
+
+        /// <summary>
         /// Gets the name of the domain to which this application belongs.
-        /// It cannot empty and defaults to "Undefined". This reserved name
+        /// It cannot empty and defaults to "Undefined" (<see cref="DefaultDomainName"/>). This reserved name
         /// should be treated as "external to the System".
         /// <para>
         /// See <see cref="IsValidDomainName(ReadOnlySpan{char})"/> for its syntax.
@@ -44,7 +59,7 @@ namespace CK.Core
         public string DomainName { get; }
 
         /// <summary>
-        /// Gets the name of the environment. Defaults to "Development".
+        /// Gets the name of the environment. Defaults to "Development" (<see cref="DefaultEnvironmentName"/>).
         /// <para>
         /// See <see cref="IsValidIdentifier(ReadOnlySpan{char})"/> for its syntax.
         /// </para>
@@ -58,7 +73,7 @@ namespace CK.Core
         /// </para>
         /// <para>
         /// Defaults to a string derived from the <see cref="Environment.ProcessPath"/>.
-        /// If the ProcessPath is null, the "Undefined" string is used.
+        /// If the ProcessPath is null, "Unknown" string is used (<see cref="DefaultPartyName"/>).
         /// </para>
         /// </summary>
         public string PartyName { get; }
@@ -122,7 +137,7 @@ namespace CK.Core
         {
             DomainName = b.DomainName;
             EnvironmentName = b.EnvironmentName;
-            PartyName = b.PartyName ?? "Undefined";
+            PartyName = b.PartyName ?? DefaultPartyName;
             ContextDescriptor = b.ContextDescriptor ?? "";
             int idxFirst = DomainName.IndexOf( "/" );
             if( idxFirst > 0 )

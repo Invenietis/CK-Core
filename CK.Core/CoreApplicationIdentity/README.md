@@ -33,7 +33,7 @@ All names are case sensitive, PascalCase convention should be use.
 
 - DomainName defaults to `"Undefined"` and cannot be empty. It may a a path (contains '/').
 - EnvironmentName defaults to `"Development"` and cannot be empty.
-- PartyName has no defaults. It cannot be empty and has to be set (ultimately it can be set to "Unknown" but this should barely happen).
+- PartyName has no defaults. It cannot be empty and has to be set (ultimately it can be set to `"Unknown"` but this should barely happen).
 
 EnvironmentName and PartyName are "identifiers": the can only contain 'A'-'Z', 'a'-'z', '0'-'9', '-' and '\_'
 characters and must not start with a digit, and not start or end with '_' or '-'.

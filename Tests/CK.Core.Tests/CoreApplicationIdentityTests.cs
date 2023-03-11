@@ -73,6 +73,9 @@ namespace CK.Core.Tests
         [Test]
         public void default_CoreApplicationIdentity_is_valid()
         {
+            Debug.Assert( CoreApplicationIdentity.DefaultDomainName == "Undefined" );
+            Debug.Assert( CoreApplicationIdentity.DefaultEnvironmentName == "Development" );
+            Debug.Assert( CoreApplicationIdentity.DefaultPartyName == "Unknown" );
             var d = CoreApplicationIdentity.Instance;
             d.DomainName.Should().Be( "Undefined" );
             d.EnvironmentName.Should().Be( "Development" );
