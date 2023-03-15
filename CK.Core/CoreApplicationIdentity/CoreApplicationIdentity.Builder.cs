@@ -45,11 +45,20 @@ namespace CK.Core
                 {
                     var replace = new Regex( "[^0-9A-Za-z_-]+", RegexOptions.CultureInvariant );
                     var p = replace.Replace( processPath, "_" );
+                    replace = new Regex( "__+", RegexOptions.CultureInvariant );
+                    p = replace.Replace( p, "_" );
+                    if( p.Length > PartyNameMaxLength )
+                    {
+                        // Crappy help to have a "better" PartyName...
+                        p = p.Replace( "_testhost_exe", "" );
+                        p = p.Replace( "_bin_", "_" );
+                        p = p.Substring( p.Length - PartyNameMaxLength );
+                    }
                     int skipHead = 0;
                     while( skipHead < p.Length && (char.IsDigit( p[skipHead] ) || p[skipHead] == '_' || p[skipHead] == '-') ) ++skipHead;
                     int skipEnd = p.Length;
-                    while( --skipEnd >= skipHead && (p[skipEnd] == '_' || p[skipHead] == '-') ) ;
-                    int len = skipEnd - skipHead;
+                    while( --skipEnd >= skipHead && (p[skipEnd] == '_' || p[skipEnd] == '-') ) ;
+                    int len = skipEnd - skipHead + 1;
                     if( len > 0 ) return p.Substring( skipHead, len );
                 }
                 return DefaultPartyName;
@@ -64,41 +73,46 @@ namespace CK.Core
                 get => _domainName;
                 set
                 {
-                    Throw.CheckArgument( IsValidIdentifier( value ) );
+                    Throw.CheckNotNullArgument( value );
+                    Throw.CheckArgument( IsValidDomainName( value ) );
                     _domainName = value;
                 }
             }
 
             /// <summary>
             /// Gets or sets the eventual <see cref="CoreApplicationIdentity.EnvironmentName"/>.
-            /// This must be empty or <see cref="IsValidIdentifier(ReadOnlySpan{char})"/> must be true otherwise an <see cref="ArgumentException"/> is thrown.
+            /// It must not be longer than <see cref="EnvironmentNameMaxLength"/> and <see cref="IsValidIdentifier(ReadOnlySpan{char})"/>
+            /// must be true otherwise an <see cref="ArgumentException"/> is thrown.
             /// </summary>
             public string EnvironmentName
             {
                 get => _environmentName;
                 set
                 {
-                    Throw.CheckArgument( value == "" || IsValidIdentifier( value ) );
+                    Throw.CheckNotNullArgument( value );
+                    Throw.CheckArgument( value.Length <= EnvironmentNameMaxLength && IsValidIdentifier( value ) );
                     _environmentName = value;
                 }
             }
 
             /// <summary>
             /// Gets or sets the eventual <see cref="CoreApplicationIdentity.PartyName"/>.
-            /// <see cref="IsValidIdentifier(ReadOnlySpan{char})"/> must be true otherwise an <see cref="ArgumentException"/> is thrown.
+            /// <see cref="IsValidIdentifier(ReadOnlySpan{char})"/> must be true and when not null,
+            /// must not be longer than <see cref="PartyNameMaxLength"/> otherwise an <see cref="ArgumentException"/> is thrown.
             /// </summary>
             public string? PartyName
             {
                 get => _partyName;
                 set
                 {
-                    Throw.CheckArgument( value == null || IsValidIdentifier( value ) );
+                    Throw.CheckArgument( value == null || (value.Length <= PartyNameMaxLength && IsValidIdentifier( value )) );
                     _partyName = value;
                 }
             }
 
             /// <summary>
             /// Gets or sets the eventual <see cref="CoreApplicationIdentity.ContextDescriptor"/>.
+            /// When not null must not be longer than <see cref="ContextDescriptorMaxLength"/> otherwise an <see cref="ArgumentException"/> is thrown.
             /// <para>
             /// There is no constraint on this string (but shorter is better). Note that the
             /// characters 0 to 8 (NUl, SOH, STX, ETX, EOT, ENQ, ACK, BEL, BSP) are
@@ -113,6 +127,7 @@ namespace CK.Core
                 {
                     if( value != null )
                     {
+                        Throw.CheckArgument( value.Length <= ContextDescriptorMaxLength );
                         // This may not be optimal but does the job.
                         value = value.Replace( "\u0000", "<NUL>"  )
                                      .Replace( "\u0001", "<SOH>" )

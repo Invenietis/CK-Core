@@ -55,10 +55,12 @@ namespace CK.Core.Tests
             CoreApplicationIdentity.IsValidDomainName( "A//B" ).Should().BeFalse();
             CoreApplicationIdentity.IsValidDomainName( "A/B/C/" ).Should().BeFalse();
             CoreApplicationIdentity.IsValidDomainName( "A/B//C" ).Should().BeFalse();
+            CoreApplicationIdentity.IsValidDomainName( new string( 'D', CoreApplicationIdentity.DomainNameMaxLength + 1 ) ).Should().BeFalse();
 
             CoreApplicationIdentity.IsValidDomainName( "A" ).Should().BeTrue();
             CoreApplicationIdentity.IsValidDomainName( "A/B" ).Should().BeTrue();
             CoreApplicationIdentity.IsValidDomainName( "A/B/C" ).Should().BeTrue();
+            CoreApplicationIdentity.IsValidDomainName( new string( 'D', CoreApplicationIdentity.DomainNameMaxLength ) ).Should().BeTrue();
         }
 
         [Test]
@@ -135,5 +137,44 @@ namespace CK.Core.Tests
             FluentActions.Invoking( () => CoreApplicationIdentity.Configure( b => b.PartyName = "Pop" ) ).Should().Throw<InvalidOperationException>();
         }
 
+        [Test]
+        public void max_lengths_are_checked_by_builder()
+        {
+            CoreApplicationIdentity.IsInitialized.Should().BeFalse();
+            FluentActions.Invoking( () => CoreApplicationIdentity.Configure( b => b.DomainName = null! ) ).Should().Throw<ArgumentNullException>();
+            FluentActions.Invoking( () => CoreApplicationIdentity.Configure( b => b.DomainName = "" ) ).Should().Throw<ArgumentException>();
+            FluentActions.Invoking( () => CoreApplicationIdentity.Configure( b => b.DomainName = "." ) ).Should().Throw<ArgumentException>();
+            FluentActions.Invoking( () => CoreApplicationIdentity.Configure( b => b.DomainName = "/A" ) ).Should().Throw<ArgumentException>();
+            FluentActions.Invoking( () => CoreApplicationIdentity.Configure( b => b.DomainName = new string( 'D', CoreApplicationIdentity.DomainNameMaxLength + 1 ) ) ).Should().Throw<ArgumentException>();
+
+            FluentActions.Invoking( () => CoreApplicationIdentity.Configure( b => b.EnvironmentName = null! ) ).Should().Throw<ArgumentNullException>();
+            FluentActions.Invoking( () => CoreApplicationIdentity.Configure( b => b.EnvironmentName = "_" ) ).Should().Throw<ArgumentException>();
+            FluentActions.Invoking( () => CoreApplicationIdentity.Configure( b => b.EnvironmentName = "A_" ) ).Should().Throw<ArgumentException>();
+            FluentActions.Invoking( () => CoreApplicationIdentity.Configure( b => b.EnvironmentName = "" ) ).Should().Throw<ArgumentException>();
+            FluentActions.Invoking( () => CoreApplicationIdentity.Configure( b => b.EnvironmentName = "." ) ).Should().Throw<ArgumentException>();
+            FluentActions.Invoking( () => CoreApplicationIdentity.Configure( b => b.EnvironmentName = "A/B" ) ).Should().Throw<ArgumentException>();
+            FluentActions.Invoking( () => CoreApplicationIdentity.Configure( b => b.EnvironmentName = new string( 'E', CoreApplicationIdentity.EnvironmentNameMaxLength + 1 ) ) ).Should().Throw<ArgumentException>();
+
+            FluentActions.Invoking( () => CoreApplicationIdentity.Configure( b => b.PartyName = "" ) ).Should().Throw<ArgumentException>();
+            FluentActions.Invoking( () => CoreApplicationIdentity.Configure( b => b.PartyName = "." ) ).Should().Throw<ArgumentException>();
+            FluentActions.Invoking( () => CoreApplicationIdentity.Configure( b => b.PartyName = "A/B" ) ).Should().Throw<ArgumentException>();
+            FluentActions.Invoking( () => CoreApplicationIdentity.Configure( b => b.PartyName = new string( 'P', CoreApplicationIdentity.PartyNameMaxLength + 1 ) ) ).Should().Throw<ArgumentException>();
+
+            FluentActions.Invoking( () => CoreApplicationIdentity.Configure( b => b.ContextDescriptor = new string( 'C', CoreApplicationIdentity.ContextDescriptorMaxLength + 1 ) ) ).Should().Throw<ArgumentException>();
+
+            CoreApplicationIdentity.IsInitialized.Should().BeFalse();
+        }
+
+        [Test]
+        public void PartyNameFromProcessPath_tests()
+        {
+            CoreApplicationIdentity.Builder.PartyNameFromProcessPath( null ).Should().Be( CoreApplicationIdentity.DefaultPartyName );
+            CoreApplicationIdentity.Builder.PartyNameFromProcessPath( "" ).Should().Be( CoreApplicationIdentity.DefaultPartyName );
+            CoreApplicationIdentity.Builder.PartyNameFromProcessPath( "---" ).Should().Be( CoreApplicationIdentity.DefaultPartyName );
+            CoreApplicationIdentity.Builder.PartyNameFromProcessPath( "_" ).Should().Be( CoreApplicationIdentity.DefaultPartyName );
+            CoreApplicationIdentity.Builder.PartyNameFromProcessPath( "0123456789" ).Should().Be( CoreApplicationIdentity.DefaultPartyName );
+            CoreApplicationIdentity.Builder.PartyNameFromProcessPath( "_0_" ).Should().Be( CoreApplicationIdentity.DefaultPartyName );
+            CoreApplicationIdentity.Builder.PartyNameFromProcessPath( "Party012345678901234567890123456789" ).Should().Be( "y012345678901234567890123456789" );
+        }
     }
 }

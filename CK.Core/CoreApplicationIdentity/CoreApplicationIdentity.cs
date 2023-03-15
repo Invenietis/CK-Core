@@ -49,9 +49,36 @@ namespace CK.Core
         public const string DefaultPartyName = "Unknown";
 
         /// <summary>
+        /// The maximal domain name length.
+        /// </summary>
+        public const int DomainNameMaxLength = 127;
+
+        /// <summary>
+        /// The maximal party name length.
+        /// Its maximal length is <see cref="EnvironmentNameMaxLength"/>.
+        /// </summary>
+        public const int EnvironmentNameMaxLength = 31;
+
+        /// <summary>
+        /// The maximal party name length.
+        /// </summary>
+        public const int PartyNameMaxLength = 31;
+
+        /// <summary>
+        /// The maximal ContextDescriptor length.
+        /// </summary>
+        public const int ContextDescriptorMaxLength = 8 * 1024;
+
+        /// <summary>
+        /// The maximal <see cref="CoreApplicationIdentity.FullName"/> length.
+        /// </summary>
+        public const int FullNameMaxLength = DomainNameMaxLength + EnvironmentNameMaxLength + PartyNameMaxLength + 2;
+
+        /// <summary>
         /// Gets the name of the domain to which this application belongs.
         /// It cannot empty and defaults to "Undefined" (<see cref="DefaultDomainName"/>). This reserved name
         /// should be treated as "external to the System".
+        /// Its maximal length is <see cref="DomainNameMaxLength"/>.
         /// <para>
         /// See <see cref="IsValidDomainName(ReadOnlySpan{char})"/> for its syntax.
         /// </para>
@@ -60,6 +87,7 @@ namespace CK.Core
 
         /// <summary>
         /// Gets the name of the environment. Defaults to "Development" (<see cref="DefaultEnvironmentName"/>).
+        /// Its maximal length is <see cref="EnvironmentNameMaxLength"/>.
         /// <para>
         /// See <see cref="IsValidIdentifier(ReadOnlySpan{char})"/> for its syntax.
         /// </para>
@@ -68,6 +96,7 @@ namespace CK.Core
 
         /// <summary>
         /// Gets this party name. Cannot be empty.
+        /// Its maximal length is <see cref="PartyNameMaxLength"/>.
         /// <para>
         /// See <see cref="IsValidIdentifier(ReadOnlySpan{char})"/> for its syntax.
         /// </para>
@@ -82,8 +111,9 @@ namespace CK.Core
         /// Gets a string that identifies the context into which this
         /// application is running. Defaults to the empty string.
         /// <para>
-        /// There is no constraint on this string (but shorter is better). Note that
-        /// the characters 0 to 8 (NUl, SOH, STX, ETX, EOT, ENQ, ACK, BEL, BSP) are
+        /// There is no constraint on this string except that it cannot exceed it cannot exceed <see cref="ContextDescriptorMaxLength"/>
+        /// (but shorter is better).
+        /// Note that the characters 0 to 8 (NUl, SOH, STX, ETX, EOT, ENQ, ACK, BEL, BSP) are
         /// mapped to their respective angle bracket enclosed string representation
         /// (0x0 is mapped to &lt;NUL&gt;, 0x1 to &lt;SOH&gt;, etc.).
         /// </para>
@@ -120,7 +150,7 @@ namespace CK.Core
         /// When DomainName is a path (like "A/B/C"), this is "A/<see cref="EnvironmentName"/>/B/C/<see cref="PartyName"/>".
         /// </item>
         /// </list>
-        /// The Environment is always the second part of the full name.
+        /// The Environment is always the second part of the full name. The maximal length is <see cref="FullNameMaxLength"/>.
         /// </summary>
         public NormalizedPath FullName { get; }
 
@@ -197,6 +227,7 @@ namespace CK.Core
 
         /// <summary>
         /// Tries to configure the application identity if it's not yet initialized.
+        /// Any invalid configuration value (like a too long or invalid party name) will throw an <see cref="ArgumentException"/>.
         /// </summary>
         /// <param name="configurator">The configuration action.</param>
         /// <returns>True if the <paramref name="configurator"/> has been called, false if the <see cref="Instance"/> is already available.</returns>
@@ -278,7 +309,7 @@ namespace CK.Core
         /// <summary>
         /// Checks whether the value is a valid <see cref="CoreApplicationIdentity.DomainName"/>.
         /// <para>
-        /// It must be a case sensitive identifier or path of identifiers:
+        /// It must be a case sensitive identifier or path of identifiers not longer than <see cref="DomainNameMaxLength"/>:
         /// <list type="bullet">
         /// <item>
         /// Identifier should use PascalCase convention if possible and must only
@@ -295,7 +326,7 @@ namespace CK.Core
         /// <returns>True for a valid domain name.</returns>
         public static bool IsValidDomainName( ReadOnlySpan<char> value )
         {
-            if( value.Length == 0 ) return false;
+            if( value.Length == 0 || value.Length > DomainNameMaxLength ) return false;
             int idx = value.IndexOf( '/' );
             if( idx >= 0 )
             {
@@ -314,7 +345,9 @@ namespace CK.Core
         }
 
         /// <summary>
-        /// Checks whether the value is a valid <see cref="CoreApplicationIdentity.PartyName"/> or <see cref="CoreApplicationIdentity.EnvironmentName"/>.
+        /// Checks whether the value is a valid <see cref="CoreApplicationIdentity.PartyName"/>, <see cref="CoreApplicationIdentity.EnvironmentName"/>
+        /// or a part of <see cref="CoreApplicationIdentity.DomainName"/>.
+        /// This function doesn't check any maximal length.
         /// <para>
         /// It should use PascalCase convention if possible and must only
         /// contain 'A'-'Z', 'a'-'z', '0'-'9', '-' and '_' characters and must not

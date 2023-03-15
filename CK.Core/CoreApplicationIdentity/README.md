@@ -31,9 +31,10 @@ or any other contextual information that helps identify a process.
 
 All names are case sensitive, PascalCase convention should be use.
 
-- DomainName defaults to `"Undefined"` and cannot be empty. It may a a path (contains '/').
-- EnvironmentName defaults to `"Development"` and cannot be empty.
+- DomainName defaults to `"Undefined"` and cannot be empty. It may a a path (contains '/'). Its maximal length is 127 characters.
+- EnvironmentName defaults to `"Development"` and cannot be empty. Its maximal length is 31 characters.
 - PartyName has no defaults. It cannot be empty and has to be set (ultimately it can be set to `"Unknown"` but this should barely happen).
+  Its maximal length is 31 characters.
 
 EnvironmentName and PartyName are "identifiers": the can only contain 'A'-'Z', 'a'-'z', '0'-'9', '-' and '\_'
 characters and must not start with a digit, and not start or end with '_' or '-'.
@@ -44,6 +45,7 @@ and no double '//' are allowed.
 A FullName property is available:
 - It is `DomainName/EnvironmentName/PartyName` when domain name is a simple identifier.
 - When DomainName is a path (like "A/B/C"), this is `A/EnvironmentName/B/C/PartyName`.
+- It maximal length is 191 characters.
 
 > The EnvironmentName is always the second part of the full name.
 
@@ -105,4 +107,4 @@ and/or the `OnInitialized` method that handles callbacks.
   }
 ```
 
-Once `Instance` or `Initialize` is called the information is definitely locked.
+Once `Instance` or `Initialize` is called the  `CoreApplicationIdentity.Instance` singleton is definitely locked.
