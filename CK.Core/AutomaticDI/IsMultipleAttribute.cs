@@ -6,7 +6,7 @@ namespace CK.Core
     /// Marks an interface so that all its mappings to concrete classes must be automatically
     /// registered, regardless of any existing registrations.
     /// <para>
-    /// It is not required to be this exact type: any attribute named "IMultipleAutoService" defined in any
+    /// It is not required to be this exact type: any attribute named "IsMultipleAttribute" defined in any
     /// namespace will be considered as a valid marker.
     /// </para>
     /// <para>
