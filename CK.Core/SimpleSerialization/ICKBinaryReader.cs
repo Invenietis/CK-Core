@@ -1,4 +1,5 @@
 using System;
+using System.ComponentModel;
 using System.IO;
 
 namespace CK.Core
@@ -339,6 +340,7 @@ namespace CK.Core
         /// </summary>
         /// <typeparam name="T">The enum type.</typeparam>
         [Obsolete( "Simply read and cast the enum's integral type: e = (int)r.ReadInt32(); instead.", true )]
+        [EditorBrowsable(EditorBrowsableState.Never)]
         T ReadEnum<T>() where T : struct, Enum;
 
         /// <summary>
@@ -346,6 +348,7 @@ namespace CK.Core
         /// </summary>
         /// <typeparam name="T">The enum type.</typeparam>
         [Obsolete( "Simply read and cast the enum's integral type: e = (int?)r.ReadNullableInt32(); instead.", true )]
+        [EditorBrowsable(EditorBrowsableState.Never)]
         T? ReadNullableEnum<T>() where T : struct, Enum;
 
         /// <summary>
