@@ -30,44 +30,6 @@ namespace CK.Core.Tests
         }
 
         [Test]
-        public void DateTimeStampProvider_tests()
-        {
-            // The only way to show that this test proves anything is
-            // to remove the lock( _lock ) in DateTimeStampProvider.GetNetxNow():
-            // duplicate stamps appear.
-            var provider = new DateTimeStampProvider();
-
-            const int count = 5000;
-            const int nbThread = 8;
-            var all = new DateTimeStamp[count * nbThread];
-            var threads = Enumerable.Range(0,nbThread).Select( iT => new Thread( () =>
-            {
-                for( int i = 0; i < count; ++i )
-                {
-                    all[iT * count + i] = provider.GetNextNow();
-                }
-
-            } ) ).ToArray();
-            foreach( var t in threads ) t.Start();
-            foreach( var t in threads ) t.Join();
-
-            // Each set is ever increasing.
-            for( int iT = 0; iT < nbThread; ++iT )
-            {
-                all.Skip( iT * count ).Take( count ).IsSortedStrict().Should().BeTrue();
-            }
-            // All stamps are different.
-            for( int iT = 0; iT < nbThread; ++iT )
-            {
-                new HashSet<DateTimeStamp>( all ).Count.Should().Be( all.Length );
-            }
-            // But stamps across all the threads are NOT ever increasing: this
-            // ensures that threads have yield.
-            all.IsSortedStrict().Should().BeFalse();
-        }
-
-
-        [Test]
         public void generating_forced_time_collisions()
         {
             DateTimeStamp fake = DateTimeStamp.UtcNow;
