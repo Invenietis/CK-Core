@@ -5,6 +5,8 @@ using System.Linq;
 using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using CK.Core.Impl;
+using System.Runtime.InteropServices;
+using System.Runtime.CompilerServices;
 
 namespace CK.Core
 {
@@ -25,7 +27,14 @@ namespace CK.Core
         {
             public object? Instance;
             public Func<Object>? Creator;
-            public Action<Object>? OnRemove;
+            public readonly Action<Object>? OnRemove;
+
+            public ServiceEntry( object? instance, Func<object>? creator, Action<object>? onRemove )
+            {
+                Instance = instance;
+                Creator = creator;
+                OnRemove = onRemove;
+            }
         }
 
         readonly Dictionary<Type,ServiceEntry> _services;
@@ -83,7 +92,7 @@ namespace CK.Core
             Throw.CheckNotNullArgument( serviceType );
             Throw.CheckNotNullArgument( serviceInstance );
             if( GetDirectService( serviceType ) != null ) Throw.Exception( String.Format( CoreResources.ServiceAlreadyDirectlySupported, serviceType.FullName ) );
-            DoAdd( serviceType, new ServiceEntry() { Instance = null, Creator = serviceInstance, OnRemove = onRemove } );
+            DoAdd( serviceType, new ServiceEntry( null, serviceInstance, onRemove ) );
             return this;
         }
 
@@ -100,7 +109,7 @@ namespace CK.Core
             Throw.CheckNotNullArgument( serviceInstance );
             if( GetDirectService( serviceType ) != null ) Throw.Exception( String.Format( CoreResources.ServiceAlreadyDirectlySupported, serviceType.FullName ) );
             if( !serviceType.IsAssignableFrom( serviceInstance.GetType() ) ) Throw.Exception( String.Format( CoreResources.ServiceImplTypeMismatch, serviceType.FullName, serviceInstance.GetType().FullName ) );
-            DoAdd( serviceType, new ServiceEntry() { Instance = serviceInstance, Creator = null, OnRemove = onRemove } );
+            DoAdd( serviceType, new ServiceEntry( serviceInstance, null, onRemove ) );
             return this;
         }
 
@@ -179,23 +188,22 @@ namespace CK.Core
             object? result = GetDirectService( serviceType );
             if( result == null )
             {
-                if( _services.TryGetValue( serviceType, out ServiceEntry e ) )
+                ref ServiceEntry rE = ref CollectionsMarshal.GetValueRefOrNullRef( _services, serviceType );
+                if( !Unsafe.IsNullRef( ref rE ) )
                 {
-                    result = e.Instance;
+                    result = rE.Instance;
                     if( result == null )
                     {
                         // Disabled service: returns null immediately.
-                        if( e.Creator == null ) return null;
+                        if( rE.Creator == null ) return null;
 
-                        result = e.Creator();
+                        result = rE.Creator();
                         if( result != null )
                         {
                             if( !serviceType.IsAssignableFrom( result.GetType() ) ) Throw.Exception( string.Format( CoreResources.ServiceImplCallbackTypeMismatch, serviceType.FullName, result.GetType().FullName ) );
                             // Release Creator reference to minimize (subtle) leaks.
-                            e.Creator = null;
-                            e.Instance = result;
-                            // Since ServiceEntry is a value type: we need to update it back.
-                            _services[serviceType] = e;
+                            rE.Creator = null;
+                            rE.Instance = result;
                         }
                         // If result is still null, we fallback (and Creator will be called again the next time).
                     }
