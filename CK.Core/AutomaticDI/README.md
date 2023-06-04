@@ -116,6 +116,19 @@ either determined by the final, actual, implementation that can be automatically
 detected based on its constructor dependencies and/or by the way this Service is
 used referenced by the other participants.
 
+## EndpointScopedServiceAttribute & EndpointSingletonServiceAttribute
+
+Marks a class or an interface to be a endpoint service. A endpoint service is not necessarily
+available from all DI containers that may exist in an application. Note that defining a service
+as being "endpoint bound" requires to declare its lifetime (hence the 2 attributes).
+
+When a `IAutoService` is marked as an endpoint service, it is available in the global DI container but not
+in other endpoints: it is up to the other endpoint to explicitly support the service by registering the
+abstractions and/or implementations in its own service collection.
+
+It is not required to be this exact type: any attribute named "EndpointScoped/SingletonServiceAttribute" defined
+in any namespace will be considered as a valid marker.
+
 ## IsMultipleAttribute
 Marks an interface so that all its mappings to concrete classes must be automatically
 registered, regardless of any existing registrations.
@@ -125,7 +138,7 @@ namespace will be considered as a valid marker.
 
 Interfaces marked as "Multiple Service" are not compatible with IRealObject but can support
 any other auto service markers like IScopedAutoService.
-This attribute cancels the implicit unicity of the mapping but doesn't impact the lifetime (or the "front/process context" related
+This attribute cancels the implicit unicity of the mapping but doesn't impact the lifetime (or the "endpoint/process context" related
 aspect): lifetime and "context" apply eventually to the implementation.
 
 ## ReplaceAutoServiceAttribute
@@ -165,3 +178,6 @@ Attribute that excludes a type from Automatic DI discovery process.
 
 This attribute can be created anywhere: as long as the name is "ExcludeCKTypeAttribute" (regardless of the namespace), it will be honored.
 
+## PreserveAssemblyReferenceAttribute
+
+This is a simple helper that avoids a reference to an assembly to be trimmed out by the compiler/linker.
