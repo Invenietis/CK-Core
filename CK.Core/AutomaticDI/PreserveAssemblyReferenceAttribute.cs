@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Reflection;
 
 namespace CK.Core
@@ -9,7 +9,7 @@ namespace CK.Core
     /// This replaces any hidden static or other tricks by a more explicit declaration.
     /// </summary>
     [AttributeUsage( AttributeTargets.Assembly, AllowMultiple = true, Inherited = false )]
-    sealed class PreserveAssemblyReferenceAttribute : Attribute
+    public sealed class PreserveAssemblyReferenceAttribute : Attribute
     {
         readonly Type _t;
 
