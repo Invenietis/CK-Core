@@ -39,9 +39,9 @@ namespace CK.Core
         public const string DefaultDomainName = "Undefined";
 
         /// <summary>
-        /// This is "Development".
+        /// This is "#Development". Environment names always start with '#'.
         /// </summary>
-        public const string DefaultEnvironmentName = "Development";
+        public const string DefaultEnvironmentName = "#Development";
 
         /// <summary>
         /// The default party name is "Unknown".
@@ -54,8 +54,7 @@ namespace CK.Core
         public const int DomainNameMaxLength = 127;
 
         /// <summary>
-        /// The maximal party name length.
-        /// Its maximal length is <see cref="EnvironmentNameMaxLength"/>.
+        /// The maximal environment name length including the required leading '#'.
         /// </summary>
         public const int EnvironmentNameMaxLength = 31;
 
@@ -72,7 +71,7 @@ namespace CK.Core
         /// <summary>
         /// The maximal <see cref="CoreApplicationIdentity.FullName"/> length.
         /// </summary>
-        public const int FullNameMaxLength = DomainNameMaxLength + EnvironmentNameMaxLength + PartyNameMaxLength + 2;
+        public const int FullNameMaxLength = DomainNameMaxLength + EnvironmentNameMaxLength + PartyNameMaxLength + 3;
 
         /// <summary>
         /// Gets the name of the domain to which this application belongs.
@@ -169,15 +168,7 @@ namespace CK.Core
             EnvironmentName = b.EnvironmentName;
             PartyName = b.PartyName ?? DefaultPartyName;
             ContextDescriptor = b.ContextDescriptor ?? "";
-            int idxFirst = DomainName.IndexOf( "/" );
-            if( idxFirst > 0 )
-            {
-                FullName = $"{DomainName.AsSpan( 0, idxFirst )}/{EnvironmentName}{DomainName.AsSpan(idxFirst)}/{PartyName}";
-            }
-            else
-            {
-                FullName = $"{DomainName}/{EnvironmentName}/{PartyName}";
-            }
+            FullName = $"{DomainName}/${PartyName}/{EnvironmentName}";
             ContextualId = Base64UrlHelper.ToBase64UrlString( SHA1.HashData( Encoding.UTF8.GetBytes( $"{FullName.Path}/{ContextDescriptor}" ) ) );
             PartyContextualName = PartyName + ".C" + ContextualId;
             PartyInstanceName = PartyName + ".I" + InstanceId;
@@ -342,24 +333,64 @@ namespace CK.Core
                 return true;
             }
             return IsValidIdentifier( value );
+
+            static bool IsValidIdentifier( ReadOnlySpan<char> value )
+            {
+                if( value.Length == 0 ) return false;
+                char first = value[0];
+                if( Char.IsDigit( first ) || first == '-' || first == '_' ) return false;
+                char last = value[value.Length - 1];
+                if( last == '-' || last == '_' ) return false;
+                foreach( var c in value )
+                {
+                    if( !IsValidNameChar( c ) ) return false;
+                }
+                return true;
+            }
         }
 
         /// <summary>
-        /// Checks whether the value is a valid <see cref="CoreApplicationIdentity.PartyName"/>, <see cref="CoreApplicationIdentity.EnvironmentName"/>
-        /// or a part of <see cref="CoreApplicationIdentity.DomainName"/>.
-        /// This function doesn't check any maximal length.
+        /// Checks whether the value is a valid <see cref="CoreApplicationIdentity.EnvironmentName"/>.
+        /// <para>
+        /// It must start with a '#', should use PascalCase convention if possible and must only
+        /// contain 'A'-'Z', 'a'-'z', '0'-'9', '-' and '_'.
+        /// </para>
+        /// </summary>
+        /// <param name="value">The candidate.</param>
+        /// <returns>True for a valid environment name.</returns>
+        public static bool IsValidEnvironmentName( ReadOnlySpan<char> value )
+        {
+            if( value.Length < 2 || value.Length > EnvironmentNameMaxLength || value[0] != '#' ) return false;
+            foreach( var c in value.Slice( 1 ) )
+            {
+                if( !IsValidNameChar( c ) ) return false;
+            }
+            return true;
+        }
+
+        /// <summary>
+        /// Checks whether the value is a valid <see cref="CoreApplicationIdentity.PartyName"/>.
         /// <para>
         /// It should use PascalCase convention if possible and must only
         /// contain 'A'-'Z', 'a'-'z', '0'-'9', '-' and '_' characters and must not
         /// start with a digit, and not start or end with '_' or '-'.
         /// </para>
+        /// <para>
+        /// It can optionally be prefixed by '$' (its representation in the full name).
+        /// </para>
         /// </summary>
         /// <param name="value">The candidate.</param>
         /// <returns>True for a valid identifier.</returns>
-        public static bool IsValidIdentifier( ReadOnlySpan<char> value )
+        public static bool IsValidPartyName( ReadOnlySpan<char> value )
         {
             if( value.Length == 0 ) return false;
             char first = value[0];
+            if( first == '$' )
+            {
+                value = value.Slice( 1 );
+                if( value.Length == 0 ) return false;
+            }
+            if( value.Length > PartyNameMaxLength ) return false;
             if( Char.IsDigit( first ) || first == '-' || first == '_' ) return false;
             char last = value[value.Length - 1];
             if( last == '-' || last == '_' ) return false;
@@ -368,12 +399,11 @@ namespace CK.Core
                 if( !IsValidNameChar( c ) ) return false;
             }
             return true;
-
-            static bool IsValidNameChar( char c )
-            {
-                return (c is >= 'a' and <= 'z') || (c is >= 'A' and <= 'Z') || (c is >= '0' and <= '9') || c == '-' || c == '_';
-            }
         }
 
+        static bool IsValidNameChar( char c )
+        {
+            return (c is >= 'a' and <= 'z') || (c is >= 'A' and <= 'Z') || (c is >= '0' and <= '9') || c == '-' || c == '_';
+        }
     }
 }

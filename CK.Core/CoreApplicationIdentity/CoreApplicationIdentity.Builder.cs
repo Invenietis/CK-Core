@@ -27,9 +27,9 @@ namespace CK.Core
             internal CoreApplicationIdentity Build()
             {
                 Debug.Assert( IsValidDomainName( DomainName ) );
-                Debug.Assert( IsValidIdentifier( EnvironmentName ) );
+                Debug.Assert( IsValidEnvironmentName( EnvironmentName ) );
                 PartyName ??= PartyNameFromProcessPath( Environment.ProcessPath );
-                Debug.Assert( IsValidIdentifier( PartyName ) );
+                Debug.Assert( IsValidPartyName( PartyName ) );
                 return new CoreApplicationIdentity( this );
             }
 
@@ -81,8 +81,7 @@ namespace CK.Core
 
             /// <summary>
             /// Gets or sets the eventual <see cref="CoreApplicationIdentity.EnvironmentName"/>.
-            /// It must not be longer than <see cref="EnvironmentNameMaxLength"/> and <see cref="IsValidIdentifier(ReadOnlySpan{char})"/>
-            /// must be true otherwise an <see cref="ArgumentException"/> is thrown.
+            /// <see cref="IsValidEnvironmentName(ReadOnlySpan{char})"/> must be true otherwise an <see cref="ArgumentException"/> is thrown.
             /// </summary>
             public string EnvironmentName
             {
@@ -90,7 +89,7 @@ namespace CK.Core
                 set
                 {
                     Throw.CheckNotNullArgument( value );
-                    Throw.CheckArgument( value.Length <= EnvironmentNameMaxLength && IsValidIdentifier( value ) );
+                    Throw.CheckArgument( IsValidEnvironmentName( value ) );
                     _environmentName = value;
                 }
             }
@@ -99,13 +98,18 @@ namespace CK.Core
             /// Gets or sets the eventual <see cref="CoreApplicationIdentity.PartyName"/>.
             /// <see cref="IsValidIdentifier(ReadOnlySpan{char})"/> must be true and when not null,
             /// must not be longer than <see cref="PartyNameMaxLength"/> otherwise an <see cref="ArgumentException"/> is thrown.
+            /// <para>
+            /// Setting a "$Name" is allowed: the '$' prefix is automaticaaly removed.
+            /// </para>
             /// </summary>
             public string? PartyName
             {
                 get => _partyName;
                 set
                 {
-                    Throw.CheckArgument( value == null || (value.Length <= PartyNameMaxLength && IsValidIdentifier( value )) );
+                    Throw.CheckNotNullArgument( value );
+                    Throw.CheckArgument( IsValidPartyName( value ) );
+                    if( value[0] == '$' ) value = value.Substring( 1 ); 
                     _partyName = value;
                 }
             }

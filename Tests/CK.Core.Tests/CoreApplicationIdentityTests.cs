@@ -26,23 +26,33 @@ namespace CK.Core.Tests
         }
 
         [Test]
-        public void IsValidIdentifier_check()
+        public void IsValidPartyName_check()
         {
-            CoreApplicationIdentity.IsValidIdentifier( "" ).Should().BeFalse();
-            CoreApplicationIdentity.IsValidIdentifier( " " ).Should().BeFalse();
-            CoreApplicationIdentity.IsValidIdentifier( "_" ).Should().BeFalse();
-            CoreApplicationIdentity.IsValidIdentifier( "_A" ).Should().BeFalse();
-            CoreApplicationIdentity.IsValidIdentifier( "A_" ).Should().BeFalse();
-            CoreApplicationIdentity.IsValidIdentifier( "-A" ).Should().BeFalse();
-            CoreApplicationIdentity.IsValidIdentifier( "A-" ).Should().BeFalse();
+            CoreApplicationIdentity.IsValidPartyName( "" ).Should().BeFalse();
+            CoreApplicationIdentity.IsValidPartyName( "$" ).Should().BeFalse();
+            CoreApplicationIdentity.IsValidPartyName( " " ).Should().BeFalse();
+            CoreApplicationIdentity.IsValidPartyName( "_" ).Should().BeFalse();
+            CoreApplicationIdentity.IsValidPartyName( "_A" ).Should().BeFalse();
+            CoreApplicationIdentity.IsValidPartyName( "A_" ).Should().BeFalse();
+            CoreApplicationIdentity.IsValidPartyName( "-A" ).Should().BeFalse();
+            CoreApplicationIdentity.IsValidPartyName( "A-" ).Should().BeFalse();
+            CoreApplicationIdentity.IsValidPartyName( new string( 'P', CoreApplicationIdentity.PartyNameMaxLength + 1 ) ).Should().BeFalse();
 
-            CoreApplicationIdentity.IsValidIdentifier( "A" ).Should().BeTrue();
-            CoreApplicationIdentity.IsValidIdentifier( "A_B" ).Should().BeTrue();
-            CoreApplicationIdentity.IsValidIdentifier( "A__B" ).Should().BeTrue();
-            CoreApplicationIdentity.IsValidIdentifier( "A__B_C" ).Should().BeTrue();
-            CoreApplicationIdentity.IsValidIdentifier( "A-B" ).Should().BeTrue();
-            CoreApplicationIdentity.IsValidIdentifier( "A--B" ).Should().BeTrue();
-            CoreApplicationIdentity.IsValidIdentifier( "A--B-C" ).Should().BeTrue();
+            CoreApplicationIdentity.IsValidPartyName( "A" ).Should().BeTrue();
+            CoreApplicationIdentity.IsValidPartyName( "A_B" ).Should().BeTrue();
+            CoreApplicationIdentity.IsValidPartyName( "A__B" ).Should().BeTrue();
+            CoreApplicationIdentity.IsValidPartyName( "A__B_C" ).Should().BeTrue();
+            CoreApplicationIdentity.IsValidPartyName( "A-B" ).Should().BeTrue();
+            CoreApplicationIdentity.IsValidPartyName( "A--B" ).Should().BeTrue();
+            CoreApplicationIdentity.IsValidPartyName( "A--B-C" ).Should().BeTrue();
+            CoreApplicationIdentity.IsValidPartyName( "$A" ).Should().BeTrue();
+            CoreApplicationIdentity.IsValidPartyName( "$A_B" ).Should().BeTrue();
+            CoreApplicationIdentity.IsValidPartyName( "$A__B" ).Should().BeTrue();
+            CoreApplicationIdentity.IsValidPartyName( "$A__B_C" ).Should().BeTrue();
+            CoreApplicationIdentity.IsValidPartyName( "$A-B" ).Should().BeTrue();
+            CoreApplicationIdentity.IsValidPartyName( "$A--B" ).Should().BeTrue();
+            CoreApplicationIdentity.IsValidPartyName( "$A--B-C" ).Should().BeTrue();
+            CoreApplicationIdentity.IsValidPartyName( "$" + new string( 'P', CoreApplicationIdentity.PartyNameMaxLength ) ).Should().BeTrue();
         }
 
         [Test]
@@ -64,10 +74,29 @@ namespace CK.Core.Tests
         }
 
         [Test]
+        public void IsValidEnvironmentName_check()
+        {
+            CoreApplicationIdentity.IsValidEnvironmentName( "" ).Should().BeFalse();
+            CoreApplicationIdentity.IsValidEnvironmentName( "#" ).Should().BeFalse();
+            CoreApplicationIdentity.IsValidEnvironmentName( "A" ).Should().BeFalse();
+            CoreApplicationIdentity.IsValidEnvironmentName( "/" ).Should().BeFalse();
+            CoreApplicationIdentity.IsValidEnvironmentName( "#~" ).Should().BeFalse();
+            CoreApplicationIdentity.IsValidEnvironmentName( "#/" ).Should().BeFalse();
+            CoreApplicationIdentity.IsValidEnvironmentName( "##" ).Should().BeFalse();
+            CoreApplicationIdentity.IsValidEnvironmentName( "#A#" ).Should().BeFalse();
+            CoreApplicationIdentity.IsValidEnvironmentName( "#" + new string( 'E', CoreApplicationIdentity.EnvironmentNameMaxLength ) ).Should().BeFalse();
+
+            CoreApplicationIdentity.IsValidEnvironmentName( "#A" ).Should().BeTrue();
+            CoreApplicationIdentity.IsValidEnvironmentName( "#AB" ).Should().BeTrue();
+            CoreApplicationIdentity.IsValidEnvironmentName( "#_Prod-Lovely_" ).Should().BeTrue();
+            CoreApplicationIdentity.IsValidEnvironmentName( "#" + new string( 'E', CoreApplicationIdentity.EnvironmentNameMaxLength - 1 ) ).Should().BeTrue();
+        }
+
+        [Test]
         public void PartyName_from_ProcessPath_ultimately_resolves_to_Unknown()
         {
             var valid = CoreApplicationIdentity.Builder.PartyNameFromProcessPath( Environment.ProcessPath );
-            CoreApplicationIdentity.IsValidIdentifier( valid ).Should().BeTrue();
+            CoreApplicationIdentity.IsValidPartyName( valid ).Should().BeTrue();
 
             CoreApplicationIdentity.Builder.PartyNameFromProcessPath( "" ).Should().Be( "Unknown" );
         }
@@ -76,11 +105,11 @@ namespace CK.Core.Tests
         public void default_CoreApplicationIdentity_is_valid()
         {
             Debug.Assert( CoreApplicationIdentity.DefaultDomainName == "Undefined" );
-            Debug.Assert( CoreApplicationIdentity.DefaultEnvironmentName == "Development" );
+            Debug.Assert( CoreApplicationIdentity.DefaultEnvironmentName == "#Development" );
             Debug.Assert( CoreApplicationIdentity.DefaultPartyName == "Unknown" );
             var d = CoreApplicationIdentity.Instance;
             d.DomainName.Should().Be( "Undefined" );
-            d.EnvironmentName.Should().Be( "Development" );
+            d.EnvironmentName.Should().Be( "#Development" );
             d.PartyName.Should().NotBeNullOrWhiteSpace();
             d.PartyName.Should().NotContainAny( "\\", "//", ":" );
             d.PartyName.Should().NotStartWith( "_" ).And.NotStartWith( "-" );
