@@ -1,6 +1,8 @@
+using CommunityToolkit.HighPerformance;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
@@ -60,6 +62,7 @@ namespace CK.Core
 
         /// <summary>
         /// The maximal party name length.
+        /// This doesn't include the '$' prefix that appears only in full names.
         /// </summary>
         public const int PartyNameMaxLength = 31;
 
@@ -95,7 +98,8 @@ namespace CK.Core
 
         /// <summary>
         /// Gets this party name. Cannot be empty.
-        /// Its maximal length is <see cref="PartyNameMaxLength"/>.
+        /// Its maximal length is <see cref="PartyNameMaxLength"/>, it doesn't start with '$': the '$' must
+        /// appear only in a <see cref="FullName"/>.
         /// <para>
         /// See <see cref="IsValidIdentifier(ReadOnlySpan{char})"/> for its syntax.
         /// </para>
@@ -139,17 +143,13 @@ namespace CK.Core
         public string PartyInstanceName { get; }
 
         /// <summary>
-        /// Gets this identity logical full name:
-        /// <list type="bullet">
-        /// <item>
-        /// It is <see cref="DomainName"/>/<see cref="EnvironmentName"/>/<see cref="PartyName"/> when domain name is a simple
-        /// identifier.
-        /// </item>
-        /// <item>
-        /// When DomainName is a path (like "A/B/C"), this is "A/<see cref="EnvironmentName"/>/B/C/<see cref="PartyName"/>".
-        /// </item>
-        /// </list>
-        /// The Environment is always the second part of the full name. The maximal length is <see cref="FullNameMaxLength"/>.
+        /// Gets this identity default full name: <see cref="DomainName"/>/$<see cref="PartyName"/>/<see cref="EnvironmentName"/>
+        /// (note that EnvironmentName always starts with `#`).
+        /// The maximal length is <see cref="FullNameMaxLength"/>.
+        /// <para>
+        /// Full names scheme can differ: thanks to the '#' and the '$' it is always possible to
+        /// recover the {Domain,Party,Environment} triplet.
+        /// </para>
         /// </summary>
         public NormalizedPath FullName { get; }
 
@@ -298,6 +298,62 @@ namespace CK.Core
         }
 
         /// <summary>
+        /// Tries to parse a full name in which the $PartyName part can be anywhere
+        /// and the #EnvironmentName part can be anywhere or missing (<paramref name="environmentName"/> will be null).
+        /// </summary>
+        /// <param name="fullName">The full name to parse.</param>
+        /// <param name="domainName">The parsed domain name.</param>
+        /// <param name="partyName">The parsed party name without the leading '$'.</param>
+        /// <param name="environmentName">The parsed environment name or null if it is missing: <see cref="DefaultEnvironmentName"/> should be used.</param>
+        /// <returns>True on success, false if the full name is not a valid identity full name.</returns>
+        public static bool TryParseFullName( ReadOnlySpan<char> fullName,
+                                             [NotNullWhen( true )] out string? domainName,
+                                             [NotNullWhen( true )] out string? partyName,
+                                             out string? environmentName )
+        {
+            domainName = null;
+            partyName = null;
+            environmentName = null;
+            if( fullName.Length < 3 || fullName.Length > FullNameMaxLength ) return false;
+            Span<char> d = stackalloc char[DomainNameMaxLength];
+            int dHead = 0;
+            foreach( var part in fullName.Tokenize( '/' ) )
+            {
+                if( part.Length == 0 ) return false;
+                if( part[0] == '#' )
+                {
+                    if( environmentName != null || !IsValidEnvironmentName( part ) ) return false;
+                    environmentName = part.ToString();
+                }
+                else if( part[0] == '$' )
+                {
+                    if( partyName != null || !IsValidPartyName( part ) ) return false;
+                    partyName = part.Slice( 1 ).ToString();
+                }
+                else
+                {
+                    if( dHead == 0 )
+                    {
+                        if( part.Length > DomainNameMaxLength ) return false;
+                        part.CopyTo( d );
+                    }
+                    else
+                    {
+                        if( ++dHead + part.Length > DomainNameMaxLength ) return false;
+                        d[dHead - 1] = '/';
+                        part.CopyTo( d.Slice( dHead ) );
+                    }
+                    dHead += part.Length;
+                }
+            }
+            if( partyName == null ) return false;
+            d = d.Slice( 0, dHead );
+            if( !IsValidDomainName( d ) ) return false;
+            domainName = d.ToString();
+            return true;
+        }
+
+        /// <summary>
         /// Checks whether the value is a valid <see cref="CoreApplicationIdentity.DomainName"/>.
         /// <para>
         /// It must be a case sensitive identifier or path of identifiers not longer than <see cref="DomainNameMaxLength"/>:
@@ -377,6 +433,7 @@ namespace CK.Core
         /// </para>
         /// <para>
         /// It can optionally be prefixed by '$' (its representation in the full name).
+        /// The leading $ is silently ignored by this method.
         /// </para>
         /// </summary>
         /// <param name="value">The candidate.</param>

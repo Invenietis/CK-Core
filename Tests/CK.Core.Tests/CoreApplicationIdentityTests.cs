@@ -205,5 +205,74 @@ namespace CK.Core.Tests
             CoreApplicationIdentity.Builder.PartyNameFromProcessPath( "_0_" ).Should().Be( CoreApplicationIdentity.DefaultPartyName );
             CoreApplicationIdentity.Builder.PartyNameFromProcessPath( "Party012345678901234567890123456789" ).Should().Be( "y012345678901234567890123456789" );
         }
+
+        [TestCase( "A/$p", "A", "p", null )]
+        [TestCase( "$p/A", "A", "p", null )]
+        [TestCase( "$p/A/B", "A/B", "p", null )]
+        [TestCase( "A/B/$p", "A/B", "p", null )]
+        [TestCase( "A/$p/B", "A/B", "p", null )]
+        [TestCase( "A/B/C/$p", "A/B/C", "p", null )]
+        [TestCase( "A/B/$p/C", "A/B/C", "p", null )]
+        [TestCase( "A/$p/B/C", "A/B/C", "p", null )]
+        [TestCase( "$p/A/B/C", "A/B/C", "p", null )]
+        [TestCase( "A/$p/#e", "A", "p", "#e" )]
+        [TestCase( "$p/A/#e", "A", "p", "#e" )]
+        [TestCase( "$p/A/B/#e", "A/B", "p", "#e" )]
+        [TestCase( "A/B/$p/#e", "A/B", "p", "#e" )]
+        [TestCase( "A/$p/B/#e", "A/B", "p", "#e" )]
+        [TestCase( "A/B/C/$p/#e", "A/B/C", "p", "#e" )]
+        [TestCase( "A/B/$p/C/#e", "A/B/C", "p", "#e" )]
+        [TestCase( "A/$p/B/C/#e", "A/B/C", "p", "#e" )]
+        [TestCase( "$p/A/B/C/#e", "A/B/C", "p", "#e" )]
+        [TestCase( "A/#e/$p", "A", "p", "#e" )]
+        [TestCase( "$p/#e/A", "A", "p", "#e" )]
+        [TestCase( "$p/A/#e/B", "A/B", "p", "#e" )]
+        [TestCase( "A/B/#e/$p", "A/B", "p", "#e" )]
+        [TestCase( "A/$p/#e/B", "A/B", "p", "#e" )]
+        [TestCase( "#e/A/B/C/$p", "A/B/C", "p", "#e" )]
+        [TestCase( "A/#e/B/$p/C", "A/B/C", "p", "#e" )]
+        [TestCase( "A/$p/B/#e/C", "A/B/C", "p", "#e" )]
+        [TestCase( "#e/$p/A/B/C", "A/B/C", "p", "#e" )]
+        public void TryParseFullName_successful_tests( string? f, string domainName, string partyName, string? environmentName )
+        {
+            CoreApplicationIdentity.TryParseFullName( f, out var d, out var p, out var e ).Should().BeTrue();
+            d.Should().Be( domainName );
+            p.Should().Be( partyName );
+            e.Should().Be( environmentName );
+        }
+
+        [TestCase( null )]
+        [TestCase( "" )]
+        [TestCase( "A" )]
+        [TestCase( "A/B" )]
+        [TestCase( "$p" )]
+        [TestCase( "#e" )]
+        [TestCase( "#e/$p" )]
+        [TestCase( "A/B/#e" )]
+        [TestCase( "A/B#e" )]
+        [TestCase( "A$p/B/#e" )]
+        public void TryParseFullName_failed_tests( string f )
+        {
+            CoreApplicationIdentity.TryParseFullName( f, out _, out _, out _ ).Should().BeFalse();
+        }
+
+        [Test]
+        public void TryParseFullName_failed_too_long_tests()
+        {
+            var domainMax = new string( 'd', CoreApplicationIdentity.DomainNameMaxLength );
+            var partyMax = new string( 'p', CoreApplicationIdentity.PartyNameMaxLength );
+            var environmentMax = '#' + new string( 'e', CoreApplicationIdentity.EnvironmentNameMaxLength - 1 );
+            CoreApplicationIdentity.TryParseFullName( $"{domainMax}/${partyMax}/{environmentMax}", out var d, out var p, out var e ).Should().BeTrue();
+            d.Should().Be( domainMax );
+            p.Should().Be( partyMax );
+            e.Should().Be( environmentMax );
+
+            CoreApplicationIdentity.TryParseFullName( $"X{domainMax}/${partyMax}/{environmentMax}", out _, out _, out _ ).Should().BeFalse();
+            CoreApplicationIdentity.TryParseFullName( $"{domainMax}D/$p/#e", out _, out _, out _ ).Should().BeFalse();
+            CoreApplicationIdentity.TryParseFullName( $"D/${partyMax}X/#e", out _, out _, out _ ).Should().BeFalse();
+            CoreApplicationIdentity.TryParseFullName( $"D/$p/{environmentMax}X", out _, out _, out _ ).Should().BeFalse();
+
+        }
     }
+
 }

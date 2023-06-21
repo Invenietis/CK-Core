@@ -5,15 +5,16 @@
 The goal of this small static class is to capture once for all the notion of a process identity. And this is not a simple
 issue.
 
-The idea here is to express this as simply as possible:
+The idea here is to express this as simply as possible with a triplet of strings:
 
-- A process is rooted in a "domain", that is a family of applications that typically work together. A domain 
-is like a "realm" in security frameworks, a "tenant" or an "organization" in a cloud infrastructure. 
-- Then comes an optional "environment" that aims to identify a deployment context like "Production" or "Staging".
-- Finally the `PartyName` identifies the "application" itself, both the code base and its role in the architecture.
-
-The first usage of this `DomainName/EnvironmentName/PartyName` simple path is to group/route logs
-emitted by processes.
+- DomainName: A process is rooted in a "domain", that is a family of applications that typically work together. A domain 
+  is like a "realm" in security frameworks, a "tenant" or an "organization" in a cloud infrastructure.
+  A domain can be a path like "AcmeCorp", "AcmeCorp/CRM" or "AcmeCorp/CRM/UserMagement". Note that the first
+  part of this path can often be seen as the "OrganizationName".
+- EnvironmentName: is optional and aims to identify a deployment context like "#Production" or "#Staging".
+  Environment names always starts with a `#` and defaults to "#Development".
+- PartyName: identifies the "application" itself, both the code base and its role in the architecture
+  like a "MailSender", "SaaS-11" or "Worker_3712". When used in a path, party names must be prefixed by a `$`.
 
 This doesn't imply any form of uniqueness, "process uniqueness" is a complex matter. A process can only be truly unique (at
 any point in time) by using synchronization primitives like Mutex or specific coordination infrastructure (election algorithms)
@@ -27,12 +28,19 @@ This small class will never solve this issue but it aims to capture and expose t
 - Other "identity" can be captured by the `ContextDescriptor` that can use process arguments, working directory
 or any other contextual information that helps identify a process.
 
+One of the first usage of this `{DomainName,EnvironmentName,PartyName}` triplet is to provide a simple path
+to group/route logs emitted by processes. Thanks to the `#` and `$` leading characters, any full path derived from
+the triplet is self-described. For structuring incoming logs for instance one can choose the following pattern:
+`OrganisationName/#EnvironmentName/DomainNameRemaider/$PartyName` (where the DomainName is split on its first part)
+when this organization has multiple deployment/environment contexts. When no such global contexts is available, it
+may be simpler to adopt a `DomainName/$PartyName/#EnvironmentName` scheme.
+
 ## Naming constraints and defaults
 
 All names are case sensitive, PascalCase convention should be use.
 
 - DomainName defaults to `"Undefined"` and cannot be empty. It may a a path (contains '/'). Its maximal length is 127 characters.
-- EnvironmentName defaults to `"Development"` and cannot be empty. Its maximal length is 31 characters.
+- EnvironmentName defaults to `"#Development"` and cannot be empty. Its maximal length is 31 characters.
 - PartyName has no defaults. It cannot be empty and has to be set (ultimately it can be set to `"Unknown"` but this should barely happen).
   Its maximal length is 31 characters.
 
@@ -42,19 +50,30 @@ characters and must not start with a digit, and not start or end with '_' or '-'
 DomainName is an identifier as described above or a path ('/' separated identifiers). No leading or trailing '/'
 and no double '//' are allowed.
 
-A FullName property is available:
-- It is `DomainName/EnvironmentName/PartyName` when domain name is a simple identifier.
-- When DomainName is a path (like "A/B/C"), this is `A/EnvironmentName/B/C/PartyName`.
-- It maximal length is 191 characters.
+A default FullName property is available:
+- It is `DomainName/$PartyName/#EnvironmentName`.
+- The `#EnvironmentName` part is optional in a full name.
+- It maximal length is 192 characters.
 
-> The EnvironmentName is always the second part of the full name.
+As long as the '$' prefix is used for the PartyName, any other full name schemes can be used: the static
+`CoreApplicationIdentity.TryParseFullName` recovers the triplet from any potential full name.
 
-Example:
-- DomainName: "Signature/SaaS/Internal"
-- EnvironmentName: "Production"
-- PartyName: "BugTracker"
+```csharp
+/// <summary>
+/// Tries to parse a full name in which the $PartyName part can be anywhere
+/// and the #EnvironmentName part can be anywhere or missing (<paramref name="environmentName"/> will be null).
+/// </summary>
+/// <param name="fullName">The full name to parse.</param>
+/// <param name="domainName">The parsed domain name.</param>
+/// <param name="partyName">The parsed party name without the leading '$'.</param>
+/// <param name="environmentName">The parsed environment name or null if it is missing: <see cref="DefaultEnvironmentName"/> should be used.</param>
+/// <returns>True on success, false if the full name is not a valid identity full name.</returns>
+public static bool TryParseFullName( ReadOnlySpan<char> fullName,
+                                     [NotNullWhen( true )] out string? domainName,
+                                     [NotNullWhen( true )] out string? partyName,
+                                     out string? environmentName )
 
-The full name is: `Signature/Production/SaaS/Internal/BugTracker`.
+```
 
 ## Initialization and usage
 
