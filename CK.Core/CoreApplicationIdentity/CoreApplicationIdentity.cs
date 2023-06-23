@@ -298,23 +298,26 @@ namespace CK.Core
         }
 
         /// <summary>
-        /// Tries to parse a full name in which the $PartyName part can be anywhere
-        /// and the #EnvironmentName part can be anywhere or missing (<paramref name="environmentName"/> will be null).
+        /// Tries to parse a full name in which the $PartyName part can be anywhere (and optional)
+        /// and the #EnvironmentName part can be anywhere (and optional).
+        /// <para>
+        /// A simple domain name is a valid full name. 
+        /// </para>
         /// </summary>
         /// <param name="fullName">The full name to parse.</param>
         /// <param name="domainName">The parsed domain name.</param>
-        /// <param name="partyName">The parsed party name without the leading '$'.</param>
-        /// <param name="environmentName">The parsed environment name or null if it is missing: <see cref="DefaultEnvironmentName"/> should be used.</param>
-        /// <returns>True on success, false if the full name is not a valid identity full name.</returns>
+        /// <param name="partyName">The parsed party name without the leading '$' or null.</param>
+        /// <param name="environmentName">The parsed environment name or null (<see cref="DefaultEnvironmentName"/> can be used).</param>
+        /// <returns>True on success, false if the full name is not a valid identity full name (it must at least be a valid domain name).</returns>
         public static bool TryParseFullName( ReadOnlySpan<char> fullName,
                                              [NotNullWhen( true )] out string? domainName,
-                                             [NotNullWhen( true )] out string? partyName,
+                                             out string? partyName,
                                              out string? environmentName )
         {
             domainName = null;
             partyName = null;
             environmentName = null;
-            if( fullName.Length < 3 || fullName.Length > FullNameMaxLength ) return false;
+            if( fullName.Length == 0 || fullName.Length > FullNameMaxLength ) return false;
             Span<char> d = stackalloc char[DomainNameMaxLength];
             int dHead = 0;
             foreach( var part in fullName.Tokenize( '/' ) )
@@ -346,7 +349,6 @@ namespace CK.Core
                     dHead += part.Length;
                 }
             }
-            if( partyName == null ) return false;
             d = d.Slice( 0, dHead );
             if( !IsValidDomainName( d ) ) return false;
             domainName = d.ToString();
@@ -375,18 +377,13 @@ namespace CK.Core
         {
             if( value.Length == 0 || value.Length > DomainNameMaxLength ) return false;
             int idx = value.IndexOf( '/' );
-            if( idx >= 0 )
+            while( idx >= 0 )
             {
-                do
-                {
-                    if( idx == 0 ) return false;
-                    if( idx == value.Length - 1 ) return false;
-                    if( !IsValidIdentifier( value.Slice( 0, idx ) ) ) return false;
-                    value = value.Slice( idx + 1 );
-                    idx = value.IndexOf( '/' );
-                }
-                while( idx >= 0 );
-                return true;
+                if( idx == 0 ) return false;
+                if( idx == value.Length - 1 ) return false;
+                if( !IsValidIdentifier( value.Slice( 0, idx ) ) ) return false;
+                value = value.Slice( idx + 1 );
+                idx = value.IndexOf( '/' );
             }
             return IsValidIdentifier( value );
 

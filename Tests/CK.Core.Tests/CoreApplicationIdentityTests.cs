@@ -206,6 +206,7 @@ namespace CK.Core.Tests
             CoreApplicationIdentity.Builder.PartyNameFromProcessPath( "Party012345678901234567890123456789" ).Should().Be( "y012345678901234567890123456789" );
         }
 
+        // With party.
         [TestCase( "A/$p", "A", "p", null )]
         [TestCase( "$p/A", "A", "p", null )]
         [TestCase( "$p/A/B", "A/B", "p", null )]
@@ -215,6 +216,7 @@ namespace CK.Core.Tests
         [TestCase( "A/B/$p/C", "A/B/C", "p", null )]
         [TestCase( "A/$p/B/C", "A/B/C", "p", null )]
         [TestCase( "$p/A/B/C", "A/B/C", "p", null )]
+        // With party and environment.
         [TestCase( "A/$p/#e", "A", "p", "#e" )]
         [TestCase( "$p/A/#e", "A", "p", "#e" )]
         [TestCase( "$p/A/B/#e", "A/B", "p", "#e" )]
@@ -233,7 +235,14 @@ namespace CK.Core.Tests
         [TestCase( "A/#e/B/$p/C", "A/B/C", "p", "#e" )]
         [TestCase( "A/$p/B/#e/C", "A/B/C", "p", "#e" )]
         [TestCase( "#e/$p/A/B/C", "A/B/C", "p", "#e" )]
-        public void TryParseFullName_successful_tests( string? f, string domainName, string partyName, string? environmentName )
+        // Domain only.
+        [TestCase( "A", "A", null, null )]
+        [TestCase( "A/B", "A/B", null, null )]
+        // With environment.
+        [TestCase( "A/B/#e", "A/B", null, "#e" )]
+        [TestCase( "#e/A/B", "A/B", null, "#e" )]
+        [TestCase( "A/#e/B", "A/B", null, "#e" )]
+        public void TryParseFullName_successful_tests( string? f, string domainName, string? partyName, string? environmentName )
         {
             CoreApplicationIdentity.TryParseFullName( f, out var d, out var p, out var e ).Should().BeTrue();
             d.Should().Be( domainName );
@@ -243,14 +252,11 @@ namespace CK.Core.Tests
 
         [TestCase( null )]
         [TestCase( "" )]
-        [TestCase( "A" )]
-        [TestCase( "A/B" )]
         [TestCase( "$p" )]
         [TestCase( "#e" )]
         [TestCase( "#e/$p" )]
-        [TestCase( "A/B/#e" )]
-        [TestCase( "A/B#e" )]
         [TestCase( "A$p/B/#e" )]
+        [TestCase( "A/$p/B#e" )]
         public void TryParseFullName_failed_tests( string f )
         {
             CoreApplicationIdentity.TryParseFullName( f, out _, out _, out _ ).Should().BeFalse();
