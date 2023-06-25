@@ -306,7 +306,7 @@ namespace CK.Core
         /// </summary>
         /// <param name="fullName">The full name to parse.</param>
         /// <param name="domainName">The parsed domain name.</param>
-        /// <param name="partyName">The parsed party name without the leading '$' or null.</param>
+        /// <param name="partyName">The parsed party name with the leading '$' or null.</param>
         /// <param name="environmentName">The parsed environment name or null (<see cref="DefaultEnvironmentName"/> can be used).</param>
         /// <returns>True on success, false if the full name is not a valid identity full name (it must at least be a valid domain name).</returns>
         public static bool TryParseFullName( ReadOnlySpan<char> fullName,
@@ -331,7 +331,7 @@ namespace CK.Core
                 else if( part[0] == '$' )
                 {
                     if( partyName != null || !IsValidPartyName( part ) ) return false;
-                    partyName = part.Slice( 1 ).ToString();
+                    partyName = part.ToString();
                 }
                 else
                 {

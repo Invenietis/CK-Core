@@ -207,34 +207,34 @@ namespace CK.Core.Tests
         }
 
         // With party.
-        [TestCase( "A/$p", "A", "p", null )]
-        [TestCase( "$p/A", "A", "p", null )]
-        [TestCase( "$p/A/B", "A/B", "p", null )]
-        [TestCase( "A/B/$p", "A/B", "p", null )]
-        [TestCase( "A/$p/B", "A/B", "p", null )]
-        [TestCase( "A/B/C/$p", "A/B/C", "p", null )]
-        [TestCase( "A/B/$p/C", "A/B/C", "p", null )]
-        [TestCase( "A/$p/B/C", "A/B/C", "p", null )]
-        [TestCase( "$p/A/B/C", "A/B/C", "p", null )]
+        [TestCase( "A/$p", "A", "$p", null )]
+        [TestCase( "$p/A", "A", "$p", null )]
+        [TestCase( "$p/A/B", "A/B", "$p", null )]
+        [TestCase( "A/B/$p", "A/B", "$p", null )]
+        [TestCase( "A/$p/B", "A/B", "$p", null )]
+        [TestCase( "A/B/C/$p", "A/B/C", "$p", null )]
+        [TestCase( "A/B/$p/C", "A/B/C", "$p", null )]
+        [TestCase( "A/$p/B/C", "A/B/C", "$p", null )]
+        [TestCase( "$p/A/B/C", "A/B/C", "$p", null )]
         // With party and environment.
-        [TestCase( "A/$p/#e", "A", "p", "#e" )]
-        [TestCase( "$p/A/#e", "A", "p", "#e" )]
-        [TestCase( "$p/A/B/#e", "A/B", "p", "#e" )]
-        [TestCase( "A/B/$p/#e", "A/B", "p", "#e" )]
-        [TestCase( "A/$p/B/#e", "A/B", "p", "#e" )]
-        [TestCase( "A/B/C/$p/#e", "A/B/C", "p", "#e" )]
-        [TestCase( "A/B/$p/C/#e", "A/B/C", "p", "#e" )]
-        [TestCase( "A/$p/B/C/#e", "A/B/C", "p", "#e" )]
-        [TestCase( "$p/A/B/C/#e", "A/B/C", "p", "#e" )]
-        [TestCase( "A/#e/$p", "A", "p", "#e" )]
-        [TestCase( "$p/#e/A", "A", "p", "#e" )]
-        [TestCase( "$p/A/#e/B", "A/B", "p", "#e" )]
-        [TestCase( "A/B/#e/$p", "A/B", "p", "#e" )]
-        [TestCase( "A/$p/#e/B", "A/B", "p", "#e" )]
-        [TestCase( "#e/A/B/C/$p", "A/B/C", "p", "#e" )]
-        [TestCase( "A/#e/B/$p/C", "A/B/C", "p", "#e" )]
-        [TestCase( "A/$p/B/#e/C", "A/B/C", "p", "#e" )]
-        [TestCase( "#e/$p/A/B/C", "A/B/C", "p", "#e" )]
+        [TestCase( "A/$p/#e", "A", "$p", "#e" )]
+        [TestCase( "$p/A/#e", "A", "$p", "#e" )]
+        [TestCase( "$p/A/B/#e", "A/B", "$p", "#e" )]
+        [TestCase( "A/B/$p/#e", "A/B", "$p", "#e" )]
+        [TestCase( "A/$p/B/#e", "A/B", "$p", "#e" )]
+        [TestCase( "A/B/C/$p/#e", "A/B/C", "$p", "#e" )]
+        [TestCase( "A/B/$p/C/#e", "A/B/C", "$p", "#e" )]
+        [TestCase( "A/$p/B/C/#e", "A/B/C", "$p", "#e" )]
+        [TestCase( "$p/A/B/C/#e", "A/B/C", "$p", "#e" )]
+        [TestCase( "A/#e/$p", "A", "$p", "#e" )]
+        [TestCase( "$p/#e/A", "A", "$p", "#e" )]
+        [TestCase( "$p/A/#e/B", "A/B", "$p", "#e" )]
+        [TestCase( "A/B/#e/$p", "A/B", "$p", "#e" )]
+        [TestCase( "A/$p/#e/B", "A/B", "$p", "#e" )]
+        [TestCase( "#e/A/B/C/$p", "A/B/C", "$p", "#e" )]
+        [TestCase( "A/#e/B/$p/C", "A/B/C", "$p", "#e" )]
+        [TestCase( "A/$p/B/#e/C", "A/B/C", "$p", "#e" )]
+        [TestCase( "#e/$p/A/B/C", "A/B/C", "$p", "#e" )]
         // Domain only.
         [TestCase( "A", "A", null, null )]
         [TestCase( "A/B", "A/B", null, null )]
@@ -270,7 +270,7 @@ namespace CK.Core.Tests
             var environmentMax = '#' + new string( 'e', CoreApplicationIdentity.EnvironmentNameMaxLength - 1 );
             CoreApplicationIdentity.TryParseFullName( $"{domainMax}/${partyMax}/{environmentMax}", out var d, out var p, out var e ).Should().BeTrue();
             d.Should().Be( domainMax );
-            p.Should().Be( partyMax );
+            p.Should().Be( '$' + partyMax );
             e.Should().Be( environmentMax );
 
             CoreApplicationIdentity.TryParseFullName( $"X{domainMax}/${partyMax}/{environmentMax}", out _, out _, out _ ).Should().BeFalse();
