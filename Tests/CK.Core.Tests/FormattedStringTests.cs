@@ -167,20 +167,18 @@ namespace CK.Core.Tests
             inAmerica.Culture.Should().BeSameAs( enUS );
         }
 
-        [SetCulture( "ar-tn" )]
+        [SetCulture( "de-DE" )]
         [Test]
         public void CurrentCulture_test()
         {
-            Assume.That( Environment.OSVersion.Platform == PlatformID.Win32NT, "Not the same with Icu." );
-
             var d = new DateTime( 2023, 07, 27, 23, 59, 59, 999, DateTimeKind.Utc );
             var value = 37.12;
 
             var inTunisia = new FormattedString( $"Date: {d:F}, V: {value:C}" );
-            inTunisia.Text.Should().Be( "Date: الخميس، 27 جويلية 2023 11:59:59 م, V: د.ت.‏ 37,120" );
+            inTunisia.Text.Should().Be( "Date: Donnerstag, 27. Juli 2023 23:59:59, V: 37,12 €" );
             inTunisia.GetFormatString().Should().Be( "Date: {0}, V: {1}" );
             inTunisia.GetPlaceholderContents().Select( a => a.ToString() )
-                    .Should().BeEquivalentTo( new[] { "الخميس، 27 جويلية 2023 11:59:59 م", "د.ت.‏ 37,120" } );
+                    .Should().BeEquivalentTo( new[] { "Donnerstag, 27. Juli 2023 23:59:59", "37,12 €" } );
         }
 
         [Test]
