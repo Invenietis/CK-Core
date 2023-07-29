@@ -2,17 +2,23 @@
   <PropertyGroup>
     <TargetFramework>net6.0</TargetFramework>
     <IsPackable>False</IsPackable>
-    <LangVersion>9</LangVersion>
+    <LangVersion>11</LangVersion>
     <Nullable>enable</Nullable>
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\CK.Core\CK.Core.csproj" />
-    <PackageReference Include="FluentAssertions" Version="6.10.0" />
-    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.5.0" />
-    <PackageReference Include="NUnit3TestAdapter" Version="4.3.1" />
+    <PackageReference Include="FluentAssertions" Version="6.11.0" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.6.3" />
+    <PackageReference Include="NUnit3TestAdapter" Version="4.5.0" />
     <PackageReference Include="NUnit" Version="3.13.3" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Properties\" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Update="Microsoft.VisualStudio.Threading.Analyzers" Version="17.6.40">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
+    </PackageReference>
   </ItemGroup>
 </Project>

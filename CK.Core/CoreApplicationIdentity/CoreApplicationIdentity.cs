@@ -91,7 +91,7 @@ namespace CK.Core
         /// Gets the name of the environment. Defaults to "Development" (<see cref="DefaultEnvironmentName"/>).
         /// Its maximal length is <see cref="EnvironmentNameMaxLength"/>.
         /// <para>
-        /// See <see cref="IsValidIdentifier(ReadOnlySpan{char})"/> for its syntax.
+        /// See <see cref="IsValidEnvironmentName(ReadOnlySpan{char})"/> for its syntax.
         /// </para>
         /// </summary>
         public string EnvironmentName { get; }
@@ -101,7 +101,7 @@ namespace CK.Core
         /// Its maximal length is <see cref="PartyNameMaxLength"/>, it doesn't start with '$': the '$' must
         /// appear only in a <see cref="FullName"/>.
         /// <para>
-        /// See <see cref="IsValidIdentifier(ReadOnlySpan{char})"/> for its syntax.
+        /// See <see cref="IsValidPartyName(ReadOnlySpan{char})"/> for its syntax.
         /// </para>
         /// <para>
         /// Defaults to a string derived from the <see cref="Environment.ProcessPath"/>.
@@ -431,6 +431,9 @@ namespace CK.Core
         /// <para>
         /// It can optionally be prefixed by '$' (its representation in the full name).
         /// The leading $ is silently ignored by this method.
+        /// </para>
+        /// <para>
+        /// It must not be longer than <see cref="PartyNameMaxLength"/>.
         /// </para>
         /// </summary>
         /// <param name="value">The candidate.</param>

@@ -5,6 +5,7 @@ using System.Buffers.Text;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
@@ -321,6 +322,37 @@ namespace CK.Core
         /// <param name="s">The reference stream.</param>
         /// <returns>A checked write stream.</returns>
         public static CheckedWriteStream CreateCheckedWriteStream( RecyclableMemoryStream s ) => new CheckedWriteStreamOnROSBytes( s.GetReadOnlySequence() );
+
+
+        static bool? _isGlobalizationInvariantMode;
+
+        /// <summary>
+        /// Whether the CultureInfo will always be the <see cref="CultureInfo.InvariantCulture"/>.
+        /// See https://github.com/dotnet/runtime/blob/main/docs/design/features/globalization-invariant-mode.md.
+        /// <para>
+        /// This ugly code is required: see https://stackoverflow.com/questions/75298957/how-to-detect-globalization-invariant-mode
+        /// </para>
+        /// </summary>
+        /// <returns>True if we are running in Invariant Mode, false otherwise.</returns>
+        public static bool IsGlobalizationInvariantMode
+        {
+            get
+            {
+                return _isGlobalizationInvariantMode ??= TryIt();
+
+                static bool TryIt()
+                {
+                    try
+                    {
+                        return CultureInfo.GetCultureInfo( "en-US" ).NumberFormat.CurrencySymbol == "¤";
+                    }
+                    catch( CultureNotFoundException )
+                    {
+                        return true;
+                    }
+                }
+            }
+        }
 
     }
 

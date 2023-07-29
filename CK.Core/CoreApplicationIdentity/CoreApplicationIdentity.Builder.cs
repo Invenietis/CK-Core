@@ -34,7 +34,7 @@ namespace CK.Core
             }
 
             /// <summary>
-            /// Tries to compute a <see cref="IsValidIdentifier(ReadOnlySpan{char})"/> from any string.
+            /// Tries to compute a <see cref="IsValidPartyName(ReadOnlySpan{char})"/> from any string.
             /// Ultimately returns <see cref="DefaultPartyName"/>.
             /// </summary>
             /// <param name="processPath">Called with <see cref="Environment.ProcessPath"/>.</param>
@@ -96,7 +96,7 @@ namespace CK.Core
 
             /// <summary>
             /// Gets or sets the eventual <see cref="CoreApplicationIdentity.PartyName"/>.
-            /// <see cref="IsValidIdentifier(ReadOnlySpan{char})"/> must be true and when not null,
+            /// <see cref="IsValidPartyName(ReadOnlySpan{char})"/> must be true and when not null,
             /// must not be longer than <see cref="PartyNameMaxLength"/> otherwise an <see cref="ArgumentException"/> is thrown.
             /// <para>
             /// Setting a "$Name" is allowed: the '$' prefix is automaticaaly removed.
