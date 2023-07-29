@@ -171,6 +171,8 @@ namespace CK.Core.Tests
         [Test]
         public void CurrentCulture_test()
         {
+            Assume.That( Environment.OSVersion.Platform == PlatformID.Win32NT, "Not the same with Icu." );
+
             var d = new DateTime( 2023, 07, 27, 23, 59, 59, 999, DateTimeKind.Utc );
             var value = 37.12;
 
