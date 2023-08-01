@@ -41,9 +41,9 @@ namespace CK.Core
         public const string DefaultDomainName = "Undefined";
 
         /// <summary>
-        /// This is "#Development". Environment names always start with '#'.
+        /// This is "#Dev". Environment names always start with '#'.
         /// </summary>
-        public const string DefaultEnvironmentName = "#Development";
+        public const string DefaultEnvironmentName = "#Dev";
 
         /// <summary>
         /// The default party name is "Unknown".
@@ -88,8 +88,11 @@ namespace CK.Core
         public string DomainName { get; }
 
         /// <summary>
-        /// Gets the name of the environment. Defaults to "Development" (<see cref="DefaultEnvironmentName"/>).
+        /// Gets the name of the environment. Defaults to "#Dev" (<see cref="DefaultEnvironmentName"/>).
         /// Its maximal length is <see cref="EnvironmentNameMaxLength"/>.
+        /// <para>
+        /// "#Development" (case insensitive) is normalized to "#Dev".
+        /// </para>
         /// <para>
         /// See <see cref="IsValidEnvironmentName(ReadOnlySpan{char})"/> for its syntax.
         /// </para>

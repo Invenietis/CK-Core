@@ -41,7 +41,7 @@ may be simpler to adopt a `DomainName/$PartyName/#EnvironmentName` scheme (that 
 All names are case sensitive, PascalCase convention should be use.
 
 - DomainName defaults to `"Undefined"` and cannot be empty. It may a a path (contains '/'). Its maximal length is 127 characters.
-- EnvironmentName defaults to `"#Development"` and cannot be empty. Its maximal length is 31 characters.
+- EnvironmentName defaults to `"#Dev"` and cannot be empty (`"#Development"` is normalized to `"#Dev"`). Its maximal length is 31 characters.
 - PartyName has no defaults. It cannot be empty and has to be set (ultimately it can be set to `"Unknown"` but this should barely happen).
   Its maximal length is 31 characters.
 

@@ -82,6 +82,9 @@ namespace CK.Core
             /// <summary>
             /// Gets or sets the eventual <see cref="CoreApplicationIdentity.EnvironmentName"/>.
             /// <see cref="IsValidEnvironmentName(ReadOnlySpan{char})"/> must be true otherwise an <see cref="ArgumentException"/> is thrown.
+            /// <para>
+            /// "#Development" (case insensitive) is normalized to "#Dev".
+            /// </para>
             /// </summary>
             public string EnvironmentName
             {
@@ -90,7 +93,7 @@ namespace CK.Core
                 {
                     Throw.CheckNotNullArgument( value );
                     Throw.CheckArgument( IsValidEnvironmentName( value ) );
-                    _environmentName = value;
+                    _environmentName = StringComparer.OrdinalIgnoreCase.Equals( "#Development", value ) ? "#Dev" : value;
                 }
             }
 
