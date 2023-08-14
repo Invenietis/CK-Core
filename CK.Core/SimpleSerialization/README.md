@@ -101,6 +101,11 @@ either:
 - uses the same pattern as the simple serializable with a version that will be visible in the output;
 - or uses a more complex algorithm to read back the data (more like a "model binding" approach).
 
+A helper delegate is also defined for read (for write, a standard `Action<Utf8JsonWriter,T>` is enough):
+```csharp
+public delegate T? Utf8JsonReaderDelegate<T>( ref Utf8JsonReader r );
+```
+
 ## Sharing version: ICKVersionedBinarySerializable (struct & sealed classes only)
 
 This `ICKVersionedBinarySerializable` works like the simple one, except that the
