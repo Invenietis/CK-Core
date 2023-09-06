@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.Linq;
 
@@ -18,7 +19,7 @@ namespace CK.Core
     /// </para>
     /// </summary>
     [DebuggerDisplay( "{Path}" )]
-    public readonly struct NormalizedPath : IEquatable<NormalizedPath>, IComparable<NormalizedPath>
+    public readonly partial struct NormalizedPath : IEquatable<NormalizedPath>, IComparable<NormalizedPath>
     {
         static readonly char[] _separators = new[] { AltDirectorySeparatorChar, DirectorySeparatorChar };
 

@@ -586,5 +586,15 @@ namespace CK.Core.Tests
                                 .Select( x => new NormalizedPath( x ) );
         }
 
+        [Test]
+        public void Convertible_tests()
+        {
+            var p = new NormalizedPath( "A\\B" );
+            var s = Convert.ChangeType( p, typeof( string ) );
+            s.Should().Be( "A/B" );
+            // ChangeType doesn't use the target type [TypeConverter(...)] nor
+            // its potential IConvertible interface.
+        }
+
     }
 }
