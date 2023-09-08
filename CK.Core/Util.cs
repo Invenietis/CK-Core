@@ -1,3 +1,4 @@
+using Microsoft.Extensions.Primitives;
 using Microsoft.IO;
 using System;
 using System.Buffers;
@@ -64,6 +65,18 @@ namespace CK.Core
         /// A void, immutable, <see cref="IDisposable"/> that does absolutely nothing.
         /// </summary>
         public static readonly IDisposable EmptyDisposable = new VoidDisposable();
+
+        sealed class NopChangeToken : IChangeToken
+        {
+            public bool HasChanged => false;
+            public bool ActiveChangeCallbacks => false;
+            public IDisposable RegisterChangeCallback( Action<object?> callback, object? state ) => EmptyDisposable;
+        }
+
+        /// <summary>
+        /// An empty change token that is never signaled and never raise any change callbacks.
+        /// </summary>
+        public static readonly IChangeToken NoChangeToken = new NopChangeToken();
 
         /// <summary>
         /// Sql Server Epoch (1st of January 1900): this is the 0 legacy date time, the default value, even if
