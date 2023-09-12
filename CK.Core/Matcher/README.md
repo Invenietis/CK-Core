@@ -116,7 +116,7 @@ To conclude this sample on composition, a "piece of LED strip" (a pipe separated
 
 ```csharp
 /// <summary>
-/// Tries to parse a pattern: a pipe separated list of <see cref="LEDState?"/> (see <see cref="TryMatch(ref ReadOnlySpan{char}, out LEDState?)"/>).
+/// Tries to match a pattern: a pipe separated list of <see cref="LEDState?"/> (see <see cref="TryMatch(ref ReadOnlySpan{char}, out LEDState?)"/>).
 /// </summary>
 /// <param name="h">The head.</param>
 /// <param name="pattern">The resulting pattern.</param>
@@ -136,10 +136,74 @@ public static bool TryMatch( ref ReadOnlySpan<char> h, [NotNullWhen(true)]out Li
 }
 ```
 
+The `bool TryParse( ReadOnlySpan<char> s, out LEDState? state ) => TryMatch( ref s, out state ) && s.IsEmpty;` is not the best
+design because the parsed result is created (and lost) if the string has a remainder. This is not necessarilly an issue for value
+types but for reference types it's not ideal. 
+
+## Recommended implementation pattern
+Types that supports this pattern should implement the actual code in a private `TryMatch` method that accepts a `bool parse` parameter
+and relay public `TryParse` and `TryMatch` to it. Below is the complete example of the `DateTimeStamp` implementation:
+
+```csharp
+/// <summary>
+/// Tries to match a <see cref="DateTimeStamp"/> and forwards the <paramref name="head"/> on success.
+/// </summary>
+/// <param name="head">This parsing head.</param>
+/// <param name="time">Resulting time stamp on successful match; <see cref="DateTimeStamp.Unknown"/> otherwise.</param>
+/// <returns>True on success, false otherwise.</returns>
+static public bool TryMatch( ref ReadOnlySpan<char> head, out DateTimeStamp time ) => TryMatch( ref head, out time, false );
+
+/// <summary>
+/// Tries to parse a <see cref="DateTimeStamp"/>.
+/// <para>
+/// The extension method <see cref="DateTimeStampExtension.TryMatchDateTimeStamp(ref ROSpanCharMatcher, out DateTimeStamp)"/>
+/// is also available.
+/// </para>
+/// </summary>
+/// <param name="s">The string to parse.</param>
+/// <param name="time">Resulting time stamp on successful match; <see cref="DateTimeStamp.Unknown"/> otherwise.</param>
+/// <returns>True on success, false otherwise.</returns>
+static public bool TryParse( ReadOnlySpan<char> s, out DateTimeStamp time ) => TryMatch( ref s, out time, true );
+
+static bool TryMatch( ref ReadOnlySpan<char> head, out DateTimeStamp time, bool parse )
+{
+    var savedHead = head;
+    if( !head.TryMatchFileNameUniqueTimeUtcFormat( out var t ) ) goto error;
+    byte uniquifier = 0;
+    if( head.TryMatch( '(' ) )
+    {
+        if( !head.TryMatchInt32( out int u, 0, 255 ) || !head.TryMatch( ')' ) ) goto error;
+        uniquifier = (byte)u;
+    }
+    if( !parse || head.IsEmpty )
+    {
+        time = new DateTimeStamp( t, uniquifier );
+        return true;
+    }
+    error:
+    time = Unknown;
+    head = savedHead;
+    return false;
+}
+
+/// <summary>
+/// Parses a <see cref="DateTimeStamp"/> or throws a <see cref="FormatException"/>.
+/// </summary>
+/// <param name="s">The string to parse.</param>
+/// <returns>The DateTimeStamp.</returns>
+static public DateTimeStamp Parse( ReadOnlySpan<char> s )
+{
+    if( !TryParse( s, out var time ) ) Throw.FormatException( $"Invalid DateTimeStamp: '{s}'." );
+    return time;
+}
+```
+
 ## Extension methods at will
 
-For well known general purpose types, you may want to expose the `TryMatch` methods as extension methods of the "head".
-Some of them are already defined (see [ReadOnlySpanCharExtensions.cs](ReadOnlySpanCharExtensions.cs)) like this one for instance:
+For well known general purpose types, you may want to expose the `TryMatch` methods as extension methods of the "head" but if you
+can change the code, the `public static bool TryMatch(...)` is better located in the type itself (next to `TryParse` and `Parse`).
+
+Extension methods are already defined for .Net types (see [ReadOnlySpanCharExtensions.cs](ReadOnlySpanCharExtensions.cs)) like this one for instance:
 
 ```csharp
 /// <summary>

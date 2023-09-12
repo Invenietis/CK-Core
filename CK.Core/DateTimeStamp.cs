@@ -316,7 +316,7 @@ namespace CK.Core
                 if( !head.TryMatchInt32( out int u, 0, 255 ) || !head.TryMatch( ')' ) ) goto error;
                 uniquifier = (byte)u;
             }
-            if( !parse || head.Length == 0 )
+            if( !parse || head.IsEmpty )
             {
                 time = new DateTimeStamp( t, uniquifier );
                 return true;
