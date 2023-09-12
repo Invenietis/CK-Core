@@ -112,7 +112,7 @@ public static bool TryParse( ReadOnlySpan<char> s, out LEDState? state ) => TryM
 ```
 
 It's always the same piece of code to write (CodeGeneration here would be great...).
-To conclude this sample on composition, a "piece of LED strip":
+To conclude this sample on composition, a "piece of LED strip" (a pipe separated list of nullable LEDState):
 
 ```csharp
 /// <summary>
@@ -130,6 +130,8 @@ public static bool TryMatch( ref ReadOnlySpan<char> h, [NotNullWhen(true)]out Li
         pattern.Add( s );
         if( !h.TryMatch( '|' ) ) return true;
     }
+    // It is better to return the default on failure.
+    pattern = null;
     return false;
 }
 ```

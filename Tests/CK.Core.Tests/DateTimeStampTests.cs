@@ -11,9 +11,8 @@ using System.Threading.Tasks;
 namespace CK.Core.Tests
 {
     [TestFixture]
-    public class DateTimeStampUnicityTests
+    public class DateTimeStampTests
     {
-
         [Test]
         public void generating_time_collisions()
         {
@@ -53,7 +52,7 @@ namespace CK.Core.Tests
         }
 
         [Test]
-        public void DateTimeStamp_ToString_and_TryFormat()
+        public void DateTimeStamp_ToString_and_TryFormat_and_Parse()
         {
             DateTimeStamp d1 = DateTimeStamp.UtcNow;
             d1.Uniquifier.Should().Be( 0 );
@@ -64,6 +63,7 @@ namespace CK.Core.Tests
             d1.ToString().AsSpan().SequenceEqual( b.AsSpan() );
             d1.TryFormat( b.AsSpan(0,26), out cb, ReadOnlySpan<char>.Empty, null ).Should().BeFalse();
             cb.Should().Be( 0 );
+            CheckMatchAndParse( d1 );
 
             d1 = new DateTimeStamp( d1.TimeUtc, 5 );
             d1.TryFormat( b.AsSpan(), out cb, ReadOnlySpan<char>.Empty, null );
@@ -71,6 +71,7 @@ namespace CK.Core.Tests
             d1.ToString().AsSpan().SequenceEqual( b.AsSpan() );
             d1.TryFormat( b.AsSpan( 0, 29 ), out cb, ReadOnlySpan<char>.Empty, null ).Should().BeFalse();
             cb.Should().Be( 0 );
+            CheckMatchAndParse( d1 );
 
             d1 = new DateTimeStamp( d1.TimeUtc, 99 );
             d1.TryFormat( b.AsSpan(), out cb, ReadOnlySpan<char>.Empty, null );
@@ -78,6 +79,7 @@ namespace CK.Core.Tests
             d1.ToString().AsSpan().SequenceEqual( b.AsSpan() );
             d1.TryFormat( b.AsSpan( 0, 30 ), out cb, ReadOnlySpan<char>.Empty, null ).Should().BeFalse();
             cb.Should().Be( 0 );
+            CheckMatchAndParse( d1 );
 
             d1 = new DateTimeStamp( d1.TimeUtc, 255 );
             d1.TryFormat( b.AsSpan(), out cb, ReadOnlySpan<char>.Empty, null );
@@ -85,6 +87,30 @@ namespace CK.Core.Tests
             d1.ToString().AsSpan().SequenceEqual( b.AsSpan() );
             d1.TryFormat( b.AsSpan( 0, 31 ), out cb, ReadOnlySpan<char>.Empty, null ).Should().BeFalse();
             cb.Should().Be( 0 );
+            CheckMatchAndParse( d1 );
+
+            DateTimeStamp.TryParse( "nop", out var d2 ).Should().BeFalse();
+            FluentActions.Invoking( () => DateTimeStamp.Parse( "" ) ).Should().Throw<FormatException>();
+
+            static void CheckMatchAndParse( DateTimeStamp d1 )
+            {
+                var s = d1.ToString();
+                DateTimeStamp.TryParse( s.AsSpan(), out var d2 ).Should().BeTrue();
+                d2.Should().Be( d1 );
+                DateTimeStamp.Parse( d1.ToString().AsSpan() );
+
+                s += "remainder";
+
+                var head = s.AsSpan();
+                DateTimeStamp.TryMatch( ref head, out d2 ).Should().BeTrue();
+                d2.Should().Be( d1 );
+                head.SequenceEqual( "remainder" ).Should().BeTrue();
+
+                DateTimeStamp.TryParse( s, out var failed ).Should().BeFalse();
+                failed.Should().Be( DateTimeStamp.Unknown );
+                FluentActions.Invoking( () => DateTimeStamp.Parse( s ) ).Should().Throw<FormatException>();
+            }
         }
+
     }
 }
