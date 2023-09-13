@@ -1,4 +1,4 @@
-# Simple serialization
+# Simple (binary) serialization
 
 CK.Core defines 2 interfaces that supports "simple" binary serialization based on
 the [ICKBinaryReader](ICKBinaryReader.cs) and [ICKBinaryWriter](ICKBinaryWriter.cs).
@@ -86,25 +86,6 @@ readonly struct Sample : ICKSimpleBinarySerializable
 If thousands of instances of a `ICKSimpleBinarySerializable` must be saved, you obviously have useless bytes of
 information in the serialized data: here comes the `ICKVersionedBinarySerializable` that shares, once for all,
 its version number.
-
-## About the IUtf8JsonWritable
-
-The [IUtf8JsonWritable](IUtf8JsonWritable.cs) mimics the `ICKSimpleBinarySerializable` interface but with a
-`Utf8JsonWriter` instead of a binary writer. It's named "Writable" because it is not intended to support the associated
-constructor that takes a `ref Utf8JsonReader`: reading Json back (and being able to support versioning) requires a
-"protocol" that defines where the version should appear (an array may use its first cell to contain the version, or
-you may choose to wrap any object in an object with its version and its data). This choice impacts the shape of the data
-and that may not be desirable.
-
-That said, nothing prevents a specific type to implement the constructor that takes a `ref Utf8JsonReader`, and
-either:
-- uses the same pattern as the simple serializable with a version that will be visible in the output;
-- or uses a more complex algorithm to read back the data (more like a "model binding" approach).
-
-A helper delegate is also defined for read (for write, a standard `Action<Utf8JsonWriter,T>` is enough):
-```csharp
-public delegate T? Utf8JsonReaderDelegate<T>( ref Utf8JsonReader r );
-```
 
 ## Sharing version: ICKVersionedBinarySerializable (struct & sealed classes only)
 

@@ -247,11 +247,12 @@ namespace CK.Core
         /// </para>
         /// </summary>
         /// <param name="configuration">The Json configuration string.</param>
+        /// <param name="context">Optional context. Defaults to <see cref="IUtf8JsonReaderContext.Empty"/>.</param>
         /// <param name="checkPropertyNameUnicity">Optionnally allow duplicate property names to appear: last occurrence wins.</param>
-        public void AddJson( string configuration, bool checkPropertyNameUnicity = true )
+        public void AddJson( string configuration, IUtf8JsonReaderContext? context = null, bool checkPropertyNameUnicity = true )
         {
             var r = new Utf8JsonReader( Encoding.UTF8.GetBytes( configuration ) );
-            AddJson( ref r, checkPropertyNameUnicity );
+            AddJson( ref r, context ?? IUtf8JsonReaderContext.Empty, checkPropertyNameUnicity );
         }
 
         /// <summary>
@@ -262,24 +263,25 @@ namespace CK.Core
         /// </para>
         /// </summary>
         /// <param name="r">The Json reader.</param>
+        /// <param name="context">Optional context. Defaults to <see cref="IUtf8JsonReaderContext.Empty"/>.</param>
         /// <param name="checkPropertyNameUnicity">Optionnally allow duplicate property names to appear: last occurrence wins.</param>
-        public void AddJson( ref Utf8JsonReader r, bool checkPropertyNameUnicity = true )
+        public void AddJson( ref Utf8JsonReader r, IUtf8JsonReaderContext? context = null, bool checkPropertyNameUnicity = true )
         {
-            AddJson( ref r, this, checkPropertyNameUnicity );
+            AddJson( ref r, context ?? IUtf8JsonReaderContext.Empty, this, checkPropertyNameUnicity );
         }
 
-        static void AddJson( ref Utf8JsonReader r, MutableConfigurationSection target, bool checkPropertyNameUnicity )
+        static void AddJson( ref Utf8JsonReader r, IUtf8JsonReaderContext context, MutableConfigurationSection target, bool checkPropertyNameUnicity )
         {
             if( r.TokenType == JsonTokenType.None && !r.Read() ) return;
             while( r.TokenType == JsonTokenType.Comment ) r.Read();
             Throw.CheckData( r.TokenType == JsonTokenType.StartObject );
-            ReadObject( ref r, target, checkPropertyNameUnicity );
+            ReadObject( ref r, context, target, checkPropertyNameUnicity );
 
-            static void ReadObject( ref Utf8JsonReader r, MutableConfigurationSection target, bool checkPropertyNameUnicity )
+            static void ReadObject( ref Utf8JsonReader r, IUtf8JsonReaderContext context, MutableConfigurationSection target, bool checkPropertyNameUnicity )
             {
                 Debug.Assert( r.TokenType == JsonTokenType.StartObject );
-                r.Read();
-                while( r.TokenType == JsonTokenType.Comment ) r.Read();
+                r.ReadWithMoreData( context );
+                r.SkipComments( context );
                 var names = checkPropertyNameUnicity ? new HashSet<string>() : null;
                 while( r.TokenType == JsonTokenType.PropertyName )
                 {
@@ -290,14 +292,14 @@ namespace CK.Core
                         Throw.InvalidDataException( $"Duplicate JSON property '{propertyName}'." );
                     }
                     var t = target.GetMutableSection( propertyName );
-                    r.Read();
-                    while( r.TokenType == JsonTokenType.Comment ) r.Read();
-                    ReadValue( ref r, t, checkPropertyNameUnicity );
-                    r.Read();
-                    while( r.TokenType == JsonTokenType.Comment ) r.Read();
+                    r.ReadWithMoreData( context );
+                    r.SkipComments( context );
+                    ReadValue( ref r, context, t, checkPropertyNameUnicity );
+                    r.ReadWithMoreData( context );
+                    r.SkipComments( context );
                 }
 
-                static void ReadValue( ref Utf8JsonReader r, MutableConfigurationSection t, bool checkPropertyNameUnicity )
+                static void ReadValue( ref Utf8JsonReader r, IUtf8JsonReaderContext context, MutableConfigurationSection t, bool checkPropertyNameUnicity )
                 {
                     switch( r.TokenType )
                     {
@@ -314,17 +316,17 @@ namespace CK.Core
                             t.Value = r.HasValueSequence ? Encoding.UTF8.GetString( r.ValueSequence ) : Encoding.UTF8.GetString( r.ValueSpan );
                             break;
                         case JsonTokenType.StartObject:
-                            ReadObject( ref r, t, checkPropertyNameUnicity );
+                            ReadObject( ref r, context, t, checkPropertyNameUnicity );
                             break;
                         case JsonTokenType.StartArray:
-                            r.Read();
+                            r.ReadWithMoreData( context );
                             while( r.TokenType == JsonTokenType.Comment ) r.Read();
                             int index = 0;
                             while( r.TokenType != JsonTokenType.EndArray )
                             {
-                                ReadValue( ref r, t.GetMutableSection( index.ToString() ), checkPropertyNameUnicity );
-                                r.Read();
-                                while( r.TokenType == JsonTokenType.Comment ) r.Read();
+                                ReadValue( ref r, context, t.GetMutableSection( index.ToString() ), checkPropertyNameUnicity );
+                                r.ReadWithMoreData( context );
+                                r.SkipComments( context );
                                 index++;
                             }
                             break;
