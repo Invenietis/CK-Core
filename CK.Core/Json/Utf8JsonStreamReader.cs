@@ -59,7 +59,8 @@ namespace CK.Core
         /// Creates a new <see cref="Utf8JsonStreamReader"/> and an initial reader.
         /// <para>
         /// The <paramref name="stream"/> MUST NOT be a <see cref="RecyclableMemoryStream"/> otherwise an <see cref="ArgumentException"/>
-        /// is thrown: the ReadOnlySquence<byte> on the RecyclableMemoryStream must be used instead of this Utf8JsonStreamReader helper.
+        /// is thrown: the <c>ReadOnlySquence&lt;byte&gt; GetReadOnlySequence()</c> on the RecyclableMemoryStream must be used instead of
+        /// this Utf8JsonStreamReader helper.
         /// </para>
         /// </summary>
         /// <param name="stream">The stream.</param>
@@ -72,7 +73,7 @@ namespace CK.Core
         /// <param name="initialBufferSize">
         /// Initial buffer size (will grow as needed). The buffer size is only driven by
         /// the longest token (plus some white space) to read.
-        /// Current <c>>ArrayPool&lt;byte&gt.Shared</c> that is used returns at least 16 bytes: the
+        /// Current <c>>ArrayPool&lt;byte&gt;.Shared</c> that is used returns at least 16 bytes: the
         /// initial buffer size will at least be 16.
         /// </param>
         /// <returns>A new stream reader.</returns>

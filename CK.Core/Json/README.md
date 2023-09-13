@@ -32,17 +32,30 @@ hooks that may be required while reading Json.
 When no context is required (the input data is in memory - in a `ReadOnlySpan<byte>` or a `ReadOnlySequence<byte>` -
 and the reader function doesn't require any option), the `IUtf8JsonReaderContext.Empty` singleton can be used.
 
-## About the IUtf8JsonWritable
+## Don't forget the comments!
+Comments can be forbidden or skipped at the `Utf8JsonReader` level. However when writing library code,
+you should handle them: the library code has no control of the `JsonReaderOptions.CommentHandling` that has
+been used to initialize the reader. If for any reason, the caller used `JsonCommentHandling.Allow`, and your
+code doesn't skip the comment tokens, it will miserably fail to parse the data.
 
-The [IUtf8JsonWritable](IUtf8JsonWritable.cs) mimics the `ICKSimpleBinarySerializable` interface but with a
-`Utf8JsonWriter` instead of a binary writer. It's named "Writable" because it is not intended to support the associated
-constructor that takes a `ref Utf8JsonReader`: reading Json back (and being able to support versioning) requires a
-"protocol" that defines where the version should appear (an array may use its first cell to contain the version, or
-you may choose to wrap any object in an object with its version and its data). This choice impacts the shape of the data
-and that may not be desirable.
+You can use the extension method `SkipComments` after each `ReadWithMoreData` or `SkipWithMoreData`:
+```csharp
+/// <summary>
+/// Skips 0 or more <see cref="JsonTokenType.Comment"/>.
+/// </summary>
+/// <param name="r">This reader.</param>
+/// <param name="context">The reader context.</param>
+[MethodImpl( MethodImplOptions.AggressiveInlining )]
+public static void SkipComments( this ref Utf8JsonReader r, IUtf8JsonReaderContext context )
+{
+    while( r.TokenType == JsonTokenType.Comment ) r.ReadWithMoreData( context );
+}
+```
 
-That said, nothing prevents a specific type to implement the constructor that takes a `ref Utf8JsonReader`, and
-either:
-- uses the same pattern as the simple serializable with a version that will be visible in the output;
-- or uses a more complex algorithm to read back the data (more like a "model binding" approach).
+This allows your code to parse `jsonc` as well as `json`.
 
+## What about a Write helpers?
+Currently no helper exist because writing doesn't need specific memory management other than the already
+existing solutions (streams can be the target of a `Utf8JsonWriter`).
+
+Any _ad hoc_ context or options can always be provided to writer functions. 

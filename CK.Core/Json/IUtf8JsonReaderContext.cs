@@ -26,7 +26,7 @@ namespace CK.Core
     /// </summary>
     public interface IUtf8JsonReaderContext
     {
-        sealed class EmptyImpl : IUtf8JsonReaderContext
+        private sealed class EmptyImpl : IUtf8JsonReaderContext
         {
             public void ReadMoreData( ref Utf8JsonReader reader ) {}
             public void SkipMoreData( ref Utf8JsonReader reader ) {}
