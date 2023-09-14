@@ -21,6 +21,17 @@ namespace CK.Core
         }
 
         /// <summary>
+        /// Throws a <see cref="JsonException"/> with the current <see cref="Utf8JsonReader.BytesConsumed"/> and <see cref="Utf8JsonReader.CurrentDepth"/>.
+        /// </summary>
+        /// <param name="r">This reader.</param>
+        /// <param name="expected">Describes the expected token or expression.</param>
+        [DoesNotReturn]
+        public static void ThrowExpectedJsonException( this ref Utf8JsonReader r, string expected )
+        {
+            throw new JsonException( $"Expected '{expected}' - {r.BytesConsumed} consumed bytes, current depth is {r.CurrentDepth}." );
+        }
+
+        /// <summary>
         /// Extends <see cref="Utf8JsonReader.Read()"/> to call <see cref="IUtf8JsonReaderContext.ReadMoreData(ref Utf8JsonReader)"/> as needed.
         /// </summary>
         /// <param name="r">This reader.</param>

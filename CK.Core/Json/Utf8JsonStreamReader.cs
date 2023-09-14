@@ -39,27 +39,27 @@ namespace CK.Core
         int _initialOffset;
         readonly bool _leaveOpened;
         int _count;
+        readonly int _maxBufferSize;
 
-#if DEBUG
-        // We can test/change this in debug mode only.
-        public static int MaxBufferSize = int.MaxValue;
-#else
-        const int MaxBufferSize = int.MaxValue;
-#endif
-        Utf8JsonStreamReader( Stream stream, byte[] buffer, int count, int initialOffset, bool leaveOpened )
+        Utf8JsonStreamReader( Stream stream, byte[] buffer, int count, int initialOffset, bool leaveOpened, int maxBufferSize )
         {
             _stream = stream;
             _buffer = buffer;
             _count = count;
             _initialOffset = initialOffset;
             _leaveOpened = leaveOpened;
+            _maxBufferSize = maxBufferSize;
         }
 
         /// <summary>
         /// Creates a new <see cref="Utf8JsonStreamReader"/> and an initial reader.
         /// <para>
+        /// The Utf8 Byte Order Mask (BOM: 0xEF, 0xBB, 0xBF) that may exist at the start is
+        /// kindly handled.
+        /// </para>
+        /// <para>
         /// The <paramref name="stream"/> MUST NOT be a <see cref="RecyclableMemoryStream"/> otherwise an <see cref="ArgumentException"/>
-        /// is thrown: the <c>ReadOnlySquence&lt;byte&gt; GetReadOnlySequence()</c> on the RecyclableMemoryStream must be used instead of
+        /// is thrown: the <c>ReadOnlySequence&lt;byte&gt; GetReadOnlySequence()</c> on the RecyclableMemoryStream must be used instead of
         /// this Utf8JsonStreamReader helper.
         /// </para>
         /// </summary>
@@ -73,17 +73,20 @@ namespace CK.Core
         /// <param name="initialBufferSize">
         /// Initial buffer size (will grow as needed). The buffer size is only driven by
         /// the longest token (plus some white space) to read.
-        /// Current <c>>ArrayPool&lt;byte&gt;.Shared</c> that is used returns at least 16 bytes: the
+        /// Currently, the <c>>ArrayPool&lt;byte&gt;.Shared</c> that is used returns at least 16 bytes: the
         /// initial buffer size will at least be 16.
         /// </param>
-        /// <returns>A new stream reader.</returns>
+        /// <returns>A new stream reader (may be empty).</returns>
         public static Utf8JsonStreamReader Create( Stream stream,
                                                    JsonReaderOptions options,
                                                    out Utf8JsonReader r,
                                                    bool leaveOpened = false,
-                                                   int initialBufferSize = 512 )
+                                                   int initialBufferSize = 512,
+                                                   int maxBufferSize = int.MaxValue )
         {
             Throw.CheckNotNullArgument( stream );
+            // initialBufferSize may be 0 or even negative. It is normalized to at least 4 in ReadFirstBuffer.
+            Throw.CheckArgument( maxBufferSize >= initialBufferSize );
             Throw.CheckArgument( "Please use the ReadOnlySquence<byte> on the RecyclableMemoryStream instead.", stream is not RecyclableMemoryStream );
             if( ReadFirstBuffer( stream, out var buffer, out var count, out var initialOffset, initialBufferSize ) )
             {
@@ -95,7 +98,7 @@ namespace CK.Core
                 count = 0;
                 r = new Utf8JsonReader( ReadOnlySpan<byte>.Empty, options );
             }
-            return new Utf8JsonStreamReader( stream, buffer, count, initialOffset, leaveOpened );
+            return new Utf8JsonStreamReader( stream, buffer, count, initialOffset, leaveOpened, maxBufferSize );
 
             static bool ReadFirstBuffer( Stream stream, out byte[] buffer, out int count, out int offset, int initialBufferSize )
             {
@@ -209,19 +212,19 @@ namespace CK.Core
                 {
                     if( _count == _buffer.Length )
                     {
-                        if( _buffer.Length == MaxBufferSize )
+                        if( _buffer.Length == _maxBufferSize )
                         {
-                            reader.ThrowJsonException( $"A token requires more than MaxBufferSize = {MaxBufferSize} bytes." );
+                            reader.ThrowJsonException( $"A token requires more than MaxBufferSize = {_maxBufferSize} bytes." );
                         }
-                        byte[] newBuffer = ArrayPool<byte>.Shared.Rent( (_buffer.Length < (MaxBufferSize / 2)) ? _buffer.Length * 2 : MaxBufferSize );
-                        System.Buffer.BlockCopy( _buffer, bytesConsumed, newBuffer, 0, unread );
+                        byte[] newBuffer = ArrayPool<byte>.Shared.Rent( (_buffer.Length < (_maxBufferSize / 2)) ? _buffer.Length * 2 : _maxBufferSize );
+                        Buffer.BlockCopy( _buffer, bytesConsumed, newBuffer, 0, unread );
                         ArrayPool<byte>.Shared.Return( _buffer, clearArray: true );
                         _buffer = newBuffer;
                     }
                 }
                 else
                 {
-                    System.Buffer.BlockCopy( _buffer, bytesConsumed, _buffer, 0, unread );
+                    Buffer.BlockCopy( _buffer, bytesConsumed, _buffer, 0, unread );
                 }
                 bytesRead = _stream.Read( _buffer.AsSpan( unread ) );
                 _count = unread + bytesRead;

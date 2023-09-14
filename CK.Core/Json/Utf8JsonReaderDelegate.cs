@@ -1,9 +1,5 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+using System.Runtime.CompilerServices;
 using System.Text.Json;
-using System.Threading.Tasks;
 
 namespace CK.Core.Json
 {
@@ -24,5 +20,5 @@ namespace CK.Core.Json
     /// <param name="r">The reader.</param>
     /// <param name="context">The context.</param>
     /// <returns>The read instance or null.</returns>
-    public delegate T? Utf8JsonReaderDelegate<T,TReadContext>( ref Utf8JsonReader r, TReadContext context ) where TReadContext : IUtf8JsonReaderContext;
+    public delegate T? Utf8JsonReaderDelegate<T,TReadContext>( ref Utf8JsonReader r, TReadContext context ) where TReadContext : class, IUtf8JsonReaderContext;
 }

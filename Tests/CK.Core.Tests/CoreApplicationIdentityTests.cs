@@ -8,6 +8,7 @@ using System.Threading;
 
 namespace CK.Core.Tests
 {
+
     [TestFixture]
     public class CoreApplicationIdentityTests
     {
