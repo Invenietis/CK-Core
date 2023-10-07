@@ -25,7 +25,13 @@ namespace CK.Core.Tests
             config["X:Section:C:More"] = "C more";
 
             CheckConfiguration( config.GetSection( "X" ) );
-            CheckConfiguration( new ImmutableConfigurationSection( config.GetSection( "X" ) ) );
+            var immutable = new ImmutableConfigurationSection( config.GetSection( "X" ) );
+            CheckConfiguration( immutable );
+
+            // Immutable captures non existing sections (no value and no children).
+            var b = immutable.TryGetSection( "Section:B" );
+            b.Should().NotBeNull();
+            b.Exists().Should().BeFalse();
 
             static void CheckConfiguration( IConfigurationSection config )
             {
@@ -85,6 +91,15 @@ namespace CK.Core.Tests
             FluentActions.Invoking( () => new MutableConfigurationSection( "" ) ).Should().Throw<ArgumentException>();
             FluentActions.Invoking( () => new MutableConfigurationSection( ":" ) ).Should().Throw<ArgumentException>();
             FluentActions.Invoking( () => new MutableConfigurationSection( "A::B" ) ).Should().Throw<ArgumentException>();
+
+            FluentActions.Invoking( () => new MutableConfigurationSection( "A::B", "" ) ).Should().Throw<ArgumentException>();
+            FluentActions.Invoking( () => new MutableConfigurationSection( ":", "A" ) ).Should().Throw<ArgumentException>();
+            FluentActions.Invoking( () => new MutableConfigurationSection( ":A", "A" ) ).Should().Throw<ArgumentException>();
+            FluentActions.Invoking( () => new MutableConfigurationSection( "A:", "A" ) ).Should().Throw<ArgumentException>();
+
+            FluentActions.Invoking( () => new MutableConfigurationSection( "A:B", "" ) ).Should().Throw<ArgumentException>();
+            FluentActions.Invoking( () => new MutableConfigurationSection( "A", "A:" ) ).Should().Throw<ArgumentException>();
+            FluentActions.Invoking( () => new MutableConfigurationSection( "A", "A:B" ) ).Should().Throw<ArgumentException>();
         }
 
         [Test]
@@ -315,6 +330,82 @@ namespace CK.Core.Tests
             c.AddJson( ref r );
             c["A"].Should().Be( "V" );
             c["B"].Should().Be( "True" );
+        }
+
+        [Test]
+        public void empty_json_objects_are_NOT_read_at_all()
+        {
+            // We allow the trailing commas to appear when reading from a string.
+            var c = new MutableConfigurationSection( "Root" )
+                    .AddJson( """
+                              {
+                                "Unexisting": {},
+                              }
+                              """ );
+
+            var iC = new ImmutableConfigurationSection( c );
+
+            // There is no way with the Mutable to know if "Unexisting" has been created by the reader.
+            c.GetMutableSection( "Unexisting" ).Should().NotBeNull();
+            // But the Immutable captures the object and exposes the TryGetSection:
+            // we can see that empty objects are totally ignored.
+            iC.TryGetSection( "Unexisting" ).Should().BeNull();
+        }
+
+        [Test]
+        public void ShouldApplyConfiguration_works()
+        {
+            var c = new MutableConfigurationSection( "Root" )
+                    .AddJson( """
+                              {
+                                "ExplicitTrue": true,
+                                "ExplicitFalse": false,
+                                "Existing": { "SomeValue": 0 }
+                              }
+                              """ );
+
+            var iC = new ImmutableConfigurationSection( c );
+
+            // Checks correct type inference.
+            c.ShouldApplyConfiguration( "Existing", true, out var interfaceContent ).Should().BeTrue();
+            interfaceContent.Should().BeOfType<MutableConfigurationSection>();
+            iC.ShouldApplyConfiguration( "Existing", true, out var immutableContent ).Should().BeTrue();
+            immutableContent.Should().BeOfType<ImmutableConfigurationSection>();
+
+            c.ShouldApplyConfiguration( "Existing", false, out interfaceContent ).Should().BeTrue();
+            interfaceContent.Should().NotBeNull();
+            iC.ShouldApplyConfiguration( "Existing", false, out immutableContent ).Should().BeTrue();
+            immutableContent.Should().NotBeNull();
+
+            c.ShouldApplyConfiguration( "ExplicitTrue", true, out interfaceContent ).Should().BeTrue();
+            interfaceContent.Should().BeNull();
+            iC.ShouldApplyConfiguration( "ExplicitTrue", true, out immutableContent ).Should().BeTrue();
+            immutableContent.Should().BeNull();
+            c.ShouldApplyConfiguration( "ExplicitTrue", false, out interfaceContent ).Should().BeTrue();
+            interfaceContent.Should().BeNull();
+            iC.ShouldApplyConfiguration( "ExplicitTrue", false, out immutableContent ).Should().BeTrue();
+            immutableContent.Should().BeNull();
+
+            c.ShouldApplyConfiguration( "ExplicitFalse", true, out interfaceContent ).Should().BeFalse();
+            interfaceContent.Should().BeNull();
+            iC.ShouldApplyConfiguration( "ExplicitFalse", true, out immutableContent ).Should().BeFalse();
+            immutableContent.Should().BeNull();
+            c.ShouldApplyConfiguration( "ExplicitFalse", false, out interfaceContent ).Should().BeFalse();
+            interfaceContent.Should().BeNull();
+            iC.ShouldApplyConfiguration( "ExplicitFalse", false, out immutableContent ).Should().BeFalse();
+            immutableContent.Should().BeNull();
+
+            c.ShouldApplyConfiguration( "Unexisting", true, out interfaceContent ).Should().BeTrue();
+            interfaceContent.Should().BeNull();
+            iC.ShouldApplyConfiguration( "Unexisting", true, out immutableContent ).Should().BeTrue();
+            immutableContent.Should().BeNull();
+            c.ShouldApplyConfiguration( "Unexisting", false, out interfaceContent ).Should().BeFalse();
+            interfaceContent.Should().BeNull();
+            iC.ShouldApplyConfiguration( "Unexisting", false, out immutableContent ).Should().BeFalse();
+            immutableContent.Should().BeNull();
+
+
+
         }
     }
 }

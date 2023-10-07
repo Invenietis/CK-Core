@@ -8,6 +8,7 @@ using System.Linq;
 
 namespace CK.Core
 {
+
     /// <summary>
     /// Immutable capture of a <see cref="IConfigurationSection"/>.
     /// </summary>
@@ -76,13 +77,13 @@ namespace CK.Core
         /// <summary>
         /// Gets a configuration value. Setting it throws a <see cref="NotSupportedException"/>. 
         /// </summary>
-        /// <param name="key">The configuration key to find.</param>
+        /// <param name="path">The configuration key or a path to a subordinated key.</param>
         /// <returns>The value or null if not found.</returns>
-        public string? this[string key]
+        public string? this[string path]
         {
             get
             {
-                var sKey = key.AsSpan();
+                var sKey = path.AsSpan();
                 return Find( ref sKey, _children )?.Value;
             }
             set => Throw.NotSupportedException( $"This configuration '{_path}' is locked." );
@@ -103,6 +104,11 @@ namespace CK.Core
             set => Throw.NotSupportedException( $"This configuration '{_path}' is locked." );
         }
 
+        /// <summary>
+        /// Gets whether this configuration has children.
+        /// </summary>
+        public bool HasChildren => _children.Length > 0;
+
         IEnumerable<IConfigurationSection> IConfiguration.GetChildren() => _children;
 
         /// <summary>
@@ -111,17 +117,17 @@ namespace CK.Core
         /// <returns>The configuration sub-sections.</returns>
         public IReadOnlyList<ImmutableConfigurationSection> GetChildren() => _children;
 
-        IConfigurationSection IConfiguration.GetSection( string key ) => GetSection( key );
+        IConfigurationSection IConfiguration.GetSection( string path ) => GetSection( path );
 
         /// <summary>
         /// The standard <see cref="IConfiguration.GetSection(string)"/> creates a non existing section
         /// instance. This one simply return null if the section cannot be found.
         /// </summary>
-        /// <param name="key">The key of the configuration section.</param>
+        /// <param name="path">The configuration key or a path to a subordinated key.</param>
         /// <returns>The section or null.</returns>
-        public ImmutableConfigurationSection? TryGetSection( string key )
+        public ImmutableConfigurationSection? TryGetSection( string path )
         {
-            var sKey = key.AsSpan();
+            var sKey = path.AsSpan();
             return Find( ref sKey, _children );
         }
 
@@ -130,23 +136,23 @@ namespace CK.Core
         /// If a section with the key is found above but has no value (because it has children),
         /// this returns null. Use <see cref="TryLookupSection(string)"/> to lookup for a section.
         /// </summary>
-        /// <param name="key">The key to locate.</param>
+        /// <param name="path">The configuration key or a path to a subordinated key.</param>
         /// <returns>The non null value if found.</returns>
-        public string? TryLookupValue( string key ) => TryLookupSection( key )?.Value;
+        public string? TryLookupValue( string path ) => TryLookupSection( path )?.Value;
 
         /// <summary>
         /// Tries to find a section in this section or in the parent section.
         /// </summary>
-        /// <param name="key">The key to locate.</param>
+        /// <param name="path">The configuration key or a path to a subordinated key.</param>
         /// <returns>The non null section if found.</returns>
-        public ImmutableConfigurationSection? TryLookupSection( string key )
+        public ImmutableConfigurationSection? TryLookupSection( string path )
         {
-            Throw.CheckNotNullOrWhiteSpaceArgument( key );
+            MutableConfigurationSection.CheckPathArgument( path );
             ImmutableConfigurationSection? result;
             var s = this;
             do
             {
-                if( (result = s.TryGetSection( key )) != null ) break;
+                if( (result = s.TryGetSection( path )) != null ) break;
             }
             while( (s = s._lookupParent) != null );
             return result;
@@ -158,40 +164,43 @@ namespace CK.Core
         /// Sections that appear in the path from the root to this one are skipped by this function.
         /// </para>
         /// </summary>
-        /// <param name="key">The key to locate.</param>
+        /// <param name="path">The configuration key or a path to a subordinated key.</param>
         /// <param name="skipSectionsOnThisPath">
         /// Set it to false to return sections that occur on this path.
         /// This is generally not what you want.
         /// </param>
         /// <returns>All the sections above and the child section if any.</returns>
-        public IEnumerable<ImmutableConfigurationSection> LookupAllSection( string key, bool skipSectionsOnThisPath = true ) => DoLookupAllSection( key, skipSectionsOnThisPath ? this : null );
+        public IEnumerable<ImmutableConfigurationSection> LookupAllSection( string path, bool skipSectionsOnThisPath = true ) => DoLookupAllSection( path, skipSectionsOnThisPath ? this : null );
 
-        IEnumerable<ImmutableConfigurationSection> DoLookupAllSection( string key, ImmutableConfigurationSection? caller )
+        IEnumerable<ImmutableConfigurationSection> DoLookupAllSection( string path, ImmutableConfigurationSection? caller )
         {
             if( _lookupParent != null )
             {
-                foreach( var s in _lookupParent.DoLookupAllSection( key, caller != null ? this : null ) )
+                foreach( var s in _lookupParent.DoLookupAllSection( path, caller != null ? this : null ) )
                 {
                     yield return s;
                 }
             }
-            var sKey = key.AsSpan();
+            var sKey = path.AsSpan();
             var sub = Find( ref sKey, _children, caller );
             if( sub != null ) yield return sub;
         }
 
-        /// <inheritdoc cref="IConfiguration.GetSection(string)"/>
+        /// <summary>
+        /// Gets a possibly empty sub section (<see cref="ConfigurationExtensions.Exists(IConfigurationSection)"/> is false).
+        /// </summary>
+        /// <param name="path">The configuration key or a path to a subordinated key.</param>
         /// <remarks>
-        /// This returns an empty section. Use <see cref="TryGetSection(string)"/>
-        /// to have a null section if it doesn't exist.
+        /// This returns an empty section. To avoid totally useless allocations,
+        /// use <see cref="TryGetSection(string)"/> to have a null section if it doesn't exist.
         /// </remarks>
-        public ImmutableConfigurationSection GetSection( string key )
+        public ImmutableConfigurationSection GetSection( string path )
         {
-            var sKey = key.AsSpan();
+            var sKey = path.AsSpan();
             var s = Find( ref sKey, _children );
             if( s != null ) return s;
             // This mimics the key returned by the standard .Net implementation.
-            var errorKey = key;
+            var errorKey = path;
             if( sKey.Length != errorKey.Length )
             {
                 var sErrorKey = sKey.Trim( ':' );
@@ -204,7 +213,7 @@ namespace CK.Core
                     errorKey = sErrorKey.ToString();
                 }
             }
-            return new ImmutableConfigurationSection( this, ConfigurationPath.Combine( _path, key ), errorKey );
+            return new ImmutableConfigurationSection( this, ConfigurationPath.Combine( _path, path ), errorKey );
         }
 
         static ImmutableConfigurationSection? Find( ref ReadOnlySpan<char> sKey, ImmutableConfigurationSection[] children, ImmutableConfigurationSection? skip = null )
@@ -234,6 +243,35 @@ namespace CK.Core
         /// </summary>
         /// <returns>A never changing token.</returns>
         public IChangeToken GetReloadToken() => Util.NoChangeToken;
+
+        /// <summary>
+        /// Creates a root ImmutableConfigurationSection from a JSON (comments are ignored).
+        /// <para>
+        /// A root section has its <see cref="IConfigurationSection.Path"/> that is its <see cref="IConfigurationSection.Key"/>.
+        /// </para>
+        /// </summary>
+        /// <param name="path">The section path. It must be <see cref="MutableConfigurationSection.IsValidPath(ReadOnlySpan{char})"/>.</param>
+        /// <param name="configuration">the JSON configuration.</param>
+        /// <param name="checkPropertyNameUnicity">Optionally allow duplicate property names to appear: last occurrence wins.</param>
+        /// <returns>A new root section.</returns>
+        public static ImmutableConfigurationSection CreateFromJson( string path, string configuration, bool checkPropertyNameUnicity = true )
+        {
+            var c = new MutableConfigurationSection( path ).AddJson( configuration, checkPropertyNameUnicity );
+            return new ImmutableConfigurationSection( c );
+        }
+
+        /// <summary>
+        /// Creates a ImmutableConfigurationSection from a JSON (comments are ignored).
+        /// </summary>
+        /// <param name="parentPath">The parent section path. It must be null or empty or <see cref="MutableConfigurationSection.IsValidPath(ReadOnlySpan{char})"/>.</param>
+        /// <param name="key">The key name. It must be <see cref="MutableConfigurationSection.IsValidKey(ReadOnlySpan{char})"/>.</param>
+        /// <param name="checkPropertyNameUnicity">Optionally allow duplicate property names to appear: last occurrence wins.</param>
+        /// <returns>A new root section.</returns>
+        public static ImmutableConfigurationSection CreateFromJson( string? parentPath, string key, string configuration, bool checkPropertyNameUnicity = true )
+        {
+            var c = new MutableConfigurationSection( parentPath, key ).AddJson( configuration, checkPropertyNameUnicity );
+            return new ImmutableConfigurationSection( c );
+        }
 
         /// <summary>
         /// Overridden to display the path and the value or the count of children.

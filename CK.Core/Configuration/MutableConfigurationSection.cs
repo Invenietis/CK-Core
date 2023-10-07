@@ -15,6 +15,10 @@ namespace CK.Core
     /// Mutable <see cref="IConfigurationSection"/>: this acts as a simple configuration builder
     /// that can then be captured by a <see cref="ImmutableConfigurationSection"/>.
     /// <para>
+    /// This supports direct <see cref="AddJson(string, IUtf8JsonReaderContext?, bool)"/> (that can be json
+    /// with comments).
+    /// </para>
+    /// <para>
     /// Methods from <see cref="IConfigurationSection"/> are explicitly implemented, all their "mutable"
     /// equivalent exist: <see cref="GetMutableSection(string)"/>, <see cref="GetMutableChildren()"/>.
     /// </para>
@@ -28,14 +32,33 @@ namespace CK.Core
         MutableConfigurationSection? _withValue;
 
         /// <summary>
-        /// Initializes a new <see cref="MutableConfigurationSection"/> on a root path.
+        /// Initializes a new <see cref="MutableConfigurationSection"/>.
         /// </summary>
-        /// <param name="path">The root path. It must be a valid path.</param>
+        /// <param name="path">The section path. It must be <see cref="IsValidPath(ReadOnlySpan{char})"/>.</param>
         public MutableConfigurationSection( string path )
         {
-            CheckKeyArgument( path, path, nameof( path ) );
+            _path = CheckKeyArgument( path );
             _key = ConfigurationPath.GetSectionKey( path );
-            _path = path;
+            _children = new List<MutableConfigurationSection>();
+        }
+
+        /// <summary>
+        /// Initializes a new <see cref="MutableConfigurationSection"/> with a
+        /// <see cref="IConfigurationSection.Path"/> that is "<paramref name="parentPath"/>:<paramref name="key"/>".
+        /// </summary>
+        /// <param name="parentPath">The parent section path. It must be null or empty or <see cref="IsValidPath(ReadOnlySpan{char})"/>.</param>
+        /// <param name="key">The key name. It must be <see cref="IsValidKey(ReadOnlySpan{char})"/>.</param>
+        public MutableConfigurationSection( string? parentPath, string key )
+        {
+            _key = CheckKeyArgument( key );
+            if( string.IsNullOrEmpty( parentPath ) )
+            {
+                _path = _key;
+            }
+            else
+            {
+                _path = CheckPathArgument( parentPath ) + ':' + key;
+            }
             _children = new List<MutableConfigurationSection>();
         }
 
@@ -62,7 +85,7 @@ namespace CK.Core
 
         MutableConfigurationSection( MutableConfigurationSection parent, string key )
         {
-            Debug.Assert( !key.Contains( ':' ) );
+            Throw.DebugAssert( !key.Contains( ':' ) && IsValidKey( key ) );
             _key = key;
             _path = parent._path + ':' + key;
             _withValue = parent._withValue;
@@ -73,17 +96,17 @@ namespace CK.Core
         /// Gets a configuration value.
         /// Setting a value is possible only if no subordinated children exists below the key. 
         /// </summary>
-        /// <param name="key">The configuration key to find. Can be a path to a subordinated key.</param>
+        /// <param name="path">The configuration key or a path to a subordinated key.</param>
         /// <returns>The value or null if not found.</returns>
-        public string? this[string key]
+        public string? this[string path]
         {
             get
             {
-                var sKey = key.AsSpan();
+                var sPath = path.AsSpan();
                 var parent = this;
-                return Find( ref sKey, ref parent )?.Value;
+                return Find( ref sPath, ref parent )?.Value;
             }
-            set => GetMutableSection( key ).Value = value;
+            set => GetMutableSection( path ).Value = value;
         }
 
         /// <inheritdoc />
@@ -159,7 +182,7 @@ namespace CK.Core
         /// <returns>The configuration sub-sections.</returns>
         public IReadOnlyList<MutableConfigurationSection> GetMutableChildren() => _children;
 
-        IConfigurationSection IConfiguration.GetSection( string key ) => GetMutableSection( key );
+        IConfigurationSection IConfiguration.GetSection( string path ) => GetMutableSection( path );
 
         /// <summary>
         /// Finds or creates an existing subordinated section. The key can contain ":" delimiters: sub sections
@@ -169,62 +192,90 @@ namespace CK.Core
         /// (<see cref="ConfigurationExtensions.Exists(IConfigurationSection)"/> is false).
         /// </para>
         /// </summary>
-        /// <param name="key">The section key relative to this <see cref="Path"/>.</param>
+        /// <param name="path">The section path relative to this <see cref="Path"/>.</param>
         /// <returns>The mutable section.</returns>
-        public MutableConfigurationSection GetMutableSection( string key )
+        public MutableConfigurationSection GetMutableSection( string path )
         {
-            var sKey = key.AsSpan();
+            var sKey = path.AsSpan();
             var parent = this;
             var s = Find( ref sKey, ref parent );
             if( s != null ) return s;
             // Here, instead of reproducing the standard .Net implementation behavior,
             // we check the key syntax and ensure the path to target.
-            CheckKeyArgument( key, sKey, nameof( key ) );
+            CheckPathArgument( path );
             // We don't check here that a value exists here or above: getting a mutable
             // (empty) section is always possible.
             int idx;
             if( (idx = sKey.IndexOf( ':' )) < 0 )
             {
-                Debug.Assert( (parent == this) == (sKey.Length == key.Length) );
+                Debug.Assert( (parent == this) == (sKey.Length == path.Length) );
                 // Sets the adjusted key (to the new parent) if needed.
                 if( parent != this )
                 {
-                    key = sKey.ToString();
+                    path = sKey.ToString();
                 }
             }
             else
             {
                 do
                 {
-                    key = sKey.Slice( 0, idx ).ToString();
-                    s = new MutableConfigurationSection( parent, key );
+                    path = sKey.Slice( 0, idx ).ToString();
+                    s = new MutableConfigurationSection( parent, path );
                     parent._children.Add( s );
                     sKey = sKey.Slice( idx + 1 );
                     parent = s;
                 }
                 while( (idx = sKey.IndexOf( ':' )) != -1 );
-                key = sKey.ToString();
+                path = sKey.ToString();
             }
-            s = new MutableConfigurationSection( parent, key );
+            s = new MutableConfigurationSection( parent, path );
             parent._children.Add( s );
             return s;
         }
 
-        static void CheckKeyArgument( string key, ReadOnlySpan<char> sKey, string parameterName )
+        internal static string CheckKeyArgument( string key )
         {
-            if( !IsValidKey( sKey ) )
+            if( !IsValidKey( key ) )
             {
-                if( key == null ) Throw.ArgumentNullException( parameterName );
-                Throw.ArgumentException( $"Configuration key '{key}': invalid {parameterName}." );
+                if( key == null ) Throw.ArgumentNullException( "key" );
+                Throw.ArgumentException( "key", $"Configuration key '{key}' is invalid." );
             }
+            return key;
         }
 
-        static bool IsValidKey( ReadOnlySpan<char> sKey )
+        internal static string CheckPathArgument( string path )
         {
-            return sKey.Length > 0
-                   && !sKey.Contains( "::".AsSpan(), StringComparison.Ordinal )
-                   && sKey[0] != ':'
-                   && sKey[sKey.Length - 1] != ':';
+            if( !IsValidPath( path ) )
+            {
+                if( path == null ) Throw.ArgumentNullException( "path" );
+                Throw.ArgumentException( "path", $"Configuration path '{path}' is invalid." );
+            }
+            return path;
+        }
+
+        /// <summary>
+        /// Checks whether a <see cref="IConfigurationSection.Key"/> is valid.
+        /// It must not be empty and not contain key delimiter ':' (<see cref="ConfigurationPath.KeyDelimiter"/>).
+        /// </summary>
+        /// <param name="sKey">The key to check.</param>
+        /// <returns>Whether the key is valid.</returns>
+        public static bool IsValidKey( ReadOnlySpan<char> sKey )
+        {
+            return sKey.Length > 0 && !sKey.Contains( ':' );
+        }
+
+        /// <summary>
+        /// Checks whether a <see cref="IConfigurationSection.Path"/> is valid.
+        /// It must not be empty and may contain non empty keys delimited by colon (':').
+        /// </summary>
+        /// <param name="sPath">The path to check.</param>
+        /// <returns>Whether the path is valid.</returns>
+        public static bool IsValidPath( ReadOnlySpan<char> sPath )
+        {
+            return sPath.Length > 0
+                   && !sPath.Contains( "::".AsSpan(), StringComparison.Ordinal )
+                   && sPath[0] != ':'
+                   && sPath[sPath.Length - 1] != ':';
         }
 
         /// <summary>
@@ -241,33 +292,34 @@ namespace CK.Core
 
         /// <summary>
         /// Reads a JSON configuration string object and adds or updates all the corresponding sections and values.
-        /// The reader must positionned be on <see cref="JsonTokenType.None"/> or on <see cref="JsonTokenType.StartObject"/>.
         /// <para>
-        /// Any <see cref="JsonTokenType.Comment"/> are skipped (if <see cref="JsonReaderOptions.CommentHandling"/> is <see cref="JsonCommentHandling.Allow"/>).
+        /// Comments can exists and are ignored.
         /// </para>
         /// </summary>
         /// <param name="configuration">The Json configuration string.</param>
-        /// <param name="context">Optional context. Defaults to <see cref="IUtf8JsonReaderContext.Empty"/>.</param>
-        /// <param name="checkPropertyNameUnicity">Optionnally allow duplicate property names to appear: last occurrence wins.</param>
-        public void AddJson( string configuration, IUtf8JsonReaderContext? context = null, bool checkPropertyNameUnicity = true )
+        /// <param name="checkPropertyNameUnicity">Optionally allow duplicate property names to appear: last occurrence wins.</param>
+        /// <returns>This section.</returns>
+        public MutableConfigurationSection AddJson( string configuration, bool checkPropertyNameUnicity = true )
         {
-            var r = new Utf8JsonReader( Encoding.UTF8.GetBytes( configuration ) );
-            AddJson( ref r, context ?? IUtf8JsonReaderContext.Empty, checkPropertyNameUnicity );
+            var r = new Utf8JsonReader( Encoding.UTF8.GetBytes( configuration ), new JsonReaderOptions() { AllowTrailingCommas = true } );
+            return AddJson( ref r, IUtf8JsonReaderContext.Empty, checkPropertyNameUnicity );
         }
 
         /// <summary>
-        /// Reads a JSON object and adds or updtes all the corresponding sections and values.
-        /// The reader must positionned be on <see cref="JsonTokenType.None"/> or on <see cref="JsonTokenType.StartObject"/>.
+        /// Reads a JSON object and adds or updates all the corresponding sections and values.
+        /// The reader must positionned on <see cref="JsonTokenType.None"/> or <see cref="JsonTokenType.StartObject"/>.
         /// <para>
         /// Any <see cref="JsonTokenType.Comment"/> are skipped (if <see cref="JsonReaderOptions.CommentHandling"/> is <see cref="JsonCommentHandling.Allow"/>).
         /// </para>
         /// </summary>
         /// <param name="r">The Json reader.</param>
         /// <param name="context">Optional context. Defaults to <see cref="IUtf8JsonReaderContext.Empty"/>.</param>
-        /// <param name="checkPropertyNameUnicity">Optionnally allow duplicate property names to appear: last occurrence wins.</param>
-        public void AddJson( ref Utf8JsonReader r, IUtf8JsonReaderContext? context = null, bool checkPropertyNameUnicity = true )
+        /// <param name="checkPropertyNameUnicity">Optionally allow duplicate property names to appear: last occurrence wins.</param>
+        /// <returns>This section.</returns>
+        public MutableConfigurationSection AddJson( ref Utf8JsonReader r, IUtf8JsonReaderContext? context = null, bool checkPropertyNameUnicity = true )
         {
             AddJson( ref r, context ?? IUtf8JsonReaderContext.Empty, this, checkPropertyNameUnicity );
+            return this;
         }
 
         static void AddJson( ref Utf8JsonReader r, IUtf8JsonReaderContext context, MutableConfigurationSection target, bool checkPropertyNameUnicity )
