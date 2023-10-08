@@ -21,7 +21,7 @@ namespace CK.Core
     /// </para>
     /// </summary>
     [AttributeUsage( AttributeTargets.Class, AllowMultiple = true, Inherited = false )]
-    public class ReplaceAutoServiceAttribute : Attribute
+    public sealed class ReplaceAutoServiceAttribute : Attribute
     {
         /// <summary>
         /// Initializes a new <see cref="ReplaceAutoServiceAttribute"/> that specifies the type of the

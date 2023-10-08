@@ -11,9 +11,8 @@ using System.Threading.Tasks;
 namespace CK.Core.Tests
 {
     [TestFixture]
-    public class DateTimeStampUnicityTests
+    public class DateTimeStampTests
     {
-
         [Test]
         public void generating_time_collisions()
         {
@@ -28,44 +27,6 @@ namespace CK.Core.Tests
             int collisionCount = all.Count( d => d.Uniquifier != 0 );
             Console.WriteLine( $"Delta = {delta}, Collisions = {collisionCount} out of {all.Length}." );
         }
-
-        [Test]
-        public void DateTimeStampProvider_tests()
-        {
-            // The only way to show that this test proves anything is
-            // to remove the lock( _lock ) in DateTimeStampProvider.GetNetxNow():
-            // duplicate stamps appear.
-            var provider = new DateTimeStampProvider();
-
-            const int count = 5000;
-            const int nbThread = 8;
-            var all = new DateTimeStamp[count * nbThread];
-            var threads = Enumerable.Range(0,nbThread).Select( iT => new Thread( () =>
-            {
-                for( int i = 0; i < count; ++i )
-                {
-                    all[iT * count + i] = provider.GetNextNow();
-                }
-
-            } ) ).ToArray();
-            foreach( var t in threads ) t.Start();
-            foreach( var t in threads ) t.Join();
-
-            // Each set is ever increasing.
-            for( int iT = 0; iT < nbThread; ++iT )
-            {
-                all.Skip( iT * count ).Take( count ).IsSortedStrict().Should().BeTrue();
-            }
-            // All stamps are different.
-            for( int iT = 0; iT < nbThread; ++iT )
-            {
-                new HashSet<DateTimeStamp>( all ).Count.Should().Be( all.Length );
-            }
-            // But stamps across all the threads are NOT ever increasing: this
-            // ensures that threads have yield.
-            all.IsSortedStrict().Should().BeFalse();
-        }
-
 
         [Test]
         public void generating_forced_time_collisions()
@@ -91,7 +52,7 @@ namespace CK.Core.Tests
         }
 
         [Test]
-        public void DateTimeStamp_ToString_and_TryFormat()
+        public void DateTimeStamp_ToString_and_TryFormat_and_Parse()
         {
             DateTimeStamp d1 = DateTimeStamp.UtcNow;
             d1.Uniquifier.Should().Be( 0 );
@@ -102,6 +63,7 @@ namespace CK.Core.Tests
             d1.ToString().AsSpan().SequenceEqual( b.AsSpan() );
             d1.TryFormat( b.AsSpan(0,26), out cb, ReadOnlySpan<char>.Empty, null ).Should().BeFalse();
             cb.Should().Be( 0 );
+            CheckMatchAndParse( d1 );
 
             d1 = new DateTimeStamp( d1.TimeUtc, 5 );
             d1.TryFormat( b.AsSpan(), out cb, ReadOnlySpan<char>.Empty, null );
@@ -109,6 +71,7 @@ namespace CK.Core.Tests
             d1.ToString().AsSpan().SequenceEqual( b.AsSpan() );
             d1.TryFormat( b.AsSpan( 0, 29 ), out cb, ReadOnlySpan<char>.Empty, null ).Should().BeFalse();
             cb.Should().Be( 0 );
+            CheckMatchAndParse( d1 );
 
             d1 = new DateTimeStamp( d1.TimeUtc, 99 );
             d1.TryFormat( b.AsSpan(), out cb, ReadOnlySpan<char>.Empty, null );
@@ -116,6 +79,7 @@ namespace CK.Core.Tests
             d1.ToString().AsSpan().SequenceEqual( b.AsSpan() );
             d1.TryFormat( b.AsSpan( 0, 30 ), out cb, ReadOnlySpan<char>.Empty, null ).Should().BeFalse();
             cb.Should().Be( 0 );
+            CheckMatchAndParse( d1 );
 
             d1 = new DateTimeStamp( d1.TimeUtc, 255 );
             d1.TryFormat( b.AsSpan(), out cb, ReadOnlySpan<char>.Empty, null );
@@ -123,6 +87,30 @@ namespace CK.Core.Tests
             d1.ToString().AsSpan().SequenceEqual( b.AsSpan() );
             d1.TryFormat( b.AsSpan( 0, 31 ), out cb, ReadOnlySpan<char>.Empty, null ).Should().BeFalse();
             cb.Should().Be( 0 );
+            CheckMatchAndParse( d1 );
+
+            DateTimeStamp.TryParse( "nop", out var d2 ).Should().BeFalse();
+            FluentActions.Invoking( () => DateTimeStamp.Parse( "" ) ).Should().Throw<FormatException>();
+
+            static void CheckMatchAndParse( DateTimeStamp d1 )
+            {
+                var s = d1.ToString();
+                DateTimeStamp.TryParse( s.AsSpan(), out var d2 ).Should().BeTrue();
+                d2.Should().Be( d1 );
+                DateTimeStamp.Parse( d1.ToString().AsSpan() );
+
+                s += "remainder";
+
+                var head = s.AsSpan();
+                DateTimeStamp.TryMatch( ref head, out d2 ).Should().BeTrue();
+                d2.Should().Be( d1 );
+                head.SequenceEqual( "remainder" ).Should().BeTrue();
+
+                DateTimeStamp.TryParse( s, out var failed ).Should().BeFalse();
+                failed.Should().Be( DateTimeStamp.Unknown );
+                FluentActions.Invoking( () => DateTimeStamp.Parse( s ) ).Should().Throw<FormatException>();
+            }
         }
+
     }
 }

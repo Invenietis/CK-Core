@@ -1,5 +1,6 @@
 using System;
 using System.Diagnostics;
+using System.Runtime.CompilerServices;
 using System.Text.RegularExpressions;
 
 namespace CK.Core
@@ -19,98 +20,109 @@ namespace CK.Core
 
             internal Builder()
             {
-                _domainName = "Undefined";
-                _environmentName = "";
+                _domainName = DefaultDomainName;
+                _environmentName = DefaultEnvironmentName;
             }
 
             internal CoreApplicationIdentity Build()
             {
-                Debug.Assert( IsValidIdentifier( DomainName ) );
-                Debug.Assert( EnvironmentName == "" || IsValidIdentifier( EnvironmentName ) );
-                PartyName ??= PartyNameFromProcessPath();
+                Debug.Assert( IsValidDomainName( DomainName ) );
+                Debug.Assert( IsValidEnvironmentName( EnvironmentName ) );
+                PartyName ??= PartyNameFromProcessPath( Environment.ProcessPath );
+                Debug.Assert( IsValidPartyName( PartyName ) );
                 return new CoreApplicationIdentity( this );
             }
 
-            static string? PartyNameFromProcessPath()
+            /// <summary>
+            /// Tries to compute a <see cref="IsValidPartyName(ReadOnlySpan{char})"/> from any string.
+            /// Ultimately returns <see cref="DefaultPartyName"/>.
+            /// </summary>
+            /// <param name="processPath">Called with <see cref="Environment.ProcessPath"/>.</param>
+            /// <returns>A party name to use.</returns>
+            public static string PartyNameFromProcessPath( string? processPath )
             {
-                if( !String.IsNullOrEmpty( Environment.ProcessPath ) )
+                if( !String.IsNullOrEmpty( processPath ) )
                 {
-                    var replace = new Regex( "[^0-9A-Za-z_]+", RegexOptions.CultureInvariant );
-                    var p = replace.Replace( Environment.ProcessPath, "_" );
-                    if( p.Length > 0 )
+                    var replace = new Regex( "[^0-9A-Za-z_-]+", RegexOptions.CultureInvariant );
+                    var p = replace.Replace( processPath, "_" );
+                    replace = new Regex( "__+", RegexOptions.CultureInvariant );
+                    p = replace.Replace( p, "_" );
+                    if( p.Length > PartyNameMaxLength )
                     {
-                        if( p[0] == '_' ) p = p.Substring( 1 );
-                        if( p.Length > 0 )
-                        {
-                            return p;
-                        }
+                        // Crappy help to have a "better" PartyName...
+                        p = p.Replace( "_testhost_exe", "" );
+                        p = p.Replace( "_bin_", "_" );
+                        p = p.Substring( p.Length - PartyNameMaxLength );
                     }
+                    int skipHead = 0;
+                    while( skipHead < p.Length && (char.IsDigit( p[skipHead] ) || p[skipHead] == '_' || p[skipHead] == '-') ) ++skipHead;
+                    int skipEnd = p.Length;
+                    while( --skipEnd >= skipHead && (p[skipEnd] == '_' || p[skipEnd] == '-') ) ;
+                    int len = skipEnd - skipHead + 1;
+                    if( len > 0 ) return p.Substring( skipHead, len );
                 }
-                return null;
+                return DefaultPartyName;
             }
 
             /// <summary>
-            /// Checks whether the string is a valid <see cref="CoreApplicationIdentity.DomainName"/> or <see cref="CoreApplicationIdentity.PartyName"/>.
-            /// Note that <see cref="CoreApplicationIdentity.EnvironmentName"/> can be empty.
-            /// <para>
-            /// This uses the "^[A-Za-z][0-9A-Za-z_]*$" regular expression.
-            /// </para>
-            /// </summary>
-            /// <remarks>
-            /// Since this should be used during the start of the application, the regular expression is dynamic and not kept in memory.
-            /// We use the static <see cref="Regex.Match(string, string, RegexOptions)"/>. 
-            /// </remarks>
-            /// <param name="candidateId">The identifier.</param>
-            /// <returns>True for a valid identifier.</returns>
-            public static bool IsValidIdentifier( string candidateId ) => candidateId != null && Regex.Match( candidateId, "^[A-Za-z][0-9A-Za-z_]*$", RegexOptions.CultureInvariant ).Success;
-
-            /// <summary>
             /// Gets or sets the eventual <see cref="CoreApplicationIdentity.DomainName"/>.
-            /// <see cref="IsValidIdentifier(string)"/> must be true otherwise an <see cref="ArgumentException"/> is thrown.
+            /// <see cref="IsValidDomainName(ReadOnlySpan{char})"/> must be true otherwise an <see cref="ArgumentException"/> is thrown.
             /// </summary>
             public string DomainName
             {
                 get => _domainName;
                 set
                 {
-                    Throw.CheckArgument( IsValidIdentifier( value ) );
+                    Throw.CheckNotNullArgument( value );
+                    Throw.CheckArgument( IsValidDomainName( value ) );
                     _domainName = value;
                 }
             }
 
             /// <summary>
             /// Gets or sets the eventual <see cref="CoreApplicationIdentity.EnvironmentName"/>.
-            /// This must be empty or <see cref="IsValidIdentifier(string)"/> must be true otherwise an <see cref="ArgumentException"/> is thrown.
+            /// <see cref="IsValidEnvironmentName(ReadOnlySpan{char})"/> must be true otherwise an <see cref="ArgumentException"/> is thrown.
+            /// <para>
+            /// "#Development" (case insensitive) is normalized to "#Dev".
+            /// </para>
             /// </summary>
             public string EnvironmentName
             {
                 get => _environmentName;
                 set
                 {
-                    Throw.CheckArgument( value == "" || IsValidIdentifier( value ) );
-                    _environmentName = value;
+                    Throw.CheckNotNullArgument( value );
+                    Throw.CheckArgument( IsValidEnvironmentName( value ) );
+                    _environmentName = StringComparer.OrdinalIgnoreCase.Equals( "#Development", value ) ? "#Dev" : value;
                 }
             }
 
             /// <summary>
             /// Gets or sets the eventual <see cref="CoreApplicationIdentity.PartyName"/>.
-            /// <see cref="IsValidIdentifier(string)"/> must be true otherwise an <see cref="ArgumentException"/> is thrown.
+            /// <see cref="IsValidPartyName(ReadOnlySpan{char})"/> must be true and when not null,
+            /// must not be longer than <see cref="PartyNameMaxLength"/> otherwise an <see cref="ArgumentException"/> is thrown.
+            /// <para>
+            /// Setting a "$Name" is allowed: the '$' prefix is automaticaaly removed.
+            /// </para>
             /// </summary>
             public string? PartyName
             {
                 get => _partyName;
                 set
                 {
-                    Throw.CheckArgument( value == null || IsValidIdentifier( value ) );
+                    Throw.CheckNotNullArgument( value );
+                    Throw.CheckArgument( IsValidPartyName( value ) );
+                    if( value[0] == '$' ) value = value.Substring( 1 ); 
                     _partyName = value;
                 }
             }
 
             /// <summary>
             /// Gets or sets the eventual <see cref="CoreApplicationIdentity.ContextDescriptor"/>.
+            /// When not null must not be longer than <see cref="ContextDescriptorMaxLength"/> otherwise an <see cref="ArgumentException"/> is thrown.
             /// <para>
-            /// There is no constraint on this string (but shorter is better) except that
-            /// the characters 0 to 8 (NUl, SOH, STX, ETX, EOT, ENQ, ACK, BEL, BSP) are
+            /// There is no constraint on this string (but shorter is better). Note that the
+            /// characters 0 to 8 (NUl, SOH, STX, ETX, EOT, ENQ, ACK, BEL, BSP) are
             /// mapped to their respective angle bracket enclosed string representation
             /// (0x0 is mapped to &lt;NUL&gt;, 0x1 to &lt;SOH&gt;, etc.).
             /// </para>
@@ -122,6 +134,7 @@ namespace CK.Core
                 {
                     if( value != null )
                     {
+                        Throw.CheckArgument( value.Length <= ContextDescriptorMaxLength );
                         // This may not be optimal but does the job.
                         value = value.Replace( "\u0000", "<NUL>"  )
                                      .Replace( "\u0001", "<SOH>" )

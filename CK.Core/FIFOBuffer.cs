@@ -23,17 +23,32 @@ namespace CK.Core
         int _maxDynamicCapacity;
 
         /// <summary>
-        /// Initializes a new <see cref="FIFOBuffer{T}"/> with an initial capacity.
+        /// Initializes a new <see cref="FIFOBuffer{T}"/> with an initial capacity and
+        /// no <see cref="MaxDynamicCapacity"/> (fixed size buffer). This can be changed
+        /// dynamically by setting <see cref="Capacity"/> or MaxDynamicCapacity.
         /// </summary>
         /// <param name="capacity">Initial capacity (can be 0).</param>
         public FIFOBuffer( int capacity )
         {
             Throw.CheckArgument( capacity >= 0 );
-            _buffer = new T[capacity];
+            _buffer = capacity == 0 ? Array.Empty<T>() : new T[capacity];
+        }
+
+        /// <summary>
+        /// Initializes a new <see cref="FIFOBuffer{T}"/> with initial capacity and <see cref="MaxDynamicCapacity"/>.
+        /// </summary>
+        /// <param name="capacity">Initial capacity.</param>
+        /// <param name="maxDynamicCapacity">Initial maximal capacity: the <see cref="Capacity"/> will automatically grow until up to this size.</param>
+        public FIFOBuffer( int capacity = 0, int maxDynamicCapacity = 200 )
+            : this( capacity )
+        {
+            _maxDynamicCapacity = maxDynamicCapacity;
         }
 
         /// <summary>
         /// Gets or sets the capacity (internal buffer will be resized).
+        /// If the new explicit capacity is greater than the <see cref="MaxDynamicCapacity"/>, then
+        /// the MaxDynamicCapacity is forgotten (set to 0): the buffer is no more dynamic.
         /// </summary>
         public int Capacity
         {
@@ -42,8 +57,6 @@ namespace CK.Core
             {
                 if( value == _buffer.Length ) return;
                 Throw.CheckOutOfRangeArgument( value >= 0 );
-                // If the new explicit capacity is greater than the MaxDynamicCapacity, then
-                // the MaxDynamicCapacity is forgotten: the buffer is no more dynamic.
                 if( value > _maxDynamicCapacity ) _maxDynamicCapacity = 0;
                 var dst = new T[value];
                 if( _count > 0 ) CopyTo( dst );
@@ -298,12 +311,10 @@ namespace CK.Core
             Debug.Assert( _maxDynamicCapacity > 0 );
             const int GrowFactor = 2;
 
-            // We don't really care here of small values.
-            // This should never happen in real life so to ease tests, allow
-            // a stupid one size buffer to be created.
+            // When the initial capacity is 0, bumps to 4.
             int newcapacity = GrowFactor * _buffer.Length;
-            if( newcapacity == 0 ) newcapacity = 1;
-            else if( (uint)newcapacity > _maxDynamicCapacity ) newcapacity = _maxDynamicCapacity;
+            if( newcapacity == 0 ) newcapacity = 4;
+            if( (uint)newcapacity > _maxDynamicCapacity ) newcapacity = _maxDynamicCapacity;
             Capacity = newcapacity;
         }
 

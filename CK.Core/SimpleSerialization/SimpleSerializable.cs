@@ -200,7 +200,7 @@ namespace CK.Core
             {
                 o1.Write( w );
                 w.Flush();
-                using( var checker = Util.CreateCheckedWriteStream( s ) )
+                using( var checker = CheckedWriteStream.Create( s ) )
                 using( var wChecker = new CKBinaryWriter( checker, Encoding.UTF8, true ) )
                 {
                     o2.Write( wChecker );
@@ -229,7 +229,7 @@ namespace CK.Core
             {
                 o1.WriteData( w );
                 w.Flush();
-                using( var checker = Util.CreateCheckedWriteStream( s ) )
+                using( var checker = CheckedWriteStream.Create( s ) )
                 using( var wChecker = new CKBinaryWriter( checker, Encoding.UTF8, true ) )
                 {
                     o2.WriteData( wChecker );

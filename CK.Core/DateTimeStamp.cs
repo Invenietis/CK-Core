@@ -1,7 +1,9 @@
 using System;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.Globalization;
 using System.Reflection.Metadata;
+using System.Runtime.CompilerServices;
 using System.Runtime.Serialization;
 
 namespace CK.Core
@@ -10,9 +12,33 @@ namespace CK.Core
     /// <summary>
     /// A date and time stamp encapsulates a <see cref="TimeUtc"/> (<see cref="DateTime"/> guaranteed to be in Utc) and a <see cref="Uniquifier"/>.
     /// </summary>
-    [Serializable]
+    [TypeConverter(typeof(Converter))]
     public readonly struct DateTimeStamp : IComparable<DateTimeStamp>, IEquatable<DateTimeStamp>, ICKSimpleBinarySerializable, ISpanFormattable
     {
+        sealed class Converter : TypeConverter
+        {
+            public override bool CanConvertFrom( ITypeDescriptorContext? context, Type sourceType )
+            {
+                return sourceType == typeof( string );
+            }
+
+            public override bool CanConvertTo( ITypeDescriptorContext? context, Type? destinationType )
+            {
+                return destinationType == typeof( string );
+            }
+
+            public override object? ConvertFrom( ITypeDescriptorContext? context, CultureInfo? culture, object value )
+            {
+                if( value is string s && TryParse( s, out var r ) ) return r;
+                return default;
+            }
+
+            public override object? ConvertTo( ITypeDescriptorContext? context, CultureInfo? culture, object? value, Type destinationType )
+            {
+                return value is DateTimeStamp s ? s.ToString() : string.Empty;
+            }
+        }
+
         /// <summary>
         /// Represents the smallest possible value for a DateTimeStamp object.         
         /// </summary>
@@ -202,17 +228,21 @@ namespace CK.Core
         /// @"{0:yyyy-MM-dd HH\hmm.ss.fffffff}({1})" is the format that will be used to format log time when the <see cref="Uniquifier"/> is not zero.
         /// It is based on <see cref="FileUtil.FileNameUniqueTimeUtcFormat"/> (that is used as-is when the Uniquifier is zero) for the date time format.
         /// </summary>
-        static public readonly string FormatWhenUniquifier = "{0:" + FileUtil.FileNameUniqueTimeUtcFormat + "}({1})";
+        public static readonly string FormatWhenUniquifier = "{0:" + FileUtil.FileNameUniqueTimeUtcFormat + "}({1})";
 
         /// <summary>
         /// Overridden to return a string based on <see cref="FormatWhenUniquifier"/> or <see cref="FileUtil.FileNameUniqueTimeUtcFormat"/>.
+        /// <para>
+        /// This string contains between 27 and 32 characters.
+        /// </para>
         /// </summary>
         /// <returns>A string that can be successfully matched.</returns>
         public override string ToString()
         {
-            return Uniquifier != 0
-                    ? String.Format( FormatWhenUniquifier, TimeUtc, Uniquifier )
-                    : TimeUtc.ToString( FileUtil.FileNameUniqueTimeUtcFormat, CultureInfo.InvariantCulture );
+            var u = Uniquifier;
+            int len = 27;
+            if( u != 0 ) len += 3 + (u >= 100 ? 2 : u < 10 ? 0 : 1);
+            return String.Create( len, this, static ( s, t ) => t.TryFormat( s, out _ ) );
         }
 
         /// <summary>
@@ -231,13 +261,13 @@ namespace CK.Core
             Debug.Assert( FileUtil.FileNameUniqueTimeUtcFormat.Replace( "\\", "" ).Length == 27 );
             if( Uniquifier != 0 )
             {
-                int len = 30 + (Uniquifier >= 100 ? 2 : Uniquifier < 10 ? 0 : 1);
+                int len = 27 + 3 + (Uniquifier >= 100 ? 2 : Uniquifier < 10 ? 0 : 1);
                 if( destination.Length < len )
                 {
                     charsWritten = 0;
                     return false;
                 }
-                TimeUtc.TryFormat( destination, out charsWritten, FileUtil.FileNameUniqueTimeUtcFormat.AsSpan(), null );
+                TimeUtc.TryFormat( destination, out charsWritten, FileUtil.FileNameUniqueTimeUtcFormat.AsSpan(), CultureInfo.InvariantCulture );
                 destination = destination.Slice( charsWritten );
                 destination[0] = '(';
                 destination = destination.Slice( 1 );
@@ -251,10 +281,62 @@ namespace CK.Core
                 charsWritten = 0;
                 return false;
             }
-            return TimeUtc.TryFormat( destination, out charsWritten, FileUtil.FileNameUniqueTimeUtcFormat.AsSpan(), null );
+            return TimeUtc.TryFormat( destination, out charsWritten, FileUtil.FileNameUniqueTimeUtcFormat.AsSpan(), CultureInfo.InvariantCulture );
         }
 
         string IFormattable.ToString( string? format, IFormatProvider? formatProvider ) => ToString();
+
+        /// <summary>
+        /// Tries to match a <see cref="DateTimeStamp"/> and forwards the <paramref name="head"/> on success.
+        /// </summary>
+        /// <param name="head">This parsing head.</param>
+        /// <param name="time">Resulting time stamp on successful match; <see cref="DateTimeStamp.Unknown"/> otherwise.</param>
+        /// <returns>True on success, false otherwise.</returns>
+        static public bool TryMatch( ref ReadOnlySpan<char> head, out DateTimeStamp time ) => TryMatch( ref head, out time, false );
+
+        /// <summary>
+        /// Tries to parse a <see cref="DateTimeStamp"/>.
+        /// <para>
+        /// The extension method <see cref="DateTimeStampExtension.TryMatchDateTimeStamp(ref ROSpanCharMatcher, out DateTimeStamp)"/>
+        /// is also available.
+        /// </para>
+        /// </summary>
+        /// <param name="s">The string to parse.</param>
+        /// <param name="time">Resulting time stamp on successful match; <see cref="DateTimeStamp.Unknown"/> otherwise.</param>
+        /// <returns>True on success, false otherwise.</returns>
+        static public bool TryParse( ReadOnlySpan<char> s, out DateTimeStamp time ) => TryMatch( ref s, out time, true );
+
+        static bool TryMatch( ref ReadOnlySpan<char> head, out DateTimeStamp time, bool parse )
+        {
+            var savedHead = head;
+            if( !head.TryMatchFileNameUniqueTimeUtcFormat( out var t ) ) goto error;
+            byte uniquifier = 0;
+            if( head.TryMatch( '(' ) )
+            {
+                if( !head.TryMatchInt32( out int u, 0, 255 ) || !head.TryMatch( ')' ) ) goto error;
+                uniquifier = (byte)u;
+            }
+            if( !parse || head.IsEmpty )
+            {
+                time = new DateTimeStamp( t, uniquifier );
+                return true;
+            }
+            error:
+            time = Unknown;
+            head = savedHead;
+            return false;
+        }
+
+        /// <summary>
+        /// Parses a <see cref="DateTimeStamp"/> or throws a <see cref="FormatException"/>.
+        /// </summary>
+        /// <param name="s">The string to parse.</param>
+        /// <returns>The DateTimeStamp.</returns>
+        static public DateTimeStamp Parse( ReadOnlySpan<char> s )
+        {
+            if( !TryParse( s, out var time ) ) Throw.FormatException( $"Invalid DateTimeStamp: '{s}'." );
+            return time;
+        }
 
         /// <summary>
         /// Checks equality.

@@ -257,5 +257,32 @@ namespace CK.Core.Tests
             }
         }
 
+
+        [Test]
+        public void DebugAssert_test()
+        {
+            Throw.DebugAssert( 1 == 1 );
+#if DEBUG
+            FluentActions.Invoking( () => Bug() ).Should().Throw<CKException>().WithMessage( "*'1 == 0'*ThrowTests.cs@*" );
+#else
+            FluentActions.Invoking( () => Bug() ).Should().NotThrow();
+#endif
+
+            static void Bug() => Throw.DebugAssert( 1 == 0 );
+        }
+
+        [Test]
+        public void DebugAssert_with_message_test()
+        {
+            Throw.DebugAssert( "Always true.", 1 == 1 );
+#if DEBUG
+            FluentActions.Invoking( () => Bug() ).Should().Throw<CKException>().WithMessage( "* This can't be true. - '1 == 0'*ThrowTests.cs@*" );
+#else
+            FluentActions.Invoking( () => Bug() ).Should().NotThrow();
+#endif
+
+            static void Bug() => Throw.DebugAssert( "This can't be true.", 1 == 0 );
+        }
+
     }
 }

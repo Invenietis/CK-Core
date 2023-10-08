@@ -1,3 +1,4 @@
+using Microsoft.Extensions.Primitives;
 using Microsoft.IO;
 using System;
 using System.Buffers;
@@ -5,6 +6,7 @@ using System.Buffers.Text;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
@@ -63,6 +65,18 @@ namespace CK.Core
         /// A void, immutable, <see cref="IDisposable"/> that does absolutely nothing.
         /// </summary>
         public static readonly IDisposable EmptyDisposable = new VoidDisposable();
+
+        sealed class NopChangeToken : IChangeToken
+        {
+            public bool HasChanged => false;
+            public bool ActiveChangeCallbacks => false;
+            public IDisposable RegisterChangeCallback( Action<object?> callback, object? state ) => EmptyDisposable;
+        }
+
+        /// <summary>
+        /// An empty change token that is never signaled and never raise any change callbacks.
+        /// </summary>
+        public static readonly IChangeToken NoChangeToken = new NopChangeToken();
 
         /// <summary>
         /// Sql Server Epoch (1st of January 1900): this is the 0 legacy date time, the default value, even if
@@ -217,110 +231,36 @@ namespace CK.Core
         /// <returns>The <paramref name="value"/> provided is returned as-is.</returns>
         public static T FuncIdentity<T>( T value ) => value;
 
-        sealed class CheckedWriteStreamOnROSBytes : CheckedWriteStream
+
+        static bool? _isGlobalizationInvariantMode;
+
+        /// <summary>
+        /// Whether the CultureInfo will always be the <see cref="CultureInfo.InvariantCulture"/>.
+        /// See https://github.com/dotnet/runtime/blob/main/docs/design/features/globalization-invariant-mode.md.
+        /// <para>
+        /// This ugly code is required: see https://stackoverflow.com/questions/75298957/how-to-detect-globalization-invariant-mode
+        /// </para>
+        /// </summary>
+        /// <returns>True if we are running in Invariant Mode, false otherwise.</returns>
+        public static bool IsGlobalizationInvariantMode
         {
-            ReadOnlySequence<byte> _refBytes;
-            readonly long _initialLength;
-            long _position;
-            bool _hasDiff;
-            bool _diffAtPosition;
-            bool _longerThanRef;
-
-            public bool HasDiff => _hasDiff;
-
-            public override bool CanRead => false;
-
-            public override bool CanSeek => false;
-
-            public override bool CanWrite => true;
-
-            public override long Length => Throw.NotSupportedException<long>();
-
-            public override bool ThrowArgumentException { get; set; }
-
-            public override long Position
+            get
             {
-                get => _position;
-                set => Throw.NotSupportedException();
-            }
+                return _isGlobalizationInvariantMode ??= TryIt();
 
-            public CheckedWriteStreamOnROSBytes( ReadOnlySequence<byte> refBytes )
-            {
-                _refBytes = refBytes;
-                _initialLength = refBytes.Length;
-            }
-
-            public override void Flush() { }
-
-            public override int Read( byte[] buffer, int offset, int count ) => Throw.NotSupportedException<int>();
-
-            public override long Seek( long offset, SeekOrigin origin ) => Throw.NotSupportedException<long>();
-
-            public override void SetLength( long value ) => Throw.NotSupportedException();
-
-            public override void Write( byte[] buffer, int offset, int count ) => Write( buffer.AsSpan( offset, count ) );
-
-            public override void Write( ReadOnlySpan<byte> buffer )
-            {
-                if( _hasDiff ) return;
-                if( (_position += buffer.Length) > _initialLength )
+                static bool TryIt()
                 {
-                    _position -= buffer.Length;
-                    _longerThanRef = _hasDiff = true;
-                    if( ThrowArgumentException ) Throw.ArgumentException( $"Rewrite is longer than first write: length = {_initialLength}." );
-                }
-                else
-                {
-                    var r = new SequenceReader<byte>( _refBytes );
-                    if( r.IsNext( buffer, advancePast: true ) )
+                    try
                     {
-                        _refBytes = r.UnreadSequence;
+                        return CultureInfo.GetCultureInfo( "en-US" ).NumberFormat.CurrencySymbol == "¤";
                     }
-                    else
+                    catch( CultureNotFoundException )
                     {
-                        _diffAtPosition = _hasDiff = true;
-                        _position -= buffer.Length;
-                        for( int i = 0; i < buffer.Length; ++i )
-                        {
-                            r.TryRead( out var b );
-                            if( b != buffer[i] )
-                            {
-                                _position += i;
-                                if( ThrowArgumentException ) Throw.ArgumentException( $"Write stream differ @{_position}. Expected byte '{b}', got '{buffer[i]}' (length = {_initialLength})." );
-                                break;
-                            }
-                        }
+                        return true;
                     }
                 }
-            }
-
-            public override Result GetResult()
-            {
-                if( _longerThanRef ) return Result.LongerThanRefBytes;
-                if( _diffAtPosition ) return Result.HasByteDifference;
-                Debug.Assert( !_hasDiff );
-                if( _position < _initialLength )
-                {
-                    if( ThrowArgumentException ) Throw.ArgumentException( $"Rewrite is shorter than first write: expected {_initialLength} bytes, got only {_position}." );
-                    return Result.ShorterThanRefBytes;
-                }
-                return Result.None;
             }
         }
-
-        /// <summary>
-        /// Creates <see cref="CheckedWriteStream"/> with its reference bytes as a <see cref="ReadOnlySequence{T}"/>.
-        /// </summary>
-        /// <param name="refBytes">The reference bytes.</param>
-        /// <returns>A checked write stream.</returns>
-        public static CheckedWriteStream CreateCheckedWriteStream( ReadOnlySequence<byte> refBytes ) => new CheckedWriteStreamOnROSBytes( refBytes );
-
-        /// <summary>
-        /// Creates <see cref="CheckedWriteStream"/> with its reference bytes from a <see cref="RecyclableMemoryStream"/>.
-        /// </summary>
-        /// <param name="s">The reference stream.</param>
-        /// <returns>A checked write stream.</returns>
-        public static CheckedWriteStream CreateCheckedWriteStream( RecyclableMemoryStream s ) => new CheckedWriteStreamOnROSBytes( s.GetReadOnlySequence() );
 
     }
 

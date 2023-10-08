@@ -38,6 +38,5 @@ namespace CK.Core
                 return false;
             }
         }
-
     }
 }
