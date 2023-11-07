@@ -12,10 +12,10 @@ The idea here is to express this as simply as possible with a triplet of strings
   A domain can be a path like "AcmeCorp", "AcmeCorp/CRM" or "AcmeCorp/CRM/UserMagement". Note that the first
   part of this path can often be seen as the "OrganizationName".
 - EnvironmentName: is optional and aims to identify a deployment context like "#Production" or "#Staging".
-  Environment names always starts with a `#` and defaults to "#Development".
+  Environment names always starts with a `#` and defaults to "#Dev".
 - PartyName: identifies the "application" itself, both the code base and its role in the architecture
   like a "MailSender", "SaaS-11" or "Worker_3712". When used in a path, party names can be prefixed by a `$`
-- (they are when they appear in a full name).
+  (they are always prefixed by `$` when they appear in a full name).
 
 This doesn't imply any form of uniqueness, "process uniqueness" is a complex matter. A process can only be truly unique (at
 any point in time) by using synchronization primitives like Mutex or specific coordination infrastructure (election algorithms)
