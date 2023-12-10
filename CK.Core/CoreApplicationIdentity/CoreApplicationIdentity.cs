@@ -117,7 +117,7 @@ namespace CK.Core
         /// Gets a string that identifies the context into which this
         /// application is running. Defaults to the empty string.
         /// <para>
-        /// There is no constraint on this string except that it cannot exceed it cannot exceed <see cref="ContextDescriptorMaxLength"/>
+        /// There is no constraint on this string except that it cannot exceed <see cref="ContextDescriptorMaxLength"/>
         /// (but shorter is better).
         /// Note that the characters 0 to 8 (NUl, SOH, STX, ETX, EOT, ENQ, ACK, BEL, BSP) are
         /// mapped to their respective angle bracket enclosed string representation
