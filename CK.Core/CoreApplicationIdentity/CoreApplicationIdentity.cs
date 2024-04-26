@@ -301,6 +301,18 @@ namespace CK.Core
         }
 
         /// <summary>
+        /// Gets whether the <see cref="Instance"/> is available and we are in "#Dev" environment:
+        /// Use this when something must be done in "#Dev" environment and only in "#Dev".
+        /// </summary>
+        public static bool IsDevelopmentAndInitialized => IsInitialized && Instance.EnvironmentName == DefaultEnvironmentName;
+
+        /// <summary>
+        /// Gets whether the <see cref="Instance"/> is not yet initialized or we are in "#Dev" environment.
+        /// Use this when something must be done in "#Dev" environment or when the identity is not yet settled.
+        /// </summary>
+        public static bool IsDevelopmentOrUninitialized => !IsInitialized || Instance.EnvironmentName == DefaultEnvironmentName;
+
+        /// <summary>
         /// Tries to parse a full name in which the $PartyName part can be anywhere (and optional)
         /// and the #EnvironmentName part can be anywhere (and optional).
         /// <para>
