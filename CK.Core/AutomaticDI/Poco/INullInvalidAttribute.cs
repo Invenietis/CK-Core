@@ -10,5 +10,4 @@ namespace CK.Core
     public interface INullInvalidAttribute
     {
     }
-
 }
