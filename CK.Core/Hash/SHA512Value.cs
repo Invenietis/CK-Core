@@ -194,6 +194,22 @@ namespace CK.Core
         }
 
         /// <summary>
+        /// Initializes a new <see cref="SHA512Value"/> from the current value of an <see cref="IncrementalHash"/>
+        /// whose <see cref="IncrementalHash.AlgorithmName"/> must be <see cref="HashAlgorithmName.SHA512"/>.
+        /// </summary>
+        /// <param name="hasher">The incremental hash.</param>
+        public SHA512Value( IncrementalHash hasher )
+            : this( FromHasher( hasher ) )
+        {
+        }
+
+        static byte[] FromHasher( IncrementalHash hasher )
+        {
+            Throw.CheckArgument( hasher.AlgorithmName == HashAlgorithmName.SHA512 );
+            return hasher.GetCurrentHash();
+        }
+
+        /// <summary>
         /// Initializes a new <see cref="SHA512Value"/> from a binary reader.
         /// </summary>
         /// <param name="reader">Binary reader.</param>
@@ -211,7 +227,7 @@ namespace CK.Core
 
         internal SHA512Value( byte[] b )
         {
-            Debug.Assert( b != null && b.Length == 64 );
+            Throw.DebugAssert( b != null && b.Length == 64 );
             if( b.SequenceEqual( Zero._bytes ) )
             {
                 _bytes = Zero._bytes;
@@ -226,7 +242,7 @@ namespace CK.Core
 
         SHA512Value( byte[] b, string s )
         {
-            Debug.Assert( b.Length == 64 && !b.SequenceEqual( Zero._bytes ) && s != null && s.Length == 128 );
+            Throw.DebugAssert( b.Length == 64 && !b.SequenceEqual( Zero._bytes ) && s != null && s.Length == 128 );
             _bytes = b;
             _string = s;
         }
@@ -288,7 +304,7 @@ namespace CK.Core
 
         static string BuildString( byte[] b )
         {
-            Debug.Assert( !b.AsSpan().SequenceEqual( Zero._bytes.AsSpan() ) );
+            Throw.DebugAssert( !b.AsSpan().SequenceEqual( Zero._bytes.AsSpan() ) );
             return Convert.ToHexString( b ).ToLowerInvariant();
         }
 
@@ -304,13 +320,7 @@ namespace CK.Core
                 return other._bytes != null && other._bytes != Zero._bytes
                         ? -1
                         : 0;
-            if( other._bytes == null || other._bytes == Zero._bytes ) return +1;
-            for( int i = 0; i < _bytes.Length; ++i )
-            {
-                int cmp = _bytes[i] - other._bytes[i];
-                if( cmp != 0 ) return cmp;
-            }
-            return 0;
+            return _bytes.AsSpan().SequenceCompareTo( other._bytes );
         }
     }
 }
