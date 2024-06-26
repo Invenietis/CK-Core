@@ -198,15 +198,16 @@ namespace CK.Core
         /// whose <see cref="IncrementalHash.AlgorithmName"/> must be <see cref="HashAlgorithmName.SHA512"/>.
         /// </summary>
         /// <param name="hasher">The incremental hash.</param>
-        public SHA512Value( IncrementalHash hasher )
-            : this( FromHasher( hasher ) )
+        /// <param name="resetHasher">True to call <see cref="IncrementalHash.GetHashAndReset()"/> instead of <see cref="IncrementalHash.GetCurrentHash()"/>.</param>
+        public SHA512Value( IncrementalHash hasher, bool resetHasher )
+            : this( FromHasher( hasher, resetHasher ) )
         {
         }
 
-        static byte[] FromHasher( IncrementalHash hasher )
+        static byte[] FromHasher( IncrementalHash hasher, bool resetHasher )
         {
             Throw.CheckArgument( hasher.AlgorithmName == HashAlgorithmName.SHA512 );
-            return hasher.GetCurrentHash();
+            return resetHasher ? hasher.GetHashAndReset() : hasher.GetCurrentHash();
         }
 
         /// <summary>

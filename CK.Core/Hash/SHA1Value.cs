@@ -6,6 +6,7 @@ using System.Linq;
 using System.Security.Cryptography;
 using System.Threading.Tasks;
 using System.Text;
+using System.Data.SqlTypes;
 
 namespace CK.Core
 {
@@ -199,15 +200,16 @@ namespace CK.Core
         /// whose <see cref="IncrementalHash.AlgorithmName"/> must be <see cref="HashAlgorithmName.SHA1"/>.
         /// </summary>
         /// <param name="hasher">The incremental hash.</param>
-        public SHA1Value( IncrementalHash hasher )
-            : this( FromHasher( hasher ) )
+        /// <param name="resetHasher">True to call <see cref="IncrementalHash.GetHashAndReset()"/> instead of <see cref="IncrementalHash.GetCurrentHash()"/>.</param>
+        public SHA1Value( IncrementalHash hasher, bool resetHasher )
+            : this( FromHasher( hasher, resetHasher ) )
         {
         }
 
-        static byte[] FromHasher( IncrementalHash hasher )
+        static byte[] FromHasher( IncrementalHash hasher, bool resetHasher )
         {
             Throw.CheckArgument( hasher.AlgorithmName == HashAlgorithmName.SHA1 );
-            return hasher.GetCurrentHash();
+            return resetHasher ? hasher.GetHashAndReset() : hasher.GetCurrentHash();
         }
 
         /// <summary>
