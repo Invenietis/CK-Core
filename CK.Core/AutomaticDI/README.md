@@ -5,11 +5,6 @@ but can be copied to any other assembly without a dependency on CK.Core.
 
 These types are the heart of the Automatic DI that is handled by CK.StObj.Model and its code generation engine.
 
-> CK.StObj.Model define more "duck types" that defines "context" for services and "marshalling" of these services across "contexts".
-The "context" management is not currently finalized (endpoint context should be defined by a type and a "front" service should be
-tied to a endpoint context - currently the "front context" notion is ubiquitous). Once these evolutions will be done, the corresponding
-duck types will be available here.
-
 Similar attributes related to CKSetup process are also defined here in CK.Core. See [CKSetup](CKSetup) directory.
 
 ## IRealObject
@@ -78,10 +73,6 @@ a IAutoService and a IRealObject.
 ## IAutoService
 This interface marker states that a class or an interface instance is a service that will participate in automatic dependency injection.
 
-It is not required to be this exact type: any empty interface (no members)
-named "IAutoService" defined in any namespace will be considered as
-a valid marker.
-
 This marker doesn't indicate the scoped vs. singleton lifetime. The actual
 lifetime depends on the final implementation that may be marked with the more
 specific [ISingletonAutoService](ISingletonAutoService.cs) or [IScopedAutoService](IScopedAutoService.cs)
@@ -92,20 +83,10 @@ are known to be singletons, the service will be singleton otherwise it will be c
 This interface marker states that a class or an interface instance
 must be a globally unique Service in a context, just like IRealObject.
 
-It is not required to be this exact type: any empty interface (no members)
-named "ISingletonAutoService" defined in any namespace will be considered as
-a valid marker, regardless of the fact that it specializes any interface
-named "IAutoService".
-
 ## IScopedAutoService : IAutoService
 
 This interface marker states that a class or an interface instance
 must be a unique Service in a scope.
-
-It is not required to be this exact type: any empty interface (no members)
-named "IScopedAutoService" defined in any namespace will be considered as
-a valid marker, regardless of the fact that it specializes any interface
-named "IAutoService".
 
 Note that even if an implementation only relies on other singletons or objects,
 this interface forces the service to be scoped.
@@ -116,30 +97,24 @@ either determined by the final, actual, implementation that can be automatically
 detected based on its constructor dependencies and/or by the way this Service is
 used referenced by the other participants.
 
-## EndpointScopedServiceAttribute & EndpointSingletonServiceAttribute
+## ContainerConfiguredScopedServiceAttribute & ContainerConfiguredSingletonServiceAttribute
 
-Marks a class or an interface to be a endpoint service. A endpoint service is not necessarily
+Marks a class or an interface to be configured by the DI container: it is not necessarily
 available from all DI containers that may exist in an application. Note that defining a service
-as being "endpoint bound" requires to declare its lifetime (hence the 2 attributes).
+as being "container configured" requires to declare its lifetime (hence the 2 attributes).
 
-When a `IAutoService` is marked as an endpoint service, it is available in the global DI container but not
-in other endpoints: it is up to the other endpoint to explicitly support the service by registering the
+When a `IAutoService` is also a container configured service, it is available in the global DI container but not
+in other contaiers: it is up to the other containers to explicitly support the service by registering the
 abstractions and/or implementations in its own service collection.
-
-It is not required to be this exact type: any attribute named "EndpointScoped/SingletonServiceAttribute" defined
-in any namespace will be considered as a valid marker.
 
 ## IsMultipleAttribute
 Marks an interface so that all its mappings to concrete classes must be automatically
-registered, regardless of any existing registrations.
+registered and made available as a `IEnumerable<T>`.
 
-It is not required to be this exact type: any attribute named "IMultipleAutoService" defined in any
-namespace will be considered as a valid marker.
-
-Interfaces marked as "Multiple Service" are not compatible with IRealObject but can support
-any other auto service markers like IScopedAutoService.
-This attribute cancels the implicit unicity of the mapping but doesn't impact the lifetime (or the "endpoint/process context" related
-aspect): lifetime and "context" apply eventually to the implementation.
+Interfaces marked as "Multiple Service" cannot be IRealObject but can be any other auto service markers
+like IScopedAutoService.
+This attribute cancels the implicit unicity of the mapping but doesn't impact the lifetime: the `IEnumerable<T>` will
+be a singleton if all the implementations are singletons otherwise it will be a scoped service.
 
 ## ReplaceAutoServiceAttribute
 
@@ -153,30 +128,18 @@ discovering the most precise implementation is one of the key goal of Auto servi
 It is also useless if the replaced service is used by this implementation: as long as a parameter with the
 same type appears in its constructor, this service "covers" (and possibly reuses) the replaced one.
 
-This attribute, just like `IRealObject`, `IAutoService`, `IScopedAutoService`
-and `ISingletonAutoService` can be created anywhere: the name must be `ReplaceAutoServiceAttribute`
-and a constructor with a Type and/or a constructor with a string must be defined.
-
-
 ## CKTypeDefinerAttribute
-Attribute that marks a type as being a "Definer" of a `IRealObject`, IPoco (defined in CK.StObj.Model) or `IAutoService`.
+Attribute that marks a type as being a "Definer" of a `IRealObject`, `IPoco` (defined in CK.StObj.Model) or `IAutoService`.
 This defines the decorated object as a "base type" of the CK type: it is not itself a `IAutoService`, `IPoco` or `IRealObject` type but
 its specializations are (unless they also are decorated with this attribute).
 This is a little bit like an 'abstract' type regarding Auto Services, Poco or Real Objects.
 
-This attribute can be created anywhere: as long as the name is `CKTypeDefinerAttribute` 
-(regardless of the namespace), it will be honored.
-
 ## CKTypeSuperDefinerAttribute
-Attribute that marks a type as being a "Definer of Definer". Where `CKTypeDefinerAttribute` is the "father"
-of the actual CK type this acts as a "grand father".
-
-This attribute can be created anywhere: as long as the name is "CKTypeSuperDefinerAttribute" (regardless of the namespace), it will be honored.
+Attribute that marks a type as being a "Definer of Definer". When `CKTypeDefinerAttribute` is the "father"
+of the actual CK type, this one acts as a "grand father".
 
 ## ExcludeCKTypeAttribute
 Attribute that excludes a type from Automatic DI discovery process. 
-
-This attribute can be created anywhere: as long as the name is "ExcludeCKTypeAttribute" (regardless of the namespace), it will be honored.
 
 ## PreserveAssemblyReferenceAttribute
 

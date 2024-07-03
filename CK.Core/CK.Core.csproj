@@ -2,7 +2,6 @@
   <PropertyGroup>
     <TargetFrameworks>net6.0</TargetFrameworks>
     <LangVersion>11</LangVersion>
-    <Nullable>enable</Nullable>
     <Description>
       CK.Core contains types and helpers that are used across different projects.
       Main types are:

@@ -1,10 +1,6 @@
 using System;
-using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
-using System.Linq;
 using System.Security.Cryptography;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -33,19 +29,53 @@ namespace CK.Core
         }
 
         /// <summary>
+        /// Initializes a new instance with an exisitng <see cref="IncrementalHash"/>.
+        /// This stream is a terminal one.
+        /// </summary>
+        /// <param name="hasher">The <see cref="IncrementalHash"/>.</param>
+        public HashStream( IncrementalHash hasher )
+        {
+            Throw.CheckNotNullArgument( hasher );
+            _hash = hasher;
+        }
+
+        /// <summary>
         /// Initializes a new instance of <see cref="HashStream"/> as a decorator on a read or write inner stream.
         /// </summary>
-        /// <param name="hashName">The <see cref="HashAlgorithmName"/>.</param>
+        /// <param name="hasher">The <see cref="HashAlgorithmName"/>.</param>
         /// <param name="inner">The inner (decorated) stream.</param>
         /// <param name="read">True to read from the inner stream through this one.</param>
         /// <param name="leaveOpen">True to leave the inner stream opened when disposing this one.</param>
-        public HashStream( HashAlgorithmName hashName, Stream inner, bool read, bool leaveOpen )
+        public HashStream( HashAlgorithmName hasher, Stream inner, bool read, bool leaveOpen )
         {
-            _hash = IncrementalHash.CreateHash( hashName );
+            _hash = IncrementalHash.CreateHash( hasher );
             _leaveOpen = leaveOpen;
             if( read ) _reader = inner;
             else _writer = inner;
         }
+
+        /// <summary>
+        /// Initializes a new instance of <see cref="HashStream"/> as a decorator on a read or write inner stream
+        /// with an existing <see cref="IncrementalHash"/>.
+        /// </summary>
+        /// <param name="hasher">The <see cref="IncrementalHash"/>.</param>
+        /// <param name="inner">The inner (decorated) stream.</param>
+        /// <param name="read">True to read from the inner stream through this one.</param>
+        /// <param name="leaveOpen">True to leave the inner stream opened when disposing this one.</param>
+        public HashStream( IncrementalHash hasher, Stream inner, bool read, bool leaveOpen )
+        {
+            Throw.CheckNotNullArgument( hasher );
+            Throw.CheckNotNullArgument( inner );
+            _hash = hasher;
+            _leaveOpen = leaveOpen;
+            if( read ) _reader = inner;
+            else _writer = inner;
+        }
+
+        /// <summary>
+        /// Gets the inner hasher.
+        /// </summary>
+        public IncrementalHash IncrementalHash => _hash;
 
         /// <summary>
         /// Gets the final hash value.

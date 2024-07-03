@@ -6,6 +6,7 @@ using System.Linq;
 using System.Security.Cryptography;
 using System.Threading.Tasks;
 using System.Text;
+using System.Data.SqlTypes;
 
 namespace CK.Core
 {
@@ -195,6 +196,23 @@ namespace CK.Core
         }
 
         /// <summary>
+        /// Initializes a new <see cref="SHA1Value"/> from the current value of an <see cref="IncrementalHash"/>
+        /// whose <see cref="IncrementalHash.AlgorithmName"/> must be <see cref="HashAlgorithmName.SHA1"/>.
+        /// </summary>
+        /// <param name="hasher">The incremental hash.</param>
+        /// <param name="resetHasher">True to call <see cref="IncrementalHash.GetHashAndReset()"/> instead of <see cref="IncrementalHash.GetCurrentHash()"/>.</param>
+        public SHA1Value( IncrementalHash hasher, bool resetHasher )
+            : this( FromHasher( hasher, resetHasher ) )
+        {
+        }
+
+        static byte[] FromHasher( IncrementalHash hasher, bool resetHasher )
+        {
+            Throw.CheckArgument( hasher.AlgorithmName == HashAlgorithmName.SHA1 );
+            return resetHasher ? hasher.GetHashAndReset() : hasher.GetCurrentHash();
+        }
+
+        /// <summary>
         /// Initializes a new <see cref="SHA1Value"/> from a binary reader.
         /// </summary>
         /// <param name="reader">Binary reader.</param>
@@ -212,7 +230,7 @@ namespace CK.Core
 
         internal SHA1Value( byte[] b )
         {
-            Debug.Assert( b != null && b.Length == 20 );
+            Throw.DebugAssert( b != null && b.Length == 20 );
             if( b.SequenceEqual( Zero._bytes ) )
             {
                 _bytes = Zero._bytes;
@@ -227,7 +245,7 @@ namespace CK.Core
 
         SHA1Value( byte[] b, string s )
         {
-            Debug.Assert( b.Length == 20 && !b.SequenceEqual( Zero._bytes ) && s != null && s.Length == 40 );
+            Throw.DebugAssert( b.Length == 20 && !b.SequenceEqual( Zero._bytes ) && s != null && s.Length == 40 );
             _bytes = b;
             _string = s;
         }
@@ -289,7 +307,7 @@ namespace CK.Core
         
         static string BuildString( byte[] b )
         { 
-            Debug.Assert( !b.AsSpan().SequenceEqual( Zero._bytes.AsSpan() ) );
+            Throw.DebugAssert( !b.AsSpan().SequenceEqual( Zero._bytes.AsSpan() ) );
             return Convert.ToHexString( b ).ToLowerInvariant();
         }
 
@@ -306,12 +324,7 @@ namespace CK.Core
                         ? -1
                         : 0;
             if( other._bytes == null || other._bytes == Zero._bytes ) return +1;
-            for( int i = 0; i < _bytes.Length; ++i )
-            {
-                int cmp = _bytes[i] - other._bytes[i];
-                if( cmp != 0 ) return cmp;
-            }
-            return 0;
+            return _bytes.AsSpan().SequenceCompareTo( other._bytes );
         }
     }
 }
