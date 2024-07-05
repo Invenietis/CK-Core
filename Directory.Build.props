@@ -31,7 +31,6 @@
     <!--Considering .net6 'global using' to be an opt-in (simply reproduce this with 'enable' in the csproj if needed).-->
     <ImplicitUsings>disable</ImplicitUsings>
     <!--Nullable Reference Type should always be used!-->
-    <Nullable>enable</Nullable>
     <PackageIcon>PackageIcon.png</PackageIcon>
     <AssemblyOriginatorKeyFile>$(SolutionDir)Common/SharedKey.snk</AssemblyOriginatorKeyFile>
     <SignAssembly>true</SignAssembly>
