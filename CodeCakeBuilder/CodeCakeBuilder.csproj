@@ -8,13 +8,13 @@
     <ManagePackageVersionsCentrally>false</ManagePackageVersionsCentrally>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="NuGet.Credentials" Version="6.7.0" />
+    <PackageReference Include="NuGet.Credentials" Version="6.10.1" />
   </ItemGroup>
   <ItemGroup>
     <None Remove="TestResult.xml" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="SimpleGitVersion.Cake" Version="9.0.0" />
+    <PackageReference Include="SimpleGitVersion.Cake" Version="10.0.0" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\CK.Core\CK.Core.csproj" />

@@ -31,6 +31,7 @@
     <!--Considering .net6 'global using' to be an opt-in (simply reproduce this with 'enable' in the csproj if needed).-->
     <ImplicitUsings>disable</ImplicitUsings>
     <!--Nullable Reference Type should always be used!-->
+    <Nullable>enable</Nullable>
     <PackageIcon>PackageIcon.png</PackageIcon>
     <AssemblyOriginatorKeyFile>$(SolutionDir)Common/SharedKey.snk</AssemblyOriginatorKeyFile>
     <SignAssembly>true</SignAssembly>
@@ -61,10 +62,10 @@
   <!--<ReproducibleBuilds>-->
   <!--Enable Deterministic build. https://github.com/dotnet/reproducible-builds. SourceLink is automatically managed by this package.-->
   <ItemGroup>
-    <PackageReference Include="DotNet.ReproducibleBuilds" Version="1.1.1" PrivateAssets="All" />
+    <PackageReference Include="DotNet.ReproducibleBuilds" Version="1.2.4" PrivateAssets="All" />
   </ItemGroup>
   <!--Guaranty that the build is isolated. https://github.com/dotnet/reproducible-builds#dotnetreproduciblebuildsisolated-documentation-and-nuget-package-->
-  <Sdk Name="DotNet.ReproducibleBuilds.Isolated" Version="1.1.1" />
+  <Sdk Name="DotNet.ReproducibleBuilds.Isolated" Version="1.2.4" />
   <!--</ReproducibleBuilds>-->
   <!--<_CopyXmlDocFiles>:
     It's a mess... See  https://github.com/dotnet/sdk/issues/1458#issuecomment-695119194

@@ -117,6 +117,31 @@ namespace CodeCake
             }
         }
 
+        /// <summary>
+        /// Simply 'dotnet test --no-restore --no-build' the solution.
+        /// </summary>
+        public void SolutionTest()
+        {
+            var memKey = $"Test:{SolutionFileName}";
+            if( !_globalInfo.CheckCommitMemoryKey( memKey ) )
+            {
+                var options = new DotNetTestSettings()
+                {
+                    Configuration = _globalInfo.BuildInfo.BuildConfiguration,
+                    NoRestore = true,
+                    NoBuild = true,
+                    Loggers = ["trx"]
+                };
+                if( _globalInfo.Cake.Environment.GetEnvironmentVariable( "DisableNodeReUse" ) != null )
+                {
+                    options.MSBuildSettings.NodeReuse = false;
+                }
+                _globalInfo.Cake.DotNetTest( null, options );
+            }
+            _globalInfo.WriteCommitMemoryKey( memKey );
+        }
+
+        [Obsolete( "Use the simpler SolutionTest() that simply 'dotnet test --no-restore --no-build' the solution." )]
         public void Test( IEnumerable<SolutionProject>? testProjects = null )
         {
             if( testProjects == null )
