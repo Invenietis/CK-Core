@@ -1,11 +1,8 @@
 using System;
-using System.Collections.Generic;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
-using System.Linq;
 using System.Runtime.CompilerServices;
-using System.Text;
-using System.Threading.Tasks;
 using System.Xml;
 
 namespace CK.Core
@@ -17,6 +14,7 @@ namespace CK.Core
         /// </summary>
         /// <param name="valid">The expression to that must be true.</param>
         /// <param name="exp">Roslyn's automatic capture of the expression's value.</param>
+        [StackTraceHidden]
         [MethodImpl( MethodImplOptions.AggressiveInlining )]
         public static void CheckData( [DoesNotReturnIf( false )] bool valid, [CallerArgumentExpression( "valid" )] string? exp = null )
         {
@@ -32,6 +30,7 @@ namespace CK.Core
         /// <param name="message">An explicit message that replaces the default "Invalid data: ... should be true.".</param>
         /// <param name="valid">The expression to that must be true.</param>
         /// <param name="exp">Roslyn's automatic capture of the expression's value.</param>
+        [StackTraceHidden]
         [MethodImpl( MethodImplOptions.AggressiveInlining )]
         public static void CheckData( string message, [DoesNotReturnIf( false )] bool valid, [CallerArgumentExpression( "valid" )] string? exp = null )
         {
@@ -61,6 +60,7 @@ namespace CK.Core
         /// </summary>
         /// <param name="message">Optional message to include in the exception.</param>
         /// <param name="innerException">Optional inner <see cref="Exception"/> to include.</param>
+        [StackTraceHidden]
         [DoesNotReturn]
         [MethodImpl( MethodImplOptions.AggressiveInlining )]
         public static void InvalidDataException( string? message = null, Exception? innerException = null )
@@ -74,6 +74,7 @@ namespace CK.Core
         /// </summary>
         /// <param name="message">Optional message to include in the exception.</param>
         /// <param name="innerException">Optional inner <see cref="Exception"/> to include.</param>
+        [StackTraceHidden]
         [DoesNotReturn]
         [MethodImpl( MethodImplOptions.NoInlining )]
         public static T InvalidDataException<T>( string? message = null, Exception? innerException = null )
@@ -86,6 +87,7 @@ namespace CK.Core
         /// </summary>
         /// <param name="message">Optional message to include in the exception.</param>
         /// <param name="innerException">Optional inner <see cref="Exception"/> to include.</param>
+        [StackTraceHidden]
         [DoesNotReturn]
         [MethodImpl( MethodImplOptions.AggressiveInlining )]
         public static void EndOfStreamException( string? message = null, Exception? innerException = null )
@@ -99,6 +101,7 @@ namespace CK.Core
         /// </summary>
         /// <param name="message">Optional message to include in the exception.</param>
         /// <param name="innerException">Optional inner <see cref="Exception"/> to include.</param>
+        [StackTraceHidden]
         [DoesNotReturn]
         [MethodImpl( MethodImplOptions.NoInlining )]
         public static T EndOfStreamException<T>( string? message = null, Exception? innerException = null )
@@ -111,6 +114,7 @@ namespace CK.Core
         /// </summary>
         /// <param name="message">Optional message to include in the exception.</param>
         /// <param name="innerException">Optional inner <see cref="Exception"/> to include.</param>
+        [StackTraceHidden]
         [DoesNotReturn]
         [MethodImpl( MethodImplOptions.AggressiveInlining )]
         public static void XmlException( string? message = null, Exception? innerException = null )
@@ -124,6 +128,7 @@ namespace CK.Core
         /// </summary>
         /// <param name="message">Optional message to include in the exception.</param>
         /// <param name="innerException">Optional inner <see cref="Exception"/> to include.</param>
+        [StackTraceHidden]
         [DoesNotReturn]
         [MethodImpl( MethodImplOptions.NoInlining )]
         public static T XmlException<T>( string? message = null, Exception? innerException = null )
@@ -136,6 +141,7 @@ namespace CK.Core
         /// </summary>
         /// <param name="message">Optional message to include in the exception.</param>
         /// <param name="innerException">Optional inner <see cref="Exception"/> to include.</param>
+        [StackTraceHidden]
         [DoesNotReturn]
         [MethodImpl( MethodImplOptions.AggressiveInlining )]
         public static void FormatException( string? message = null, Exception? innerException = null )
@@ -149,6 +155,7 @@ namespace CK.Core
         /// </summary>
         /// <param name="message">Optional message to include in the exception.</param>
         /// <param name="innerException">Optional inner <see cref="Exception"/> to include.</param>
+        [StackTraceHidden]
         [DoesNotReturn]
         [MethodImpl( MethodImplOptions.NoInlining )]
         public static T FormatException<T>( string? message = null, Exception? innerException = null )

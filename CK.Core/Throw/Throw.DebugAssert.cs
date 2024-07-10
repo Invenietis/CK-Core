@@ -15,6 +15,7 @@ namespace CK.Core
         /// <param name="filePath">Automatically captures the source code file path.</param>
         /// <param name="lineNumber">Automatically captures the source code line number.</param>
         /// <exception cref="CKException">Whenever <paramref name="valid"/> is false.</exception>
+        [StackTraceHidden]
         [Conditional( "DEBUG" )]
         public static void DebugAssert( [DoesNotReturnIf( false )] bool valid,
                                         [CallerArgumentExpression( "valid" )] string? exp = null,
@@ -37,6 +38,7 @@ namespace CK.Core
         /// <param name="filePath">Automatically captures the source code file path.</param>
         /// <param name="lineNumber">Automatically captures the source code line number.</param>
         /// <exception cref="CKException">Whenever <paramref name="valid"/> is false.</exception>
+        [StackTraceHidden]
         [Conditional( "DEBUG" )]
         public static void DebugAssert( string message,
                                         [DoesNotReturnIf( false )] bool valid,

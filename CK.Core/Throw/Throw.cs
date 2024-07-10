@@ -1,11 +1,7 @@
 using System;
-using System.Collections.Generic;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
-using System.IO;
-using System.Linq;
 using System.Runtime.CompilerServices;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace CK.Core
 {
@@ -19,6 +15,7 @@ namespace CK.Core
         /// </summary>
         /// <param name="message">Optional message to include in the exception.</param>
         /// <param name="inner">Optional inner exception to include.</param>
+        [StackTraceHidden]
         [DoesNotReturn]
         [MethodImpl( MethodImplOptions.AggressiveInlining )]
         public static void Exception( string? message = null, Exception? inner = null )
@@ -32,6 +29,7 @@ namespace CK.Core
         /// </summary>
         /// <param name="message">Optional message to include in the exception.</param>
         /// <param name="inner">Optional inner exception to include.</param>
+        [StackTraceHidden]
         [DoesNotReturn]
         [MethodImpl( MethodImplOptions.NoInlining )]
         public static T Exception<T>( string? message = null, Exception? inner = null )
@@ -44,6 +42,7 @@ namespace CK.Core
         /// </summary>
         /// <param name="message">Optional message to include in the exception.</param>
         /// <param name="inner">Optional inner exception to include.</param>
+        [StackTraceHidden]
         [DoesNotReturn]
         [MethodImpl( MethodImplOptions.AggressiveInlining )]
         public static void NotSupportedException( string? message = null, Exception? inner = null )
@@ -57,6 +56,7 @@ namespace CK.Core
         /// </summary>
         /// <param name="message">Optional message to include in the exception.</param>
         /// <param name="inner">Optional inner exception to include.</param>
+        [StackTraceHidden]
         [DoesNotReturn]
         [MethodImpl( MethodImplOptions.NoInlining )]
         public static T NotSupportedException<T>( string? message = null, Exception? inner = null )
@@ -69,6 +69,7 @@ namespace CK.Core
         /// </summary>
         /// <param name="message">Exception message.</param>
         /// <param name="inner">Optional inner exception to include.</param>
+        [StackTraceHidden]
         [DoesNotReturn]
         [MethodImpl( MethodImplOptions.AggressiveInlining )]
         public static void CKException( string message, Exception? inner = null )
@@ -82,6 +83,7 @@ namespace CK.Core
         /// </summary>
         /// <param name="message">Exception message.</param>
         /// <param name="inner">Optional inner exception to include.</param>
+        [StackTraceHidden]
         [DoesNotReturn]
         [MethodImpl( MethodImplOptions.NoInlining )]
         public static T CKException<T>( string message, Exception? inner = null )

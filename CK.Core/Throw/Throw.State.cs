@@ -1,11 +1,7 @@
 using System;
-using System.Collections.Generic;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
-using System.IO;
-using System.Linq;
 using System.Runtime.CompilerServices;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace CK.Core
 {
@@ -16,6 +12,7 @@ namespace CK.Core
         /// </summary>
         /// <param name="valid">The expression to that must be true.</param>
         /// <param name="exp">Roslyn's automatic capture of the expression's value.</param>
+        [StackTraceHidden]
         [MethodImpl( MethodImplOptions.AggressiveInlining )]
         public static void CheckState( [DoesNotReturnIf( false )] bool valid, [CallerArgumentExpression( "valid" )] string? exp = null )
         {
@@ -31,6 +28,7 @@ namespace CK.Core
         /// <param name="message">An explicit message that replaces the default "Invalid state: ... should be true.".</param>
         /// <param name="valid">The expression to that must be true.</param>
         /// <param name="exp">Roslyn's automatic capture of the expression's value.</param>
+        [StackTraceHidden]
         [MethodImpl( MethodImplOptions.AggressiveInlining )]
         public static void CheckState( string message, [DoesNotReturnIf( false )] bool valid, [CallerArgumentExpression( "valid" )] string? exp = null )
         {
@@ -59,6 +57,7 @@ namespace CK.Core
         /// </summary>
         /// <param name="message">Optional message to include in the exception.</param>
         /// <param name="innerException">Optional inner <see cref="Exception"/> to include.</param>
+        [StackTraceHidden]
         [DoesNotReturn]
         [MethodImpl( MethodImplOptions.AggressiveInlining )]
         public static void InvalidOperationException( string? message = null, Exception? innerException = null )
@@ -72,6 +71,7 @@ namespace CK.Core
         /// </summary>
         /// <param name="message">Optional message to include in the exception.</param>
         /// <param name="innerException">Optional inner <see cref="Exception"/> to include.</param>
+        [StackTraceHidden]
         [DoesNotReturn]
         [MethodImpl( MethodImplOptions.NoInlining )]
         public static T InvalidOperationException<T>( string? message = null, Exception? innerException = null )
@@ -84,6 +84,7 @@ namespace CK.Core
         /// </summary>
         /// <param name="message">The error message that explains the reason for the exception.</param>
         /// <param name="innerException">Optional inner <see cref="Exception"/> to include.</param>
+        [StackTraceHidden]
         [DoesNotReturn]
         [MethodImpl( MethodImplOptions.AggressiveInlining )]
         public static void ObjectDisposedException( string? message, Exception? innerException )
@@ -97,6 +98,7 @@ namespace CK.Core
         /// </summary>
         /// <param name="message">The error message that explains the reason for the exception.</param>
         /// <param name="innerException">Optional inner <see cref="Exception"/> to include.</param>
+        [StackTraceHidden]
         [DoesNotReturn]
         [MethodImpl( MethodImplOptions.NoInlining )]
         public static T ObjectDisposedException<T>( string? message, Exception? innerException )
@@ -109,6 +111,7 @@ namespace CK.Core
         /// </summary>
         /// <param name="objectName">The name of the disposed object.</param>
         /// <param name="message">The error message that explains the reason for the exception.</param>
+        [StackTraceHidden]
         [DoesNotReturn]
         [MethodImpl( MethodImplOptions.AggressiveInlining )]
         public static void ObjectDisposedException( string? objectName = null, string? message = null )
@@ -122,6 +125,7 @@ namespace CK.Core
         /// </summary>
         /// <param name="objectName">The name of the disposed object.</param>
         /// <param name="message">The error message that explains the reason for the exception.</param>
+        [StackTraceHidden]
         [DoesNotReturn]
         [MethodImpl( MethodImplOptions.NoInlining )]
         public static T ObjectDisposedException<T>( string? objectName = null, string? message = null )
@@ -135,6 +139,7 @@ namespace CK.Core
         /// </summary>
         /// <param name="message">Optional message to include in the exception.</param>
         /// <param name="innerException">Optional inner <see cref="Exception"/> to include.</param>
+        [StackTraceHidden]
         [DoesNotReturn]
         [MethodImpl( MethodImplOptions.AggressiveInlining )]
         public static void TimeoutException( string? message, Exception? innerException )
@@ -148,6 +153,7 @@ namespace CK.Core
         /// </summary>
         /// <param name="message">Optional message to include in the exception.</param>
         /// <param name="innerException">Optional inner <see cref="Exception"/> to include.</param>
+        [StackTraceHidden]
         [DoesNotReturn]
         [MethodImpl( MethodImplOptions.NoInlining )]
         public static T TimeoutException<T>( string? message, Exception? innerException )
