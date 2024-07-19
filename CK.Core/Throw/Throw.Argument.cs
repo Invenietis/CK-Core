@@ -17,7 +17,7 @@ namespace CK.Core
         /// <param name="exp">Roslyn's automatic capture of the expression's value.</param>
         [StackTraceHidden]
         [MethodImpl( MethodImplOptions.AggressiveInlining )]
-        public static void CheckNotNullArgument( [NotNull] object? value, [CallerArgumentExpression( "value" )] string? exp = null )
+        public static void CheckNotNullArgument( [NotNull] object? value, [CallerArgumentExpression( nameof( value ) )] string? exp = null )
         {
             if( value == null )
             {
@@ -33,7 +33,7 @@ namespace CK.Core
         /// <param name="exp">Roslyn's automatic capture of the expression's value.</param>
         [StackTraceHidden]
         [MethodImpl( MethodImplOptions.AggressiveInlining )]
-        public static void CheckNotNullArgument<T>( [NotNull] T? value, [CallerArgumentExpression( "value" )] string? exp = null ) where T : struct
+        public static void CheckNotNullArgument<T>( [NotNull] T? value, [CallerArgumentExpression( nameof( value ) )] string? exp = null ) where T : struct
         {
             if( !value.HasValue )
             {
@@ -49,7 +49,7 @@ namespace CK.Core
         /// <param name="exp">Roslyn's automatic capture of the expression's value.</param>
         [StackTraceHidden]
         [MethodImpl( MethodImplOptions.AggressiveInlining )]
-        public static void CheckNotNullArgument( string message, [NotNull] object? value, [CallerArgumentExpression( "value" )] string? exp = null )
+        public static void CheckNotNullArgument( string message, [NotNull] object? value, [CallerArgumentExpression( nameof( value ) )] string? exp = null )
         {
             if( value == null )
             {
@@ -64,7 +64,7 @@ namespace CK.Core
         /// <param name="exp">Roslyn's automatic capture of the expression's value.</param>
         [StackTraceHidden]
         [MethodImpl( MethodImplOptions.AggressiveInlining )]
-        public static void CheckArgument( [DoesNotReturnIf( false )] bool valid, [CallerArgumentExpression( "valid" )] string? exp = null )
+        public static void CheckArgument( [DoesNotReturnIf( false )] bool valid, [CallerArgumentExpression( nameof( valid ) )] string? exp = null )
         {
             if( !valid )
             {
@@ -79,7 +79,7 @@ namespace CK.Core
         /// <param name="exp">Roslyn's automatic capture of the expression's value.</param>
         [StackTraceHidden]
         [MethodImpl( MethodImplOptions.AggressiveInlining )]
-        public static void CheckOutOfRangeArgument( [DoesNotReturnIf( false )] bool valid, [CallerArgumentExpression( "valid" )] string? exp = null )
+        public static void CheckOutOfRangeArgument( [DoesNotReturnIf( false )] bool valid, [CallerArgumentExpression( nameof( valid ) )] string? exp = null )
         {
             if( !valid )
             {
@@ -94,7 +94,7 @@ namespace CK.Core
         /// <param name="exp">Roslyn's automatic capture of the expression's value.</param>
         [StackTraceHidden]
         [MethodImpl( MethodImplOptions.AggressiveInlining )]
-        public static void CheckIndexOutOfRange( [DoesNotReturnIf( false )] bool valid, [CallerArgumentExpression( "valid" )] string? exp = null )
+        public static void CheckIndexOutOfRange( [DoesNotReturnIf( false )] bool valid, [CallerArgumentExpression( nameof( valid ) )] string? exp = null )
         {
             if( !valid )
             {
@@ -110,7 +110,7 @@ namespace CK.Core
         /// <param name="exp">Roslyn's automatic capture of the expression's value.</param>
         [StackTraceHidden]
         [MethodImpl( MethodImplOptions.AggressiveInlining )]
-        public static void CheckArgument( string message, [DoesNotReturnIf( false )] bool valid, [CallerArgumentExpression( "valid" )] string? exp = null )
+        public static void CheckArgument( string message, [DoesNotReturnIf( false )] bool valid, [CallerArgumentExpression( nameof( valid ) )] string? exp = null )
         {
             if( !valid )
             {
@@ -126,7 +126,7 @@ namespace CK.Core
         /// <param name="exp">Roslyn's automatic capture of the expression's value.</param>
         [StackTraceHidden]
         [MethodImpl( MethodImplOptions.AggressiveInlining )]
-        public static void CheckOutOfRangeArgument( string message, [DoesNotReturnIf( false )] bool valid, [CallerArgumentExpression( "valid" )] string? exp = null )
+        public static void CheckOutOfRangeArgument( string message, [DoesNotReturnIf( false )] bool valid, [CallerArgumentExpression( nameof( valid ) )] string? exp = null )
         {
             if( !valid )
             {
@@ -142,7 +142,7 @@ namespace CK.Core
         /// <param name="exp">Roslyn's automatic capture of the expression's value.</param>
         [StackTraceHidden]
         [MethodImpl( MethodImplOptions.AggressiveInlining )]
-        public static void CheckIndexOutOfRange( string message, [DoesNotReturnIf( false )] bool valid, [CallerArgumentExpression( "valid" )] string? exp = null )
+        public static void CheckIndexOutOfRange( string message, [DoesNotReturnIf( false )] bool valid, [CallerArgumentExpression( nameof( valid ) )] string? exp = null )
         {
             if( !valid )
             {
@@ -187,7 +187,7 @@ namespace CK.Core
         /// <param name="exp">Roslyn's automatic capture of the expression's value.</param>
         [StackTraceHidden]
         [MethodImpl( MethodImplOptions.AggressiveInlining )]
-        public static void CheckNotNullOrEmptyArgument( [NotNull] string? value, [CallerArgumentExpression( "value" )] string? exp = null )
+        public static void CheckNotNullOrEmptyArgument( [NotNull] string? value, [CallerArgumentExpression( nameof( value ) )] string? exp = null )
         {
             if( String.IsNullOrEmpty( value ) )
             {
@@ -202,7 +202,7 @@ namespace CK.Core
         /// <param name="exp">Roslyn's automatic capture of the expression's value.</param>
         [StackTraceHidden]
         [MethodImpl( MethodImplOptions.AggressiveInlining )]
-        public static void CheckNotNullOrEmptyArgument<T>( [NotNull] IEnumerable<T>? value, [CallerArgumentExpression( "value" )] string? exp = null )
+        public static void CheckNotNullOrEmptyArgument<T>( [NotNull] IEnumerable<T>? value, [CallerArgumentExpression( nameof( value ) )] string? exp = null )
         {
             if( value == null || !value.Any() )
             {
@@ -218,7 +218,7 @@ namespace CK.Core
         /// <param name="value">The value to test.</param>
         /// <param name="exp">Roslyn's automatic capture of the expression's value.</param>
         [StackTraceHidden]
-        public static void CheckNotNullOrEmptyArgument( [NotNull] System.Collections.IEnumerable? value, [CallerArgumentExpression( "value" )] string? exp = null )
+        public static void CheckNotNullOrEmptyArgument( [NotNull] System.Collections.IEnumerable? value, [CallerArgumentExpression( nameof( value ) )] string? exp = null )
         {
             if( value == null )
             {
@@ -254,7 +254,7 @@ namespace CK.Core
         /// <param name="exp">Roslyn's automatic capture of the expression's value.</param>
         [StackTraceHidden]
         [MethodImpl( MethodImplOptions.AggressiveInlining )]
-        public static void CheckNotNullOrEmptyArgument<T>( [NotNull] IReadOnlyCollection<T>? value, [CallerArgumentExpression( "value" )] string? exp = null )
+        public static void CheckNotNullOrEmptyArgument<T>( [NotNull] IReadOnlyCollection<T>? value, [CallerArgumentExpression( nameof( value ) )] string? exp = null )
         {
             if( value == null || value.Count == 0 )
             {
@@ -283,7 +283,7 @@ namespace CK.Core
         /// <param name="exp">Roslyn's automatic capture of the expression's value.</param>
         [StackTraceHidden]
         [MethodImpl( MethodImplOptions.AggressiveInlining )]
-        public static void CheckNotNullOrEmptyArgument<T>( Span<T> value, [CallerArgumentExpression( "value" )] string? exp = null )
+        public static void CheckNotNullOrEmptyArgument<T>( Span<T> value, [CallerArgumentExpression( nameof( value ) )] string? exp = null )
         {
             if( value.IsEmpty )
             {
@@ -298,7 +298,7 @@ namespace CK.Core
         /// <param name="exp">Roslyn's automatic capture of the expression's value.</param>
         [StackTraceHidden]
         [MethodImpl( MethodImplOptions.AggressiveInlining )]
-        public static void CheckNotNullOrEmptyArgument<T>( Memory<T> value, [CallerArgumentExpression( "value" )] string? exp = null )
+        public static void CheckNotNullOrEmptyArgument<T>( Memory<T> value, [CallerArgumentExpression( nameof( value ) )] string? exp = null )
         {
             if( value.IsEmpty )
             {
@@ -313,7 +313,7 @@ namespace CK.Core
         /// <param name="exp">Roslyn's automatic capture of the expression's value.</param>
         [StackTraceHidden]
         [MethodImpl( MethodImplOptions.AggressiveInlining )]
-        public static void CheckNotNullOrEmptyArgument<T>( ReadOnlySpan<T> value, [CallerArgumentExpression( "value" )] string? exp = null )
+        public static void CheckNotNullOrEmptyArgument<T>( ReadOnlySpan<T> value, [CallerArgumentExpression( nameof( value ) )] string? exp = null )
         {
             if( value.IsEmpty )
             {
@@ -328,7 +328,7 @@ namespace CK.Core
         /// <param name="exp">Roslyn's automatic capture of the expression's value.</param>
         [StackTraceHidden]
         [MethodImpl( MethodImplOptions.AggressiveInlining )]
-        public static void CheckNotNullOrEmptyArgument<T>( ReadOnlyMemory<T> value, [CallerArgumentExpression( "value" )] string? exp = null )
+        public static void CheckNotNullOrEmptyArgument<T>( ReadOnlyMemory<T> value, [CallerArgumentExpression( nameof( value ) )] string? exp = null )
         {
             if( value.IsEmpty )
             {
@@ -343,7 +343,7 @@ namespace CK.Core
         /// <param name="exp">Roslyn's automatic capture of the expression's value.</param>
         [StackTraceHidden]
         [MethodImpl( MethodImplOptions.AggressiveInlining )]
-        public static void CheckNotNullOrWhiteSpaceArgument( [NotNull] string? value, [CallerArgumentExpression( "value" )] string? exp = null )
+        public static void CheckNotNullOrWhiteSpaceArgument( [NotNull] string? value, [CallerArgumentExpression( nameof( value ) )] string? exp = null )
         {
             if( String.IsNullOrWhiteSpace( value ) )
             {
