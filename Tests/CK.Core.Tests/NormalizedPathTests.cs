@@ -401,18 +401,18 @@ namespace CK.Core.Tests
                     .Should().BeEquivalentTo( NormalizeExpectedResultAsStrings( result ), o => o.WithStrictOrdering() );
         }
 
-        //[TestCase( "", "" )]
-        //[TestCase( ".", "" )]
-        //[TestCase( "..", "InvalidOperationException" )]
-        //[TestCase( "/..", "InvalidOperationException" )]
-        //[TestCase( "//..", "InvalidOperationException" )]
-        //[TestCase( "~/..", "InvalidOperationException" )]
+        [TestCase( "", "" )]
+        [TestCase( ".", "" )]
+        [TestCase( "..", "InvalidOperationException" )]
+        [TestCase( "/..", "InvalidOperationException" )]
+        [TestCase( "//..", "InvalidOperationException" )]
+        [TestCase( "~/..", "InvalidOperationException" )]
         [TestCase( "c:/..", "InvalidOperationException" )]
         [TestCase( "plop://..", "InvalidOperationException" )]
-        //[TestCase( "a/b/../x", "a/x" )]
-        //[TestCase( "./a/./b/./.././x/.", "a/x" )]
-        //[TestCase( "a/b/../x/../..", "" )]
-        //[TestCase( "a/b/../x/../../..", "InvalidOperationException" )]
+        [TestCase( "a/b/../x", "a/x" )]
+        [TestCase( "./a/./b/./.././x/.", "a/x" )]
+        [TestCase( "a/b/../x/../..", "" )]
+        [TestCase( "a/b/../x/../../..", "InvalidOperationException" )]
         public void ResolveDots( string path, string result )
         {
             if( result == "InvalidOperationException" )
@@ -441,6 +441,7 @@ namespace CK.Core.Tests
 
         [TestCase( "", 1, "ArgumentOutOfRangeException" )]
         [TestCase( "a", 2, "ArgumentOutOfRangeException" )]
+        [TestCase( ".", 1, "." )]
         [TestCase( ".", 0, "" )]
         [TestCase( "A/..", 1, "InvalidOperationException" )]
         [TestCase( "a/b/../x", 3, "a/b/../x" )]
