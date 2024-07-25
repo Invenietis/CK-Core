@@ -12,6 +12,9 @@ namespace CK.Core.Tests
     {
         [TestCase( "", NormalizedPathRootKind.None, "" )]
         [TestCase( "a", NormalizedPathRootKind.None, "a" )]
+        [TestCase( "./", NormalizedPathRootKind.None, "." )]
+        [TestCase( ".", NormalizedPathRootKind.None, "." )]
+        [TestCase( "./a", NormalizedPathRootKind.None, "./a" )]
         [TestCase( "/a", NormalizedPathRootKind.RootedBySeparator, "/a" )]
         [TestCase( "/a/b", NormalizedPathRootKind.RootedBySeparator, "/a/b" )]
         [TestCase( "/", NormalizedPathRootKind.RootedBySeparator, "/" )]
@@ -438,7 +441,7 @@ namespace CK.Core.Tests
 
         [TestCase( "", 1, "ArgumentOutOfRangeException" )]
         [TestCase( "a", 2, "ArgumentOutOfRangeException" )]
-        [TestCase( ".", 1, "." )]
+        [TestCase( ".", 0, "" )]
         [TestCase( "A/..", 1, "InvalidOperationException" )]
         [TestCase( "a/b/../x", 3, "a/b/../x" )]
         [TestCase( "./a/./b/./.././x/.", 2, "./a/x" )]
