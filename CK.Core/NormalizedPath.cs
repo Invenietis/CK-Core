@@ -179,8 +179,9 @@ namespace CK.Core
 
         NormalizedPath( string[]? parts, string path, NormalizedPathRootKind o )
         {
-            Debug.Assert( path != null );
-            Debug.Assert( parts != null || o != NormalizedPathRootKind.RootedByFirstPart, "parts == null ==> option != RootedByFirstPart" );
+            Throw.DebugAssert( path != null );
+            Throw.DebugAssert( "parts != null ==> there are parts.", parts == null || parts.Length > 0 );
+            Throw.DebugAssert( "parts == null ==> not RootedByFirstPart and not URI", parts != null || o is not NormalizedPathRootKind.RootedByFirstPart and not NormalizedPathRootKind.RootedByURIScheme );
             _parts = parts;
             _path = path;
             _option = o;
@@ -685,6 +686,95 @@ namespace CK.Core
             var parts = new string[nb];
             Array.Copy( _parts, prefix._parts.Length, parts, 0, nb );
             return new NormalizedPath( parts, _path.Substring( prefix._path.Length + 1 ), NormalizedPathRootKind.None );
+        }
+
+        /// <summary>
+        /// Tries to compute the relative path from this one to the <paramref name="target"/>.
+        /// This and <paramref name="target"/> must:
+        /// <list type="bullet">
+        ///     <item>Be absolute.</item>
+        ///     <item>Have the same <see cref="RootKind"/>.</item>
+        ///     <item>When <see cref="NormalizedPathRootKind.RootedByFirstPart"/>, their first part must the same.</item>
+        ///     <item>When <see cref="NormalizedPathRootKind.RootedByURIScheme"/>, their 2 first parts must the same.</item>
+        /// </list>
+        /// <para>
+        /// To compute a relative path between relative paths, they must first be rooted (typically by <see cref="NormalizedPathRootKind.RootedBySeparator"/>).
+        /// </para>
+        /// </summary>
+        /// <param name="target">The target path.</param>
+        /// <param name="relative">The relative path. Must be used only if true is returned.</param>
+        /// <returns>True if the relative path can be computed.</returns>
+        public bool TryGetRelativePathTo( NormalizedPath target, out NormalizedPath relative )
+        {
+            relative = default;
+            var kind = RootKind;
+            if( kind == NormalizedPathRootKind.None || kind != target.RootKind )
+            {
+                return false;
+            }
+            if( Equals( target ) ) return true;
+            if( _parts == null )
+            {
+                // The kind cannot be RootedByURIScheme or NormalizedPathRootKind.RootedByFirstPart otherwise
+                // at least one part would be there.
+                Throw.DebugAssert( kind is not NormalizedPathRootKind.RootedByURIScheme and not NormalizedPathRootKind.RootedByFirstPart );
+                // Source is a root, the relative is simply the relative target.
+                Throw.DebugAssert( "Same root kind: they would have been equal.", target.HasParts );
+                relative = target.With( NormalizedPathRootKind.None );
+                return true;
+            }
+            if( target._parts == null )
+            {
+                // The kind cannot be RootedByURIScheme or NormalizedPathRootKind.RootedByFirstPart otherwise
+                // at least one part would be there.
+                Throw.DebugAssert( kind is not NormalizedPathRootKind.RootedByURIScheme and not NormalizedPathRootKind.RootedByFirstPart );
+                // Target is the root: it is a ../../.. relative path.
+                Throw.DebugAssert( "Same root kind: they would have been equal.", _parts != null );
+                relative = DoCreateBackPath( _parts.Length );
+                return true;
+            }
+            int maxCommon = Math.Min( _parts.Length, target._parts.Length );
+            int common = 0;
+            do
+            {
+                if( _parts[common] != target._parts[common] ) break;
+                ++common;
+            }
+            while( common < maxCommon );
+
+            int backCount = _parts.Length - common;
+            relative = backCount == 0 ? default : DoCreateBackPath( backCount );
+
+            if( target.RootKind is NormalizedPathRootKind.RootedByFirstPart )
+            {
+                // When the first part is the root, it must be the same.
+                if( common == 0 ) return false;
+                target = target.RemoveFirstPart();
+                --common;
+            }
+            else if( target.RootKind is NormalizedPathRootKind.RootedByURIScheme )
+            {
+                // For URI the 2 first parts must be the same.
+                if( common < 2 ) return false;
+                target = target.RemoveFirstPart( 2 );
+                common -= 2;
+            }
+            else
+            {
+                // For any other kind of root, we forget the root kind.
+                target = target.With( NormalizedPathRootKind.None );
+            }
+            relative = relative.Combine( target.RemoveFirstPart( common ) );
+            return true;
+
+        }
+
+        static NormalizedPath DoCreateBackPath( int backCount )
+        {
+            Throw.DebugAssert( backCount > 0 );
+            var p = new string[backCount];
+            for( int i = 0; i < backCount; i++ ) p[i] = "..";
+            return new NormalizedPath( p, string.Join( DirectorySeparatorChar, p ), NormalizedPathRootKind.None );
         }
 
         /// <summary>
