@@ -83,7 +83,7 @@ namespace CK.Core
         /// datetime2 is like the .Net DateTime (0001-01-01 through 9999-12-31, 100ns step).
         /// Its <see cref="DateTimeKind.Unspecified"/> since this is what the Sql client returns.
         /// </summary>
-        public static readonly DateTime SqlServerEpoch  = new DateTime( 599266080000000000, DateTimeKind.Unspecified );
+        public static readonly DateTime SqlServerEpoch = new DateTime( 599266080000000000, DateTimeKind.Unspecified );
 
         /// <summary>
         /// The <see cref="RecyclableStreamManager"/> is using 128 KiB blocks (small pool).
@@ -123,20 +123,25 @@ namespace CK.Core
         /// ToArray should NOT be called on large payload...
         /// </para>
         /// </summary>
-        public static RecyclableMemoryStreamManager RecyclableStreamManager = new RecyclableMemoryStreamManager( blockSize: RecyclableStreamBlockSize,
-                                                                                                                 largeBufferMultiple: RecyclableStreamLargeBufferMultiple,
-                                                                                                                 maximumBufferSize: RecyclableStreamMaximumBufferSize,
-                                                                                                                 useExponentialLargeBuffer: RecyclableStreamUseExponentialLargeBuffer,
-                                                                                                                 maximumSmallPoolFreeBytes: 256 * RecyclableStreamBlockSize,
-                                                                                                                 maximumLargePoolFreeBytes: 32 * 1024 * 1024 );
+        public static RecyclableMemoryStreamManager RecyclableStreamManager = new RecyclableMemoryStreamManager(
+            new RecyclableMemoryStreamManager.Options(
+                blockSize: RecyclableStreamBlockSize,
+                largeBufferMultiple: RecyclableStreamLargeBufferMultiple,
+                maximumBufferSize: RecyclableStreamMaximumBufferSize,
+                maximumSmallPoolFreeBytes: 256 * RecyclableStreamBlockSize,
+                maximumLargePoolFreeBytes: 32 * 1024 * 1024 )
+            {
+                UseExponentialLargeBuffer = RecyclableStreamUseExponentialLargeBuffer
+            } ) ;
+
         /// <summary>
         /// Gets or sets <see cref="RecyclableMemoryStreamManager.MaximumFreeSmallPoolBytes"/> of the default <see cref="RecyclableStreamManager"/>.
         /// Defaults to 256 * <see cref="RecyclableStreamBlockSize"/> (256 * 128 KiB).
         /// </summary>
         public static long RecyclableStreamMaximumSmallPoolFreeBytes
         {
-            get => RecyclableStreamManager.MaximumFreeSmallPoolBytes;
-            set => RecyclableStreamManager.MaximumFreeSmallPoolBytes = value;
+            get => RecyclableStreamManager.Settings.MaximumSmallPoolFreeBytes;
+            set => RecyclableStreamManager.Settings.MaximumSmallPoolFreeBytes = value;
         }
 
         /// <summary>
@@ -145,8 +150,8 @@ namespace CK.Core
         /// </summary>
         public static long RecyclableStreamMaximumLargePoolFreeBytes
         {
-            get => RecyclableStreamManager.MaximumFreeLargePoolBytes;
-            set => RecyclableStreamManager.MaximumFreeLargePoolBytes = value;
+            get => RecyclableStreamManager.Settings.MaximumLargePoolFreeBytes;
+            set => RecyclableStreamManager.Settings.MaximumLargePoolFreeBytes = value;
         }
 
         /// <summary>
