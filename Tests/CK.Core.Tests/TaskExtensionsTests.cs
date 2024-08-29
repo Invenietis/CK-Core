@@ -17,7 +17,7 @@ namespace CK.Core.Tests
         {
             var t = Task.Delay( 100 );
             t.IsCompleted.Should().BeFalse();
-            bool gotIt = await t.WaitAsync( 200 );
+            bool gotIt = await t.WaitForTaskCompletionAsync( 200 );
             gotIt.Should().BeTrue();
             t.IsCompletedSuccessfully.Should().BeTrue();
         }
@@ -28,7 +28,7 @@ namespace CK.Core.Tests
             var t = Task.Delay( 200 );
             DateTime now = DateTime.UtcNow;
             t.IsCompleted.Should().BeFalse();
-            bool gotIt = await t.WaitAsync( 100 );
+            bool gotIt = await t.WaitForTaskCompletionAsync( 100 );
             gotIt.Should().BeFalse();
             (DateTime.UtcNow - now).Should().NotBeCloseTo( TimeSpan.Zero, precision: TimeSpan.FromMilliseconds( 1 ) );
         }
@@ -38,7 +38,7 @@ namespace CK.Core.Tests
         {
             var t = Task.CompletedTask;
             DateTime now = DateTime.UtcNow;
-            bool gotIt = await t.WaitAsync( 100 );
+            bool gotIt = await t.WaitForTaskCompletionAsync( 100 );
             gotIt.Should().BeTrue();
             (DateTime.UtcNow - now).Should().BeCloseTo( TimeSpan.Zero, precision: TimeSpan.FromMilliseconds( 1 ) );
         }
@@ -51,7 +51,7 @@ namespace CK.Core.Tests
 
             var t = Task.FromCanceled( cts.Token );
             DateTime now = DateTime.UtcNow;
-            bool gotIt = await t.WaitAsync( 100 );
+            bool gotIt = await t.WaitForTaskCompletionAsync( 100 );
             gotIt.Should().BeTrue();
             (DateTime.UtcNow - now).Should().BeCloseTo( TimeSpan.Zero, precision: TimeSpan.FromMilliseconds( 1 ) );
         }
@@ -63,7 +63,7 @@ namespace CK.Core.Tests
             tcs.SetException( new Exception( "Just for fun." ) );
 
             DateTime now = DateTime.UtcNow;
-            bool gotIt = await tcs.Task.WaitAsync( 100 );
+            bool gotIt = await tcs.Task.WaitForTaskCompletionAsync( 100 );
             gotIt.Should().BeTrue();
             (DateTime.UtcNow - now).Should().BeCloseTo( TimeSpan.Zero, precision: TimeSpan.FromMilliseconds( 1 ) );
         }
@@ -77,7 +77,7 @@ namespace CK.Core.Tests
                 await Task.Delay( 100 );
                 tcs.SetResult();
             } );
-            bool gotIt = await tcs.Task.WaitAsync( Timeout.Infinite );
+            bool gotIt = await tcs.Task.WaitForTaskCompletionAsync( Timeout.Infinite );
             gotIt.Should().BeTrue();
         }
 
@@ -101,7 +101,7 @@ namespace CK.Core.Tests
             } );
 
             DateTime now = DateTime.UtcNow;
-            bool gotIt = await tcs.Task.WaitAsync( 1000 );
+            bool gotIt = await tcs.Task.WaitForTaskCompletionAsync( 1000 );
             actionDone.Should().BeTrue();
             gotIt.Should().BeTrue();
             (DateTime.UtcNow - now).Should().BeCloseTo( TimeSpan.FromMilliseconds( 150 ), precision: TimeSpan.FromMilliseconds( 50 ) );
@@ -124,7 +124,7 @@ namespace CK.Core.Tests
                 var tcs = new TaskCompletionSource<string>();
 
                 DateTime now = DateTime.UtcNow;
-                bool gotIt = await tcs.Task.WaitAsync( 500, cts.Token );
+                bool gotIt = await tcs.Task.WaitForTaskCompletionAsync( 500, cts.Token );
                 gotIt.Should().BeFalse();
                 cts.Token.IsCancellationRequested.Should().BeTrue();
                 (DateTime.UtcNow - now).Should().BeCloseTo( TimeSpan.FromMilliseconds( 150 ), precision: TimeSpan.FromMilliseconds( 50 ) );
@@ -136,7 +136,7 @@ namespace CK.Core.Tests
 
                 var tcs = new TaskCompletionSource<string>();
                 DateTime now = DateTime.UtcNow;
-                bool gotIt = await tcs.Task.WaitAsync( 500, cts.Token );
+                bool gotIt = await tcs.Task.WaitForTaskCompletionAsync( 500, cts.Token );
                 gotIt.Should().BeFalse();
                 (DateTime.UtcNow - now).Should().BeCloseTo( TimeSpan.Zero, precision: TimeSpan.FromMilliseconds( 1 ) );
             }

@@ -10,23 +10,28 @@ using System.Threading.Tasks;
 namespace CK.Core
 {
     /// <summary>
-    /// Provides the <see cref="WaitAsync"/> extension method on <see cref="Task"/>.
+    /// Provides the <see cref="WaitForTaskCompletionAsync"/> extension method on <see cref="Task"/>.
     /// </summary>
     public static class TaskExtensions
     {
+
+        [Obsolete( "Use WaitForTaskCompletionAsync instead.", error: true )]
+        public static Task<bool> WaitAsync( this Task task, int millisecondsTimeout, CancellationToken cancellation = default )
+            => WaitForTaskCompletionAsync( task, millisecondsTimeout, cancellation );
+
         /// <summary>
         /// Asynchronously waits for an existing task to be completed within a maximum amount of time (and/or as long
-        /// as the <paramref name="cancellation"/> is not signaled), whatever the task is.
+        /// as the <paramref name="cancellation"/> is not signaled), whatever the task is and without throwing exceptions.
         /// <para>
-        /// Caution! Just like the standard <see cref="Task.WaitAsync(TimeSpan, CancellationToken)"/> from .Net, this doesn't wait
-        /// for this task's completion: it must be used to "query" an existing Task, that belongs to another "activity".
+        /// Caution! Unlike the standard <see cref="Task{T}.WaitAsync(TimeSpan, CancellationToken)"/>from .Net, this should be used to "query" an existing Task,
+        /// that belongs to another "activity" (here the result of the task is not handled).
         /// </para>
         /// </summary>
         /// <param name="task">This task.</param>
         /// <param name="millisecondsTimeout">The timeout in milliseconds to wait before returning false. Use <see cref="Timeout.Infinite"/> to skip timeout.</param>
         /// <param name="cancellation">Optional cancellation token.</param>
-        /// <returns>True if <see cref="Task.IsCompleted"/> is true, false if the timeout occurred before.</returns>
-        public static async Task<bool> WaitAsync( this Task task, int millisecondsTimeout, CancellationToken cancellation = default )
+        /// <returns>True if <see cref="Task.IsCompleted"/> is true, false if the timeout occurred before or <paramref name="cancellation"/> is signaled.</returns>
+        public static async Task<bool> WaitForTaskCompletionAsync( this Task task, int millisecondsTimeout, CancellationToken cancellation = default )
         {
             // Fast path.
             if( task.IsCompleted ) return true;
