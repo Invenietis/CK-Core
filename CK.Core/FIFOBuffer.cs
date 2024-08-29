@@ -132,6 +132,32 @@ namespace CK.Core
         }
 
         /// <summary>
+        /// Truncates the queue: only the <paramref name="newCount"/> latest items are kept.
+        /// Removes as many new items in order for <see cref="Count"/> to be equal to newCount.
+        /// </summary>
+        /// <param name="newCount">The final number of items. If it is greater or equal to the current <see cref="Count"/>, nothing is done.</param>
+        public void TruncateLast( int newCount )
+        {
+            Throw.CheckOutOfRangeArgument( newCount >= 0 );
+            if( newCount == 0 ) Clear();
+            else
+            {
+                bool setDef = RuntimeHelpers.IsReferenceOrContainsReferences<T>();
+                if( _count > newCount )
+                {
+                    ++_version;
+                    do
+                    {
+                        if( --_tail < 0 ) _tail = _head + _count - 1;
+                        if( setDef ) _buffer[_tail] = default!;
+                        _count--;
+                    }
+                    while( _count > newCount );
+                }
+            }
+        }
+
+        /// <summary>
         /// Tests whether the buffer actually contains the given object.
         /// </summary>
         /// <param name="item">Object to test.</param>
@@ -421,6 +447,9 @@ namespace CK.Core
         /// Copies as much possible items into the given span. Order is from oldest to newest.
         /// If the span's length is less than <see cref="Count"/>, the newest ones
         /// are copied (the oldest, the ones that will <see cref="Pop"/> first, are skipped).
+        /// <para>
+        /// This is used by <see cref="PopLastRange(Span{T})"/>.
+        /// </para>
         /// </summary>
         /// <param name="destination">Span that will contain the items.</param>
         /// <returns>Number of items copied.</returns>
@@ -480,6 +509,98 @@ namespace CK.Core
                 //Array.Copy( _buffer, 0, array, arrayIndex + afterHead, _next );
             }
             return count;
+        }
+
+        /// <summary>
+        /// Calls <see cref="CopyTo(Span{T})"/> and <see cref="TruncateLast(int)"/> with the number
+        /// of copied items.
+        /// </summary>
+        /// <param name="destination">Span that will contain the newest items (the last ones that have been <see cref="Push(T)"/>ed).</param>
+        /// <returns>Number of items copied and removed from the buffer.</returns>
+        public int PopLastRange( Span<T> destination )
+        {
+            int c = CopyTo( destination );
+            TruncateLast( _count - c );
+            return c;
+        }
+
+        /// <summary>
+        /// Copies as much possible items into the given span. Order is from oldest to newest.
+        /// If the span's length is less than <see cref="Count"/>, only the oldest ones
+        /// are copied (the newest ones are skipped).
+        /// <para>
+        /// This is used by <see cref="PopRange(Span{T})"/>.
+        /// </para>
+        /// </summary>
+        /// <param name="destination">Span that will contain the items.</param>
+        /// <returns>Number of items copied.</returns>
+        public int CopyOldestTo( Span<T> destination )
+        {
+            if( destination.IsEmpty ) return 0;
+            int count = GetCopyOldestInfo( destination.Length, out Span<T> first, out Span<T> second );
+            if( count > 0 )
+            {
+                first.CopyTo( destination.Slice( 0, first.Length ) );
+                if( second.Length > 0 )
+                {
+                    second.CopyTo(destination.Slice( first.Length, second.Length ) );
+                }
+            }
+            return count;
+        }
+
+        int GetCopyOldestInfo( int count, out Span<T> first, out Span<T> second )
+        {
+            Debug.Assert( count > 0 );
+            // Number of item to copy: 
+            // if there is enough available space, we copy the whole buffer (_count items) from head to tail.
+            // if we need to copy less, we want to copy the count first items (and not the last ones).
+            int tail = _tail;
+            int toBeSkipped = _count - count;
+            if( toBeSkipped > 0 )
+            {
+                Debug.Assert( _count > count, "We must copy less items than what we have." );
+                tail -= toBeSkipped;
+                if( tail < 0 ) tail += _buffer.Length;
+                Debug.Assert( tail != _tail, "The tail for the copy is not the current tail." );
+            }
+            else
+            {
+                Debug.Assert( count >= _count, "We are asked to copy all items (or more than we have)." );
+                // Copy all existing items.
+                count = _count;
+                Debug.Assert( tail == _tail, "The tail for the copy is the current tail." );
+            }
+            // Detects whether we need 2 or only one copy.
+            int beforeTail = tail - count;
+            if( beforeTail >= 0 )
+            {
+                // Count items are available right before the tail.
+                first = _buffer.AsSpan( beforeTail, count );
+                second = default;
+            }
+            else
+            {
+                // We need two copies.
+                // 1 - From the end of the buffer.
+                first = _buffer.AsSpan( _buffer.Length + beforeTail, -beforeTail );
+                // 2 - From start to tail.
+                second = _buffer.AsSpan( 0, tail );
+            }
+            return count;
+        }
+
+        /// <summary>
+        /// Calls <see cref="CopyOldestTo(Span{T})"/> and <see cref="Truncate(int)"/> with the number
+        /// of copied items.
+        /// </summary>
+        /// <param name="destination">Span that will contain the oldest items (the next ones to be <see cref="Pop()"/>ed).</param>
+        /// <returns>Number of items copied and removed from the buffer.</returns>
+        public int PopRange( Span<T> destination )
+        {
+            int c = CopyOldestTo( destination );
+            Truncate( _count - c );
+            return c;
         }
 
         /// <summary>

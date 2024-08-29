@@ -3,6 +3,8 @@ using System;
 using System.Globalization;
 using System.Linq;
 using NUnit.Framework;
+using NUnit.Framework.Constraints;
+using Microsoft.VisualStudio.TestPlatform.ObjectModel;
 
 namespace CK.Core.Tests
 {
@@ -466,9 +468,9 @@ namespace CK.Core.Tests
         }
 
         [Test]
-        public void FIFO_can_be_dynamic_up_to_()
+        public void FIFO_can_be_dynamic_up_to_MaxDynamicCapacity()
         {
-            FIFOBuffer<int> f = new FIFOBuffer<int>( 0 );
+            var f = new FIFOBuffer<int>( 0 );
             AssertEmpty( f );
             f.Push( 1 );
             AssertEmpty( f );
@@ -501,5 +503,118 @@ namespace CK.Core.Tests
             AssertContains( f, 5, 6 );
         }
 
+        [Test]
+        public void PopLastRange_test()
+        {
+            TestWithDynamicCapacity( 14 );
+            for( int i = 0; i < 100; i++ )
+            {
+                TestWithDynamicCapacity( 7 + Random.Shared.Next( 30 ) );
+            }
+
+            static void TestWithDynamicCapacity( int maxDynamicCapacity )
+            {
+                TestWithOffset( 0, maxDynamicCapacity );
+                TestWithOffset( 1, maxDynamicCapacity );
+                TestWithOffset( 2, maxDynamicCapacity );
+                TestWithOffset( 3, maxDynamicCapacity );
+                TestWithOffset( 4, maxDynamicCapacity );
+                TestWithOffset( 5, maxDynamicCapacity );
+                TestWithOffset( 6, maxDynamicCapacity );
+                TestWithOffset( 7, maxDynamicCapacity );
+                TestWithOffset( 8, maxDynamicCapacity );
+                TestWithOffset( 9, maxDynamicCapacity );
+                TestWithOffset( 10, maxDynamicCapacity );
+                TestWithOffset( 11, maxDynamicCapacity );
+                TestWithOffset( 12, maxDynamicCapacity );
+                TestWithOffset( 13, maxDynamicCapacity );
+                TestWithOffset( 14, maxDynamicCapacity );
+            }
+
+            static void TestWithOffset( int offset, int maxDynamicCapacity )
+            {
+                var f = new FIFOBuffer<int>( 0, maxDynamicCapacity );
+                for( int i = 0; i < offset; i++ ) f.Push( -1 );
+                for( int i = 0; i < 7; i++ ) f.Push( i );
+                f.Count.Should().BeLessThanOrEqualTo( f.MaxDynamicCapacity );
+                Span<int> items = stackalloc int[7];
+                f.PopLastRange( default ).Should().Be( 0 );
+                f.PopLastRange( items.Slice( 0, 1 ) ).Should().Be( 1 );
+                items[0].Should().Be( 6 );
+                f.PopLastRange( items.Slice( 1, 2 ) ).Should().Be( 2 );
+                items[1].Should().Be( 4 );
+                items[2].Should().Be( 5 );
+                f.PopLastRange( items.Slice( 3, 3 ) ).Should().Be( 3 );
+                items[3].Should().Be( 1 );
+                items[4].Should().Be( 2 );
+                items[5].Should().Be( 3 );
+                f.PopLastRange( items.Slice( 6, 1 ) ).Should().Be( 1 );
+                items[6].Should().Be( 0 );
+                Span<int> padding = stackalloc int[offset];
+                var maxOffset = f.MaxDynamicCapacity - 7;
+                if( offset > maxOffset ) offset = maxOffset;
+                f.PopLastRange( padding ).Should().Be( offset );
+                for( int i = 0; i < offset; i++ ) padding[i].Should().Be( -1 );
+                f.Count.Should().Be( 0 );
+            }
+        }
+
+        [Test]
+        public void PopRange_test()
+        {
+            TestWithDynamicCapacity( 14 );
+            for( int i = 0; i < 100; i++ )
+            {
+                TestWithDynamicCapacity( 7 + Random.Shared.Next( 30 ) );
+            }
+
+            static void TestWithDynamicCapacity( int maxDynamicCapacity )
+            {
+                TestWithOffset( 0, maxDynamicCapacity );
+                TestWithOffset( 1, maxDynamicCapacity );
+                TestWithOffset( 2, maxDynamicCapacity );
+                TestWithOffset( 3, maxDynamicCapacity );
+                TestWithOffset( 4, maxDynamicCapacity );
+                TestWithOffset( 5, maxDynamicCapacity );
+                TestWithOffset( 6, maxDynamicCapacity );
+                TestWithOffset( 7, maxDynamicCapacity );
+                TestWithOffset( 8, maxDynamicCapacity );
+                TestWithOffset( 9, maxDynamicCapacity );
+                TestWithOffset( 10, maxDynamicCapacity );
+                TestWithOffset( 11, maxDynamicCapacity );
+                TestWithOffset( 12, maxDynamicCapacity );
+                TestWithOffset( 13, maxDynamicCapacity );
+                TestWithOffset( 14, maxDynamicCapacity );
+            }
+
+            static void TestWithOffset( int offset, int maxDynamicCapacity )
+            {
+                var f = new FIFOBuffer<int>( 0, 14 );
+                for( int i = 0; i < offset; i++ ) f.Push( -1 );
+                for( int i = 0; i < 7; i++ ) f.Push( i );
+                f.Count.Should().BeLessThanOrEqualTo( f.MaxDynamicCapacity );
+
+                var maxOffset = f.MaxDynamicCapacity - 7;
+                if( offset > maxOffset ) offset = maxOffset;
+                Span<int> padding = stackalloc int[offset];
+                f.PopRange( padding ).Should().Be( offset );
+                for( int i = 0; i < offset; i++ ) padding[i].Should().Be( -1 );
+
+                Span<int> items = stackalloc int[7];
+                f.PopRange( default ).Should().Be( 0 );
+                f.PopRange( items.Slice( 0, 1 ) ).Should().Be( 1 );
+                items[0].Should().Be( 0 );
+                f.PopRange( items.Slice( 1, 2 ) ).Should().Be( 2 );
+                items[1].Should().Be( 1 );
+                items[2].Should().Be( 2 );
+                f.PopRange( items.Slice( 3, 3 ) ).Should().Be( 3 );
+                items[3].Should().Be( 3 );
+                items[4].Should().Be( 4 );
+                items[5].Should().Be( 5 );
+                f.PopRange( items.Slice( 6, 1 ) ).Should().Be( 1 );
+                items[6].Should().Be( 6 );
+                f.Count.Should().Be( 0 );
+            }
+        }
     }
 }
