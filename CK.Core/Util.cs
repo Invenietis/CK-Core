@@ -113,7 +113,7 @@ namespace CK.Core
         /// can be changed at any time to adjust the pool size. All other settings are immutable.
         /// </para>
         /// <para>
-        /// Calling <see cref="RecyclableMemoryStream.ToArray()"/> is allowed (<see cref="RecyclableMemoryStreamManager.ThrowExceptionOnToArray"/> is let to false
+        /// Calling <see cref="RecyclableMemoryStream.ToArray()"/> is allowed (<see cref="RecyclableMemoryStreamManager.Options.ThrowExceptionOnToArray"/> is let to false
         /// and should not be set tot true): small serializations into small buffers must often result in final byte array.
         /// ToArray should NOT be called on large payload...
         /// </para>
@@ -130,7 +130,7 @@ namespace CK.Core
            });
 
         /// <summary>
-        /// Gets or sets <see cref="RecyclableMemoryStreamManager.MaximumFreeSmallPoolBytes"/> of the default <see cref="RecyclableStreamManager"/>.
+        /// Gets or sets <see cref="RecyclableMemoryStreamManager.Options.MaximumSmallPoolFreeBytes"/> of the default <see cref="RecyclableStreamManager"/>.
         /// Defaults to 256 * <see cref="RecyclableStreamBlockSize"/> (256 * 128 KiB).
         /// </summary>
         public static long RecyclableStreamMaximumSmallPoolFreeBytes
@@ -140,7 +140,7 @@ namespace CK.Core
         }
 
         /// <summary>
-        /// Gets or sets <see cref="RecyclableMemoryStreamManager.MaximumFreeLargePoolBytes"/> of the default <see cref="RecyclableStreamManager"/>.
+        /// Gets or sets <see cref="RecyclableMemoryStreamManager.Options.MaximumLargePoolFreeBytes"/> of the default <see cref="RecyclableStreamManager"/>.
         /// Defaults to 32 MiB.
         /// </summary>
         public static long RecyclableStreamMaximumLargePoolFreeBytes
