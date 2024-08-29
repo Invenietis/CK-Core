@@ -76,6 +76,7 @@ namespace CK.Core
         /// Currently, the <c>>ArrayPool&lt;byte&gt;.Shared</c> that is used returns at least 16 bytes: the
         /// initial buffer size will at least be 16.
         /// </param>
+        /// <param name="maxBufferSize">The maximal buffer size to use (for the bigger token).</param>
         /// <returns>A new stream reader (may be empty).</returns>
         public static Utf8JsonStreamReader Create( Stream stream,
                                                    JsonReaderOptions options,

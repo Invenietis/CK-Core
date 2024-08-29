@@ -14,7 +14,13 @@ namespace CK.Core
     /// </summary>
     public static class TaskExtensions
     {
-
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="task"></param>
+        /// <param name="millisecondsTimeout"></param>
+        /// <param name="cancellation"></param>
+        /// <returns></returns>
         [Obsolete( "Use WaitForTaskCompletionAsync instead.", error: true )]
         public static Task<bool> WaitAsync( this Task task, int millisecondsTimeout, CancellationToken cancellation = default )
             => WaitForTaskCompletionAsync( task, millisecondsTimeout, cancellation );
@@ -63,7 +69,9 @@ namespace CK.Core
                 var completedTask = await Task.WhenAny( task, tcsCancel.Task ).ConfigureAwait( false );
                 if( completedTask == task )
                 {
+#pragma warning disable VSTHRD103 // Call async methods when in an async method
                     ctsDelay?.Cancel();
+#pragma warning restore VSTHRD103
                     return true;
                 }
             }

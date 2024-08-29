@@ -16,7 +16,7 @@ namespace CK.Core.Json
     /// Delegate for typed read from a <see cref="Utf8JsonReader"/>.
     /// </summary>
     /// <typeparam name="T">The type to read.</typeparam>
-    /// <typeparam name="T">The type of the reader context.</typeparam>
+    /// <typeparam name="TReadContext">The type of the reader context.</typeparam>
     /// <param name="r">The reader.</param>
     /// <param name="context">The context.</param>
     /// <returns>The read instance or null.</returns>
