@@ -39,52 +39,55 @@ public class CollectionAmbiguityExtensionTests
     }
 }
 
-namespace CK.Core.Tests;
+#pragma warning disable IDE0161 // Convert to file-scoped namespace
 
-public class CollectionExtensionTests
+namespace CK.Core.Tests
 {
-    [Test]
-    public void testing_RemoveWhereAndReturnsRemoved_extension_method()
+    public class CollectionExtensionTests
     {
+        [Test]
+        public void testing_RemoveWhereAndReturnsRemoved_extension_method()
         {
-            List<int> l = new List<int>();
-            l.AddRangeArray( 12, 15, 12, 13, 14 );
-            var r = l.RemoveWhereAndReturnsRemoved( x => x == 12 );
-            l.Count.Should().Be( 5 );
-            r.Count().Should().Be( 2 );
-            l.Count.Should().Be( 3 );
+            {
+                List<int> l = new List<int>();
+                l.AddRangeArray( 12, 15, 12, 13, 14 );
+                var r = l.RemoveWhereAndReturnsRemoved( x => x == 12 );
+                l.Count.Should().Be( 5 );
+                r.Count().Should().Be( 2 );
+                l.Count.Should().Be( 3 );
+            }
         }
-    }
 
 
-    [Test]
-    public void CKEnumeratorMono_works_and_throws_InvalidOperationException()
-    {
-        var e = new CKEnumeratorMono<int>( 9 );
-        Action a = () => Console.WriteLine( e.Current );
-        a.Should().Throw<InvalidOperationException>();
-        e.MoveNext().Should().BeTrue();
-        e.Current.Should().Be( 9 );
-        e.MoveNext().Should().BeFalse();
-        a = () => Console.WriteLine( e.Current );
-        a.Should().Throw<InvalidOperationException>();
-        e.Reset();
-        a = () => Console.WriteLine( e.Current );
-        a.Should().Throw<InvalidOperationException>();
-        e.MoveNext().Should().BeTrue();
-        e.Current.Should().Be( 9 );
-        e.MoveNext().Should().BeFalse();
-        a = () => Console.WriteLine( e.Current );
-        a.Should().Throw<InvalidOperationException>();
-    }
+        [Test]
+        public void CKEnumeratorMono_works_and_throws_InvalidOperationException()
+        {
+            var e = new CKEnumeratorMono<int>( 9 );
+            Action a = () => Console.WriteLine( e.Current );
+            a.Should().Throw<InvalidOperationException>();
+            e.MoveNext().Should().BeTrue();
+            e.Current.Should().Be( 9 );
+            e.MoveNext().Should().BeFalse();
+            a = () => Console.WriteLine( e.Current );
+            a.Should().Throw<InvalidOperationException>();
+            e.Reset();
+            a = () => Console.WriteLine( e.Current );
+            a.Should().Throw<InvalidOperationException>();
+            e.MoveNext().Should().BeTrue();
+            e.Current.Should().Be( 9 );
+            e.MoveNext().Should().BeFalse();
+            a = () => Console.WriteLine( e.Current );
+            a.Should().Throw<InvalidOperationException>();
+        }
 
 
-    [Test]
-    public void Dictionary_GetValueOrDefault_is_not_ambiguous()
-    {
-        var e = new Dictionary<string, int>();
-        var x = e.GetValueOrDefault( "a" );
-        var y = ((IDictionary<string, int>)e).GetValueOrDefault( "a" );
-        var z = ((IReadOnlyDictionary<string, int>)e).GetValueOrDefault( "a" );
+        [Test]
+        public void Dictionary_GetValueOrDefault_is_not_ambiguous()
+        {
+            var e = new Dictionary<string, int>();
+            var x = e.GetValueOrDefault( "a" );
+            var y = ((IDictionary<string, int>)e).GetValueOrDefault( "a" );
+            var z = ((IReadOnlyDictionary<string, int>)e).GetValueOrDefault( "a" );
+        }
     }
 }
