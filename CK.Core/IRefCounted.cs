@@ -1,18 +1,17 @@
-﻿namespace CK.Core
+namespace CK.Core;
+
+/// <summary>
+/// Basic reference counting interface.
+/// </summary>
+public interface IRefCounted
 {
     /// <summary>
-    /// Basic reference counting interface.
+    /// Adds a reference to this object.
     /// </summary>
-    public interface IRefCounted
-    {
-        /// <summary>
-        /// Adds a reference to this object.
-        /// </summary>
-        void AddRef();
+    void AddRef();
 
-        /// <summary>
-        /// Releases a reference to this object.
-        /// </summary>
-        void Release();
-    }
+    /// <summary>
+    /// Releases a reference to this object.
+    /// </summary>
+    void Release();
 }

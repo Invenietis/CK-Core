@@ -3,201 +3,200 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 
-namespace CK.Core
+namespace CK.Core;
+
+/// <summary>
+/// Sorted list of items where the sort order relies on an external key, not the item itself.
+/// </summary>.
+[DebuggerTypeProxy( typeof( CKSortedArrayKeyList<,>.DebuggerView ) ), DebuggerDisplay( "Count = {Count}" )]
+public class CKSortedArrayKeyList<T, TKey> : CKSortedArrayList<T>, ICKReadOnlyMultiKeyedCollection<T, TKey>
 {
-    /// <summary>
-    /// Sorted list of items where the sort order relies on an external key, not the item itself.
-    /// </summary>.
-    [DebuggerTypeProxy( typeof( CKSortedArrayKeyList<,>.DebuggerView ) ), DebuggerDisplay( "Count = {Count}" )]
-    public class CKSortedArrayKeyList<T, TKey> : CKSortedArrayList<T>, ICKReadOnlyMultiKeyedCollection<T, TKey>
+    readonly Func<T, TKey> _keySelector;
+    readonly Comparison<TKey> _keyComparison;
+
+    [ExcludeFromCodeCoverage]
+    class DebuggerView
     {
-        readonly Func<T,TKey> _keySelector;
-        readonly Comparison<TKey> _keyComparison;
+        readonly CKSortedArrayKeyList<T, TKey> _c;
 
-        [ExcludeFromCodeCoverage]
-        class DebuggerView
+        public DebuggerView( CKSortedArrayKeyList<T, TKey> c )
         {
-            readonly CKSortedArrayKeyList<T, TKey> _c;
+            _c = c;
+        }
 
-            public DebuggerView( CKSortedArrayKeyList<T, TKey> c )
+        /// <summary>
+        /// Gets the items as a flattened array view.
+        /// </summary>
+        [DebuggerBrowsable( DebuggerBrowsableState.RootHidden )]
+        public KeyValuePair<TKey, T>[] Items
+        {
+            get
             {
-                _c = c;
-            }
-
-            /// <summary>
-            /// Gets the items as a flattened array view.
-            /// </summary>
-            [DebuggerBrowsable( DebuggerBrowsableState.RootHidden )]
-            public KeyValuePair<TKey,T>[] Items
-            {
-                get
+                var a = new List<KeyValuePair<TKey, T>>();
+                foreach( var e in _c )
                 {
-                    var a = new List<KeyValuePair<TKey,T>>();
-                    foreach( var e in _c )
-                    {
-                        a.Add( new KeyValuePair<TKey,T>( _c._keySelector( e ), e ) );
-                    }
-                    return a.ToArray();
+                    a.Add( new KeyValuePair<TKey, T>( _c._keySelector( e ), e ) );
                 }
+                return a.ToArray();
             }
         }
+    }
 
-        /// <summary>
-        /// Initializes a new <see cref="CKSortedArrayKeyList{T,TKey}"/>.
-        /// </summary>
-        /// <param name="keySelector">Function that associates a key to an item.</param>
-        /// <param name="allowDuplicates">True to allow duplicates.</param>
-        public CKSortedArrayKeyList( Func<T, TKey> keySelector, bool allowDuplicates = false )
-            : this( keySelector, Comparer<TKey>.Default.Compare, allowDuplicates )
-        {
-        }
+    /// <summary>
+    /// Initializes a new <see cref="CKSortedArrayKeyList{T,TKey}"/>.
+    /// </summary>
+    /// <param name="keySelector">Function that associates a key to an item.</param>
+    /// <param name="allowDuplicates">True to allow duplicates.</param>
+    public CKSortedArrayKeyList( Func<T, TKey> keySelector, bool allowDuplicates = false )
+        : this( keySelector, Comparer<TKey>.Default.Compare, allowDuplicates )
+    {
+    }
 
-        /// <summary>
-        /// Initializes a new <see cref="CKSortedArrayKeyList{T,TKey}"/> where a <see cref="Comparison{T}"/> function
-        /// is used to compare keys.
-        /// </summary>
-        /// <param name="keySelector">Function that associates a key to an item.</param>
-        /// <param name="keyComparison">Function used to compare keys.</param>
-        /// <param name="allowDuplicates">True to allow duplicates.</param>
-        public CKSortedArrayKeyList( Func<T, TKey> keySelector, Comparison<TKey> keyComparison, bool allowDuplicates = false )
-            : base( ( e1, e2 ) => keyComparison( keySelector( e1 ), keySelector( e2 ) ), allowDuplicates )
-        {
-            _keySelector = keySelector;
-            _keyComparison = keyComparison;
-        }
+    /// <summary>
+    /// Initializes a new <see cref="CKSortedArrayKeyList{T,TKey}"/> where a <see cref="Comparison{T}"/> function
+    /// is used to compare keys.
+    /// </summary>
+    /// <param name="keySelector">Function that associates a key to an item.</param>
+    /// <param name="keyComparison">Function used to compare keys.</param>
+    /// <param name="allowDuplicates">True to allow duplicates.</param>
+    public CKSortedArrayKeyList( Func<T, TKey> keySelector, Comparison<TKey> keyComparison, bool allowDuplicates = false )
+        : base( ( e1, e2 ) => keyComparison( keySelector( e1 ), keySelector( e2 ) ), allowDuplicates )
+    {
+        _keySelector = keySelector;
+        _keyComparison = keyComparison;
+    }
 
-        /// <summary>
-        /// Gets the zero based position of on of the items that is associated to this key.
-        /// </summary>
-        /// <param name="key">The key to find.</param>
-        /// <returns>The index or a negative value like <see cref="Util.BinarySearch{T,TKey}(IReadOnlyList{T}, int, int, TKey, Func{T, TKey, int})"/>.</returns>
-        public int IndexOf( TKey key )
-        {
-            return Util.BinarySearch( Store, 0, Count, key, ComparisonKey );
-        }
+    /// <summary>
+    /// Gets the zero based position of on of the items that is associated to this key.
+    /// </summary>
+    /// <param name="key">The key to find.</param>
+    /// <returns>The index or a negative value like <see cref="Util.BinarySearch{T,TKey}(IReadOnlyList{T}, int, int, TKey, Func{T, TKey, int})"/>.</returns>
+    public int IndexOf( TKey key )
+    {
+        return Util.BinarySearch( Store, 0, Count, key, ComparisonKey );
+    }
 
-        /// <summary>
-        /// True if this list contains at least one item with the given key.
-        /// </summary>
-        /// <param name="key">The key to find.</param>
-        /// <returns>True if an item is found, false otherwise.</returns>
-        public bool Contains( TKey key )
-        {
-            return Util.BinarySearch( Store, 0, Count, key, ComparisonKey ) >= 0;
-        }
+    /// <summary>
+    /// True if this list contains at least one item with the given key.
+    /// </summary>
+    /// <param name="key">The key to find.</param>
+    /// <returns>True if an item is found, false otherwise.</returns>
+    public bool Contains( TKey key )
+    {
+        return Util.BinarySearch( Store, 0, Count, key, ComparisonKey ) >= 0;
+    }
 
-        /// <summary>
-        /// Gets the first item with a given key or the default value if no such item exist.
-        /// </summary>
-        /// <param name="key">The key.</param>
-        /// <param name="exists">True if the key has been found, otherwise false.</param>
-        /// <returns>The item or default(T) if not found.</returns>
-        [return: MaybeNull]
-        public T GetByKey( TKey key, out bool exists )
-        {
-            int idx = Util.BinarySearch( Store, 0, Count, key, ComparisonKey );
-            return (exists = idx >= 0) ? Store[idx] : default;
-        }
+    /// <summary>
+    /// Gets the first item with a given key or the default value if no such item exist.
+    /// </summary>
+    /// <param name="key">The key.</param>
+    /// <param name="exists">True if the key has been found, otherwise false.</param>
+    /// <returns>The item or default(T) if not found.</returns>
+    [return: MaybeNull]
+    public T GetByKey( TKey key, out bool exists )
+    {
+        int idx = Util.BinarySearch( Store, 0, Count, key, ComparisonKey );
+        return (exists = idx >= 0) ? Store[idx] : default;
+    }
 
-        /// <summary>
-        /// Gets the number of items with a given key. It can be greater than 1 only if <see cref="CKSortedArrayList{T}.AllowDuplicates">AllowDuplicates</see> is true.
-        /// </summary>
-        /// <param name="key">The key to find.</param>
-        /// <returns>The number of item with the <paramref name="key"/>.</returns>
-        public int KeyCount( TKey key )
-        {
-            int idx = Util.BinarySearch( Store, 0, Count, key, ComparisonKey );
-            if( idx < 0 ) return 0;
-            if( !AllowDuplicates ) return 1;
-            int min = idx - 1;
-            while( min >= 0 && ComparisonKey( Store[min], key ) == 0 ) --min;
-            int max = idx + 1;
-            while( max < Store.Length && ComparisonKey( Store[max], key ) == 0 ) ++max;
-            return max - min - 1;
-        }
+    /// <summary>
+    /// Gets the number of items with a given key. It can be greater than 1 only if <see cref="CKSortedArrayList{T}.AllowDuplicates">AllowDuplicates</see> is true.
+    /// </summary>
+    /// <param name="key">The key to find.</param>
+    /// <returns>The number of item with the <paramref name="key"/>.</returns>
+    public int KeyCount( TKey key )
+    {
+        int idx = Util.BinarySearch( Store, 0, Count, key, ComparisonKey );
+        if( idx < 0 ) return 0;
+        if( !AllowDuplicates ) return 1;
+        int min = idx - 1;
+        while( min >= 0 && ComparisonKey( Store[min], key ) == 0 ) --min;
+        int max = idx + 1;
+        while( max < Store.Length && ComparisonKey( Store[max], key ) == 0 ) ++max;
+        return max - min - 1;
+    }
 
-        /// <summary>
-        /// Gets an independent collection of the items that 
-        /// are associated to the given key value.
-        /// </summary>
-        /// <param name="key">The key to find.</param>
-        /// <returns>An independent collection of <typeparamref name="T"/>.</returns>
-        public IReadOnlyCollection<T> GetAllByKey( TKey key )
-        {
-            int idx = Util.BinarySearch( Store, 0, Count, key, ComparisonKey );
-            if( idx < 0 ) return Array.Empty<T>();
-            if( !AllowDuplicates ) return new T[] { Store[idx] };
-            int min = idx - 1;
-            while( min >= 0 && ComparisonKey( Store[min], key ) == 0 ) --min;
-            int max = idx + 1;
-            while( max < Store.Length && ComparisonKey( Store[max], key ) == 0 ) ++max;           
-            int count = max - (++min);
-            Debug.Assert( count > 0 );
-            if( count == 1 ) return new T[] { Store[min] };
-            var r = new T[count];
-            Array.Copy( Store, min, r, 0, count );
-            return r;
-        }
+    /// <summary>
+    /// Gets an independent collection of the items that 
+    /// are associated to the given key value.
+    /// </summary>
+    /// <param name="key">The key to find.</param>
+    /// <returns>An independent collection of <typeparamref name="T"/>.</returns>
+    public IReadOnlyCollection<T> GetAllByKey( TKey key )
+    {
+        int idx = Util.BinarySearch( Store, 0, Count, key, ComparisonKey );
+        if( idx < 0 ) return Array.Empty<T>();
+        if( !AllowDuplicates ) return new T[] { Store[idx] };
+        int min = idx - 1;
+        while( min >= 0 && ComparisonKey( Store[min], key ) == 0 ) --min;
+        int max = idx + 1;
+        while( max < Store.Length && ComparisonKey( Store[max], key ) == 0 ) ++max;
+        int count = max - (++min);
+        Debug.Assert( count > 0 );
+        if( count == 1 ) return new T[] { Store[min] };
+        var r = new T[count];
+        Array.Copy( Store, min, r, 0, count );
+        return r;
+    }
 
-        /// <summary>
-        /// Gets the index of the element thanks to a linear search into the 
-        /// internal array.
-        /// If the key did not change, it is more efficient to find an element with <see cref="IndexOf(TKey)"/> that 
-        /// uses a dichotomic search.
-        /// </summary>
-        /// <param name="value">The element to locate.</param>
-        /// <returns>The index in array that, if found; otherwise, –1.</returns>
-        public override int IndexOf( T value )
-        {
-            Throw.CheckNotNullArgument( value );
-            return Array.IndexOf<T>( Store, value, 0, Count );
-        }
+    /// <summary>
+    /// Gets the index of the element thanks to a linear search into the 
+    /// internal array.
+    /// If the key did not change, it is more efficient to find an element with <see cref="IndexOf(TKey)"/> that 
+    /// uses a dichotomic search.
+    /// </summary>
+    /// <param name="value">The element to locate.</param>
+    /// <returns>The index in array that, if found; otherwise, –1.</returns>
+    public override int IndexOf( T value )
+    {
+        Throw.CheckNotNullArgument( value );
+        return Array.IndexOf<T>( Store, value, 0, Count );
+    }
 
-        /// <summary>
-        /// Covariant IndexOf method: if <paramref name="item"/> is of type <typeparamref name="T"/>
-        /// the linear <see cref="IndexOf(T)"/> is used but if <paramref name="item"/> is of type <typeparamref name="TKey"/>,
-        /// the logarithmic <see cref="IndexOf(TKey)"/> is used.
-        /// </summary>
-        /// <param name="item">Can be a <typeparamref name="T"/> or a <typeparamref name="TKey"/>.</param>
-        /// <returns>The index of the item in the collection.</returns>
-        public override int IndexOf( object item )
-        {
-            if( item is T t ) return IndexOf( t );
-            if( item is TKey key ) return IndexOf( key );
-            return Int32.MinValue;
-        }
+    /// <summary>
+    /// Covariant IndexOf method: if <paramref name="item"/> is of type <typeparamref name="T"/>
+    /// the linear <see cref="IndexOf(T)"/> is used but if <paramref name="item"/> is of type <typeparamref name="TKey"/>,
+    /// the logarithmic <see cref="IndexOf(TKey)"/> is used.
+    /// </summary>
+    /// <param name="item">Can be a <typeparamref name="T"/> or a <typeparamref name="TKey"/>.</param>
+    /// <returns>The index of the item in the collection.</returns>
+    public override int IndexOf( object item )
+    {
+        if( item is T t ) return IndexOf( t );
+        if( item is TKey key ) return IndexOf( key );
+        return Int32.MinValue;
+    }
 
-        /// <summary>
-        /// Covariant version of the contains predicate. 
-        /// If <paramref name="item"/> is of type <typeparamref name="T"/> the <see cref="CKSortedArrayList{T}.Contains(T)"/> is used 
-        /// but if <paramref name="item"/> is of type <typeparamref name="TKey"/>, the <see cref="Contains(TKey)"/> is used.
-        /// </summary>
-        /// <param name="item">Can be a <typeparamref name="T"/> or a <typeparamref name="TKey"/>.</param>
-        /// <returns>True if a corresponding element in this list can be found.</returns>
-        public override bool Contains( object item )
-        {
-            if( item is T t ) return Contains( t );
-            if( item is TKey key ) return Contains( key );
-            return false;
-        }
+    /// <summary>
+    /// Covariant version of the contains predicate. 
+    /// If <paramref name="item"/> is of type <typeparamref name="T"/> the <see cref="CKSortedArrayList{T}.Contains(T)"/> is used 
+    /// but if <paramref name="item"/> is of type <typeparamref name="TKey"/>, the <see cref="Contains(TKey)"/> is used.
+    /// </summary>
+    /// <param name="item">Can be a <typeparamref name="T"/> or a <typeparamref name="TKey"/>.</param>
+    /// <returns>True if a corresponding element in this list can be found.</returns>
+    public override bool Contains( object item )
+    {
+        if( item is T t ) return Contains( t );
+        if( item is TKey key ) return Contains( key );
+        return false;
+    }
 
-        /// <summary>
-        /// Removes one item given a key: only one item is removed when <see cref="CKSortedArrayList{T}.AllowDuplicates"/> is 
-        /// true and more than one item are associated to this key.
-        /// </summary>
-        /// <param name="key">The key to remove.</param>
-        /// <returns>True if an item has been removed, false otherwise.</returns>
-        public bool Remove( TKey key )
-        {
-            int index = IndexOf( key );
-            if( index < 0 ) return false;
-            RemoveAt( index );
-            return true;
-        }
+    /// <summary>
+    /// Removes one item given a key: only one item is removed when <see cref="CKSortedArrayList{T}.AllowDuplicates"/> is 
+    /// true and more than one item are associated to this key.
+    /// </summary>
+    /// <param name="key">The key to remove.</param>
+    /// <returns>True if an item has been removed, false otherwise.</returns>
+    public bool Remove( TKey key )
+    {
+        int index = IndexOf( key );
+        if( index < 0 ) return false;
+        RemoveAt( index );
+        return true;
+    }
 
-        int ComparisonKey( T e, TKey key )
-        {
-            return _keyComparison( _keySelector( e ), key );
-        }
+    int ComparisonKey( T e, TKey key )
+    {
+        return _keyComparison( _keySelector( e ), key );
     }
 }

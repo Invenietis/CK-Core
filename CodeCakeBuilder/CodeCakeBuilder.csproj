@@ -6,9 +6,10 @@
     <SignAssembly>false</SignAssembly>
     <GenerateDocumentationFile>false</GenerateDocumentationFile>
     <ManagePackageVersionsCentrally>false</ManagePackageVersionsCentrally>
+    <Nullable>annotations</Nullable>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="NuGet.Credentials" Version="6.10.1" />
+    <PackageReference Include="NuGet.Credentials" Version="6.11.0" />
   </ItemGroup>
   <ItemGroup>
     <None Remove="TestResult.xml" />

@@ -10,415 +10,414 @@ using FluentAssertions;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
 
-namespace CK.Core.Tests
+namespace CK.Core.Tests;
+
+
+public class CompletableTests
 {
-
-    public class CompletableTests
+    enum CommandAction
     {
-        enum CommandAction
+        Success,
+        Error,
+        Canceled
+    }
+
+    static readonly Exception RunException = new Exception( "Run exception." );
+    static readonly Exception OverriddenException = new Exception( "Overridden exception." );
+
+
+    class Command : ICompletable
+    {
+        public Command()
         {
-            Success,
-            Error,
-            Canceled
+            CompletionSource = new CompletionSource( this );
         }
 
-        static readonly Exception RunException = new Exception( "Run exception." );
-        static readonly Exception OverriddenException = new Exception( "Overridden exception." );
-
-
-        class Command : ICompletable
+        public Command( Random r )
+            : this()
         {
-            public Command()
+            RunAction = (CommandAction)r.Next( 3 );
+            SuccessOnCancel = r.Next( 2 ) == 0;
+            OnErrorHook = (CommandAction)r.Next( 3 );
+            if( r.Next( 2 ) == 0 ) OverriddenExceptionOnError = OverriddenException;
+            var execTime = r.Next( 300 ) - 150;
+            ExecutionTime = execTime < 0 ? 0 : execTime;
+            UseTrySet = r.Next( 2 ) == 0;
+        }
+
+        public bool OnCompletedCalled { get; private set; }
+
+        public readonly CompletionSource CompletionSource;
+
+        public CommandAction RunAction { get; set; }
+
+        public bool SuccessOnCancel { get; set; }
+
+        public CommandAction OnErrorHook { get; set; }
+
+        public Exception? OverriddenExceptionOnError { get; set; }
+
+        public int ExecutionTime { get; set; }
+
+        public bool UseTrySet { get; set; }
+
+        public ICompletion Completion => CompletionSource;
+
+        public void OnCanceled( ref CompletionSource.OnCanceled result )
+        {
+            if( SuccessOnCancel ) result.SetResult();
+            else result.SetCanceled();
+        }
+
+        public void OnError( Exception ex, ref CompletionSource.OnError result )
+        {
+            switch( OnErrorHook )
             {
-                CompletionSource = new CompletionSource( this );
-            }
-
-            public Command( Random r )
-                : this()
-            {
-                RunAction = (CommandAction)r.Next( 3 );
-                SuccessOnCancel = r.Next( 2 ) == 0;
-                OnErrorHook = (CommandAction)r.Next( 3 );
-                if( r.Next( 2 ) == 0 ) OverriddenExceptionOnError = OverriddenException;
-                var execTime = r.Next( 300 ) - 150;
-                ExecutionTime = execTime < 0 ? 0 : execTime;
-                UseTrySet = r.Next( 2 ) == 0;
-            }
-
-            public bool OnCompletedCalled { get; private set; }
-
-            public readonly CompletionSource CompletionSource;
-
-            public CommandAction RunAction { get; set; }
-
-            public bool SuccessOnCancel { get; set; }
-
-            public CommandAction OnErrorHook { get; set; }
-
-            public Exception? OverriddenExceptionOnError { get; set; }
-
-            public int ExecutionTime { get; set; }
-
-            public bool UseTrySet { get; set; }
-
-            public ICompletion Completion => CompletionSource;
-
-            public void OnCanceled( ref CompletionSource.OnCanceled result )
-            {
-                if( SuccessOnCancel ) result.SetResult();
-                else result.SetCanceled();
-            }
-
-            public void OnError( Exception ex, ref CompletionSource.OnError result )
-            {
-                switch( OnErrorHook )
-                {
-                    case CommandAction.Error: result.SetException( OverriddenExceptionOnError ?? ex ); break;
-                    case CommandAction.Success: result.SetResult(); break;
-                    case CommandAction.Canceled: result.SetCanceled(); break;
-                    default: throw new NotSupportedException();
-                }
-            }
-
-            void ICompletable.OnCompleted()
-            {
-                OnCompletedCalled.Should().BeFalse();
-                OnCompletedCalled = true;
+                case CommandAction.Error: result.SetException( OverriddenExceptionOnError ?? ex ); break;
+                case CommandAction.Success: result.SetResult(); break;
+                case CommandAction.Canceled: result.SetCanceled(); break;
+                default: throw new NotSupportedException();
             }
         }
 
-        static async Task CommandExecuteAsync( Command c )
+        void ICompletable.OnCompleted()
         {
-            if( c.ExecutionTime > 0 ) await Task.Delay( c.ExecutionTime ).ConfigureAwait( false );
-            switch( c.RunAction )
-            {
-                case CommandAction.Success: if( c.UseTrySet ) c.CompletionSource.TrySetResult(); else c.CompletionSource.SetResult(); break;
-                case CommandAction.Canceled: if( c.UseTrySet ) c.CompletionSource.TrySetCanceled(); else c.CompletionSource.SetCanceled(); break;
-                case CommandAction.Error: if( c.UseTrySet ) c.CompletionSource.TrySetException( RunException ); else c.CompletionSource.SetException( RunException ); break;
-            }
-            // Just to be sure :)
-            c.CompletionSource.TrySetException( RunException ).Should().BeFalse();
-            c.CompletionSource.TrySetCanceled().Should().BeFalse();
-            c.CompletionSource.TrySetResult().Should().BeFalse();
+            OnCompletedCalled.Should().BeFalse();
+            OnCompletedCalled = true;
         }
+    }
 
-        [TestCase(100000, 12)]
-        public async Task completable_can_hook_the_task_result_Async( int nb, int seed )
+    static async Task CommandExecuteAsync( Command c )
+    {
+        if( c.ExecutionTime > 0 ) await Task.Delay( c.ExecutionTime ).ConfigureAwait( false );
+        switch( c.RunAction )
         {
-            var random = new Random( seed );
+            case CommandAction.Success: if( c.UseTrySet ) c.CompletionSource.TrySetResult(); else c.CompletionSource.SetResult(); break;
+            case CommandAction.Canceled: if( c.UseTrySet ) c.CompletionSource.TrySetCanceled(); else c.CompletionSource.SetCanceled(); break;
+            case CommandAction.Error: if( c.UseTrySet ) c.CompletionSource.TrySetException( RunException ); else c.CompletionSource.SetException( RunException ); break;
+        }
+        // Just to be sure :)
+        c.CompletionSource.TrySetException( RunException ).Should().BeFalse();
+        c.CompletionSource.TrySetCanceled().Should().BeFalse();
+        c.CompletionSource.TrySetResult().Should().BeFalse();
+    }
 
-            var commands = Enumerable.Range( 0, nb ).Select( _ => new Command( random ) ).ToArray();
-            foreach( var c in commands )
+    [TestCase( 100000, 12 )]
+    public async Task completable_can_hook_the_task_result_Async( int nb, int seed )
+    {
+        var random = new Random( seed );
+
+        var commands = Enumerable.Range( 0, nb ).Select( _ => new Command( random ) ).ToArray();
+        foreach( var c in commands )
+        {
+            _ = CommandExecuteAsync( c );
+        }
+        foreach( var c in commands )
+        {
+            try
             {
-                _ = CommandExecuteAsync( c );
-            }
-            foreach( var c in commands )
-            {
-                try
-                {
-                    await c.Completion;
-                    c.Completion.IsCompleted.Should().BeTrue();
-                    c.OnCompletedCalled.Should().BeTrue();
-                }
-                catch( OperationCanceledException )
-                {
-                    (c.RunAction == CommandAction.Canceled || (c.RunAction == CommandAction.Error && c.OnErrorHook == CommandAction.Canceled))
-                        .Should().BeTrue();
-                }
-                catch( Exception ex ) when( ex == RunException )
-                {
-                    c.RunAction.Should().Be( CommandAction.Error );
-                    c.OverriddenExceptionOnError.Should().BeNull();
-                }
-                catch( Exception ex ) when( ex == OverriddenException )
-                {
-                    c.RunAction.Should().Be( CommandAction.Error );
-                    c.OverriddenExceptionOnError.Should().NotBeNull();
-                }
+                await c.Completion;
                 c.Completion.IsCompleted.Should().BeTrue();
                 c.OnCompletedCalled.Should().BeTrue();
-
-                switch( c.RunAction )
-                {
-                    case CommandAction.Error:
-                        Debug.Assert( c.Completion.OriginalException != null );
-                        c.Completion.OriginalException.Message.Should().BeSameAs( RunException.Message );
-                        c.Completion.HasFailed.Should().BeTrue();
-                        switch( c.OnErrorHook )
-                        {
-                            case CommandAction.Canceled:
-                                c.Completion.Task.Status.Should().Be( TaskStatus.Canceled );
-                                break;
-                            case CommandAction.Success:
-                                c.Completion.Task.Status.Should().Be( TaskStatus.RanToCompletion );
-                                break;
-                            case CommandAction.Error:
-                                Debug.Assert( c.Completion.Task.Exception != null );
-                                c.Completion.Task.Status.Should().Be( TaskStatus.Faulted );
-                                c.Completion.Task.Exception.Message.Should().Contain( (c.OverriddenExceptionOnError ?? RunException).Message );
-                                break;
-                        }
-                        break;
-                    case CommandAction.Success:
-                        c.Completion.HasSucceed.Should().BeTrue();
-                        break;
-                    case CommandAction.Canceled:
-                        c.Completion.HasBeenCanceled.Should().BeTrue();
-                        c.Completion.Task.Status.Should().Be( c.SuccessOnCancel ? TaskStatus.RanToCompletion : TaskStatus.Canceled );
-                        break;
-                }
             }
-        }
-
-        class CommandWithResult : ICompletable<int>
-        {
-            public CommandWithResult()
+            catch( OperationCanceledException )
             {
-                CompletionSource = new CompletionSource<int>( this );
+                (c.RunAction == CommandAction.Canceled || (c.RunAction == CommandAction.Error && c.OnErrorHook == CommandAction.Canceled))
+                    .Should().BeTrue();
             }
-
-            public CommandWithResult( Random r )
-                : this()
+            catch( Exception ex ) when( ex == RunException )
             {
-                RunAction = (CommandAction)r.Next( 3 );
-                SuccessOnCancel = r.Next( 2 ) == 0;
-                OnErrorHook = (CommandAction)r.Next( 3 );
-                if( r.Next( 2 ) == 0 ) OverriddenExceptionOnError = OverriddenException;
-                var execTime = r.Next( 300 ) - 150;
-                ExecutionTime = execTime < 0 ? 0 : execTime;
-                UseTrySet = r.Next( 2 ) == 0;
+                c.RunAction.Should().Be( CommandAction.Error );
+                c.OverriddenExceptionOnError.Should().BeNull();
             }
-
-            public readonly CompletionSource<int> CompletionSource;
-
-            public CommandAction RunAction { get; set; }
-
-            public bool SuccessOnCancel { get; set; }
-
-            public CommandAction OnErrorHook { get; set; }
-
-            public Exception? OverriddenExceptionOnError { get; set; }
-
-            public int ExecutionTime { get; set; }
-
-            public bool UseTrySet { get; set; }
-
-            public ICompletion<int> Completion => CompletionSource;
-
-            public void OnCanceled( ref CompletionSource<int>.OnCanceled result )
+            catch( Exception ex ) when( ex == OverriddenException )
             {
-                if( SuccessOnCancel ) result.SetResult( 2 );
-                else result.SetCanceled();
+                c.RunAction.Should().Be( CommandAction.Error );
+                c.OverriddenExceptionOnError.Should().NotBeNull();
             }
+            c.Completion.IsCompleted.Should().BeTrue();
+            c.OnCompletedCalled.Should().BeTrue();
 
-            public volatile bool OnCompletedCalled;
-
-            public void OnError( Exception ex, ref CompletionSource<int>.OnError result )
-            {
-                switch( OnErrorHook )
-                {
-                    case CommandAction.Error: result.SetException( OverriddenExceptionOnError ?? ex ); break;
-                    case CommandAction.Success: result.SetResult( 1 ); break;
-                    case CommandAction.Canceled: result.SetCanceled(); break;
-                    default: throw new NotSupportedException();
-                }
-            }
-
-            public void OnCompleted()
-            {
-                OnCompletedCalled.Should().BeFalse();
-                OnCompletedCalled = true;
-            }
-        }
-
-        static async Task CommandExecuteAsync( CommandWithResult c )
-        {
-            if( c.ExecutionTime > 0 ) await Task.Delay( c.ExecutionTime ).ConfigureAwait( false );
             switch( c.RunAction )
             {
-                case CommandAction.Success: if( c.UseTrySet ) c.CompletionSource.TrySetResult( 3712 ); else c.CompletionSource.SetResult( 3712 ); break;
-                case CommandAction.Canceled: if( c.UseTrySet ) c.CompletionSource.TrySetCanceled(); else c.CompletionSource.SetCanceled(); break;
-                case CommandAction.Error: if( c.UseTrySet ) c.CompletionSource.TrySetException( RunException ); else c.CompletionSource.SetException( RunException ); break;
+                case CommandAction.Error:
+                    Debug.Assert( c.Completion.OriginalException != null );
+                    c.Completion.OriginalException.Message.Should().BeSameAs( RunException.Message );
+                    c.Completion.HasFailed.Should().BeTrue();
+                    switch( c.OnErrorHook )
+                    {
+                        case CommandAction.Canceled:
+                            c.Completion.Task.Status.Should().Be( TaskStatus.Canceled );
+                            break;
+                        case CommandAction.Success:
+                            c.Completion.Task.Status.Should().Be( TaskStatus.RanToCompletion );
+                            break;
+                        case CommandAction.Error:
+                            Debug.Assert( c.Completion.Task.Exception != null );
+                            c.Completion.Task.Status.Should().Be( TaskStatus.Faulted );
+                            c.Completion.Task.Exception.Message.Should().Contain( (c.OverriddenExceptionOnError ?? RunException).Message );
+                            break;
+                    }
+                    break;
+                case CommandAction.Success:
+                    c.Completion.HasSucceed.Should().BeTrue();
+                    break;
+                case CommandAction.Canceled:
+                    c.Completion.HasBeenCanceled.Should().BeTrue();
+                    c.Completion.Task.Status.Should().Be( c.SuccessOnCancel ? TaskStatus.RanToCompletion : TaskStatus.Canceled );
+                    break;
             }
-            // Just to be sure :)
-            c.CompletionSource.TrySetException( RunException ).Should().BeFalse();
-            c.CompletionSource.TrySetCanceled().Should().BeFalse();
-            c.CompletionSource.TrySetResult( 1 ).Should().BeFalse();
+        }
+    }
+
+    class CommandWithResult : ICompletable<int>
+    {
+        public CommandWithResult()
+        {
+            CompletionSource = new CompletionSource<int>( this );
         }
 
-        [TestCase( 100000, 877 )]
-        public async Task completable_with_result_can_hook_the_task_result_Async( int nb, int seed )
+        public CommandWithResult( Random r )
+            : this()
         {
-            var random = new Random( seed );
+            RunAction = (CommandAction)r.Next( 3 );
+            SuccessOnCancel = r.Next( 2 ) == 0;
+            OnErrorHook = (CommandAction)r.Next( 3 );
+            if( r.Next( 2 ) == 0 ) OverriddenExceptionOnError = OverriddenException;
+            var execTime = r.Next( 300 ) - 150;
+            ExecutionTime = execTime < 0 ? 0 : execTime;
+            UseTrySet = r.Next( 2 ) == 0;
+        }
 
-            var commands = Enumerable.Range( 0, nb ).Select( _ => new CommandWithResult( random ) ).ToArray();
-            foreach( var c in commands )
+        public readonly CompletionSource<int> CompletionSource;
+
+        public CommandAction RunAction { get; set; }
+
+        public bool SuccessOnCancel { get; set; }
+
+        public CommandAction OnErrorHook { get; set; }
+
+        public Exception? OverriddenExceptionOnError { get; set; }
+
+        public int ExecutionTime { get; set; }
+
+        public bool UseTrySet { get; set; }
+
+        public ICompletion<int> Completion => CompletionSource;
+
+        public void OnCanceled( ref CompletionSource<int>.OnCanceled result )
+        {
+            if( SuccessOnCancel ) result.SetResult( 2 );
+            else result.SetCanceled();
+        }
+
+        public volatile bool OnCompletedCalled;
+
+        public void OnError( Exception ex, ref CompletionSource<int>.OnError result )
+        {
+            switch( OnErrorHook )
             {
-                _ = CommandExecuteAsync( c );
+                case CommandAction.Error: result.SetException( OverriddenExceptionOnError ?? ex ); break;
+                case CommandAction.Success: result.SetResult( 1 ); break;
+                case CommandAction.Canceled: result.SetCanceled(); break;
+                default: throw new NotSupportedException();
             }
-            foreach( var c in commands )
+        }
+
+        public void OnCompleted()
+        {
+            OnCompletedCalled.Should().BeFalse();
+            OnCompletedCalled = true;
+        }
+    }
+
+    static async Task CommandExecuteAsync( CommandWithResult c )
+    {
+        if( c.ExecutionTime > 0 ) await Task.Delay( c.ExecutionTime ).ConfigureAwait( false );
+        switch( c.RunAction )
+        {
+            case CommandAction.Success: if( c.UseTrySet ) c.CompletionSource.TrySetResult( 3712 ); else c.CompletionSource.SetResult( 3712 ); break;
+            case CommandAction.Canceled: if( c.UseTrySet ) c.CompletionSource.TrySetCanceled(); else c.CompletionSource.SetCanceled(); break;
+            case CommandAction.Error: if( c.UseTrySet ) c.CompletionSource.TrySetException( RunException ); else c.CompletionSource.SetException( RunException ); break;
+        }
+        // Just to be sure :)
+        c.CompletionSource.TrySetException( RunException ).Should().BeFalse();
+        c.CompletionSource.TrySetCanceled().Should().BeFalse();
+        c.CompletionSource.TrySetResult( 1 ).Should().BeFalse();
+    }
+
+    [TestCase( 100000, 877 )]
+    public async Task completable_with_result_can_hook_the_task_result_Async( int nb, int seed )
+    {
+        var random = new Random( seed );
+
+        var commands = Enumerable.Range( 0, nb ).Select( _ => new CommandWithResult( random ) ).ToArray();
+        foreach( var c in commands )
+        {
+            _ = CommandExecuteAsync( c );
+        }
+        foreach( var c in commands )
+        {
+            try
             {
-                try
-                {
-                    await c.Completion;
-                    c.Completion.IsCompleted.Should().BeTrue();
-                    c.OnCompletedCalled.Should().BeTrue();
-                }
-                catch( OperationCanceledException )
-                {
-                    (c.RunAction == CommandAction.Canceled || (c.RunAction == CommandAction.Error && c.OnErrorHook == CommandAction.Canceled))
-                        .Should().BeTrue();
-                    c.Completion.Task.Status.Should().Be( TaskStatus.Canceled );
-                }
-                catch( Exception ex ) when( ex == RunException )
-                {
-                    c.RunAction.Should().Be( CommandAction.Error );
-                    c.OverriddenExceptionOnError.Should().BeNull();
-                    c.Completion.Task.Status.Should().Be( TaskStatus.Faulted );
-                }
-                catch( Exception ex ) when( ex == OverriddenException )
-                {
-                    c.RunAction.Should().Be( CommandAction.Error );
-                    c.OverriddenExceptionOnError.Should().NotBeNull();
-                    c.Completion.Task.Status.Should().Be( TaskStatus.Faulted );
-                }
+                await c.Completion;
                 c.Completion.IsCompleted.Should().BeTrue();
                 c.OnCompletedCalled.Should().BeTrue();
+            }
+            catch( OperationCanceledException )
+            {
+                (c.RunAction == CommandAction.Canceled || (c.RunAction == CommandAction.Error && c.OnErrorHook == CommandAction.Canceled))
+                    .Should().BeTrue();
+                c.Completion.Task.Status.Should().Be( TaskStatus.Canceled );
+            }
+            catch( Exception ex ) when( ex == RunException )
+            {
+                c.RunAction.Should().Be( CommandAction.Error );
+                c.OverriddenExceptionOnError.Should().BeNull();
+                c.Completion.Task.Status.Should().Be( TaskStatus.Faulted );
+            }
+            catch( Exception ex ) when( ex == OverriddenException )
+            {
+                c.RunAction.Should().Be( CommandAction.Error );
+                c.OverriddenExceptionOnError.Should().NotBeNull();
+                c.Completion.Task.Status.Should().Be( TaskStatus.Faulted );
+            }
+            c.Completion.IsCompleted.Should().BeTrue();
+            c.OnCompletedCalled.Should().BeTrue();
 
-                switch( c.RunAction )
-                {
-                    case CommandAction.Error:
-                        Debug.Assert( c.Completion.OriginalException != null );
-                        c.Completion.OriginalException.Message.Should().BeSameAs( RunException.Message );
-                        c.Completion.HasFailed.Should().BeTrue();
-                        switch( c.OnErrorHook )
-                        {
-                            case CommandAction.Canceled:
-                                c.Completion.Task.Status.Should().Be( TaskStatus.Canceled );
-                                break;
-                            case CommandAction.Success:
-                                c.Completion.Task.Status.Should().Be( TaskStatus.RanToCompletion );
-                                c.Completion.Result.Should().Be( 1 );
-                                break;
-                            case CommandAction.Error:
-                                Debug.Assert( c.Completion.Task.Exception != null );
-                                c.Completion.Task.Status.Should().Be( TaskStatus.Faulted );
-                                c.Completion.Task.Exception.Message.Should().Contain( (c.OverriddenExceptionOnError ?? RunException).Message );
-                                break;
-                        }
-                        break;
-                    case CommandAction.Success:
-                        c.Completion.HasSucceed.Should().BeTrue();
-                        c.Completion.Result.Should().Be( 3712 );
-                        break;
-                    case CommandAction.Canceled:
-                        c.Completion.HasBeenCanceled.Should().BeTrue();
-                        c.Completion.Task.Status.Should().Be( c.SuccessOnCancel ? TaskStatus.RanToCompletion : TaskStatus.Canceled );
-                        if( c.SuccessOnCancel ) c.Completion.Result.Should().Be( 2 );
-                        break;
-                }
+            switch( c.RunAction )
+            {
+                case CommandAction.Error:
+                    Debug.Assert( c.Completion.OriginalException != null );
+                    c.Completion.OriginalException.Message.Should().BeSameAs( RunException.Message );
+                    c.Completion.HasFailed.Should().BeTrue();
+                    switch( c.OnErrorHook )
+                    {
+                        case CommandAction.Canceled:
+                            c.Completion.Task.Status.Should().Be( TaskStatus.Canceled );
+                            break;
+                        case CommandAction.Success:
+                            c.Completion.Task.Status.Should().Be( TaskStatus.RanToCompletion );
+                            c.Completion.Result.Should().Be( 1 );
+                            break;
+                        case CommandAction.Error:
+                            Debug.Assert( c.Completion.Task.Exception != null );
+                            c.Completion.Task.Status.Should().Be( TaskStatus.Faulted );
+                            c.Completion.Task.Exception.Message.Should().Contain( (c.OverriddenExceptionOnError ?? RunException).Message );
+                            break;
+                    }
+                    break;
+                case CommandAction.Success:
+                    c.Completion.HasSucceed.Should().BeTrue();
+                    c.Completion.Result.Should().Be( 3712 );
+                    break;
+                case CommandAction.Canceled:
+                    c.Completion.HasBeenCanceled.Should().BeTrue();
+                    c.Completion.Task.Status.Should().Be( c.SuccessOnCancel ? TaskStatus.RanToCompletion : TaskStatus.Canceled );
+                    if( c.SuccessOnCancel ) c.Completion.Result.Should().Be( 2 );
+                    break;
             }
         }
+    }
 
 
-        class SimpleCommand : ICompletable<int>
+    class SimpleCommand : ICompletable<int>
+    {
+        public SimpleCommand()
         {
-            public SimpleCommand()
-            {
-                CompletionSource = new CompletionSource<int>( this );
-            }
-
-            public bool OnCompletedCalled { get; private set; }
-
-            public readonly CompletionSource<int> CompletionSource;
-
-            public ICompletion<int> Completion => CompletionSource;
-
-            void ICompletable<int>.OnCanceled( ref CompletionSource<int>.OnCanceled result ) => result.SetCanceled();
-
-            public void OnError( Exception ex, ref CompletionSource<int>.OnError result )
-            {
-                // This is how OperationCanceledException can be transformed to "normal" cancellation.
-                // if( ex is OperationCanceledException ) result.SetCanceled(); else
-                result.SetException( ex );
-            }
-
-            void ICompletable<int>.OnCompleted()
-            {
-                OnCompletedCalled.Should().BeFalse();
-                OnCompletedCalled = true;
-            }
+            CompletionSource = new CompletionSource<int>( this );
         }
 
-        class SimpleCommandNoResult : ICompletable
+        public bool OnCompletedCalled { get; private set; }
+
+        public readonly CompletionSource<int> CompletionSource;
+
+        public ICompletion<int> Completion => CompletionSource;
+
+        void ICompletable<int>.OnCanceled( ref CompletionSource<int>.OnCanceled result ) => result.SetCanceled();
+
+        public void OnError( Exception ex, ref CompletionSource<int>.OnError result )
         {
-            public SimpleCommandNoResult()
-            {
-                CompletionSource = new CompletionSource( this );
-            }
-
-            public bool OnCompletedCalled { get; private set; }
-
-            public readonly CompletionSource CompletionSource;
-
-            public ICompletion Completion => CompletionSource;
-
-            void ICompletable.OnCanceled( ref CompletionSource.OnCanceled result ) => result.SetCanceled();
-
-            public void OnError( Exception ex, ref CompletionSource.OnError result )
-            {
-                // This is how OperationCanceledException can be transformed to "normal" cancellation.
-                // if( ex is OperationCanceledException ) result.SetCanceled(); else
-                result.SetException( ex );
-            }
-
-            void ICompletable.OnCompleted()
-            {
-                OnCompletedCalled.Should().BeFalse();
-                OnCompletedCalled = true;
-            }
-
+            // This is how OperationCanceledException can be transformed to "normal" cancellation.
+            // if( ex is OperationCanceledException ) result.SetCanceled(); else
+            result.SetException( ex );
         }
 
-        [TestCase( "NoResult", "OperationCanceledException" )]
-        [TestCase( "NoResult", "Exception" )]
-        [TestCase( "NoResult", "Cancel" )]
-        [TestCase( "WithResult", "OperationCanceledException" )]
-        [TestCase( "WithResult", "Exception" )]
-        [TestCase( "WithResult", "Cancel" )]
-        public void unobserved_completion_dont_raise_UnobservedTaskException( string commandType, string error )
+        void ICompletable<int>.OnCompleted()
         {
-            bool raised = false;
-            TaskScheduler.UnobservedTaskException += ( sender, e ) => raised = true;
+            OnCompletedCalled.Should().BeFalse();
+            OnCompletedCalled = true;
+        }
+    }
 
-            CreateCompleteAndForgetCommand( commandType, error );
-
-            GC.Collect();
-            GC.WaitForPendingFinalizers();
-
-            raised.Should().BeFalse();
+    class SimpleCommandNoResult : ICompletable
+    {
+        public SimpleCommandNoResult()
+        {
+            CompletionSource = new CompletionSource( this );
         }
 
-        [MethodImpl( MethodImplOptions.NoInlining )]
-        static void CreateCompleteAndForgetCommand( string commandType, string error )
+        public bool OnCompletedCalled { get; private set; }
+
+        public readonly CompletionSource CompletionSource;
+
+        public ICompletion Completion => CompletionSource;
+
+        void ICompletable.OnCanceled( ref CompletionSource.OnCanceled result ) => result.SetCanceled();
+
+        public void OnError( Exception ex, ref CompletionSource.OnError result )
         {
-            if( commandType == "WithResult" )
-            {
-                var cmd = new SimpleCommand();
-                if( error == "Cancel" ) cmd.CompletionSource.SetCanceled();
-                else if( error == "OperationCanceledException" ) cmd.CompletionSource.SetException( new OperationCanceledException() );
-                else cmd.CompletionSource.SetException( new Exception( "Pouf" ) );
-                cmd.OnCompletedCalled.Should().BeTrue();    
-            }
-            else
-            {
-                var cmd = new SimpleCommandNoResult();
-                if( error == "Cancel" ) cmd.CompletionSource.SetCanceled();
-                else if( error == "OperationCanceledException" ) cmd.CompletionSource.SetException( new OperationCanceledException() );
-                else cmd.CompletionSource.SetException( new Exception( "Pouf" ) );
-                cmd.OnCompletedCalled.Should().BeTrue();    
-            }
+            // This is how OperationCanceledException can be transformed to "normal" cancellation.
+            // if( ex is OperationCanceledException ) result.SetCanceled(); else
+            result.SetException( ex );
+        }
+
+        void ICompletable.OnCompleted()
+        {
+            OnCompletedCalled.Should().BeFalse();
+            OnCompletedCalled = true;
         }
 
     }
+
+    [TestCase( "NoResult", "OperationCanceledException" )]
+    [TestCase( "NoResult", "Exception" )]
+    [TestCase( "NoResult", "Cancel" )]
+    [TestCase( "WithResult", "OperationCanceledException" )]
+    [TestCase( "WithResult", "Exception" )]
+    [TestCase( "WithResult", "Cancel" )]
+    public void unobserved_completion_dont_raise_UnobservedTaskException( string commandType, string error )
+    {
+        bool raised = false;
+        TaskScheduler.UnobservedTaskException += ( sender, e ) => raised = true;
+
+        CreateCompleteAndForgetCommand( commandType, error );
+
+        GC.Collect();
+        GC.WaitForPendingFinalizers();
+
+        raised.Should().BeFalse();
+    }
+
+    [MethodImpl( MethodImplOptions.NoInlining )]
+    static void CreateCompleteAndForgetCommand( string commandType, string error )
+    {
+        if( commandType == "WithResult" )
+        {
+            var cmd = new SimpleCommand();
+            if( error == "Cancel" ) cmd.CompletionSource.SetCanceled();
+            else if( error == "OperationCanceledException" ) cmd.CompletionSource.SetException( new OperationCanceledException() );
+            else cmd.CompletionSource.SetException( new Exception( "Pouf" ) );
+            cmd.OnCompletedCalled.Should().BeTrue();
+        }
+        else
+        {
+            var cmd = new SimpleCommandNoResult();
+            if( error == "Cancel" ) cmd.CompletionSource.SetCanceled();
+            else if( error == "OperationCanceledException" ) cmd.CompletionSource.SetException( new OperationCanceledException() );
+            else cmd.CompletionSource.SetException( new Exception( "Pouf" ) );
+            cmd.OnCompletedCalled.Should().BeTrue();
+        }
+    }
+
 }
