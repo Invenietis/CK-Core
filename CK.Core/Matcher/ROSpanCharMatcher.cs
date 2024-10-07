@@ -648,24 +648,24 @@ public ref partial struct ROSpanCharMatcher
                     case 't': c = '\t'; break;
                     case 'f': c = '\f'; break;
                     case 'u':
+                    {
+                        var h = Head.Slice( i );
+                        if( !h.TryMatchHexNumber( out var u, 4, 4 ) )
                         {
-                            var h = Head.Slice( i );
-                            if( !h.TryMatchHexNumber( out var u, 4, 4 ) )
-                            {
-                                return AddExpectation( i - 1, "4 digits hexadecimal number" );
-                            }
-                            len -= 4;
-                            i += 4;
-                            c = (char)u;
-                            break;
+                            return AddExpectation( i - 1, "4 digits hexadecimal number" );
                         }
+                        len -= 4;
+                        i += 4;
+                        c = (char)u;
+                        break;
+                    }
                     case '\\': // These are the only other valid escaped characters in JSON.
                     case '"':
                     case '/': break;
                     default:
-                        {
-                            return AddExpectation( i - 1, "Valid JSON escape character" );
-                        }
+                    {
+                        return AddExpectation( i - 1, "Valid JSON escape character" );
+                    }
                 }
             }
             if( b != null ) b.Append( c );
@@ -748,7 +748,7 @@ public ref partial struct ROSpanCharMatcher
                 // This accepts a trailing comma at the end of a property list: ..."a":0,} is not an error.
                 Head.TryMatch( ',' );
             }
-        error:
+            error:
             o = null;
             Head = savedHead;
             return false;
@@ -780,7 +780,7 @@ public ref partial struct ROSpanCharMatcher
                 // Allow trailing comma: ,] is valid.
                 Head.TryMatch( ',' );
             }
-        error:
+            error:
             value = null;
             Head = savedHead;
             return false;
@@ -823,7 +823,7 @@ public ref partial struct ROSpanCharMatcher
                 Debug.Assert( !HasError );
                 return true;
             }
-        error:
+            error:
             value = null;
             Head = savedHead;
             return false;

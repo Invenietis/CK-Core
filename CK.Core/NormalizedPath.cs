@@ -257,23 +257,23 @@ public readonly partial struct NormalizedPath : IEquatable<NormalizedPath>, ICom
             switch( kind )
             {
                 case NormalizedPathRootKind.None:
-                    {
-                        Debug.Assert( _option == NormalizedPathRootKind.RootedBySeparator || _option == NormalizedPathRootKind.RootedByDoubleSeparator );
-                        return new NormalizedPath();
-                    }
+                {
+                    Debug.Assert( _option == NormalizedPathRootKind.RootedBySeparator || _option == NormalizedPathRootKind.RootedByDoubleSeparator );
+                    return new NormalizedPath();
+                }
                 case NormalizedPathRootKind.RootedByFirstPart:
-                    {
-                        Throw.ArgumentException( "Invalid RootedByFirstPart on path without any parts." );
-                        break;
-                    }
+                {
+                    Throw.ArgumentException( "Invalid RootedByFirstPart on path without any parts." );
+                    break;
+                }
                 case NormalizedPathRootKind.RootedBySeparator:
-                    {
-                        return new NormalizedPath( kind );
-                    }
+                {
+                    return new NormalizedPath( kind );
+                }
                 case NormalizedPathRootKind.RootedByDoubleSeparator:
-                    {
-                        return new NormalizedPath( kind );
-                    }
+                {
+                    return new NormalizedPath( kind );
+                }
                 default: Throw.NotSupportedException(); break;
             }
         }

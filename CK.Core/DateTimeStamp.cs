@@ -321,7 +321,7 @@ public readonly struct DateTimeStamp : IComparable<DateTimeStamp>, IEquatable<Da
             time = new DateTimeStamp( t, uniquifier );
             return true;
         }
-    error:
+        error:
         time = Unknown;
         head = savedHead;
         return false;

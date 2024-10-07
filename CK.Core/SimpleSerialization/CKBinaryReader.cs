@@ -124,10 +124,10 @@ public class CKBinaryReader : BinaryReader, ICKBinaryReader
                 case 0: return default;
                 case 1: return _objects[_r.ReadNonNegativeSmallInt32()];
                 default:
-                    {
-                        var s = new ReadState( this, b );
-                        return s.SetReadResult( actualReader( s, _r ) );
-                    }
+                {
+                    var s = new ReadState( this, b );
+                    return s.SetReadResult( actualReader( s, _r ) );
+                }
             }
         }
 

@@ -32,7 +32,7 @@ public static class DateTimeStampExtension
             time = new DateTimeStamp( t, uniquifier );
             return m.SetSuccess();
 
-        error:
+            error:
             time = DateTimeStamp.Unknown;
             m.Head = savedHead;
             return false;

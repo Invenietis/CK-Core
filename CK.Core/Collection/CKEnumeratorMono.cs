@@ -9,7 +9,7 @@ namespace CK.Core;
 /// Defines an optimized <see cref="IEnumerator{T}"/> that contains
 /// only one element.
 /// </summary>
-	public sealed class CKEnumeratorMono<T> : IEnumerator<T>
+public sealed class CKEnumeratorMono<T> : IEnumerator<T>
 {
     T _val;
     int _pos;
@@ -27,7 +27,7 @@ namespace CK.Core;
     /// <summary>
     /// Gets the strongly typed element in the collection at the current position of the enumerator.
     /// </summary>
-		public T Current
+    public T Current
     {
         get
         {
@@ -58,5 +58,5 @@ namespace CK.Core;
     /// <summary>
     /// Resets the enumerator.
     /// </summary>
-		public void Reset() => _pos = -1;
+    public void Reset() => _pos = -1;
 }

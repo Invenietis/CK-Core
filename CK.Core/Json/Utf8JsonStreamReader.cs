@@ -203,7 +203,7 @@ public sealed class Utf8JsonStreamReader : IDisposable, IUtf8JsonReaderContext
         // This is for skip handling (if skip parameter is true).
         int initialDepth = reader.CurrentDepth;
 
-    retry:
+        retry:
         if( reader.IsFinalBlock ) return;
         int bytesRead;
         int unread = _count - bytesConsumed;

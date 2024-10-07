@@ -222,7 +222,7 @@ public class StandardGlobalInfo
         IAzurePipelinesProvider azure = Cake.AzurePipelines();
         try
         {
-            if( appVeyor.IsRunningOnAppVeyor )  
+            if( appVeyor.IsRunningOnAppVeyor )
             {
                 appVeyor.UpdateBuildVersion( AddSkipped( BuildInfo.Version.ToString() ) );
             }

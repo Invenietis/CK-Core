@@ -18,8 +18,8 @@ public sealed class TemporaryFile : IDisposable
     /// <summary>
     /// Initializes a new short lived <see cref="TemporaryFile"/>.
     /// </summary>
-		public TemporaryFile()
-        : this( true )
+    public TemporaryFile()
+    : this( true )
     {
     }
 
@@ -68,7 +68,7 @@ public sealed class TemporaryFile : IDisposable
     /// <summary>
     /// Finalizer attempts to delete the file.
     /// </summary>
-		~TemporaryFile()
+    ~TemporaryFile()
     {
         DeleteFile();
     }
@@ -78,7 +78,7 @@ public sealed class TemporaryFile : IDisposable
     /// It is <see cref="String.Empty"/> when the file has been <see cref="Detach"/>ed.
     /// The file is not opened but exists, initially empty.
     /// </summary>
-		public string Path
+    public string Path
     {
         get
         {
@@ -98,7 +98,7 @@ public sealed class TemporaryFile : IDisposable
     /// When created short-lived (see <see cref="FileAttributes.Temporary"/>), this flag is not reset: the 
     /// file will be destroyed by the Operating System on the bext reboot.
     /// </summary>
-		public void Detach()
+    public void Detach()
     {
         var p = _path;
         if( p == null ) Throw.ObjectDisposedException();
@@ -108,7 +108,7 @@ public sealed class TemporaryFile : IDisposable
     /// <summary>
     /// Attempts to delete the temporary file.
     /// </summary>
-		public void Dispose()
+    public void Dispose()
     {
         if( DeleteFile() ) GC.SuppressFinalize( this );
     }
