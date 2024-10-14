@@ -127,7 +127,9 @@ public static class TypeExtensions
         {
             Type theT = pathTypes.Pop();
             string n;
-            if( iType == 0 ) n = withNamespace ? theT.FullName! : theT.Name;
+            if( iType == 0 ) n = withNamespace
+                                    ? (theT.FullName ?? $"{theT.Namespace}.{theT.Name}")
+                                    : theT.Name;
             else
             {
                 n = theT.Name;
