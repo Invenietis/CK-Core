@@ -80,10 +80,9 @@ public static class TypeExtensions
     /// <returns>The C# type name.</returns>
     public static string ToCSharpName( this Type? @this, bool withNamespace = true, bool typeDeclaration = true, bool useValueTupleParentheses = true )
     {
-        return @this == null
-                ? "null"
-                : _names.GetOrAdd( new KeyType( @this, withNamespace, typeDeclaration, useValueTupleParentheses ),
-                                   k => AppendCSharpName( new StringBuilder(), k.Type, (k.Flags & 1) != 0, (k.Flags & 8) != 0, (k.Flags & 256) != 0 ).ToString() );
+        if( @this == null ) return "null";
+        return _names.GetOrAdd( new KeyType( @this, withNamespace, typeDeclaration, useValueTupleParentheses && !@this.IsTypeDefinition ),
+                                k => AppendCSharpName( new StringBuilder(), k.Type, (k.Flags & 1) != 0, (k.Flags & 8) != 0, (k.Flags & 256) != 0 ).ToString() );
     }
 
     static StringBuilder AppendCSharpName( StringBuilder b, Type t, bool withNamespace, bool typeDeclaration, bool useValueTupleParentheses )
@@ -167,8 +166,8 @@ public static class TypeExtensions
                     // This lift the rest content, skipping the rest 8th slot itself.
                     if( iGen == 7 && isValueTuple && useValueTupleParentheses )
                     {
-                        Debug.Assert( subType.Name.StartsWith( "ValueTuple", StringComparison.Ordinal ) );
-                        Debug.Assert( allGenArgs.Count == 0 );
+                        Throw.DebugAssert( subType.Name.StartsWith( "ValueTuple", StringComparison.Ordinal ) );
+                        Throw.DebugAssert( allGenArgs.Count == 0 );
                         var rest = subType.GetGenericArguments();
                         subType = rest[0];
                         nbParams = rest.Length - 1;

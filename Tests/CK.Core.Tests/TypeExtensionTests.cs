@@ -110,7 +110,8 @@ public class TypeExtensionTests
 
     class Nested<T> { }
 
-    [TestCase( true, typeof( (int?, string) ), true, "(int?,string)" )]
+
+    [TestCase( true, typeof( ValueTuple<int?, string> ), true, "(int?,string)" )]
     [TestCase( true, typeof( (int?, string) ), false, "System.ValueTuple<int?,string>" )]
     [TestCase( true, typeof( (int, (string, float?)) ), true, "(int,(string,float?))" )]
     [TestCase( true, typeof( (int, (string, float?)) ), false, "System.ValueTuple<int,System.ValueTuple<string,float?>>" )]
@@ -127,6 +128,14 @@ public class TypeExtensionTests
     [TestCase( false, typeof( Nested<Dictionary<int, (string, int)>> ), true, "TypeExtensionTests.Nested<Dictionary<int,(string,int)>>" )]
     [TestCase( false, typeof( Nested<Dictionary<int, (string, int)>> ), false, "TypeExtensionTests.Nested<Dictionary<int,ValueTuple<string,int>>>" )]
     public void ToCSharpName_for_value_tuples( bool withNamespace, Type t, bool useValueTupleParentheses, string expected )
+    {
+        t.ToCSharpName( withNamespace, useValueTupleParentheses: useValueTupleParentheses )
+            .Should().Be( expected );
+    }
+
+    [TestCase( false, typeof( ValueTuple<,,,,,,,> ), true, "ValueTuple<T1,T2,T3,T4,T5,T6,T7,TRest>" )]
+    [TestCase( false, typeof( ValueTuple<,,,,,,,> ), false, "ValueTuple<T1,T2,T3,T4,T5,T6,T7,TRest>" )]
+    public void ToCSharpName_for_type_definition( bool withNamespace, Type t, bool useValueTupleParentheses, string expected )
     {
         t.ToCSharpName( withNamespace, useValueTupleParentheses: useValueTupleParentheses )
             .Should().Be( expected );
