@@ -3,6 +3,7 @@ using NUnit.Framework;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -140,4 +141,24 @@ public class TypeExtensionTests
         t.ToCSharpName( withNamespace, useValueTupleParentheses: useValueTupleParentheses )
             .Should().Be( expected );
     }
+
+    [Test]
+    public void ToCSharpName_Tuple_bug()
+    {
+        var mRef = GetType().GetMethod( "CreateLongRef", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static );
+        Throw.DebugAssert( mRef != null );
+        mRef.ReturnType.ToCSharpName().Should().Be( "System.Tuple<T1,T2,T3,T4,T5,T6,T7,TRest>" );
+
+        var mVal = GetType().GetMethod( "CreateLong", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static );
+        Throw.DebugAssert( mVal != null );
+        mVal.ReturnType.ToCSharpName().Should().Be( "System.ValueTuple<T1,T2,T3,T4,T5,T6,T7,TRest>" );
+    }
+
+    static ValueTuple<T1, T2, T3, T4, T5, T6, T7, TRest> CreateLong<T1, T2, T3, T4, T5, T6, T7, TRest>( T1 item1, T2 item2, T3 item3, T4 item4, T5 item5, T6 item6, T7 item7, TRest rest )
+            where TRest : struct, ITuple
+            => new ValueTuple<T1, T2, T3, T4, T5, T6, T7, TRest>( item1, item2, item3, item4, item5, item6, item7, rest );
+
+    static Tuple<T1, T2, T3, T4, T5, T6, T7, TRest> CreateLongRef<T1, T2, T3, T4, T5, T6, T7, TRest>( T1 item1, T2 item2, T3 item3, T4 item4, T5 item5, T6 item6, T7 item7, TRest rest )
+        where TRest : ITuple
+        => new Tuple<T1, T2, T3, T4, T5, T6, T7, TRest>( item1, item2, item3, item4, item5, item6, item7, rest );
 }

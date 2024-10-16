@@ -81,7 +81,7 @@ public static class TypeExtensions
     public static string ToCSharpName( this Type? @this, bool withNamespace = true, bool typeDeclaration = true, bool useValueTupleParentheses = true )
     {
         if( @this == null ) return "null";
-        return _names.GetOrAdd( new KeyType( @this, withNamespace, typeDeclaration, useValueTupleParentheses && !@this.IsTypeDefinition ),
+        return _names.GetOrAdd( new KeyType( @this, withNamespace, typeDeclaration, useValueTupleParentheses && !@this.ContainsGenericParameters ),
                                 k => AppendCSharpName( new StringBuilder(), k.Type, (k.Flags & 1) != 0, (k.Flags & 8) != 0, (k.Flags & 256) != 0 ).ToString() );
     }
 
