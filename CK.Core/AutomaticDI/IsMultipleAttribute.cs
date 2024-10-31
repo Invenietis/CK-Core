@@ -13,7 +13,7 @@ namespace CK.Core;
 /// will be a singleton if all the implementations are singletons otherwise it will be a scoped service.
 /// </para>
 /// </summary>
-[AttributeUsage( AttributeTargets.Interface, AllowMultiple = false, Inherited = false )]
+[AttributeUsage( AttributeTargets.Interface|AttributeTargets.Class, AllowMultiple = false, Inherited = false )]
 public sealed class IsMultipleAttribute : Attribute
 {
 }

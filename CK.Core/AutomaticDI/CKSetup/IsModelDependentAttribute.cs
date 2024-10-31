@@ -15,6 +15,7 @@ namespace CK.Setup;
 /// used by CKSetup for which the full name is enough (duck typing): any CK.Setup.IsModelAttribute attribute, even locally defined will do the job.
 /// </para>
 /// </summary>
+[Obsolete( "Replaced by IsPFeature.", error: true )]
 [AttributeUsage( AttributeTargets.Assembly, AllowMultiple = false )]
 public class IsModelDependentAttribute : Attribute
 {

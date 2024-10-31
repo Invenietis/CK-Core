@@ -11,6 +11,7 @@ namespace CK.Setup;
 /// name is enough (duck typing): any CK.Setup.ExcludeFromSetupAttribute attribute, even locally defined will do the job.
 /// </para>
 /// </summary>
+[Obsolete( "Replaced by ExcludePFeature.", error: true )]
 [AttributeUsage( AttributeTargets.Assembly, AllowMultiple = false )]
 public class ExcludeFromSetupAttribute : Attribute
 {

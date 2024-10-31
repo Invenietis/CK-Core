@@ -13,6 +13,7 @@ namespace CK.Setup;
 /// name is enough (duck typing): any CK.Setup.RequiredSetupDependencyAttribute attribute, even locally defined will do the job.
 /// </para>
 /// </summary>
+[Obsolete( "Replaced by RequiredEngine.", error: true )]
 [AttributeUsage( AttributeTargets.Assembly, AllowMultiple = true )]
 public class RequiredSetupDependencyAttribute : Attribute
 {

@@ -7,6 +7,6 @@ namespace CK.Core;
 /// by Dependency Injection container.
 /// </summary>
 [AttributeUsage( AttributeTargets.Class | AttributeTargets.Interface, AllowMultiple = false, Inherited = false )]
-public sealed class ContainerConfiguredSingletonServiceAttribute : Attribute
+public sealed class SingletonContainerConfiguredServiceAttribute : Attribute
 {
 }

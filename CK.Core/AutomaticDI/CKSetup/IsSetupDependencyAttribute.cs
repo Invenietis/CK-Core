@@ -13,6 +13,7 @@ namespace CK.Setup;
 /// name is enough (duck typing): any CK.Setup.IsSetupDependencyAttribute attribute, even locally defined will do the job.
 /// </para>
 /// </summary>
+[Obsolete( "Replaced by IsEngine.", error: true )]
 [AttributeUsage( AttributeTargets.Assembly, AllowMultiple = false )]
 public class IsSetupDependencyAttribute : Attribute
 {
