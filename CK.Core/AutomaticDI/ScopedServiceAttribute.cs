@@ -8,10 +8,9 @@ namespace CK.Core;
 /// global DI container.
 /// <para>
 /// Unlike <see cref="ScopedContainerConfiguredServiceAttribute"/>, the service will be automatically registered
-/// in the other DI containers.
+/// in the other DI containers with the same Service descriptor.
 /// </para>
 /// </summary>
-[Obsolete( "Useless. Will be suppressed soon." )]
 [AttributeUsage( AttributeTargets.Class | AttributeTargets.Interface, AllowMultiple = false, Inherited = false )]
 public class ScopedServiceAttribute : Attribute
 {

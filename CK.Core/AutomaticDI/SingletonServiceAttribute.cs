@@ -11,7 +11,6 @@ namespace CK.Core;
 /// in the other DI containers.
 /// </para>
 /// </summary>
-[Obsolete( "Useless. Will be suppressed soon." )]
 [AttributeUsage( AttributeTargets.Class | AttributeTargets.Interface, AllowMultiple = false, Inherited = false )]
 public class SingletonServiceAttribute : Attribute
 {
