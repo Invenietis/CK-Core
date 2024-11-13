@@ -58,7 +58,7 @@
   <!--</GenerateDocumentation>-->
   <!--<Analyzers>: This analyzer provides very welcome guidelines about async and threading issues.-->
   <ItemGroup Condition=" '$(MSBuildProjectName)' != 'CodeCakeBuilder' ">
-    <PackageReference Include="Microsoft.VisualStudio.Threading.Analyzers" Version="17.11.20" PrivateAssets="All" IncludeAssets="runtime;build;native;contentfiles;analyzers" />
+    <PackageReference Include="Microsoft.VisualStudio.Threading.Analyzers" Version="17.12.19" PrivateAssets="All" IncludeAssets="runtime;build;native;contentfiles;analyzers" />
   </ItemGroup>
   <!--</Analyzers>-->
   <!--<ReproducibleBuilds>-->
