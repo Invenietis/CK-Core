@@ -3,6 +3,8 @@
   <PropertyGroup>
     <!-- See https://www.meziantou.net/csharp-compiler-strict-mode.htm -->
     <Features>strict</Features>
+    <!-- Nullable Reference Type is not an option. -->
+    <Nullable>enable</Nullable>
     <!-- Simple IsTestProject and IsInTestsFolder variables. -->
     <IsTestProject Condition=" '$(IsTestProject)' == '' And $(MSBuildProjectName.EndsWith('.Tests'))">true</IsTestProject>
     <IsInTestsFolder Condition="$(MSBuildProjectDirectory.Contains('\Tests\')) Or $(MSBuildProjectDirectory.Contains('/Tests/'))">true</IsInTestsFolder>
@@ -56,16 +58,16 @@
   <!--</GenerateDocumentation>-->
   <!--<Analyzers>: This analyzer provides very welcome guidelines about async and threading issues.-->
   <ItemGroup Condition=" '$(MSBuildProjectName)' != 'CodeCakeBuilder' ">
-    <PackageReference Include="Microsoft.VisualStudio.Threading.Analyzers" Version="17.10.48" PrivateAssets="All" IncludeAssets="runtime;build;native;contentfiles;analyzers" />
+    <PackageReference Include="Microsoft.VisualStudio.Threading.Analyzers" Version="17.12.19" PrivateAssets="All" IncludeAssets="runtime;build;native;contentfiles;analyzers" />
   </ItemGroup>
   <!--</Analyzers>-->
   <!--<ReproducibleBuilds>-->
   <!--Enable Deterministic build. https://github.com/dotnet/reproducible-builds. SourceLink is automatically managed by this package.-->
   <ItemGroup>
-    <PackageReference Include="DotNet.ReproducibleBuilds" Version="1.1.1" PrivateAssets="All" />
+    <PackageReference Include="DotNet.ReproducibleBuilds" Version="1.2.25" PrivateAssets="All" />
   </ItemGroup>
   <!--Guaranty that the build is isolated. https://github.com/dotnet/reproducible-builds#dotnetreproduciblebuildsisolated-documentation-and-nuget-package-->
-  <Sdk Name="DotNet.ReproducibleBuilds.Isolated" Version="1.1.1" />
+  <Sdk Name="DotNet.ReproducibleBuilds.Isolated" Version="1.2.25" />
   <!--</ReproducibleBuilds>-->
   <!--<_CopyXmlDocFiles>:
     It's a mess... See  https://github.com/dotnet/sdk/issues/1458#issuecomment-695119194

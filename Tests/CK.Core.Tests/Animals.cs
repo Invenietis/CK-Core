@@ -4,56 +4,55 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text;
 
-namespace CK.Core.Tests
+namespace CK.Core.Tests;
+
+public class Animal
 {
-    public class Animal
+    public Animal( string name )
     {
-        public Animal( string name )
-        {
-            Name = name;
-        }
-
-        public string Name { get; set; }
-
-        public override string ToString()
-        {
-            return $"Animals: {Name} ({GetHashCode()})";
-        }
+        Name = name;
     }
 
-    public class Mammal : Animal
+    public string Name { get; set; }
+
+    public override string ToString()
     {
-        public Mammal( string name, int gestationPeriod = 12 )
-            : base( name )
-        {
-            Name = name;
-            GestationPeriod = gestationPeriod;
-        }
+        return $"Animals: {Name} ({GetHashCode()})";
+    }
+}
 
-        public int GestationPeriod { get; set; }
-
-        public override string ToString()
-        {
-            return $"Mammals: {Name}, {GestationPeriod} ({GetHashCode()})";
-        }
-
+public class Mammal : Animal
+{
+    public Mammal( string name, int gestationPeriod = 12 )
+        : base( name )
+    {
+        Name = name;
+        GestationPeriod = gestationPeriod;
     }
 
-    public class Canidae : Mammal
+    public int GestationPeriod { get; set; }
+
+    public override string ToString()
     {
-        public Canidae( string name, int gestationPeriod = 9, bool isRetriever = false )
-            : base( name, gestationPeriod )
-        {
-            Name = name;
-            GestationPeriod = gestationPeriod;
-            IsRetriever = isRetriever;
-        }
+        return $"Mammals: {Name}, {GestationPeriod} ({GetHashCode()})";
+    }
 
-        public bool IsRetriever { get; set; }
+}
 
-        public override string ToString()
-        {
-            return $"Canidae: {Name}, {GestationPeriod}, {IsRetriever} ({GetHashCode()})";
-        }
+public class Canidae : Mammal
+{
+    public Canidae( string name, int gestationPeriod = 9, bool isRetriever = false )
+        : base( name, gestationPeriod )
+    {
+        Name = name;
+        GestationPeriod = gestationPeriod;
+        IsRetriever = isRetriever;
+    }
+
+    public bool IsRetriever { get; set; }
+
+    public override string ToString()
+    {
+        return $"Canidae: {Name}, {GestationPeriod}, {IsRetriever} ({GetHashCode()})";
     }
 }

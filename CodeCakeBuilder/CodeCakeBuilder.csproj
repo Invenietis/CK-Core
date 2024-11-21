@@ -1,20 +1,21 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>net6.0</TargetFramework>
+    <TargetFramework>net8.0</TargetFramework>
     <OutputType>Exe</OutputType>
     <IsPackable>false</IsPackable>
     <SignAssembly>false</SignAssembly>
     <GenerateDocumentationFile>false</GenerateDocumentationFile>
     <ManagePackageVersionsCentrally>false</ManagePackageVersionsCentrally>
+    <Nullable>annotations</Nullable>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="NuGet.Credentials" Version="6.7.0" />
+    <PackageReference Include="NuGet.Credentials" Version="6.12.1" />
   </ItemGroup>
   <ItemGroup>
     <None Remove="TestResult.xml" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="SimpleGitVersion.Cake" Version="9.0.0" />
+    <PackageReference Include="SimpleGitVersion.Cake" Version="11.0.2" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\CK.Core\CK.Core.csproj" />

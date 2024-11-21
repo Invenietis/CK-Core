@@ -1,16 +1,15 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>net6.0</TargetFramework>
+    <TargetFramework>net8.0</TargetFramework>
     <IsPackable>False</IsPackable>
     <LangVersion>11</LangVersion>
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\CK.Core\CK.Core.csproj" />
-    <PackageReference Include="FluentAssertions" Version="6.12.0" />
-    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.10.0" />
-    <PackageReference Include="NUnit3TestAdapter" Version="4.5.0" />
-    <PackageReference Include="NUnit" Version="4.1.0" />
-    <PackageReference Include="Microsoft.Extensions.Configuration" Version="6.0.1" />
+    <PackageReference Include="FluentAssertions" Version="6.12.2" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.11.1" />
+    <PackageReference Include="NUnit3TestAdapter" Version="4.6.0" />
+    <PackageReference Include="NUnit" Version="4.2.2" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Properties\" />

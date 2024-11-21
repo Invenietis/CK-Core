@@ -2,74 +2,73 @@ using Cake.Common.IO;
 using Cake.Core;
 using Cake.Core.Diagnostics;
 
-namespace CodeCake
+namespace CodeCake;
+
+/// <summary>
+/// Standard build "script".
+/// </summary>
+
+public partial class Build : CodeCakeHost
 {
-    /// <summary>
-    /// Standard build "script".
-    /// </summary>
-
-    public partial class Build : CodeCakeHost
+    public Build()
     {
-        public Build()
-        {
-            Cake.Log.Verbosity = Verbosity.Diagnostic;
+        Cake.Log.Verbosity = Verbosity.Diagnostic;
 
-            StandardGlobalInfo globalInfo = CreateStandardGlobalInfo()
-                                                .AddDotnet()
-                                                .SetCIBuildTag();
+        StandardGlobalInfo globalInfo = CreateStandardGlobalInfo()
+                                            .AddDotnet()
+                                            .SetCIBuildTag();
 
-            Task( "Check-Repository" )
-                .Does( () =>
-                {
-                    globalInfo.TerminateIfShouldStop();
-                } );
+        Task( "Check-Repository" )
+            .Does( () =>
+            {
+                globalInfo.TerminateIfShouldStop();
+            } );
 
-            Task( "Clean" )
-                .IsDependentOn( "Check-Repository" )
-                .Does( () =>
-                 {
-                     globalInfo.GetDotnetSolution().Clean();
-                     Cake.CleanDirectories( globalInfo.ReleasesFolder.ToString() );
-                     Cake.DeleteFiles( "Tests/**/TestResult*.xml" );
-                 } );
+        Task( "Clean" )
+            .IsDependentOn( "Check-Repository" )
+            .Does( () =>
+             {
+                 globalInfo.GetDotnetSolution().Clean();
+                 Cake.CleanDirectories( globalInfo.ReleasesFolder.ToString() );
+                 Cake.DeleteFiles( "Tests/**/TestResult*.xml" );
+             } );
 
-            Task( "Build" )
-                .IsDependentOn( "Check-Repository" )
-                .IsDependentOn( "Clean" )
-                .Does( () =>
-                {
-                    globalInfo.GetDotnetSolution().Build();
-                } );
+        Task( "Build" )
+            .IsDependentOn( "Check-Repository" )
+            .IsDependentOn( "Clean" )
+            .Does( () =>
+            {
+                globalInfo.GetDotnetSolution().Build();
+            } );
 
-            Task( "Unit-Testing" )
-                .IsDependentOn( "Build" )
-                .WithCriteria( () => Cake.InteractiveMode() == InteractiveMode.NoInteraction
-                                     || Cake.ReadInteractiveOption( "RunUnitTests", "Run Unit Tests?", 'Y', 'N' ) == 'Y' )
-                .Does( () =>
-                {
-                    globalInfo.GetDotnetSolution().Test();
-                } );
+        Task( "Unit-Testing" )
+            .IsDependentOn( "Build" )
+            .WithCriteria( () => Cake.InteractiveMode() == InteractiveMode.NoInteraction
+                                 || Cake.ReadInteractiveOption( "RunUnitTests", "Run Unit Tests?", 'Y', 'N' ) == 'Y' )
+            .Does( () =>
+            {
+                globalInfo.GetDotnetSolution().SolutionTest();
+            } );
 
-            Task( "Create-NuGet-Packages" )
-                .WithCriteria( () => globalInfo.IsValid )
-                .IsDependentOn( "Unit-Testing" )
-                .Does( () =>
-                {
-                    globalInfo.GetDotnetSolution().Pack();
-                } );
+        Task( "Create-NuGet-Packages" )
+            .WithCriteria( () => globalInfo.IsValid )
+            .IsDependentOn( "Unit-Testing" )
+            .Does( () =>
+            {
+                globalInfo.GetDotnetSolution().Pack();
+            } );
 
-            Task( "Push-Artifacts" )
-                .IsDependentOn( "Create-NuGet-Packages" )
-                .WithCriteria( () => globalInfo.IsValid )
-                .Does( async () =>
-                {
-                    await globalInfo.PushArtifactsAsync();
-                } );
+        Task( "Push-Artifacts" )
+            .IsDependentOn( "Create-NuGet-Packages" )
+            .WithCriteria( () => globalInfo.IsValid )
+            .Does( async () =>
+            {
+                await globalInfo.PushArtifactsAsync();
+            } );
 
-            // The Default task for this script can be set here.
-            Task( "Default" )
-                .IsDependentOn( "Push-Artifacts" );
+        // The Default task for this script can be set here.
+        Task( "Default" )
+            .IsDependentOn( "Push-Artifacts" );
 
-        }
     }
 }
