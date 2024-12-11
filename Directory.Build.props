@@ -34,6 +34,7 @@
     <ImplicitUsings>disable</ImplicitUsings>
     <!--Nullable Reference Type should always be used!-->
     <Nullable>enable</Nullable>
+    <!--Nullable Reference Type should always be used!-->
     <PackageIcon>PackageIcon.png</PackageIcon>
     <AssemblyOriginatorKeyFile>$(SolutionDir)Common/SharedKey.snk</AssemblyOriginatorKeyFile>
     <SignAssembly>true</SignAssembly>

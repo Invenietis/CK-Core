@@ -367,12 +367,12 @@ public partial class Build
                 var logger = InitializeAndGetLogger( Cake );
                 var updater = await _updater;
                 var names = pushes.Select( p => p.Name + "." + p.Version.WithBuildMetaData( null ).ToNormalizedString() );
-                var fullPaths = names.Select( n => ArtifactType.GlobalInfo.ReleasesFolder.AppendPart( n + ".nupkg" ).ToString() );
+                var fullPaths = names.Select( n => ArtifactType.GlobalInfo.ReleasesFolder.AppendPart( n + ".nupkg" ).ToString() ).ToList();
 
                 await updater.Push(
-                    fullPaths.ToList(),
+                    fullPaths,
                     string.Empty, // no Symbol source.
-                    2*60, // 2 minutes timeout
+                    30 * fullPaths.Count, // 30 seconds per package timeout.
                     disableBuffering: false,
                     getApiKey: endpoint => apiKey,
                     getSymbolApiKey: symbolsEndpoint => null,
