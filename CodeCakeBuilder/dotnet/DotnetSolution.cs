@@ -3,6 +3,7 @@ using Cake.Common.IO;
 using Cake.Common.Solution;
 using Cake.Common.Tools.DotNet;
 using Cake.Common.Tools.DotNet.Build;
+using Cake.Common.Tools.DotNet.MSBuild;
 using Cake.Common.Tools.DotNet.Test;
 using Cake.Common.Tools.NUnit;
 using Cake.Core;
@@ -129,7 +130,11 @@ public partial class DotnetSolution : ICIWorkflow
                 Configuration = _globalInfo.BuildInfo.BuildConfiguration,
                 NoRestore = true,
                 NoBuild = true,
-                Loggers = ["trx"]
+                Loggers = ["trx"],
+                MSBuildSettings = new DotNetMSBuildSettings()
+                {
+                    MaxCpuCount = 1
+                }
             };
             _globalInfo.Cake.DotNetTest( null, options );
         }
