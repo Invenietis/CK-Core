@@ -496,7 +496,7 @@ public class NormalizedPathTests
     [TestCase( "a/b", 0, 2, "" )]
     [TestCase( "a", -1, 1, "ArgumentOutOfRangeException" )]
     [TestCase( "a/b", 1, 0, "a/b" )]
-    [TestCase( "a/b", 2, 0, "ArgumentOutOfRangeException" )]
+    [TestCase( "a/b", 2, 0, "a/b" )]
     [TestCase( "//a/b/c/d", 0, 1, "//b/c/d" )]
     [TestCase( "/a/b/c/d", 0, 2, "/c/d" )]
     [TestCase( "//a/b/c/d", 1, 2, "//a/d" )]

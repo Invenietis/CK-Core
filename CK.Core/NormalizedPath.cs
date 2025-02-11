@@ -472,7 +472,7 @@ public readonly partial struct NormalizedPath : IEquatable<NormalizedPath>, ICom
         if( string.IsNullOrEmpty( part ) ) return this;
         if( _parts == null )
         {
-            Debug.Assert( _option != NormalizedPathRootKind.RootedByFirstPart );
+            Throw.DebugAssert( _option != NormalizedPathRootKind.RootedByFirstPart );
             if( _option == NormalizedPathRootKind.None ) return new NormalizedPath( part );
             var p = _option == NormalizedPathRootKind.RootedBySeparator
                                 ? DirectorySeparatorChar + part
@@ -586,7 +586,7 @@ public readonly partial struct NormalizedPath : IEquatable<NormalizedPath>, ICom
     public NormalizedPath RemoveParts( int startIndex, int count )
     {
         int to = startIndex + count;
-        Throw.CheckOutOfRangeArgument( $"{nameof( startIndex )} and {nameof( count )}", _parts != null && startIndex >= 0 && startIndex < _parts.Length && to <= _parts.Length );
+        Throw.CheckOutOfRangeArgument( _parts != null && startIndex >= 0 && to <= _parts.Length );
         if( count == 0 ) return this;
         if( startIndex == 0 ) return RemoveFirstPart( count );
         int nb = _parts.Length - count;
