@@ -19,7 +19,7 @@ public class CKBinaryReader : BinaryReader, ICKBinaryReader
     /// Implements a simple object pool that handles objects written through <see cref="CKBinaryWriter.ObjectPool{T}"/>.
     /// </summary>
     /// <typeparam name="T">The type of the object.</typeparam>
-    public class ObjectPool<T>
+    public sealed class ObjectPool<T>
     {
         readonly List<T?> _objects;
         readonly ICKBinaryReader _r;

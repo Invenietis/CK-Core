@@ -584,6 +584,8 @@ public class BinaryReaderWriterTests
                 w.Write( o1 );
                 pool.MustWrite( o2, 255 ).Should().BeTrue();
                 w.Write( o2 );
+                WriteNullableDemo( w, pool, "demo" );
+                WriteNullableDemo( w, pool, null );
             }
             mem.Position = 0;
             using( var r = new CKBinaryReader( mem, Encoding.UTF8, true ) )
@@ -603,9 +605,30 @@ public class BinaryReaderWriterTests
 
                 s1.Should().Be( o1 ).And.Be( o2 );
                 s2.Should().Be( o1 ).And.Be( o2 );
+
+                ReadNullableDemo( r, pool ).Should().Be( "demo" );
+                ReadNullableDemo( r, pool ).Should().BeNull();
             }
         }
+
+        static void WriteNullableDemo( CKBinaryWriter w, CKBinaryWriter.ObjectPool<string> pool, string? v )
+        {
+            if( pool.MustWrite( v ) )
+            {
+                // 'v' is not null here.
+                w.Write( v );
+            }
+            // 'v' may be null here.
+        }
+
+        static string? ReadNullableDemo( CKBinaryReader r, CKBinaryReader.ObjectPool<string> pool )
+        {
+            var s = pool.TryRead( out var v );
+            if( !s.Success ) v = r.ReadString();
+            return v;
+        }
     }
+
 
     static int ReadWrite( Action<ICKBinaryWriter> writer, Action<ICKBinaryReader>? reader = null )
     {

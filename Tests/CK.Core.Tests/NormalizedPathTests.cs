@@ -627,7 +627,7 @@ public class NormalizedPathTests
     [TestCase( "http://a", "http://b" )]
     public void GetRelativePath_invalid_test( string source, string target )
     {
-        new NormalizedPath( source ).TryGetRelativePathTo( target, out var relative ).Should().BeFalse();
+        new NormalizedPath( source ).TryGetRelativePathTo( target, out var _ ).Should().BeFalse();
     }
 
 }
