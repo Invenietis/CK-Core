@@ -56,7 +56,6 @@ public sealed class Utf8JsonStreamReaderContext : IDisposableUtf8JsonReaderConte
     /// of the sequence.
     /// </summary>
     /// <param name="sequence">The in memory bytes.</param>
-    /// <param name="options"></param>
     /// <param name="options">The Json reader options.</param>
     /// <param name="r">The reader.</param>
     /// <returns>An empty context.</returns>

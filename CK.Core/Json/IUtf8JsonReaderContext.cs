@@ -31,17 +31,12 @@ public interface IUtf8JsonReaderContext
     /// <summary>
     /// Empty object pattern. Can be used when data is available in memory, typically
     /// in a <see cref="ReadOnlySequence{T}"/> of bytes.
-    /// <para>
-    /// This empty context is returned by <see cref="Utf8JsonStreamReaderContext.Create"/>
-    /// when the stream is a <see cref="RecyclableMemoryStream"/> and the Utf8JsonReader is bound
-    /// to the <see cref="RecyclableMemoryStream.GetReadOnlySequence()"/>.
-    /// </para>
     /// </summary>
     public sealed class EmptyContext : IDisposableUtf8JsonReaderContext
     {
-        public void ReadMoreData( ref Utf8JsonReader reader ) { }
-        public void SkipMoreData( ref Utf8JsonReader reader ) { }
-        public void Dispose() { }
+        void IUtf8JsonReaderContext.ReadMoreData( ref Utf8JsonReader reader ) { }
+        void IUtf8JsonReaderContext.SkipMoreData( ref Utf8JsonReader reader ) { }
+        void IDisposable.Dispose() { }
     }
 
     /// <summary>
