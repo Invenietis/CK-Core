@@ -164,7 +164,7 @@ public partial class Utf8JsonStreamReaderTests
     {
         // leaveOpened is true by default.
         SlicedStream stream = CreateDataStream( mode, sampleJson );
-        using( var sr = Utf8JsonStreamReader.Create( stream, default, out var reader, initialBufferSize: initialBufferSize ) )
+        using( var sr = Utf8JsonStreamReaderContext.CreateStreamReader( stream, default, out var reader, initialBufferSize: initialBufferSize ) )
         {
             ReadDoneProperty( ref reader, sr, skipWholeProperty ).Should().BeTrue();
 
@@ -198,7 +198,7 @@ public partial class Utf8JsonStreamReaderTests
         byte[] data = Utf8Bom.Concat( Encoding.UTF8.GetBytes( sampleJson ) ).ToArray();
 
         using SlicedStream stream = new SlicedStream( new MemoryStream( data ), mode );
-        using var sr = Utf8JsonStreamReader.Create( stream, default, out var reader, initialBufferSize: initialBufferSize );
+        using var sr = Utf8JsonStreamReaderContext.CreateStreamReader( stream, default, out var reader, initialBufferSize: initialBufferSize );
 
         ReadDoneProperty( ref reader, sr, skipWholeProperty ).Should().BeTrue();
 
@@ -228,7 +228,7 @@ public partial class Utf8JsonStreamReaderTests
     {
         var data = sampleJson + "More bytes after...";
         using SlicedStream stream = CreateDataStream( mode, data );
-        using var sr = Utf8JsonStreamReader.Create( stream, default, out var reader, initialBufferSize: initialBufferSize );
+        using var sr = Utf8JsonStreamReaderContext.CreateStreamReader( stream, default, out var reader, initialBufferSize: initialBufferSize );
 
         ReadDoneProperty( ref reader, sr, skipWholeProperty ).Should().BeTrue();
 
@@ -242,7 +242,7 @@ public partial class Utf8JsonStreamReaderTests
         }
         catch( JsonException ) { }
 
-        // The GetUnreadBytes can be called as long as the Utf8JsonStreamReader is not disposed.
+        // The GetUnreadBytes can be called as long as the Utf8JsonStreamReaderContext is not disposed.
         // Depending on the length read, the buffer can be small.
         "More bytes after...".Should().StartWith( Encoding.UTF8.GetString( sr.GetUnreadBytes( ref reader ) ) );
     }

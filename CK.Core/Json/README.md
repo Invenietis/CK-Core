@@ -11,7 +11,7 @@ They enable the `Utf8JsonReader` to read from a stream (or any other memory mana
 data input in memory) with the help of an extra [`IUtf8JsonReaderContext`](IUtf8JsonReaderContext.cs) parameter
 that can provide more data as needed.
 
-The [`Utf8JsonStreamReader`](Utf8JsonStreamReader.cs) implements the [`IUtf8JsonReaderContext`](IUtf8JsonReaderContext.cs)
+The [`Utf8JsonStreamReaderContext`](Utf8JsonStreamReaderContext.cs) implements the [`IUtf8JsonReaderContext`](IUtf8JsonReaderContext.cs)
 interface for the standard Stream type.
 
 This extended pattern requires Json reader functions to accept one more parameter than the minimal pattern that
@@ -21,7 +21,7 @@ public delegate void Utf8JsonReaderDelegate( ref Utf8JsonReader r, IUtf8JsonRead
 ```
 
 The pattern to use it is to replace all calls to `r.Read()` with
-`if( !r.Read() ) context.ReadMoreData( ref r );` and all <c>r.Skip()</c> calls with
+`if( !r.Read() ) context.ReadMoreData( ref r );` and all `r.Skip()` calls with
 `if( !r.TrySkip() ) context.SkipMoreData( ref r );`, or use the extension methods (`r.ReadWithMoreData( context )`
 and `r.SkipWithMoreData( context )`).
 
@@ -31,6 +31,25 @@ hooks that may be required while reading Json.
 
 When no context is required (the input data is in memory - in a `ReadOnlySpan<byte>` or a `ReadOnlySequence<byte>` -
 and the reader function doesn't require any option), the `IUtf8JsonReaderContext.Empty` singleton can be used.
+
+Static factories are available on the `Utf8JsonStreamReaderContext` that can create context and a `Utf8JsonReader`
+for a `ReadOnlySequence<byte>`, for a stream that must not be a `RecyclableMemoryStream` and for any kind of stream:
+```csharp
+IUtf8JsonReaderContext Create( ReadOnlySequence<byte> sequence, JsonReaderOptions options, out Utf8JsonReader r ) { ... }
+Utf8JsonStreamReaderContext CreateStreamReader( Stream stream,
+                                                JsonReaderOptions options,
+                                                out Utf8JsonReader r,
+                                                bool leaveOpened = false,
+                                                int initialBufferSize = 512,
+                                                int maxBufferSize = int.MaxValue ) { ... }
+IDisposableUtf8JsonReaderContext Create( Stream stream,
+                                         JsonReaderOptions options,
+                                         out Utf8JsonReader r,
+                                         bool leaveOpened = false,
+                                         // The following are ignored when stream is RecyclableMemoryStream.
+                                         int initialBufferSize = 512, 
+                                         int maxBufferSize = int.MaxValue )
+```
 
 ## Don't forget the comments!
 Comments can be forbidden or skipped at the `Utf8JsonReader` level. However when writing library code,

@@ -134,7 +134,7 @@ public class JsonTests
     // To be automatically composable, reader contexts should be used by interface.
     // They should be like IPoco: they should be fully mutable. Their final implementation
     // should be unified but explicit implementations should be used (property name are not
-    // shared). A unique final Utf8JsonReaderContext should be code generated.
+    // shared). A unique final IUtf8JsonReaderContext should be code generated.
     interface ISuperDataReaderContext : IUtf8JsonReaderContext
     {
         DateTime MinEventTime { get; set; }

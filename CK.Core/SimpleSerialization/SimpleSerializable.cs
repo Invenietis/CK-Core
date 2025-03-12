@@ -1,12 +1,8 @@
 using CommunityToolkit.HighPerformance;
 using Microsoft.IO;
 using System;
-using System.Buffers;
-using System.Collections.Generic;
-using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
-using System.Runtime.CompilerServices;
 using System.Text;
 
 namespace CK.Core;

@@ -1,10 +1,7 @@
 using FluentAssertions;
 using System;
-using System.Globalization;
 using System.Linq;
 using NUnit.Framework;
-using NUnit.Framework.Constraints;
-using Microsoft.VisualStudio.TestPlatform.ObjectModel;
 
 namespace CK.Core.Tests;
 

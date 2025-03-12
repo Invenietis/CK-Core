@@ -3,7 +3,6 @@ using System.Buffers.Text;
 using System.Diagnostics;
 using System.Linq;
 using System.Runtime.InteropServices;
-using System.Text.Json;
 using System.Threading;
 
 namespace CK.Core;

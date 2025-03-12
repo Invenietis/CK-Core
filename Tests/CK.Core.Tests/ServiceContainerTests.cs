@@ -2,7 +2,6 @@ using FluentAssertions;
 using System;
 using System.Diagnostics.CodeAnalysis;
 using NUnit.Framework;
-using System.Diagnostics;
 
 namespace CK.Core.Tests;
 

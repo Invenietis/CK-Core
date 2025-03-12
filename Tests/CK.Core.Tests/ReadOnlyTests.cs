@@ -1,10 +1,7 @@
-using System.Reflection;
-using CK.Core;
 using NUnit.Framework;
 using System.Linq;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
 using FluentAssertions;
 
 namespace CK.Core.Tests;

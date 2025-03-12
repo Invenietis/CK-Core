@@ -2,9 +2,6 @@ using FluentAssertions;
 using NUnit.Framework;
 using System;
 using System.Diagnostics;
-using System.Linq;
-using System.Runtime.InteropServices;
-using System.Threading;
 
 namespace CK.Core.Tests;
 
