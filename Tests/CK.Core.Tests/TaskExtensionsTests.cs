@@ -1,4 +1,4 @@
-using FluentAssertions;
+using Shouldly;
 using NUnit.Framework;
 using System;
 using System.Threading;
@@ -13,10 +13,10 @@ public class TaskExtensionsTests
     public async Task WaitAsync_resolved_before_timeout_returns_true_Async()
     {
         var t = Task.Delay( 100 );
-        t.IsCompleted.Should().BeFalse();
+        t.IsCompleted.ShouldBeFalse();
         bool gotIt = await t.WaitForTaskCompletionAsync( 200 );
-        gotIt.Should().BeTrue();
-        t.IsCompletedSuccessfully.Should().BeTrue();
+        gotIt.ShouldBeTrue();
+        t.IsCompletedSuccessfully.ShouldBeTrue();
     }
 
     [Test]
@@ -24,10 +24,10 @@ public class TaskExtensionsTests
     {
         var t = Task.Delay( 200 );
         DateTime now = DateTime.UtcNow;
-        t.IsCompleted.Should().BeFalse();
+        t.IsCompleted.ShouldBeFalse();
         bool gotIt = await t.WaitForTaskCompletionAsync( 100 );
-        gotIt.Should().BeFalse();
-        (DateTime.UtcNow - now).Should().NotBeCloseTo( TimeSpan.Zero, precision: TimeSpan.FromMilliseconds( 1 ) );
+        gotIt.ShouldBeFalse();
+        (DateTime.UtcNow - now).ShouldNotBe( TimeSpan.Zero, tolerance: TimeSpan.FromMilliseconds( 1 ) );
     }
 
     [Test]
@@ -36,8 +36,8 @@ public class TaskExtensionsTests
         var t = Task.CompletedTask;
         DateTime now = DateTime.UtcNow;
         bool gotIt = await t.WaitForTaskCompletionAsync( 100 );
-        gotIt.Should().BeTrue();
-        (DateTime.UtcNow - now).Should().BeCloseTo( TimeSpan.Zero, precision: TimeSpan.FromMilliseconds( 1 ) );
+        gotIt.ShouldBeTrue();
+        (DateTime.UtcNow - now).ShouldBe( TimeSpan.Zero, tolerance: TimeSpan.FromMilliseconds( 1 ) );
     }
 
     [Test]
@@ -49,8 +49,8 @@ public class TaskExtensionsTests
         var t = Task.FromCanceled( cts.Token );
         DateTime now = DateTime.UtcNow;
         bool gotIt = await t.WaitForTaskCompletionAsync( 100 );
-        gotIt.Should().BeTrue();
-        (DateTime.UtcNow - now).Should().BeCloseTo( TimeSpan.Zero, precision: TimeSpan.FromMilliseconds( 1 ) );
+        gotIt.ShouldBeTrue();
+        (DateTime.UtcNow - now).ShouldBe( TimeSpan.Zero, tolerance: TimeSpan.FromMilliseconds( 1 ) );
     }
 
     [Test]
@@ -61,8 +61,8 @@ public class TaskExtensionsTests
 
         DateTime now = DateTime.UtcNow;
         bool gotIt = await tcs.Task.WaitForTaskCompletionAsync( 100 );
-        gotIt.Should().BeTrue();
-        (DateTime.UtcNow - now).Should().BeCloseTo( TimeSpan.Zero, precision: TimeSpan.FromMilliseconds( 1 ) );
+        gotIt.ShouldBeTrue();
+        (DateTime.UtcNow - now).ShouldBe(TimeSpan.Zero, tolerance: TimeSpan.FromMilliseconds(1));
     }
 
     [Test]
@@ -75,7 +75,7 @@ public class TaskExtensionsTests
             tcs.SetResult();
         } );
         bool gotIt = await tcs.Task.WaitForTaskCompletionAsync( Timeout.Infinite );
-        gotIt.Should().BeTrue();
+        gotIt.ShouldBeTrue();
     }
 
     [TestCase( "Error" )]
@@ -99,15 +99,15 @@ public class TaskExtensionsTests
 
         DateTime now = DateTime.UtcNow;
         bool gotIt = await tcs.Task.WaitForTaskCompletionAsync( 1000 );
-        actionDone.Should().BeTrue();
-        gotIt.Should().BeTrue();
-        (DateTime.UtcNow - now).Should().BeCloseTo( TimeSpan.FromMilliseconds( 150 ), precision: TimeSpan.FromMilliseconds( 50 ) );
+        actionDone.ShouldBeTrue();
+        gotIt.ShouldBeTrue();
+        (DateTime.UtcNow - now).ShouldBe( TimeSpan.FromMilliseconds( 150 ), tolerance: TimeSpan.FromMilliseconds( 50 ) );
 
         switch( action )
         {
-            case "Error": tcs.Task.IsFaulted.Should().BeTrue(); break;
-            case "Cancel": tcs.Task.IsCanceled.Should().BeTrue(); break;
-            default: tcs.Task.IsCompletedSuccessfully.Should().BeTrue(); break;
+            case "Error": tcs.Task.IsFaulted.ShouldBeTrue(); break;
+            case "Cancel": tcs.Task.IsCanceled.ShouldBeTrue(); break;
+            default: tcs.Task.IsCompletedSuccessfully.ShouldBeTrue(); break;
         }
 
     }
@@ -122,9 +122,9 @@ public class TaskExtensionsTests
 
             DateTime now = DateTime.UtcNow;
             bool gotIt = await tcs.Task.WaitForTaskCompletionAsync( 500, cts.Token );
-            gotIt.Should().BeFalse();
-            cts.Token.IsCancellationRequested.Should().BeTrue();
-            (DateTime.UtcNow - now).Should().BeCloseTo( TimeSpan.FromMilliseconds( 150 ), precision: TimeSpan.FromMilliseconds( 50 ) );
+            gotIt.ShouldBeFalse();
+            cts.Token.IsCancellationRequested.ShouldBeTrue();
+            (DateTime.UtcNow - now).ShouldBe( TimeSpan.FromMilliseconds( 150 ), tolerance: TimeSpan.FromMilliseconds( 50 ) );
         }
         // The cancellationToken has fired BEFORE the WaitAsync.
         {
@@ -134,8 +134,8 @@ public class TaskExtensionsTests
             var tcs = new TaskCompletionSource<string>();
             DateTime now = DateTime.UtcNow;
             bool gotIt = await tcs.Task.WaitForTaskCompletionAsync( 500, cts.Token );
-            gotIt.Should().BeFalse();
-            (DateTime.UtcNow - now).Should().BeCloseTo( TimeSpan.Zero, precision: TimeSpan.FromMilliseconds( 1 ) );
+            gotIt.ShouldBeFalse();
+            (DateTime.UtcNow - now).ShouldBe(TimeSpan.Zero, tolerance: TimeSpan.FromMilliseconds(1));
         }
 
     }

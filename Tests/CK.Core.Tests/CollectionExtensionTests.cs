@@ -1,4 +1,4 @@
-using FluentAssertions;
+using Shouldly;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -27,13 +27,13 @@ public class CollectionAmbiguityExtensionTests
         var y = ((IDictionary<string, Canidae>)e).AsIReadOnlyDictionary<string, Canidae, Animal>();
         var z = ((IReadOnlyDictionary<string, Canidae>)e).AsIReadOnlyDictionary<string, Canidae, Animal>();
 
-        e.GetEnumerator().Should().BeOfType<Dictionary<string, Canidae>.Enumerator>();
-        x["TooCute"].Should().BeSameAs( puce );
-        y["TooCute"].Should().BeSameAs( puce );
-        z["TooCute"].Should().BeSameAs( puce );
-        x.GetEnumerator().Should().NotBeOfType<Dictionary<string, Canidae>.Enumerator>();
-        y.GetEnumerator().Should().NotBeOfType<Dictionary<string, Canidae>.Enumerator>();
-        z.GetEnumerator().Should().NotBeOfType<Dictionary<string, Canidae>.Enumerator>();
+        e.GetEnumerator().ShouldBeOfType<Dictionary<string, Canidae>.Enumerator>();
+        x["TooCute"].ShouldBeSameAs( puce );
+        y["TooCute"].ShouldBeSameAs( puce );
+        z["TooCute"].ShouldBeSameAs( puce );
+        x.GetEnumerator().ShouldNotBeOfType<Dictionary<string, Canidae>.Enumerator>();
+        y.GetEnumerator().ShouldNotBeOfType<Dictionary<string, Canidae>.Enumerator>();
+        z.GetEnumerator().ShouldNotBeOfType<Dictionary<string, Canidae>.Enumerator>();
     }
 }
 
@@ -50,9 +50,9 @@ namespace CK.Core.Tests
                 List<int> l = new List<int>();
                 l.AddRangeArray( 12, 15, 12, 13, 14 );
                 var r = l.RemoveWhereAndReturnsRemoved( x => x == 12 );
-                l.Count.Should().Be( 5 );
-                r.Count().Should().Be( 2 );
-                l.Count.Should().Be( 3 );
+                l.Count.ShouldBe( 5 );
+                r.Count().ShouldBe( 2 );
+                l.Count.ShouldBe( 3 );
             }
         }
 
@@ -62,20 +62,20 @@ namespace CK.Core.Tests
         {
             var e = new CKEnumeratorMono<int>( 9 );
             Action a = () => Console.WriteLine( e.Current );
-            a.Should().Throw<InvalidOperationException>();
-            e.MoveNext().Should().BeTrue();
-            e.Current.Should().Be( 9 );
-            e.MoveNext().Should().BeFalse();
+            a.ShouldThrow<InvalidOperationException>();
+            e.MoveNext().ShouldBeTrue();
+            e.Current.ShouldBe( 9 );
+            e.MoveNext().ShouldBeFalse();
             a = () => Console.WriteLine( e.Current );
-            a.Should().Throw<InvalidOperationException>();
+            a.ShouldThrow<InvalidOperationException>();
             e.Reset();
             a = () => Console.WriteLine( e.Current );
-            a.Should().Throw<InvalidOperationException>();
-            e.MoveNext().Should().BeTrue();
-            e.Current.Should().Be( 9 );
-            e.MoveNext().Should().BeFalse();
+            a.ShouldThrow<InvalidOperationException>();
+            e.MoveNext().ShouldBeTrue();
+            e.Current.ShouldBe( 9 );
+            e.MoveNext().ShouldBeFalse();
             a = () => Console.WriteLine( e.Current );
-            a.Should().Throw<InvalidOperationException>();
+            a.ShouldThrow<InvalidOperationException>();
         }
 
 

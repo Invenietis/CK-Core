@@ -1,4 +1,4 @@
-using FluentAssertions;
+using Shouldly;
 using NUnit.Framework;
 using System;
 using System.Diagnostics;
@@ -51,60 +51,60 @@ public class DateTimeStampTests
     public void DateTimeStamp_ToString_and_TryFormat_and_Parse()
     {
         DateTimeStamp d1 = DateTimeStamp.UtcNow;
-        d1.Uniquifier.Should().Be( 0 );
+        d1.Uniquifier.ShouldBe( 0 );
         var b = new char[32];
 
         d1.TryFormat( b.AsSpan(), out var cb, ReadOnlySpan<char>.Empty, null );
-        cb.Should().Be( 27 );
+        cb.ShouldBe( 27 );
         d1.ToString().AsSpan().SequenceEqual( b.AsSpan() );
-        d1.TryFormat( b.AsSpan( 0, 26 ), out cb, ReadOnlySpan<char>.Empty, null ).Should().BeFalse();
-        cb.Should().Be( 0 );
+        d1.TryFormat( b.AsSpan( 0, 26 ), out cb, ReadOnlySpan<char>.Empty, null ).ShouldBeFalse();
+        cb.ShouldBe( 0 );
         CheckMatchAndParse( d1 );
 
         d1 = new DateTimeStamp( d1.TimeUtc, 5 );
         d1.TryFormat( b.AsSpan(), out cb, ReadOnlySpan<char>.Empty, null );
-        cb.Should().Be( 30 );
+        cb.ShouldBe( 30 );
         d1.ToString().AsSpan().SequenceEqual( b.AsSpan() );
-        d1.TryFormat( b.AsSpan( 0, 29 ), out cb, ReadOnlySpan<char>.Empty, null ).Should().BeFalse();
-        cb.Should().Be( 0 );
+        d1.TryFormat( b.AsSpan( 0, 29 ), out cb, ReadOnlySpan<char>.Empty, null ).ShouldBeFalse();
+        cb.ShouldBe( 0 );
         CheckMatchAndParse( d1 );
 
         d1 = new DateTimeStamp( d1.TimeUtc, 99 );
         d1.TryFormat( b.AsSpan(), out cb, ReadOnlySpan<char>.Empty, null );
-        cb.Should().Be( 31 );
+        cb.ShouldBe( 31 );
         d1.ToString().AsSpan().SequenceEqual( b.AsSpan() );
-        d1.TryFormat( b.AsSpan( 0, 30 ), out cb, ReadOnlySpan<char>.Empty, null ).Should().BeFalse();
-        cb.Should().Be( 0 );
+        d1.TryFormat( b.AsSpan( 0, 30 ), out cb, ReadOnlySpan<char>.Empty, null ).ShouldBeFalse();
+        cb.ShouldBe( 0 );
         CheckMatchAndParse( d1 );
 
         d1 = new DateTimeStamp( d1.TimeUtc, 255 );
         d1.TryFormat( b.AsSpan(), out cb, ReadOnlySpan<char>.Empty, null );
-        cb.Should().Be( 32 );
+        cb.ShouldBe( 32 );
         d1.ToString().AsSpan().SequenceEqual( b.AsSpan() );
-        d1.TryFormat( b.AsSpan( 0, 31 ), out cb, ReadOnlySpan<char>.Empty, null ).Should().BeFalse();
-        cb.Should().Be( 0 );
+        d1.TryFormat( b.AsSpan( 0, 31 ), out cb, ReadOnlySpan<char>.Empty, null ).ShouldBeFalse();
+        cb.ShouldBe( 0 );
         CheckMatchAndParse( d1 );
 
-        DateTimeStamp.TryParse( "nop", out var d2 ).Should().BeFalse();
-        FluentActions.Invoking( () => DateTimeStamp.Parse( "" ) ).Should().Throw<FormatException>();
+        DateTimeStamp.TryParse( "nop", out var d2 ).ShouldBeFalse();
+        Util.Invokable( () => DateTimeStamp.Parse( "" ) ).ShouldThrow<FormatException>();
 
         static void CheckMatchAndParse( DateTimeStamp d1 )
         {
             var s = d1.ToString();
-            DateTimeStamp.TryParse( s.AsSpan(), out var d2 ).Should().BeTrue();
-            d2.Should().Be( d1 );
+            DateTimeStamp.TryParse( s.AsSpan(), out var d2 ).ShouldBeTrue();
+            d2.ShouldBe( d1 );
             DateTimeStamp.Parse( d1.ToString().AsSpan() );
 
             s += "remainder";
 
             var head = s.AsSpan();
-            DateTimeStamp.TryMatch( ref head, out d2 ).Should().BeTrue();
-            d2.Should().Be( d1 );
-            head.SequenceEqual( "remainder" ).Should().BeTrue();
+            DateTimeStamp.TryMatch( ref head, out d2 ).ShouldBeTrue();
+            d2.ShouldBe( d1 );
+            head.SequenceEqual( "remainder" ).ShouldBeTrue();
 
-            DateTimeStamp.TryParse( s, out var failed ).Should().BeFalse();
-            failed.Should().Be( DateTimeStamp.Unknown );
-            FluentActions.Invoking( () => DateTimeStamp.Parse( s ) ).Should().Throw<FormatException>();
+            DateTimeStamp.TryParse( s, out var failed ).ShouldBeFalse();
+            failed.ShouldBe( DateTimeStamp.Unknown );
+            Util.Invokable( () => DateTimeStamp.Parse( s ) ).ShouldThrow<FormatException>();
         }
     }
 

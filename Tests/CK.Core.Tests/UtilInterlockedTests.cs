@@ -1,4 +1,4 @@
-using FluentAssertions;
+using Shouldly;
 using System;
 using NUnit.Framework;
 
@@ -12,12 +12,12 @@ public class UtilInterlockedTests
     {
         int[] a = Array.Empty<int>();
         Util.InterlockedAdd( ref a, 1 );
-        a.Should().NotBeNull();
-        a.Should().BeEquivalentTo( new[] { 1 }, o => o.WithStrictOrdering() );
+        a.ShouldNotBeNull();
+        a.ShouldBe( new[] { 1 } );
         Util.InterlockedAdd( ref a, 2 );
-        a.Should().BeEquivalentTo( new[] { 1, 2 }, o => o.WithStrictOrdering() );
+        a.ShouldBe( new[] { 1, 2 } );
         Util.InterlockedAdd( ref a, 3 );
-        a.Should().BeEquivalentTo( new[] { 1, 2, 3 }, o => o.WithStrictOrdering() );
+        a.ShouldBe( new[] { 1, 2, 3 } );
     }
 
     [Test]
@@ -25,12 +25,12 @@ public class UtilInterlockedTests
     {
         int[] a = Array.Empty<int>();
         Util.InterlockedAdd( ref a, 1, true );
-        a.Should().NotBeNull();
-        a.Should().BeEquivalentTo( new[] { 1 }, o => o.WithStrictOrdering() );
+        a.ShouldNotBeNull();
+        a.ShouldBe( new[] { 1 } );
         Util.InterlockedAdd( ref a, 2, true );
-        a.Should().BeEquivalentTo( new[] { 2, 1 }, o => o.WithStrictOrdering() );
+        a.ShouldBe( new[] { 2, 1 } );
         Util.InterlockedAdd( ref a, 3, true );
-        a.Should().BeEquivalentTo( new[] { 3, 2, 1 }, o => o.WithStrictOrdering() );
+        a.ShouldBe( new[] { 3, 2, 1 } );
     }
 
     [Test]
@@ -40,29 +40,29 @@ public class UtilInterlockedTests
             // Prepend
             int[] a = Array.Empty<int>();
             Util.InterlockedAddUnique( ref a, 1, true );
-            a.Should().BeEquivalentTo( new[] { 1 }, o => o.WithStrictOrdering() );
+            a.ShouldBe( new[] { 1 } );
             var theA = a;
             Util.InterlockedAddUnique( ref a, 1, true );
-            a.Should().BeSameAs( theA );
+            a.ShouldBeSameAs( theA );
             Util.InterlockedAddUnique( ref a, 2, true );
-            a.Should().BeEquivalentTo( new[] { 2, 1 }, o => o.WithStrictOrdering() );
+            a.ShouldBe( new[] { 2, 1 } );
             theA = a;
             Util.InterlockedAddUnique( ref a, 2, true );
-            a.Should().BeSameAs( theA );
+            a.ShouldBeSameAs( theA );
         }
         {
             // Append
             int[] a = Array.Empty<int>();
             Util.InterlockedAddUnique( ref a, 1 );
-            a.Should().BeEquivalentTo( new[] { 1 }, o => o.WithStrictOrdering() );
+            a.ShouldBe( new[] { 1 } );
             var theA = a;
             Util.InterlockedAddUnique( ref a, 1 );
-            a.Should().BeSameAs( theA );
+            a.ShouldBeSameAs( theA );
             Util.InterlockedAddUnique( ref a, 2 );
-            a.Should().BeEquivalentTo( new[] { 1, 2 }, o => o.WithStrictOrdering() );
+            a.ShouldBe( new[] { 1, 2 } );
             theA = a;
             Util.InterlockedAddUnique( ref a, 2 );
-            a.Should().BeSameAs( theA );
+            a.ShouldBeSameAs( theA );
         }
     }
 
@@ -71,30 +71,30 @@ public class UtilInterlockedTests
     {
         int[] a = new[] { 1, 2, 3, 4, 5, 6, 7 };
         Util.InterlockedRemove( ref a, 1 );
-        a.Should().BeEquivalentTo( new[] { 2, 3, 4, 5, 6, 7 }, o => o.WithStrictOrdering() );
+        a.ShouldBe( new[] { 2, 3, 4, 5, 6, 7 } );
         Util.InterlockedRemove( ref a, 4 );
-        a.Should().BeEquivalentTo( new[] { 2, 3, 5, 6, 7 }, o => o.WithStrictOrdering() );
+        a.ShouldBe( new[] { 2, 3, 5, 6, 7 } );
         Util.InterlockedRemove( ref a, 3712 );
-        a.Should().BeEquivalentTo( new[] { 2, 3, 5, 6, 7 }, o => o.WithStrictOrdering() );
+        a.ShouldBe( new[] { 2, 3, 5, 6, 7 } );
         Util.InterlockedRemove( ref a, 7 );
-        a.Should().BeEquivalentTo( new[] { 2, 3, 5, 6 }, o => o.WithStrictOrdering() );
+        a.ShouldBe( new[] { 2, 3, 5, 6 } );
         Util.InterlockedRemove( ref a, 3 );
-        a.Should().BeEquivalentTo( new[] { 2, 5, 6 }, o => o.WithStrictOrdering() );
+        a.ShouldBe( new[] { 2, 5, 6 } );
         Util.InterlockedRemove( ref a, 5 );
-        a.Should().BeEquivalentTo( new[] { 2, 6 }, o => o.WithStrictOrdering() );
+        a.ShouldBe( new[] { 2, 6 } );
         Util.InterlockedRemove( ref a, 3712 );
-        a.Should().BeEquivalentTo( new[] { 2, 6 }, o => o.WithStrictOrdering() );
+        a.ShouldBe( new[] { 2, 6 } );
         Util.InterlockedRemove( ref a, 6 );
-        a.Should().BeEquivalentTo( new[] { 2 }, o => o.WithStrictOrdering() );
+        a.ShouldBe( new[] { 2 } );
         Util.InterlockedRemove( ref a, 2 );
-        a.Should().BeEmpty();
+        a.ShouldBeEmpty();
 
         var aEmpty = a;
         Util.InterlockedRemove( ref a, 2 );
-        a.Should().BeSameAs( aEmpty );
+        a.ShouldBeSameAs( aEmpty );
 
         Util.InterlockedRemove( ref a, 3712 );
-        a.Should().BeSameAs( aEmpty );
+        a.ShouldBeSameAs( aEmpty );
     }
 
     [Test]
@@ -102,12 +102,12 @@ public class UtilInterlockedTests
     {
         int[] a = new[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
         Util.InterlockedRemoveAll( ref a, i => i % 2 == 0 );
-        a.Should().BeEquivalentTo( new[] { 1, 3, 5, 7, 9 }, o => o.WithStrictOrdering() );
+        a.ShouldBe( new[] { 1, 3, 5, 7, 9 } );
         Util.InterlockedRemoveAll( ref a, i => i % 2 != 0 );
-        a.Should().BeEmpty();
+        a.ShouldBeEmpty();
 
         Util.InterlockedRemoveAll( ref a, i => i % 2 != 0 );
-        a.Should().BeEmpty();
+        a.ShouldBeEmpty();
     }
 
     [Test]
@@ -115,9 +115,9 @@ public class UtilInterlockedTests
     {
         int[] a = new[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
         Util.InterlockedRemove( ref a, i => i % 2 == 0 );
-        a.Should().BeEquivalentTo( new[] { 1, 2, 3, 4, 5, 6, 7, 8, 9 }, o => o.WithStrictOrdering() );
+        a.ShouldBe( new[] { 1, 2, 3, 4, 5, 6, 7, 8, 9 } );
         Util.InterlockedRemove( ref a, i => i > 7 );
-        a.Should().BeEquivalentTo( new[] { 1, 2, 3, 4, 5, 6, 7, 9 }, o => o.WithStrictOrdering() );
+        a.ShouldBe( new[] { 1, 2, 3, 4, 5, 6, 7, 9 } );
     }
 
     [Test]
@@ -126,27 +126,27 @@ public class UtilInterlockedTests
         int[] a = new[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
         var theA = a;
         Util.InterlockedAdd( ref a, i => i == 3, () => 3 );
-        a.Should().BeSameAs( theA );
+        a.ShouldBeSameAs( theA );
 
         Util.InterlockedAdd( ref a, i => i == 10, () => 10 );
-        a.Should().BeEquivalentTo( new[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 }, o => o.WithStrictOrdering() );
+        a.ShouldBe( new[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 } );
 
         Util.InterlockedAdd( ref a, i => i == -1, () => -1, true );
-        a.Should().BeEquivalentTo( new[] { -1, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 }, o => o.WithStrictOrdering() );
+        a.ShouldBe( new[] { -1, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 } );
 
         Action call = () => Util.InterlockedAdd( ref a, i => i == 11, () => 10 );
-        call.Should().Throw<InvalidOperationException>();
+        call.ShouldThrow<InvalidOperationException>();
 
         a = Array.Empty<int>();
         Util.InterlockedAdd( ref a, i => i == 3, () => 3 );
-        a.Should().BeEquivalentTo( new[] { 3 }, o => o.WithStrictOrdering() );
+        a.ShouldBe( new[] { 3 } );
         Util.InterlockedAdd( ref a, i => i == 4, () => 4 );
-        a.Should().BeEquivalentTo( new[] { 3, 4 }, o => o.WithStrictOrdering() );
+        a.ShouldBe( new[] { 3, 4 } );
 
         a = new int[0];
         Util.InterlockedAdd( ref a, i => i == 3, () => 3 );
-        a.Should().BeEquivalentTo( new[] { 3 }, o => o.WithStrictOrdering() );
+        a.ShouldBe( new[] { 3 } );
         Util.InterlockedAdd( ref a, i => i == 4, () => 4 );
-        a.Should().BeEquivalentTo( new[] { 3, 4 }, o => o.WithStrictOrdering() );
+        a.ShouldBe( new[] { 3, 4 } );
     }
 }

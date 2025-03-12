@@ -1,4 +1,4 @@
-using FluentAssertions;
+using Shouldly;
 using NUnit.Framework;
 using System;
 using System.Security.Cryptography;
@@ -21,7 +21,7 @@ public class Base64UrlHelperTests
         var bytes = RandomNumberGenerator.GetBytes( size );
         var s = Base64UrlHelper.ToBase64UrlString( bytes );
         var back = Base64UrlHelper.FromBase64UrlString( s );
-        back.ToArray().Should().BeEquivalentTo( bytes );
+        back.ToArray().ShouldBeEquivalentTo( bytes );
     }
 
     [TestCase( "°" )]
@@ -32,7 +32,7 @@ public class Base64UrlHelperTests
     [TestCase( "YQ==" )]
     public void invalid_FromBase64UrlString_must_throw( string s )
     {
-        FluentActions.Invoking( () => Base64UrlHelper.FromBase64UrlString( s ) ).Should().Throw<ArgumentException>();
+        Util.Invokable( () => Base64UrlHelper.FromBase64UrlString( s ) ).ShouldThrow<ArgumentException>();
     }
 
     [TestCase( "QQ", true )]
@@ -44,8 +44,8 @@ public class Base64UrlHelperTests
     [TestCase( "12*", false )]
     public void IsBase64UrlString_check( string s, bool expect )
     {
-        Base64UrlHelper.Base64UrlCharacters.Length.Should().Be( 64 );
-        Base64UrlHelper.IsBase64UrlCharacters( s ).Should().Be( expect );
+        Base64UrlHelper.Base64UrlCharacters.Length.ShouldBe( 64 );
+        Base64UrlHelper.IsBase64UrlCharacters( s ).ShouldBe( expect );
     }
 
 }

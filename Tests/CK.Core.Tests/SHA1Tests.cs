@@ -1,4 +1,4 @@
-using FluentAssertions;
+using Shouldly;
 using NUnit.Framework;
 using System;
 using System.IO;
@@ -20,18 +20,18 @@ public class SHA1Tests
         var sha = SHA1Value.ComputeFileHash( ThisFile );
         var s = sha.ToString();
         var shaBis = SHA1Value.Parse( s );
-        shaBis.Should().Be( sha );
+        shaBis.ShouldBe( sha );
 
         var multi = new[] { sha, shaBis };
-        multi.GroupBy( x => x ).Should().HaveCount( 1 );
+        multi.GroupBy( x => x ).Count().ShouldBe( 1 );
     }
 
     [Test]
     public void SHA1_ByteAmount()
     {
         var sha = SHA1Value.ComputeFileHash( ThisFile );
-        sha.GetBytes().Length.Should().Be( 20 );
-        sha.ToString().Length.Should().Be( 40 );
+        sha.GetBytes().Length.ShouldBe( 20 );
+        sha.ToString().Length.ShouldBe( 40 );
     }
 
     [Test]
@@ -39,10 +39,10 @@ public class SHA1Tests
     {
         var sha = SHA1Value.CreateRandom();
         // Ok... This MAY fail :).
-        sha.Should().NotBe( SHA1Value.Zero );
-        sha.Should().NotBe( SHA1Value.Empty );
-        sha.GetBytes().Length.Should().Be( 20 );
-        sha.ToString().Length.Should().Be( 40 );
+        sha.ShouldNotBe( SHA1Value.Zero );
+        sha.ShouldNotBe( SHA1Value.Empty );
+        sha.GetBytes().Length.ShouldBe( 20 );
+        sha.ToString().Length.ShouldBe( 40 );
     }
 
     [Test]
@@ -65,9 +65,9 @@ public class SHA1Tests
         var s2 = SHA1Value.Parse( v2 );
         switch( cmp )
         {
-            case '>': s1.CompareTo( s2 ).Should().BeGreaterThan( 0 ); break;
-            case '<': s1.CompareTo( s2 ).Should().BeLessThan( 0 ); break;
-            default: s1.CompareTo( s2 ).Should().Be( 0 ); break;
+            case '>': s1.CompareTo( s2 ).ShouldBeGreaterThan( 0 ); break;
+            case '<': s1.CompareTo( s2 ).ShouldBeLessThan( 0 ); break;
+            default: s1.CompareTo( s2 ).ShouldBe( 0 ); break;
         }
     }
 
@@ -78,7 +78,7 @@ public class SHA1Tests
     [TestCase( "f730a999523afe0a2be07bf4c731d3d1f72fb3df-----", false )]
     public void SHA1_invalid_parse( string s, bool success )
     {
-        SHA1Value.TryParse( s.AsSpan(), out _ ).Should().Be( success );
+        SHA1Value.TryParse( s.AsSpan(), out _ ).ShouldBe( success );
     }
 
 
@@ -89,7 +89,7 @@ public class SHA1Tests
         var sha = SHA1Value.ComputeFileHash( ThisFile );
 #pragma warning restore VSTHRD103 // Call async methods when in an async method
         var sha2 = await SHA1Value.ComputeFileHashAsync( ThisFile );
-        sha2.Should().Be( sha );
+        sha2.ShouldBe( sha );
         using( var compressedPath = new TemporaryFile() )
         {
             using( var input = new FileStream( ThisFile, FileMode.Open, FileAccess.Read, FileShare.Read, 4096, FileOptions.SequentialScan | FileOptions.Asynchronous ) )
@@ -99,9 +99,9 @@ public class SHA1Tests
                 await writer( compressed );
             }
             var shaCompressed = await SHA1Value.ComputeFileHashAsync( compressedPath.Path );
-            shaCompressed.Should().NotBe( sha );
+            shaCompressed.ShouldNotBe( sha );
             var localSha = await SHA1Value.ComputeFileHashAsync( compressedPath.Path, r => new GZipStream( r, CompressionMode.Decompress, true ) );
-            localSha.Should().Be( sha );
+            localSha.ShouldBe( sha );
         }
     }
 

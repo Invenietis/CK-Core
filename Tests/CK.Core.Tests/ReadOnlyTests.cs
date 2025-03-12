@@ -2,7 +2,7 @@ using NUnit.Framework;
 using System.Linq;
 using System;
 using System.Collections.Generic;
-using FluentAssertions;
+using Shouldly;
 
 namespace CK.Core.Tests;
 
@@ -131,30 +131,30 @@ public class ReadOnlyTests
         c.ContainsCalled += ( o, e ) => { containsCalled = true; };
         c.CountCalled += ( o, e ) => { countCalled = true; };
 
-        c.Count.Should().Be( 1 );
-        countCalled.Should().BeTrue( "Count property on the concrete type logs the calls." ); countCalled = false;
+        c.Count.ShouldBe( 1 );
+        countCalled.ShouldBeTrue( "Count property on the concrete type logs the calls." ); countCalled = false;
 
-        c.Count().Should().Be( 1, "Use Linq extension methods (on the concrete type)." );
-        countCalled.Should().BeFalse( "The Linq extension method did NOT call our Count." );
+        c.Count().ShouldBe( 1, "Use Linq extension methods (on the concrete type)." );
+        countCalled.ShouldBeFalse( "The Linq extension method did NOT call our Count." );
 
         IEnumerable<int> cLinq = c;
 
-        cLinq.Count().Should().Be( 1, "Linq can not use our implementation..." );
-        countCalled.Should().BeFalse( "...it did not call our Count property." );
+        cLinq.Count().ShouldBe( 1, "Linq can not use our implementation..." );
+        countCalled.ShouldBeFalse( "...it did not call our Count property." );
 
         // Addressing the concrete type: it is our method that is called.
-        c.Contains( 2 ).Should().BeTrue();
-        containsCalled.Should().BeTrue( "It is our Contains method that is called (not the Linq one)." ); containsCalled = false;
-        c.Contains( 56 ).Should().BeFalse();
-        containsCalled.Should().BeTrue( "It is our Contains method that is called." ); containsCalled = false;
-        c.Contains( null! ).Should().BeFalse( "Contains should accept ANY object without any error." );
-        containsCalled.Should().BeTrue( "It is our Contains method that is called." ); containsCalled = false;
+        c.Contains( 2 ).ShouldBeTrue();
+        containsCalled.ShouldBeTrue( "It is our Contains method that is called (not the Linq one)." ); containsCalled = false;
+        c.Contains( 56 ).ShouldBeFalse();
+        containsCalled.ShouldBeTrue( "It is our Contains method that is called." ); containsCalled = false;
+        c.Contains( null! ).ShouldBeFalse( "Contains should accept ANY object without any error." );
+        containsCalled.ShouldBeTrue( "It is our Contains method that is called." ); containsCalled = false;
 
         // Unfortunately, addressing the IEnumerable base type, Linq has no way to use our methods...
-        cLinq.Contains( 2 ).Should().BeTrue();
-        containsCalled.Should().BeFalse( "Linq use the enumerator to do the job." );
-        cLinq.Contains( 56 ).Should().BeFalse();
-        containsCalled.Should().BeFalse();
+        cLinq.Contains( 2 ).ShouldBeTrue();
+        containsCalled.ShouldBeFalse( "Linq use the enumerator to do the job." );
+        cLinq.Contains( 56 ).ShouldBeFalse();
+        containsCalled.ShouldBeFalse();
         // Linq Contains() accept only parameter of the generic type.
         // !cLinq.Contains( null ), "Contains should accept ANY object without any error." );
     }
@@ -169,32 +169,32 @@ public class ReadOnlyTests
         c.ContainsCalled += ( o, e ) => { containsCalled = true; };
         c.CountCalled += ( o, e ) => { countCalled = true; };
 
-        c.Should().HaveCount( 1 );
-        countCalled.Should().BeTrue( "Count property on the concrete type logs the calls." ); countCalled = false;
+        c.Count.ShouldBe( 1 );
+        countCalled.ShouldBeTrue( "Count property on the concrete type logs the calls." ); countCalled = false;
 
         IEnumerable<int> cLinq = c;
 
-        cLinq.Count().Should().Be( 1, "Is it our Count implementation that is called?" );
-        countCalled.Should().BeTrue( "Yes!" ); countCalled = false;
+        cLinq.Count().ShouldBe( 1, "Is it our Count implementation that is called?" );
+        countCalled.ShouldBeTrue( "Yes!" ); countCalled = false;
 
-        c.Count.Should().Be( 1, "Linq DOES use our implementation..." );
-        countCalled.Should().BeTrue( "...our Count property has been called." ); countCalled = false;
+        c.Count.ShouldBe( 1, "Linq DOES use our implementation..." );
+        countCalled.ShouldBeTrue( "...our Count property has been called." ); countCalled = false;
 
         // What's happening for Contains? 
         // The ICollection<T>.Contains( T ) is more precise than our Contains( object )...
 
         // Here we target the concrete type.
-        c.Contains( 2 ).Should().BeTrue();
-        containsCalled.Should().BeTrue( "It is our Contains method that is called (not the Linq one)." ); containsCalled = false;
+        c.Contains( 2 ).ShouldBeTrue();
+        containsCalled.ShouldBeTrue( "It is our Contains method that is called (not the Linq one)." ); containsCalled = false;
 
         // Here we use the IEnumerable<int>. 
         // It shows that this is not the (slow) enumeration that is used here: it uses a direct call to Contains that can be much more efficient.
         // It works only because TestCollectionThatImplementsICollection relays the call to our Contains.
-        cLinq.Contains( 2 ).Should().BeTrue();
-        containsCalled.Should().BeTrue( "It is our Contains method that is called (not the Linq one)." ); containsCalled = false;
+        cLinq.Contains( 2 ).ShouldBeTrue();
+        containsCalled.ShouldBeTrue( "It is our Contains method that is called (not the Linq one)." ); containsCalled = false;
 
-        cLinq.Contains( 56 ).Should().BeFalse();
-        containsCalled.Should().BeTrue( "It is our Contains method that is called." ); containsCalled = false;
+        cLinq.Contains( 56 ).ShouldBeFalse();
+        containsCalled.ShouldBeTrue( "It is our Contains method that is called." ); containsCalled = false;
 
     }
 
@@ -207,23 +207,23 @@ public class ReadOnlyTests
 
         bool containsCalled = false;
         c.ContainsCalled += ( o, e ) => { containsCalled = true; };
-        c.Contains( oneElement ).Should().BeTrue();
-        containsCalled.Should().BeTrue( "It is our Contains method that is called." ); containsCalled = false;
-        c.Contains( 56 ).Should().BeFalse( "Contains should accept ANY object without any error." );
-        containsCalled.Should().BeTrue( "It is our Contains method that is called." ); containsCalled = false;
-        c.Contains( null! ).Should().BeFalse( "Contains should accept ANY object without any error." );
-        containsCalled.Should().BeTrue(); containsCalled = false;
+        c.Contains( oneElement ).ShouldBeTrue();
+        containsCalled.ShouldBeTrue( "It is our Contains method that is called." ); containsCalled = false;
+        c.Contains( 56 ).ShouldBeFalse( "Contains should accept ANY object without any error." );
+        containsCalled.ShouldBeTrue( "It is our Contains method that is called." ); containsCalled = false;
+        c.Contains( null! ).ShouldBeFalse( "Contains should accept ANY object without any error." );
+        containsCalled.ShouldBeTrue(); containsCalled = false;
     }
 
     [Test]
     public void IndexOf_on_IReadOnlyList()
     {
         IReadOnlyList<int> l = new[] { 3, 7, 9, 1, 3, 8 };
-        l.IndexOf( i => i == 3 ).Should().Be( 0 );
-        l.IndexOf( i => i == 7 ).Should().Be( 1 );
-        l.IndexOf( i => i == 8 ).Should().Be( 5 );
-        l.IndexOf( i => i == 0 ).Should().Be( -1 );
-        l.Invoking( sut => sut.IndexOf( null! ) ).Should().Throw<ArgumentNullException>();
+        l.IndexOf( i => i == 3 ).ShouldBe( 0 );
+        l.IndexOf( i => i == 7 ).ShouldBe( 1 );
+        l.IndexOf( i => i == 8 ).ShouldBe( 5 );
+        l.IndexOf( i => i == 0 ).ShouldBe( -1 );
+        Util.Invokable(() => l.IndexOf(null!)).ShouldThrow<ArgumentNullException>();
     }
 
 }

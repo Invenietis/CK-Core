@@ -1,4 +1,4 @@
-using FluentAssertions;
+using Shouldly;
 using NUnit.Framework;
 using System;
 using System.Collections.Generic;
@@ -40,8 +40,8 @@ public class NormalizedPathTests
     public void all_kind_of_root( string p, NormalizedPathRootKind o, string path )
     {
         var n = new NormalizedPath( p );
-        n.RootKind.Should().Be( o );
-        n.Path.Should().Be( path );
+        n.RootKind.ShouldBe( o );
+        n.Path.ShouldBe( path );
     }
 
     [TestCase( "c:", NormalizedPathRootKind.None, "c:" )]
@@ -81,15 +81,15 @@ public class NormalizedPathTests
     {
         if( result == "ArgumentException" )
         {
-            new NormalizedPath( p ).Invoking( sut => sut.With( newKind ) )
-                    .Should().Throw<ArgumentException>();
+            Util.Invokable( () => new NormalizedPath( p ).With( newKind ) )
+                    .ShouldThrow<ArgumentException>();
 
         }
         else
         {
             var r = new NormalizedPath( p ).With( newKind );
-            r.RootKind.Should().Be( newKind );
-            r.Should().Be( new NormalizedPath( result ) );
+            r.RootKind.ShouldBe( newKind );
+            r.ShouldBe( new NormalizedPath( result ) );
         }
     }
 
@@ -124,24 +124,24 @@ public class NormalizedPathTests
         NormalizedPath n2 = p2;
         if( op == '=' )
         {
-            n1.Equals( n2 ).Should().BeTrue();
-            (n1 == n2).Should().BeTrue();
-            (n1 != n2).Should().BeFalse();
-            (n1 <= n2).Should().BeTrue();
-            (n1 < n2).Should().BeFalse();
-            (n1 >= n2).Should().BeTrue();
-            (n1 > n2).Should().BeFalse();
+            n1.Equals( n2 ).ShouldBeTrue();
+            (n1 == n2).ShouldBeTrue();
+            (n1 != n2).ShouldBeFalse();
+            (n1 <= n2).ShouldBeTrue();
+            (n1 < n2).ShouldBeFalse();
+            (n1 >= n2).ShouldBeTrue();
+            (n1 > n2).ShouldBeFalse();
         }
         else
         {
             bool isGT = op == '>';
-            n1.Equals( n2 ).Should().BeFalse();
-            (n1 == n2).Should().BeFalse();
-            (n1 != n2).Should().BeTrue();
-            (n1 <= n2).Should().Be( !isGT );
-            (n1 < n2).Should().Be( !isGT );
-            (n1 >= n2).Should().Be( isGT );
-            (n1 > n2).Should().Be( isGT );
+            n1.Equals( n2 ).ShouldBeFalse();
+            (n1 == n2).ShouldBeFalse();
+            (n1 != n2).ShouldBeTrue();
+            (n1 <= n2).ShouldBe( !isGT );
+            (n1 < n2).ShouldBe( !isGT );
+            (n1 >= n2).ShouldBe( isGT );
+            (n1 > n2).ShouldBe( isGT );
         }
     }
 
@@ -166,12 +166,12 @@ public class NormalizedPathTests
         var path = new NormalizedPath( start );
         var prefix = new NormalizedPath( with );
         path.StartsWith( prefix )
-            .Should().Be( resultPath, resultPath ? "Path should Start." : "Path should NOT Start." );
+            .ShouldBe( resultPath, resultPath ? "Path should Start." : "Path should NOT Start." );
         if( resultPath )
         {
             var suffix = path.RemovePrefix( with );
             var back = prefix.Combine( suffix );
-            back.Should().Be( path );
+            back.ShouldBe( path );
         }
     }
 
@@ -196,7 +196,7 @@ public class NormalizedPathTests
     {
         var path = new NormalizedPath( start );
         path.StartsWith( with )
-            .Should().Be( resultString, resultString ? "String should Start." : "String should NOT Start." );
+            .ShouldBe( resultString, resultString ? "String should Start." : "String should NOT Start." );
     }
 
     [TestCase( "", "", true )]
@@ -214,7 +214,7 @@ public class NormalizedPathTests
     {
         var path = new NormalizedPath( start );
         path.StartsWith( new NormalizedPath( with ), strict: false )
-            .Should().Be( resultPath, resultPath ? "Path should Start." : "Path should NOT Start." );
+            .ShouldBe( resultPath, resultPath ? "Path should Start." : "Path should NOT Start." );
     }
 
     [TestCase( "", "", false )]
@@ -231,7 +231,7 @@ public class NormalizedPathTests
     public void StartsWith_String_STRICT_at_work( string start, string with, bool resultString )
     {
         new NormalizedPath( start ).StartsWith( with, strict: true )
-            .Should().Be( resultString, resultString ? "String should Start." : "String should NOT Start." );
+            .ShouldBe( resultString, resultString ? "String should Start." : "String should NOT Start." );
     }
 
     [TestCase( "", "", false )]
@@ -250,7 +250,7 @@ public class NormalizedPathTests
     public void EndsWith_Path_is_strict_by_default( string root, string end, bool resultPath )
     {
         new NormalizedPath( root ).EndsWith( new NormalizedPath( end ) )
-            .Should().Be( resultPath, resultPath ? "Path should End." : "Path should NOT End." );
+            .ShouldBe( resultPath, resultPath ? "Path should End." : "Path should NOT End." );
     }
 
     [TestCase( "", "", false )]
@@ -269,7 +269,7 @@ public class NormalizedPathTests
     public void EndsWith_String_STRICT_at_work( string root, string end, bool resultString )
     {
         new NormalizedPath( root ).EndsWith( end, strict: true )
-            .Should().Be( resultString, resultString ? "String should End." : "String should NOT End." );
+            .ShouldBe( resultString, resultString ? "String should End." : "String should NOT End." );
     }
 
     [TestCase( "", "", true )]
@@ -284,7 +284,7 @@ public class NormalizedPathTests
     public void EndsWith_Path_NOT_strict_at_work( string root, string end, bool resultPath )
     {
         new NormalizedPath( root ).EndsWith( new NormalizedPath( end ), strict: false )
-            .Should().Be( resultPath, resultPath ? "Path should End." : "Path should NOT End." );
+            .ShouldBe( resultPath, resultPath ? "Path should End." : "Path should NOT End." );
     }
 
     [TestCase( "", "", true )]
@@ -299,7 +299,7 @@ public class NormalizedPathTests
     public void EndsWith_String_is_NOT_strict_by_default( string root, string end, bool resultString )
     {
         new NormalizedPath( root ).EndsWith( end )
-            .Should().Be( resultString, resultString ? "String should End." : "String should NOT End." );
+            .ShouldBe( resultString, resultString ? "String should End." : "String should NOT End." );
     }
 
     [TestCase( "", "", "" )]
@@ -320,7 +320,7 @@ public class NormalizedPathTests
     [TestCase( "/", "", "/" )]
     public void Combine_at_work( string root, string suffix, string result )
     {
-        new NormalizedPath( root ).Combine( suffix ).Should().Be( new NormalizedPath( result ) );
+        new NormalizedPath( root ).Combine( suffix ).ShouldBe( new NormalizedPath( result ) );
     }
 
     [TestCase( "", "", "" )]
@@ -343,20 +343,20 @@ public class NormalizedPathTests
     {
         if( result == "ArgumentNullException" )
         {
-            new NormalizedPath( root ).Invoking( sut => sut.AppendPart( suffix ) )
-                    .Should().Throw<ArgumentNullException>();
+            Util.Invokable( () => new NormalizedPath( root ).AppendPart( suffix ) )
+                    .ShouldThrow<ArgumentNullException>();
 
         }
         else if( result == "ArgumentException" )
         {
-            new NormalizedPath( root ).Invoking( sut => sut.AppendPart( suffix ) )
-                    .Should().Throw<ArgumentException>();
+            Util.Invokable( () => new NormalizedPath( root ).AppendPart( suffix ) )
+                    .ShouldThrow<ArgumentException>();
 
         }
         else
         {
             new NormalizedPath( root ).AppendPart( suffix )
-                    .Should().Be( new NormalizedPath( result ) );
+                    .ShouldBe( new NormalizedPath( result ) );
         }
     }
 
@@ -367,8 +367,8 @@ public class NormalizedPathTests
     [TestCase( "a/b/c", "a/b/c,a/b,a" )]
     public void Parents_does_not_contain_the_empty_root( string p, string result )
     {
-        new NormalizedPath( p ).Parents.Select( a => a.ToString() )
-                .Should().BeEquivalentTo( NormalizeExpectedResultAsStrings( result ), o => o.WithStrictOrdering() );
+        new NormalizedPath( p ).Parents.Select( a => a.ToString() ).Concatenate()
+                .ShouldBe( NormalizeExpectedResultAsStrings( result ).Concatenate() );
     }
 
     [TestCase( "", "", "" )]
@@ -379,8 +379,8 @@ public class NormalizedPathTests
     public void PathsToFirstPart_with_null_subPaths_at_work( string root, string parts, string result )
     {
         var nParts = parts.Split( ',' ).Where( x => x.Length > 0 );
-        new NormalizedPath( root ).PathsToFirstPart( null!, nParts ).Select( a => a.ToString() )
-                .Should().BeEquivalentTo( NormalizeExpectedResultAsStrings( result ), o => o.WithStrictOrdering() );
+        new NormalizedPath( root ).PathsToFirstPart( null!, nParts ).Select( a => a.ToString() ).Concatenate()
+                .ShouldBe( NormalizeExpectedResultAsStrings( result ).Concatenate() );
     }
 
     [TestCase( "", "", "part", "" )]
@@ -396,8 +396,8 @@ public class NormalizedPathTests
     {
         var nPaths = paths.Split( ',' ).Where( x => x.Length > 0 ).Select( x => new NormalizedPath( x ) );
         var nParts = parts.Split( ',' ).Where( x => x.Length > 0 );
-        new NormalizedPath( root ).PathsToFirstPart( nPaths, nParts ).Select( a => a.ToString() )
-                .Should().BeEquivalentTo( NormalizeExpectedResultAsStrings( result ), o => o.WithStrictOrdering() );
+        new NormalizedPath( root ).PathsToFirstPart( nPaths, nParts ).Select( a => a.ToString() ).Concatenate()
+                .ShouldBe( NormalizeExpectedResultAsStrings( result ).Concatenate() );
     }
 
     [TestCase( "", "" )]
@@ -416,13 +416,13 @@ public class NormalizedPathTests
     {
         if( result == "InvalidOperationException" )
         {
-            new NormalizedPath( path ).Invoking( sut => sut.ResolveDots() )
-                    .Should().Throw<InvalidOperationException>();
+            Util.Invokable( () => new NormalizedPath( path ).ResolveDots() )
+                    .ShouldThrow<InvalidOperationException>();
         }
         else
         {
             new NormalizedPath( path ).ResolveDots()
-                    .Should().Be( new NormalizedPath( result ) );
+                    .ShouldBe( new NormalizedPath( result ) );
         }
     }
 
@@ -435,7 +435,7 @@ public class NormalizedPathTests
     public void ResolveDots_with_throwOnAboveRoot_false( string path, string result )
     {
         new NormalizedPath( path ).ResolveDots( throwOnAboveRoot: false )
-                .Should().Be( new NormalizedPath( result ) );
+                .ShouldBe( new NormalizedPath( result ) );
     }
 
     [TestCase( "", 1, "ArgumentOutOfRangeException" )]
@@ -451,18 +451,18 @@ public class NormalizedPathTests
     {
         if( result == "ArgumentOutOfRangeException" )
         {
-            new NormalizedPath( path ).Invoking( sut => sut.ResolveDots( rootPartsCount: rootPartsCount ) )
-                    .Should().Throw<ArgumentOutOfRangeException>();
+            Util.Invokable( () => new NormalizedPath( path ).ResolveDots( rootPartsCount: rootPartsCount ) )
+                    .ShouldThrow<ArgumentOutOfRangeException>();
         }
         else if( result == "InvalidOperationException" )
         {
-            new NormalizedPath( path ).Invoking( sut => sut.ResolveDots( rootPartsCount: rootPartsCount ) )
-                    .Should().Throw<InvalidOperationException>();
+            Util.Invokable( () => new NormalizedPath( path ).ResolveDots( rootPartsCount: rootPartsCount ) )
+                    .ShouldThrow<InvalidOperationException>();
         }
         else
         {
             new NormalizedPath( path ).ResolveDots( rootPartsCount: rootPartsCount )
-                    .Should().Be( new NormalizedPath( result ) );
+                    .ShouldBe( new NormalizedPath( result ) );
         }
     }
 
@@ -480,13 +480,13 @@ public class NormalizedPathTests
     {
         if( result == "ArgumentOutOfRangeException" )
         {
-            new NormalizedPath( path ).Invoking( sut => sut.RemovePart( index ) )
-                    .Should().Throw<ArgumentOutOfRangeException>();
+            Util.Invokable( () => new NormalizedPath( path ).RemovePart( index ) )
+                    .ShouldThrow<ArgumentOutOfRangeException>();
         }
         else
         {
             new NormalizedPath( path ).RemovePart( index )
-                .Should().Be( new NormalizedPath( result ) );
+                .ShouldBe( new NormalizedPath( result ) );
         }
     }
 
@@ -505,13 +505,13 @@ public class NormalizedPathTests
     {
         if( result == "ArgumentOutOfRangeException" )
         {
-            new NormalizedPath( path ).Invoking( sut => sut.RemoveParts( startIndex, count ) )
-                    .Should().Throw<ArgumentOutOfRangeException>();
+            Util.Invokable( () => new NormalizedPath( path ).RemoveParts( startIndex, count ) )
+                    .ShouldThrow<ArgumentOutOfRangeException>();
         }
         else
         {
             new NormalizedPath( path ).RemoveParts( startIndex, count )
-                .Should().Be( new NormalizedPath( result ) );
+                .ShouldBe( new NormalizedPath( result ) );
         }
     }
 
@@ -538,13 +538,13 @@ public class NormalizedPathTests
     {
         if( result == "ArgumentException" )
         {
-            new NormalizedPath( path ).Invoking( sut => sut.RemoveLastPart( count ) )
-                    .Should().Throw<ArgumentException>();
+            Util.Invokable( () => new NormalizedPath( path ).RemoveLastPart( count ) )
+                    .ShouldThrow<ArgumentException>();
         }
         else
         {
             new NormalizedPath( path ).RemoveLastPart( count )
-                    .Should().Be( new NormalizedPath( result ) );
+                    .ShouldBe( new NormalizedPath( result ) );
         }
     }
     [TestCase( "", -1, "ArgumentException" )]
@@ -570,13 +570,13 @@ public class NormalizedPathTests
     {
         if( result == "ArgumentException" )
         {
-            new NormalizedPath( path ).Invoking( sut => sut.RemoveFirstPart( count ) )
-                    .Should().Throw<ArgumentException>();
+            Util.Invokable( () => new NormalizedPath( path ).RemoveFirstPart( count ) )
+                    .ShouldThrow<ArgumentException>();
         }
         else
         {
             new NormalizedPath( path ).RemoveFirstPart( count )
-                    .Should().Be( new NormalizedPath( result ) );
+                    .ShouldBe( new NormalizedPath( result ) );
         }
     }
 
@@ -594,7 +594,7 @@ public class NormalizedPathTests
     {
         var p = new NormalizedPath( "A\\B" );
         var s = Convert.ChangeType( p, typeof( string ) );
-        s.Should().Be( "A/B" );
+        s.ShouldBe( "A/B" );
         // ChangeType doesn't use the target type [TypeConverter(...)] nor
         // its potential IConvertible interface.
     }
@@ -615,9 +615,9 @@ public class NormalizedPathTests
     public void GetRelativePath_valid_test( string source, string target, string expected )
     {
         var s = new NormalizedPath( source );
-        s.TryGetRelativePathTo( target, out var relative ).Should().BeTrue();
-        relative.Should().Be( new NormalizedPath( expected ) );
-        s.Combine( relative ).ResolveDots().Should().Be( target );
+        s.TryGetRelativePathTo( target, out var relative ).ShouldBeTrue();
+        relative.ShouldBe( new NormalizedPath( expected ) );
+        s.Combine( relative ).ResolveDots().ShouldBe( target );
     }
 
     [TestCase( "//a/b", "" )]
@@ -626,7 +626,7 @@ public class NormalizedPathTests
     [TestCase( "http://a", "http://b" )]
     public void GetRelativePath_invalid_test( string source, string target )
     {
-        new NormalizedPath( source ).TryGetRelativePathTo( target, out var _ ).Should().BeFalse();
+        new NormalizedPath( source ).TryGetRelativePathTo( target, out var _ ).ShouldBeFalse();
     }
 
 }

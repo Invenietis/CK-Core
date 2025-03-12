@@ -1,6 +1,6 @@
 using System;
 using NUnit.Framework;
-using FluentAssertions;
+using Shouldly;
 
 namespace CK.Core.Tests;
 
@@ -23,14 +23,14 @@ public class UtilTests
     [TestCase( 3715 )]
     public void GetRandomBase64UrlString( int len )
     {
-        Util.GetRandomBase64UrlString( len ).Length.Should().Be( len );
+        Util.GetRandomBase64UrlString( len ).Length.ShouldBe( len );
     }
 
     [Test]
     public void compute_sqlserver_epoch_ticks()
     {
         var t = Util.SqlServerEpoch;
-        t.Ticks.Should().Be( new DateTime( 1900, 1, 1 ).Ticks );
-        t.Kind.Should().Be( DateTimeKind.Unspecified );
+        t.Ticks.ShouldBe( new DateTime( 1900, 1, 1 ).Ticks );
+        t.Kind.ShouldBe( DateTimeKind.Unspecified );
     }
 }

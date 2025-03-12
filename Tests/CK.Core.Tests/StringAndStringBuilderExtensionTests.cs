@@ -1,7 +1,7 @@
 using System;
 using System.Text;
 using NUnit.Framework;
-using FluentAssertions;
+using Shouldly;
 
 namespace CK.Core.Tests;
 
@@ -13,7 +13,7 @@ public class StringAndStringBuilderExtensionTests
     {
         var strings = new string[] { "A", "Hello", "B", "World", null!, "End" };
         var s = strings.Concatenate( "|+|" );
-        s.Should().Be( "A|+|Hello|+|B|+|World|+||+|End" );
+        s.ShouldBe( "A|+|Hello|+|B|+|World|+||+|End" );
     }
 
     [Test]
@@ -22,29 +22,29 @@ public class StringAndStringBuilderExtensionTests
         var strings = new string[] { "A", "Hello", "B", "World", null!, "End" };
         var b = new StringBuilder();
         b.AppendStrings( strings, "|+|" );
-        b.ToString().Should().Be( "A|+|Hello|+|B|+|World|+||+|End" );
+        b.ToString().ShouldBe( "A|+|Hello|+|B|+|World|+||+|End" );
     }
 
     [Test]
     public void appending_multiple_strings_with_a_repeat_count()
     {
-        new StringBuilder().Append( "A", 1 ).ToString().Should().Be( "A" );
-        new StringBuilder().Append( "AB", 2 ).ToString().Should().Be( "ABAB" );
-        new StringBuilder().Append( "|-|", 10 ).ToString().Should().Be( "|-||-||-||-||-||-||-||-||-||-|" );
+        new StringBuilder().Append( "A", 1 ).ToString().ShouldBe( "A" );
+        new StringBuilder().Append( "AB", 2 ).ToString().ShouldBe( "ABAB" );
+        new StringBuilder().Append( "|-|", 10 ).ToString().ShouldBe( "|-||-||-||-||-||-||-||-||-||-|" );
     }
 
     [Test]
     public void appends_multiple_strings_silently_ignores_0_or_negative_RepeatCount()
     {
-        new StringBuilder().Append( "A", 0 ).ToString().Should().BeEmpty();
-        new StringBuilder().Append( "A", -1 ).ToString().Should().BeEmpty();
+        new StringBuilder().Append( "A", 0 ).ToString().ShouldBeEmpty();
+        new StringBuilder().Append( "A", -1 ).ToString().ShouldBeEmpty();
     }
 
     [Test]
     public void appends_multiple_strings_silently_ignores_null_or_empty_string_to_repeat()
     {
-        new StringBuilder().Append( "", 20 ).ToString().Should().BeEmpty();
-        new StringBuilder().Append( (string?)null!, 20 ).ToString().Should().BeEmpty();
+        new StringBuilder().Append( "", 20 ).ToString().ShouldBeEmpty();
+        new StringBuilder().Append( (string?)null!, 20 ).ToString().ShouldBeEmpty();
     }
 
     [TestCase( '0', 0 )]
@@ -62,7 +62,7 @@ public class StringAndStringBuilderExtensionTests
     [TestCase( 'Z', -1 )]
     public void HexDigitValue_extension_method_on_character( char c, int expected )
     {
-        c.HexDigitValue().Should().Be( expected );
+        c.HexDigitValue().ShouldBe( expected );
     }
 
     [Test]
@@ -72,37 +72,37 @@ public class StringAndStringBuilderExtensionTests
             StringBuilder b = new StringBuilder();
             string text = @"One line.";
             string t = b.AppendMultiLine( "|", text, true ).ToString();
-            t.Should().Be( @"|One line." );
+            t.ShouldBe( @"|One line." );
         }
         {
             StringBuilder b = new StringBuilder();
             string text = @"";
             string t = b.AppendMultiLine( "|", text, true ).ToString();
-            t.Should().Be( @"|" );
+            t.ShouldBe( @"|" );
         }
         {
             StringBuilder b = new StringBuilder();
             string text = null!;
             string t = b.AppendMultiLine( "|", text, true ).ToString();
-            t.Should().Be( @"|" );
+            t.ShouldBe( @"|" );
         }
         {
             StringBuilder b = new StringBuilder();
             string text = @"One line.";
             string t = b.AppendMultiLine( "|", text, false ).ToString();
-            t.Should().Be( @"One line." );
+            t.ShouldBe( @"One line." );
         }
         {
             StringBuilder b = new StringBuilder();
             string text = @"";
             string t = b.AppendMultiLine( "|", text, false ).ToString(); ;
-            t.Should().Be( @"" );
+            t.ShouldBe( @"" );
         }
         {
             StringBuilder b = new StringBuilder();
             string text = null!;
             string t = b.AppendMultiLine( "|", text, false ).ToString();
-            t.Should().Be( @"" );
+            t.ShouldBe( @"" );
         }
 
     }
@@ -114,25 +114,25 @@ public class StringAndStringBuilderExtensionTests
             StringBuilder b = new StringBuilder();
             string text = Environment.NewLine;
             string t = b.AppendMultiLine( "|", text, true ).ToString();
-            t.Should().Be( "|" );
+            t.ShouldBe( "|" );
         }
         {
             StringBuilder b = new StringBuilder();
             string text = Environment.NewLine + Environment.NewLine;
             string t = b.AppendMultiLine( "|", text, true ).ToString();
-            t.Should().Be( "|" + Environment.NewLine + "|" );
+            t.ShouldBe( "|" + Environment.NewLine + "|" );
         }
         {
             StringBuilder b = new StringBuilder();
             string text = Environment.NewLine + Environment.NewLine + Environment.NewLine;
             string t = b.AppendMultiLine( "|", text, true ).ToString();
-            t.Should().Be( "|" + Environment.NewLine + "|" + Environment.NewLine + "|" );
+            t.ShouldBe( "|" + Environment.NewLine + "|" + Environment.NewLine + "|" );
         }
         {
             StringBuilder b = new StringBuilder();
             string text = Environment.NewLine + Environment.NewLine + Environment.NewLine + "a";
             string t = b.AppendMultiLine( "|", text, true ).ToString();
-            t.Should().Be( "|" + Environment.NewLine + "|" + Environment.NewLine + "|" + Environment.NewLine + "|a" );
+            t.ShouldBe( "|" + Environment.NewLine + "|" + Environment.NewLine + "|" + Environment.NewLine + "|a" );
         }
     }
 
@@ -151,7 +151,7 @@ Last line.";
             // git clone with LF in files instead of CRLF. 
             // Our AppendMultiLine normalizes the end of lines to Environment.NewLine.
             string t = b.AppendMultiLine( "|", text, true ).ToString();
-            t.Should().Be( @"|First line.
+            t.ShouldBe( @"|First line.
 |Second line.
 |    Indented.
 |
@@ -168,7 +168,7 @@ Second line.
     Also indented.
 Last line.";
             string t = b.AppendMultiLine( "|", text, false ).ToString();
-            t.Should().Be( @"First line.
+            t.ShouldBe( @"First line.
 |Second line.
 |    Indented.
 |
@@ -189,7 +189,7 @@ Second line.
         {
             StringBuilder b = new StringBuilder();
             string t = b.AppendMultiLine( "|", text, true, prefixLastEmptyLine: false ).ToString();
-            t.Should().Be( @"|First line.
+            t.ShouldBe( @"|First line.
 |Second line.
 |
 |".ReplaceLineEndings() );
@@ -198,7 +198,7 @@ Second line.
         {
             StringBuilder b = new StringBuilder();
             string t = b.AppendMultiLine( "|", text, true, prefixLastEmptyLine: true ).ToString();
-            t.Should().Be( @"|First line.
+            t.ShouldBe( @"|First line.
 |Second line.
 |
 |

@@ -1,4 +1,4 @@
-using FluentAssertions;
+using Shouldly;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -36,37 +36,37 @@ public class SortedArrayKeyListTests
         a.AddRangeArray( 1, 10, 100, 100, 1000, 10000, 2, 20, 3, 30, 100, 46, 56 );
         CheckList( a, 1, 10, 100, 1000, 10000, 2, 20, 3, 30, 46, 56 );
 
-        a.IndexOf( 1 ).Should().Be( 0 );
-        a.IndexOf( 2 ).Should().Be( 5 );
-        a.IndexOf( 3 ).Should().Be( 7 );
+        a.IndexOf( 1 ).ShouldBe( 0 );
+        a.IndexOf( 2 ).ShouldBe( 5 );
+        a.IndexOf( 3 ).ShouldBe( 7 );
 
-        a.KeyCount( "100" ).Should().Be( 1 );
+        a.KeyCount( "100" ).ShouldBe( 1 );
 
         object? o;
         o = "2";
-        a.IndexOf( o ).Should().Be( 5 );
+        a.IndexOf( o ).ShouldBe( 5 );
         o = 2;
-        a.IndexOf( o ).Should().Be( 5 );
+        a.IndexOf( o ).ShouldBe( 5 );
         o = null;
-        a.IndexOf( o! ).Should().Be( Int32.MinValue );
+        a.IndexOf( o! ).ShouldBe( Int32.MinValue );
         o = new ClassToTest( "A" );
-        a.IndexOf( o ).Should().Be( Int32.MinValue );
+        a.IndexOf( o ).ShouldBe( Int32.MinValue );
         o = "42";
-        a.Contains( o ).Should().BeFalse();
+        a.Contains( o ).ShouldBeFalse();
 
-        a.Count.Should().Be( 11 );
-        a.KeyCount( "10" ).Should().Be( 1 );
+        a.Count.ShouldBe( 11 );
+        a.KeyCount( "10" ).ShouldBe( 1 );
         a.Remove( "10" );
-        a.KeyCount( "10" ).Should().Be( 0 );
-        a.Count.Should().Be( 10 );
+        a.KeyCount( "10" ).ShouldBe( 0 );
+        a.Count.ShouldBe( 10 );
 
         CheckList( a, 1, 100, 1000, 10000, 2, 20, 3, 30, 46, 56 );
         a.Remove( "20" );
         CheckList( a, 1, 100, 1000, 10000, 2, 3, 30, 46, 56 );
         a.Remove( "100" );
-        a.KeyCount( "100" ).Should().Be( 0 );
+        a.KeyCount( "100" ).ShouldBe( 0 );
         CheckList( a, 1, 1000, 10000, 2, 3, 30, 46, 56 );
-        a.Remove( "Nothing" ).Should().BeFalse();
+        a.Remove( "Nothing" ).ShouldBeFalse();
     }
 
     [Test]
@@ -78,9 +78,9 @@ public class SortedArrayKeyListTests
         b.Add( classToTest );
         b.Add( new ClassToTest( "B" ) );
 
-        b.Contains( classToTest ).Should().BeTrue();
-        b.IndexOf( classToTest ).Should().Be( 0 );
-        b.Invoking( sut => sut.IndexOf( (ClassToTest)null! ) ).Should().Throw<ArgumentNullException>();
+        b.Contains( classToTest ).ShouldBeTrue();
+        b.IndexOf( classToTest ).ShouldBe( 0 );
+        Util.Invokable( () => b.IndexOf( (ClassToTest)null! ) ).ShouldThrow<ArgumentNullException>();
     }
 
     [Test]
@@ -90,29 +90,29 @@ public class SortedArrayKeyListTests
         a.AddRangeArray( 3, 2, 1 );
 
         bool exists;
-        a.GetByKey( "1", out exists ).Should().Be( 1 ); exists.Should().BeTrue();
-        a.GetByKey( "10", out exists ).Should().Be( 0 ); exists.Should().BeFalse();
-        a.GetByKey( "2", out exists ).Should().Be( 2 ); exists.Should().BeTrue();
+        a.GetByKey( "1", out exists ).ShouldBe( 1 ); exists.ShouldBeTrue();
+        a.GetByKey( "10", out exists ).ShouldBe( 0 ); exists.ShouldBeFalse();
+        a.GetByKey( "2", out exists ).ShouldBe( 2 ); exists.ShouldBeTrue();
 
-        a.Contains( "2" ).Should().BeTrue();
-        a.Contains( "1" ).Should().BeTrue();
-        a.Contains( "21" ).Should().BeFalse();
+        a.Contains( "2" ).ShouldBeTrue();
+        a.Contains( "1" ).ShouldBeTrue();
+        a.Contains( "21" ).ShouldBeFalse();
 
         object? o;
         o = "2";
-        a.Contains( o ).Should().BeTrue( "Using the key." );
+        a.Contains( o ).ShouldBeTrue( "Using the key." );
         o = 2;
-        a.Contains( o ).Should().BeTrue( "Using the value itself." );
+        a.Contains( o ).ShouldBeTrue( "Using the value itself." );
         o = null;
-        a.Contains( o! ).Should().BeFalse();
+        a.Contains( o! ).ShouldBeFalse();
         o = 42;
-        a.Contains( o ).Should().BeFalse();
+        a.Contains( o ).ShouldBeFalse();
         o = "42";
-        a.Contains( o ).Should().BeFalse();
+        a.Contains( o ).ShouldBeFalse();
 
-        a.Add( 3 ).Should().BeFalse();
-        a.Add( 2 ).Should().BeFalse();
-        a.Add( 1 ).Should().BeFalse();
+        a.Add( 3 ).ShouldBeFalse();
+        a.Add( 2 ).ShouldBeFalse();
+        a.Add( 1 ).ShouldBeFalse();
 
         CheckList( a.GetAllByKey( "2" ), 2 );
     }
@@ -125,18 +125,18 @@ public class SortedArrayKeyListTests
         a.AddRangeArray( 2, 1 );
 
         bool exists;
-        a.GetByKey( "1", out exists ).Should().Be( 1 ); exists.Should().BeTrue();
-        a.GetByKey( "2", out exists ).Should().Be( 2 ); exists.Should().BeTrue();
+        a.GetByKey( "1", out exists ).ShouldBe( 1 ); exists.ShouldBeTrue();
+        a.GetByKey( "2", out exists ).ShouldBe( 2 ); exists.ShouldBeTrue();
 
         a.Add( 102 );
         a.Add( 101 );
 
         int v1 = a.GetByKey( "1" );
-        v1.Should().BeOneOf( new[] { 1, 101 }, "It is one or the other that is returned." );
+        v1.ShouldBeOneOf( [1, 101], "It is one or the other that is returned." );
         int v2 = a.GetByKey( "2" );
-        v2.Should().BeOneOf( new[] { 2, 102 }, "It is one or the other that is returned." );
+        v2.ShouldBeOneOf( [2, 102], "It is one or the other that is returned." );
 
-        a.KeyCount( "2" ).Should().Be( 2 );
+        a.KeyCount( "2" ).ShouldBe( 2 );
         CheckList( a.GetAllByKey( "2" ).OrderBy( Util.FuncIdentity ), 2, 102 );
 
         a.Add( 102 );
@@ -145,17 +145,17 @@ public class SortedArrayKeyListTests
         a.Add( 202 );
         a.Add( 302 );
 
-        a.KeyCount( "2" ).Should().Be( 7 );
+        a.KeyCount( "2" ).ShouldBe( 7 );
         CheckList( a.GetAllByKey( "2" ).OrderBy( Util.FuncIdentity ), 2, 102, 102, 102, 102, 202, 302 );
 
-        a.KeyCount( "5454" ).Should().Be( 0 );
-        a.GetAllByKey( "5454" ).Should().BeEmpty();
+        a.KeyCount( "5454" ).ShouldBe( 0 );
+        a.GetAllByKey( "5454" ).ShouldBeEmpty();
 
     }
 
     private static void CheckList( IEnumerable<int> a, params int[] p )
     {
-        a.Should().BeEquivalentTo( p, o => o.WithStrictOrdering() );
+        a.Select( a => a.ToString() ).Concatenate().ShouldBe( p.Select( p => p.ToString() ).Concatenate() );
     }
 
     class ClassToTest

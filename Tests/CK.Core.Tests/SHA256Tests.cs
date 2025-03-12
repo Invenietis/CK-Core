@@ -1,4 +1,4 @@
-using FluentAssertions;
+using Shouldly;
 using NUnit.Framework;
 using System;
 using System.IO;
@@ -20,15 +20,15 @@ public class SHA256Tests
         var sha = SHA256Value.ComputeFileHash( ThisFile );
         var s = sha.ToString();
         var shaBis = SHA256Value.Parse( s );
-        shaBis.Should().Be( sha );
+        shaBis.ShouldBe( sha );
     }
 
     [Test]
     public void SHA256_ByteAmount()
     {
         var sha = SHA256Value.ComputeFileHash( ThisFile );
-        sha.GetBytes().Length.Should().Be( 32 );
-        sha.ToString().Length.Should().Be( 64 );
+        sha.GetBytes().Length.ShouldBe( 32 );
+        sha.ToString().Length.ShouldBe( 64 );
     }
 
     [Test]
@@ -36,10 +36,10 @@ public class SHA256Tests
     {
         var sha = SHA256Value.CreateRandom();
         // Ok... This MAY fail :).
-        sha.Should().NotBe( SHA256Value.Zero );
-        sha.Should().NotBe( SHA256Value.Empty );
-        sha.GetBytes().Length.Should().Be( 32 );
-        sha.ToString().Length.Should().Be( 64 );
+        sha.ShouldNotBe( SHA256Value.Zero );
+        sha.ShouldNotBe( SHA256Value.Empty );
+        sha.GetBytes().Length.ShouldBe( 32 );
+        sha.ToString().Length.ShouldBe( 64 );
     }
 
 
@@ -75,9 +75,9 @@ public class SHA256Tests
         var s2 = SHA256Value.Parse( v2 );
         switch( cmp )
         {
-            case '>': s1.CompareTo( s2 ).Should().BeGreaterThan( 0 ); break;
-            case '<': s1.CompareTo( s2 ).Should().BeLessThan( 0 ); break;
-            default: s1.CompareTo( s2 ).Should().Be( 0 ); break;
+            case '>': s1.CompareTo( s2 ).ShouldBeGreaterThan( 0 ); break;
+            case '<': s1.CompareTo( s2 ).ShouldBeLessThan( 0 ); break;
+            default: s1.CompareTo( s2 ).ShouldBe( 0 ); break;
         }
     }
 
@@ -88,7 +88,7 @@ public class SHA256Tests
     [TestCase( "f730a999523afe0a2be07bf4c731d3d1f72fb3dff730a999523afe0a2be07bf4-----", false )]
     public void SHA256_invalid_parse( string s, bool success )
     {
-        SHA256Value.TryParse( s.AsSpan(), out _ ).Should().Be( success );
+        SHA256Value.TryParse( s.AsSpan(), out _ ).ShouldBe( success );
     }
 
     [Test]
@@ -98,7 +98,7 @@ public class SHA256Tests
         var sha = SHA256Value.ComputeFileHash( ThisFile );
 #pragma warning restore VSTHRD103 // Call async methods when in an async method
         var sha2 = await SHA256Value.ComputeFileHashAsync( ThisFile );
-        sha2.Should().Be( sha );
+        sha2.ShouldBe( sha );
         using( var compressedPath = new TemporaryFile() )
         {
             using( var input = new FileStream( ThisFile, FileMode.Open, FileAccess.Read, FileShare.Read, 4096, FileOptions.SequentialScan | FileOptions.Asynchronous ) )
@@ -108,9 +108,9 @@ public class SHA256Tests
                 await writer( compressed );
             }
             var shaCompressed = await SHA256Value.ComputeFileHashAsync( compressedPath.Path );
-            shaCompressed.Should().NotBe( sha );
+            shaCompressed.ShouldNotBe( sha );
             var localSha = await SHA256Value.ComputeFileHashAsync( compressedPath.Path, r => new GZipStream( r, CompressionMode.Decompress, true ) );
-            localSha.Should().Be( sha );
+            localSha.ShouldBe( sha );
         }
     }
 

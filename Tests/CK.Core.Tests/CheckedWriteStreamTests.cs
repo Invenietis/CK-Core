@@ -1,4 +1,4 @@
-using FluentAssertions;
+using Shouldly;
 using NUnit.Framework;
 using System;
 using System.Buffers;
@@ -13,7 +13,7 @@ public class CheckedWriteStreamTests
     public void empty_streams_are_equals()
     {
         var checker = CheckedWriteStream.Create( ReadOnlySequence<byte>.Empty );
-        checker.GetResult().Should().Be( CheckedWriteStream.Result.None );
+        checker.GetResult().ShouldBe( CheckedWriteStream.Result.None );
     }
 
     [TestCase( 0 )]
@@ -26,12 +26,12 @@ public class CheckedWriteStreamTests
         var content = Enumerable.Range( 0, initialLength ).Select( i => (byte)i ).ToArray();
         var checker = CheckedWriteStream.Create( new ReadOnlySequence<byte>( content ) );
         checker.Write( content );
-        checker.GetResult().Should().Be( CheckedWriteStream.Result.None );
+        checker.GetResult().ShouldBe( CheckedWriteStream.Result.None );
         if( initialLength > 0 )
         {
             checker.Write( content );
-            checker.GetResult().Should().Be( CheckedWriteStream.Result.LongerThanRefBytes );
-            checker.Position.Should().Be( initialLength );
+            checker.GetResult().ShouldBe( CheckedWriteStream.Result.LongerThanRefBytes );
+            checker.Position.ShouldBe( initialLength );
         }
     }
 
@@ -44,9 +44,9 @@ public class CheckedWriteStreamTests
         var content = Enumerable.Range( 0, initialLength ).Select( i => (byte)i ).ToArray();
         var checker = CheckedWriteStream.Create( new ReadOnlySequence<byte>( content ) );
         checker.Write( content, 0, content.Length - 1 );
-        checker.GetResult().Should().Be( CheckedWriteStream.Result.ShorterThanRefBytes );
+        checker.GetResult().ShouldBe( CheckedWriteStream.Result.ShorterThanRefBytes );
         checker.Write( content, content.Length - 1, 1 );
-        checker.GetResult().Should().Be( CheckedWriteStream.Result.None );
+        checker.GetResult().ShouldBe( CheckedWriteStream.Result.None );
     }
 
     [TestCase( 5 )]
@@ -60,8 +60,8 @@ public class CheckedWriteStreamTests
         var modified = content.ToArray();
         modified[idx] = (byte)(idx + 1);
         checker.Write( modified );
-        checker.GetResult().Should().Be( CheckedWriteStream.Result.HasByteDifference );
-        checker.Position.Should().Be( idx );
+        checker.GetResult().ShouldBe( CheckedWriteStream.Result.HasByteDifference );
+        checker.Position.ShouldBe( idx );
     }
 
     [Test]
@@ -71,8 +71,8 @@ public class CheckedWriteStreamTests
         var checker = CheckedWriteStream.Create( new ReadOnlySequence<byte>( content ) );
         checker.ThrowArgumentException = true;
         checker.Write( content );
-        checker.GetResult().Should().Be( CheckedWriteStream.Result.None );
-        FluentActions.Invoking( () => checker.WriteByte( 0 ) ).Should().Throw<ArgumentException>();
+        checker.GetResult().ShouldBe( CheckedWriteStream.Result.None );
+        Util.Invokable( () => checker.WriteByte( 0 ) ).ShouldThrow<ArgumentException>();
     }
 
     [Test]
@@ -82,7 +82,7 @@ public class CheckedWriteStreamTests
         var checker = CheckedWriteStream.Create( new ReadOnlySequence<byte>( content ) );
         checker.ThrowArgumentException = true;
         checker.Write( content, 0, content.Length - 1 );
-        FluentActions.Invoking( () => checker.GetResult() ).Should().Throw<ArgumentException>();
+        Util.Invokable( () => checker.GetResult() ).ShouldThrow<ArgumentException>();
     }
 
     [TestCase( 5 )]
@@ -96,7 +96,7 @@ public class CheckedWriteStreamTests
         int idx = Random.Shared.Next( initialLength );
         var modified = content.ToArray();
         modified[idx] = (byte)(idx + 1);
-        FluentActions.Invoking( () => checker.Write( modified ) ).Should().Throw<ArgumentException>();
+        Util.Invokable( () => checker.Write( modified ) ).ShouldThrow<ArgumentException>();
     }
 
 
