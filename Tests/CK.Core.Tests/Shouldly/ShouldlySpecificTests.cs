@@ -34,6 +34,42 @@ public class ShouldlySpecificTests
     }
 
     [Test]
+    public void ShouldThrow_on_Func_ValueType_Delegate()
+    {
+        Func<int> bug = () => throw new ArgumentNullException();
+        Func<int> noBug = () => 42;
+
+        Func<int>? combined = noBug;
+        combined += bug;
+
+        combined.ShouldThrow<ArgumentNullException>();
+    }
+
+    [Test]
+    public void ShouldThrow_on_Func_ReferenceType_Delegate()
+    {
+        Func<string> bug = () => throw new ArgumentNullException();
+        Func<string> noBug = () => "Hello";
+
+        Func<string>? combined = noBug;
+        combined += bug;
+
+        combined.ShouldThrow<ArgumentNullException>();
+    }
+
+    [Test]
+    public void ShouldThrow_on_Func_Object_Delegate()
+    {
+        Func<object> bug = () => throw new ArgumentNullException();
+        Func<object> noBug = () => "Hello";
+
+        Func<object>? combined = noBug;
+        combined += bug;
+
+        combined.ShouldThrow<ArgumentNullException>();
+    }
+
+    [Test]
     public void ShouldThrow_on_Delegate_checks_that_Delegate_has_no_parameter()
     {
         Action<int> expectParameter = SomeFunc;

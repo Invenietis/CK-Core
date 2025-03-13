@@ -144,6 +144,7 @@ dotnet_diagnostic.IDE0090.severity = none
 dotnet_diagnostic.VSTHRD101.severity = error
 # VSTHRD003: Avoid awaiting foreign Tasks
 dotnet_diagnostic.VSTHRD003.severity = none
+csharp_prefer_system_threading_lock = true:suggestion
 
 # /Signature-Code .editorconfig
 
