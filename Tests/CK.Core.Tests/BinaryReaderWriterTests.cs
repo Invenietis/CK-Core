@@ -198,15 +198,15 @@ public class BinaryReaderWriterTests
         },
         r =>
         {
-            r.ReadNullableBool().ShouldBe( null );
-            r.ReadNullableByte().ShouldBe( null );
-            r.ReadNullableSByte().ShouldBe( null );
-            r.ReadNullableDateTime().ShouldBe( null );
-            r.ReadNullableTimeSpan().ShouldBe( null );
-            r.ReadNullableDateTimeOffset().ShouldBe( null );
-            r.ReadNullableGuid().ShouldBe( null );
-            r.ReadNullableIndex().ShouldBe( null );
-            r.ReadNullableRange().ShouldBe( null );
+            r.ReadNullableBool().ShouldBeNull();
+            r.ReadNullableByte().ShouldBeNull();
+            r.ReadNullableSByte().ShouldBeNull();
+            r.ReadNullableDateTime().ShouldBeNull();
+            r.ReadNullableTimeSpan().ShouldBeNull();
+            r.ReadNullableDateTimeOffset().ShouldBeNull();
+            r.ReadNullableGuid().ShouldBeNull();
+            r.ReadNullableIndex().ShouldBeNull();
+            r.ReadNullableRange().ShouldBeNull();
 
             r.ReadNullableDateTime().ShouldBe( DefDateTime );
             r.ReadNullableTimeSpan().ShouldBe( DefTimeSpan );
@@ -245,8 +245,8 @@ public class BinaryReaderWriterTests
             w.WriteNullableByte( 0xFF );
         }, r =>
         {
-            r.ReadNullableByte().ShouldBe( 0xFE );
-            r.ReadNullableByte().ShouldBe( 0xFF );
+            r.ReadNullableByte().ShouldNotBeNull().ShouldBe( 0xFE );
+            r.ReadNullableByte().ShouldNotBeNull().ShouldBe( 0xFF );
 
         } ).ShouldBe( 4, "2 bytes for 254 and 255." );
 
@@ -267,8 +267,8 @@ public class BinaryReaderWriterTests
             w.WriteNullableSByte( 127 );
         }, r =>
         {
-            r.ReadNullableSByte().ShouldBe( -128 );
-            r.ReadNullableSByte().ShouldBe( 127 );
+            r.ReadNullableSByte().ShouldNotBeNull().ShouldBe( -128 );
+            r.ReadNullableSByte().ShouldNotBeNull().ShouldBe( 127 );
         }
         ).ShouldBe( 4, "2 bytes for -128 and 127." );
 
@@ -288,8 +288,8 @@ public class BinaryReaderWriterTests
             w.WriteNullableUInt16( UInt16.MaxValue );
         }, r =>
         {
-            r.ReadNullableUInt16().ShouldBe( UInt16.MaxValue - 1 );
-            r.ReadNullableUInt16().ShouldBe( UInt16.MaxValue );
+            r.ReadNullableUInt16().ShouldNotBeNull().ShouldBe( UInt16.MaxValue - 1 );
+            r.ReadNullableUInt16().ShouldNotBeNull().ShouldBe( UInt16.MaxValue );
         } ).ShouldBe( 2 * 3 );
 
         ReadWrite( w =>
@@ -514,7 +514,7 @@ public class BinaryReaderWriterTests
         {
             r.ReadNullableDouble().ShouldBe( nan2 );
             r.ReadNullableDouble().ShouldBe( nan1 );
-            r.ReadNullableDouble().ShouldBe( null );
+            r.ReadNullableDouble().ShouldBeNull();
             r.ReadNullableDouble().ShouldBe( Math.PI );
         } )
         .ShouldBe( 1 + 3 * (1 + 8) );
@@ -538,7 +538,7 @@ public class BinaryReaderWriterTests
         {
             r.ReadNullableSingle().ShouldBe( nan2 );
             r.ReadNullableSingle().ShouldBe( nan1 );
-            r.ReadNullableSingle().ShouldBe( null );
+            r.ReadNullableSingle().ShouldBeNull();
             r.ReadNullableSingle().ShouldBe( (float)Math.PI );
         } )
         .ShouldBe( 1 + 3 * (1 + 4) );
