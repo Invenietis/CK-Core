@@ -1,16 +1,10 @@
 using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Runtime.Serialization.Formatters.Binary;
-using System.Text;
 using System.Threading.Tasks;
 using NUnit.Framework;
-using FluentAssertions;
+using Shouldly;
 using System.Diagnostics;
 
 namespace CK.Core.Tests;
-
 
 public class CKExceptionDataTests
 {
@@ -27,21 +21,21 @@ public class CKExceptionDataTests
     static void CheckSimpleExceptionData( CKExceptionData? simpleData, Func<string, bool> message, bool? hasInner = null, bool hasStack = true )
     {
         Debug.Assert( simpleData != null );
-        message( simpleData.Message ).Should().BeTrue( "Invalid message." );
-        simpleData.ExceptionTypeName.Should().Be( "Exception" );
-        simpleData.ExceptionTypeAssemblyQualifiedName.Should().Be( typeof( Exception ).AssemblyQualifiedName );
+        message( simpleData.Message ).ShouldBeTrue( "Invalid message." );
+        simpleData.ExceptionTypeName.ShouldBe( "Exception" );
+        simpleData.ExceptionTypeAssemblyQualifiedName.ShouldBe( typeof( Exception ).AssemblyQualifiedName );
 
         if( hasStack )
-            simpleData.StackTrace.Should().NotBeNull( "Stack trace is not null when the exception has actually been thrown." );
-        else simpleData.StackTrace.Should().BeNull();
+            simpleData.StackTrace.ShouldNotBeNull( "Stack trace is not null when the exception has actually been thrown." );
+        else simpleData.StackTrace.ShouldBeNull();
 
         if( hasInner.HasValue )
         {
-            if( hasInner.Value ) simpleData.InnerException.Should().NotBeNull();
-            else simpleData.InnerException.Should().BeNull();
+            if( hasInner.Value ) simpleData.InnerException.ShouldNotBeNull();
+            else simpleData.InnerException.ShouldBeNull();
         }
-        simpleData.AggregatedExceptions.Should().BeNull();
-        simpleData.LoaderExceptions.Should().BeNull();
+        simpleData.AggregatedExceptions.ShouldBeNull();
+        simpleData.LoaderExceptions.ShouldBeNull();
     }
 
     [Test]
@@ -63,11 +57,11 @@ public class CKExceptionDataTests
         AggregateException eAgg = ThrowAggregatedException();
         var d = CKExceptionData.CreateFrom( eAgg );
 
-        d.ExceptionTypeAssemblyQualifiedName.Should().Be( typeof( AggregateException ).AssemblyQualifiedName );
-        d.ExceptionTypeName.Should().Be( typeof( AggregateException ).Name );
+        d.ExceptionTypeAssemblyQualifiedName.ShouldBe( typeof( AggregateException ).AssemblyQualifiedName );
+        d.ExceptionTypeName.ShouldBe( typeof( AggregateException ).Name );
         Debug.Assert( d.AggregatedExceptions != null );
-        d.AggregatedExceptions.Count.Should().BeGreaterOrEqualTo( 1 );
-        d.InnerException.Should().BeSameAs( d.AggregatedExceptions[0] );
+        d.AggregatedExceptions.Count.ShouldBeGreaterThanOrEqualTo( 1 );
+        d.InnerException.ShouldBeSameAs( d.AggregatedExceptions[0] );
         for( int i = 0; i < d.AggregatedExceptions.Count; ++i )
         {
             CheckSimpleExceptionData( d.AggregatedExceptions[i], s => s.StartsWith( "Ex n°" ) );
@@ -82,7 +76,7 @@ public class CKExceptionDataTests
         var dataE2 = CKExceptionData.CreateFrom( ThrowLoaderException() );
         var dataE3 = CKExceptionData.CreateFrom( ThrowExceptionWithInner() );
         var dataE4 = CKExceptionData.CreateFrom( ThrowTwoInnerExceptions() );
-        SerializationVersionAttribute.GetRequiredVersion( typeof( CKExceptionData ) ).Should().Be( 1 );
+        SerializationVersionAttribute.GetRequiredVersion( typeof( CKExceptionData ) ).ShouldBe( 1 );
         using( var mem = Util.RecyclableStreamManager.GetStream() )
         {
             CKBinaryWriter w = new CKBinaryWriter( mem );
@@ -94,15 +88,15 @@ public class CKExceptionDataTests
             mem.Position = 0;
             var r = new CKBinaryReader( mem );
             var data0 = new CKExceptionData( r );
-            data0.ToString().Should().Be( dataE0.ToString() );
+            data0.ToString().ShouldBe( dataE0.ToString() );
             var data1 = new CKExceptionData( r, 1 );
-            data1.ToString().Should().Be( dataE1.ToString() );
+            data1.ToString().ShouldBe( dataE1.ToString() );
             var data2 = new CKExceptionData( r );
-            data2.ToString().Should().Be( dataE2.ToString() );
+            data2.ToString().ShouldBe( dataE2.ToString() );
             var data3 = new CKExceptionData( r, 1 );
-            data3.ToString().Should().Be( dataE3.ToString() );
+            data3.ToString().ShouldBe( dataE3.ToString() );
             var data4 = new CKExceptionData( r );
-            data4.ToString().Should().Be( dataE4.ToString() );
+            data4.ToString().ShouldBe( dataE4.ToString() );
         }
     }
 

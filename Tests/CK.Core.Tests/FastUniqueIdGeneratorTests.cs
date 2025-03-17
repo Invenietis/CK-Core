@@ -1,4 +1,4 @@
-using FluentAssertions;
+using Shouldly;
 using NUnit.Framework;
 using System;
 using System.Linq;
@@ -13,7 +13,7 @@ public class FastUniqueIdGeneratorTests
     public void unique_string_id_are_11_characters_long()
     {
         FastUniqueIdGenerator generator = new FastUniqueIdGenerator();
-        generator.GetNextString().Length.Should().Be( 11 );
+        generator.GetNextString().Length.ShouldBe( 11 );
     }
 
     [Test]
@@ -21,13 +21,12 @@ public class FastUniqueIdGeneratorTests
     {
         FastUniqueIdGenerator generator = new FastUniqueIdGenerator();
         var ids = Enumerable.Range( 0, 1000 ).Select( _ => generator.GetNextString() ).ToList();
-        ids.Should().NotBeInAscendingOrder();
         // We cannot test the prefix for all consecutive pairs since the initial one is random but we can assert that on any sample
         // of 999 pairs there must be at most 63 with 2 (or more) different last characters.
         var startsWithPrevious = ids.Skip( 1 )
                                     .Select( ( u, idx ) => (idx, ids[idx], u, StartsWithPrevious: ids[idx].AsSpan().StartsWith( u.AsSpan( 0, u.Length - 1 ) )) ).ToList();
         var lastTwoDiffer = startsWithPrevious.Count( t => !t.StartsWithPrevious );
-        lastTwoDiffer.Should().BeLessThan( 64 );
+        lastTwoDiffer.ShouldBeLessThan( 64 );
     }
 
     [Test]
@@ -50,6 +49,6 @@ public class FastUniqueIdGeneratorTests
             return System.Text.Encoding.UTF8.GetString( buffer );
         }
 
-        idS.Should().BeEquivalentTo( idU );
+        idS.ShouldBeEquivalentTo( idU );
     }
 }

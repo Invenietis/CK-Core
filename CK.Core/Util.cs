@@ -8,6 +8,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Text;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace CK.Core;
 
@@ -28,7 +29,7 @@ public static partial class Util
     static public readonly DateTime UtcMaxValue = new DateTime( 0x2bca2875f4373fffL, DateTimeKind.Utc );
 
     /// <summary>
-    /// Centralized <see cref="IDisposable.Dispose"/> action call: it adapts an <see cref="IDisposable"/> interface to an <see cref="Action"/>.
+    /// Centralized <see cref="IDisposable.Dispose"/> action call: it adapts an <see cref="IDisposable"/> interface to an <see cref="Invokable"/>.
     /// Can be safely called if <paramref name="obj"/> is null. 
     /// See <see cref="CreateDisposableAction"/> to wrap an action in a <see cref="IDisposable"/> interface.
     /// </summary>
@@ -49,7 +50,7 @@ public static partial class Util
     /// Wraps an action in a <see cref="IDisposable"/> interface
     /// Can be safely called if <paramref name="a"/> is null (the dispose call will do nothing) and in multi threaded context:
     /// the call to action will be done once and only once by the first call to dispose.
-    /// See <see cref="ActionDispose"/> to adapt an IDisposable interface to an <see cref="Action"/>.
+    /// See <see cref="ActionDispose"/> to adapt an IDisposable interface to an <see cref="Invokable"/>.
     /// </summary>
     /// <param name="a">The action to call when <see cref="IDisposable.Dispose"/> is called.</param>
     public static IDisposable CreateDisposableAction( Action? a ) => new DisposableAction() { A = a };
@@ -60,6 +61,54 @@ public static partial class Util
     /// A void, immutable, <see cref="IDisposable"/> that does absolutely nothing.
     /// </summary>
     public static readonly IDisposable EmptyDisposable = new VoidDisposable();
+
+    /// <summary>
+    /// Consider a lambda expression as a <see cref="System.Action"/>.
+    /// <para>
+    /// This does nothing but converting the lambda without having to instantiate a new object:
+    /// <code>
+    /// new Action( () => ... )
+    /// </code>. 
+    /// </para>
+    /// </summary>
+    /// <param name="action">The lamdda.</param>
+    public static Action Invokable( Action action ) => action;
+
+    /// <summary>
+    /// Consider a lambda expression that returns a result as a <see cref="System.Func{T}"/>.
+    /// <para>
+    /// This does nothing but converting the lambda without having to instantiate a new object
+    /// and writing the <typeparamref name="T"/>:
+    /// <code>
+    /// new Func&lt;T&gt;( () => ... )
+    /// </code>. 
+    /// </para>
+    /// </summary>
+    /// <param name="func">The lamdda.</param>
+    public static Func<T> Invokable<T>( Func<T> func ) => func;
+
+    /// <summary>
+    /// Consider a lambda expression that returns a Task as a Func&lt;Task&gt;.
+    /// <para>
+    /// This does nothing but converting the lambda without having to instantiate a new object:
+    /// <code>
+    /// new Func&lt;Task&gt;( () => ... )
+    /// </code>
+    /// </para>
+    /// </summary>
+    public static Func<Task> Awaitable( Func<Task> awaitable ) => awaitable;
+
+    /// <summary>
+    /// Consider a lambda expression that returns a Task with a result as a <c>Func&lt;Task&lt;T&gt;&gt;</c>.
+    /// <para>
+    /// This does nothing but converting the lambda without having to instantiate a new object
+    /// and writing the <typeparamref name="T"/>:
+    /// <code>
+    /// new Func&lt;Task&lt;T&gt;&gt;( () => ... )
+    /// </code>
+    /// </para>
+    /// </summary>
+    public static Func<Task<T>> Awaitable<T>( Func<Task<T>> awaitable ) => awaitable;
 
     sealed class NopChangeToken : IChangeToken
     {

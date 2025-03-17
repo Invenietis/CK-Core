@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -8,8 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using NUnit.Framework;
 using System.Globalization;
-using FluentAssertions;
-using System.Collections.Concurrent;
+using Shouldly;
 
 namespace CK.Core.Tests;
 
@@ -23,20 +21,20 @@ public class FileUtilTests
     public void NormalizePathSeparator_uses_current_environment()
     {
         Action a = () => FileUtil.NormalizePathSeparator( null!, true );
-        a.Should().Throw<ArgumentNullException>();
+        a.ShouldThrow<ArgumentNullException>();
         a = () => FileUtil.NormalizePathSeparator( null!, false );
-        a.Should().Throw<ArgumentNullException>();
+        a.ShouldThrow<ArgumentNullException>();
 
-        FileUtil.NormalizePathSeparator( "", true ).Should().Be( "" );
-        FileUtil.NormalizePathSeparator( "", false ).Should().Be( "" );
+        FileUtil.NormalizePathSeparator( "", true ).ShouldBe( "" );
+        FileUtil.NormalizePathSeparator( "", false ).ShouldBe( "" );
 
-        FileUtil.NormalizePathSeparator( @"/\C", false ).Should().Be( ToPlatform( @"\\C" ) );
-        FileUtil.NormalizePathSeparator( @"/\C/", true ).Should().Be( ToPlatform( @"\\C\" ) );
-        FileUtil.NormalizePathSeparator( @"/\C\", true ).Should().Be( ToPlatform( @"\\C\" ) );
-        FileUtil.NormalizePathSeparator( @"/\C", true ).Should().Be( ToPlatform( @"\\C\" ) );
+        FileUtil.NormalizePathSeparator( @"/\C", false ).ShouldBe( ToPlatform( @"\\C" ) );
+        FileUtil.NormalizePathSeparator( @"/\C/", true ).ShouldBe( ToPlatform( @"\\C\" ) );
+        FileUtil.NormalizePathSeparator( @"/\C\", true ).ShouldBe( ToPlatform( @"\\C\" ) );
+        FileUtil.NormalizePathSeparator( @"/\C", true ).ShouldBe( ToPlatform( @"\\C\" ) );
 
-        FileUtil.NormalizePathSeparator( @"/", false ).Should().Be( ToPlatform( @"\" ) );
-        FileUtil.NormalizePathSeparator( @"/a", true ).Should().Be( ToPlatform( @"\a\" ) );
+        FileUtil.NormalizePathSeparator( @"/", false ).ShouldBe( ToPlatform( @"\" ) );
+        FileUtil.NormalizePathSeparator( @"/a", true ).ShouldBe( ToPlatform( @"\a\" ) );
     }
 
     [Test]
@@ -46,26 +44,26 @@ public class FileUtilTests
         string f1 = FileUtil.WriteUniqueTimedFile( prefix, ".txt", DateTime.UtcNow, Encoding.UTF8.GetBytes( "Hello..." ), false );
         string f2 = FileUtil.WriteUniqueTimedFile( prefix, ".txt", DateTime.UtcNow, Encoding.UTF8.GetBytes( "...World!" ), false );
 
-        File.ReadAllText( f1 ).Should().Be( "Hello..." );
-        File.ReadAllText( f2 ).Should().Be( "...World!" );
+        File.ReadAllText( f1 ).ShouldBe( "Hello..." );
+        File.ReadAllText( f2 ).ShouldBe( "...World!" );
 
         Action a = () => FileUtil.WriteUniqueTimedFile( prefix, String.Empty, DateTime.UtcNow, null!, true, -1 );
-        a.Should().Throw<ArgumentOutOfRangeException>();
+        a.ShouldThrow<ArgumentOutOfRangeException>();
         a = () => FileUtil.WriteUniqueTimedFile( prefix, null!, DateTime.UtcNow, null!, true );
-        a.Should().Throw<ArgumentNullException>();
+        a.ShouldThrow<ArgumentNullException>();
         a = () => FileUtil.WriteUniqueTimedFile( null!, String.Empty, DateTime.UtcNow, null!, true );
-        a.Should().Throw<ArgumentNullException>();
+        a.ShouldThrow<ArgumentNullException>();
     }
 
     [Test]
     public void UniqueTimedFile_is_27_characters_long_as_a_string_or_50_with_the_GUID_uniquifier()
     {
         DateTime.UtcNow.ToString( FileUtil.FileNameUniqueTimeUtcFormat, CultureInfo.InvariantCulture ).Length
-                   .Should().Be( 27, "FileNameUniqueTimeUtcFormat => 27 characters long." );
+                   .ShouldBe( 27, "FileNameUniqueTimeUtcFormat => 27 characters long." );
         FileUtil.FormatTimedUniqueFilePart( DateTime.UtcNow ).Length
-                   .Should().Be( 50, "TimedUniqueFile and its Guid => 50 characters long." );
+                   .ShouldBe( 50, "TimedUniqueFile and its Guid => 50 characters long." );
         DateTimeStamp.MaxValue.ToString().Length
-                   .Should().Be( 32, "DateTimeStamp FileNameUniqueTimeUtcFormat and the uniquifier: max => 32 characters long." );
+                   .ShouldBe( 32, "DateTimeStamp FileNameUniqueTimeUtcFormat and the uniquifier: max => 32 characters long." );
     }
 
 
@@ -82,20 +80,20 @@ public class FileUtilTests
         {
             files.Add( FileUtil.WriteUniqueTimedFile( prefix, String.Empty, now, content, true, 6 ) );
         }
-        files.Count.Should().Be( 10 );
-        files.ForEach( f => f.Should().StartWith( ToPlatform( prefix ) ) );
-        files.ForEach( f => File.Exists( f ).Should().BeTrue() );
-        files[1].Should().Be( files[0] + "(1)" );
-        files[2].Should().Be( files[0] + "(2)" );
-        files[3].Should().Be( files[0] + "(3)" );
-        files[4].Should().Be( files[0] + "(4)" );
-        files[5].Should().Be( files[0] + "(5)" );
-        files[6].Should().Be( files[0] + "(6)" );
+        files.Count.ShouldBe( 10 );
+        files.ForEach( f => f.ShouldStartWith( ToPlatform( prefix ) ) );
+        files.ForEach( f => File.Exists( f ).ShouldBeTrue() );
+        files[1].ShouldBe( files[0] + "(1)" );
+        files[2].ShouldBe( files[0] + "(2)" );
+        files[3].ShouldBe( files[0] + "(3)" );
+        files[4].ShouldBe( files[0] + "(4)" );
+        files[5].ShouldBe( files[0] + "(5)" );
+        files[6].ShouldBe( files[0] + "(6)" );
         for( int i = 7; i < 10; ++i )
         {
-            files[i].Length.Should().Be( files[0].Length + 1 + 22, "Ends with Url compliant Base64 GUID." );
+            files[i].Length.ShouldBe( files[0].Length + 1 + 22, "Ends with Url compliant Base64 GUID." );
         }
-        files.SequenceEqual( files.Distinct() ).Should().BeTrue();
+        files.SequenceEqual( files.Distinct() ).ShouldBeTrue();
     }
 
     [Test]
@@ -109,11 +107,11 @@ public class FileUtilTests
         {
             files[i] = FileUtil.WriteUniqueTimedFile( prefix, String.Empty, now, null!, false, 0 );
         } );
-        files.Should().NotContainNulls();
-        files.Should().OnlyContain( f => f.StartsWith( prefix ) );
-        files.Should().OnlyContain( f => File.Exists( f ) );
+        files.Any( f => f == null ).ShouldBeFalse();
+        files.All( f => f.StartsWith( prefix ) ).ShouldBeTrue();
+        files.All( File.Exists ).ShouldBeTrue();
         var winner = files.MaxBy( f => -f.Length );
-        files.Where( f => f.Length == winner.Length + 1 + 22 ).Should().HaveCount( 99, "Ends with Url compliant Base64 GUID." );
+        files.Where( f => f.Length == winner.Length + 1 + 22 ).Count().ShouldBe( 99, "Ends with Url compliant Base64 GUID." );
     }
 
     [Test]
@@ -124,9 +122,9 @@ public class FileUtilTests
         var prefix = Path.Combine( TestHelper.TestFolder, "F/Simple/F-" );
         var f1 = FileUtil.CreateUniqueTimedFolder( prefix, String.Empty, now );
         var f2 = FileUtil.CreateUniqueTimedFolder( prefix, String.Empty, now );
-        f1.Should().NotBe( f2 );
-        Directory.Exists( f1 ).Should().BeTrue();
-        Directory.Exists( f2 ).Should().BeTrue();
+        f1.ShouldNotBe( f2 );
+        Directory.Exists( f1 ).ShouldBeTrue();
+        Directory.Exists( f2 ).ShouldBeTrue();
     }
 
     [Explicit( "This test requires a E:\\ volume." )]
@@ -139,9 +137,9 @@ public class FileUtilTests
         var prefix = Path.Combine( rootTestPath, "F/Simple/F-" );
         var f1 = FileUtil.CreateUniqueTimedFolder( prefix, String.Empty, now );
         var f2 = FileUtil.CreateUniqueTimedFolder( prefix, String.Empty, now );
-        f1.Should().NotBe( f2 );
-        Directory.Exists( f1 ).Should().BeTrue();
-        Directory.Exists( f2 ).Should().BeTrue();
+        f1.ShouldNotBe( f2 );
+        Directory.Exists( f1 ).ShouldBeTrue();
+        Directory.Exists( f2 ).ShouldBeTrue();
     }
 
     [Test]
@@ -158,9 +156,8 @@ public class FileUtilTests
         {
             folders[i] = FileUtil.CreateUniqueTimedFolder( prefixes[i % 3], String.Empty, now );
         } );
-        folders.Should().NotContainNulls();
-        folders.Should().OnlyContain( f => f.StartsWith( prefixes[0] ) || f.StartsWith( prefixes[1] ) || f.StartsWith( prefixes[2] ) );
-        folders.Should().OnlyContain( f => Directory.Exists( f ) );
+        folders.ShouldAllBe( f => f.StartsWith( prefixes[0] ) || f.StartsWith( prefixes[1] ) || f.StartsWith( prefixes[2] ) );
+        folders.ShouldAllBe( f => Directory.Exists( f ) );
     }
 
     [Explicit( "This test requires a E:\\ volume." )]
@@ -179,9 +176,8 @@ public class FileUtilTests
         {
             folders[i] = FileUtil.CreateUniqueTimedFolder( prefixes[i % 3], String.Empty, now );
         } );
-        folders.Should().NotContainNulls();
-        folders.Should().OnlyContain( f => f.StartsWith( prefixes[0] ) || f.StartsWith( prefixes[1] ) || f.StartsWith( prefixes[2] ) );
-        folders.Should().OnlyContain( f => Directory.Exists( f ) );
+        folders.ShouldAllBe( f => f.StartsWith( prefixes[0] ) || f.StartsWith( prefixes[1] ) || f.StartsWith( prefixes[2] ) );
+        folders.ShouldAllBe( f => Directory.Exists( f ) );
     }
 
     [Test]
@@ -204,7 +200,7 @@ public class FileUtilTests
         AssertContains( copyDir.FullName, Directory.GetFiles( copyDir.FullName ), "azerty.png", "hiddenAzerty.gif" );
 
         Action a = () => FileUtil.CopyDirectory( testDir, copyDir );
-        a.Should().Throw<IOException>();
+        a.ShouldThrow<IOException>();
 
         CleanupDir( copyDir.FullName );
 
@@ -232,7 +228,7 @@ public class FileUtilTests
         AssertContains( testDir.FullName, Directory.GetFiles( testDir.FullName ), "azerty.png", "hiddenAzerty.gif" );
         AssertContains( recursiveDir.FullName, Directory.GetFiles( recursiveDir.FullName ), "REC.png", "hiddenREC.gif" );
         AssertContains( copyDir.FullName, Directory.GetFiles( copyDir.FullName ), "azerty.png" );
-        Directory.Exists( Path.Combine( copyDir.FullName, recursiveDir.Name ) ).Should().BeFalse();
+        Directory.Exists( Path.Combine( copyDir.FullName, recursiveDir.Name ) ).ShouldBeFalse();
 
         CleanupDir( copyDir.FullName );
 
@@ -250,13 +246,13 @@ public class FileUtilTests
         AssertContains( testDir.FullName, Directory.GetFiles( testDir.FullName ), "azerty.png", "hiddenAzerty.gif" );
         AssertContains( recursiveDir.FullName, Directory.GetFiles( recursiveDir.FullName ), "REC.png", "hiddenREC.gif" );
         AssertContains( copyDir.FullName, Directory.GetFiles( copyDir.FullName ), "azerty.png" );
-        Directory.Exists( Path.Combine( copyDir.FullName, recursiveDir.Name ) ).Should().BeFalse();
+        Directory.Exists( Path.Combine( copyDir.FullName, recursiveDir.Name ) ).ShouldBeFalse();
 
         // Exception Test
         a = () => FileUtil.CopyDirectory( null!, testDir );
-        a.Should().Throw<ArgumentNullException>();
+        a.ShouldThrow<ArgumentNullException>();
         a = () => FileUtil.CopyDirectory( testDir, null! );
-        a.Should().Throw<ArgumentNullException>();
+        a.ShouldThrow<ArgumentNullException>();
 
         Thread.Sleep( 100 );
         TestHelper.CleanupTestFolder();
@@ -272,20 +268,20 @@ public class FileUtilTests
     public void GetLastWriteTimeUtc_returns_FileUtil_MissingFileLastWriteTimeUtc()
     {
         // From MSDN: If the file described in the path parameter does not exist, this method returns 12:00 midnight, January 1, 1601 A.D. (C.E.) Coordinated Universal Time (UTC).
-        File.GetLastWriteTimeUtc( Path.Combine( TestHelper.TestFolder, "KExistePAS.txt" ) ).Should().Be( new DateTime( 1601, 1, 1, 0, 0, 0, DateTimeKind.Utc ) );
-        File.GetLastWriteTimeUtc( "I:\\KExistePAS.txt" ).Should().Be( FileUtil.MissingFileLastWriteTimeUtc );
+        File.GetLastWriteTimeUtc( Path.Combine( TestHelper.TestFolder, "KExistePAS.txt" ) ).ShouldBe( new DateTime( 1601, 1, 1, 0, 0, 0, DateTimeKind.Utc ) );
+        File.GetLastWriteTimeUtc( "I:\\KExistePAS.txt" ).ShouldBe( FileUtil.MissingFileLastWriteTimeUtc );
     }
 
     [Test]
     public void CheckForWriteAccess_is_immediately_true_when_file_does_not_exist_or_is_writeable()
     {
         Action a = () => FileUtil.CheckForWriteAccess( null!, 0 );
-        a.Should().Throw<ArgumentNullException>();
+        a.ShouldThrow<ArgumentNullException>();
         TestHelper.CleanupTestFolder();
         string path = Path.Combine( TestHelper.TestFolder, "Locked.txt" );
-        FileUtil.CheckForWriteAccess( path, 0 ).Should().BeTrue( "If the file does not exist, it is writable." );
+        FileUtil.CheckForWriteAccess( path, 0 ).ShouldBeTrue( "If the file does not exist, it is writable." );
         File.WriteAllText( path, "Locked" );
-        FileUtil.CheckForWriteAccess( path, 0 ).Should().BeTrue( "The is writable: no need to wait." );
+        FileUtil.CheckForWriteAccess( path, 0 ).ShouldBeTrue( "The is writable: no need to wait." );
     }
 
 
@@ -306,46 +302,46 @@ public class FileUtilTests
             }
         } );
         lock( startLock ) Monitor.Wait( startLock );
-        FileUtil.CheckForWriteAccess( path, nbMaxMilliSecond ).Should().Be( result );
+        FileUtil.CheckForWriteAccess( path, nbMaxMilliSecond ).ShouldBe( result );
         TestHelper.CleanupTestFolder();
     }
 
     [Test]
     public void test_IndexOfInvalidFileNameChars()
     {
-        FileUtil.IndexOfInvalidFileNameChars( "" ).Should().Be( -1 );
-        FileUtil.IndexOfInvalidFileNameChars( "a" ).Should().Be( -1 );
-        FileUtil.IndexOfInvalidFileNameChars( "ab" ).Should().Be( -1 );
-        FileUtil.IndexOfInvalidFileNameChars( "abcde" ).Should().Be( -1 );
-        FileUtil.IndexOfInvalidFileNameChars( "a<" ).Should().Be( 1 );
-        FileUtil.IndexOfInvalidFileNameChars( "a:" ).Should().Be( 1 );
-        FileUtil.IndexOfInvalidFileNameChars( "ab<" ).Should().Be( 2 );
-        FileUtil.IndexOfInvalidFileNameChars( "<a" ).Should().Be( 0 );
-        FileUtil.IndexOfInvalidFileNameChars( "abc>" ).Should().Be( 3 );
-        FileUtil.IndexOfInvalidFileNameChars( "abc|" ).Should().Be( 3 );
-        FileUtil.IndexOfInvalidFileNameChars( "abc\"" ).Should().Be( 3 );
+        FileUtil.IndexOfInvalidFileNameChars( "" ).ShouldBe( -1 );
+        FileUtil.IndexOfInvalidFileNameChars( "a" ).ShouldBe( -1 );
+        FileUtil.IndexOfInvalidFileNameChars( "ab" ).ShouldBe( -1 );
+        FileUtil.IndexOfInvalidFileNameChars( "abcde" ).ShouldBe( -1 );
+        FileUtil.IndexOfInvalidFileNameChars( "a<" ).ShouldBe( 1 );
+        FileUtil.IndexOfInvalidFileNameChars( "a:" ).ShouldBe( 1 );
+        FileUtil.IndexOfInvalidFileNameChars( "ab<" ).ShouldBe( 2 );
+        FileUtil.IndexOfInvalidFileNameChars( "<a" ).ShouldBe( 0 );
+        FileUtil.IndexOfInvalidFileNameChars( "abc>" ).ShouldBe( 3 );
+        FileUtil.IndexOfInvalidFileNameChars( "abc|" ).ShouldBe( 3 );
+        FileUtil.IndexOfInvalidFileNameChars( "abc\"" ).ShouldBe( 3 );
     }
 
     [Test]
     public void test_IndexOfInvalidPathChars()
     {
-        FileUtil.IndexOfInvalidPathChars( "" ).Should().Be( -1 );
-        FileUtil.IndexOfInvalidPathChars( "a" ).Should().Be( -1 );
-        FileUtil.IndexOfInvalidPathChars( "ab" ).Should().Be( -1 );
-        FileUtil.IndexOfInvalidPathChars( "abcde" ).Should().Be( -1 );
-        FileUtil.IndexOfInvalidPathChars( "a|" ).Should().Be( 1 );
-        FileUtil.IndexOfInvalidPathChars( "ab|" ).Should().Be( 2 );
-        FileUtil.IndexOfInvalidPathChars( "|a" ).Should().Be( 0 );
-        FileUtil.IndexOfInvalidPathChars( "abc|" ).Should().Be( 3 );
-        FileUtil.IndexOfInvalidPathChars( "abc|" ).Should().Be( 3 );
-        FileUtil.IndexOfInvalidPathChars( "abc\0-" ).Should().Be( 3 );
+        FileUtil.IndexOfInvalidPathChars( "" ).ShouldBe( -1 );
+        FileUtil.IndexOfInvalidPathChars( "a" ).ShouldBe( -1 );
+        FileUtil.IndexOfInvalidPathChars( "ab" ).ShouldBe( -1 );
+        FileUtil.IndexOfInvalidPathChars( "abcde" ).ShouldBe( -1 );
+        FileUtil.IndexOfInvalidPathChars( "a|" ).ShouldBe( 1 );
+        FileUtil.IndexOfInvalidPathChars( "ab|" ).ShouldBe( 2 );
+        FileUtil.IndexOfInvalidPathChars( "|a" ).ShouldBe( 0 );
+        FileUtil.IndexOfInvalidPathChars( "abc|" ).ShouldBe( 3 );
+        FileUtil.IndexOfInvalidPathChars( "abc|" ).ShouldBe( 3 );
+        FileUtil.IndexOfInvalidPathChars( "abc\0-" ).ShouldBe( 3 );
     }
 
     private void AssertContains( string pathDir, string[] result, params string[] values )
     {
-        result.Length.Should().Be( values.Length );
+        result.Length.ShouldBe( values.Length );
         foreach( string s in values )
-            result.Should().Contain( Path.Combine( pathDir, s ) );
+            result.ShouldContain( Path.Combine( pathDir, s ) );
     }
 
     private void CreateFiles( string path, params string[] values )

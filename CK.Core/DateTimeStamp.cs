@@ -2,9 +2,6 @@ using System;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Globalization;
-using System.Reflection.Metadata;
-using System.Runtime.CompilerServices;
-using System.Runtime.Serialization;
 
 namespace CK.Core;
 

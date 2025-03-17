@@ -1,15 +1,6 @@
 using System;
-using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
-using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
 using NUnit.Framework;
-using System.Globalization;
-using FluentAssertions;
-using System.Collections.Concurrent;
+using Shouldly;
 
 namespace CK.Core.Tests;
 
@@ -32,14 +23,14 @@ public class UtilTests
     [TestCase( 3715 )]
     public void GetRandomBase64UrlString( int len )
     {
-        Util.GetRandomBase64UrlString( len ).Length.Should().Be( len );
+        Util.GetRandomBase64UrlString( len ).Length.ShouldBe( len );
     }
 
     [Test]
     public void compute_sqlserver_epoch_ticks()
     {
         var t = Util.SqlServerEpoch;
-        t.Ticks.Should().Be( new DateTime( 1900, 1, 1 ).Ticks );
-        t.Kind.Should().Be( DateTimeKind.Unspecified );
+        t.Ticks.ShouldBe( new DateTime( 1900, 1, 1 ).Ticks );
+        t.Kind.ShouldBe( DateTimeKind.Unspecified );
     }
 }

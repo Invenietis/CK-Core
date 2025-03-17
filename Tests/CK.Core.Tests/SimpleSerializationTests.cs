@@ -1,11 +1,6 @@
-using FluentAssertions;
+using Shouldly;
 using NUnit.Framework;
-using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.IO;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace CK.Core.Tests;
 
@@ -51,9 +46,9 @@ public class SimpleSerializationTests
         var o = new Sample( 87, "Hop", null );
         var bytes = o.SerializeSimple();
         var backO = SimpleSerializable.DeserializeSimple<Sample>( bytes );
-        backO.Should().BeEquivalentTo( o );
+        backO.ShouldBeEquivalentTo( o );
 
-        SimpleSerializable.DeepCloneSimple( o ).Should().BeEquivalentTo( o );
+        SimpleSerializable.DeepCloneSimple( o ).ShouldBeEquivalentTo( o );
     }
 
     [Test]
@@ -61,10 +56,10 @@ public class SimpleSerializationTests
     {
         var o = new Sample( 87, "Hop", null );
         var notNull = o.DeepClone();
-        notNull.Should().BeEquivalentTo( o );
+        notNull.ShouldBeEquivalentTo( o );
         o = null;
         var mayBeNull = o.DeepClone();
-        mayBeNull.Should().BeNull();
+        mayBeNull.ShouldBeNull();
     }
 
     [SerializationVersion( 42 )]
@@ -104,9 +99,9 @@ public class SimpleSerializationTests
         var o = new Thing( "Hop" );
         var bytes = o.SerializeVersioned();
         var backO = SimpleSerializable.DeserializeVersioned<Thing>( bytes );
-        backO.Should().BeEquivalentTo( o );
+        backO.ShouldBeEquivalentTo( o );
 
-        SimpleSerializable.DeepCloneVersioned( o ).Should().BeEquivalentTo( o );
+        SimpleSerializable.DeepCloneVersioned( o ).ShouldBeEquivalentTo( o );
     }
 
 
@@ -166,17 +161,17 @@ public class SimpleSerializationTests
         {
             var bytes = o.SerializeVersioned();
             var backO = SimpleSerializable.DeserializeVersioned<CanSupportBothSimpleSerialization>( bytes );
-            backO.Should().BeEquivalentTo( o );
+            backO.ShouldBeEquivalentTo( o );
 
-            SimpleSerializable.DeepCloneVersioned( o ).Should().BeEquivalentTo( o );
+            SimpleSerializable.DeepCloneVersioned( o ).ShouldBeEquivalentTo( o );
         }
         {
             var bytes = o.SerializeSimple();
             var backO = SimpleSerializable.DeserializeSimple<CanSupportBothSimpleSerialization>( bytes );
-            backO.Should().BeEquivalentTo( o );
+            backO.ShouldBeEquivalentTo( o );
 
-            SimpleSerializable.DeepCloneSimple( o ).Should().BeEquivalentTo( o );
-            o.DeepClone().Should().BeEquivalentTo( o );
+            SimpleSerializable.DeepCloneSimple( o ).ShouldBeEquivalentTo( o );
+            o.DeepClone().ShouldBeEquivalentTo( o );
         }
     }
 
@@ -185,19 +180,19 @@ public class SimpleSerializationTests
     {
         var o1 = new Sample( 1, "Hop!", 45 );
         var o2 = new Sample( 1, "Hop!", 45 );
-        o1.DeepEquals( o2 ).Should().BeTrue();
+        o1.DeepEquals( o2 ).ShouldBeTrue();
 
         var o3 = new Sample( 2, "Hop!", 45 );
         var o4 = new Sample( 2, "Hop!!", 45 );
         var o5 = new Sample( 2, "Hop!!", 46 );
 
-        o1.DeepEquals( o3 ).Should().BeFalse();
-        o1.DeepEquals( o4 ).Should().BeFalse();
-        o1.DeepEquals( o5 ).Should().BeFalse();
+        o1.DeepEquals( o3 ).ShouldBeFalse();
+        o1.DeepEquals( o4 ).ShouldBeFalse();
+        o1.DeepEquals( o5 ).ShouldBeFalse();
 
-        o2.DeepEquals( o3 ).Should().BeFalse();
-        o2.DeepEquals( o4 ).Should().BeFalse();
-        o2.DeepEquals( o5 ).Should().BeFalse();
+        o2.DeepEquals( o3 ).ShouldBeFalse();
+        o2.DeepEquals( o4 ).ShouldBeFalse();
+        o2.DeepEquals( o5 ).ShouldBeFalse();
     }
 
     [Test]
@@ -205,16 +200,16 @@ public class SimpleSerializationTests
     {
         var o1 = new Thing( "Hop!" );
         var o2 = new Thing( "Hop!" );
-        SimpleSerializable.DeepEqualsVersioned( o1, o2 ).Should().BeTrue();
+        SimpleSerializable.DeepEqualsVersioned( o1, o2 ).ShouldBeTrue();
 
         var o3 = new Thing( "Hop!!" );
         var o4 = new Thing( "---" );
 
-        SimpleSerializable.DeepEqualsVersioned( o1, o3 ).Should().BeFalse();
-        SimpleSerializable.DeepEqualsVersioned( o1, o4 ).Should().BeFalse();
+        SimpleSerializable.DeepEqualsVersioned( o1, o3 ).ShouldBeFalse();
+        SimpleSerializable.DeepEqualsVersioned( o1, o4 ).ShouldBeFalse();
 
-        SimpleSerializable.DeepEqualsVersioned( o2, o3 ).Should().BeFalse();
-        SimpleSerializable.DeepEqualsVersioned( o2, o4 ).Should().BeFalse();
+        SimpleSerializable.DeepEqualsVersioned( o2, o3 ).ShouldBeFalse();
+        SimpleSerializable.DeepEqualsVersioned( o2, o4 ).ShouldBeFalse();
     }
 
 }

@@ -1,5 +1,5 @@
 using CK.Core.Json;
-using FluentAssertions;
+using Shouldly;
 using Microsoft.IO;
 using NUnit.Framework;
 using System;
@@ -87,8 +87,8 @@ public class JsonTests
         DateTime now = DateTime.UtcNow;
         var e = new Event( now, "Description" );
         var e2 = JsonIdempotenceCheck( e, Write, ReadEvent );
-        e2.Time.Should().Be( now );
-        e2.Description.Should().Be( "Description" );
+        e2.Time.ShouldBe( now );
+        e2.Description.ShouldBe( "Description" );
     }
 
     [Test]
@@ -105,11 +105,11 @@ public class JsonTests
             }
         };
         var d2 = JsonIdempotenceCheck( d, Write, ReadSuperData, new SuperDataReaderContext( null, Util.UtcMinValue ) );
-        d2.Events.Should().HaveCount( 3 );
-        d2.Events.Should().BeEquivalentTo( d.Events );
+        d2.Events.Count.ShouldBe( 3 );
+        d2.Events.ShouldBeEquivalentTo( d.Events );
 
-        FluentActions.Invoking( () => JsonIdempotenceCheck( d, Write, ReadSuperData, new SuperDataReaderContext( null, limit ) ) )
-            .Should().Throw<CKException>().Which.Message.Should().StartWith( "Json idempotence failure between" );
+        Util.Invokable( () => JsonIdempotenceCheck( d, Write, ReadSuperData, new SuperDataReaderContext( null, limit ) ) )
+            .ShouldThrow<CKException>().Message.ShouldStartWith( "Json idempotence failure between" );
     }
 
     // Simple event.
@@ -134,7 +134,7 @@ public class JsonTests
     // To be automatically composable, reader contexts should be used by interface.
     // They should be like IPoco: they should be fully mutable. Their final implementation
     // should be unified but explicit implementations should be used (property name are not
-    // shared). A unique final Utf8JsonReaderContext should be code generated.
+    // shared). A unique final IUtf8JsonReaderContext should be code generated.
     interface ISuperDataReaderContext : IUtf8JsonReaderContext
     {
         DateTime MinEventTime { get; set; }

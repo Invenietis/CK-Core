@@ -1,10 +1,8 @@
 using Microsoft.IO;
-using Microsoft.VisualBasic;
 using System;
 using System.Buffers;
 using System.Diagnostics;
 using System.IO;
-using System.Text;
 using System.Text.Json;
 
 namespace CK.Core;
@@ -32,7 +30,7 @@ namespace CK.Core;
 /// https://learn.microsoft.com/en-us/dotnet/standard/serialization/system-text-json/use-utf8jsonreader#read-from-a-stream-using-utf8jsonreader
 /// </para>
 /// </summary>
-public sealed class Utf8JsonStreamReader : IDisposable, IUtf8JsonReaderContext
+public sealed class Utf8JsonStreamReaderContext : IDisposableUtf8JsonReaderContext
 {
     readonly Stream _stream;
     byte[] _buffer;
@@ -41,7 +39,7 @@ public sealed class Utf8JsonStreamReader : IDisposable, IUtf8JsonReaderContext
     int _count;
     readonly int _maxBufferSize;
 
-    Utf8JsonStreamReader( Stream stream, byte[] buffer, int count, int initialOffset, bool leaveOpened, int maxBufferSize )
+    Utf8JsonStreamReaderContext( Stream stream, byte[] buffer, int count, int initialOffset, bool leaveOpened, int maxBufferSize )
     {
         _stream = stream;
         _buffer = buffer;
@@ -52,22 +50,110 @@ public sealed class Utf8JsonStreamReader : IDisposable, IUtf8JsonReaderContext
     }
 
     /// <summary>
-    /// Creates a new <see cref="Utf8JsonStreamReader"/> and an initial reader.
+    /// Returns <see cref="IUtf8JsonReaderContext.Empty"/> and a Utf8 reader
+    /// bound to the <paramref name="sequence"/>. This handles a potential
+    /// Utf8 Byte Order Mask (BOM: 0xEF, 0xBB, 0xBF) that may exist at the start
+    /// of the sequence.
+    /// </summary>
+    /// <param name="sequence">The in memory bytes.</param>
+    /// <param name="options">The Json reader options.</param>
+    /// <param name="r">The reader.</param>
+    /// <returns>An empty context.</returns>
+    public static IUtf8JsonReaderContext Create( ReadOnlySequence<byte> sequence,
+                                                 JsonReaderOptions options,
+                                                 out Utf8JsonReader r )
+    {
+        r = CreateUtf8JsonReader( sequence, options );
+        return IUtf8JsonReaderContext.Empty;
+    }
+
+    static Utf8JsonReader CreateUtf8JsonReader( ReadOnlySequence<byte> sequence, JsonReaderOptions options )
+    {
+        Utf8JsonReader r;
+        var s = sequence.FirstSpan;
+        if( s.Length >= 3 && s[0] == 0xEF && s[1] == 0xBB && s[2] == 0xBF )
+        {
+            sequence = sequence.Slice( 3 );
+        }
+        r = new Utf8JsonReader( sequence, true, new JsonReaderState( options ) );
+        return r;
+    }
+
+    sealed class EmptyStreamContext : IDisposableUtf8JsonReaderContext
+    {
+        readonly Stream _stream;
+
+        public EmptyStreamContext( Stream stream )
+        {
+            _stream = stream;
+        }
+
+        public void Dispose() => _stream.Dispose();
+
+        public void ReadMoreData( ref Utf8JsonReader reader ) { }
+
+        public void SkipMoreData( ref Utf8JsonReader reader ) { }
+    }
+
+    /// <summary>
+    /// Creates a context reader and a <see cref="Utf8JsonReader"/> that applies to any stream
+    /// including <see cref="RecyclableMemoryStream"/>.
+    /// <para>
+    /// When the stream is recyclable, the Utf8 reader is bound to the <see cref="RecyclableMemoryStream.GetReadOnlySequence()"/>
+    /// and an empty context (that disposes the stream if <paramref name="leaveOpened"/> is false) is returned.
+    /// In this case, <paramref name="initialBufferSize"/> and <paramref name="maxBufferSize"/> are ignored.
+    /// </para>
+    /// </summary>
+    /// <param name="stream">The stream.</param>
+    /// <param name="options">The reader options.</param>
+    /// <param name="r">The initial reader.</param>
+    /// <param name="leaveOpened">
+    /// True to let the stream opened when disposing the returned <see cref="IDisposableUtf8JsonReaderContext"/>.
+    /// By default, the stream is disposed.
+    /// </param>
+    /// <param name="initialBufferSize">
+    /// (Ignored for RecyclableMemoryStream.) Initial buffer size (will grow as needed). The buffer size is only driven by
+    /// the longest token (plus some white space) to read.
+    /// Currently, the <c>>ArrayPool&lt;byte&gt;.Shared</c> that is used returns at least 16 bytes: the
+    /// initial buffer size will at least be 16.
+    /// </param>
+    /// <param name="maxBufferSize">
+    /// (Ignored for RecyclableMemoryStream.) The maximal buffer size to use (for the bigger token).</param>
+    /// <returns>A read context that must be disposed.</returns>
+    public static IDisposableUtf8JsonReaderContext Create( Stream stream,
+                                                           JsonReaderOptions options,
+                                                           out Utf8JsonReader r,
+                                                           bool leaveOpened = false,
+                                                           int initialBufferSize = 512,
+                                                           int maxBufferSize = int.MaxValue )
+    {
+        if( stream is RecyclableMemoryStream recycle )
+        {
+            r = CreateUtf8JsonReader( recycle.GetReadOnlySequence(), options );
+            return leaveOpened
+                    ? IUtf8JsonReaderContext.Empty
+                    : new EmptyStreamContext( stream );
+        }
+        return CreateStreamReader( stream, options, out r, leaveOpened, initialBufferSize, maxBufferSize );
+    }
+
+
+    /// <summary>
+    /// Creates a new <see cref="Utf8JsonStreamReaderContext"/> and an initial reader.
     /// <para>
     /// The Utf8 Byte Order Mask (BOM: 0xEF, 0xBB, 0xBF) that may exist at the start is
     /// kindly handled.
     /// </para>
     /// <para>
     /// The <paramref name="stream"/> MUST NOT be a <see cref="RecyclableMemoryStream"/> otherwise an <see cref="ArgumentException"/>
-    /// is thrown: the <c>ReadOnlySequence&lt;byte&gt; GetReadOnlySequence()</c> on the RecyclableMemoryStream must be used instead of
-    /// this Utf8JsonStreamReader helper.
+    /// is thrown: "Please use the Create( Stream stream,... ) that adapts to the stream type.".
     /// </para>
     /// </summary>
     /// <param name="stream">The stream.</param>
     /// <param name="options">The Json reader options.</param>
     /// <param name="r">The initial reader.</param>
     /// <param name="leaveOpened">
-    /// True to let the stream opened when disposing the reader.
+    /// True to let the stream opened when disposing the returned <see cref="Utf8JsonReader"/>.
     /// By default, the stream is disposed.
     /// </param>
     /// <param name="initialBufferSize">
@@ -77,18 +163,18 @@ public sealed class Utf8JsonStreamReader : IDisposable, IUtf8JsonReaderContext
     /// initial buffer size will at least be 16.
     /// </param>
     /// <param name="maxBufferSize">The maximal buffer size to use (for the bigger token).</param>
-    /// <returns>A new stream reader (may be empty).</returns>
-    public static Utf8JsonStreamReader Create( Stream stream,
-                                               JsonReaderOptions options,
-                                               out Utf8JsonReader r,
-                                               bool leaveOpened = false,
-                                               int initialBufferSize = 512,
-                                               int maxBufferSize = int.MaxValue )
+    /// <returns>A read context that must be disposed.</returns>
+    public static Utf8JsonStreamReaderContext CreateStreamReader( Stream stream,
+                                                                  JsonReaderOptions options,
+                                                                  out Utf8JsonReader r,
+                                                                  bool leaveOpened = false,
+                                                                  int initialBufferSize = 512,
+                                                                  int maxBufferSize = int.MaxValue )
     {
         Throw.CheckNotNullArgument( stream );
         // initialBufferSize may be 0 or even negative. It is normalized to at least 4 in ReadFirstBuffer.
         Throw.CheckArgument( maxBufferSize >= initialBufferSize );
-        Throw.CheckArgument( "Please use the ReadOnlySquence<byte> on the RecyclableMemoryStream instead.", stream is not RecyclableMemoryStream );
+        Throw.CheckArgument( "Please use the Create( Stream stream,... ) that adapts to the stream type.", stream is not RecyclableMemoryStream );
         if( ReadFirstBuffer( stream, out var buffer, out var count, out var initialOffset, initialBufferSize ) )
         {
             r = new Utf8JsonReader( buffer.AsSpan( initialOffset, count - initialOffset ), false, new JsonReaderState( options ) );
@@ -99,7 +185,7 @@ public sealed class Utf8JsonStreamReader : IDisposable, IUtf8JsonReaderContext
             count = 0;
             r = new Utf8JsonReader( ReadOnlySpan<byte>.Empty, options );
         }
-        return new Utf8JsonStreamReader( stream, buffer, count, initialOffset, leaveOpened, maxBufferSize );
+        return new Utf8JsonStreamReaderContext( stream, buffer, count, initialOffset, leaveOpened, maxBufferSize );
 
         static bool ReadFirstBuffer( Stream stream, out byte[] buffer, out int count, out int offset, int initialBufferSize )
         {

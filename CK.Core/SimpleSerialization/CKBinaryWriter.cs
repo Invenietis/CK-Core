@@ -2,11 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
-using System.Globalization;
 using System.IO;
-using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace CK.Core;
 
@@ -20,7 +17,7 @@ public class CKBinaryWriter : BinaryWriter, ICKBinaryWriter
     /// companion.
     /// </summary>
     /// <typeparam name="T">Type of the object.</typeparam>
-    public class ObjectPool<T> where T : notnull
+    public sealed class ObjectPool<T> where T : notnull
     {
         readonly Dictionary<T, int> _pool;
         readonly ICKBinaryWriter _w;
@@ -59,14 +56,14 @@ public class CKBinaryWriter : BinaryWriter, ICKBinaryWriter
         /// True if the object must be written, false if it has already been and
         /// there is nothing to do.
         /// </returns>
-        public bool MustWrite( [AllowNull] T o, byte mustWriteMarker = 2 )
+        public bool MustWrite( [NotNullWhen(true), AllowNull] T o, byte mustWriteMarker = 2 )
         {
             if( EqualityComparer<T>.Default.Equals( o, default ) )
             {
                 _w.Write( (byte)0 );
                 return false;
             }
-            Debug.Assert( o != null );
+            Throw.DebugAssert( o != null );
             if( _pool.TryGetValue( o, out var num ) )
             {
                 _w.Write( (byte)1 );

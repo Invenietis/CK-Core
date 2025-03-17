@@ -1,12 +1,8 @@
 using System;
-using System.Collections.Generic;
-using System.IO;
 using System.Linq;
-using System.Runtime.Serialization.Formatters.Binary;
-using System.Text;
 using System.Threading.Tasks;
 using NUnit.Framework;
-using FluentAssertions;
+using Shouldly;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
 
@@ -82,7 +78,7 @@ public class CompletableTests
 
         void ICompletable.OnCompleted()
         {
-            OnCompletedCalled.Should().BeFalse();
+            OnCompletedCalled.ShouldBeFalse();
             OnCompletedCalled = true;
         }
     }
@@ -97,9 +93,9 @@ public class CompletableTests
             case CommandAction.Error: if( c.UseTrySet ) c.CompletionSource.TrySetException( RunException ); else c.CompletionSource.SetException( RunException ); break;
         }
         // Just to be sure :)
-        c.CompletionSource.TrySetException( RunException ).Should().BeFalse();
-        c.CompletionSource.TrySetCanceled().Should().BeFalse();
-        c.CompletionSource.TrySetResult().Should().BeFalse();
+        c.CompletionSource.TrySetException( RunException ).ShouldBeFalse();
+        c.CompletionSource.TrySetCanceled().ShouldBeFalse();
+        c.CompletionSource.TrySetResult().ShouldBeFalse();
     }
 
     [TestCase( 100000, 12 )]
@@ -117,54 +113,54 @@ public class CompletableTests
             try
             {
                 await c.Completion;
-                c.Completion.IsCompleted.Should().BeTrue();
-                c.OnCompletedCalled.Should().BeTrue();
+                c.Completion.IsCompleted.ShouldBeTrue();
+                c.OnCompletedCalled.ShouldBeTrue();
             }
             catch( OperationCanceledException )
             {
                 (c.RunAction == CommandAction.Canceled || (c.RunAction == CommandAction.Error && c.OnErrorHook == CommandAction.Canceled))
-                    .Should().BeTrue();
+                    .ShouldBeTrue();
             }
             catch( Exception ex ) when( ex == RunException )
             {
-                c.RunAction.Should().Be( CommandAction.Error );
-                c.OverriddenExceptionOnError.Should().BeNull();
+                c.RunAction.ShouldBe( CommandAction.Error );
+                c.OverriddenExceptionOnError.ShouldBeNull();
             }
             catch( Exception ex ) when( ex == OverriddenException )
             {
-                c.RunAction.Should().Be( CommandAction.Error );
-                c.OverriddenExceptionOnError.Should().NotBeNull();
+                c.RunAction.ShouldBe( CommandAction.Error );
+                c.OverriddenExceptionOnError.ShouldNotBeNull();
             }
-            c.Completion.IsCompleted.Should().BeTrue();
-            c.OnCompletedCalled.Should().BeTrue();
+            c.Completion.IsCompleted.ShouldBeTrue();
+            c.OnCompletedCalled.ShouldBeTrue();
 
             switch( c.RunAction )
             {
                 case CommandAction.Error:
                     Debug.Assert( c.Completion.OriginalException != null );
-                    c.Completion.OriginalException.Message.Should().BeSameAs( RunException.Message );
-                    c.Completion.HasFailed.Should().BeTrue();
+                    c.Completion.OriginalException.Message.ShouldBeSameAs( RunException.Message );
+                    c.Completion.HasFailed.ShouldBeTrue();
                     switch( c.OnErrorHook )
                     {
                         case CommandAction.Canceled:
-                            c.Completion.Task.Status.Should().Be( TaskStatus.Canceled );
+                            c.Completion.Task.Status.ShouldBe( TaskStatus.Canceled );
                             break;
                         case CommandAction.Success:
-                            c.Completion.Task.Status.Should().Be( TaskStatus.RanToCompletion );
+                            c.Completion.Task.Status.ShouldBe( TaskStatus.RanToCompletion );
                             break;
                         case CommandAction.Error:
                             Debug.Assert( c.Completion.Task.Exception != null );
-                            c.Completion.Task.Status.Should().Be( TaskStatus.Faulted );
-                            c.Completion.Task.Exception.Message.Should().Contain( (c.OverriddenExceptionOnError ?? RunException).Message );
+                            c.Completion.Task.Status.ShouldBe( TaskStatus.Faulted );
+                            c.Completion.Task.Exception.Message.ShouldContain( (c.OverriddenExceptionOnError ?? RunException).Message );
                             break;
                     }
                     break;
                 case CommandAction.Success:
-                    c.Completion.HasSucceed.Should().BeTrue();
+                    c.Completion.HasSucceed.ShouldBeTrue();
                     break;
                 case CommandAction.Canceled:
-                    c.Completion.HasBeenCanceled.Should().BeTrue();
-                    c.Completion.Task.Status.Should().Be( c.SuccessOnCancel ? TaskStatus.RanToCompletion : TaskStatus.Canceled );
+                    c.Completion.HasBeenCanceled.ShouldBeTrue();
+                    c.Completion.Task.Status.ShouldBe( c.SuccessOnCancel ? TaskStatus.RanToCompletion : TaskStatus.Canceled );
                     break;
             }
         }
@@ -226,7 +222,7 @@ public class CompletableTests
 
         public void OnCompleted()
         {
-            OnCompletedCalled.Should().BeFalse();
+            OnCompletedCalled.ShouldBeFalse();
             OnCompletedCalled = true;
         }
     }
@@ -241,9 +237,9 @@ public class CompletableTests
             case CommandAction.Error: if( c.UseTrySet ) c.CompletionSource.TrySetException( RunException ); else c.CompletionSource.SetException( RunException ); break;
         }
         // Just to be sure :)
-        c.CompletionSource.TrySetException( RunException ).Should().BeFalse();
-        c.CompletionSource.TrySetCanceled().Should().BeFalse();
-        c.CompletionSource.TrySetResult( 1 ).Should().BeFalse();
+        c.CompletionSource.TrySetException( RunException ).ShouldBeFalse();
+        c.CompletionSource.TrySetCanceled().ShouldBeFalse();
+        c.CompletionSource.TrySetResult( 1 ).ShouldBeFalse();
     }
 
     [TestCase( 100000, 877 )]
@@ -261,60 +257,60 @@ public class CompletableTests
             try
             {
                 await c.Completion;
-                c.Completion.IsCompleted.Should().BeTrue();
-                c.OnCompletedCalled.Should().BeTrue();
+                c.Completion.IsCompleted.ShouldBeTrue();
+                c.OnCompletedCalled.ShouldBeTrue();
             }
             catch( OperationCanceledException )
             {
                 (c.RunAction == CommandAction.Canceled || (c.RunAction == CommandAction.Error && c.OnErrorHook == CommandAction.Canceled))
-                    .Should().BeTrue();
-                c.Completion.Task.Status.Should().Be( TaskStatus.Canceled );
+                    .ShouldBeTrue();
+                c.Completion.Task.Status.ShouldBe( TaskStatus.Canceled );
             }
             catch( Exception ex ) when( ex == RunException )
             {
-                c.RunAction.Should().Be( CommandAction.Error );
-                c.OverriddenExceptionOnError.Should().BeNull();
-                c.Completion.Task.Status.Should().Be( TaskStatus.Faulted );
+                c.RunAction.ShouldBe( CommandAction.Error );
+                c.OverriddenExceptionOnError.ShouldBeNull();
+                c.Completion.Task.Status.ShouldBe( TaskStatus.Faulted );
             }
             catch( Exception ex ) when( ex == OverriddenException )
             {
-                c.RunAction.Should().Be( CommandAction.Error );
-                c.OverriddenExceptionOnError.Should().NotBeNull();
-                c.Completion.Task.Status.Should().Be( TaskStatus.Faulted );
+                c.RunAction.ShouldBe( CommandAction.Error );
+                c.OverriddenExceptionOnError.ShouldNotBeNull();
+                c.Completion.Task.Status.ShouldBe( TaskStatus.Faulted );
             }
-            c.Completion.IsCompleted.Should().BeTrue();
-            c.OnCompletedCalled.Should().BeTrue();
+            c.Completion.IsCompleted.ShouldBeTrue();
+            c.OnCompletedCalled.ShouldBeTrue();
 
             switch( c.RunAction )
             {
                 case CommandAction.Error:
                     Debug.Assert( c.Completion.OriginalException != null );
-                    c.Completion.OriginalException.Message.Should().BeSameAs( RunException.Message );
-                    c.Completion.HasFailed.Should().BeTrue();
+                    c.Completion.OriginalException.Message.ShouldBeSameAs( RunException.Message );
+                    c.Completion.HasFailed.ShouldBeTrue();
                     switch( c.OnErrorHook )
                     {
                         case CommandAction.Canceled:
-                            c.Completion.Task.Status.Should().Be( TaskStatus.Canceled );
+                            c.Completion.Task.Status.ShouldBe( TaskStatus.Canceled );
                             break;
                         case CommandAction.Success:
-                            c.Completion.Task.Status.Should().Be( TaskStatus.RanToCompletion );
-                            c.Completion.Result.Should().Be( 1 );
+                            c.Completion.Task.Status.ShouldBe( TaskStatus.RanToCompletion );
+                            c.Completion.Result.ShouldBe( 1 );
                             break;
                         case CommandAction.Error:
                             Debug.Assert( c.Completion.Task.Exception != null );
-                            c.Completion.Task.Status.Should().Be( TaskStatus.Faulted );
-                            c.Completion.Task.Exception.Message.Should().Contain( (c.OverriddenExceptionOnError ?? RunException).Message );
+                            c.Completion.Task.Status.ShouldBe( TaskStatus.Faulted );
+                            c.Completion.Task.Exception.Message.ShouldContain( (c.OverriddenExceptionOnError ?? RunException).Message );
                             break;
                     }
                     break;
                 case CommandAction.Success:
-                    c.Completion.HasSucceed.Should().BeTrue();
-                    c.Completion.Result.Should().Be( 3712 );
+                    c.Completion.HasSucceed.ShouldBeTrue();
+                    c.Completion.Result.ShouldBe( 3712 );
                     break;
                 case CommandAction.Canceled:
-                    c.Completion.HasBeenCanceled.Should().BeTrue();
-                    c.Completion.Task.Status.Should().Be( c.SuccessOnCancel ? TaskStatus.RanToCompletion : TaskStatus.Canceled );
-                    if( c.SuccessOnCancel ) c.Completion.Result.Should().Be( 2 );
+                    c.Completion.HasBeenCanceled.ShouldBeTrue();
+                    c.Completion.Task.Status.ShouldBe( c.SuccessOnCancel ? TaskStatus.RanToCompletion : TaskStatus.Canceled );
+                    if( c.SuccessOnCancel ) c.Completion.Result.ShouldBe( 2 );
                     break;
             }
         }
@@ -345,7 +341,7 @@ public class CompletableTests
 
         void ICompletable<int>.OnCompleted()
         {
-            OnCompletedCalled.Should().BeFalse();
+            OnCompletedCalled.ShouldBeFalse();
             OnCompletedCalled = true;
         }
     }
@@ -374,7 +370,7 @@ public class CompletableTests
 
         void ICompletable.OnCompleted()
         {
-            OnCompletedCalled.Should().BeFalse();
+            OnCompletedCalled.ShouldBeFalse();
             OnCompletedCalled = true;
         }
 
@@ -396,7 +392,7 @@ public class CompletableTests
         GC.Collect();
         GC.WaitForPendingFinalizers();
 
-        raised.Should().BeFalse();
+        raised.ShouldBeFalse();
     }
 
     [MethodImpl( MethodImplOptions.NoInlining )]
@@ -408,7 +404,7 @@ public class CompletableTests
             if( error == "Cancel" ) cmd.CompletionSource.SetCanceled();
             else if( error == "OperationCanceledException" ) cmd.CompletionSource.SetException( new OperationCanceledException() );
             else cmd.CompletionSource.SetException( new Exception( "Pouf" ) );
-            cmd.OnCompletedCalled.Should().BeTrue();
+            cmd.OnCompletedCalled.ShouldBeTrue();
         }
         else
         {
@@ -416,7 +412,7 @@ public class CompletableTests
             if( error == "Cancel" ) cmd.CompletionSource.SetCanceled();
             else if( error == "OperationCanceledException" ) cmd.CompletionSource.SetException( new OperationCanceledException() );
             else cmd.CompletionSource.SetException( new Exception( "Pouf" ) );
-            cmd.OnCompletedCalled.Should().BeTrue();
+            cmd.OnCompletedCalled.ShouldBeTrue();
         }
     }
 

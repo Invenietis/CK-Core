@@ -1,11 +1,6 @@
-using FluentAssertions;
+using Shouldly;
 using NUnit.Framework;
-using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace CK.Core.Tests;
 
@@ -74,8 +69,8 @@ D  NOTX", @"
                 }
             }
         }
-        m.HasError.Should().BeTrue();
-        m.GetErrorMessage().Should().Be( message.ReplaceLineEndings().Trim() );
+        m.HasError.ShouldBeTrue();
+        m.GetErrorMessage().ShouldBe( message.ReplaceLineEndings().Trim() );
     }
 
     [TestCase( "", @"
@@ -108,16 +103,16 @@ D  NOTX", @"
         if( !TryMatchFirstAndLast( ref m ) )
         {
             Debug.Assert( message != null );
-            m.Head.Length.Should().Be( m.AllText.Length );
-            m.HasError.Should().BeTrue();
-            m.GetErrorMessage().Should().Be( message.ReplaceLineEndings().Trim() );
+            m.Head.Length.ShouldBe( m.AllText.Length );
+            m.HasError.ShouldBeTrue();
+            m.GetErrorMessage().ShouldBe( message.ReplaceLineEndings().Trim() );
         }
         else
         {
             Debug.Assert( message == null );
-            m.HasError.Should().BeFalse();
-            m.Head.IsEmpty.Should().BeTrue();
-            m.GetErrorMessage().Should().BeEmpty();
+            m.HasError.ShouldBeFalse();
+            m.Head.IsEmpty.ShouldBeTrue();
+            m.GetErrorMessage().ShouldBeEmpty();
         }
     }
 
@@ -169,16 +164,16 @@ D  NOTX", @"
         if( !TryMatchFirstAndLastWithExpectation( ref m ) )
         {
             Debug.Assert( message != null );
-            m.Head.Length.Should().Be( m.AllText.Length );
-            m.HasError.Should().BeTrue();
-            m.GetErrorMessage().Should().Be( message.ReplaceLineEndings().Trim() );
+            m.Head.Length.ShouldBe( m.AllText.Length );
+            m.HasError.ShouldBeTrue();
+            m.GetErrorMessage().ShouldBe( message.ReplaceLineEndings().Trim() );
         }
         else
         {
             Debug.Assert( message == null );
-            m.HasError.Should().BeFalse();
-            m.Head.IsEmpty.Should().BeTrue();
-            m.GetErrorMessage().Should().BeEmpty();
+            m.HasError.ShouldBeFalse();
+            m.Head.IsEmpty.ShouldBeTrue();
+            m.GetErrorMessage().ShouldBeEmpty();
         }
     }
 
@@ -215,9 +210,9 @@ D  NOTX", @"
     public void TryMatchAnyJSON_errors( string s, string message )
     {
         var m = new ROSpanCharMatcher( s );
-        m.TryMatchAnyJSON( out _ ).Should().BeFalse();
-        m.HasError.Should().BeTrue();
-        m.GetErrorMessage().Should().Be( message.ReplaceLineEndings().Trim() );
+        m.TryMatchAnyJSON( out _ ).ShouldBeFalse();
+        m.HasError.ShouldBeTrue();
+        m.GetErrorMessage().ShouldBe( message.ReplaceLineEndings().Trim() );
     }
 
 }

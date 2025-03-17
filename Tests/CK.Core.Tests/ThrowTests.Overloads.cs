@@ -1,10 +1,8 @@
-using FluentAssertions;
+using Shouldly;
 using NUnit.Framework;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace CK.Core.Tests;
 
@@ -15,23 +13,23 @@ public partial class ThrowTests
     [Test]
     public void NotNullOrEmpty_overloads()
     {
-        TestEmptyArg( "string" ).Should().Be( "aString" );
-        TestEmptyArg( "enumerable".Select( c => c ) ).Should().Be( "anEnumerable" );
-        TestEmptyArg( (System.Collections.IEnumerable)("enumerable".Select( c => c )) ).Should().Be( "aLegacyEnumerable" );
-        TestEmptyArg( new char[] { 'a' } ).Should().Be( "aROCollection" );
-        TestEmptyArg( new int[] { 1 } ).Should().Be( "aROCollection" );
+        TestEmptyArg( "string" ).ShouldBe( "aString" );
+        TestEmptyArg( "enumerable".Select( c => c ) ).ShouldBe( "anEnumerable" );
+        TestEmptyArg( (System.Collections.IEnumerable)("enumerable".Select( c => c )) ).ShouldBe( "aLegacyEnumerable" );
+        TestEmptyArg( new char[] { 'a' } ).ShouldBe( "aROCollection" );
+        TestEmptyArg( new int[] { 1 } ).ShouldBe( "aROCollection" );
 
         Span<char> span = new char[] { 'a' }.AsSpan();
-        TestEmptyArg( span ).Should().Be( "aSpan" );
+        TestEmptyArg( span ).ShouldBe( "aSpan" );
 
         var roSpan = "Hello".AsSpan();
-        TestEmptyArg( roSpan ).Should().Be( "aROSpan" );
+        TestEmptyArg( roSpan ).ShouldBe( "aROSpan" );
 
         Memory<char> memory = new char[] { 'a' }.AsMemory();
-        TestEmptyArg( memory ).Should().Be( "aMemory" );
+        TestEmptyArg( memory ).ShouldBe( "aMemory" );
 
         var roMemory = "Hello".AsMemory();
-        TestEmptyArg( roMemory ).Should().Be( "aROMemory" );
+        TestEmptyArg( roMemory ).ShouldBe( "aROMemory" );
     }
 
     static string TestEmptyArg( string aString )

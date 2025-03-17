@@ -1,8 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
-using System.Diagnostics.CodeAnalysis;
 using CK.Core.Impl;
 using System.Runtime.InteropServices;
 using System.Runtime.CompilerServices;

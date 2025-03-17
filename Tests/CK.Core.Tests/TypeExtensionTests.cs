@@ -1,11 +1,8 @@
-using FluentAssertions;
+using Shouldly;
 using NUnit.Framework;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Runtime.CompilerServices;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace CK.Core.Tests;
 
@@ -66,29 +63,29 @@ public class TypeExtensionTests
     [TestCase( typeof( A<int>.C<string> ), "CK.Core.Tests.TypeExtensionTests.A<int>.C<string>" )]
     public void ToCSharpName_without_generic_parameter_names( Type type, string expected )
     {
-        type.ToCSharpName( typeDeclaration: false ).Should().Be( expected );
+        type.ToCSharpName( typeDeclaration: false ).ShouldBe( expected );
     }
 
     [TestCase( typeof( List<IEnumerable<string>> ), "List<IEnumerable<string>>" )]
     [TestCase( typeof( H<string, Another> ), "TypeExtensionTests.H<string,TypeExtensionTests.Another>" )]
     public void ToCSharpName_without_namespace( Type type, string expected )
     {
-        type.ToCSharpName( withNamespace: false ).Should().Be( expected );
+        type.ToCSharpName( withNamespace: false ).ShouldBe( expected );
     }
 
     [TestCase( typeof( long* ), "long*" )]
     [TestCase( typeof( Guid*** ), "System.Guid***" )]
     public void ToCSharpName_handles_pointers( Type type, string expected )
     {
-        type.ToCSharpName().Should().Be( expected );
+        type.ToCSharpName().ShouldBe( expected );
     }
 
     [Test]
     public void ToCSharpName_handles_byRef()
     {
-        typeof( long ).MakeByRefType().ToCSharpName().Should().Be( "long&" );
-        typeof( List<int> ).MakeByRefType().ToCSharpName().Should().Be( "System.Collections.Generic.List<int>&" );
-        typeof( long ).MakeByRefType().ToCSharpName().Should().Be( "long&" );
+        typeof( long ).MakeByRefType().ToCSharpName().ShouldBe( "long&" );
+        typeof( List<int> ).MakeByRefType().ToCSharpName().ShouldBe( "System.Collections.Generic.List<int>&" );
+        typeof( long ).MakeByRefType().ToCSharpName().ShouldBe( "long&" );
     }
 
     [TestCase( typeof( Dictionary<,>.KeyCollection ), "System.Collections.Generic.Dictionary<TKey,TValue>.KeyCollection" )]
@@ -106,7 +103,7 @@ public class TypeExtensionTests
     [TestCase( typeof( int?[] ), "int?[]" )]
     public void ToCSharpName_with_default_parameters( Type type, string expected )
     {
-        type.ToCSharpName().Should().Be( expected );
+        type.ToCSharpName().ShouldBe( expected );
     }
 
     class Nested<T> { }
@@ -131,7 +128,7 @@ public class TypeExtensionTests
     public void ToCSharpName_for_value_tuples( bool withNamespace, Type t, bool useValueTupleParentheses, string expected )
     {
         t.ToCSharpName( withNamespace, useValueTupleParentheses: useValueTupleParentheses )
-            .Should().Be( expected );
+            .ShouldBe( expected );
     }
 
     [TestCase( false, typeof( ValueTuple<,,,,,,,> ), true, "ValueTuple<T1,T2,T3,T4,T5,T6,T7,TRest>" )]
@@ -139,7 +136,7 @@ public class TypeExtensionTests
     public void ToCSharpName_for_type_definition( bool withNamespace, Type t, bool useValueTupleParentheses, string expected )
     {
         t.ToCSharpName( withNamespace, useValueTupleParentheses: useValueTupleParentheses )
-            .Should().Be( expected );
+            .ShouldBe( expected );
     }
 
     [Test]
@@ -147,11 +144,11 @@ public class TypeExtensionTests
     {
         var mRef = GetType().GetMethod( "CreateLongRef", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static );
         Throw.DebugAssert( mRef != null );
-        mRef.ReturnType.ToCSharpName().Should().Be( "System.Tuple<T1,T2,T3,T4,T5,T6,T7,TRest>" );
+        mRef.ReturnType.ToCSharpName().ShouldBe( "System.Tuple<T1,T2,T3,T4,T5,T6,T7,TRest>" );
 
         var mVal = GetType().GetMethod( "CreateLong", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static );
         Throw.DebugAssert( mVal != null );
-        mVal.ReturnType.ToCSharpName().Should().Be( "System.ValueTuple<T1,T2,T3,T4,T5,T6,T7,TRest>" );
+        mVal.ReturnType.ToCSharpName().ShouldBe( "System.ValueTuple<T1,T2,T3,T4,T5,T6,T7,TRest>" );
     }
 
     static ValueTuple<T1, T2, T3, T4, T5, T6, T7, TRest> CreateLong<T1, T2, T3, T4, T5, T6, T7, TRest>( T1 item1, T2 item2, T3 item3, T4 item4, T5 item5, T6 item6, T7 item7, TRest rest )

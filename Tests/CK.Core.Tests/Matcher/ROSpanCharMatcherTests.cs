@@ -1,6 +1,6 @@
 using System;
 using System.Linq;
-using FluentAssertions;
+using Shouldly;
 using NUnit.Framework;
 
 namespace CK.Core.Tests;
@@ -13,24 +13,24 @@ public class ROSpanCharMatcherTests
     {
         string s = "ABCD";
         var m = new ROSpanCharMatcher( s );
-        m.TryMatch( 'a' ).Should().BeFalse();
-        m.HasError.Should().BeTrue();
-        m.TryMatch( 'A' ).Should().BeTrue();
-        m.HasError.Should().BeFalse();
-        m.TryMatch( 'A' ).Should().BeFalse();
-        m.HasError.Should().BeTrue();
-        m.TryMatch( 'B' ).Should().BeTrue();
-        m.HasError.Should().BeFalse();
-        m.TryMatch( 'C' ).Should().BeTrue();
-        m.HasError.Should().BeFalse();
+        m.TryMatch( 'a' ).ShouldBeFalse();
+        m.HasError.ShouldBeTrue();
+        m.TryMatch( 'A' ).ShouldBeTrue();
+        m.HasError.ShouldBeFalse();
+        m.TryMatch( 'A' ).ShouldBeFalse();
+        m.HasError.ShouldBeTrue();
+        m.TryMatch( 'B' ).ShouldBeTrue();
+        m.HasError.ShouldBeFalse();
+        m.TryMatch( 'C' ).ShouldBeTrue();
+        m.HasError.ShouldBeFalse();
 
-        m.TryMatch( 'D' ).Should().BeTrue();
-        m.HasError.Should().BeFalse();
-        m.GetRawErrors().Should().BeEmpty();
+        m.TryMatch( 'D' ).ShouldBeTrue();
+        m.HasError.ShouldBeFalse();
+        m.GetRawErrors().ShouldBeEmpty();
 
-        m.TryMatch( 'D' ).Should().BeFalse();
-        m.HasError.Should().BeTrue();
-        m.GetRawErrors().Single().Expectation.Should().Be( "Character 'D'" );
+        m.TryMatch( 'D' ).ShouldBeFalse();
+        m.HasError.ShouldBeTrue();
+        m.GetRawErrors().Single().Expectation.ShouldBe( "Character 'D'" );
     }
 
     [TestCase( "abcdef", 0xABCDEFUL )]
@@ -41,9 +41,9 @@ public class ROSpanCharMatcherTests
     public void matching_hex_number( string s, ulong v )
     {
         var m = new ROSpanCharMatcher( s );
-        m.TryMatchHexNumber( out ulong value ).Should().BeTrue();
-        value.Should().Be( v );
-        m.Head.Length.Should().Be( 0 );
+        m.TryMatchHexNumber( out ulong value ).ShouldBeTrue();
+        value.ShouldBe( v );
+        m.Head.Length.ShouldBe( 0 );
     }
 
     [TestCase( "0|", 0x0UL, '|' )]
@@ -52,11 +52,11 @@ public class ROSpanCharMatcherTests
     public void matching_hex_number_one_digit( string s, ulong v, char end )
     {
         var m = new ROSpanCharMatcher( s );
-        m.TryMatchHexNumber( out ulong value, 1, 1 ).Should().BeTrue();
-        value.Should().Be( v );
-        m.HasError.Should().BeFalse();
-        m.Head.Length.Should().BePositive();
-        m.Head[0].Should().Be( end );
+        m.TryMatchHexNumber( out ulong value, 1, 1 ).ShouldBeTrue();
+        value.ShouldBe( v );
+        m.HasError.ShouldBeFalse();
+        m.Head.Length.ShouldBePositive();
+        m.Head[0].ShouldBe( end );
     }
 
     [TestCase( "not a hex." )]
@@ -64,10 +64,10 @@ public class ROSpanCharMatcherTests
     public void matching_hex_number_failures( string s )
     {
         var m = new ROSpanCharMatcher( s );
-        m.TryMatchHexNumber( out ulong value, 5, 5 ).Should().BeFalse();
-        m.Head.Length.Should().Be( s.Length );
-        m.GetRawErrors().Single().Expectation.Should().Be( "5 digits hexadecimal number" );
-        m.GetRawErrors().Single().CallerName.Should().Be( "TryMatchHexNumber" );
+        m.TryMatchHexNumber( out ulong value, 5, 5 ).ShouldBeFalse();
+        m.Head.Length.ShouldBe( s.Length );
+        m.GetRawErrors().Single().Expectation.ShouldBe( "5 digits hexadecimal number" );
+        m.GetRawErrors().Single().CallerName.ShouldBe( "TryMatchHexNumber" );
     }
 
     [Test]
@@ -76,52 +76,52 @@ public class ROSpanCharMatcherTests
         string s = " AB  \t\r C";
         var m = new ROSpanCharMatcher( s );
 
-        m.TryMatch( "A" ).Should().BeFalse();
-        m.TrySkipWhiteSpaces().Should().BeTrue();
-        m.TryMatch( "A" ).Should().BeTrue();
-        m.TryMatch( "B" ).Should().BeTrue();
+        m.TryMatch( "A" ).ShouldBeFalse();
+        m.TrySkipWhiteSpaces().ShouldBeTrue();
+        m.TryMatch( "A" ).ShouldBeTrue();
+        m.TryMatch( "B" ).ShouldBeTrue();
 
-        m.TrySkipWhiteSpaces( 6 ).Should().BeFalse();
-        m.HasError.Should().BeTrue();
-        m.GetRawErrors().Single().Expectation.Should().Be( "At least 6 white space(s)" );
+        m.TrySkipWhiteSpaces( 6 ).ShouldBeFalse();
+        m.HasError.ShouldBeTrue();
+        m.GetRawErrors().Single().Expectation.ShouldBe( "At least 6 white space(s)" );
 
-        m.TrySkipWhiteSpaces( 5 ).Should().BeTrue();
-        m.HasError.Should().BeFalse();
-        m.GetRawErrors().Should().BeEmpty();
+        m.TrySkipWhiteSpaces( 5 ).ShouldBeTrue();
+        m.HasError.ShouldBeFalse();
+        m.GetRawErrors().ShouldBeEmpty();
 
-        m.TrySkipWhiteSpaces().Should().BeFalse();
-        m.HasError.Should().BeTrue();
-        m.GetRawErrors().Single().Expectation.Should().Be( "At least one white space" );
+        m.TrySkipWhiteSpaces().ShouldBeFalse();
+        m.HasError.ShouldBeTrue();
+        m.GetRawErrors().Single().Expectation.ShouldBe( "At least one white space" );
 
-        m.TryMatch( "c", StringComparison.OrdinalIgnoreCase ).Should().BeTrue();
-        m.Head.IsEmpty.Should().BeTrue();
+        m.TryMatch( "c", StringComparison.OrdinalIgnoreCase ).ShouldBeTrue();
+        m.Head.IsEmpty.ShouldBeTrue();
 
-        m.TryMatch( "A" ).Should().BeFalse();
-        m.TrySkipWhiteSpaces().Should().BeFalse();
+        m.TryMatch( "A" ).ShouldBeFalse();
+        m.TrySkipWhiteSpaces().ShouldBeFalse();
     }
 
     [Test]
     public void matching_integers()
     {
         var m = new ROSpanCharMatcher( "X3712Y" );
-        m.TryMatch( 'X' ).Should().BeTrue();
-        m.TryMatchInt32( out var i ).Should().BeTrue();
-        i.Should().Be( 3712 );
-        m.TryMatch( 'Y' ).Should().BeTrue();
+        m.TryMatch( 'X' ).ShouldBeTrue();
+        m.TryMatchInt32( out var i ).ShouldBeTrue();
+        i.ShouldBe( 3712 );
+        m.TryMatch( 'Y' ).ShouldBeTrue();
     }
 
     [Test]
     public void matching_digits()
     {
         var m = "X  012345678901234567890123456789  Y".AsSpan();
-        m.TryMatch( 'X' ).Should().BeTrue();
-        m.SkipWhiteSpaces().Should().BeTrue();
+        m.TryMatch( 'X' ).ShouldBeTrue();
+        m.SkipWhiteSpaces().ShouldBeTrue();
 
-        m.TryMatchDigits( out var digits ).Should().BeTrue();
-        digits.ToString().Should().Be( "012345678901234567890123456789" );
+        m.TryMatchDigits( out var digits ).ShouldBeTrue();
+        digits.ToString().ShouldBe( "012345678901234567890123456789" );
 
-        m.SkipWhiteSpaces().Should().BeTrue();
-        m.TryMatch( 'Y' ).Should().BeTrue();
+        m.SkipWhiteSpaces().ShouldBeTrue();
+        m.TryMatch( 'Y' ).ShouldBeTrue();
     }
 
     [TestCase( "00003712 -000435 056", "AllowLeadingZeros" )]
@@ -131,18 +131,18 @@ public class ROSpanCharMatcherTests
         bool allowZeros = withZeros == "AllowLeadingZeros";
         var m = new ROSpanCharMatcher( "3712 -435 56" );
         int i;
-        m.TryMatchInt32( out i, -500, -400, allowZeros ).Should().BeFalse();
-        m.TryMatchInt32( out i, 0, 3712, allowZeros ).Should().BeTrue();
-        i.Should().Be( 3712 );
-        m.TrySkipWhiteSpaces().Should().BeTrue();
-        m.TryMatchInt32( out i, 0, allowLeadingZeros: allowZeros ).Should().BeFalse();
-        m.TryMatchInt32( out i, -500, -400, allowZeros ).Should().BeTrue();
-        i.Should().Be( -435 );
-        m.TrySkipWhiteSpaces().Should().BeTrue();
-        m.TryMatchInt32( out i, 1000, 2000, allowZeros ).Should().BeFalse();
-        m.TryMatchInt32( out i, 56, 56, allowZeros ).Should().BeTrue();
-        i.Should().Be( 56 );
-        m.Head.IsEmpty.Should().BeTrue();
+        m.TryMatchInt32( out i, -500, -400, allowZeros ).ShouldBeFalse();
+        m.TryMatchInt32( out i, 0, 3712, allowZeros ).ShouldBeTrue();
+        i.ShouldBe( 3712 );
+        m.TrySkipWhiteSpaces().ShouldBeTrue();
+        m.TryMatchInt32( out i, 0, allowLeadingZeros: allowZeros ).ShouldBeFalse();
+        m.TryMatchInt32( out i, -500, -400, allowZeros ).ShouldBeTrue();
+        i.ShouldBe( -435 );
+        m.TrySkipWhiteSpaces().ShouldBeTrue();
+        m.TryMatchInt32( out i, 1000, 2000, allowZeros ).ShouldBeFalse();
+        m.TryMatchInt32( out i, 56, 56, allowZeros ).ShouldBeTrue();
+        i.ShouldBe( 56 );
+        m.Head.IsEmpty.ShouldBeTrue();
     }
 
     delegate T ROSpanCharMatcherFunc<T>( ROSpanCharMatcher m );
@@ -169,11 +169,11 @@ public class ROSpanCharMatcherTests
     static void CheckMatchError( ROSpanCharMatcher m, ROSpanCharMatcherFunc<bool> fail, string message )
     {
         int len = m.Head.Length;
-        fail( m ).Should().BeFalse();
-        m.HasError.Should().BeTrue();
-        m.Head.Length.Should().Be( len );
-        m.GetRawErrors().Should().HaveCount( 1 );
-        m.GetRawErrors().Single().Expectation.Should().Be( message );
+        fail( m ).ShouldBeFalse();
+        m.HasError.ShouldBeTrue();
+        m.Head.Length.ShouldBe( len );
+        m.GetRawErrors().Count().ShouldBe( 1 );
+        m.GetRawErrors().Single().Expectation.ShouldBe( message );
         m.SetSuccess();
     }
 
@@ -196,26 +196,26 @@ public class ROSpanCharMatcherTests
     {
         {
             var m = new ROSpanCharMatcher( "P" + s + "S" );
-            m.TryMatch( 'P' ).Should().BeTrue();
-            m.TrySkipDouble().Should().BeTrue();
-            m.TryMatch( 'S' ).Should().BeTrue();
-            m.Head.IsEmpty.Should().BeTrue();
+            m.TryMatch( 'P' ).ShouldBeTrue();
+            m.TrySkipDouble().ShouldBeTrue();
+            m.TryMatch( 'S' ).ShouldBeTrue();
+            m.Head.IsEmpty.ShouldBeTrue();
 
             m.Head = m.AllText.Slice( 1 );
-            m.TryMatchDouble( out var parsed ).Should().BeTrue();
-            parsed.Should().BeApproximately( d, 1f );
-            m.TryMatch( 'S' ).Should().BeTrue();
-            m.Head.IsEmpty.Should().BeTrue();
+            m.TryMatchDouble( out var parsed ).ShouldBeTrue();
+            parsed.ShouldBe( d, 1f );
+            m.TryMatch( 'S' ).ShouldBeTrue();
+            m.Head.IsEmpty.ShouldBeTrue();
         }
         {
             var m = new ROSpanCharMatcher( s );
-            m.TrySkipDouble().Should().BeTrue();
-            m.Head.IsEmpty.Should().BeTrue();
+            m.TrySkipDouble().ShouldBeTrue();
+            m.Head.IsEmpty.ShouldBeTrue();
 
             m.Head = m.AllText;
-            m.TryMatchDouble( out var parsed ).Should().BeTrue();
-            parsed.Should().BeApproximately( d, 1f );
-            m.Head.IsEmpty.Should().BeTrue();
+            m.TryMatchDouble( out var parsed ).ShouldBeTrue();
+            parsed.ShouldBe( d, 1f );
+            m.Head.IsEmpty.ShouldBeTrue();
         }
     }
 
@@ -232,41 +232,41 @@ public class ROSpanCharMatcherTests
             string s = sId;
             var m = new ROSpanCharMatcher( s );
             Guid readId;
-            m.TryMatchGuid( out readId ).Should().BeTrue();
-            readId.Should().Be( id );
+            m.TryMatchGuid( out readId ).ShouldBeTrue();
+            readId.ShouldBe( id );
         }
         {
             string s = "S" + sId;
             var m = new ROSpanCharMatcher( s );
             Guid readId;
-            m.TryMatch( 'S' ).Should().BeTrue();
-            m.TryMatchGuid( out readId ).Should().BeTrue();
-            readId.Should().Be( id );
+            m.TryMatch( 'S' ).ShouldBeTrue();
+            m.TryMatchGuid( out readId ).ShouldBeTrue();
+            readId.ShouldBe( id );
         }
         {
             string s = "S" + sId + "T";
             var m = new ROSpanCharMatcher( s );
             Guid readId;
-            m.TryMatch( 'S' ).Should().BeTrue();
-            m.TryMatchGuid( out readId ).Should().BeTrue();
-            readId.Should().Be( id );
-            m.TryMatch( 'T' ).Should().BeTrue();
+            m.TryMatch( 'S' ).ShouldBeTrue();
+            m.TryMatchGuid( out readId ).ShouldBeTrue();
+            readId.ShouldBe( id );
+            m.TryMatch( 'T' ).ShouldBeTrue();
         }
         sId = sId.Remove( sId.Length - 1 );
         {
             string s = sId;
             var m = new ROSpanCharMatcher( s );
             Guid readId;
-            m.TryMatchGuid( out readId ).Should().BeFalse();
-            m.Head.Length.Should().Be( m.AllText.Length );
+            m.TryMatchGuid( out readId ).ShouldBeFalse();
+            m.Head.Length.ShouldBe( m.AllText.Length );
         }
         sId = id.ToString().Insert( 3, "K" ).Remove( 4 );
         {
             string s = sId;
             var m = new ROSpanCharMatcher( s );
             Guid readId;
-            m.TryMatchGuid( out readId ).Should().BeFalse();
-            m.Head.Length.Should().Be( m.AllText.Length );
+            m.TryMatchGuid( out readId ).ShouldBeFalse();
+            m.Head.Length.ShouldBe( m.AllText.Length );
         }
     }
 
@@ -278,7 +278,7 @@ public class ROSpanCharMatcherTests
         var g1 = m.OpenExpectations();
         g1.Dispose();
         var g1Back = m.OpenExpectations();
-        g1Back.Should().BeSameAs( g1 );
+        g1Back.ShouldBeSameAs( g1 );
         g1Back.Dispose();
 
         g1 = m.OpenExpectations();
@@ -299,11 +299,11 @@ public class ROSpanCharMatcherTests
         var g4Back = m.OpenExpectations();
         var g5Back = m.OpenExpectations();
 
-        g1Back.Should().BeSameAs( g1 );
-        g2Back.Should().BeSameAs( g2 );
-        g3Back.Should().BeSameAs( g3 );
-        g4Back.Should().BeSameAs( g4 );
-        g5Back.Should().BeSameAs( g5 );
+        g1Back.ShouldBeSameAs( g1 );
+        g2Back.ShouldBeSameAs( g2 );
+        g3Back.ShouldBeSameAs( g3 );
+        g4Back.ShouldBeSameAs( g4 );
+        g5Back.ShouldBeSameAs( g5 );
     }
 
     [Test]
@@ -312,7 +312,7 @@ public class ROSpanCharMatcherTests
         var m = new ROSpanCharMatcher( "" );
         var g1 = m.OpenExpectations();
         var g2 = m.OpenExpectations();
-        FluentActions.Invoking( () => g1.Dispose() ).Should().Throw<InvalidOperationException>();
+        Util.Invokable( () => g1.Dispose() ).ShouldThrow<InvalidOperationException>();
         g2.Dispose();
         g1.Dispose();
     }
@@ -323,94 +323,94 @@ public class ROSpanCharMatcherTests
         const string defaultGroupName = nameof( Expectation_and_error_management_with_OpenExpectations );
 
         var m = new ROSpanCharMatcher( "" );
-        m.HasError.Should().BeFalse();
+        m.HasError.ShouldBeFalse();
         using( m.OpenExpectations() )
         {
-            m.HasError.Should().BeFalse( "Newly opened group has no error." );
+            m.HasError.ShouldBeFalse( "Newly opened group has no error." );
             m.SetSuccess();
         }
-        m.HasError.Should().BeFalse( "ClearExpectations has been called in group." );
+        m.HasError.ShouldBeFalse( "ClearExpectations has been called in group." );
         using( m.OpenExpectations() )
         {
-            m.HasError.Should().BeFalse();
+            m.HasError.ShouldBeFalse();
         }
-        m.HasError.Should().BeTrue( "ClearExpectations has NOT been called in group: the error is the caller name since there's no explicit expect string." );
-        m.GetRawErrors().Single().Expectation.Should().Be( defaultGroupName );
+        m.HasError.ShouldBeTrue( "ClearExpectations has NOT been called in group: the error is the caller name since there's no explicit expect string." );
+        m.GetRawErrors().Single().Expectation.ShouldBe( defaultGroupName );
 
         m.SetSuccess();
-        m.HasError.Should().BeFalse();
-        m.GetRawErrors().Should().BeEmpty();
+        m.HasError.ShouldBeFalse();
+        m.GetRawErrors().ShouldBeEmpty();
 
         using( m.OpenExpectations() )
         {
-            m.HasError.Should().BeFalse();
+            m.HasError.ShouldBeFalse();
             m.AddExpectation( "1" );
             m.SetSuccess();
 
-            m.HasError.Should().BeFalse();
-            m.GetRawErrors().Should().BeEmpty();
+            m.HasError.ShouldBeFalse();
+            m.GetRawErrors().ShouldBeEmpty();
         }
-        m.HasError.Should().BeFalse();
-        m.GetRawErrors().Should().BeEmpty();
+        m.HasError.ShouldBeFalse();
+        m.GetRawErrors().ShouldBeEmpty();
 
         using( m.OpenExpectations() )
         {
-            m.HasError.Should().BeFalse();
+            m.HasError.ShouldBeFalse();
             m.AddExpectation( "1" );
-            m.HasError.Should().BeTrue();
+            m.HasError.ShouldBeTrue();
             using( m.OpenExpectations( "sub" ) )
             {
-                m.HasError.Should().BeFalse( "No error in this group." );
+                m.HasError.ShouldBeFalse( "No error in this group." );
             }
-            m.HasError.Should().BeTrue();
-            m.GetRawErrors().Select( e => e.Expectation ).Should().BeEquivalentTo( new[] { "1", "sub" } );
+            m.HasError.ShouldBeTrue();
+            m.GetRawErrors().Select( e => e.Expectation ).ToArray().ShouldBe( new[] { "1", "sub" } );
         }
-        m.HasError.Should().BeTrue();
-        m.GetRawErrors().Select( e => e.Expectation ).Should().BeEquivalentTo( new[] { defaultGroupName, "1", "sub" } );
+        m.HasError.ShouldBeTrue();
+        m.GetRawErrors().Select( e => e.Expectation ).ToArray().ShouldBe( new[] { defaultGroupName, "1", "sub" } );
 
         using( m.OpenExpectations( "G2" ) )
         {
-            m.HasError.Should().BeFalse();
+            m.HasError.ShouldBeFalse();
             m.AddExpectation( "2" );
-            m.HasError.Should().BeTrue();
+            m.HasError.ShouldBeTrue();
             using( m.OpenExpectations( "sub2" ) )
             {
-                m.HasError.Should().BeFalse();
+                m.HasError.ShouldBeFalse();
                 m.AddExpectation( "E" );
             }
-            m.HasError.Should().BeTrue();
-            m.GetRawErrors().Select( e => e.Expectation ).Should().BeEquivalentTo( new[] { "2", "sub2", "E" } );
+            m.HasError.ShouldBeTrue();
+            m.GetRawErrors().Select( e => e.Expectation ).ToArray().ShouldBe( new[] { "2", "sub2", "E" } );
         }
-        m.HasError.Should().BeTrue();
-        m.GetRawErrors().Select( e => e.Expectation ).Should().BeEquivalentTo( new[] { defaultGroupName, "1", "sub", "G2", "2", "sub2", "E" } );
+        m.HasError.ShouldBeTrue();
+        m.GetRawErrors().Select( e => e.Expectation ).ToArray().ShouldBe( new[] { defaultGroupName, "1", "sub", "G2", "2", "sub2", "E" } );
     }
 
     [Test]
     public void when_SingleExpectationMode_is_true_only_the_last_expectation_is_kept()
     {
         var m = new ROSpanCharMatcher( "" );
-        m.SingleExpectationMode.Should().BeFalse( "The default is false." );
+        m.SingleExpectationMode.ShouldBeFalse( "The default is false." );
         m.SingleExpectationMode = true;
 
         m.AddExpectation( "A" );
         m.AddExpectation( "B" );
         m.AddExpectation( "C" );
 
-        m.HasError.Should().BeTrue();
-        m.GetRawErrors().Single().Expectation.Should().Be( "C" );
+        m.HasError.ShouldBeTrue();
+        m.GetRawErrors().Single().Expectation.ShouldBe( "C" );
 
         m.SingleExpectationMode = false;
 
         m.AddExpectation( "A" );
         m.AddExpectation( "B" );
 
-        m.HasError.Should().BeTrue();
-        m.GetRawErrors().Select( e => e.Expectation ).Should().BeEquivalentTo( new[] { "C", "A", "B" } );
+        m.HasError.ShouldBeTrue();
+        m.GetRawErrors().Select(e => e.Expectation).ToArray().ShouldBe( new[] { "C", "A", "B" } );
 
         m.SingleExpectationMode = true;
 
-        m.HasError.Should().BeTrue();
-        m.GetRawErrors().Single().Expectation.Should().Be( "B" );
+        m.HasError.ShouldBeTrue();
+        m.GetRawErrors().Single().Expectation.ShouldBe( "B" );
 
     }
 
@@ -418,93 +418,93 @@ public class ROSpanCharMatcherTests
     public void above_SingleExpectationMode_initially_propagates_to_OpenExpectations_groups()
     {
         var m = new ROSpanCharMatcher( "" );
-        m.SingleExpectationMode.Should().BeFalse();
+        m.SingleExpectationMode.ShouldBeFalse();
         m.SingleExpectationMode = true;
 
         using( m.OpenExpectations( "Thing" ) )
         {
-            m.SingleExpectationMode.Should().BeTrue();
+            m.SingleExpectationMode.ShouldBeTrue();
             m.AddExpectation( "A" );
             m.AddExpectation( "B" );
             m.AddExpectation( "C" );
-            m.HasError.Should().BeTrue();
-            m.GetRawErrors().Single().Expectation.Should().Be( "C" );
+            m.HasError.ShouldBeTrue();
+            m.GetRawErrors().Single().Expectation.ShouldBe( "C" );
         }
-        m.HasError.Should().BeTrue();
-        m.GetRawErrors().Single().Expectation.Should().Be( "Thing" );
+        m.HasError.ShouldBeTrue();
+        m.GetRawErrors().Single().Expectation.ShouldBe( "Thing" );
 
         m.AddExpectation( "A" );
         m.AddExpectation( "B" );
         m.AddExpectation( "C" );
 
-        m.HasError.Should().BeTrue();
-        m.GetRawErrors().Single().Expectation.Should().Be( "C" );
+        m.HasError.ShouldBeTrue();
+        m.GetRawErrors().Single().Expectation.ShouldBe( "C" );
 
         m.SetSuccess();
-        m.GetRawErrors().Should().BeEmpty();
+        m.GetRawErrors().ShouldBeEmpty();
 
         using( m.OpenExpectations( "Thing1" ) )
         {
-            m.HasError.Should().BeFalse();
-            m.SingleExpectationMode.Should().BeTrue();
+            m.HasError.ShouldBeFalse();
+            m.SingleExpectationMode.ShouldBeTrue();
             m.AddExpectation( "A1" );
             m.AddExpectation( "B1" );
             m.AddExpectation( "C1" );
-            m.HasError.Should().BeTrue();
-            m.GetRawErrors().Single().Expectation.Should().Be( "C1" );
+            m.HasError.ShouldBeTrue();
+            m.GetRawErrors().Single().Expectation.ShouldBe( "C1" );
             using( m.OpenExpectations( "Thing2" ) )
             {
-                m.HasError.Should().BeFalse();
-                m.SingleExpectationMode.Should().BeTrue();
+                m.HasError.ShouldBeFalse();
+                m.SingleExpectationMode.ShouldBeTrue();
                 m.AddExpectation( "A2" );
                 m.AddExpectation( "B2" );
                 m.AddExpectation( "C2" );
-                m.HasError.Should().BeTrue();
-                m.GetRawErrors().Single().Expectation.Should().Be( "C2" );
+                m.HasError.ShouldBeTrue();
+                m.GetRawErrors().Single().Expectation.ShouldBe( "C2" );
             }
-            m.HasError.Should().BeTrue();
-            m.GetRawErrors().Single().Expectation.Should().Be( "Thing2" );
+            m.HasError.ShouldBeTrue();
+            m.GetRawErrors().Single().Expectation.ShouldBe( "Thing2" );
         }
-        m.HasError.Should().BeTrue();
-        m.GetRawErrors().Single().Expectation.Should().Be( "Thing1" );
+        m.HasError.ShouldBeTrue();
+        m.GetRawErrors().Single().Expectation.ShouldBe( "Thing1" );
     }
 
     [Test]
     public void SingleExpectationMode_can_be_freely_changed_in_any_OpenExpectations_group()
     {
         var m = new ROSpanCharMatcher( "" );
-        m.SingleExpectationMode.Should().BeFalse();
+        m.SingleExpectationMode.ShouldBeFalse();
         m.SingleExpectationMode = true;
 
         using( m.OpenExpectations( "Thing" ) )
         {
-            m.SingleExpectationMode.Should().BeTrue();
+            m.SingleExpectationMode.ShouldBeTrue();
             m.SingleExpectationMode = false;
             m.AddExpectation( "A" );
             m.AddExpectation( "B" );
             m.AddExpectation( "C" );
-            m.HasError.Should().BeTrue();
-            m.GetRawErrors().Select( e => e.Expectation ).Should().BeEquivalentTo( "A", "B", "C" );
+            m.HasError.ShouldBeTrue();
+            m.GetRawErrors().Select( e => e.Expectation ).ToArray().ShouldBe( new[] { "A", "B", "C" } );
         }
-        m.HasError.Should().BeTrue();
-        m.GetRawErrors().Single().Expectation.Should().Be( "Thing" );
+        m.HasError.ShouldBeTrue();
+        m.GetRawErrors().Single().Expectation.ShouldBe( "Thing" );
 
         m.SingleExpectationMode = false;
         using( m.OpenExpectations( "Thing2" ) )
         {
-            m.SingleExpectationMode.Should().BeFalse();
+            m.SingleExpectationMode.ShouldBeFalse();
             m.AddExpectation( "A" );
             m.AddExpectation( "B" );
             m.AddExpectation( "C" );
-            m.HasError.Should().BeTrue();
-            m.GetRawErrors().Select( e => e.Expectation ).Should().BeEquivalentTo( "A", "B", "C" );
+            m.HasError.ShouldBeTrue();
+            m.GetRawErrors().Select( e => e.Expectation ).ToArray().ShouldBe( new[] { "A", "B", "C" } );
 
             m.SingleExpectationMode = true;
-            m.GetRawErrors().Single().Expectation.Should().Be( "C" );
+            m.GetRawErrors().Single().Expectation.ShouldBe( "C" );
         }
 
-        m.HasError.Should().BeTrue();
-        m.GetRawErrors().Select( e => e.Expectation ).Should().BeEquivalentTo( "Thing", "Thing2", "C" );
+        m.HasError.ShouldBeTrue();
+        m.GetRawErrors().Select(e => e.Expectation).ToArray().ShouldBe( new[] { "Thing", "Thing2", "C" } );
     }
 
 }

@@ -1,8 +1,7 @@
-using System;
 using NUnit.Framework;
 using System.Collections.Generic;
 using System.Linq;
-using FluentAssertions;
+using Shouldly;
 using System.Diagnostics;
 
 namespace CK.Core.Tests;
@@ -16,29 +15,29 @@ public class MatchJSONTests
         {
             var j = @"{""A"":1,""B"":2}";
             var m = new ROSpanCharMatcher( j );
-            m.TryMatchAnyJSON( out object? o ).Should().BeTrue();
+            m.TryMatchAnyJSON( out object? o ).ShouldBeTrue();
             var list = o as List<(string Name, object Value)>;
             Debug.Assert( list != null );
-            list.Select( k => k.Name + '|' + k.Value ).Concatenate().Should().Be( "A|1, B|2" );
+            list.Select( k => k.Name + '|' + k.Value ).Concatenate().ShouldBe( "A|1, B|2" );
         }
         {
             var j = @"{ ""A"" : 1.0, ""B"" : 2 }";
             var m = new ROSpanCharMatcher( j );
-            m.TryMatchAnyJSON( out object? o ).Should().BeTrue();
+            m.TryMatchAnyJSON( out object? o ).ShouldBeTrue();
             var list = o as List<(string Name, object Value)>;
             Debug.Assert( list != null );
-            list.Select( k => k.Name + '|' + k.Value ).Concatenate().Should().Be( "A|1, B|2" );
+            list.Select( k => k.Name + '|' + k.Value ).Concatenate().ShouldBe( "A|1, B|2" );
         }
         {
             var j = @"{ ""A"" : [ ""a"" , 3 , null , 6], ""B"" : [ 2, 3, ""XX"" ] }";
             var m = new ROSpanCharMatcher( j );
-            m.TryMatchAnyJSON( out object? o ).Should().BeTrue();
+            m.TryMatchAnyJSON( out object? o ).ShouldBeTrue();
             var list = o as List<(string Name, object Value)>;
             Debug.Assert( list != null );
             list.Select( k => k.Name
                               + '|'
                               + ((List<object?>)k.Value).Select( v => v?.ToString() ).Concatenate( "+" ) )
-                .Concatenate().Should().Be( "A|a+3++6, B|2+3+XX" );
+                .Concatenate().ShouldBe( "A|a+3++6, B|2+3+XX" );
         }
     }
 
@@ -48,18 +47,18 @@ public class MatchJSONTests
         {
             var j = @"{}";
             var m = new ROSpanCharMatcher( j );
-            m.TryMatchAnyJSON( out object? o ).Should().BeTrue();
+            m.TryMatchAnyJSON( out object? o ).ShouldBeTrue();
             var list = o as List<(string Name, object Value)>;
             Debug.Assert( list != null );
-            list.Should().BeEmpty();
+            list.ShouldBeEmpty();
         }
         {
             var j = @"[]";
             var m = new ROSpanCharMatcher( j );
-            m.TryMatchAnyJSON( out object? o ).Should().BeTrue();
+            m.TryMatchAnyJSON( out object? o ).ShouldBeTrue();
             var list = o as List<object?>;
             Debug.Assert( list != null );
-            list.Should().BeEmpty();
+            list.ShouldBeEmpty();
         }
     }
 
@@ -76,8 +75,8 @@ public class MatchJSONTests
     public void match_JSON_skips_JS_comments( string jsonWithComment )
     {
         var m = new ROSpanCharMatcher( jsonWithComment );
-        m.TryMatchAnyJSON( out object? o ).Should().BeTrue();
-        o.Should().Be( 1.2 );
+        m.TryMatchAnyJSON( out object? o ).ShouldBeTrue();
+        o.ShouldBe( 1.2 );
     }
 
 
@@ -87,14 +86,14 @@ public class MatchJSONTests
     public void TryMatchAnyJSON_has_detailed_errors( string s, string errors )
     {
         var m = new ROSpanCharMatcher( s );
-        m.TryMatchAnyJSON( out _ ).Should().BeFalse();
-        m.HasError.Should().BeTrue();
-        m.GetRawErrors().Select( e => $"@{e.Pos}{new string( '-', e.Depth + 1 )}{e.Expectation}" ).Concatenate( '|' ).Should().Be( errors );
+        m.TryMatchAnyJSON( out _ ).ShouldBeFalse();
+        m.HasError.ShouldBeTrue();
+        m.GetRawErrors().Select( e => $"@{e.Pos}{new string( '-', e.Depth + 1 )}{e.Expectation}" ).Concatenate( '|' ).ShouldBe( errors );
 
         m.SetSuccess();
         m.SingleExpectationMode = true;
-        m.TryMatchAnyJSON( out _ ).Should().BeFalse();
-        m.HasError.Should().BeTrue();
-        m.GetRawErrors().Single().Expectation.Should().Be( errors.Split( '|' )[0].Remove( 0, 3 ) );
+        m.TryMatchAnyJSON( out _ ).ShouldBeFalse();
+        m.HasError.ShouldBeTrue();
+        m.GetRawErrors().Single().Expectation.ShouldBe( errors.Split( '|' )[0].Remove( 0, 3 ) );
     }
 }

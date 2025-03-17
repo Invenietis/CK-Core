@@ -1,4 +1,4 @@
-using FluentAssertions;
+using Shouldly;
 using NUnit.Framework;
 using System;
 using System.Diagnostics;
@@ -26,27 +26,27 @@ public partial class Utf8JsonStreamReaderTests
         // Fill the buffer with the 10 first bytes.
         stream.Read( buffer );
 
-        Encoding.UTF8.GetString( buffer ).Should().Be( "{\"Date\":\"2" );
+        Encoding.UTF8.GetString( buffer ).ShouldBe( "{\"Date\":\"2" );
         // We set isFinalBlock to false since we expect more data in a subsequent read from the stream.
         var reader = new Utf8JsonReader( buffer, isFinalBlock: false, state: default );
 
-        reader.TokenType.Should().Be( JsonTokenType.None, "We have not read anything yet." );
-        reader.Read().Should().BeTrue();
-        reader.TokenType.Should().Be( JsonTokenType.StartObject, "We have read the StartObject." );
-        reader.Read().Should().BeTrue();
-        reader.TokenType.Should().Be( JsonTokenType.PropertyName );
-        reader.GetString().Should().Be( "Date", "The Property name Date has been successfully read." );
+        reader.TokenType.ShouldBe( JsonTokenType.None, "We have not read anything yet." );
+        reader.Read().ShouldBeTrue();
+        reader.TokenType.ShouldBe( JsonTokenType.StartObject, "We have read the StartObject." );
+        reader.Read().ShouldBeTrue();
+        reader.TokenType.ShouldBe( JsonTokenType.PropertyName );
+        reader.GetString().ShouldBe( "Date", "The Property name Date has been successfully read." );
 
-        reader.BytesConsumed.Should().Be( 8 );
-        reader.Read().Should().BeFalse( "Now Read() cannot read the next token." );
+        reader.BytesConsumed.ShouldBe( 8 );
+        reader.Read().ShouldBeFalse( "Now Read() cannot read the next token." );
         ReadMore( stream, ref buffer, ref reader );
-        Encoding.UTF8.GetString( buffer ).Should().Be( "\"2019-08-0" );
-        reader.Read().Should().BeFalse( "This buffer is too small: ReadMore will acquire a bigger buffer..." );
-        reader.BytesConsumed.Should().Be( 0 );
+        Encoding.UTF8.GetString( buffer ).ShouldBe( "\"2019-08-0" );
+        reader.Read().ShouldBeFalse( "This buffer is too small: ReadMore will acquire a bigger buffer..." );
+        reader.BytesConsumed.ShouldBe( 0 );
         ReadMore( stream, ref buffer, ref reader );
-        reader.Read().Should().BeFalse( "This buffer is still too small..." );
+        reader.Read().ShouldBeFalse( "This buffer is still too small..." );
         ReadMore( stream, ref buffer, ref reader );
-        reader.Read().Should().BeTrue( "Got it." );
+        reader.Read().ShouldBeTrue( "Got it." );
 
         static void ReadMore( Stream stream, ref byte[] buffer, ref Utf8JsonReader reader )
         {
@@ -101,11 +101,11 @@ public partial class Utf8JsonStreamReaderTests
     {
         bool result;
         if( !reader.Read() ) context.ReadMoreData( ref reader );
-        reader.TokenType.Should().Be( JsonTokenType.StartObject );
+        reader.TokenType.ShouldBe( JsonTokenType.StartObject );
         if( !reader.Read() ) context.ReadMoreData( ref reader );
         for(; ; )
         {
-            reader.TokenType.Should().Be( JsonTokenType.PropertyName );
+            reader.TokenType.ShouldBe( JsonTokenType.PropertyName );
             if( reader.ValueTextEquals( "Done" ) )
             {
                 if( !reader.Read() ) context.ReadMoreData( ref reader );
@@ -135,7 +135,7 @@ public partial class Utf8JsonStreamReaderTests
             }
         }
         if( !reader.Read() ) context.ReadMoreData( ref reader );
-        reader.TokenType.Should().Be( JsonTokenType.EndObject );
+        reader.TokenType.ShouldBe( JsonTokenType.EndObject );
         return result;
     }
 
@@ -164,16 +164,16 @@ public partial class Utf8JsonStreamReaderTests
     {
         // leaveOpened is true by default.
         SlicedStream stream = CreateDataStream( mode, sampleJson );
-        using( var sr = Utf8JsonStreamReader.Create( stream, default, out var reader, initialBufferSize: initialBufferSize ) )
+        using( var sr = Utf8JsonStreamReaderContext.CreateStreamReader( stream, default, out var reader, initialBufferSize: initialBufferSize ) )
         {
-            ReadDoneProperty( ref reader, sr, skipWholeProperty ).Should().BeTrue();
+            ReadDoneProperty( ref reader, sr, skipWholeProperty ).ShouldBeTrue();
 
             // We cannot read more.
-            reader.Read().Should().BeFalse();
+            reader.Read().ShouldBeFalse();
             // But calling for more data can always be safely done.
             if( !reader.Read() ) sr.ReadMoreData( ref reader );
         }
-        stream.IsDisposed.Should().BeTrue();
+        stream.IsDisposed.ShouldBeTrue();
     }
 
     [TestCase( SlicedStream.ReadMode.OneByte, 0, true )]
@@ -198,12 +198,12 @@ public partial class Utf8JsonStreamReaderTests
         byte[] data = Utf8Bom.Concat( Encoding.UTF8.GetBytes( sampleJson ) ).ToArray();
 
         using SlicedStream stream = new SlicedStream( new MemoryStream( data ), mode );
-        using var sr = Utf8JsonStreamReader.Create( stream, default, out var reader, initialBufferSize: initialBufferSize );
+        using var sr = Utf8JsonStreamReaderContext.CreateStreamReader( stream, default, out var reader, initialBufferSize: initialBufferSize );
 
-        ReadDoneProperty( ref reader, sr, skipWholeProperty ).Should().BeTrue();
+        ReadDoneProperty( ref reader, sr, skipWholeProperty ).ShouldBeTrue();
 
         // We cannot read more.
-        reader.Read().Should().BeFalse();
+        reader.Read().ShouldBeFalse();
         // But calling for more data can always be safely done.
         if( !reader.Read() ) sr.ReadMoreData( ref reader );
     }
@@ -228,12 +228,12 @@ public partial class Utf8JsonStreamReaderTests
     {
         var data = sampleJson + "More bytes after...";
         using SlicedStream stream = CreateDataStream( mode, data );
-        using var sr = Utf8JsonStreamReader.Create( stream, default, out var reader, initialBufferSize: initialBufferSize );
+        using var sr = Utf8JsonStreamReaderContext.CreateStreamReader( stream, default, out var reader, initialBufferSize: initialBufferSize );
 
-        ReadDoneProperty( ref reader, sr, skipWholeProperty ).Should().BeTrue();
+        ReadDoneProperty( ref reader, sr, skipWholeProperty ).ShouldBeTrue();
 
         // We are on the closing brace.
-        reader.TokenType.Should().Be( JsonTokenType.EndObject );
+        reader.TokenType.ShouldBe( JsonTokenType.EndObject );
         // If we try to Read() more, this is an exception.
         try
         {
@@ -242,9 +242,9 @@ public partial class Utf8JsonStreamReaderTests
         }
         catch( JsonException ) { }
 
-        // The GetUnreadBytes can be called as long as the Utf8JsonStreamReader is not disposed.
+        // The GetUnreadBytes can be called as long as the Utf8JsonStreamReaderContext is not disposed.
         // Depending on the length read, the buffer can be small.
-        "More bytes after...".Should().StartWith( Encoding.UTF8.GetString( sr.GetUnreadBytes( ref reader ) ) );
+        "More bytes after...".ShouldStartWith( Encoding.UTF8.GetString( sr.GetUnreadBytes( ref reader ) ) );
     }
 
 
