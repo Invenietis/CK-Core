@@ -1,5 +1,4 @@
 using CommunityToolkit.HighPerformance;
-using Microsoft.IO;
 using System;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
@@ -17,7 +16,7 @@ public static class SimpleSerializable
     /// Serializes a <see cref="ICKSimpleBinarySerializable"/> as a byte array.
     /// </summary>
     /// <param name="this">This object.</param>
-    /// <returns>The serialized object.</returns>
+    /// <returns>The serialized bytes.</returns>
     public static byte[] SerializeSimple( this ICKSimpleBinarySerializable @this )
     {
         Throw.CheckNotNullArgument( @this );
@@ -34,8 +33,8 @@ public static class SimpleSerializable
     /// Serializes a <see cref="ICKVersionedBinarySerializable"/> as a byte array.
     /// </summary>
     /// <param name="this">This object.</param>
-    /// <returns>The serialized object.</returns>
-    public static byte[] SerializeVersioned( this ICKVersionedBinarySerializable @this )
+    /// <returns>The serialized bytes.</returns>
+    public static Memory<byte> SerializeVersioned( this ICKVersionedBinarySerializable @this )
     {
         Throw.CheckNotNullArgument( @this );
         using( var s = Util.RecyclableStreamManager.GetStream() )
@@ -44,7 +43,7 @@ public static class SimpleSerializable
             w.WriteNonNegativeSmallInt32( SerializationVersionAttribute.GetRequiredVersion( @this.GetType() ) );
             @this.WriteData( w );
             w.Flush();
-            return s.ToArray();
+            return s.GetBuffer().AsMemory( 0, (int)s.Length );
         }
     }
 
@@ -191,15 +190,29 @@ public static class SimpleSerializable
     {
         if( o1 == null ) return o2 == null;
         if( o2 == null ) return false;
-        using( var s = (RecyclableMemoryStream)Util.RecyclableStreamManager.GetStream() )
+        return DeepEqualsSimple( o1.Write, o2.Write );
+    }
+
+    /// <summary>
+    /// Tests whether 2 writes produce the same data.
+    /// </summary>
+    /// <typeparam name="T">The object's type.</typeparam>
+    /// <param name="w1">The first writer.</param>
+    /// <param name="w2">The second writer.</param>
+    /// <returns>True if the 2 writes produced the same data, false otherwise.</returns>
+    public static bool DeepEqualsSimple( Action<ICKBinaryWriter> w1, Action<ICKBinaryWriter> w2 )
+    {
+        Throw.CheckNotNullArgument( w1 );
+        Throw.CheckNotNullArgument( w2 );
+        using( var s = Util.RecyclableStreamManager.GetStream() )
         using( var w = new CKBinaryWriter( s, Encoding.UTF8, true ) )
         {
-            o1.Write( w );
+            w1( w );
             w.Flush();
             using( var checker = CheckedWriteStream.Create( s ) )
             using( var wChecker = new CKBinaryWriter( checker, Encoding.UTF8, true ) )
             {
-                o2.Write( wChecker );
+                w2( wChecker );
                 return checker.GetResult() == CheckedWriteStream.Result.None;
             }
         }
@@ -220,18 +233,7 @@ public static class SimpleSerializable
         if( o2 == null ) return false;
         if( typeof( T ) != o1.GetType() ) Throw.ArgumentException( $"Type parameter '{typeof( T )}' must be the same as the runtime type '{o1.GetType()}'." );
         if( typeof( T ) != o2.GetType() ) Throw.ArgumentException( $"Type parameter '{typeof( T )}' must be the same as the runtime type '{o2.GetType()}'." );
-        using( var s = (RecyclableMemoryStream)Util.RecyclableStreamManager.GetStream() )
-        using( var w = new CKBinaryWriter( s, Encoding.UTF8, true ) )
-        {
-            o1.WriteData( w );
-            w.Flush();
-            using( var checker = CheckedWriteStream.Create( s ) )
-            using( var wChecker = new CKBinaryWriter( checker, Encoding.UTF8, true ) )
-            {
-                o2.WriteData( wChecker );
-                return checker.GetResult() == CheckedWriteStream.Result.None;
-            }
-        }
+        return DeepEqualsSimple( o1.WriteData, o2.WriteData );
     }
 
 
