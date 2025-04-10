@@ -24,7 +24,7 @@ public class CheckedWriteStreamTests
     public void longer_than_reference_bytes( int initialLength )
     {
         var content = Enumerable.Range( 0, initialLength ).Select( i => (byte)i ).ToArray();
-        var checker = CheckedWriteStream.Create( new ReadOnlySequence<byte>( content ) );
+        using var checker = CheckedWriteStream.Create( new ReadOnlySequence<byte>( content ) );
         checker.Write( content );
         checker.GetResult().ShouldBe( CheckedWriteStream.Result.None );
         if( initialLength > 0 )
@@ -42,7 +42,7 @@ public class CheckedWriteStreamTests
     public void shorter_than_reference_bytes( int initialLength )
     {
         var content = Enumerable.Range( 0, initialLength ).Select( i => (byte)i ).ToArray();
-        var checker = CheckedWriteStream.Create( new ReadOnlySequence<byte>( content ) );
+        using var checker = CheckedWriteStream.Create( new ReadOnlySequence<byte>( content ) );
         checker.Write( content, 0, content.Length - 1 );
         checker.GetResult().ShouldBe( CheckedWriteStream.Result.ShorterThanRefBytes );
         checker.Write( content, content.Length - 1, 1 );
@@ -55,7 +55,7 @@ public class CheckedWriteStreamTests
     public void byte_differs( int initialLength )
     {
         var content = Enumerable.Range( 0, initialLength ).Select( i => (byte)i ).ToArray();
-        var checker = CheckedWriteStream.Create( new ReadOnlySequence<byte>( content ) );
+        using var checker = CheckedWriteStream.Create( new ReadOnlySequence<byte>( content ) );
         int idx = Random.Shared.Next( initialLength );
         var modified = content.ToArray();
         modified[idx] = (byte)(idx + 1);
@@ -68,7 +68,7 @@ public class CheckedWriteStreamTests
     public void ThrowArgumentException_on_longer_than_reference_bytes()
     {
         var content = Enumerable.Range( 0, 100 ).Select( i => (byte)i ).ToArray();
-        var checker = CheckedWriteStream.Create( new ReadOnlySequence<byte>( content ) );
+        using var checker = CheckedWriteStream.Create( new ReadOnlySequence<byte>( content ) );
         checker.ThrowArgumentException = true;
         checker.Write( content );
         checker.GetResult().ShouldBe( CheckedWriteStream.Result.None );
@@ -79,7 +79,7 @@ public class CheckedWriteStreamTests
     public void ThrowArgumentException_on_shorter_than_reference_bytes()
     {
         var content = Enumerable.Range( 0, 100 ).Select( i => (byte)i ).ToArray();
-        var checker = CheckedWriteStream.Create( new ReadOnlySequence<byte>( content ) );
+        using var checker = CheckedWriteStream.Create( new ReadOnlySequence<byte>( content ) );
         checker.ThrowArgumentException = true;
         checker.Write( content, 0, content.Length - 1 );
         Util.Invokable( () => checker.GetResult() ).ShouldThrow<ArgumentException>();
@@ -91,7 +91,7 @@ public class CheckedWriteStreamTests
     public void ThrowArgumentException_on_byte_differs( int initialLength )
     {
         var content = Enumerable.Range( 0, initialLength ).Select( i => (byte)i ).ToArray();
-        var checker = CheckedWriteStream.Create( new ReadOnlySequence<byte>( content ) );
+        using var checker = CheckedWriteStream.Create( new ReadOnlySequence<byte>( content ) );
         checker.ThrowArgumentException = true;
         int idx = Random.Shared.Next( initialLength );
         var modified = content.ToArray();
